@@ -1,0 +1,5 @@
+.authForm {
+  width: clamp( 20rem, 17.85234899328859rem + 10.738255033557047vw, 28rem );
+  width: clamp( 20rem, 13.6rem + 32vw, 28rem );
+  /* color: bl; */
+}
