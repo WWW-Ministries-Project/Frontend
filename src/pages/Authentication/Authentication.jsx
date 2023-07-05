@@ -1,8 +1,12 @@
 import { useState } from "react";
 import LoginPage from "./pages/Login/LoginPage";
+import ForgotPassword from "./pages/Login/ForgotPassword";
+import NotificationCard from "./components/NotificationCard";
+import MailSent from "./components/MailSent";
+import PasswordSet from "./components/PasswordSet";
 
 const Authentication = () => {
-  const [response, setResponse] = useState({ });
+  const [response, setResponse] = useState({});
   const [error, setError] = useState({});
   const [inputValue, setInputValue] = useState({});
 
@@ -15,7 +19,7 @@ const Authentication = () => {
   };
 
   function handleInputChange(e) {
-    setResponse({})
+    setResponse({});
     const name = e.target.name;
     setInputValue((prev) => ({ ...prev, [name]: e.target.value }));
     // to remove error msg
@@ -31,7 +35,7 @@ const Authentication = () => {
       return validateEmail(inputValue.email);
     }
     if (name == "password") {
-      return inputValue.password?.length >0;
+      return inputValue.password?.length > 0;
     }
     return false;
   }
@@ -42,27 +46,40 @@ const Authentication = () => {
     setError((prev) => ({ ...prev, [name]: !isValid }));
     !isValid && e.target.setCustomValidity("Invalid format");
     console.log(e.target, "tag");
-    console.log(error,'err',validate(name));
+    console.log(error, "err", validate(name));
   }
 
   function handleSubmit(e) {
+    console.log('handled')
     e.preventDefault();
-    if(!inputValue.email|| inputValue?.password?.length<1){
-        setError(prev=>({...prev,status:true}))
-    }
+    // if (!inputValue.email ) {
+      setError((prev) => ({ ...prev, status: true }));
+      console.log('reached');
+    // }
     console.log(inputValue);
+    console.log(error);
   }
 
   return (
     <>
-      <LoginPage
+      {/* <LoginPage
         inputValue={inputValue}
         error={error}
         handleSubmit={handleSubmit}
         response={response}
         onChange={handleInputChange}
         onBlur={handleBlur}
-      />
+      /> */}
+      {/* <ForgotPassword
+        inputValue={inputValue}
+        error={error}
+        handleSubmit={handleSubmit}
+        response={response}
+        onChange={handleInputChange}
+        onBlur={handleBlur}
+      /> */}
+      {/* <MailSent/>  */}
+      <PasswordSet/>
     </>
   );
 };
