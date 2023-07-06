@@ -4,6 +4,7 @@ import ForgotPassword from "./pages/Login/ForgotPassword";
 import NotificationCard from "./components/NotificationCard";
 import MailSent from "./components/MailSent";
 import PasswordSet from "./components/PasswordSet";
+import { Routes, Route } from "react-router-dom";
 
 const Authentication = () => {
   const [response, setResponse] = useState({});
@@ -50,11 +51,11 @@ const Authentication = () => {
   }
 
   function handleSubmit(e) {
-    console.log('handled')
+    console.log("handled");
     e.preventDefault();
     // if (!inputValue.email ) {
-      setError((prev) => ({ ...prev, status: true }));
-      console.log('reached');
+    setError((prev) => ({ ...prev, status: true }));
+    console.log("reached");
     // }
     console.log(inputValue);
     console.log(error);
@@ -62,24 +63,38 @@ const Authentication = () => {
 
   return (
     <>
-      {/* <LoginPage
-        inputValue={inputValue}
-        error={error}
-        handleSubmit={handleSubmit}
-        response={response}
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-      /> */}
-      {/* <ForgotPassword
-        inputValue={inputValue}
-        error={error}
-        handleSubmit={handleSubmit}
-        response={response}
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-      /> */}
+      <Routes>
+        <Route path="/" element={<PasswordSet />} />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              inputValue={inputValue}
+              error={error}
+              handleSubmit={handleSubmit}
+              response={response}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+            />
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <ForgotPassword
+              inputValue={inputValue}
+              error={error}
+              handleSubmit={handleSubmit}
+              response={response}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+            />
+          }
+        />
+      </Routes>
+      {/*  */}
+      {/*  */}
       {/* <MailSent/>  */}
-      <PasswordSet/>
     </>
   );
 };

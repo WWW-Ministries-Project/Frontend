@@ -4,6 +4,7 @@ import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
 function LoginPage(props) {
   return (
@@ -57,12 +58,12 @@ function LoginPage(props) {
           />
           <div>
             <div className="text-mainGray">
-              Forgot Password <span className="text-wwmBlue">Reset</span>
+              Forgot Password <Link to='../forgot-password' className="text-wwmBlue cursor-pointer">Reset</Link>
             </div>
-            <div className="text-mainGray">
+            {/* <div className="text-mainGray">
               Don't have an account{" "}
-              <span className="text-wwmBlue">Register</span>
-            </div>
+              <span className="text-wwmBlue cursor-pointer">Register</span>
+            </div> */}
           </div>
 
           {/* </div> */}

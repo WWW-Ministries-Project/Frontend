@@ -3,6 +3,7 @@ import Input from "../../../../components/Input";
 import PropTypes from "prop-types";
 import Button from "../../../../components/Button";
 import OuterDiv from "../../components/OuterDiv";
+import { Link } from "react-router-dom";
 
 const ForgotPassword = (props) => {
   return (
@@ -31,17 +32,15 @@ const ForgotPassword = (props) => {
             className="my-4 !p-0"
           />
           <Button
-          value={"Send password reset email"}
-          onClick={props.handleSubmit}
-          className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
-        />
-        <div className=" mx-auto">
-          <div className="text-mainGray text-center">
-            Return to login
+            value={"Send password reset email"}
+            onClick={props.handleSubmit}
+            className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
+          />
+          <div className=" mx-auto">
+            <div className="text-mainGray text-center"><Link to="../login">Return to login</Link> </div>
           </div>
-        </div>
         </AuthenticationForm>
-        </OuterDiv>
+      </OuterDiv>
     </>
   );
 };
