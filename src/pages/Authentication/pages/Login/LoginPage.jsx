@@ -1,20 +1,52 @@
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import Button from "../../../../components/Button";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
-import PropTypes from "prop-types";
+import { validate } from "../../utils/helpers";
 
 function LoginPage(props) {
+  const [loginValues, setLoginValues] = useState("");
+  const [response, setResponse] = useState({});
+  const [error, setError] = useState({});
+  function handleSubmit(e) {
+    e.preventDefault();
+    console.log("submitted");
+  }
+
+  function handleBlur(e) {
+    const name = e.target.name;
+    const isValid = validate(name, loginValues);
+    setError((prev) => ({ ...prev, [name]: !isValid }));
+    !isValid && e.target.setCustomValidity("Invalid format");
+    console.log(e.target, "tag");
+    console.log(error, "err", validate(name, loginValues));
+  }
+
+  function handleInputChange(e) {
+    setResponse({});
+    const name = e.target.name;
+    setLoginValues((prev) => ({ ...prev, [name]: e.target.value }));
+    // to remove error msg
+    if (error[name]) {
+      if (validate(name, loginValues)) {
+        setError((prev) => ({ ...prev, [name]: false }));
+        e.target.setCustomValidity("");
+      }
+    }
+  }
   return (
     <>
       <OuterDiv>
         <AuthenticationForm
-          response={props.response}
+          response={response}
           header={"Welcome!"}
           text={"Login to your account to continue."}
           buttonValue={"Login"}
-          handleSubmit={props.handleSubmit}>
+          handleSubmit={handleSubmit}>
           {/* <div className="gap-4"> */}
 
           <Input
@@ -22,13 +54,13 @@ function LoginPage(props) {
             type="email "
             id="mail"
             name="email"
-            value={props.inputValue.email}
-            isRequired={props.error.status && !props.inputValue.email}
-            onChange={props.onChange}
-            onBlur={props.onBlur}
+            value={loginValues.email}
+            isRequired={error.status && !loginValues.email}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
             placeholder={"Enter Email Address"}
             inputClass={
-              props.error.status
+              error.status
                 ? " h-8 rounded-md px-4 mt-2 border-error"
                 : " h-8 rounded-md px-4 mt-2"
             }
@@ -38,13 +70,13 @@ function LoginPage(props) {
             label="Password"
             id="password"
             name="password"
-            value={props.inputValue.password}
-            isRequired={props.error.status && !props.inputValue.password}
-            onChange={props.onChange}
-            onBlur={props.onBlur}
+            value={loginValues.password}
+            isRequired={error.status && !loginValues.password}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
             placeholder={"Password"}
             inputClass={
-              props.error.status
+              error.status
                 ? " h-8 rounded-md px-4 mt-2 border-error"
                 : " h-8 rounded-md px-4 mt-2"
             }
@@ -52,12 +84,12 @@ function LoginPage(props) {
           />
           <Button
             value={"Login"}
-            onClick={props.handleSubmit}
+            onClick={handleSubmit}
             className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
           />
           <div>
             <div className="text-mainGray">
-              Forgot Password <span className="text-wwmBlue">Reset</span>
+              Forgot Password <Link to="/forgot-password" className="text-wwmBlue">Reset</Link>
             </div>
             <div className="text-mainGray">
               Don't have an account{" "}
@@ -73,11 +105,7 @@ function LoginPage(props) {
 }
 
 LoginPage.propTypes = {
-  inputValue: PropTypes.object,
   error: PropTypes.object,
-  onChange: PropTypes.func.isRequired,
-  onBlur: PropTypes.func,
-  handleSubmit: PropTypes.func.isRequired,
 };
 
 export default LoginPage;
