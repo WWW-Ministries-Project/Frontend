@@ -1,6 +1,7 @@
 import React from "react";
 import Input from "./Input";
 import PropTypes from "prop-types";
+import Alert from "../pages/Authentication/components/Alerts";
 
 const InputPassword = (props) => {
   function handleClick(e) {
@@ -20,7 +21,7 @@ const InputPassword = (props) => {
           type="password"
           inputClass={props.inputClass}
           className={props.className}
-          placeholder={" Password"}
+          placeholder={props.placeholder}
           id={props.id}
           isRequired={props.isRequired}
           name={props.name}
@@ -43,6 +44,7 @@ const InputPassword = (props) => {
           onClick={handleClick}>
           Show
         </span>
+        {props.name == 'password2' && !props.samePassword ? <Alert text="passwords do not match" /> : null}
       </div>
     </>
   );
@@ -54,6 +56,7 @@ InputPassword.propTypes = {
   label: PropTypes.string,
   pattern: PropTypes.string,
   isRequired: PropTypes.bool,
+  samePassword: PropTypes.bool,
   id: PropTypes.string.isRequired,
   handleChange: PropTypes.func,
   inputClass: PropTypes.string,
