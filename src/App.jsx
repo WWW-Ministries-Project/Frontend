@@ -1,10 +1,10 @@
 import "./App.css";
-import Authentication from "./pages/Authentication/Authentication";
+// import Authentication from "./pages/Authentication/Authentication";
 
 function App() {
   return (
     <>
-    <Authentication />
+    {/* <Authentication /> */}
     </>
   );
 }

@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
 const NotificationCard = (props) => {
   return (
@@ -14,7 +15,7 @@ const NotificationCard = (props) => {
               <div className="text-center text-wwwGrey mb-8">
                 {props.text}
               </div>
-              {props.bottomText ? <div className="text-center">{props.bottomText}</div> : null}
+              {props.bottomText ? <div className="text-center"><Link to={props.link}>{props.bottomText}</Link></div> : null}
             </div>
           </div>
         </div>
@@ -30,6 +31,7 @@ NotificationCard.propTypes = {
       src: PropTypes.string,
       bottomText: PropTypes.string,
       className: PropTypes.string,
+      link: PropTypes.string,
       
     };
 

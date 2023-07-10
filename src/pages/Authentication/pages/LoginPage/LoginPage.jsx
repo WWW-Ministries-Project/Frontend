@@ -7,14 +7,24 @@ import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
 import { validate } from "../../utils/helpers";
+import { baseUrl } from "../../utils/helpers";
+import axios from "axios";
 
 function LoginPage(props) {
-  const [loginValues, setLoginValues] = useState("");
+  const [loginValues, setLoginValues] = useState({  });
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
   function handleSubmit(e) {
     e.preventDefault();
-    console.log("submitted");
+    (async () => {
+      try {
+        const endpoint = baseUrl + "/user/login";
+        const response = await axios.post(endpoint, loginValues);
+        console.log(response,'res')
+      } catch (error) {
+        console.log(error, "error");
+      }
+    })();
   }
 
   function handleBlur(e) {
@@ -22,8 +32,8 @@ function LoginPage(props) {
     const isValid = validate(name, loginValues);
     setError((prev) => ({ ...prev, [name]: !isValid }));
     !isValid && e.target.setCustomValidity("Invalid format");
-    console.log(e.target, "tag");
-    console.log(error, "err", validate(name, loginValues));
+    // console.log(e.target, "tag");
+    // console.log(error, "err", validate(name, loginValues));
   }
 
   function handleInputChange(e) {
@@ -45,8 +55,7 @@ function LoginPage(props) {
           response={response}
           header={"Welcome!"}
           text={"Login to your account to continue."}
-          buttonValue={"Login"}
-          handleSubmit={handleSubmit}>
+          buttonValue={"Login"}>
           {/* <div className="gap-4"> */}
 
           <Input
@@ -89,7 +98,10 @@ function LoginPage(props) {
           />
           <div>
             <div className="text-mainGray">
-              Forgot Password <Link to="/forgot-password" className="text-wwmBlue">Reset</Link>
+              Forgot Password{" "}
+              <Link to="/forgot-password" className="text-wwmBlue">
+                Reset
+              </Link>
             </div>
             <div className="text-mainGray">
               Don't have an account{" "}

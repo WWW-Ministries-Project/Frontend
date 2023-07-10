@@ -13,5 +13,13 @@ export function validate(name,inputValue) {
     if (name == "password") {
       return inputValue.password?.length > 0;
     }
+    if (name == "password1") {
+      return inputValue.password1?.length > 0;
+    }
+    if (name == "password2") {
+      return inputValue.password2?.length > 0;
+    }
     return false;
   }
+
+export const baseUrl='https://wwwministries.onrender.com';
