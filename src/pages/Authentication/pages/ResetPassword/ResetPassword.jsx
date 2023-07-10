@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation} from "react-router-dom";
 import Button from "../../../../components/Button";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
@@ -16,16 +16,17 @@ function ResetPassword() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get("token");
+  const id = searchParams.get("id");
   function handleSubmit(e) {
     e.preventDefault();
     if (passwordValues.password2 && samePassword) {
-      const body = { newpassword: passwordValues.password1, token };
+      const body = { newpassword: passwordValues.password1, token, id };
       console.log(body, "token");
       (async () => {
         try {
           const endpoint = baseUrl + "/user/change-password";
           const response = await axios.post(endpoint, body);
-          console.log(response, "res");
+          setResponse(response);
         } catch (error) {
           console.log(error, "error");
         }

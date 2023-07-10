@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../../components/Button";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
@@ -10,17 +10,18 @@ import { validate } from "../../utils/helpers";
 import { baseUrl } from "../../utils/helpers";
 import axios from "axios";
 
-function LoginPage(props) {
+function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
+  const navigate=useNavigate();
   function handleSubmit(e) {
     e.preventDefault();
     (async () => {
       try {
         const endpoint = baseUrl + "/user/login";
         const response = await axios.post(endpoint, loginValues);
-        console.log(response,'res')
+        response.status == 200 && navigate('/home')
       } catch (error) {
         console.log(error, "error");
       }
