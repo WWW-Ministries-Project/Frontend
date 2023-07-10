@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import LoginPage from "./pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ForgotPassword from "./pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
+import HomePage from "./pages/Home/HomePage.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 
@@ -27,6 +28,11 @@ const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <ResetPassword />,
+    // errorElement: <ErrorPage/>
+  },  
+  {
+    path: "/home",
+    element: <HomePage />,
     // errorElement: <ErrorPage/>
   },  
 ]);
