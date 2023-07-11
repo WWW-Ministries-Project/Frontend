@@ -21,10 +21,11 @@ function ResetPassword() {
     e.preventDefault();
     if (passwordValues.password2 && samePassword) {
       const body = { newpassword: passwordValues.password1, token, id };
-      console.log(body, "token");
+      console.log(token, "token");
+      console.log(id, "id");
       (async () => {
         try {
-          const endpoint = baseUrl + "/user/change-password";
+          const endpoint = baseUrl + "/user/reset-password";
           const response = await axios.post(endpoint, body);
           setResponse(response);
         } catch (error) {
@@ -43,7 +44,7 @@ function ResetPassword() {
     // console.log(error, name, "err", validate(name, passwordValues));
 
     //checks if confirm password is already populated and then checks passwords equality if it is
-    if (passwordValues.password2) checkPassword();
+    // if (passwordValues.password2) checkPassword(e);
   }
   function checkPassword(e) {
     if (passwordValues.password1 === passwordValues.password2) {
