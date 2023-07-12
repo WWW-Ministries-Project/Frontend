@@ -8,11 +8,12 @@ import ResetPassword from "./pages/Authentication/pages/ResetPassword/ResetPassw
 import HomePage from "./pages/Home/HomePage.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
+import DashBoard from "./pages/Authentication/pages/DashBoard/DashBoard.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <HomePage />,
     errorElement: <ErrorPage/>
   },
   {
@@ -31,8 +32,8 @@ const router = createBrowserRouter([
     // errorElement: <ErrorPage/>
   },  
   {
-    path: "/home",
-    element: <HomePage />,
+    path: "/dashboard",
+    element: <DashBoard />,
     // errorElement: <ErrorPage/>
   },  
 ]);
