@@ -1,4 +1,8 @@
 import SideBar from "../HomePage/Components/SideBar";
+import search from "/src/assets/search.svg";
+import profilePic from "/src/assets/images/profilePic.png";
+import bell from "/src/assets/bell.svg";
+import arrowDown from "/src/assets/down.svg";
 
 function DashBoard() {
   return (
@@ -14,17 +18,17 @@ function DashBoard() {
         </div>
         <div className="w-[40.9%] bg-[#F4FAF7F7] rounded-md py-1 opacity-50 ">
           <form className="w-full text-wwwGrey2 flex items-center  px-2 text-sm font-normal leading-6">
-            <img role="submit button" src="/src/assets/search.svg" alt="search"  className="inline mr-2"/>
+            <img role="submit button" src={search} alt="search"  className="inline mr-2"/>
               
             <input type="text" placeholder="Search here" name="search" className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2" />
           </form>
         </div>
         <div className="w-[246px] flex justify-between items-center">
-            <img src="/src/assets/bell.svg" alt="" />
+            <img src={bell} alt="" />
             {/* <div> */}
-                <img src="/src/assets/images/profilePic.png" alt="profile pic" />
+                <img src={profilePic} alt="profile pic" />
                 <span>Apostle Chris</span>
-                <img src="/src/assets/down.svg" alt="arrow down" />
+                <img src={arrowDown} alt="arrow down" />
             {/* </div> */}
         </div>
       </header>
