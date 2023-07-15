@@ -21,7 +21,7 @@ function LoginPage() {
       try {
         const endpoint = baseUrl + "/user/login";
         const response = await axios.post(endpoint, loginValues);
-        response.status == 200 && navigate('/home')
+        response.status == 200 && navigate('/dashboard')
       } catch (error) {
         console.log(error, "error");
       }
@@ -34,7 +34,7 @@ function LoginPage() {
     setError((prev) => ({ ...prev, [name]: !isValid }));
     !isValid && e.target.setCustomValidity("Invalid format");
     // console.log(e.target, "tag");
-    // console.log(error, "err", validate(name, loginValues));
+    console.log(error, "err", validate(name, loginValues));
   }
 
   function handleInputChange(e) {

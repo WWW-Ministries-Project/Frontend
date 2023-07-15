@@ -13,6 +13,7 @@ export default {
         wwwGrey: "#62626A",
         errorBG: '#FBEAE6',
         error: '#DE7965',
+        wwwGrey2:'#6B7B8A',
       }
     },
   },
