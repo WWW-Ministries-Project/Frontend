@@ -10,6 +10,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import DashBoard from "./pages/DashBoard/DashBoard.jsx";
 import HomePage from "./pages/HomePage/HomePage.jsx";
+import UnderConstruction from "./pages/UnderConstruction/UnderConstruction.jsx";
 
 const router = createBrowserRouter([
   {
@@ -33,13 +34,21 @@ const router = createBrowserRouter([
     
   },  
   {
-    path: "/dashboard",
+    path: "/home",
     element: <HomePage />,
     children: [
       {
         path: "",
         element: <DashBoard />,
-      }
+      },
+      {
+        path: "dashboard",
+        element: <DashBoard />,
+      },
+      {
+        path: "*",
+        element: <UnderConstruction />,
+      },
     ]
     
   },  
