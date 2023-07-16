@@ -7,4 +7,22 @@
 * {
   box-sizing: border-box;
 }
+body {
+  scrollbar-width: 0.1px;
+  scrollbar-color: inherit inherit;
+}
+
+body::-webkit-scrollbar {
+  width: 0.1px; /* Adjust the width as needed */
+  background-color: inherit;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: inherit;
+}
+
+body::-webkit-scrollbar-track {
+  background-color: inherit;
+}
+
 

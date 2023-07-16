@@ -1,4 +1,5 @@
 import StatsCard from "../HomePage/Components/StatsCard";
+import BreakdownComponents from "./Components/BreakdownComponents";
 
 function DashBoard() {
   const stats = [
@@ -12,6 +13,9 @@ function DashBoard() {
           {stats.map((stat) => (
             <StatsCard stats={stat} />
           ))}
+        </section>
+        <section>
+          <BreakdownComponents />
         </section>
       </main>
   );
