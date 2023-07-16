@@ -5,36 +5,43 @@ import App from "./App.jsx";
 import LoginPage from "./pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ForgotPassword from "./pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
-import HomePage from "./pages/Home/HomePage.jsx";
+import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
-import DashBoard from "./pages/Authentication/pages/DashBoard/DashBoard.jsx";
+import DashBoard from "./pages/DashBoard/DashBoard.jsx";
+import HomePage from "./pages/HomePage/HomePage.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <LandingPage />,
     errorElement: <ErrorPage/>
   },
   {
     path: "/login",
     element: <LoginPage />,
-    // errorElement: <ErrorPage/>
+    
   },
   {
     path: "/forgot-password",
     element: <ForgotPassword />,
-    // errorElement: <ErrorPage/>
+    
   },  
   {
     path: "/reset-password",
     element: <ResetPassword />,
-    // errorElement: <ErrorPage/>
+    
   },  
   {
     path: "/dashboard",
-    element: <DashBoard />,
-    // errorElement: <ErrorPage/>
+    element: <HomePage />,
+    children: [
+      {
+        path: "",
+        element: <DashBoard />,
+      }
+    ]
+    
   },  
 ]);
 
