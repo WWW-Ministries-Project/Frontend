@@ -6,6 +6,7 @@
 }
 * {
   box-sizing: border-box;
+  font-family: 'Rubik', 'Roboto', 'Arial', sans-serif;
 }
 body {
   scrollbar-width: 0.1px;

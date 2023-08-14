@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../../components/Button";
 import Input from "../../../../components/Input";
@@ -14,9 +14,13 @@ function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
+
   const navigate=useNavigate();
   function handleSubmit(e) {
     e.preventDefault();
+    if (error.email){
+
+    }
     (async () => {
       try {
         const endpoint = baseUrl + "/user/login";
@@ -54,7 +58,7 @@ function LoginPage() {
       <OuterDiv>
         <AuthenticationForm
           response={response}
-          header={"Welcome!"}
+          header={"Welcome back!"}
           text={"Login to your account to continue."}
           buttonValue={"Login"}>
           {/* <div className="gap-4"> */}
@@ -68,7 +72,7 @@ function LoginPage() {
             isRequired={error.status && !loginValues.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            placeholder={"Enter Email Address"}
+            placeholder={"Enter email address"}
             inputClass={
               error.status
                 ? " h-8 rounded-md px-4 mt-2 border-error"
@@ -84,7 +88,7 @@ function LoginPage() {
             isRequired={error.status && !loginValues.password}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            placeholder={"Password"}
+            placeholder={"Enter password"}
             inputClass={
               error.status
                 ? " h-8 rounded-md px-4 mt-2 border-error"
@@ -97,16 +101,16 @@ function LoginPage() {
             onClick={handleSubmit}
             className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
           />
-          <div>
-            <div className="text-mainGray">
-              Forgot Password{" "}
-              <Link to="/forgot-password" className="text-wwmBlue">
+          <div className="text-lightGray text-sm">
+            <div className="mb-4">
+              Forgot Password?{" "}
+              <Link to="/forgot-password" className="text-primaryViolet">
                 Reset
               </Link>
             </div>
-            <div className="text-mainGray">
-              Don't have an account{" "}
-              <span className="text-wwmBlue">Register</span>
+            <div className="">
+              Don't have an account?{" "}
+              <span className="text-primaryViolet">Register</span>
             </div>
           </div>
 

@@ -1,18 +1,20 @@
 // import React from "react";
 import PropTypes from "prop-types";
+import { useRef } from "react";
 
 const Input = (props) => {
+  const emailInputRef = useRef();
   return (
     <div className={"inputBox bg-white rounded-lg W px-5 " + props.className}>
       <label
-        className="font-light text-left text-fontGrayW p-2 text-sm "
+        className="font-light text-left text-gray p-2 text-xs "
         htmlFor={props.id}>
         {props.label}
       </label>
       <br />
       <input
         className={
-          "w-[98%] border border-inherit focus:border focus:outline-none invalid:border-error " +
+          "w-[98%] border border-bgWhite rounded-md focus:border focus:outline-none invalid:border-error placeholder:text-lightGray placeholder:text-xs placeholder:opacity-80 " +
           props.inputClass
         }
         type={props.type}
@@ -23,6 +25,7 @@ const Input = (props) => {
         onChange={props.onChange}
         onBlur={props.onBlur}
         placeholder={props.placeholder}
+        ref={emailInputRef}
       />
       <br />
       {props.isRequired ? (

@@ -15,6 +15,10 @@ export default {
         errorBG: '#FBEAE6',
         error: '#DE7965',
         wwwGrey2: '#6B7B8A',
+        dark900: '#14092C',
+        gray: "#786D8F",
+        bgWhite: "#F9F9F9",
+        lightGray:"#C7C2D3",
       }
     },
     fontFamily: {

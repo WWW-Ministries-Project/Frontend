@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const  Button = (props)=> {
     return (
         <>
-            <button className={"leading-5 rounded bg-bgBlue text-center text-black  " + props.className} style={props.style} onClick={props.onClick} >{props.value}  </button>
+            <button className={"leading-5 rounded-md bg-primaryViolet text-center text-black  " + props.className} style={props.style} onClick={props.onClick} role='submit button'>{props.value}  </button>
         </>
     )
 };

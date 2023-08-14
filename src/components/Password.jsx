@@ -34,13 +34,13 @@ const InputPassword = (props) => {
         {/* <i className="fas fa-eye-slash absolute top-6 right-2 text-fontGrayW hidden" onClick={handleClick} ></i>
                     <i className="fas fa-eye absolute top-6 right-2 text-fontGrayW" onClick={handleClick} ></i> */}
         <span
-          className="fas fa-eye-slash absolute top-9 right-[5%] text-fontGrayW text-sm hidden cursor-pointer"
+          className="fas fa-eye-slash absolute top-10 right-[5%] text-lightGray text-xs hidden cursor-pointer" role="hide password"
           onClick={handleClick}>
           {" "}
           Hide
         </span>
         <span
-          className="fas fa-eye absolute top-9 right-[5%] text-fontGrayW text-sm cursor-pointer"
+          className="fas fa-eye absolute top-10 right-[5%] text-lightGray text-xs cursor-pointer"
           onClick={handleClick}>
           Show
         </span>

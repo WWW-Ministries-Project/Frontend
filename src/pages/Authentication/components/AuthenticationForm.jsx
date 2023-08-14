@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import ChurchLogo from "./ChurchLogo";
 
 const AuthenticationForm = (props) => {
 
@@ -9,19 +10,9 @@ const AuthenticationForm = (props) => {
         <form>
           <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primaryViolet">
             <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">
-              <div className="flex items-center justify-center mb-10">
-                <div className="w-[90px]">
-                  <img src="/logo/main-logo.svg" alt="logo" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[#080808] text-bold">
-                    Worldwide Word
-                  </span>
-                  <span className="text-black">MINISTRIES</span>
-                </div>
-              </div>
-              <div className="flex justify-center ">{props.header}</div>
-              <div className="text-center text-sm">{props.text}</div>
+              <ChurchLogo className={' mb-5'} />
+              <div className="flex justify-center text-dark900 text-2xl mb-2">{props.header}</div>
+              <div className="text-center text-sm text-gray">{props.text}</div>
               <div className="gap-4">
                 {props.response.status === 401 ? (
                   <Alert
@@ -49,11 +40,6 @@ AuthenticationForm.propTypes = {
   response: PropTypes.object,
   header: PropTypes.string,
   text: PropTypes.string,
-//   buttonValue: PropTypes.string,
-  // error: PropTypes.object,
-  // onChange: PropTypes.func.isRequired,
-  // onBlur: PropTypes.func,
-  // handleSubmit: PropTypes.func.isRequired,
 };
 
 export default AuthenticationForm;
