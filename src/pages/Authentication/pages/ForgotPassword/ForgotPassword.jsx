@@ -88,7 +88,7 @@ const ForgotPassword = () => {
               className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
             />
             <div className=" mx-auto">
-              <div className="text-mainGray text-center">
+              <div className="text-gray text-center text-sma">
                 <Link to="/login">Return to login</Link>
               </div>
             </div>

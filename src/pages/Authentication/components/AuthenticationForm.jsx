@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import ChurchLogo from "./ChurchLogo";
+import Alert from "./Alerts";
 
 const AuthenticationForm = (props) => {
 
@@ -12,17 +13,17 @@ const AuthenticationForm = (props) => {
             <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">
               <ChurchLogo className={' mb-5'} />
               <div className="flex justify-center text-dark900 text-2xl mb-2">{props.header}</div>
-              <div className="text-center text-sm text-gray">{props.text}</div>
+              <div className="text-center text-sma text-gray">{props.text}</div>
               <div className="gap-4">
                 {props.response.status === 401 ? (
                   <Alert
-                    className=" bg-errorBG text-left px-2 my-6 h-6"
+                    className="  text-left px-2 my-6 h-6"
                     text={"incorrect username or password please try again "}
                   />
                 ) : null}
                 {props.response.status === 404 ? (
                   <Alert
-                    className=" bg-errorBG text-left px-2 my-6 h-6"
+                    className="  text-left px-2 my-6 h-6"
                     text={"email not verified"}
                   />
                 ) : null}

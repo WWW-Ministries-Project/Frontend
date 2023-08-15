@@ -13,7 +13,7 @@ export default {
         wwmBlue: "#080D2D",
         wwwGrey: "#62626A",
         errorBG: '#FBEAE6',
-        error: '#DE7965',
+        error: '#E97760',
         wwwGrey2: '#6B7B8A',
         dark900: '#14092C',
         gray: "#786D8F",
@@ -22,10 +22,20 @@ export default {
       }
     },
     fontFamily: {
-      temporary: ['"Roboto"', 'sans-serif'],
+      fontRoboto: ['"Roboto"', 'sans-serif'],
       manrope: ['Manrope', 'sans-serif']
-    }
+    },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      const utilities = {
+        '.text-sma': {
+          'font-size': '13.33px',
+          'line-height': '16px',
+        },
+      };
+      addUtilities(utilities);
+    },
+  ],
 }
 

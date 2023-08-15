@@ -6,7 +6,7 @@ const Alert = (props) => {
     <>
       <p
         role="alert"
-        className={"text-error font-fontRoboto text-sm " + props.className}>
+        className={"text-error text-xs bg-errorBG rounded-md flex items-center font-fontRoboto " + props.className}>
         <img src={important} alt="" className="inline-block mr-1"/>
         {props.text}
       </p>

@@ -146,8 +146,8 @@ function ResetPassword() {
               className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
             />
             <div>
-              <div className="text-mainGray text-center">
-                <Link to="/login" className="text-wwmBlue">
+              <div className="text-gray text-center text-sma">
+                <Link to="/login" className="">
                   Return to Login
                 </Link>
               </div>
