@@ -18,7 +18,7 @@ export default {
         dark900: '#14092C',
         gray: "#786D8F",
         bgWhite: "#F9F9F9",
-        lightGray:"#C7C2D3",
+        lightGray: "#C7C2D3",
       }
     },
     fontFamily: {
@@ -32,6 +32,13 @@ export default {
         '.text-sma': {
           'font-size': '13.33px',
           'line-height': '16px',
+        },
+        '.H600': {
+          'font-family': 'Rubik',
+          'font-size': '19.2px',
+          'font-style': 'normal',
+          'font-weight': '700',
+          'line-height': '24px',
         },
       };
       addUtilities(utilities);

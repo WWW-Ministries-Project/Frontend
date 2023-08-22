@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import ChurchLogo from "./ChurchLogo";
+import ChurchLogo from "../../../components/ChurchLogo";
 import Alert from "./Alerts";
 
 const AuthenticationForm = (props) => {
