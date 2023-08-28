@@ -16,7 +16,7 @@ StatsCard.propTypes = {
     name: PropTypes.string.isRequired,
     value: PropTypes.number.isRequired,
     duration: PropTypes.string.isRequired,
-    additionalInfo: PropTypes.bool,
+    additionalInfo: PropTypes.string,
   }).isRequired,
 };
 

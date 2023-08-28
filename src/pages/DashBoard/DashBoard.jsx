@@ -1,12 +1,15 @@
 import StatsCard from "../HomePage/Components/StatsCard";
 import BreakdownComponents from "./Components/BreakdownComponents";
 import NotificationFlag from "../HomePage/Components/NotificationFlag";
+import TableComponent from "../HomePage/Components/TableComponent";
+import SearchBar from "../../components/SearchBar";
+import Button from "../../components/Button";
 
 function DashBoard() {
   const stats = [
-    { name: "Total Attendance", value: "60,000", duration: "This month",additionalInfo:"I wonder how it should appear" },
-    { name: "Total Members", value: "2000", duration: "This month",additionalInfo:"As a tooltip or info card" },
-    { name: "Total Number of Partners", value: "300", duration: "This month" },
+    { name: "Total Attendance", value: 60000, duration: "This month",additionalInfo:"I wonder how it should appear" },
+    { name: "Total Members", value: 2000, duration: "This month",additionalInfo:"As a tooltip or info card" },
+    { name: "Total Number of Partners", value: 300, duration: "This month" },
   ];
   return (
       <main className="">
@@ -24,11 +27,34 @@ function DashBoard() {
         </div>
         <section className="flex justify-between">
           {stats.map((stat) => (
-            <StatsCard stats={stat} />
+            <StatsCard stats={stat} key={stat.name} />
           ))}
         </section>
         <section>
           <BreakdownComponents />
+        </section>
+        <section className="mt-6 bg-white p-7">
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-start gap-2 items-center  w-2/3">
+             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...'  /> 
+             <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
+                <option value="">Filter by</option>
+                <option value="Name">Name</option>
+                <option value="Department">Department</option>
+                <option value="Date">Date created</option>
+             </select>
+             {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
+                <option value="">Filter by</option>
+                <option value="Name">Name</option>
+                <option value="Department">Department</option>
+                <option value="Date">Date created</option>
+             </select> */}
+            </div>
+            <div>
+              <Button value="Add member" className={" text-white h-10 p-2"}/>
+            </div>
+          </div>
+          <TableComponent />
         </section>
       </main>
   );
