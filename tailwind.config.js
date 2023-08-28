@@ -40,6 +40,27 @@ export default {
           'font-weight': '700',
           'line-height': '24px',
         },
+        '.H700': {
+          'font-family': 'Rubik',
+          'font-size': '23.04px',
+          'font-style': 'normal',
+          'font-weight': '700',
+          'line-height': '28px',
+        },
+        '.P100': {
+          'font-family': 'Rubik',
+          'font-size': '13.33x',
+          'font-style': 'normal',
+          'font-weight': '400',
+          'line-height': '16px', /* 150% */
+        },
+        '.P250': {
+          'font-family': 'Rubik',
+          'font-size': '16px',
+          'font-style': 'normal',
+          'font-weight': '600',
+          'line-height': '24px', /* 150% */
+        },
       };
       addUtilities(utilities);
     },
