@@ -4,6 +4,7 @@ import NotificationFlag from "../HomePage/Components/NotificationFlag";
 import TableComponent from "../HomePage/Components/TableComponent";
 import SearchBar from "../../components/SearchBar";
 import Button from "../../components/Button";
+import { useOutletContext } from "react-router-dom";
 
 function DashBoard() {
   const stats = [
@@ -11,6 +12,11 @@ function DashBoard() {
     { name: "Total Members", value: 2000, duration: "This month",additionalInfo:"As a tooltip or info card" },
     { name: "Total Number of Partners", value: 300, duration: "This month" },
   ];
+  const {setDisplayForm} = useOutletContext();
+  const handleClick = () => {
+    console.log("clicked");
+    setDisplayForm(true);
+  }
   return (
       <main className="">
         <NotificationFlag className={" mb-5"}/>
@@ -51,7 +57,7 @@ function DashBoard() {
              </select> */}
             </div>
             <div>
-              <Button value="Add member" className={" text-white h-10 p-2"}/>
+              <Button value="Add member" className={" text-white h-10 p-2"} onClick={handleClick}/>
             </div>
           </div>
           <TableComponent />

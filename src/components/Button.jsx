@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 const  Button = (props)=> {
     const handleClick = (e)=>{
         e.preventDefault();
-        props.onClick;
+        console.log(e);
+        props.onClick();
     }
     return (
         <>

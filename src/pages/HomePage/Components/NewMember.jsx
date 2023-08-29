@@ -1,27 +1,11 @@
-import { Outlet } from "react-router-dom";
-import Header from "../HomePage/Components/Header";
-import SideBar from "../HomePage/Components/SideBar";
-import Input from "../../components/Input";
-import InputDiv from "./Components/InputDiv";
-import Button from "../../components/Button";
-import { useState } from "react";
 
-function HomePage() {
-  const [displayForm, setDisplayForm] = useState(false);
-  const CloseForm = () => {
-    setDisplayForm(false);
-  }
-  return (
-    <>
-      <Header />
-      <main className="min-h-screen max-w-screen">
-        <SideBar style={{ paddingTop: "90px" }} />
-        <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
-          <Outlet context={{ setDisplayForm }} />
-        </section>
-      </main>
-      {displayForm ? (
-        <div className="w-[353px] userInfo fixed right-0 top-0 h-full z-10 text-mainGray bg-white p-5 text-sma overflow-y-scroll">
+
+function NewMember () {
+
+
+    return (
+        <>
+            <div className="w-[353px] userInfo fixed right-0 top-0 h-full z-10 text-mainGray bg-white p-5 text-sma overflow-y-scroll">
           <form className="">
             <div className="flex flex-col gap-6 mb-5 border-b border-[#F5F5F5]">
               <div className="flex justify-between items-center">
@@ -58,9 +42,9 @@ function HomePage() {
             </div>
           </form>
         </div>
-      ) : null}
-    </>
-  );
+        </>
+    )
 }
 
-export default HomePage;
+
+export default NewMember
