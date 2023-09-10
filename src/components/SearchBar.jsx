@@ -7,7 +7,7 @@ function SearchBar(props) {
         <form className="w-full text-dark900 flex items-center  px-2 text-sma font-normal leading-6">
           <img
             role="submit button"
-            src={search}tab
+            src={search}
             alt="search"
             className="inline mr-2"
           />

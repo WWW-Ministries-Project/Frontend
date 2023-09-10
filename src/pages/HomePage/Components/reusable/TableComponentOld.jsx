@@ -9,7 +9,7 @@ function TableComponent(props) {
         <thead>
           <tr className="text-center text-[#080808] font-normal py-4 bg-[#f8f9f999]">
             {headers.map((header) => {
-              return <th key={header} className="py-4 text-left text-[#080808] font-normal">{header}</th>;
+              return <th key={header} className="py-4 px-1 text-left text-[#080808] font-normal">{header}</th>;
             })}
           </tr>
         </thead>

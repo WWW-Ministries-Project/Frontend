@@ -12,11 +12,11 @@ import Settings from "/src/assets/sidebar/settings.svg";
 
 const  SideBar = (props)=> {
     const items=['Dashboard','Members','Reports',"Manage users","Assets management","Settings"]
-    const icons=[Home,Reports,Members,Users,Management,Settings]
+    const icons=[Home,Members,Reports,Users,Management,Settings]
 
-    function handleClick(e) {
+    function handleClick() {
         // props.onClick(true)
-        console.log(e.target.innerText) 
+        // console.log(e.target.innerText) 
     }
 
     return (

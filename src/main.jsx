@@ -8,7 +8,7 @@ import ResetPassword from "./pages/Authentication/pages/ResetPassword/ResetPassw
 import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
-import DashBoard from "./pages/DashBoard/DashBoard.jsx";
+import DashBoard from "./pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import HomePage from "./pages/HomePage/HomePage.jsx";
 import UnderConstruction from "./pages/UnderConstruction/UnderConstruction.jsx";
 

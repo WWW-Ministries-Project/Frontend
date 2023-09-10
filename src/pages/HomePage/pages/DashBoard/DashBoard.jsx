@@ -1,11 +1,12 @@
-import StatsCard from "../HomePage/Components/StatsCard";
+import StatsCard from "../../Components/reusable/StatsCard";
 import BreakdownComponents from "./Components/BreakdownComponents";
-import NotificationFlag from "../HomePage/Components/NotificationFlag";
-import TableComponent from "../HomePage/Components/TableComponent";
-import SearchBar from "../../components/SearchBar";
-import Button from "../../components/Button";
+import NotificationFlag from "../../Components/reusable/NotificationFlag";
+import TableComponent from "../../Components/reusable/TableComponent";
+import SearchBar from "../../../../components/SearchBar";
+import Button from "../../../../components/Button";
 import { useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
+
 
 function DashBoard() {
   const stats = [
@@ -19,7 +20,6 @@ function DashBoard() {
     setDisplayForm(true);
   }
   const exportToExcel = ()=>{
-    console.log('called')
     if(stats.length === 0)return;
  
     const worksheet = XLSX.utils.json_to_sheet(stats);
@@ -72,6 +72,7 @@ function DashBoard() {
               <Button value="Add member" className={" text-white h-10 p-2"} onClick={handleClick}/>
             </div>
           </div>
+          {/* <TableComponent /> */}
           <TableComponent />
         </section>
       </main>

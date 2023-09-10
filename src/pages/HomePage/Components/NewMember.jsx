@@ -1,5 +1,5 @@
 // import Input from "../../components/Input";
-import InputDiv from "./InputDiv";
+import InputDiv from "./reusable/InputDiv";
 import Button from "../../../components/Button";
 import ProfilePicture from "../../../components/ProfilePicture";
 import editIcon from "/assets/home/edit.svg";
