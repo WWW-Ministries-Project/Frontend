@@ -17,6 +17,8 @@ function SearchBar(props) {
             placeholder= {props.placeholder}
             name="search"
             className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2"
+            value={props.value}
+            onChange={props.onChange}
           />
         </form>
       </div>
@@ -27,7 +29,7 @@ SearchBar.propTypes = {
     // type: PropTypes.string.isRequired,
     // id: PropTypes.string.isRequired,
     // name: PropTypes.string.isRequired,
-    // value: PropTypes.string,
+    value: PropTypes.string,
     // valid: PropTypes.bool,
     // isRequired: PropTypes.bool,
     // inputClass: PropTypes.string,
@@ -35,7 +37,7 @@ SearchBar.propTypes = {
     // label: PropTypes.string.isRequired,
     // pattern: PropTypes.string,
     // handleBlur: PropTypes.func,
-    // onChange: PropTypes.func,
+    onChange: PropTypes.func,
     className: PropTypes.string,
   };
 

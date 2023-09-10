@@ -6,6 +6,7 @@ import SearchBar from "../../../../components/SearchBar";
 import data from "/public/data/MOCK_DATA.json";
 import Button from "../../../../components/Button";
 import { useOutletContext } from "react-router-dom";
+import { useState } from "react";
 import * as XLSX from "xlsx";
 
 
@@ -44,7 +45,7 @@ function DashBoard() {
       accessorKey: "action",
     },
   ];
-
+  const [filter,setFilter] = useState("");
   const {setDisplayForm} = useOutletContext();
   const handleClick = () => {
     console.log("clicked");
@@ -60,6 +61,10 @@ function DashBoard() {
     const excelFileName = "Attendence.xlsx";
     XLSX.writeFile(workbook, excelFileName);    
  };
+
+ const handleSearchChange = (e) => {
+  setFilter(e.target.value);
+ }
   return (
       <main className="">
         <NotificationFlag className={" mb-5"}/>
@@ -82,10 +87,10 @@ function DashBoard() {
         <section>
           <BreakdownComponents />
         </section>
-        <section className="mt-6 bg-white p-7">
+        <section className="mt-6 bg-white p-7 ">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...'  /> 
+             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} /> 
              <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
                 <option value="">Filter by</option>
                 <option value="Name">Name</option>
@@ -104,7 +109,10 @@ function DashBoard() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <TableComponent columns={columns} data={data}/>
+          <div>
+
+          <TableComponent columns={columns} data={data} filter={filter} setFilter={setFilter}/>
+          </div>
         </section>
       </main>
   );

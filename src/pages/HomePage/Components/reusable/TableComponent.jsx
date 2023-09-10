@@ -4,11 +4,12 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getFilteredRowModel
 } from "@tanstack/react-table";
 import { useState } from "react";
 import PropTypes from 'prop-types';
 
-function TableComponent({data,columns}) {
+function TableComponent({data,columns,filter,setFilter}) {
   const [sorting, setSorting] = useState([]);
   const table = useReactTable({
     data,
@@ -16,10 +17,13 @@ function TableComponent({data,columns}) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting: sorting,
+      globalFilter: filter,
     },
     onSortingChange: setSorting,
+    onGlobalFilterChange: setFilter,
   });
 
   return (
@@ -110,7 +114,9 @@ function TableComponent({data,columns}) {
 }
 
 TableComponent.propTypes = {
-  data: PropTypes.obj,
-  columns: PropTypes.obj,
+  // data: PropTypes.obj,
+  // columns: PropTypes.obj,
+  // filter: PropTypes.string,
+  // setFilter: PropTypes.func
 }
 export default TableComponent;
