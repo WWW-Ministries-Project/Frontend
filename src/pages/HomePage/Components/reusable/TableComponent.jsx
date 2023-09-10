@@ -5,38 +5,10 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import data from "/public/data/MOCK_DATA.json";
 import { useState } from "react";
+import PropTypes from 'prop-types';
 
-function TableComponent() {
-  const columns = [
-    {
-      header: "Name",
-      accessorKey: "name",
-    },
-    {
-      header: "Phone number",
-      accessorKey: "phone_number",
-    },
-    {
-      header: "last visited",
-      accessorKey: "last_visited",
-      cell: (info) => info.getValue() + " days ago",
-    },
-    {
-      header: "Visits",
-      accessorKey: "vieits",
-      cell: (info) => info.getValue() + " visits",
-    },
-    {
-      header: "Created",
-      accessorKey: "created",
-    },
-    {
-      header: "Action",
-      accessorKey: "action",
-    },
-  ];
+function TableComponent({data,columns}) {
   const [sorting, setSorting] = useState([]);
   const table = useReactTable({
     data,
@@ -83,7 +55,7 @@ function TableComponent() {
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className="border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 ">
+              className="border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999]">
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -137,4 +109,8 @@ function TableComponent() {
   );
 }
 
+TableComponent.propTypes = {
+  data: PropTypes.obj,
+  columns: PropTypes.obj,
+}
 export default TableComponent;

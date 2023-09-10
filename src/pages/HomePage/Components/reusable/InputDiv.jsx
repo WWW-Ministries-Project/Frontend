@@ -1,4 +1,4 @@
-
+import PropTypes from 'prop-types';
 
 function InputDiv (props) {
 
@@ -13,5 +13,11 @@ function InputDiv (props) {
     )
 }
 
+InputDiv.propTypes = {
+    type: PropTypes.string,
+    label: PropTypes.string,
+    className: PropTypes.string,   
+    id: PropTypes.string,
+}
 
 export default InputDiv

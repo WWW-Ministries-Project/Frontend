@@ -3,6 +3,7 @@ import BreakdownComponents from "./Components/BreakdownComponents";
 import NotificationFlag from "../../Components/reusable/NotificationFlag";
 import TableComponent from "../../Components/reusable/TableComponent";
 import SearchBar from "../../../../components/SearchBar";
+import data from "/public/data/MOCK_DATA.json";
 import Button from "../../../../components/Button";
 import { useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
@@ -14,6 +15,36 @@ function DashBoard() {
     { name: "Total Members", value: 2000, duration: "This month",additionalInfo:"As a tooltip or info card" },
     { name: "Total Number of Partners", value: 300, duration: "This month" },
   ];
+
+  const columns = [
+    {
+      header: "Name",
+      accessorKey: "name",
+    },
+    {
+      header: "Phone number",
+      accessorKey: "phone_number",
+    },
+    {
+      header: "last visited",
+      accessorKey: "last_visited",
+      cell: (info) => info.getValue() + " days ago",
+    },
+    {
+      header: "Visits",
+      accessorKey: "vieits",
+      cell: (info) => info.getValue() + " visits",
+    },
+    {
+      header: "Created",
+      accessorKey: "created",
+    },
+    {
+      header: "Action",
+      accessorKey: "action",
+    },
+  ];
+
   const {setDisplayForm} = useOutletContext();
   const handleClick = () => {
     console.log("clicked");
@@ -73,7 +104,7 @@ function DashBoard() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <TableComponent />
+          <TableComponent columns={columns} data={data}/>
         </section>
       </main>
   );
