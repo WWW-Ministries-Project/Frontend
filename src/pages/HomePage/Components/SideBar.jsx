@@ -11,11 +11,12 @@ import Settings from "/src/assets/sidebar/settings.svg";
 
 
 const  SideBar = (props)=> {
-    const items=['Dashboard','Reports','Members',"Manage users","Assets management","Settings"]
+    const items=['Dashboard','Members','Reports',"Manage users","Assets management","Settings"]
     const icons=[Home,Reports,Members,Users,Management,Settings]
 
-    function handleClick() {
-        props.onClick(true) 
+    function handleClick(e) {
+        // props.onClick(true)
+        console.log(e.target.innerText) 
     }
 
     return (
@@ -26,8 +27,7 @@ const  SideBar = (props)=> {
                     (isActive ? {background: '#6539C3',color:"white"} : null)} key={index} >
                         <div className=' p-4 flex items-center bg-inherit' onClick={handleClick} >
                         <img src={icons[index]} alt={icons[index] + " icon"} className="mr-5"  />
-                            <div>{item}</div>
-                            
+                            <div>{item}</div>     
                         </div>
                     </NavLink>
                     

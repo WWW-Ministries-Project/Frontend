@@ -5,6 +5,7 @@ import TableComponent from "../HomePage/Components/TableComponent";
 import SearchBar from "../../components/SearchBar";
 import Button from "../../components/Button";
 import { useOutletContext } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function DashBoard() {
   const stats = [
@@ -17,16 +18,27 @@ function DashBoard() {
     console.log("clicked");
     setDisplayForm(true);
   }
+  const exportToExcel = ()=>{
+    console.log('called')
+    if(stats.length === 0)return;
+ 
+    const worksheet = XLSX.utils.json_to_sheet(stats);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet);
+ 
+    const excelFileName = "Attendence.xlsx";
+    XLSX.writeFile(workbook, excelFileName);    
+ };
   return (
       <main className="">
         <NotificationFlag className={" mb-5"}/>
         <div className="my-5 flex items-center justify-between">
           <div className="H600">Overview</div>
           <div className="flex gap-2  justify-between">
-            <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4]">
+            <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4] cursor-pointer">
               Date: <span className="P250 text-dark900 ">This Month</span>
             </div>
-            <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4]">
+            <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4] cursor-pointer" onClick={exportToExcel}>
              <span className="P250 text-dark900"> Export </span><img src="/assets/home/fi_download.svg" alt="export" className="inline-block" />
             </div>
           </div>

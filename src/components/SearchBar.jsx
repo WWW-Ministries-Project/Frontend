@@ -4,10 +4,10 @@ function SearchBar(props) {
   return (
     <>
       <div className={"flex items-center bg-white rounded-md py-1 opacity-50 border border-[#f2f2f2] "+props.className}>
-        <form className="w-full text-lightGray flex items-center  px-2 text-sma font-normal leading-6">
+        <form className="w-full text-dark900 flex items-center  px-2 text-sma font-normal leading-6">
           <img
             role="submit button"
-            src={search}
+            src={search}tab
             alt="search"
             className="inline mr-2"
           />
