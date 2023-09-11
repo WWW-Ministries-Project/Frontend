@@ -19,7 +19,10 @@ export default {
         gray: "#786D8F",
         bgWhite: "#F9F9F9",
         lightGray: "#C7C2D3",
-        blur: "#222222cc",  
+        blur: "#222222cc",
+        green: "#6FCF97",
+        lighterBlack: "#575570",
+        neutralGray: "#E8EDFF",  
       }
     },
     fontFamily: {
@@ -55,6 +58,13 @@ export default {
           'font-weight': '400',
           'line-height': '16px', /* 150% */
         },
+        '.P200': {
+          'font-family': 'Rubik',
+          'font-size': '16px',
+          'font-style': 'normal',
+          'font-weight': '400',
+          'line-height': '24px', /* 150% */
+        },
         '.P250': {
           'font-family': 'Rubik',
           'font-size': '16px',
@@ -62,6 +72,13 @@ export default {
           'font-weight': '600',
           'line-height': '24px', /* 150% */
         },
+        '.P900': {
+          'font-family': 'Rubik',
+          'font-size': '40px',
+          'font-style': 'normal',
+          'font-weight': '400',
+          'letter-spacing': '-0.8px',
+        }
       };
       addUtilities(utilities);
     },

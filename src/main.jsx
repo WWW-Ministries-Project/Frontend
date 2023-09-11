@@ -11,6 +11,7 @@ import "./index.css";
 import DashBoard from "./pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import HomePage from "./pages/HomePage/HomePage.jsx";
 import UnderConstruction from "./pages/UnderConstruction/UnderConstruction.jsx";
+import Members from "./pages/HomePage/pages/Members/Members.jsx";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <DashBoard />,
+      },
+      {
+        path: "members",
+        element: <Members />,
       },
       {
         path: "*",

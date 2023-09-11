@@ -1,13 +1,13 @@
-import StatsCard from "../../Components/reusable/StatsCard";
-import BreakdownComponents from "./Components/BreakdownComponents";
-import NotificationFlag from "../../Components/reusable/NotificationFlag";
-import TableComponent from "../../Components/reusable/TableComponent";
-import SearchBar from "../../../../components/SearchBar";
-import data from "/public/data/MOCK_DATA.json";
-import Button from "../../../../components/Button";
-import { useOutletContext } from "react-router-dom";
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
+import Button from "../../../../components/Button";
+import SearchBar from "../../../../components/SearchBar";
+import NotificationFlag from "../../Components/reusable/NotificationFlag";
+import StatsCard from "../../Components/reusable/StatsCard";
+import TableComponent from "../../Components/reusable/TableComponent";
+import BreakdownComponents from "./Components/BreakdownComponents";
+import data from "/public/data/MOCK_DATA.json";
 
 
 function DashBoard() {
@@ -48,7 +48,6 @@ function DashBoard() {
   const [filter,setFilter] = useState("");
   const {setDisplayForm} = useOutletContext();
   const handleClick = () => {
-    console.log("clicked");
     setDisplayForm(true);
   }
   const exportToExcel = ()=>{
