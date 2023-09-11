@@ -4,16 +4,19 @@ import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
 import data from "/public/data/MOCK_DATA.json";
 import { useState } from "react";
+import { DateTime } from "luxon";
 
 function Members() {
+  const { setDisplayForm,members } = useOutletContext();
   const columns = [
     {
       header: "Name",
-      accessorKey: "name",
+      accessorFn: row => `${row.first_name} ${row.last_name}`,
+      
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number",
+      accessorKey: "phone_number_1",
     },
     {
       header: "last visited",
@@ -22,16 +25,17 @@ function Members() {
     },
     {
       header: "Visits",
-      accessorKey: "vieits",
+      accessorKey: "visits",
       cell: (info) => info.getValue() + " visits",
     },
     {
       header: "Created",
-      accessorKey: "created",
+      accessorKey: "member_since",
+      cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
       header: "Status",
-      accessorKey: "action",
+      accessorKey: "status",
       cell: (info) => (
         <div
           className={
@@ -49,7 +53,7 @@ function Members() {
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
   };
-  const { setDisplayForm } = useOutletContext();
+
   const handleClick = () => {
     setDisplayForm(true);
   };
@@ -113,7 +117,7 @@ function Members() {
           <div>
             <TableComponent
               columns={columns}
-              data={data}
+              data={members}
               filter={filter}
               setFilter={setFilter}
             />
