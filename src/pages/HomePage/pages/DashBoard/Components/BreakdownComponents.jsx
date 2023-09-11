@@ -2,8 +2,8 @@ function BreakdownComponents() {
   return (
     <>
       <div>
-        <div>Attendance Breakdown</div>
-        <div>ijioihohohhihih</div>
+        {/* <div>Attendance Breakdown</div>
+        <div>ijioihohohhihih</div> */}
       </div>
       <div className="w-full h-[628px] bg-white">
         <iframe

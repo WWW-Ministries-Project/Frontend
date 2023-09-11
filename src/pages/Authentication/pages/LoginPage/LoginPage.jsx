@@ -14,10 +14,13 @@ function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const navigate=useNavigate();
-  function handleSubmit(e) {
-    e.preventDefault();
+  function handleSubmit() {
+
+    // console.log("login");
+    setLoading(true);
     if (error.email){
 
     }
@@ -25,9 +28,11 @@ function LoginPage() {
       try {
         const endpoint = baseUrl + "/user/login";
         const response = await axios.post(endpoint, loginValues);
-        response.status == 200 && navigate('/dashboard')
+        setLoading(false);
+        response.status == 200 && navigate('/home/dashboard')
       } catch (error) {
         console.log(error, "error");
+        setLoading(false);
       }
     })();
   }
@@ -98,6 +103,7 @@ function LoginPage() {
           />
           <Button
             value={"Login"}
+            loading={loading}
             onClick={handleSubmit}
             className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
           />
