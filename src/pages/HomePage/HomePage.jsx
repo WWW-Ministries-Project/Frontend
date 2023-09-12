@@ -28,8 +28,8 @@ function HomePage() {
           <Outlet context={{ setDisplayForm, members }} />
         </section>
       </main>
-      {displayForm ? (
-         <NewMember CloseForm={CloseForm} />
+      {true ? (
+         <NewMember CloseForm={CloseForm} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} />
       ) : null}
     </>
   );

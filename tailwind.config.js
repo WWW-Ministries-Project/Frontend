@@ -22,7 +22,65 @@ export default {
         blur: "#222222cc",
         green: "#6FCF97",
         lighterBlack: "#575570",
-        neutralGray: "#E8EDFF",  
+        neutralGray: "#E8EDFF",
+      },
+      animation: {
+        dounce: 'bounce 2s',
+        wiggle: 'wiggle 1s',
+        fadeIn: 'fadeIn 2s',
+        fadeOut: 'fadeOut 2s'
+
+      },
+      keyframes: {
+        wiggle: {
+          '0%, 100%': {
+            // transform: 'rotate(-3deg)',
+            transform: "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          '50%': { transform: 'rotate(3deg)' },
+        },
+        bounce: {
+          '0%': {
+            transform: 'translateY(-100%)',
+            animationTimingFunction: 'linear',
+          },
+          '50%': {
+            transform: 'translateY(25%)',
+            animationTimingFunction: 'linear',
+          },
+          '100%': {
+            transform: 'translateY(0%)',
+            animationTimingFunction: 'linear',
+          },
+        },
+        fadeIn: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(100%)',
+          },
+          '50%': {
+            opacity: '0.5',
+          },
+          '100%': {
+            opacity: '1',
+          },
+        },
+        fadeOut: {
+          '0%': {
+            opacity: '1',
+            transform: 'translateX(-100%)',
+          },
+          '50%': {
+            opacity: '0.5',
+          },
+          '100%': {
+            opacity: '0',
+          },
+        }
+
+      },
+      transitionDuration: {
+        '2000': '2000ms',
       }
     },
     fontFamily: {
