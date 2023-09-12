@@ -5,13 +5,14 @@ import PropTypes from "prop-types";
 const Button = (props) => {
   const handleClick = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     props.onClick();
   };
   return (
     <>
       <button
         className={
-          "leading-5 rounded-md bg-primaryViolet text-center text-black  " +
+          "leading-5 rounded-md bg-primaryViolet text-center text-black " +
           props.className
         }
         style={props.style}

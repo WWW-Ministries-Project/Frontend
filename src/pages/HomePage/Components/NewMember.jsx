@@ -1,12 +1,10 @@
 // import Input from "../../components/Input";
-import InputDiv from "./reusable/InputDiv";
+import PropTypes from 'prop-types';
+import { useState } from "react";
 import Button from "../../../components/Button";
 import ProfilePicture from "../../../components/ProfilePicture";
+import InputDiv from "./reusable/InputDiv";
 import editIcon from "/assets/home/edit.svg";
-import { useState } from "react";
-import axios from "axios";
-import { baseUrl } from "../../Authentication/utils/helpers";
-import PropTypes from 'prop-types';
 
 function NewMember(props) {
   const [profilePic, setProfilePic] = useState({});
@@ -36,20 +34,8 @@ function NewMember(props) {
     // })()
   }
 
-  // axios.post(`${baseUrl}/member/create-member`,value).then((response) => {
-  //   console.log(response);
-  // })
   function onSubmit() {
-    console.log('submit');
-    axios
-      .post(`${baseUrl}/member/create-member`, value)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    // console.log(value);
+    props.onSubmit(value)
   }
 
   /*SET VALID VALUES IN FORM INPUT*/
@@ -94,7 +80,7 @@ function NewMember(props) {
             <InputDiv onChange={handleChange} type="date" id="date_of_birth" label="Date of birth" className="w-full" />
             <div className="flex flex-col">
               <label htmlFor="gender">Gender</label>
-              <select name="gender" id="gender" className="input" onChange={e=>handleChange("title",e.target.value)}>
+              <select name="gender" id="gender" className="input" onChange={e=>handleChange("gender",e.target.value)}>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="other">Prefer not to say</option>
@@ -123,5 +109,6 @@ function NewMember(props) {
 }
 NewMember.propTypes = {
   className: PropTypes.string,
+  onSubmit: PropTypes.func,
 }
 export default NewMember;
