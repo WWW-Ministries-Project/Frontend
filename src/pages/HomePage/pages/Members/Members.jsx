@@ -1,19 +1,21 @@
 import { useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import TableComponent from "../../Components/reusable/TableComponent";
-import data from "/public/data/MOCK_DATA.json";
+import TableComponent from "../../Components/reusable/TableComponent";  
 import { useState } from "react";
+import { DateTime } from "luxon";
 
 function Members() {
+  const { setDisplayForm,members } = useOutletContext();
   const columns = [
     {
       header: "Name",
-      accessorKey: "name",
+      accessorFn: row => `${row.first_name} ${row.last_name}`,
+      
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number",
+      accessorKey: "phone_number_1",
     },
     {
       header: "last visited",
@@ -22,16 +24,17 @@ function Members() {
     },
     {
       header: "Visits",
-      accessorKey: "vieits",
+      accessorKey: "visits",
       cell: (info) => info.getValue() + " visits",
     },
     {
       header: "Created",
-      accessorKey: "created",
+      accessorKey: "member_since",
+      cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
       header: "Status",
-      accessorKey: "action",
+      accessorKey: "status",
       cell: (info) => (
         <div
           className={
@@ -49,7 +52,7 @@ function Members() {
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
   };
-  const { setDisplayForm } = useOutletContext();
+
   const handleClick = () => {
     setDisplayForm(true);
   };
@@ -104,7 +107,7 @@ function Members() {
             <div>
               <Button
                 value="Add member"
-                className={" text-white h-10 p-2"}
+                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
                 onClick={handleClick}
               />
             </div>
@@ -113,7 +116,7 @@ function Members() {
           <div>
             <TableComponent
               columns={columns}
-              data={data}
+              data={members}
               filter={filter}
               setFilter={setFilter}
             />

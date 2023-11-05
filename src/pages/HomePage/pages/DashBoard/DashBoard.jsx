@@ -8,6 +8,8 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import BreakdownComponents from "./Components/BreakdownComponents";
 import data from "/public/data/MOCK_DATA.json";
+import ProfilePicture from "../../../../components/ProfilePicture";
+import { DateTime } from "luxon";
 
 
 function DashBoard() {
@@ -17,14 +19,26 @@ function DashBoard() {
     { name: "Total Number of Partners", value: 300, duration: "This month" },
   ];
 
+  const {setDisplayForm, members} = useOutletContext();
+
   const columns = [
     {
       header: "Name",
-      accessorKey: "name",
+      accessorFn: (row) => (
+        <div className="flex items-center gap-2">
+          <ProfilePicture
+            src={row.photo || "/src/assets/images/profilePic.png"}
+            alt="profile pic"
+            className="h-[38px] w-[38px] rounded-full"
+          />{" "}
+          {`${row.first_name} ${row.last_name}`}
+        </div>
+      ),
+      cell: (info) => info.getValue(),
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number",
+      accessorKey: "phone_number_1",
     },
     {
       header: "last visited",
@@ -33,20 +47,30 @@ function DashBoard() {
     },
     {
       header: "Visits",
-      accessorKey: "vieits",
+      accessorKey: "visits",
       cell: (info) => info.getValue() + " visits",
     },
     {
       header: "Created",
-      accessorKey: "created",
+      accessorKey: "member_since",
+      cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
-      header: "Action",
-      accessorKey: "action",
+      header: "Status",
+      accessorKey: "status",
+      cell: (info) => (
+        <div
+          className={
+            info.getValue()
+              ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
+              : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+          }>
+          {info.getValue() ? "Active" : "Inactive"}
+        </div>)
     },
   ];
   const [filter,setFilter] = useState("");
-  const {setDisplayForm} = useOutletContext();
+
   const handleClick = () => {
     setDisplayForm(true);
   }
@@ -104,13 +128,13 @@ function DashBoard() {
              </select> */}
             </div>
             <div>
-              <Button value="Add member" className={" text-white h-10 p-2"} onClick={handleClick}/>
+              <Button value="Add members" className={" text-white h-10 p-2"} onClick={handleClick}/>
             </div>
           </div>
           {/* <TableComponent /> */}
           <div>
 
-          <TableComponent columns={columns} data={data} filter={filter} setFilter={setFilter}/>
+          <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter}/>
           </div>
         </section>
       </main>
