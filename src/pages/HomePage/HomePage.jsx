@@ -28,13 +28,20 @@ function HomePage() {
       console.log(error);
     });
   }
+
+  //table manipulation
+  const [filter, setFilter] = useState("");
+
+  const handleSearchChange = (val) => {
+    setFilter(val);
+  };
   return (
     <>
       <Header />
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
         <SideBar style={{ paddingTop: "90px" }} />
         <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
-          <Outlet context={{ setDisplayForm, members }} />
+          <Outlet context={{ setDisplayForm, members, filter,setFilter, handleSearchChange }} />
         </section>
       </main>
       {true ? (

@@ -10,7 +10,8 @@ function Members() {
   const columns = [
     {
       header: "Name",
-      accessorFn: row => `${row.first_name} ${row.last_name}`,
+      accessorKey: "name",
+      // accessorFn: row => `${row.first_name} ${row.last_name}`,
       
     },
     {

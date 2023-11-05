@@ -69,7 +69,7 @@ function TableComponent({data,columns,filter,setFilter}) {
           ))}
         </tbody>
       </table>
-      <div className="flex justify-end gap-1 text-gray my-6 ">
+      {data.length > 10 ?<div className="flex justify-end gap-1 text-gray my-6 ">
         <button
           onClick={() => table.setPageIndex(0)}
           className={
@@ -108,7 +108,7 @@ function TableComponent({data,columns,filter,setFilter}) {
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
           Last page
         </button>
-      </div>
+      </div>: null}
     </>
   );
 }
