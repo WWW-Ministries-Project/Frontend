@@ -1,8 +1,7 @@
 import { useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import TableComponent from "../../Components/reusable/TableComponent";
-import data from "/public/data/MOCK_DATA.json";
+import TableComponent from "../../Components/reusable/TableComponent";  
 import { useState } from "react";
 import { DateTime } from "luxon";
 
