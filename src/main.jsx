@@ -12,6 +12,7 @@ import DashBoard from "./pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import HomePage from "./pages/HomePage/HomePage.jsx";
 import UnderConstruction from "./pages/UnderConstruction/UnderConstruction.jsx";
 import Members from "./pages/HomePage/pages/Members/Members.jsx";
+import Settings from "./pages/HomePage/pages/Settings/Settings.jsx";
 
 const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: "members",
         element: <Members />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
       },
       {
         path: "*",
