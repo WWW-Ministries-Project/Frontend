@@ -21,12 +21,7 @@ function Members() {
     {
       header: "last visited",
       accessorKey: "last_visited",
-      cell: (info) => info.getValue() + " days ago",
-    },
-    {
-      header: "Visits",
-      accessorKey: "visits",
-      cell: (info) => info.getValue() + " visits",
+      cell: (info) => info.getValue()? info.getValue() + " days ago" :"N/A",
     },
     {
       header: "Created",
@@ -34,8 +29,14 @@ function Members() {
       cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
+      header: "Visits",
+      accessorKey: "visits",
+      cell: (info) => info.getValue() ?? "0" + " visits",
+      // cell: (info) => info.getValue() ? info.getValue() + " visits" : "N/A",
+    },
+    {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "is_active",
       cell: (info) => (
         <div
           className={

@@ -15,17 +15,34 @@ function Settings() {
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData] = useState([]);
+  const [departmentData, setDepartmentData] = useState([]);
+  const [positionData, setPositionData] = useState([]);
+  const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue] = useState({});
+  const [inputValue, setInputValue] = useState({created_by:1,name:""});
+  const [selectedId, setSelectedId] = useState("department_head");
+
 
 
 //Forms Component
   const selectOptions = useMemo(() => {
-    return members.map((member) => {
-      return member.name
-    })
-  }, [members])
+    switch (selectedTab) {
+      case "Department": {
+        return members.map((member) => {
+          return {name:member.name, value:member.id}
+        })
+      }
+      case "Position": {
+        return departmentData.map((department) => {
+          return { name: department.name, value: department.id };
+        })
+      }
+      case "Access Rights": {
+        return ["view", "edit", "create"];
+      }
+    }
+  }, [members, selectedTab])
 
   const handleChange = (name, value) =>{
     setInputValue((prev) => ({ ...prev, [name]: value }));
@@ -36,16 +53,15 @@ const handleCloseForm =()=> {
 }
 
 const handleFormSubmit = () => {
-  console.log(inputValue);
   switch (selectedTab) {
     case "Department": {
       return axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-        console.log(res);
+        setData(res.data.data);
       });
     }
     case "Position": {
       return axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
-        console.log(res);
+        setData(res.data.data);
       });
     }
     case "Access Rights": {
@@ -55,9 +71,9 @@ const handleFormSubmit = () => {
     }
     default: break
   }
-  axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-    console.log(res);
-  })
+  // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+  //   console.log(res);
+  // })
   setDisplayForm(false);
 }
 
@@ -68,26 +84,39 @@ const handleFormSubmit = () => {
       case "Department":
         {
           setColumns(departmentColumns);
-          return axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-            setData(res.data.data);
-          });
+          setData(departmentData);
+          break;
         }
       case "Position": {
         setColumns(positionsColumns);
-        return axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-          setData(res.data.data);
-        });
+        setData(positionData);
+        break;
       }
       case "Access Rights": {
         setColumns(accessColumns);
         // return axios.get(`${baseUrl}/access/list-access`).then((res) => {
           setData([]);
         // });
+        break;
       }
       default: break
     }
 
   }
+
+  useEffect(() => {
+    axios.get(`${baseUrl}/position/list-positions`).then((res) => {
+      setPositionData(res.data.data);
+    });
+    // axios.get(`${baseUrl}/access/list-access`).then((res) => {
+    //   setAccessData(res.data.data);
+    // });
+    axios.get(`${baseUrl}/department/list-departments`).then((res) => {
+      setData(res.data.data);
+      setDepartmentData(res.data.data);
+
+    })
+  },[])
 
   useEffect(() => {
     handleDataFetching();
@@ -100,8 +129,21 @@ const handleFormSubmit = () => {
 
   const handleTabSelect = (tab) => {
     setSelectedTab(tab);
-    setInputValue({});
-    console.log(selectOptions);
+    switch (tab) {
+      case "Department": {
+        setSelectedId("department_head");
+        break;
+      }
+      case "Position": {
+        setSelectedId("department_id");
+        break;
+      }
+      case "Access Rights": {
+        break;
+      }
+      default: break
+    }
+    setInputValue({created_by:1,name:""});
   }
 
   return (
@@ -151,7 +193,7 @@ const handleFormSubmit = () => {
         </section>
 
         {true ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedTab} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} />
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} />
         ) : null}
       </section>
     </>

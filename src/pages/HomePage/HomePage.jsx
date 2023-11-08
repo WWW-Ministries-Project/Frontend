@@ -14,13 +14,13 @@ function HomePage() {
     setDisplayForm(false);
   }
   useEffect(() => {
-    axios.get(`${baseUrl}/member/all`).then((res) => {
-      setMembers(res.data);
+    axios.get(`${baseUrl}/user/list-users`).then((res) => {
+      setMembers(res.data.data);
     });
   },[]);
   const addNewMember = (value) => {
     axios
-    .post(`${baseUrl}/member/create-member`, value)
+    .post(`${baseUrl}/user/register`, value)
     .then((response) => {
       console.log(response);
     })

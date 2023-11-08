@@ -12,7 +12,7 @@ const SelectField = (props) => {
                 <label htmlFor={props.id}>{props.label}</label>
                 <select name={props.id} id={props.id} className="input" onChange={handleChange}>
                     {props.options.map((option, index) => (
-                        <option key={index} value={option}>{option}</option>
+                        <option key={index} value={(option.value)}>{option.name}</option>
                     ))}
                 </select>
             </div>
