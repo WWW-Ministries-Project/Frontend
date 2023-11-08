@@ -10,7 +10,7 @@ function Header() {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
   const handleClick = () => {
-    setShowLogOut(prev=>!prev);
+    setShowLogOut(prev => !prev);
   };
   const handleLogOut = () => {
     navigate("/login");
