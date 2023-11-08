@@ -5,7 +5,8 @@ export const departmentColumns = [
   },
   {
     header: "Department Head",
-    accessorKey: "department_head",
+    accessorKey: "user",
+    cell: (info) => info.getValue()?.name
   },
   {
     header: "Description",
@@ -33,7 +34,7 @@ export const accessColumns = [
   },
   {
     header: "Department",
-    accessorKey: "department_head",
+    
   },
   {
     header: "Description",
@@ -60,7 +61,8 @@ export const positionsColumns = [
   },
   {
     header: "Department",
-    accessorKey: "department_head",
+    accessorKey: "department",
+    cell: (info) => info.getValue()?.name
   },
   {
     header: "Description",

@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import useState from "react-usestateref";
 import TableComponent from "../../Components/reusable/TableComponent";
 import SearchBar from "../../../../components/SearchBar";
@@ -9,40 +9,59 @@ import Filter from "../../Components/reusable/Filter";
 import axios from "axios";
 import { baseUrl } from "../../../Authentication/utils/helpers";
 import { departmentColumns, positionsColumns, accessColumns } from "./utils/helperFunctions";
+import FormsComponent from "./Components/FormsComponent";
 function Settings() {
-  const { filter, setFilter, handleSearchChange } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
+  const [displayForm, setDisplayForm] = useState(false);
+  const [inputValue, setInputValue] = useState({});
 
-  // const columns = [
-  //   {
-  //     header: "Name",
-  //     accessorKey: "name",
-  //   },
-  //   {
-  //     header: "Department Head",
-  //     accessorKey: "department_head",
-  //   },
-  //   {
-  //     header: "Description",
-  //     accessorKey: "description",
-  //   },
-  //   {
-  //     header: "Status",
-  //     accessorKey: "status",
-  //     cell: (info) => (
-  //       <div
-  //         className={
-  //           info.getValue()
-  //             ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-  //             : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-  //         }>
-  //         {info.getValue() ? "Active" : "Inactive"}
-  //       </div>)
-  //   },
-  // ]
+
+//Forms Component
+  const selectOptions = useMemo(() => {
+    return members.map((member) => {
+      return member.name
+    })
+  }, [members])
+
+  const handleChange = (name, value) =>{
+    setInputValue((prev) => ({ ...prev, [name]: value }));
+}
+
+const handleCloseForm =()=> {
+  setDisplayForm(false);
+}
+
+const handleFormSubmit = () => {
+  console.log(inputValue);
+  switch (selectedTab) {
+    case "Department": {
+      return axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+        console.log(res);
+      });
+    }
+    case "Position": {
+      return axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
+        console.log(res);
+      });
+    }
+    case "Access Rights": {
+      return axios.post(`${baseUrl}/access/create-access`, inputValue).then((res) => {
+        console.log(res);
+      });
+    }
+    default: break
+  }
+  axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+    console.log(res);
+  })
+  setDisplayForm(false);
+}
+
+
 
   const handleDataFetching = () => {
     switch (selectedTab) {
@@ -62,7 +81,7 @@ function Settings() {
       case "Access Rights": {
         setColumns(accessColumns);
         // return axios.get(`${baseUrl}/access/list-access`).then((res) => {
-        //   setData(res.data.data);
+          setData([]);
         // });
       }
       default: break
@@ -74,17 +93,21 @@ function Settings() {
     handleDataFetching();
   }, [selectedTab]);
 
+
   const handleSearch = (e) => {
     handleSearchChange(e.target.value);
   }
 
   const handleTabSelect = (tab) => {
     setSelectedTab(tab);
+    setInputValue({});
+    console.log(selectOptions);
   }
 
   return (
     <>
       <section className={" h-full flex flex-col  "}>
+
         <div className="H600 text-dark900">Settings</div>
         <p className="P200 text-gray">
           Manage your departments, positions and access rights here...
@@ -116,7 +139,7 @@ function Settings() {
               <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={" text-white h-10 p-2"} onClick={() => { }} />
+              <Button value={"Create " + selectedTab} className={" text-white h-10 p-2"} onClick={() => { setDisplayForm(!displayForm) }} />
             </div>
           </div>
           <TableComponent
@@ -126,6 +149,10 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
+
+        {true ? (
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedTab} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} />
+        ) : null}
       </section>
     </>
   );
