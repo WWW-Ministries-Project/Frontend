@@ -22,6 +22,7 @@ function Settings() {
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({created_by:1,name:""});
   const [selectedId, setSelectedId] = useState("department_head");
+  const [loading, setLoading] = useState(false);
 
   // const departmentData = departmentDataRef.current;
 
@@ -55,21 +56,37 @@ const handleCloseForm =()=> {
 }
 
 const handleFormSubmit = () => {
+  setLoading(true);
   switch (selectedTab) {
     case "Department": {
-      return axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+      axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+        setLoading(false);
         setData(res.data.data);
+      }).catch((err) => {
+        console.log(err);
+        setLoading(false);
       });
+      break;
     }
     case "Position": {
-      return axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
+      axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
         setData(res.data.data);
+        setLoading(false);
+      }).catch((err) => {
+        console.log(err);
+        setLoading(false);
       });
+      break;
     }
     case "Access Rights": {
-      return axios.post(`${baseUrl}/access/create-access`, inputValue).then((res) => {
+      axios.post(`${baseUrl}/access/create-access`, inputValue).then((res) => {
         console.log(res);
+        setLoading(false);
+      }).catch((err) => {
+        console.log(err);
+        setLoading(false);
       });
+      break;
     }
     default: break
   }
@@ -181,7 +198,7 @@ const handleFormSubmit = () => {
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
               <Filter />
-              <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearch} />
+              <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
               <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm) }} />
@@ -196,7 +213,7 @@ const handleFormSubmit = () => {
         </section>
 
         {true ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} />
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} />
         ) : null}
       </section>
     </>
