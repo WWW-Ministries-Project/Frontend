@@ -8,7 +8,7 @@ import editIcon from "/assets/home/edit.svg";
 
 function NewMember(props) {
   const [profilePic, setProfilePic] = useState({});
-  const [userValue, setUserValue] = useState({"password": "123456","department_id": "1"});
+  const [userValue, setUserValue] = useState({"password": "123456","department_id": 1});
   function changePic(pic) {
     console.log(pic);
     setProfilePic((prev) => pic);
@@ -97,7 +97,7 @@ function NewMember(props) {
             <InputDiv onChange={handleChange} type="text" id="occupation" label="Occupation" className="w-full" />
             <InputDiv onChange={handleChange} type="text" id="company" label="Company" className="w-full" />
             <InputDiv onChange={handleChange} type="text" id="department" label="Department" className="w-full mb-5" />
-            <InputDiv onChange={handleChange} type="number" id="member_since" label="Member since" className="w-full mb-5" />
+            <InputDiv onChange={handleChange} type="date" id="member_since" label="Member since" className="w-full mb-5" />
             <InputDiv onChange={handleChange} type="number" id="last_visited" label="Last Visited" className="w-full mb-5" />
           </div>
           <div className="flex gap-2 justify-end mt-10">

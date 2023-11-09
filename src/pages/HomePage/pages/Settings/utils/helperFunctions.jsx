@@ -1,3 +1,5 @@
+import edit from "../../../../../assets/edit.svg";
+import deleteIcon from "../../../../../assets/delete.svg";
 export const departmentColumns = [
   {
     header: "Department",
@@ -5,25 +7,27 @@ export const departmentColumns = [
   },
   {
     header: "Department Head",
-    accessorKey: "user",
-    cell: (info) => info.getValue()?.name
+    accessorKey: "department_head_info",
+    cell: (info) => info.getValue()?.name??"N/A"
   },
   {
     header: "Description",
     accessorKey: "description",
+    cell: (info) => info.getValue()??"N/A"
   },
   {
-    header: "Status",
+    header: "Actions",
     accessorKey: "status",
-    cell: (info) => (
+    cell: () => (
       <div
         className={
-          info.getValue()
-            ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-            : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+           "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
         }>
-        {info.getValue() ? "Active" : "Inactive"}
-      </div>)
+        <img src={edit} alt="edit icon" className="cursor-pointer"  />
+        <img src={deleteIcon} alt="delete icon"  className="cursor-pointer" />
+
+      </div>
+      )
   },
 ]
 
@@ -46,12 +50,13 @@ export const accessColumns = [
     cell: (info) => (
       <div
         className={
-          info.getValue()
-            ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-            : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+           "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
         }>
-        {info.getValue() ? "Active" : "Inactive"}
-      </div>)
+        <img src={edit} alt="edit icon" className="cursor-pointer"  />
+        <img src={deleteIcon} alt="delete icon"  className="cursor-pointer" />
+
+      </div>
+      )
   },
 ]
 export const positionsColumns = [
@@ -62,7 +67,7 @@ export const positionsColumns = [
   {
     header: "Department",
     accessorKey: "department",
-    cell: (info) => info.getValue()?.name
+    cell: (info) => info.getValue()?.name??"N/A"
   },
   {
     header: "Description",
@@ -74,11 +79,11 @@ export const positionsColumns = [
     cell: (info) => (
       <div
         className={
-          info.getValue()
-            ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-            : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+           "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
         }>
-        {info.getValue() ? "Active" : "Inactive"}
+        <img src={edit} alt="edit icon" className="cursor-pointer"  />
+        <img src={deleteIcon} alt="delete icon"  className="cursor-pointer" />
+
       </div>)
   },
 ]

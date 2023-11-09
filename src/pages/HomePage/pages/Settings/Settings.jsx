@@ -181,7 +181,7 @@ const handleFormSubmit = () => {
               <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={" text-white h-10 p-2"} onClick={() => { setDisplayForm(!displayForm) }} />
+              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm) }} />
             </div>
           </div>
           <TableComponent

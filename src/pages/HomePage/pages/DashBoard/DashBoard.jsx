@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
@@ -31,28 +31,28 @@ function DashBoard() {
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
           />{" "}
-          {`${row.first_name} ${row.last_name}`}
+          {row.name}
         </div>
       ),
       cell: (info) => info.getValue(),
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number_1",
+      accessorKey: "user_info.primary_number",
     },
     {
       header: "last visited",
       accessorKey: "last_visited",
-      cell: (info) => info.getValue() + " days ago",
+      cell: (info) => info.getValue()??"N/A" + " days ago",
     },
     {
       header: "Visits",
       accessorKey: "visits",
-      cell: (info) => info.getValue() + " visits",
+      cell: (info) => info.getValue()??0 + " visits",
     },
     {
       header: "Created",
-      accessorKey: "member_since",
+      accessorKey: "created_at",
       cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
@@ -70,6 +70,8 @@ function DashBoard() {
     },
   ];
   const [filter,setFilter] = useState("");
+
+  const navigate = useNavigate();
 
   const handleClick = () => {
     setDisplayForm(true);
@@ -128,7 +130,7 @@ function DashBoard() {
              </select> */}
             </div>
             <div>
-              <Button value="Add members" className={" text-white h-10 p-2"} onClick={handleClick}/>
+              <Button value="View all members →" className={" text-white h-10 p-2"} onClick={() => navigate("/home/members")}/>
             </div>
           </div>
           {/* <TableComponent /> */}

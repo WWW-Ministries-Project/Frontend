@@ -16,7 +16,7 @@ function Members() {
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number_1",
+      accessorKey: "user_info.primary_number",
     },
     {
       header: "last visited",
@@ -25,7 +25,7 @@ function Members() {
     },
     {
       header: "Created",
-      accessorKey: "member_since",
+      accessorKey: "created_at",
       cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
