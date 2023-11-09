@@ -113,8 +113,8 @@ function DashBoard() {
           <BreakdownComponents />
         </section>
         <section className="mt-6 bg-white p-7 ">
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex justify-start gap-2 items-center  w-2/3">
+          <div className="flex justify-end items-center mb-5">
+            {/* <div className="flex justify-start gap-2 items-center  w-2/3">
              <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} /> 
              <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
                 <option value="">Filter by</option>
@@ -122,15 +122,9 @@ function DashBoard() {
                 <option value="Department">Department</option>
                 <option value="Date">Date created</option>
              </select>
-             {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
-                <option value="">Filter by</option>
-                <option value="Name">Name</option>
-                <option value="Department">Department</option>
-                <option value="Date">Date created</option>
-             </select> */}
-            </div>
+            </div> */}
             <div>
-              <Button value="View all members →" className={" text-white h-10 p-2"} onClick={() => navigate("/home/members")}/>
+              <Button value="View all members →" className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => navigate("/home/members")}/>
             </div>
           </div>
           {/* <TableComponent /> */}

@@ -11,17 +11,19 @@ import { baseUrl } from "../../../Authentication/utils/helpers";
 import { departmentColumns, positionsColumns, accessColumns } from "./utils/helperFunctions";
 import FormsComponent from "./Components/FormsComponent";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, departmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData] = useState([]);
-  const [departmentData, setDepartmentData] = useState([]);
+  // const [departmentData, setDepartmentData] = useState([]);
   const [positionData, setPositionData] = useState([]);
   const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({created_by:1,name:""});
   const [selectedId, setSelectedId] = useState("department_head");
+
+  // const departmentData = departmentDataRef.current;
 
 
 
@@ -111,16 +113,17 @@ const handleFormSubmit = () => {
     // axios.get(`${baseUrl}/access/list-access`).then((res) => {
     //   setAccessData(res.data.data);
     // });
-    axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-      setData(res.data.data);
-      setDepartmentData(res.data.data);
+    // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
+      // setData(departmentDataRef.current);
+      // console.log(departmentData);
+    //   setDepartmentData(res.data.data);
 
-    })
+    // })
   },[])
 
   useEffect(() => {
     handleDataFetching();
-  }, [selectedTab]);
+  }, [selectedTab, departmentData]);
 
 
   const handleSearch = (e) => {
