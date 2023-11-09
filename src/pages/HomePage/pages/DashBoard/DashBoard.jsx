@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
@@ -31,28 +31,28 @@ function DashBoard() {
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
           />{" "}
-          {`${row.first_name} ${row.last_name}`}
+          {row.name}
         </div>
       ),
       cell: (info) => info.getValue(),
     },
     {
       header: "Phone number",
-      accessorKey: "phone_number_1",
+      accessorKey: "user_info.primary_number",
     },
     {
       header: "last visited",
       accessorKey: "last_visited",
-      cell: (info) => info.getValue() + " days ago",
+      cell: (info) => info.getValue()??"N/A" + " days ago",
     },
     {
       header: "Visits",
       accessorKey: "visits",
-      cell: (info) => info.getValue() + " visits",
+      cell: (info) => info.getValue()??0 + " visits",
     },
     {
       header: "Created",
-      accessorKey: "member_since",
+      accessorKey: "created_at",
       cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
     },
     {
@@ -70,6 +70,8 @@ function DashBoard() {
     },
   ];
   const [filter,setFilter] = useState("");
+
+  const navigate = useNavigate();
 
   const handleClick = () => {
     setDisplayForm(true);
@@ -111,8 +113,8 @@ function DashBoard() {
           <BreakdownComponents />
         </section>
         <section className="mt-6 bg-white p-7 ">
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex justify-start gap-2 items-center  w-2/3">
+          <div className="flex justify-end items-center mb-5">
+            {/* <div className="flex justify-start gap-2 items-center  w-2/3">
              <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} /> 
              <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
                 <option value="">Filter by</option>
@@ -120,15 +122,9 @@ function DashBoard() {
                 <option value="Department">Department</option>
                 <option value="Date">Date created</option>
              </select>
-             {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
-                <option value="">Filter by</option>
-                <option value="Name">Name</option>
-                <option value="Department">Department</option>
-                <option value="Date">Date created</option>
-             </select> */}
-            </div>
+            </div> */}
             <div>
-              <Button value="Add members" className={" text-white h-10 p-2"} onClick={handleClick}/>
+              <Button value="View all members →" className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => navigate("/home/members")}/>
             </div>
           </div>
           {/* <TableComponent /> */}
