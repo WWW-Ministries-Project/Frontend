@@ -7,9 +7,9 @@ import NotificationFlag from "../../Components/reusable/NotificationFlag";
 import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import BreakdownComponents from "./Components/BreakdownComponents";
-import data from "/public/data/MOCK_DATA.json";
 import ProfilePicture from "../../../../components/ProfilePicture";
 import { DateTime } from "luxon";
+import { decodeToken, getToken } from "../../../../utils/helperFunctions";
 
 
 function DashBoard() {
@@ -20,6 +20,7 @@ function DashBoard() {
   ];
 
   const {setDisplayForm, members} = useOutletContext();
+  const token = getToken();
 
   const columns = [
     {
@@ -92,7 +93,7 @@ function DashBoard() {
  }
   return (
       <main className="">
-        <NotificationFlag className={" mb-5"}/>
+        <NotificationFlag name={decodeToken(token).name} className={" mb-5"}/>
         <div className="my-5 flex items-center justify-between">
           <div className="H600">Overview</div>
           <div className="flex gap-2  justify-between">

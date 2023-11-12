@@ -1,4 +1,4 @@
-import data from "../../../../public/data/MOCK_DATA.json";
+import data from "/data/MOCK_DATA.json";
 
 function TableComponent(props) {
   const headers = Object.keys(data[0]);
