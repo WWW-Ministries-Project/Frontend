@@ -9,6 +9,8 @@ import OuterDiv from "../../components/OuterDiv";
 import { validate } from "../../utils/helpers";
 import { baseUrl } from "../../utils/helpers";
 import axios from "axios";
+import axiosInstance from '../../../../axiosInstance';
+import { setToken } from "../../../../utils/helperFunctions";
 
 function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
@@ -29,6 +31,9 @@ function LoginPage() {
         const endpoint = baseUrl + "/user/login";
         const response = await axios.post(endpoint, loginValues);
         setLoading(false);
+        const token = response.data.token;
+        // Set the Authorization header for future requests
+        setToken(token);
         response.status == 200 && navigate('/home/dashboard')
       } catch (error) {
         console.log(error, "error");

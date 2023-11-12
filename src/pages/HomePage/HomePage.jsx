@@ -3,7 +3,7 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import { useEffect, useState } from "react";
 import NewMember from "./Components/NewMember";
-import axios from "axios";
+import axios from "../../axiosInstance.js";
 import { baseUrl } from "../Authentication/utils/helpers";
 import { useMemo } from "react";
 

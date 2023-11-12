@@ -6,7 +6,7 @@ import SearchBar from "../../../../components/SearchBar";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import Filter from "../../Components/reusable/Filter";
-import axios from "axios";
+import axios from "../../../../axiosInstance.js";
 import { baseUrl } from "../../../Authentication/utils/helpers";
 import { departmentColumns, positionsColumns, accessColumns } from "./utils/helperFunctions";
 import FormsComponent from "./Components/FormsComponent";

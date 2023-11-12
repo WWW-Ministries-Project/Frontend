@@ -25,7 +25,7 @@ SelectField.propTypes = {
     label: PropTypes.string,
     className: PropTypes.string,   
     id: PropTypes.string,
-    value: PropTypes.string,
+    value: PropTypes.number,
     onChange: PropTypes.func,
     options: PropTypes.array
 }
