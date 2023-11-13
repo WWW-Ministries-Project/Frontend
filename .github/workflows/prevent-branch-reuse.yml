@@ -3,7 +3,7 @@ name: Prevent Branch Reuse
 on:
   pull_request:
     types:
-      - closed
+      - opened
 
 jobs:
   prevent-branch-reuse:
