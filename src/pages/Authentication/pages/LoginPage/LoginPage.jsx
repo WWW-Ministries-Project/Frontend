@@ -9,7 +9,6 @@ import OuterDiv from "../../components/OuterDiv";
 import { validate } from "../../utils/helpers";
 import { baseUrl } from "../../utils/helpers";
 import axios from "axios";
-import axiosInstance from '../../../../axiosInstance';
 import { setToken } from "../../../../utils/helperFunctions";
 
 function LoginPage() {
