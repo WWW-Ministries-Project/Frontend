@@ -1,0 +1,19 @@
+name: Prevent Branch Reuse
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  prevent-branch-reuse:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if branch was merged
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if git log --merges --oneline | grep "${BRANCH}"; then
+            echo "This branch has already been merged. Create a new branch for your changes."
+            exit 1
+          fi
