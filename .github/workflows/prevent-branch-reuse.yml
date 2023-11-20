@@ -11,14 +11,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2  # This action checks out your repository
+        uses: actions/checkout@v2
 
       - name: Check if branch was merged
         run: |
           BRANCH="reuseableBranches"
-          if git branch --merged main | grep "${BRANCH}"; then
+          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          
+          if git branch --merged $DEFAULT_BRANCH | grep "${BRANCH}"; then
             echo "This branch has already been merged. Create a new branch for your changes."
             exit 1
           else
             echo "Branch not merged. Workflow can proceed."
           fi
+
