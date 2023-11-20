@@ -16,7 +16,12 @@ jobs:
       - name: Check if branch was merged
         run: |
           BRANCH="reuseableBranches"
-          DEFAULT_BRANCH="main"
+          DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+          
+          if [ -z "$DEFAULT_BRANCH" ]; then
+            echo "Unable to determine the default branch. Exiting..."
+            exit 1
+          fi
           
           if git branch --merged $DEFAULT_BRANCH | grep "${BRANCH}"; then
             echo "This branch has already been merged. Create a new branch for your changes."
@@ -24,4 +29,3 @@ jobs:
           else
             echo "Branch not merged. Workflow can proceed."
           fi
-
