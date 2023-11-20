@@ -16,7 +16,7 @@ jobs:
       - name: Check if branch was merged
         run: |
           BRANCH="reuseableBranches"
-          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+          DEFAULT_BRANCH="main"
           
           if git branch --merged $DEFAULT_BRANCH | grep "${BRANCH}"; then
             echo "This branch has already been merged. Create a new branch for your changes."
