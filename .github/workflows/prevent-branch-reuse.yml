@@ -10,11 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2  # This action checks out your repository
+
       - name: Check if branch was merged
         run: |
-          BRANCH="${{ github.head_ref }}"
-          git branch --merged main
-          # if git branch --merged main | grep "${BRANCH}"; then
-          #   echo "This branch has already been merged. Create a new branch for your changes."
-          #   exit 1
-          # fi
+          BRANCH="reuseableBranches"
+          if git branch --merged main | grep "${BRANCH}"; then
+            echo "This branch has already been merged. Create a new branch for your changes."
+            exit 1
+          else
+            echo "Branch not merged. Workflow can proceed."
+          fi
