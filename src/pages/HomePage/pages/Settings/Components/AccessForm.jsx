@@ -2,8 +2,12 @@ import React from 'react';
 import InputDiv from '../../../Components/reusable/InputDiv';
 import ToggleSwitch from '../../../../../components/ToggleInput';
 import PropTypes from 'prop-types';
+import Button from '../../../../../components/Button';
 
-const AccessForm = ({ handleChange, selectedTab, inputValue }) => {
+const AccessForm = ({ handleChange, selectedTab, inputValue, onSubmit, loading, CloseForm }) => {
+    function onSubmit() {
+        onSubmit();
+    }
     const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access Rights"];
     return (
         <div>
@@ -31,7 +35,14 @@ const AccessForm = ({ handleChange, selectedTab, inputValue }) => {
 
                     {/* </div> */}
                 </div>
-
+                <div className="flex gap-2 justify-end mt-10">
+                        <Button
+                            value="Close"
+                            className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
+                            onClick={CloseForm}
+                        />
+                        <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={loading} />
+                    </div>
             </form>
         </div>
     );
