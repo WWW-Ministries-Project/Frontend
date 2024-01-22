@@ -12,5 +12,5 @@ export const removeToken = () => {
 };
 
 export const decodeToken = (token) => {
-    return jwtDecode(token);
+    return token && jwtDecode(token);
 }

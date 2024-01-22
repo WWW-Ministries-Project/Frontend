@@ -38,8 +38,8 @@ const ToggleSwitch = (props) => {
 };
 
 ToggleSwitch.propTypes = {
-    isChecked: React.PropTypes.bool,
-    onChange: React.PropTypes.func,
+    isChecked: PropTypes.bool,
+    onChange: PropTypes.func,
 }
 
 export default ToggleSwitch;
