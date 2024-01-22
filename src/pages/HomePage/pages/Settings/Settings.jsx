@@ -1,15 +1,16 @@
 
 import { useEffect, useMemo } from "react";
-import useState from "react-usestateref";
-import TableComponent from "../../Components/reusable/TableComponent";
-import SearchBar from "../../../../components/SearchBar";
 import { useOutletContext } from "react-router-dom";
-import Button from "../../../../components/Button";
-import Filter from "../../Components/reusable/Filter";
+import useState from "react-usestateref";
 import axios from "../../../../axiosInstance.js";
+import Button from "../../../../components/Button";
+import SearchBar from "../../../../components/SearchBar";
 import { baseUrl } from "../../../Authentication/utils/helpers";
-import { departmentColumns, positionsColumns, accessColumns } from "./utils/helperFunctions";
+import Filter from "../../Components/reusable/Filter";
+import TableComponent from "../../Components/reusable/TableComponent";
+import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
+import { accessColumns, departmentColumns, positionsColumns } from "./utils/helperFunctions";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
@@ -49,6 +50,7 @@ function Settings() {
 
   const handleChange = (name, value) =>{
     setInputValue((prev) => ({ ...prev, [name]: value }));
+    console.log(inputValue,"changed");
 }
 
 const handleCloseForm =()=> {
@@ -212,9 +214,11 @@ const handleFormSubmit = () => {
           />
         </section>
 
-        {true ? (
+        {selectedTab !=="Access Rights" ? (
           <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} />
-        ) : null}
+        ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} >
+              <AccessForm selectedTab={selectedTab} inputValue={inputValue} handleChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
+          </FormsComponent>}
       </section>
     </>
   );

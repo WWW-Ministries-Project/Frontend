@@ -26,6 +26,7 @@ const FormsComponent = (props) => {
                 <div className="py-5 border-b border-[#F5F5F5] text-primaryGray text-lg font-manrope font-bold">
                     Create {props.inputLabel}
                 </div>
+                {props.children ? props.children :
                 <form className="mt-5">
                     <div className="flex flex-col gap-6 mb-5 border-b border-[#F5F5F5]">
                         <InputDiv onChange={handleChange} type="text" id={props.inputId} label={props.inputLabel} value={props.inputValue.name} className="w-full" />
@@ -41,6 +42,7 @@ const FormsComponent = (props) => {
                         <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} />
                     </div>
                 </form>
+                }
             </div>
         </>
     )

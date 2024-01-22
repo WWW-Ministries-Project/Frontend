@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import { useEffect, useState } from "react";
@@ -6,6 +6,7 @@ import NewMember from "./Components/NewMember";
 import axios from "../../axiosInstance.js";
 import { baseUrl } from "../Authentication/utils/helpers";
 import { useMemo } from "react";
+import { decodeToken, getToken } from "../../utils/helperFunctions";
 
 
 function HomePage() {
@@ -13,6 +14,8 @@ function HomePage() {
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [loading, setLoading] = useState(false);
+  // const token = getToken();
+  const token = "getToken()"; // uncomment line above and delete this line
   const selectOptions = useMemo(() => {
     return departmentData.map((department) => {
       return { name: department.name, value: department.id };
@@ -54,7 +57,8 @@ function HomePage() {
   };
   return (
     <>
-      <Header />
+      {token ?
+      (<><Header />
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
         <SideBar style={{ paddingTop: "90px" }} />
         <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
@@ -63,7 +67,7 @@ function HomePage() {
       </main>
       {true ? (
          <NewMember CloseForm={CloseForm} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} />
-      ) : null}
+      ) : null}</>):(<Navigate to="/login" />)}
     </>
   );
 }
