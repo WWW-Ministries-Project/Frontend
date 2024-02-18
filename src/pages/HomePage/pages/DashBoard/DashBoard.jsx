@@ -2,14 +2,12 @@ import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Button from "../../../../components/Button";
-import SearchBar from "../../../../components/SearchBar";
+import { decodeToken, getToken } from "../../../../utils/helperFunctions";
 import NotificationFlag from "../../Components/reusable/NotificationFlag";
 import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import BreakdownComponents from "./Components/BreakdownComponents";
-import ProfilePicture from "../../../../components/ProfilePicture";
-import { DateTime } from "luxon";
-import { decodeToken, getToken } from "../../../../utils/helperFunctions";
+import { dashboardColumns } from "./utils/dashboardFunctions";
 
 
 function DashBoard() {
@@ -22,54 +20,7 @@ function DashBoard() {
   const {setDisplayForm, members} = useOutletContext();
   const token = getToken();
 
-  const columns = [
-    {
-      header: "Name",
-      accessorFn: (row) => (
-        <div className="flex items-center gap-2">
-          <ProfilePicture
-            src={row.photo || "/src/assets/images/profilePic.png"}
-            alt="profile pic"
-            className="h-[38px] w-[38px] rounded-full"
-          />{" "}
-          {row.name}
-        </div>
-      ),
-      cell: (info) => info.getValue(),
-    },
-    {
-      header: "Phone number",
-      accessorKey: "user_info.primary_number",
-    },
-    {
-      header: "last visited",
-      accessorKey: "last_visited",
-      cell: (info) => info.getValue()??"N/A" + " days ago",
-    },
-    {
-      header: "Visits",
-      accessorKey: "visits",
-      cell: (info) => info.getValue()??0 + " visits",
-    },
-    {
-      header: "Created",
-      accessorKey: "created_at",
-      cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
-    },
-    {
-      header: "Status",
-      accessorKey: "status",
-      cell: (info) => (
-        <div
-          className={
-            info.getValue()
-              ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-              : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-          }>
-          {info.getValue() ? "Active" : "Inactive"}
-        </div>)
-    },
-  ];
+  const columns = dashboardColumns;
   const [filter,setFilter] = useState("");
 
   const navigate = useNavigate();

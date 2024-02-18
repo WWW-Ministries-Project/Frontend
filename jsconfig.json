@@ -1,6 +1,17 @@
+// {
+//     "compilerOptions": {
+//       "baseUrl": "src"
+//     },
+//     "include": ["src"]
+//   }
+
+// jsconfig.json
 {
-    "compilerOptions": {
-      "baseUrl": "src"
-    },
-    "include": ["src"]
-  }
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  },
+  "include": ["src"]
+}
