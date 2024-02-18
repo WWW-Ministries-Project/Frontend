@@ -13,7 +13,7 @@ import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import { accessColumns, deleteData, positionsColumns, updateData } from "./utils/helperFunctions";
+import { accessColumns, deleteData, updateData } from "./utils/helperFunctions";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
@@ -57,7 +57,7 @@ function Settings() {
               "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
             }>
             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
-              setInputValue(prev=>({...prev, id:row.original?.id, name:row.original?.name, description:row.original?.description, department_head:row.original?.department_head_info?.id}))
+              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_head:row.original?.department_head_info?.id}))
               setEditMode(true)
               setDisplayForm(true) 
               }}/>
@@ -71,6 +71,46 @@ function Settings() {
     
           </div>
         )
+      },
+    ]
+
+    const positionsColumns = [
+      {
+        header: "Position Name",
+        accessorKey: "name",
+      },
+      {
+        header: "Department",
+        accessorKey: "department",
+        cell: (info) => info.getValue()?.name ?? "N/A"
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+      },
+      {
+        header: "Status",
+        accessorKey: "status",
+        cell: ({row}) => (
+          <div
+            className={
+              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            }>
+             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
+              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_id:row.original?.department?.id}))
+              setEditMode(true)
+              setDisplayForm(true) 
+              }}/>
+
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+              deleteData("position/delete-position",row.original.id)
+              let tempData = dataRef.current;
+              tempData.splice(row.index, 1)
+              setData([...tempData])
+              setPositionData([...tempData])
+             }} />
+    
+          </div>)
       },
     ]
   // }, [data,selectedTab,columns])
@@ -101,7 +141,6 @@ function Settings() {
 
   const handleChange = (name, value) =>{
     setInputValue((prev) => ({ ...prev, [name]: value }));
-    console.log(inputValue,"changed");
 }
 
 const handleCloseForm =()=> {
@@ -128,6 +167,11 @@ const handleFormSubmit = async () => {
       break;
     }
     case "Position": {
+      if(editMode){
+        const res = await updateData("position/update-position",inputValue)
+        res && window.location.reload();
+         break;
+       }
       axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
         setData(res.data.data);
         setLoading(false);
@@ -162,7 +206,6 @@ const handleFormSubmit = async () => {
       case "Department":
         {
           setColumns(departmentColumns);
-          console.log("deparatmetne")
           setData(departmentData);
           break;
         }
@@ -263,7 +306,7 @@ const handleFormSubmit = async () => {
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm) }} />
+              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm); setInputValue({created_by:1,name:""}) }} />
             </div>
           </div>
           <TableComponent

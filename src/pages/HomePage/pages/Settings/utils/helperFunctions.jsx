@@ -105,5 +105,7 @@ export async function deleteData(path, id) {
 export async function updateData(path, data) {
   return axios.put(`${baseUrl}/${path}`, data).then((res) => {
     return res.data
+  }).catch((err) => {
+    return err
   })
 }

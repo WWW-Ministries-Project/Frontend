@@ -7,6 +7,7 @@ import TextField from '../../../Components/reusable/TextField';
 
 const FormsComponent = (props) => {
 
+
     function handleChange(name, value) {
         // console.log(name, typeof value);
         if (name === 'department_head') {
@@ -30,7 +31,7 @@ const FormsComponent = (props) => {
                 <form className="mt-5">
                     <div className="flex flex-col gap-6 mb-5 border-b border-[#F5F5F5]">
                         <InputDiv onChange={handleChange} type="text" id={props.inputId} label={props.inputLabel} value={props.inputValue.name} placeholder={props.inputLabel} className="w-full" />
-                        <SelectField onChange={handleChange} label={props.selectLabel} id={props.selectId} options={props.selectOptions} placeholder={props.selectLabel} value={props.inputValue.department_head} />
+                        <SelectField onChange={handleChange} label={props.selectLabel} id={props.selectId} options={props.selectOptions} placeholder={props.selectLabel} value={props.inputValue.department_head || props.inputValue.department_id} />
                         <TextField onChange={handleChange} value={props.inputValue.description} />
                     </div>
                     <div className="flex gap-2 justify-end mt-10">
