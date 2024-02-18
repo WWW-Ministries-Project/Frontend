@@ -52,7 +52,7 @@ function HomePage() {
   const [filter, setFilter] = useState("");
 
   const handleSearchChange = (val) => {
-    setFilter(val);
+    // setFilter(val);
   };
   return (
     <>

@@ -37,7 +37,7 @@ export const dashboardColumns = [
     },
     {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "is_active",
       cell: (info) => (
         <div
           className={

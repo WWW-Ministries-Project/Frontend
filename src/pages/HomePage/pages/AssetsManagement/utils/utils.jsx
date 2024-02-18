@@ -1,4 +1,6 @@
 import { DateTime } from "luxon";
+import edit from "/src/assets/edit.svg";
+import deleteIcon from "/src/assets/delete.svg";
 
 export const assetsColumns = [
   {
@@ -19,20 +21,20 @@ export const assetsColumns = [
     accessorKey: "created_at",
     cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
   },
-  {
-    header: "Status",
-    accessorKey: "status",
-    cell: (info) => (
-      <div
-        className={
-          "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
-        }
-      >
-        <img src={edit} alt="edit icon" className="cursor-pointer" />
-        <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
-      </div>
-    ),
-  },
+  // {
+  //   header: "Status",
+  //   accessorKey: "status",
+  //   cell: (info) => (
+  //     <div
+  //       className={
+  //         "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+  //       }
+  //     >
+  //       <img src={edit} alt="edit icon" className="cursor-pointer" />
+  //       <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
+  //     </div>
+  //   ),
+  // },
   {
     header: "Actions",
     accessorKey: "status",
