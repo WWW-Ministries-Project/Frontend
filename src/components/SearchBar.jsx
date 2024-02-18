@@ -16,7 +16,7 @@ function SearchBar(props) {
             type="text"
             placeholder= {props.placeholder}
             name="search"
-            className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2"
+            className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2 h-7"
             value={props.value}
             onChange={props.onChange}
           />

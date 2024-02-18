@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+
 export const validateEmail = (email) => {
     // Regular expression pattern for email validation
     const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -23,3 +25,7 @@ export function validate(name,inputValue) {
   }
 
 export const baseUrl='https://wwwministries.onrender.com';
+
+export const logOut = () => {
+  Cookies.remove("token");
+}
