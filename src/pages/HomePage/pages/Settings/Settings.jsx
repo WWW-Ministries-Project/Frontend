@@ -10,12 +10,15 @@ import Filter from "../../Components/reusable/Filter";
 import TableComponent from "../../Components/reusable/TableComponent";
 import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
-import { accessColumns, departmentColumns, positionsColumns } from "./utils/helperFunctions";
+// import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
+import deleteIcon from "../../../../assets/delete.svg";
+import edit from "../../../../assets/edit.svg";
+import { accessColumns, deleteData, updateData } from "./utils/helperFunctions";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, departmentData } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const [data, setData] = useState([]);
+  const [data, setData, dataRef] = useState([]);
   // const [departmentData, setDepartmentData] = useState([]);
   const [positionData, setPositionData] = useState([]);
   const [accessData, setAccessData] = useState([]);
@@ -23,7 +26,95 @@ function Settings() {
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({created_by:1,name:""});
   const [selectedId, setSelectedId] = useState("department_head");
+  const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+
+  // find way to import data from another function makes it cleaner
+  const departmentColumns =
+   [
+      {
+        header: "Department",
+        accessorKey: "name",
+      },
+      {
+        header: "Department Head",
+        accessorKey: "department_head_info",
+        cell: (info) => info.getValue()?.name ?? "N/A"
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+        cell: (info) => info.getValue() ?? "N/A"
+      },
+      {
+        header: "Actions",
+        accessorKey: "status",
+        cell: ({ row }) => (
+          <div
+            className={
+              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            }>
+            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
+              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_head:row.original?.department_head_info?.id}))
+              setEditMode(true)
+              setDisplayForm(true) 
+              }}/>
+
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+              deleteData("department/delete-department",row.original.id)
+              let tempData = dataRef.current;
+              tempData.splice(row.index, 1)
+              setData([...tempData])
+             }} />
+    
+          </div>
+        )
+      },
+    ]
+
+    const positionsColumns = [
+      {
+        header: "Position Name",
+        accessorKey: "name",
+      },
+      {
+        header: "Department",
+        accessorKey: "department",
+        cell: (info) => info.getValue()?.name ?? "N/A"
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+      },
+      {
+        header: "Status",
+        accessorKey: "status",
+        cell: ({row}) => (
+          <div
+            className={
+              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            }>
+             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
+              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_id:row.original?.department?.id}))
+              setEditMode(true)
+              setDisplayForm(true) 
+              }}/>
+
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+              deleteData("position/delete-position",row.original.id)
+              let tempData = dataRef.current;
+              tempData.splice(row.index, 1)
+              setData([...tempData])
+              setPositionData([...tempData])
+             }} />
+    
+          </div>)
+      },
+    ]
+  // }, [data,selectedTab,columns])
+
 
   // const departmentData = departmentDataRef.current;
 
@@ -50,17 +141,22 @@ function Settings() {
 
   const handleChange = (name, value) =>{
     setInputValue((prev) => ({ ...prev, [name]: value }));
-    console.log(inputValue,"changed");
 }
 
 const handleCloseForm =()=> {
   setDisplayForm(false);
+  setEditMode(false);
 }
 
-const handleFormSubmit = () => {
+const handleFormSubmit = async () => {
   setLoading(true);
   switch (selectedTab) {
     case "Department": {
+      if(editMode){
+       const res = await updateData("department/update-department",inputValue)
+       res && window.location.reload();
+        break;
+      }
       axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
         setLoading(false);
         setData(res.data.data);
@@ -71,6 +167,11 @@ const handleFormSubmit = () => {
       break;
     }
     case "Position": {
+      if(editMode){
+        const res = await updateData("position/update-position",inputValue)
+        res && window.location.reload();
+         break;
+       }
       axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
         setData(res.data.data);
         setLoading(false);
@@ -154,10 +255,12 @@ const handleFormSubmit = () => {
     switch (tab) {
       case "Department": {
         setSelectedId("department_head");
+        setSelectLabel("Department Head");
         break;
       }
       case "Position": {
         setSelectedId("department_id");
+        setSelectLabel("Department");
         break;
       }
       case "Access Rights": {
@@ -203,7 +306,7 @@ const handleFormSubmit = () => {
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm) }} />
+              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm); setInputValue({created_by:1,name:""}) }} />
             </div>
           </div>
           <TableComponent
@@ -215,7 +318,8 @@ const handleFormSubmit = () => {
         </section>
 
         {selectedTab !=="Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} />
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}/>
+
         ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} >
               <AccessForm selectedTab={selectedTab} inputValue={inputValue} handleChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
           </FormsComponent>}

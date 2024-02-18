@@ -13,12 +13,15 @@ function SearchBar(props) {
           />
 
           <input
+            id={props.id||"search"}
             type="text"
             placeholder= {props.placeholder}
             name="search"
-            className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2"
+            className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2 h-7"
             value={props.value}
             onChange={props.onChange}
+            autoComplete="off"
+          
           />
         </form>
       </div>
@@ -27,7 +30,7 @@ function SearchBar(props) {
 }
 SearchBar.propTypes = {
     // type: PropTypes.string.isRequired,
-    // id: PropTypes.string.isRequired,
+    id: PropTypes.string,
     // name: PropTypes.string.isRequired,
     value: PropTypes.string,
     // valid: PropTypes.bool,

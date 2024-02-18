@@ -2,16 +2,21 @@ import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { assetsColumns } from "./utils/utils";
 import Filter from "../../Components/reusable/Filter";
 import FormsComponent from "../Settings/Components/FormsComponent";
+import { baseUrl } from "../../../Authentication/utils/helpers";
 const AssetManagement = () => {
     const columns = assetsColumns;
     const { members } = useOutletContext();
     const [displayForm, setDisplayForm] = useState(false);
     const [filter, setFilter] = useState("");
     const [loading,setLoading] = useState(false);
+
+    useEffect(() => {
+        
+    })
     const handleSearchChange = (e) => {
         setFilter(e.target.value);
     };
@@ -31,13 +36,13 @@ const AssetManagement = () => {
       const handleFormSubmit = () => {
         setLoading(true);
 
-            axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-              setLoading(false);
-              setData(res.data.data);
-            }).catch((err) => {
-              console.log(err);
-              setLoading(false);
-            });
+            // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+            //   setLoading(false);
+            //   setData(res.data.data);
+            // }).catch((err) => {
+            //   console.log(err);
+            //   setLoading(false);
+            // });
         }
     const selectOptions = [{name:"department",value:"department"}]
     const [inputValue, setInputValue] = useState({created_by:1,name:""});	
@@ -53,7 +58,7 @@ const AssetManagement = () => {
                             value={filter}
                             onChange={handleSearchChange}
                         />
-                        <select
+                        {/* <select
                             name="filter"
                             id="filter"
                             placeholder="Filter"
@@ -63,8 +68,8 @@ const AssetManagement = () => {
                             <option value="Department">Department</option>
                             <option value="Date">Date created</option>
                         </select>
-                        <Filter />
-                        <Filter />
+                        <Filter /> */}
+                        {/* <Filter /> */}
                         {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
                 <option value="">Filter by</option>
                 <option value="Name">Name</option>

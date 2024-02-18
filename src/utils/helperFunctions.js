@@ -12,8 +12,5 @@ export const removeToken = () => {
 };
 
 export const decodeToken = (token) => {
-    // return token && jwtDecode(token);
-    return ({
-        name: "test"
-    })// remove this line and uncomment code above
+    return token && jwtDecode(token);
 }

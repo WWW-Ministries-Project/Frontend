@@ -5,7 +5,7 @@ import ChurchLogo from "../../../components/ChurchLogo";
 import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { decodeToken, getToken } from "../../../utils/helperFunctions";
+import { decodeToken, getToken, removeToken } from "../../../utils/helperFunctions";
 
 function Header() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ function Header() {
     setShowLogOut(prev => !prev);
   };
   const handleLogOut = () => {
+    removeToken();
     navigate("/login");
   }
   return (
@@ -22,7 +23,7 @@ function Header() {
       <header className="flex justify-between h-16 items-center bg-white px-3 fixed w-full z-10">
         <ChurchLogo />
         <div className="w-[40.9%]">
-          <SearchBar placeholder="Search here" />
+          <SearchBar placeholder="Search here" value="" onChange={() => {}}/>
         </div>
 
         <div className="w-[246px] flex justify-between items-center">

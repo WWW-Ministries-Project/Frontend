@@ -8,9 +8,9 @@ function InputDiv (props) {
       }
     return (
         <>
-            <div className={"flex flex-col  "+props.className}>
+            <div className={"flex flex-col gap-1  "+props.className}>
               <label htmlFor={props.id}>{props.label}</label>
-              <input className={'input'} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange}/>
+              <input className={'input'} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange} placeholder={props.placeholder}/>
           </div>
         </>
     )
