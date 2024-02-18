@@ -14,8 +14,7 @@ function HomePage() {
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const token = getToken();
-  const token = "getToken()"; // uncomment line above and delete this line
+  const token = getToken();
   const selectOptions = useMemo(() => {
     return departmentData.map((department) => {
       return { name: department.name, value: department.id };
