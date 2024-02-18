@@ -13,6 +13,7 @@ function HomePage() {
   const [displayForm, setDisplayForm] = useState(false);
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
+  const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [loading, setLoading] = useState(false);
   const token = getToken();
   const selectOptions = useMemo(() => {
@@ -28,11 +29,16 @@ function HomePage() {
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
       setMembers(res.data.data);
     });
+    // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
+    //   setDepartmentData(res.data.data);
+
+    // });
+  },[]);
+  useEffect(() => {
     axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       setDepartmentData(res.data.data);
-
     });
-  },[]);
+  },[updatedDepartment]);
   const addNewMember = (value) => {
     setLoading(true);
     axios
@@ -61,7 +67,7 @@ function HomePage() {
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
         <SideBar style={{ paddingTop: "90px" }} />
         <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
-          <Outlet context={{ setDisplayForm, members, filter,setFilter, handleSearchChange, departmentData }} />
+          <Outlet context={{ setDisplayForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData}} />
         </section>
       </main>
       {true ? (

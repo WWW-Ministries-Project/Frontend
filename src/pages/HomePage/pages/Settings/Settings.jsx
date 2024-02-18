@@ -10,12 +10,15 @@ import Filter from "../../Components/reusable/Filter";
 import TableComponent from "../../Components/reusable/TableComponent";
 import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
-import { accessColumns, departmentColumns, positionsColumns, deleteDepartment } from "./utils/helperFunctions";
+// import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
+import deleteIcon from "../../../../assets/delete.svg";
+import edit from "../../../../assets/edit.svg";
+import { accessColumns, deleteData, positionsColumns, updateData } from "./utils/helperFunctions";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, departmentData } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const [data, setData] = useState([]);
+  const [data, setData, dataRef] = useState([]);
   // const [departmentData, setDepartmentData] = useState([]);
   const [positionData, setPositionData] = useState([]);
   const [accessData, setAccessData] = useState([]);
@@ -25,6 +28,53 @@ function Settings() {
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+
+  // find way to import data from another function makes it cleaner
+  const departmentColumns =
+   [
+      {
+        header: "Department",
+        accessorKey: "name",
+      },
+      {
+        header: "Department Head",
+        accessorKey: "department_head_info",
+        cell: (info) => info.getValue()?.name ?? "N/A"
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+        cell: (info) => info.getValue() ?? "N/A"
+      },
+      {
+        header: "Actions",
+        accessorKey: "status",
+        cell: ({ row }) => (
+          <div
+            className={
+              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            }>
+            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
+              setInputValue(prev=>({...prev, id:row.original?.id, name:row.original?.name, description:row.original?.description, department_head:row.original?.department_head_info?.id}))
+              setEditMode(true)
+              setDisplayForm(true) 
+              }}/>
+
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+              deleteData("department/delete-department",row.original.id)
+              let tempData = dataRef.current;
+              tempData.splice(row.index, 1)
+              setData([...tempData])
+             }} />
+    
+          </div>
+        )
+      },
+    ]
+  // }, [data,selectedTab,columns])
+
 
   // const departmentData = departmentDataRef.current;
 
@@ -56,12 +106,18 @@ function Settings() {
 
 const handleCloseForm =()=> {
   setDisplayForm(false);
+  setEditMode(false);
 }
 
-const handleFormSubmit = () => {
+const handleFormSubmit = async () => {
   setLoading(true);
   switch (selectedTab) {
     case "Department": {
+      if(editMode){
+       const res = await updateData("department/update-department",inputValue)
+       res && window.location.reload();
+        break;
+      }
       axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
         setLoading(false);
         setData(res.data.data);
@@ -106,8 +162,8 @@ const handleFormSubmit = () => {
       case "Department":
         {
           setColumns(departmentColumns);
+          console.log("deparatmetne")
           setData(departmentData);
-          console.log(departmentData);
           break;
         }
       case "Position": {
@@ -219,7 +275,7 @@ const handleFormSubmit = () => {
         </section>
 
         {selectedTab !=="Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel}/>
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}/>
 
         ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} >
               <AccessForm selectedTab={selectedTab} inputValue={inputValue} handleChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
