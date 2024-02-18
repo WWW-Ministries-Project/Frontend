@@ -10,7 +10,7 @@ import Filter from "../../Components/reusable/Filter";
 import TableComponent from "../../Components/reusable/TableComponent";
 import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
-import { accessColumns, departmentColumns, positionsColumns } from "./utils/helperFunctions";
+import { accessColumns, departmentColumns, positionsColumns, deleteDepartment } from "./utils/helperFunctions";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
@@ -23,6 +23,7 @@ function Settings() {
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({created_by:1,name:""});
   const [selectedId, setSelectedId] = useState("department_head");
+  const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
 
   // const departmentData = departmentDataRef.current;
@@ -106,6 +107,7 @@ const handleFormSubmit = () => {
         {
           setColumns(departmentColumns);
           setData(departmentData);
+          console.log(departmentData);
           break;
         }
       case "Position": {
@@ -154,10 +156,12 @@ const handleFormSubmit = () => {
     switch (tab) {
       case "Department": {
         setSelectedId("department_head");
+        setSelectLabel("Department Head");
         break;
       }
       case "Position": {
         setSelectedId("department_id");
+        setSelectLabel("Department");
         break;
       }
       case "Access Rights": {
@@ -215,7 +219,8 @@ const handleFormSubmit = () => {
         </section>
 
         {selectedTab !=="Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} />
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel}/>
+
         ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} >
               <AccessForm selectedTab={selectedTab} inputValue={inputValue} handleChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
           </FormsComponent>}

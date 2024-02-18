@@ -15,6 +15,7 @@ const Button = (props) => {
           "leading-5 rounded-md bg-primaryViolet text-center text-black " +
           props.className
         }
+        disabled={props.disabled||false}
         style={props.style}
         onClick={handleClick}
         role="submit button">
@@ -45,6 +46,7 @@ Button.propTypes = {
   className: PropTypes.string,
   onClick: PropTypes.func,
   style: PropTypes.object,
+  disabled: PropTypes.bool
 };
 
 export default Button;

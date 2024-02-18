@@ -29,7 +29,7 @@ const FormsComponent = (props) => {
                 {props.children ? props.children :
                 <form className="mt-5">
                     <div className="flex flex-col gap-6 mb-5 border-b border-[#F5F5F5]">
-                        <InputDiv onChange={handleChange} type="text" id={props.inputId} label={props.inputLabel} value={props.inputValue.name} className="w-full" />
+                        <InputDiv onChange={handleChange} type="text" id={props.inputId} label={props.inputLabel} value={props.inputValue.name} placeholder={props.inputLabel} className="w-full" />
                         <SelectField onChange={handleChange} label={props.selectLabel} id={props.selectId} options={props.selectOptions} placeholder={props.selectLabel} />
                         <TextField onChange={handleChange} value={props.inputValue.description} />
                     </div>
@@ -39,7 +39,7 @@ const FormsComponent = (props) => {
                             className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
                             onClick={props.CloseForm}
                         />
-                        <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} />
+                        <Button value="Save" className={" p-3 text-white disabled:opacity-50"} onClick={onSubmit} loading={props.loading} disabled={!props.inputValue.name} />
                     </div>
                 </form>
                 }
