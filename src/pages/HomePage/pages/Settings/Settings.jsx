@@ -13,7 +13,7 @@ import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import { accessColumns, deleteData, updateData } from "./utils/helperFunctions";
+import { accessColumns, deleteData, updateData, accessValues } from "./utils/helperFunctions";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
@@ -24,7 +24,7 @@ function Settings() {
   const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue] = useState({created_by:1,name:""});
+  const [inputValue, setInputValue, inputValueRef] = useState({created_by:1,name:""});
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
@@ -115,7 +115,7 @@ function Settings() {
     ]
   // }, [data,selectedTab,columns])
 
-
+  const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState(accessValues);
   // const departmentData = departmentDataRef.current;
 
 
@@ -142,6 +142,9 @@ function Settings() {
   const handleChange = (name, value) =>{
     setInputValue((prev) => ({ ...prev, [name]: value }));
 }
+ const handleAccessChange = (name, value) =>{
+   setPermissionsValues((prev) => ({ ...prev, [name]: value }));
+ }
 
 const handleCloseForm =()=> {
   setDisplayForm(false);
@@ -182,8 +185,9 @@ const handleFormSubmit = async () => {
       break;
     }
     case "Access Rights": {
-      axios.post(`${baseUrl}/access/create-access`, inputValue).then((res) => {
-        console.log(res);
+      const permissions = permissionsValuesRef.current;
+      setInputValue(prev=>({permissions:permissions, name:prev.name}))
+      axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then((res) => {
         setLoading(false);
       }).catch((err) => {
         console.log(err);
@@ -320,8 +324,8 @@ const handleFormSubmit = async () => {
         {selectedTab !=="Access Rights" ? (
           <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}/>
 
-        ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} >
-              <AccessForm selectedTab={selectedTab} inputValue={inputValue} handleChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
+        ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab}  >
+              <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading}/>
           </FormsComponent>}
       </section>
     </>
