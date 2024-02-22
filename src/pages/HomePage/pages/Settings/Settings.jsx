@@ -220,9 +220,7 @@ const handleFormSubmit = async () => {
       }
       case "Access Rights": {
         setColumns(accessColumns);
-        // return axios.get(`${baseUrl}/access/list-access`).then((res) => {
-          setData([]);
-        // });
+          setData(accessData);
         break;
       }
       default: break
@@ -234,9 +232,9 @@ const handleFormSubmit = async () => {
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
       setPositionData(res.data.data);
     });
-    // axios.get(`${baseUrl}/access/list-access`).then((res) => {
-    //   setAccessData(res.data.data);
-    // });
+    axios.get(`${baseUrl}/access/list-access-levels`).then((res) => {
+      setAccessData(res.data.data);
+    });
     // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       // setData(departmentDataRef.current);
       // console.log(departmentData);
