@@ -91,7 +91,7 @@ export const positionsColumns = [
 ]
 
 export const accessValues =  {
-  "create_Dashboard": false,
+  "create_Dashboard": true,
   "edit_Dashboard": false,
   "delete_Dashboard": false,
   "view_Dashboard": false,

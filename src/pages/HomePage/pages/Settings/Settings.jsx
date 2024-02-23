@@ -13,13 +13,12 @@ import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import { accessColumns, deleteData, updateData, accessValues } from "./utils/helperFunctions";
+import {  deleteData, updateData, accessValues } from "./utils/helperFunctions";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData, dataRef] = useState([]);
-  // const [departmentData, setDepartmentData] = useState([]);
   const [positionData, setPositionData] = useState([]);
   const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -29,6 +28,7 @@ function Settings() {
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState({});
 
 
   // find way to import data from another function makes it cleaner
@@ -113,9 +113,43 @@ function Settings() {
           </div>)
       },
     ]
+
+    const accessColumns = [
+      {
+        header: "Acess Name",
+        accessorKey: "name",
+      },
+      {
+        header: "Department",
+    
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+      },
+      {
+        header: "Status",
+        accessorKey: "status",
+        cell: ({row}) => (
+          <div
+            className={
+              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            }>
+            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
+              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description}))
+              setPermissionsValues(prev=>(row.original?.permissions))
+              setEditMode(true)
+              setDisplayForm(true) 
+              }}/>
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
+    
+          </div>
+        )
+      },
+    ]
   // }, [data,selectedTab,columns])
 
-  const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState(accessValues);
+
   // const departmentData = departmentDataRef.current;
 
 
@@ -186,7 +220,12 @@ const handleFormSubmit = async () => {
     }
     case "Access Rights": {
       const permissions = permissionsValuesRef.current;
-      setInputValue(prev=>({permissions:permissions, name:prev.name}))
+      setInputValue(prev=>({permissions:permissions, ...prev}))
+      if(editMode){
+        const res = await updateData("access/update-access-level",inputValueRef.current)
+        res && window.location.reload();
+         break;
+       }
       axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then((res) => {
         setLoading(false);
       }).catch((err) => {
@@ -201,6 +240,7 @@ const handleFormSubmit = async () => {
   //   console.log(res);
   // })
   setDisplayForm(false);
+  setInputValue({});
 }
 
 
