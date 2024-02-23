@@ -4,15 +4,15 @@ import ToggleSwitch from '../../../../../components/ToggleInput';
 import PropTypes from 'prop-types';
 import Button from '../../../../../components/Button';
 
-const AccessForm = ({ handleChange, selectedTab, inputValue, onSubmit, loading, CloseForm }) => {
-    function onSubmit() {
+const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm }) => {
+    function handleSubmit() {
         onSubmit();
     }
     const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access Rights"];
     return (
         <div>
             <form className="mt-5">
-                <InputDiv onChange={handleChange} type="text" id={"name"} label={"Access name"} value={inputValue.name} className="w-full" />
+                <InputDiv onChange={handleNameChange} type="text" id={"name"} label={"Access name"} value={inputValue.name} className="w-full" />
                 <div className="border border-[#F5F5F5] rounded-md p-5 my-6">
                     <div className="py-5  text-lighterBlack text-[17px]">
                         Access rights
@@ -25,10 +25,10 @@ const AccessForm = ({ handleChange, selectedTab, inputValue, onSubmit, loading, 
                                         <div>{option}</div>
                                         <img src="/src/assets/down.svg" alt="" />
                                     </div>
-                                    <ToggleSwitch onChange={handleChange} name={`create_${option}`} label="Create" />
-                                    <ToggleSwitch onChange={handleChange} name={`edit_${option}`} label="Edit" />
-                                    <ToggleSwitch onChange={handleChange} name={`delete_${option}`} label="Delete" />
-                                    <ToggleSwitch onChange={handleChange} name={`view_${option}`} label="View" />
+                                    <ToggleSwitch onChange={handleChange} name={`create_${option}`} label="Create" isChecked={permissionsValues[`create_${option}`]}   />
+                                    <ToggleSwitch onChange={handleChange} name={`edit_${option}`} label="Edit" isChecked={permissionsValues[`edit_${option}`]} />
+                                    <ToggleSwitch onChange={handleChange} name={`delete_${option}`} label="Delete" isChecked={permissionsValues[`delete_${option}`]} />
+                                    <ToggleSwitch onChange={handleChange} name={`view_${option}`} label="View" isChecked={permissionsValues[`view_${option}`]} />
                                 </div>
                             )
                         })}
@@ -41,7 +41,7 @@ const AccessForm = ({ handleChange, selectedTab, inputValue, onSubmit, loading, 
                             className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
                             onClick={CloseForm}
                         />
-                        <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={loading} />
+                        <Button value="Save" className={" p-3 text-white"} onClick={handleSubmit} loading={loading} />
                     </div>
             </form>
         </div>
@@ -50,8 +50,10 @@ const AccessForm = ({ handleChange, selectedTab, inputValue, onSubmit, loading, 
 
 AccessForm.propTypes = {
     handleChange: PropTypes.func,
+    handleNameChange: PropTypes.func,
     selectedTab: PropTypes.string,
-    inputValue: PropTypes.object
+    inputValue: PropTypes.object,
+    onSubmit: PropTypes.func,
 }
 
 export default AccessForm;

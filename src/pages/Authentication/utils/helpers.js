@@ -24,7 +24,8 @@ export function validate(name,inputValue) {
     return false;
   }
 
-export const baseUrl='https://wwwministries.onrender.com';
+// export const baseUrl='https://wwwministries.onrender.com';
+export const baseUrl='http://51.20.9.33:8000';
 
 export const logOut = () => {
   Cookies.remove("token");

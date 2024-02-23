@@ -90,7 +90,28 @@ export const positionsColumns = [
   },
 ]
 
-
+export const accessValues =  {
+  "create_Dashboard": true,
+  "edit_Dashboard": false,
+  "delete_Dashboard": false,
+  "view_Dashboard": false,
+  "create_Positions": false,
+  "edit_Positions": false,
+  "delete_Positions": false,
+  "view_Positions": false,
+  "create_Members": false,
+  "edit_Members": false,
+  "delete_Members": false,
+  "view_Members": false,
+  "create_Departments": false,
+  "edit_Departments": false,
+  "delete_Departments": false,
+  "view_Departments": false,
+  "create_Access Rights": false,
+  "edit_Access Rights": false,
+  "delete_Access Rights": false,
+  "view_Access Rights": false
+}
 
 
 
