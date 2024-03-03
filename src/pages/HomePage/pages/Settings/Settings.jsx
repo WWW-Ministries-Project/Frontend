@@ -119,21 +119,21 @@ function Settings() {
         header: "Acess Name",
         accessorKey: "name",
       },
-      {
-        header: "Department",
+      // {
+      //   header: "Department",
     
-      },
+      // },
       {
         header: "Description",
         accessorKey: "description",
       },
       {
-        header: "Status",
+        header: "Edit",
         accessorKey: "status",
         cell: ({row}) => (
           <div
             className={
-              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+              "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
             }>
             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
               setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description}))

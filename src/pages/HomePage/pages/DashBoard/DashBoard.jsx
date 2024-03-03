@@ -11,13 +11,13 @@ import { dashboardColumns } from "./utils/dashboardFunctions";
 
 
 function DashBoard() {
-  const stats = [
-    { name: "Total Attendance", value: 60000, duration: "This month",additionalInfo:"I wonder how it should appear" },
-    { name: "Total Members", value: 2000, duration: "This month",additionalInfo:"As a tooltip or info card" },
-    { name: "Total Number of Partners", value: 300, duration: "This month" },
-  ];
-
   const {setDisplayForm, members} = useOutletContext();
+  
+  const stats = [
+    { name: "Total Attendance", value: 0, duration: "This month",additionalInfo:"I wonder how it should appear" },
+    { name: "Total Members", value: members.length, duration: "All",additionalInfo:"As a tooltip or info card" },
+    { name: "Total Number of Partners", value: 0, duration: "This month" },
+  ];
   const token = getToken();
 
   const columns = dashboardColumns;
