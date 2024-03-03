@@ -27,8 +27,8 @@ export default {
       animation: {
         dounce: 'bounce 2s',
         wiggle: 'wiggle 1s',
-        fadeIn: 'fadeIn 2s',
-        fadeOut: 'fadeOut 2s'
+        fadeIn: 'fadeIn 1s',
+        fadeOut: 'fadeOut 1s'
 
       },
       keyframes: {
