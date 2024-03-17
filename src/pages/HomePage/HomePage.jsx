@@ -10,6 +10,7 @@ import { decodeToken, getToken } from "../../utils/helperFunctions";
 
 
 function HomePage() {
+  const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
   const [displayForm, setDisplayForm] = useState(false);
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
@@ -25,6 +26,8 @@ function HomePage() {
   const CloseForm = () => {
     setDisplayForm(false);
   }
+
+  //initial data fetching
   useEffect(() => {
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
       setMembers(res.data.data);
@@ -39,13 +42,25 @@ function HomePage() {
       setDepartmentData(res.data.data);
     });
   },[updatedDepartment]);
-  const addNewMember = (value) => {
+
+
+  //adding new users
+  function handleChange(name, value) {
+    if(name === "department_id"){
+      setUserValue((prev) => ({ ...prev, [name]: parseInt(value) }));
+    }
+    else
+    setUserValue((prev) => ({ ...prev, [name]: value }));
+  }
+  const addNewMember = () => {
+  // const addNewMember = (value) => {// moving user to parent component 
     setLoading(true);
     axios
-    .post(`${baseUrl}/user/register`, value)
+    .post(`${baseUrl}/user/register`, userValue)
     .then((response) => {
-      setDisplayForm(false);
       setLoading(false);
+      setUserValue({"password": "123456","department_id": 0,"name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","country": "","last_visited":"","member_since":""});
+      setDisplayForm(false);
       setMembers([response.data.data,...members]);
     })
     .catch((error) => {
@@ -71,7 +86,7 @@ function HomePage() {
         </section>
       </main>
       {true ? (
-         <NewMember CloseForm={CloseForm} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} />
+         <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} />
       ) : null}</>):(<Navigate to="/login" />)}
     </>
   );

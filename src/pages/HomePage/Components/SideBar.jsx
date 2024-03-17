@@ -1,4 +1,4 @@
-    import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import PropTypes from 'prop-types';
 import Home from "/src/assets/sidebar/home.svg";
 import Reports from "/src/assets/sidebar/report.svg";
@@ -21,7 +21,7 @@ const  SideBar = (props)=> {
 
     return (
         // <>
-            <div className='w-[15.5%] min-h-screen text-white fixed z-5 bg-white  ' style={props.style}>
+            <div className='w-[15.5%] min-w-[200px] min-h-screen text-white fixed z-5 bg-white  ' style={props.style}>
                 {items.map((item,index)=>
                     <NavLink to={items[index]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) => 
                     (isActive ? {background: '#6539C3',color:"white"} : null)} key={index} >

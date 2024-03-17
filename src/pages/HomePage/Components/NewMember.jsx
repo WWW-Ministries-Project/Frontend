@@ -10,7 +10,7 @@ import SelectField from './reusable/SelectField';
 
 function NewMember(props) {
   const [profilePic, setProfilePic] = useState({});
-  const [userValue, setUserValue] = useState({"password": "123456","department_id": 1,"name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
+  // const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
   function changePic(pic) {
     console.log(pic);
     setProfilePic((prev) => pic);
@@ -37,17 +37,21 @@ function NewMember(props) {
   }
 
   function onSubmit() {
-    props.onSubmit(userValue)
-    setUserValue({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","country": "",last_visited:"",member_since:""});
+    // props.onSubmit(userValue) MOVED TO PARENT
+    props.onSubmit()
+    
   }
 
   /*SET VALID VALUES IN FORM INPUT*/
+  // function handleChange(name, value) {
+  //   if(name === "department_id"){
+  //     setUserValue((prev) => ({ ...prev, [name]: parseInt(value) }));
+  //   }
+  //   else
+  //   setUserValue((prev) => ({ ...prev, [name]: value }));
+  // }
   function handleChange(name, value) {
-    if(name === "department_id"){
-      setUserValue((prev) => ({ ...prev, [name]: parseInt(value) }));
-    }
-    else
-    setUserValue((prev) => ({ ...prev, [name]: value }));
+    props.onChange(name, value)
   }
   return (
     <>
@@ -82,7 +86,7 @@ function NewMember(props) {
                   <option value="Mrs">Mrs.</option>
                 </select>
               </div>
-              <InputDiv onChange={handleChange} value={userValue.name} label="Full name" id="name" className="w-[244px]" />
+              <InputDiv onChange={handleChange} value={props.userValue.name} label="Full name" id="name" className="w-[244px]" />
             </div>
             <InputDiv onChange={handleChange} type="date" id="date_of_birth" label="Date of birth" className="w-full" />
             <div className="flex flex-col">
@@ -93,18 +97,18 @@ function NewMember(props) {
                 <option value="other">Prefer not to say</option>
               </select>
             </div>
-            <InputDiv onChange={handleChange} value={userValue.country} type="text" id="country" label="Country" className="w-full" />
-            <InputDiv onChange={handleChange} value={userValue.primary_number} type="tel" id="primary_number" label="Phone number 1" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.country} type="text" id="country" label="Country" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.primary_number} type="tel" id="primary_number" label="Phone number 1" className="w-full" />
             {/* <InputDiv onChange={handleChange} type="tel" id="phone_number_2" label="Phone number 2" className="w-full" /> */}
-            <InputDiv onChange={handleChange} value={userValue.email} type="email" id="email" label="Email" className="w-full" />
-            <InputDiv onChange={handleChange} value={userValue.address} type="text" id="address" label="Address" className="w-full" />
-            <InputDiv onChange={handleChange} value={userValue.occupation} type="text" id="occupation" label="Occupation" className="w-full" />
-            <InputDiv onChange={handleChange} value={userValue.company} type="text" id="company" label="Company" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.email} type="email" id="email" label="Email" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.address} type="text" id="address" label="Address" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.occupation} type="text" id="occupation" label="Occupation" className="w-full" />
+            <InputDiv onChange={handleChange} value={props.userValue.company} type="text" id="company" label="Company" className="w-full" />
             {/* <InputDiv onChange={handleChange} type="text" id="department" label="Department" className="w-full mb-5" /> */}
-            <SelectField onChange={handleChange} value={userValue.department_id} label={"Department"} id={"department_id"} options={props.selectOptions} placeholder={"Select a department"} />
-            <InputDiv onChange={handleChange} value={userValue.member_since} type="date" id="member_since" label="Member since" className="w-full mb-5" />
+            <SelectField onChange={handleChange} value={+props.userValue.department_id} label={"Department"} id={"department_id"} options={props.selectOptions} placeholder={"Select a department"} />
+            <InputDiv onChange={handleChange} value={props.userValue.member_since} type="date" id="member_since" label="Member since" className="w-full mb-5" />
             {/* <InputDiv onChange={handleChange} value={userValue.last_visited} type="number" id="last_visited" label="Last Visited" className="w-full mb-5" /> */}
-            <ToggleSwitch onChange={handleChange} name="is_user" label="Can Login" value={userValue.is_user} />
+            <ToggleSwitch onChange={handleChange} name="is_user" label="Can Login" isChecked={props.userValue.is_user} />
           </div>
           <div className="flex gap-2 justify-end mt-10">
             <Button
@@ -122,5 +126,6 @@ function NewMember(props) {
 NewMember.propTypes = {
   className: PropTypes.string,
   onSubmit: PropTypes.func,
+  userValue: PropTypes.object,
 }
 export default NewMember;
