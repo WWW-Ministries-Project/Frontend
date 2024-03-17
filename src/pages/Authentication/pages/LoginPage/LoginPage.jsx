@@ -36,6 +36,7 @@ function LoginPage() {
         response.status == 200 && navigate('/home/dashboard')
       } catch (error) {
         console.log(error, "error");
+        setResponse(error.response);
         setLoading(false);
       }
     })();
