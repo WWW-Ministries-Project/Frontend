@@ -1,4 +1,4 @@
-    import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import PropTypes from 'prop-types';
 import Home from "/src/assets/sidebar/home.svg";
 import Reports from "/src/assets/sidebar/report.svg";
