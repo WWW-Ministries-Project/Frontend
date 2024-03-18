@@ -35,6 +35,8 @@ const ToggleSwitch = (props) => {
 };
 
 ToggleSwitch.propTypes = {
+    name:PropTypes.string,
+    label:PropTypes.string,
     isChecked: PropTypes.bool,
     onChange: PropTypes.func,
 }
