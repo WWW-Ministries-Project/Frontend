@@ -4,8 +4,9 @@ import ToggleSwitch from '../../../../../components/ToggleInput';
 import PropTypes from 'prop-types';
 import Button from '../../../../../components/Button';
 import TextField from '/src/pages/HomePage/Components/reusable/TextField';
+import SearchMembersCard from '../../../../../components/SearchMembersCard';
 
-const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm, buttonText }) => {
+const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm, buttonText, members }) => {
     function handleSubmit() {
         onSubmit();
     }
@@ -51,6 +52,10 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                                 </div>
                             )
                         })}
+
+                        <div>
+                            <SearchMembersCard members={members} />
+                        </div>
 
                     {/* </div> */}
                 </div>

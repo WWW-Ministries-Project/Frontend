@@ -47,3 +47,8 @@ export const membersColumns = [
       ),
     },
   ];
+
+export const getInitialsFromName = (fullName) => {
+  const names = fullName.split(" ");
+  return names[0][0]?.toUpperCase() + names[1][0] ? names[1][0]?.toUpperCase() : "";
+}
