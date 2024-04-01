@@ -11,16 +11,22 @@ import InputDiv from "../../Components/reusable/InputDiv";
 import ProfilePicture from "/src/components/ProfilePicture";
 import TextField from "../../Components/reusable/TextField";
 import SelectField from "../../Components/reusable/SelectField";
+import axios from "/src/axiosInstance.js";
+import { decodeToken } from "/src/utils/helperFunctions";
 const AssetManagement = () => {
     const columns = assetsColumns;
-    const { members,CloseForm } = useOutletContext();
+    const { members } = useOutletContext();
     const [displayForm, setDisplayForm] = useState(false);
     const [filter, setFilter] = useState("");
     const [loading,setLoading] = useState(false);
+    const selectOptions = [{name:"department",value:"department"}]
+    const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});	
 
     useEffect(() => {
-        
-    })
+        axios.get(`${baseUrl}/assets/list-assets`).then((res) => {
+        //   setDepartmentData(res.data.data);
+        });
+    },[]);
     const handleSearchChange = (e) => {
         setFilter(e.target.value);
     };
@@ -37,19 +43,18 @@ const AssetManagement = () => {
         setDisplayForm(false);
       }
 
-      const handleFormSubmit = () => {
+    const handleFormSubmit = () => {
         setLoading(true);
 
-            // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-            //   setLoading(false);
-            //   setData(res.data.data);
-            // }).catch((err) => {
-            //   console.log(err);
-            //   setLoading(false);
-            // });
-        }
-    const selectOptions = [{name:"department",value:"department"}]
-    const [inputValue, setInputValue] = useState({created_by:1,name:""});	
+        axios.post(`${baseUrl}/assets/create-asset`, inputValue).then((res) => {
+            setLoading(false);
+            // setData(res.data.data);
+        }).catch((err) => {
+            console.log(err);
+            setLoading(false);
+        });
+    }
+    
 
     return (
         <>
@@ -111,12 +116,13 @@ const AssetManagement = () => {
                             </div>
                         </div>
                         <div className="w-3/4 gap-4 flex flex-col ">
-                            <InputDiv id={"categories"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  />
+                            <InputDiv id={"category"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  />
                             <InputDiv id={"date_purchased"} label={"Date Purchased"} placeholder={"Enter date purchased"} onChange={handleChange} type={"date"} inputClass="!border-2" />
                             <InputDiv id={"price"} label={"Price"} placeholder={"Enter amount here"} onChange={handleChange} inputClass="!border-2" />
                         </div>
                         <TextField  label={"Description/Specification"} placeholder={"Enter asset’s description or specifications..."} onChange={handleChange} />
-                        <SelectField label={"Status"} options={[{name:"Assigned",value:1},{name:"Unassigned",value:0}]} id="status" value={1} onChange={handleChange} />
+                        <SelectField label={"Status"} options={[{name:"Assigned",value:1},{name:"Unassigned",value:0}]} id="status" value={inputValue.status} onChange={handleChange}
+                        placeholder={"Select status"} />
                     </div>
                 </div>
                 <div className="flex gap-2 justify-end mt-10">
