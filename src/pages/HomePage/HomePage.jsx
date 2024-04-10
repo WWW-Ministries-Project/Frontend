@@ -17,6 +17,13 @@ function HomePage() {
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [loading, setLoading] = useState(false);
   const token = getToken();
+
+  //side nav
+  const [show,setShow]=useState(true);
+  const handleShowNav = () => {
+    setShow((prev) => !prev);
+  }
+
   const selectOptions = useMemo(() => {
     return departmentData.map((department) => {
       return { name: department.name, value: department.id };
@@ -80,8 +87,8 @@ function HomePage() {
       {token ?
       (<><Header />
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
-        <SideBar style={{ paddingTop: "90px" }} />
-        <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
+        <SideBar style={{ paddingTop: "90px" }} onClick={handleShowNav} show={show} />
+        <section className={` h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
           <Outlet context={{ setDisplayForm, CloseForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData}} />
         </section>
       </main>
