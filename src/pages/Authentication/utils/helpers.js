@@ -26,7 +26,8 @@ export function validate(name,inputValue) {
 
 // export const baseUrl='https://wwwministries.onrender.com';
 // export const baseUrl='http://51.20.9.33:8000';
-export const baseUrl='https://greatsohis.online';
+// export const baseUrl='https://greatsohis.online';
+export const baseUrl=process.env.REACT_APP_API_URL;
 
 export const logOut = () => {
   Cookies.remove("token");

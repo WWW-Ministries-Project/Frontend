@@ -25,3 +25,6 @@ dist-ssr
 
 # personal notes
 todo.txt
+
+#ENV
+.env
