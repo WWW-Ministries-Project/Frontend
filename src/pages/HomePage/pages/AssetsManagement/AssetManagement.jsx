@@ -7,16 +7,26 @@ import { assetsColumns } from "./utils/utils";
 import Filter from "../../Components/reusable/Filter";
 import FormsComponent from "../Settings/Components/FormsComponent";
 import { baseUrl } from "../../../Authentication/utils/helpers";
+import InputDiv from "../../Components/reusable/InputDiv";
+import ProfilePicture from "/src/components/ProfilePicture";
+import TextField from "../../Components/reusable/TextField";
+import SelectField from "../../Components/reusable/SelectField";
+import axios from "/src/axiosInstance.js";
+import { decodeToken } from "/src/utils/helperFunctions";
 const AssetManagement = () => {
     const columns = assetsColumns;
     const { members } = useOutletContext();
     const [displayForm, setDisplayForm] = useState(false);
     const [filter, setFilter] = useState("");
     const [loading,setLoading] = useState(false);
+    const selectOptions = [{name:"department",value:"department"}]
+    const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});	
 
     useEffect(() => {
-        
-    })
+        axios.get(`${baseUrl}/assets/list-assets`).then((res) => {
+        //   setDepartmentData(res.data.data);
+        });
+    },[]);
     const handleSearchChange = (e) => {
         setFilter(e.target.value);
     };
@@ -33,19 +43,18 @@ const AssetManagement = () => {
         setDisplayForm(false);
       }
 
-      const handleFormSubmit = () => {
+    const handleFormSubmit = () => {
         setLoading(true);
 
-            // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-            //   setLoading(false);
-            //   setData(res.data.data);
-            // }).catch((err) => {
-            //   console.log(err);
-            //   setLoading(false);
-            // });
-        }
-    const selectOptions = [{name:"department",value:"department"}]
-    const [inputValue, setInputValue] = useState({created_by:1,name:""});	
+        axios.post(`${baseUrl}/assets/create-asset`, inputValue).then((res) => {
+            setLoading(false);
+            // setData(res.data.data);
+        }).catch((err) => {
+            console.log(err);
+            setLoading(false);
+        });
+    }
+    
 
     return (
         <>
@@ -95,7 +104,37 @@ const AssetManagement = () => {
                     />
                 </div>
             </section>
-            <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={"selectedId"} inputValue={inputValue} inputId={"name"} inputLabel={"Asset"} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} />
+            <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={"selectedId"} inputValue={inputValue} inputId={"name"} inputLabel={"Asset"} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} >
+            <form className="mt-5">
+                <div className=" border-2 border-[#F5F5F5] rounded-md p-2 py-10">
+                    <div className="flex flex-col gap-5">
+                        <div className="grid grid-cols-3 gap-1 items-center pb-5 border-b border-[#F5F5F5]">
+                            <ProfilePicture className="w-20 h-20 col-span-1" alt="picture of asset"/>
+                            <div className="col-span-2 flex flex-col gap-2">
+                                <InputDiv id={"name"} placeholder={"Enter asset name"} onChange={handleChange} inputClass="!border-2" />
+                                <InputDiv id={"asset_code"} placeholder={"Enter asset code"} onChange={handleChange} inputClass="!border-2" />
+                            </div>
+                        </div>
+                        <div className="w-3/4 gap-4 flex flex-col ">
+                            <InputDiv id={"category"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  />
+                            <InputDiv id={"date_purchased"} label={"Date Purchased"} placeholder={"Enter date purchased"} onChange={handleChange} type={"date"} inputClass="!border-2" />
+                            <InputDiv id={"price"} label={"Price"} placeholder={"Enter amount here"} onChange={handleChange} inputClass="!border-2" />
+                        </div>
+                        <TextField  label={"Description/Specification"} placeholder={"Enter asset’s description or specifications..."} onChange={handleChange} />
+                        <SelectField label={"Status"} options={[{name:"Assigned",value:1},{name:"Unassigned",value:0}]} id="status" value={inputValue.status} onChange={handleChange}
+                        placeholder={"Select status"} />
+                    </div>
+                </div>
+                <div className="flex gap-2 justify-end mt-10">
+                        <Button
+                            value="Close"
+                            className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
+                            onClick={handleCloseForm}
+                        />
+                        <Button value={'Submit'} className={" p-3 text-white"} onClick={handleFormSubmit} loading={loading} />
+                    </div>
+            </form>
+            </FormsComponent>
         </>
     );
 }

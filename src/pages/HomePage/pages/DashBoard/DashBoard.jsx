@@ -44,7 +44,7 @@ function DashBoard() {
  }
   return (
       <main className="">
-        <NotificationFlag name={decodeToken(token).name} className={" mb-5"}/>
+        <NotificationFlag name={decodeToken().name} className={" mb-5"}/>
         <div className="my-5 flex items-center justify-between">
           <div className="H600">Overview</div>
           <div className="flex gap-2  justify-between">

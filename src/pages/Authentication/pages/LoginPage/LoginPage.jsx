@@ -79,7 +79,7 @@ function LoginPage() {
             id="mail"
             name="email"
             value={loginValues.email}
-            isRequired={error.status && !loginValues.email}
+            isRequired={error?.status && !loginValues.email}
             onChange={handleInputChange}
             onBlur={handleBlur}
             placeholder={"Enter email address"}

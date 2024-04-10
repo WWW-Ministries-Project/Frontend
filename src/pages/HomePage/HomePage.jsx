@@ -82,7 +82,7 @@ function HomePage() {
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
         <SideBar style={{ paddingTop: "90px" }} />
         <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
-          <Outlet context={{ setDisplayForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData}} />
+          <Outlet context={{ setDisplayForm, CloseForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData}} />
         </section>
       </main>
       {true ? (

@@ -30,7 +30,7 @@ function Header() {
           <img src={bell} alt="" />
           {/* <div> */}
           <img src={profilePic} alt="profile pic" />
-          <span>{decodeToken(token).name}</span>
+          <span>{decodeToken().name}</span>
           <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           {showLogOut ? (
             <div onClick={handleLogOut} className="absolute top-16 right-0 h-16 w-32 bg-white flex justify-center items-center hover:bg-neutralGray cursor-pointer ">
