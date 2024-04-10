@@ -10,7 +10,7 @@ function InputDiv (props) {
         <>
             <div className={"flex flex-col gap-1  "+props.className}>
               <label htmlFor={props.id}>{props.label}</label>
-              <input className={'input'} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange} placeholder={props.placeholder}/>
+              <input className={'input' + ' ' + props.inputClass} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange} placeholder={props.placeholder}/>
           </div>
         </>
     )
@@ -19,8 +19,9 @@ function InputDiv (props) {
 InputDiv.propTypes = {
     type: PropTypes.string,
     label: PropTypes.string,
-    className: PropTypes.string,   
-    id: PropTypes.string,
+    className: PropTypes.string,
+    inputClass: PropTypes.string,   
+    id: PropTypes.string.isRequired,
     value: PropTypes.string,
     onChange: PropTypes.func
 }
