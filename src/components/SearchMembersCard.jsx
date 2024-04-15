@@ -1,9 +1,9 @@
 import search from "/src/assets/search.svg";
 import PropTypes from "prop-types";
-function SearchMembersCard(props) {
+function SearchMembersCard({users,...props}) {
   return (
     <>
-      <div className={"p-4 border rounded-lg"+props.className}>
+      <div className={"p-4 border rounded-lg "+props.className}>
       <div className="py-2">
               <label className="relative block">
               <span className="sr-only">Search</span>
@@ -19,7 +19,7 @@ function SearchMembersCard(props) {
 
                 {users.slice(0,7).map((elem) => <div className="flex relative" key={elem.id}>
                   <div className="bg-blue-200 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 overflow-hidden flex justify-center items-center">
-                    <img src={elem.profile_pic} alt={elem.first_name} />
+                    <img src={elem.user_info.photo} alt={elem.name} />
                   </div>
                 </div>)}
 
@@ -32,8 +32,8 @@ function SearchMembersCard(props) {
               <div className="flex flex-col gap-2 py-2 h-80 overflow-y-scroll">
                 {users.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
                   <input type="checkbox" name="checkbox" value="" className="bg-purple-400" />
-                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center"><img src={elem.profile_pic} alt={elem.first_name} /></div>
-                  <div>{elem.fullname}</div>
+                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center"><img src={elem.user_info.photo} alt={elem.name} /></div>
+                  <div>{elem.name}</div>
                 </div>)}
               </div>
       </div>

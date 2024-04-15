@@ -4,8 +4,11 @@ import ToggleSwitch from '../../../../../components/ToggleInput';
 import PropTypes from 'prop-types';
 import Button from '../../../../../components/Button';
 import TextField from '/src/pages/HomePage/Components/reusable/TextField';
+import arrowDown from '/src/assets/down.svg';
+import rightArrow from '/src/assets/rightArrow.svg';
+import SearchMembersCard from '/src/components/SearchMembersCard';
 
-const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm, buttonText }) => {
+const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm, buttonText,...props }) => {
     function handleSubmit() {
         onSubmit();
     }
@@ -14,14 +17,15 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
     const permissionBlock = useRef(null);
 
     const handleHideBlock = ({target}) => {
-        target.parentElement.nextSibling.className="hidden";
+        target.parentElement.parentElement.nextSibling.className="hidden";
         target.className="hidden";
-        target.nextSibling.className="block cursor-pointer text-gray";
+        console.log(target.parentElement.nextSibling);
+        target.parentElement.nextSibling.className="block cursor-pointer text-gray";
     }
     const handleShowBlock = ({target}) => {
-        target.parentElement.nextSibling.className="flex flex-col gap-3";
+        target.parentElement.parentElement.nextSibling.className="flex flex-col gap-3";
         target.className="hidden";
-        target.previousSibling.className="block cursor-pointer text-gray";
+        target.parentElement.previousSibling.className="block cursor-pointer text-gray";
     }
     return (
         <div>
@@ -39,8 +43,8 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                                     <div  className='flex justify-between P100 font-semibold text-primaryViolet'>
                                         <div>{option}</div>
                                         {/* <img src="/src/assets/down.svg" alt="down arrow" aria-roledescription='down' className="cursor-pointer" ref={permissionBlock} onClick={handleHideBlock} /> */}
-                                        <div className="cursor-pointer text-gray" onClick={handleHideBlock}>⩔</div>
-                                        <div className="cursor-pointer hidden text-gray" onClick={handleShowBlock}>⩥</div>
+                                        <div className="cursor-pointer text-gray" onClick={handleHideBlock}><img src={arrowDown} alt="arrow down" /></div>
+                                        <div className="cursor-pointer hidden text-gray" onClick={handleShowBlock}><img src={rightArrow} alt="right arrow" className='w-4 h-4 bg-gray rounded' /></div>
                                     </div>
                                     <div className="flex flex-col gap-3">
                                         <ToggleSwitch onChange={handleChange} name={`create_${option}`} label="Create" isChecked={permissionsValues[`create_${option}`]}   />
@@ -54,6 +58,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
 
                     {/* </div> */}
                 </div>
+                <SearchMembersCard users={props.members}/>
                 <div className="flex gap-2 justify-end mt-10">
                         <Button
                             value="Close"
@@ -74,6 +79,7 @@ AccessForm.propTypes = {
     inputValue: PropTypes.object,
     onSubmit: PropTypes.func,
     buttonText: PropTypes.string,
+    members: PropTypes.array
 }
 
 export default AccessForm;

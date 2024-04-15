@@ -11,7 +11,7 @@ const TextField = (props) => {
     return (
         <div>
             <div>
-                <label htmlFor="description">{props.label ||"Description</"}</label>
+                <label htmlFor="description">{props.label ||"Description"}</label>
                 <textarea onChange={handleChange} value={props.value} name="description" id="description" placeholder={props.placeholder} className="w-full mt-1 px-1 border border-[#EEF2F4] py-1 placeholder:text-xs" cols="30" rows="10"></textarea>
             </div>
         </div>
