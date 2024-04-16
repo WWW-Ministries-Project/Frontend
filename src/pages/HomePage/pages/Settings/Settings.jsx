@@ -14,6 +14,7 @@ import FormsComponent from "./Components/FormsComponent";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
 import {  deleteData, updateData, accessValues } from "./utils/helperFunctions";
+import Dialog from "/src/components/Dialog.jsx";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
@@ -29,6 +30,24 @@ function Settings() {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState({});
+  const [showModal,setShowModal] = useState(false);
+  const [itemToDelete,setItemToDelete] = useState({path:"",id:"",name:"",index:""});
+
+  //dialog logic
+  const handleShowModal = ()=>{
+    setShowModal(prev=>!prev)
+  }
+
+  const handleDelete = ()=>{
+    deleteData(itemToDelete.path,itemToDelete.id);
+    setShowModal(prev=>!prev);
+    let tempData = dataRef.current;
+    tempData.splice(itemToDelete.index, 1)
+    setData([...tempData])
+    // switch (itemToDelete.path) {
+      
+    // }
+  }
 
 
   // find way to import data from another function makes it cleaner
@@ -62,12 +81,17 @@ function Settings() {
               setDisplayForm(true) 
               }}/>
 
+            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
+              handleShowModal() 
+              setItemToDelete({path:"department/delete-department",id:row.original?.id,name:row.original?.name,index:row.index})
+              }} />
+{/* 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
               deleteData("department/delete-department",row.original.id)
               let tempData = dataRef.current;
               tempData.splice(row.index, 1)
               setData([...tempData])
-             }} />
+             }} /> */}
     
           </div>
         )
@@ -102,13 +126,17 @@ function Settings() {
               setDisplayForm(true) 
               }}/>
 
-            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+            {/* <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
               deleteData("position/delete-position",row.original.id)
               let tempData = dataRef.current;
               tempData.splice(row.index, 1)
               setData([...tempData])
               setPositionData([...tempData])
-             }} />
+             }} /> */}
+             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
+              handleShowModal() 
+              setItemToDelete({path:"position/delete-position",id:row.original?.id,name:row.original?.name,index:row.index})
+              }} />
     
           </div>)
       },
@@ -344,7 +372,7 @@ const handleFormSubmit = async () => {
         <section className="mt-6 bg-white p-7">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              <Filter />
+              {/* <Filter /> */}
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
@@ -366,6 +394,8 @@ const handleFormSubmit = async () => {
               <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ?'Update':'Create'} members={members} />
           </FormsComponent>}
       </section>
+
+      <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete}/>
     </>
   );
 }
