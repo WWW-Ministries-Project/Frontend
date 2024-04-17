@@ -11,12 +11,20 @@ import { decodeToken, getToken } from "../../utils/helperFunctions";
 
 function HomePage() {
   const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
+  const [userStats, setUserStats] = useState({males: 0, females: 0, total: 0});
   const [displayForm, setDisplayForm] = useState(false);
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [loading, setLoading] = useState(false);
   const token = getToken();
+
+  //side nav
+  const [show,setShow]=useState(true);
+  const handleShowNav = () => {
+    setShow((prev) => !prev);
+  }
+
   const selectOptions = useMemo(() => {
     return departmentData.map((department) => {
       return { name: department.name, value: department.id };
@@ -32,6 +40,9 @@ function HomePage() {
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
       setMembers(res.data.data);
     });
+    axios.get(`${baseUrl}/user/stats-users`).then((res) => {
+      setUserStats(res.data.data);
+    })
     // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
     //   setDepartmentData(res.data.data);
 
@@ -80,9 +91,9 @@ function HomePage() {
       {token ?
       (<><Header />
       <main className="min-h-screen max-w-screen" onClick={CloseForm}>
-        <SideBar style={{ paddingTop: "90px" }} />
-        <section className="ml-[15.5%] h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ">
-          <Outlet context={{ setDisplayForm, CloseForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData}} />
+        <SideBar style={{ paddingTop: "90px" }} onClick={handleShowNav} show={show} />
+        <section className={` h-full pt-20 px-5 pb-5 bg-[#FAFAFA] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+          <Outlet context={{ setDisplayForm, CloseForm, members, filter,setFilter, handleSearchChange, departmentData, setDepartmentData, userStats}} />
         </section>
       </main>
       {true ? (

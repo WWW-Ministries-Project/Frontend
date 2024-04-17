@@ -55,3 +55,20 @@ body::-webkit-scrollbar-track {
 }
 
 
+.hideNav {
+  animation-name: example;
+  animation-duration: 2s;
+  animation-iteration-count: 3;
+  animation-timing-function: linear;
+
+}
+
+@keyframes example {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(6px); }
+  50% { transform: translateX(0); }
+  75% { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
+}
+
+/* bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105 */

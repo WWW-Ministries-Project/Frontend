@@ -8,15 +8,21 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import BreakdownComponents from "./Components/BreakdownComponents";
 import { dashboardColumns } from "./utils/dashboardFunctions";
+import BarChart from "../../Components/BarChart";
 
 
 function DashBoard() {
-  const {setDisplayForm, members} = useOutletContext();
+  const {setDisplayForm, members, userStats} = useOutletContext();
   
+  // const stats = [
+  //   { name: "Total Attendance", value: 0, duration: "This month",additionalInfo:"I wonder how it should appear" },
+  //   { name: "Total Members", value: members.length, duration: "All",additionalInfo:"As a tooltip or info card" },
+  //   { name: "Total Number of Partners", value: 0, duration: "This month" },
+  // ];
   const stats = [
-    { name: "Total Attendance", value: 0, duration: "This month",additionalInfo:"I wonder how it should appear" },
-    { name: "Total Members", value: members.length, duration: "All",additionalInfo:"As a tooltip or info card" },
-    { name: "Total Number of Partners", value: 0, duration: "This month" },
+    { name: "Total Members", value: members.length,additionalInfo:"I wonder how it should appear" },
+    { name: "Males", value:userStats.males,additionalInfo:"As a tooltip or info card" },
+    { name: "Females", value:userStats.females },
   ];
   const token = getToken();
 
@@ -61,8 +67,10 @@ function DashBoard() {
             <StatsCard stats={stat} key={stat.name} />
           ))}
         </section>
-        <section>
-          <BreakdownComponents />
+        <section className="mt-6 bg-white p-7 shadow-md rounded ">
+          {/* <BreakdownComponents /> */}
+          <div className="text-dark900 H600">Members Breakdown</div>
+          <BarChart value={userStats} />
         </section>
         <section className="mt-6 bg-white p-7 ">
           <div className="flex justify-end items-center mb-5">
