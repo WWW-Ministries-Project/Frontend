@@ -1,9 +1,22 @@
 import { useState } from "react";
-import search from "/src/assets/search.svg";
 import PropTypes from "prop-types";
 function SearchMembersCard({users,...props}) {
   const [selectedUsers,setSelectedUsers] = useState([]);
   const maxNumberShown=3
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(users);
+
+  const handleSearch = (event) => {
+    const inputValue = event.target.value;
+    setQuery(inputValue);
+
+    // Filter the data based on the query
+    const filteredResults = users.filter(item =>
+      item.name.toLowerCase().includes(inputValue.toLowerCase())
+    );
+
+    setSearchResults(filteredResults);
+  };
 
   function selectUser(itemId){
     const index = users.findIndex(item => item.id === itemId);
@@ -27,7 +40,7 @@ function SearchMembersCard({users,...props}) {
               <span className="absolute inset-y-0 left-0 flex items-center pl-2">
                 <svg className="h-5 w-5 fill-slate-300" viewBox="0 0 20 20">...</svg>
               </span>
-              <input className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm" placeholder="Search for anything..." type="text" name="search"/>
+              <input className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm" placeholder="Search for anything..." type="text" name="search" value={query} onChange={handleSearch} />
             </label>
               </div>
 
@@ -47,7 +60,7 @@ function SearchMembersCard({users,...props}) {
               </div>
 
               <div className="flex flex-col gap-2 py-2 h-80 overflow-y-scroll">
-                {users.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
+                {searchResults.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
                   <input type="checkbox" name="checkbox" value="" className="bg-purple-400" onClick={()=>selectUser(elem.id)} />
                   <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center">{elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}</div>
                   <div>{elem.name}</div>
