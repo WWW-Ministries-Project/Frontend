@@ -7,7 +7,6 @@ const Dialog = ({showModal,...props}) => {
     const dialog = useRef();
     useEffect(() => {
         showModal? dialog.current.showModal() : dialog.current.close();
-        console.log(dialog)
         
     },[showModal])
     function handleShowModal() {

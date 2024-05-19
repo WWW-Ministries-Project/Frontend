@@ -19,7 +19,7 @@ function SearchMembersCard({users,...props}) {
 
                 {users.slice(0,7).map((elem) => <div className="flex relative" key={elem.id}>
                   <div className="bg-blue-200 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 overflow-hidden flex justify-center items-center">
-                    <img src={elem.user_info.photo} alt={elem.name} />
+                    {elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}
                   </div>
                 </div>)}
 
@@ -32,7 +32,7 @@ function SearchMembersCard({users,...props}) {
               <div className="flex flex-col gap-2 py-2 h-80 overflow-y-scroll">
                 {users.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
                   <input type="checkbox" name="checkbox" value="" className="bg-purple-400" />
-                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center"><img src={elem.user_info.photo} alt={elem.name} /></div>
+                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center">{elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}</div>
                   <div>{elem.name}</div>
                 </div>)}
               </div>

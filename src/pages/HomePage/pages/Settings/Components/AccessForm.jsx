@@ -14,18 +14,16 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
     }
     const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access Rights"];
 
-    const permissionBlock = useRef(null);
 
-    const handleHideBlock = ({target}) => {
-        target.parentElement.parentElement.nextSibling.className="hidden";
-        target.className="hidden";
-        console.log(target.parentElement.nextSibling);
-        target.parentElement.nextSibling.className="block cursor-pointer text-gray";
+    const handleHideBlock = ({currentTarget}) => {
+        currentTarget.parentElement.nextSibling.className="hidden";
+        currentTarget.className="hidden";
+        currentTarget.nextSibling.className="block cursor-pointer text-gray";
     }
-    const handleShowBlock = ({target}) => {
-        target.parentElement.parentElement.nextSibling.className="flex flex-col gap-3";
-        target.className="hidden";
-        target.parentElement.previousSibling.className="block cursor-pointer text-gray";
+    const handleShowBlock = ({currentTarget}) => {
+        currentTarget.parentElement.nextSibling.className="flex flex-col gap-3";
+        currentTarget.className="hidden";
+        currentTarget.previousSibling.className="block cursor-pointer text-gray";
     }
     return (
         <div>
@@ -43,8 +41,8 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                                     <div  className='flex justify-between P100 font-semibold text-primaryViolet'>
                                         <div>{option}</div>
                                         {/* <img src="/src/assets/down.svg" alt="down arrow" aria-roledescription='down' className="cursor-pointer" ref={permissionBlock} onClick={handleHideBlock} /> */}
-                                        <div className="cursor-pointer text-gray" onClick={handleHideBlock}><img src={arrowDown} alt="arrow down" /></div>
-                                        <div className="cursor-pointer hidden text-gray" onClick={handleShowBlock}><img src={rightArrow} alt="right arrow" className='w-4 h-4 bg-gray rounded' /></div>
+                                        <div className="cursor-pointer text-gray down" onClick={handleHideBlock}><img src={arrowDown} alt="arrow down" /></div>
+                                        <div className="cursor-pointer hidden text-gray right" onClick={handleShowBlock}><img src={rightArrow} alt="right arrow" className='w-4 h-4 bg-gray rounded' /></div>
                                     </div>
                                     <div className="flex flex-col gap-3">
                                         <ToggleSwitch onChange={handleChange} name={`create_${option}`} label="Create" isChecked={permissionsValues[`create_${option}`]}   />
