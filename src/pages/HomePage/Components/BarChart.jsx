@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 import { Chart as ChartJS,
     BarElement,
@@ -47,9 +46,9 @@ const BarChart = ({value}) => {
 
 BarChart.propTypes = {
     value: PropTypes.shape({
-      males: PropTypes.string.isRequired,
-      females: PropTypes.string.isRequired,
-      neutral: PropTypes.string.isRequired
+      males: PropTypes.number.isRequired,
+      females: PropTypes.number.isRequired,
+      neutral: PropTypes.number
     }).isRequired
   };
 

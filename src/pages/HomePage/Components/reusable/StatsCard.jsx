@@ -15,7 +15,7 @@ StatsCard.propTypes = {
   stats: PropTypes.shape({
     name: PropTypes.string.isRequired,
     value: PropTypes.number.isRequired,
-    duration: PropTypes.string.isRequired,
+    duration: PropTypes.string,
     additionalInfo: PropTypes.string,
   }).isRequired,
 };
