@@ -1,12 +1,11 @@
-import React, { useRef } from 'react';
-import InputDiv from '../../../Components/reusable/InputDiv';
-import ToggleSwitch from '../../../../../components/ToggleInput';
 import PropTypes from 'prop-types';
 import Button from '../../../../../components/Button';
-import TextField from '/src/pages/HomePage/Components/reusable/TextField';
+import ToggleSwitch from '../../../../../components/ToggleInput';
+import InputDiv from '../../../Components/reusable/InputDiv';
 import arrowDown from '/src/assets/down.svg';
 import rightArrow from '/src/assets/rightArrow.svg';
 import SearchMembersCard from '/src/components/SearchMembersCard';
+import TextField from '/src/pages/HomePage/Components/reusable/TextField';
 
 const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputValue, onSubmit, loading, CloseForm, buttonText,...props }) => {
     function handleSubmit() {
@@ -73,11 +72,14 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
 AccessForm.propTypes = {
     handleChange: PropTypes.func,
     handleNameChange: PropTypes.func,
+    CloseForm: PropTypes.func,
     selectedTab: PropTypes.string,
     inputValue: PropTypes.object,
+    permissionsValues: PropTypes.object,
     onSubmit: PropTypes.func,
     buttonText: PropTypes.string,
-    members: PropTypes.array
+    members: PropTypes.array,
+    loading: PropTypes.bool
 }
 
 export default AccessForm;

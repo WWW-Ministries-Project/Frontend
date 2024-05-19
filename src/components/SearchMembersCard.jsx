@@ -1,6 +1,23 @@
+import { useState } from "react";
 import search from "/src/assets/search.svg";
 import PropTypes from "prop-types";
 function SearchMembersCard({users,...props}) {
+  const [selectedUsers,setSelectedUsers] = useState([]);
+  const maxNumberShown=3
+
+  function selectUser(itemId){
+    const index = users.findIndex(item => item.id === itemId);
+  if (index !== -1) {
+    const selectedItem = users.slice(index)[0];
+    setSelectedUsers(prev=>{
+      if(prev.some(user=>user.id==itemId)){
+        return prev.filter(users=>users.id!=itemId)
+      }else{
+        return [...prev,selectedItem]
+      }
+    });
+  }
+  }
   return (
     <>
       <div className={"p-4 border rounded-lg "+props.className}>
@@ -17,21 +34,21 @@ function SearchMembersCard({users,...props}) {
               <div className="py-2">
                 <div className="flex ml-2">
 
-                {users.slice(0,7).map((elem) => <div className="flex relative" key={elem.id}>
+                {selectedUsers.slice(0,maxNumberShown).map((elem) => <div className="flex relative" key={elem.id}>
                   <div className="bg-blue-200 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 overflow-hidden flex justify-center items-center">
-                    {elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}
+                    {elem.user_info?.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}
                   </div>
                 </div>)}
 
-                {users.length >= 7 && 
-                  <div className="bg-slate-50 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 z-10 flex justify-center items-center font-normal">+{users.length-7}</div>
+                {selectedUsers.length > maxNumberShown && 
+                  <div className="bg-slate-50 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 z-10 flex justify-center items-center font-normal">+{selectedUsers.length-maxNumberShown}</div>
                 }
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 py-2 h-80 overflow-y-scroll">
                 {users.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
-                  <input type="checkbox" name="checkbox" value="" className="bg-purple-400" />
+                  <input type="checkbox" name="checkbox" value="" className="bg-purple-400" onClick={()=>selectUser(elem.id)} />
                   <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center">{elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}</div>
                   <div>{elem.name}</div>
                 </div>)}
@@ -41,7 +58,9 @@ function SearchMembersCard({users,...props}) {
   );
 }
 SearchMembersCard.propTypes = {
-    label: PropTypes.string.isRequired,
+    users: PropTypes.array,
+    label: PropTypes.string,
+    className: PropTypes.string
   };
 
 export default SearchMembersCard;
