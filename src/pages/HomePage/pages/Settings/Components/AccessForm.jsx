@@ -55,7 +55,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
 
                     {/* </div> */}
                 </div>
-                <SearchMembersCard users={props.members}/>
+                <SearchMembersCard users={props.members} selectedUsers={props.selectedUsers} handleMembersSelect={props.onMembersSelect} />
                 <div className="flex gap-2 justify-end mt-10">
                         <Button
                             value="Close"
@@ -72,14 +72,16 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
 AccessForm.propTypes = {
     handleChange: PropTypes.func,
     handleNameChange: PropTypes.func,
+    onMembersSelect: PropTypes.func,
     CloseForm: PropTypes.func,
     selectedTab: PropTypes.string,
     inputValue: PropTypes.object,
+    selectedUsers: PropTypes.array,
     permissionsValues: PropTypes.object,
     onSubmit: PropTypes.func,
     buttonText: PropTypes.string,
     members: PropTypes.array,
-    loading: PropTypes.bool
+    loading: PropTypes.bool,
 }
 
 export default AccessForm;

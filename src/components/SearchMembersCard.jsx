@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 function SearchMembersCard({users,...props}) {
-  const [selectedUsers,setSelectedUsers] = useState([]);
+  
   const maxNumberShown=3
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState(users);
@@ -18,18 +18,8 @@ function SearchMembersCard({users,...props}) {
     setSearchResults(filteredResults);
   };
 
-  function selectUser(itemId){
-    const index = users.findIndex(item => item.id === itemId);
-  if (index !== -1) {
-    const selectedItem = users.slice(index)[0];
-    setSelectedUsers(prev=>{
-      if(prev.some(user=>user.id==itemId)){
-        return prev.filter(users=>users.id!=itemId)
-      }else{
-        return [...prev,selectedItem]
-      }
-    });
-  }
+  const selectUser=(elemId)=>{
+    props.handleMembersSelect(elemId)
   }
   return (
     <>
@@ -47,14 +37,14 @@ function SearchMembersCard({users,...props}) {
               <div className="py-2">
                 <div className="flex ml-2">
 
-                {selectedUsers.slice(0,maxNumberShown).map((elem) => <div className="flex relative" key={elem.id}>
+                {props.selectedUsers.slice(0,maxNumberShown).map((elem) => <div className="flex relative" key={elem.id}>
                   <div className="bg-blue-200 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 overflow-hidden flex justify-center items-center">
                     {elem.user_info?.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}
                   </div>
                 </div>)}
 
-                {selectedUsers.length > maxNumberShown && 
-                  <div className="bg-slate-50 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 z-10 flex justify-center items-center font-normal">+{selectedUsers.length-maxNumberShown}</div>
+                {props.selectedUsers.length > maxNumberShown && 
+                  <div className="bg-slate-50 w-10 h-10 rounded-full border-4 border-white shadow-md -ml-2 z-10 flex justify-center items-center font-normal">+{props.selectedUsers.length-maxNumberShown}</div>
                 }
                 </div>
               </div>
@@ -73,7 +63,9 @@ function SearchMembersCard({users,...props}) {
 SearchMembersCard.propTypes = {
     users: PropTypes.array,
     label: PropTypes.string,
-    className: PropTypes.string
+    className: PropTypes.string,
+    selectedUsers: PropTypes.array,
+    handleMembersSelect: PropTypes.func,
   };
 
 export default SearchMembersCard;
