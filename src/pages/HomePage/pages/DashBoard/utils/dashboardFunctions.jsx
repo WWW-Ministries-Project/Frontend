@@ -4,17 +4,15 @@ import ProfilePicture from "../../../../../components/ProfilePicture";
 export const dashboardColumns = [
     {
       header: "Name",
-      accessorFn: (row) => (
-        <div className="flex items-center gap-2">
+      accessorKey:"name",
+      cell: ({row}) => <div className="flex items-center gap-2">
           <ProfilePicture
             src={row.photo || "/src/assets/images/profilePic.png"}
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
           />{" "}
-          {row.name}
-        </div>
-      ),
-      cell: (info) => info.getValue(),
+          {row.original.name}
+        </div>,
     },
     {
       header: "Phone number",
