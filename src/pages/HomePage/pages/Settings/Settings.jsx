@@ -77,7 +77,7 @@ function Settings() {
               "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
             }>
             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-              setInputValue(prev => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_head: row.original?.department_head_info?.id }))
+              setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_head: row.original?.department_head_info?.id }))
               setEditMode(true)
               setDisplayForm(true)
             }} />
@@ -122,7 +122,7 @@ function Settings() {
             "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
           }>
           <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-            setInputValue(prev => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_id: row.original?.department?.id }))
+            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_id: row.original?.department?.id }))
             setEditMode(true)
             setDisplayForm(true)
           }} />
@@ -165,8 +165,8 @@ function Settings() {
             "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
           }>
           <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-            setInputValue(prev => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description }))
-            setPermissionsValues(prev => (row.original?.permissions))
+            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description }))
+            setPermissionsValues(() => (row.original?.permissions))
             setEditMode(true)
             setDisplayForm(true)
           }} />
@@ -240,9 +240,13 @@ function Settings() {
         axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
           setLoading(false);
           setData(res.data.data);
+          setDisplayForm(false);
+          setInputValue({});
         }).catch((err) => {
           console.log(err);
           setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
         });
         break;
       }
@@ -255,9 +259,13 @@ function Settings() {
         axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
           setData(res.data.data);
           setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
         }).catch((err) => {
           console.log(err);
           setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
         });
         break;
       }
@@ -272,11 +280,15 @@ function Settings() {
           res && window.location.reload();
           break;
         }
-        axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then((res) => {
+        axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then(() => {
           setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
         }).catch((err) => {
           console.log(err);
           setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
         });
         break;
       }
@@ -285,8 +297,7 @@ function Settings() {
     // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
     //   console.log(res);
     // })
-    setDisplayForm(false);
-    setInputValue({});
+
   }
 
 

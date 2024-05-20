@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import ProfilePicture from "/src/components/ProfilePicture";
 // const formatTableData = (data) => {
 //     switch (data) {
 //         case 'last_visited': 
@@ -6,12 +7,18 @@ import { DateTime } from "luxon";
 // }
 
 export const membersColumns = [
-    {
-      header: "Name",
-      accessorKey: "name",
-      // accessorFn: row => `${row.first_name} ${row.last_name}`,
-      
-    },
+  {
+    header: "Name",
+    accessorKey:"name",
+    cell: ({row}) => <div className="flex items-center gap-2">
+        <ProfilePicture
+          src={row.photo || "/src/assets/images/profilePic.png"}
+          alt="profile pic"
+          className="h-[38px] w-[38px] rounded-full"
+        />{" "}
+        {row.original.name}
+      </div>,
+  },
     {
       header: "Phone number",
       accessorKey: "user_info.primary_number",
