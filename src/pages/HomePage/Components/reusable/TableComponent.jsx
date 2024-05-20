@@ -45,7 +45,7 @@ function TableComponent({data,columns,filter,setFilter}) {
                   )}
                   <span>
                     {
-                      { asc: "👆", desc: "👇" }[
+                      { asc: "  ↑", desc: "  ↓" }[
                         header.column.getIsSorted() ?? null
                       ]
                     }

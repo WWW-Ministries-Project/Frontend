@@ -6,7 +6,7 @@ import { useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
 
 function Members() {
-  const { setDisplayForm,members } = useOutletContext();
+  const { setDisplayForm,members,userStats } = useOutletContext();
   
   const [filterMembers, setFilterMembers] = useState("");
 
@@ -25,18 +25,18 @@ function Members() {
         <section className="bg-white h-40 grid grid-cols-4 items-center">
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
         <p className="P900 dark900">{members.length}</p>
-            <p className="P200 text-gray">Registers Church Members</p>
+            <p className="P200 text-gray">Registered Church Members</p>
           </div>
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">_</p>
+            <p className="P900 dark900">{userStats.partners || "-"}</p>
             <p className="P200 text-gray">Partners</p>
           </div>
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">-</p>
+            <p className="P900 dark900">{userStats.females || "-"}</p>
             <p className="P200 text-gray">Females</p>
           </div>
           <div className=" p-2 justify-items-start">
-            <p className="P900 dark900">-</p>
+            <p className="P900 dark900">{userStats.males || "-"}</p>
             <p className="P200 text-gray">Males</p>
           </div>
         </section>

@@ -12,7 +12,7 @@ const Button = (props) => {
     <>
       <button
         className={
-          "leading-5 rounded-md bg-primaryViolet text-center text-black " +
+          "leading-5 rounded-md bg-primaryViolet text-center text-black disabled:bg-lightGray  " +
           props.className
         }
         disabled={props.disabled||false}
@@ -46,7 +46,8 @@ Button.propTypes = {
   className: PropTypes.string,
   onClick: PropTypes.func,
   style: PropTypes.object,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  loading: PropTypes.bool
 };
 
 export default Button;

@@ -13,7 +13,7 @@ function NewMember(props) {
   // const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
   function changePic(pic) {
     console.log(pic);
-    setProfilePic((prev) => pic);
+    setProfilePic(() => pic);
     // const endpoint='/dashboard/profile/img';
     // const path=`https://storefront-dpqh.onrender.com${endpoint}?uid=${userRef.current.id}`;
     // onSubmit(pic,value) //handleSubmit function in homepage
@@ -116,7 +116,7 @@ function NewMember(props) {
               className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
               onClick={props.CloseForm}
             />
-            <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} />
+            <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} disabled={props.disabled} />
           </div>
         </form>
       </div>
@@ -126,6 +126,11 @@ function NewMember(props) {
 NewMember.propTypes = {
   className: PropTypes.string,
   onSubmit: PropTypes.func,
+  onChange: PropTypes.func,
+  CloseForm: PropTypes.func,
   userValue: PropTypes.object,
+  selectOptions: PropTypes.object,
+  loading: PropTypes.bool,
+  disabled: PropTypes.bool,
 }
 export default NewMember;

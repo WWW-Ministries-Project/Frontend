@@ -31,7 +31,6 @@ const BarChart = ({value}) => {
 
     return (
         <div>
-            <div className="H600">{value.males}</div>
             <Bar
                 data={data}
                 options={{
