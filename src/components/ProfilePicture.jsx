@@ -1,13 +1,13 @@
-import React from "react";
 import PropTypes from 'prop-types';
 import pic from "/assets/home/profile-circle.svg";
 
 
+
 const  ProfilePic = (props)=> {
 
-    function handleClick() {
-        props.onClick()
-    }
+    // function handleClick() {
+    //     props.onClick()
+    // }
     
     function handlePicChange(event){        
         var picture = event.currentTarget.files[0];
@@ -46,7 +46,8 @@ ProfilePic.propTypes = {
     id: PropTypes.string,
     name: PropTypes.string,
     onClick: PropTypes.func, 
-    onChange: PropTypes.func, 
+    onChange: PropTypes.func,
+    editable: PropTypes.bool 
 }
 
 export default ProfilePic

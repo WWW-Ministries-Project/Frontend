@@ -1,7 +1,8 @@
 import { Outlet, Navigate } from "react-router-dom";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
+import useState from "react-usestateref";
 import NewMember from "./Components/NewMember";
 import axios from "../../axiosInstance.js";
 import { baseUrl } from "../Authentication/utils/helpers";
@@ -10,7 +11,7 @@ import { decodeToken, getToken } from "../../utils/helperFunctions";
 
 
 function HomePage() {
-  const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
+  const [userValue, setUserValue,userValueRef] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": "",link:""});
   const [userStats, setUserStats] = useState({males: 0, females: 0, total: 0});
   const [displayForm, setDisplayForm] = useState(false);
   const [members, setMembers] = useState([]);
@@ -67,7 +68,7 @@ function HomePage() {
   // const addNewMember = (value) => {// moving user to parent component 
     setLoading(true);
     axios
-    .post(`${baseUrl}/user/register`, userValue)
+    .post(`${baseUrl}/user/register`, userValueRef.current)
     .then((response) => {
       setLoading(false);
       setUserValue({"password": "123456","department_id": 0,"name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","country": "","last_visited":"","member_since":""});
@@ -86,6 +87,11 @@ function HomePage() {
   const handleSearchChange = (val) => {
     // setFilter(val);
   };
+
+  const handlePictureUpdate = (obj) => {
+    setUserValue(prev=>({...prev,link:obj}))
+  }
+  
   return (
     <>
       {token ?
@@ -97,7 +103,7 @@ function HomePage() {
         </section>
       </main>
       {true ? (
-         <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} disabled={!userValue.name} />
+         <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} disabled={!userValue.name} handlePictureUpdate={handlePictureUpdate} />
       ) : null}</>):(<Navigate to="/login" />)}
     </>
   );
