@@ -1,4 +1,4 @@
-import profilePic from "/src/assets/images/profilePic.png";
+
 import bell from "/src/assets/bell.svg";
 import arrowDown from "/src/assets/down.svg";
 import ChurchLogo from "../../../components/ChurchLogo";
@@ -6,6 +6,7 @@ import ChurchLogo from "../../../components/ChurchLogo";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
+import ProfilePicture from "/src/components/ProfilePicture";
 
 function Header() {
   const navigate = useNavigate();
@@ -28,7 +29,8 @@ function Header() {
         <div className="w-[246px] flex justify-between items-center">
           <img src={bell} alt="" />
           {/* <div> */}
-          <img src={profilePic} alt="profile pic" />
+          {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
+          <ProfilePicture src={decodeToken().profile_img} className={"w-10 h-10 rounded-full"} name={decodeToken().name}/>
           <span>{decodeToken().name}</span>
           <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           {showLogOut ? (
