@@ -2,7 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 function SearchMembersCard({users,...props}) {
   
-  const maxNumberShown=3
+  const maxNumberShown=6
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState(users);
 
@@ -23,7 +23,7 @@ function SearchMembersCard({users,...props}) {
   }
   return (
     <>
-      <div className={"p-4 border rounded-lg "+props.className}>
+      <div className={"border border-[#F5F5F5] rounded-md p-4 "+props.className}>
       <div className="py-2">
               <label className="relative block">
               <span className="sr-only">Search</span>
