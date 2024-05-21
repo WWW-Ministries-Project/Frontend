@@ -52,7 +52,7 @@ function SearchMembersCard({users,...props}) {
               <div className="flex flex-col gap-2 py-2 h-80 overflow-y-scroll">
                 {searchResults.map((elem) => <div className="flex flex-row gap-3 items-center" key={elem.id}>
                   <input type="checkbox" name="checkbox" value="" className="bg-purple-400" onClick={()=>selectUser(elem.id)} />
-                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center">{elem.user_info.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}</div>
+                  <div className="bg-blue-200 w-10 h-10 rounded-full overflow-hidden flex justify-center items-center">{elem.user_info?.photo ? <img src={elem.user_info.photo} alt={elem.name} /> : elem.name[0].toUpperCase()}</div>
                   <div>{elem.name}</div>
                 </div>)}
               </div>
