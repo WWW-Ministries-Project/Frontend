@@ -2,15 +2,14 @@ import profilePic from "/src/assets/images/profilePic.png";
 import bell from "/src/assets/bell.svg";
 import arrowDown from "/src/assets/down.svg";
 import ChurchLogo from "../../../components/ChurchLogo";
-import SearchBar from "../../../components/SearchBar";
+// import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { decodeToken, getToken, removeToken } from "../../../utils/helperFunctions";
+import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 
 function Header() {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
-  const token = getToken();
   const handleClick = () => {
     setShowLogOut(prev => !prev);
   };
@@ -23,7 +22,7 @@ function Header() {
       <header className="flex justify-between h-16 items-center bg-white px-3 fixed w-full z-20">
         <ChurchLogo />
         <div className="w-[40.9%]">
-          <SearchBar placeholder="Search here" value="" onChange={() => {}}/>
+          {/* <SearchBar placeholder="Search here" value="" onChange={() => {}}/> */}
         </div>
 
         <div className="w-[246px] flex justify-between items-center">

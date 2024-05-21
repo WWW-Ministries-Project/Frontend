@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from "prop-types";
 import InputDiv from '../../../Components/reusable/InputDiv';
 import Button from '../../../../../components/Button';
 import SelectField from '../../../Components/reusable/SelectField';
@@ -32,7 +32,7 @@ const FormsComponent = (props) => {
                     <div className="flex flex-col gap-6 mb-5 border-b border-[#F5F5F5]">
                         <InputDiv onChange={handleChange} type="text" id={props.inputId} label={props.inputLabel} value={props.inputValue.name} placeholder={props.inputLabel} className="w-full" />
                         <SelectField onChange={handleChange} label={props.selectLabel} id={props.selectId} options={props.selectOptions} placeholder={props.selectLabel} value={props.inputValue.department_head || props.inputValue.department_id} />
-                        <TextField onChange={handleChange} value={props.inputValue.description} />
+                        <TextField onChange={handleChange} value={props.inputValue.description||""} />
                     </div>
                     <div className="flex gap-2 justify-end mt-10">
                         <Button
@@ -48,5 +48,20 @@ const FormsComponent = (props) => {
         </>
     )
 }
+FormsComponent.propTypes = {
+    onChange: PropTypes.func,
+    onSubmit: PropTypes.func,
+    editMode: PropTypes.bool,
+    CloseForm: PropTypes.func,
+    loading: PropTypes.bool,
+    inputValue: PropTypes.object,
+    inputLabel: PropTypes.string,
+    selectLabel: PropTypes.string,
+    selectId: PropTypes.string,
+    inputId: PropTypes.string,
+    className: PropTypes.string,
+    selectOptions: PropTypes.array,
+    children: PropTypes.object
+  }
 
 export default FormsComponent;

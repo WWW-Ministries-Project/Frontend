@@ -121,7 +121,7 @@ const AssetManagement = () => {
                             <InputDiv id={"price"} label={"Price"} placeholder={"Enter amount here"} onChange={handleChange} inputClass="!border-2" />
                         </div>
                         <TextField  label={"Description/Specification"} placeholder={"Enter asset’s description or specifications..."} onChange={handleChange} />
-                        <SelectField label={"Status"} options={[{name:"Assigned",value:1},{name:"Unassigned",value:0}]} id="status" value={inputValue.status} onChange={handleChange}
+                        <SelectField label={"Status"} options={[{name:"Assigned",value:"ASSIGNED"},{name:"Unassigned",value:"UNASSIGNED"}]} id="status" value={inputValue.status} onChange={handleChange}
                         placeholder={"Select status"} />
                     </div>
                 </div>

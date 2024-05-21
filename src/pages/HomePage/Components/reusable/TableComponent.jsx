@@ -45,7 +45,7 @@ function TableComponent({data,columns,filter,setFilter}) {
                   )}
                   <span>
                     {
-                      { asc: "👆", desc: "👇" }[
+                      { asc: "  ↑", desc: "  ↓" }[
                         header.column.getIsSorted() ?? null
                       ]
                     }
@@ -114,9 +114,9 @@ function TableComponent({data,columns,filter,setFilter}) {
 }
 
 TableComponent.propTypes = {
-  // data: PropTypes.obj,
-  // columns: PropTypes.obj,
-  // filter: PropTypes.string,
-  // setFilter: PropTypes.func
+  data: PropTypes.array,
+  columns: PropTypes.array,
+  filter: PropTypes.string,
+  setFilter: PropTypes.func
 }
 export default TableComponent;

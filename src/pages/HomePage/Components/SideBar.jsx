@@ -38,7 +38,7 @@ const SideBar = ({ show, ...props }) => {
             )}
             {/* <div className="h-10 bg-red-400 text-center cursor-pointer" onClick={handleClick}>{show ? "minimize" : ">"}</div> */}
             <span
-                className={`max-[1200px]:hidden absolute bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105 h-6 w-6 rounded-full flex items-center py-0 px-2 shadow-md z-40 m-8 top-10 hideNav ${show ? "left-[80%]" : "left-0"} `} onClick={handleClick}>
+                className={` absolute bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105 h-6 w-6 rounded-full flex items-center py-0 px-2 shadow-md z-40 m-8 top-10 hideNav ${show ? "left-[80%]" : "left-0"} `} onClick={handleClick}>
                 {/* <ArrowLeftIcon v-if="store.showAll" /> */}
                 {show ? <img src={leftArrow} alt="expand side" className="divs" /> : <img src={rightArrow} alt="minimize side" />}
                 {/* <ArrowRightIcon v-else /> */}
@@ -51,5 +51,6 @@ const SideBar = ({ show, ...props }) => {
 SideBar.propTypes = {
     onClick: PropTypes.func,
     style: PropTypes.object,
+    show: PropTypes.bool,
 }
 export default SideBar

@@ -7,40 +7,58 @@ import InputDiv from "./reusable/InputDiv";
 import editIcon from "/assets/home/edit.svg";
 import ToggleSwitch from '../../../components/ToggleInput';
 import SelectField from './reusable/SelectField';
+import axios from 'axios';
+// import { baseUrl } from '/src/pages/Authentication/utils/helpers';
 
 function NewMember(props) {
   const [profilePic, setProfilePic] = useState({});
   // const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
   function changePic(pic) {
-    console.log(pic);
-    setProfilePic((prev) => pic);
-    // const endpoint='/dashboard/profile/img';
-    // const path=`https://storefront-dpqh.onrender.com${endpoint}?uid=${userRef.current.id}`;
-    // onSubmit(pic,value) //handleSubmit function in homepage
-    const data = new FormData();
-    data.append("tag", pic.picture);
-    console.log(pic.picture);
-    // console.log(data);
-    // console.log(path);
-    // (async()=>{
-    //     try {
-    //         const response = await axios.post(path,data);
-    //         if (response.status===200)
-    //             setProfilePic(prev=> response.data ? ({...prev,src:response.data}) : prev)
-
-    //         console.log(response)
-    //     } catch (error) {
-    //         console.log(error)
-
-    //     }
-    // })()
+    setProfilePic(() => pic);
   }
 
-  function onSubmit() {
-    // props.onSubmit(userValue) MOVED TO PARENT
-    props.onSubmit()
+  // function onSubmit() {
+  //   // props.onSubmit(userValue) MOVED TO PARENT
+  //   // props.onSubmit()
+  //   const data = new FormData();
+  //   data.append("file", profilePic.picture);
+  //   const baseUrl = "https://jack.greatsohis.online"
+  //   const endpoint = "/upload";
+  //   const path= `${baseUrl}${endpoint}`;
+  //   (async()=>{
+  //       try {
+  //           const response = await axios.post(path,data);
+  //           if (response.status===200)
+  //               // setProfilePic(prev=> response.data ? ({...prev,src:response.data}) : prev)
+  //           console.log(response.data.result.link)
+  //           new Promise (props.handlePictureUpdate(response.data.result.link)).then(()=>props.onSubmit());
+  //           // props.onSubmit();m- 
+  //       } catch (error) {
+  //           console.log(error)
+
+  //       }
+  //   })()
     
+  // }
+  async function onSubmit() {
+    const data = new FormData();
+    data.append("file", profilePic.picture);
+    const baseUrl = "https://jack.greatsohis.online"
+    const endpoint = "/upload";
+    const path = `${baseUrl}${endpoint}`;
+  
+    try {
+      const response = await axios.post(path, data);
+      if (response.status === 200) {
+        const link = response.data.result.link;
+        await props.handlePictureUpdate(link);
+        props.onSubmit(); // Call onSubmit after handlePictureUpdate completes
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
+  
 
   /*SET VALID VALUES IN FORM INPUT*/
   // function handleChange(name, value) {
@@ -55,7 +73,7 @@ function NewMember(props) {
   }
   return (
     <>
-      <div className={"userInfo fixed right-0 top-0 h-full z-10 text-mainGray bg-white p-5 text-sma overflow-y-scroll shadow-xl "+props.className }>
+      <div className={"userInfo fixed right-0 top-10 h-full z-10 text-mainGray bg-white p-5 text-sma overflow-y-scroll shadow-xl "+props.className }>
         <div className="py-5 border-b border-[#F5F5F5]">
           {/* <div className="w-[176px] h-[176px] bg-[#F5F5F5] mx-auto rounded-full">
               <img src="/assets/images/profilePic.png" alt="profile pic" />
@@ -64,6 +82,7 @@ function NewMember(props) {
           <ProfilePicture
             src={profilePic.src}
             template={true}
+            editable={true}
             text={""}
             alt="profile pic"
             icon={editIcon}
@@ -116,7 +135,7 @@ function NewMember(props) {
               className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
               onClick={props.CloseForm}
             />
-            <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} />
+            <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} disabled={props.disabled} />
           </div>
         </form>
       </div>
@@ -126,6 +145,12 @@ function NewMember(props) {
 NewMember.propTypes = {
   className: PropTypes.string,
   onSubmit: PropTypes.func,
+  onChange: PropTypes.func,
+  CloseForm: PropTypes.func,
+  handlePictureUpdate: PropTypes.func,
   userValue: PropTypes.object,
+  selectOptions: PropTypes.array,
+  loading: PropTypes.bool,
+  disabled: PropTypes.bool,
 }
 export default NewMember;

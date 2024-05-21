@@ -11,7 +11,7 @@ export default {
         primaryGray: "#575F6A",
         mainGray: "#626262",
         wwmBlue: "#080D2D",
-        wwwGrey: "#62626A",
+        wwwGray: "#62626A",
         errorBG: '#FBEAE6',
         error: '#E97760',
         wwwGrey2: '#6B7B8A',

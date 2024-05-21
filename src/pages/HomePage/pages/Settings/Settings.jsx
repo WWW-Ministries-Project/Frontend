@@ -6,17 +6,17 @@ import axios from "../../../../axiosInstance.js";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import { baseUrl } from "../../../Authentication/utils/helpers";
-import Filter from "../../Components/reusable/Filter";
 import TableComponent from "../../Components/reusable/TableComponent";
 import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import {  deleteData, updateData, accessValues } from "./utils/helperFunctions";
+import { deleteData, updateData } from "./utils/helperFunctions";
 import Dialog from "/src/components/Dialog.jsx";
+import { decodeToken } from "/src/utils/helperFunctions.js";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, departmentData, setDepartmentData } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData, dataRef] = useState([]);
@@ -24,35 +24,36 @@ function Settings() {
   const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue, inputValueRef] = useState({created_by:1,name:"",description:""});
+  const [inputValue, setInputValue, inputValueRef] = useState({ created_by: decodeToken().id, name: "", description: "" });
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState({});
-  const [showModal,setShowModal] = useState(false);
-  const [itemToDelete,setItemToDelete] = useState({path:"",id:"",name:"",index:""});
+  const [showModal, setShowModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
+  const [selectedUsers, setSelectedUsers] = useState([]); //for access levels
 
   //dialog logic
-  const handleShowModal = ()=>{
-    setShowModal(prev=>!prev)
+  const handleShowModal = () => {
+    setShowModal(prev => !prev)
   }
 
-  const handleDelete = ()=>{
-    deleteData(itemToDelete.path,itemToDelete.id);
-    setShowModal(prev=>!prev);
+  const handleDelete = () => {
+    deleteData(itemToDelete.path, itemToDelete.id);
+    setShowModal(prev => !prev);
     let tempData = dataRef.current;
     tempData.splice(itemToDelete.index, 1)
     setData([...tempData])
     // switch (itemToDelete.path) {
-      
+
     // }
   }
 
 
   // find way to import data from another function makes it cleaner
   const departmentColumns =
-   [
+    [
       {
         header: "Department",
         accessorKey: "name",
@@ -75,119 +76,133 @@ function Settings() {
             className={
               "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
             }>
-            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
-              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_head:row.original?.department_head_info?.id}))
+            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
+              setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_head: row.original?.department_head_info?.id }))
               setEditMode(true)
-              setDisplayForm(true) 
-              }}/>
+              setDisplayForm(true)
+            }} />
 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              handleShowModal() 
-              setItemToDelete({path:"department/delete-department",id:row.original?.id,name:row.original?.name,index:row.index})
-              }} />
-{/* 
+              handleShowModal()
+              setItemToDelete({ path: "department/delete-department", id: row.original?.id, name: row.original?.name, index: row.index })
+            }} />
+            {/* 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
               deleteData("department/delete-department",row.original.id)
               let tempData = dataRef.current;
               tempData.splice(row.index, 1)
               setData([...tempData])
              }} /> */}
-    
+
           </div>
         )
       },
-    ]
+  ]
 
-    const positionsColumns = [
-      {
-        header: "Position Name",
-        accessorKey: "name",
-      },
-      {
-        header: "Department",
-        accessorKey: "department",
-        cell: (info) => info.getValue()?.name ?? "N/A"
-      },
-      {
-        header: "Description",
-        accessorKey: "description",
-      },
-      {
-        header: "Status",
-        accessorKey: "status",
-        cell: ({row}) => (
-          <div
-            className={
-              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
-            }>
-             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
-              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description, department_id:row.original?.department?.id}))
-              setEditMode(true)
-              setDisplayForm(true) 
-              }}/>
+  const positionsColumns = [
+    {
+      header: "Position Name",
+      accessorKey: "name",
+    },
+    {
+      header: "Department",
+      accessorKey: "department",
+      cell: (info) => info.getValue()?.name ?? "N/A"
+    },
+    {
+      header: "Description",
+      accessorKey: "description",
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <div
+          className={
+            "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+          }>
+          <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
+            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_id: row.original?.department?.id }))
+            setEditMode(true)
+            setDisplayForm(true)
+          }} />
 
-            {/* <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
+          {/* <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
               deleteData("position/delete-position",row.original.id)
               let tempData = dataRef.current;
               tempData.splice(row.index, 1)
               setData([...tempData])
               setPositionData([...tempData])
              }} /> */}
-             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              handleShowModal() 
-              setItemToDelete({path:"position/delete-position",id:row.original?.id,name:row.original?.name,index:row.index})
-              }} />
-    
-          </div>)
-      },
-    ]
+          <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
+            handleShowModal()
+            setItemToDelete({ path: "position/delete-position", id: row.original?.id, name: row.original?.name, index: row.index })
+          }} />
 
-    const accessColumns = [
-      {
-        header: "Acess Name",
-        accessorKey: "name",
-      },
-      // {
-      //   header: "Department",
-    
-      // },
-      {
-        header: "Description",
-        accessorKey: "description",
-      },
-      {
-        header: "Edit",
-        accessorKey: "status",
-        cell: ({row}) => (
-          <div
-            className={
-              "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
-            }>
-            <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => { 
-              setInputValue(prev=>({ id:row.original?.id, name:row.original?.name, description:row.original?.description}))
-              setPermissionsValues(prev=>(row.original?.permissions))
-              setEditMode(true)
-              setDisplayForm(true) 
-              }}/>
-            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
-    
-          </div>
-        )
-      },
-    ]
+        </div>)
+    },
+  ]
+
+  const accessColumns = [
+    {
+      header: "Acess Name",
+      accessorKey: "name",
+    },
+    // {
+    //   header: "Department",
+
+    // },
+    {
+      header: "Description",
+      accessorKey: "description",
+    },
+    {
+      header: "Edit",
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <div
+          className={
+            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
+          }>
+          <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
+            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description }))
+            setPermissionsValues(() => (row.original?.permissions))
+            setEditMode(true)
+            setDisplayForm(true)
+          }} />
+          <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
+
+        </div>
+      )
+    },
+  ]
   // }, [data,selectedTab,columns])
 
+  //AccessLevels
+  function selectUser(itemId) {
+    const index = members.findIndex(item => item.id === itemId);
+    if (index !== -1) {
+      const selectedItem = members.slice(index)[0];
+      setSelectedUsers(prev => {
+        if (prev.some(user => user.id == itemId)) {
+          return prev.filter(users => users.id != itemId)
+        } else {
+          return [...prev, selectedItem]
+        }
+      });
+    }
+  }
 
   // const departmentData = departmentDataRef.current;
 
 
 
-//Forms Component
+  //Forms Component
   const selectOptions = useMemo(() => {
     switch (selectedTab) {
       case "Department": {
         return members.map((member) => {
-          return {name:member.name, value:member.id}
+          return { name: member.name, value: member.id }
         })
       }
       case "Position": {
@@ -201,75 +216,89 @@ function Settings() {
     }
   }, [members, selectedTab])
 
-  const handleChange = (name, value) =>{
+  const handleChange = (name, value) => {
     setInputValue((prev) => ({ ...prev, [name]: value }));
-}
- const handleAccessChange = (name, value) =>{
-   setPermissionsValues((prev) => ({ ...prev, [name]: value }));
- }
+  }
+  const handleAccessChange = (name, value) => {
+    setPermissionsValues((prev) => ({ ...prev, [name]: value }));
+  }
 
-const handleCloseForm =()=> {
-  setDisplayForm(false);
-  setEditMode(false);
-}
+  const handleCloseForm = () => {
+    setDisplayForm(false);
+    setEditMode(false);
+  }
 
-const handleFormSubmit = async () => {
-  setLoading(true);
-  switch (selectedTab) {
-    case "Department": {
-      if(editMode){
-       const res = await updateData("department/update-department",inputValue)
-       res && window.location.reload();
+  const handleFormSubmit = async () => {
+    setLoading(true);
+    switch (selectedTab) {
+      case "Department": {
+        if (editMode) {
+          const res = await updateData("department/update-department", inputValue)
+          res && window.location.reload();
+          break;
+        }
+        axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+          setLoading(false);
+          setData(res.data.data);
+          setDisplayForm(false);
+          setInputValue({});
+        }).catch((err) => {
+          console.log(err);
+          setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
+        });
         break;
       }
-      axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-        setLoading(false);
-        setData(res.data.data);
-      }).catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
-      break;
+      case "Position": {
+        if (editMode) {
+          const res = await updateData("position/update-position", inputValue)
+          res && window.location.reload();
+          break;
+        }
+        axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
+          setData(res.data.data);
+          setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
+        }).catch((err) => {
+          console.log(err);
+          setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
+        });
+        break;
+      }
+      case "Access Rights": {
+        const permissions = permissionsValuesRef.current;
+        setInputValue(prev => ({
+          permissions: permissions,
+          assigned_users: selectedUsers.map(user => user.id), ...prev
+        }))
+        if (editMode) {
+          const res = await updateData("access/update-access-level", inputValueRef.current)
+          res && window.location.reload();
+          break;
+        }
+        axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then(() => {
+          setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
+        }).catch((err) => {
+          console.log(err);
+          setLoading(false);
+          setDisplayForm(false);
+          setInputValue({});
+        });
+        break;
+      }
+      default: break
     }
-    case "Position": {
-      if(editMode){
-        const res = await updateData("position/update-position",inputValue)
-        res && window.location.reload();
-         break;
-       }
-      axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
-        setData(res.data.data);
-        setLoading(false);
-      }).catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
-      break;
-    }
-    case "Access Rights": {
-      const permissions = permissionsValuesRef.current;
-      setInputValue(prev=>({permissions:permissions, ...prev}))
-      if(editMode){
-        const res = await updateData("access/update-access-level",inputValueRef.current)
-        res && window.location.reload();
-         break;
-       }
-      axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then((res) => {
-        setLoading(false);
-      }).catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
-      break;
-    }
-    default: break
+    // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
+    //   console.log(res);
+    // })
+
   }
-  // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-  //   console.log(res);
-  // })
-  setDisplayForm(false);
-  setInputValue({});
-}
 
 
 
@@ -288,7 +317,7 @@ const handleFormSubmit = async () => {
       }
       case "Access Rights": {
         setColumns(accessColumns);
-          setData(accessData);
+        setData(accessData);
         break;
       }
       default: break
@@ -304,12 +333,12 @@ const handleFormSubmit = async () => {
       setAccessData(res.data.data);
     });
     // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-      // setData(departmentDataRef.current);
-      // console.log(departmentData);
+    // setData(departmentDataRef.current);
+    // console.log(departmentData);
     //   setDepartmentData(res.data.data);
 
     // })
-  },[])
+  }, [])
 
   useEffect(() => {
     handleDataFetching();
@@ -338,7 +367,7 @@ const handleFormSubmit = async () => {
       }
       default: break
     }
-    setInputValue({created_by:1,name:""});
+    setInputValue({ created_by: decodeToken().id, name: "" });
   }
 
   return (
@@ -376,7 +405,7 @@ const handleFormSubmit = async () => {
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm); setInputValue({created_by:1,name:""}) }} />
+              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
             </div>
           </div>
           <TableComponent
@@ -387,15 +416,15 @@ const handleFormSubmit = async () => {
           />
         </section>
 
-        {selectedTab !=="Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}/>
+        {selectedTab !== "Access Rights" ? (
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}  />
 
         ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} editMode={editMode}  >
-              <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ?'Update':'Create'} members={members} />
-          </FormsComponent>}
+          <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ? 'Update' : 'Create'} members={members} selectedUsers={selectedUsers} onMembersSelect={selectUser} />
+        </FormsComponent>}
       </section>
 
-      <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete}/>
+      <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
     </>
   );
 }
