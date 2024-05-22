@@ -30,7 +30,7 @@ function Header() {
           <img src={bell} alt="" />
           {/* <div> */}
           {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
-          <ProfilePicture src={decodeToken().profile_img} className={"w-10 h-10 rounded-full"} name={decodeToken().name}/>
+          <ProfilePicture src={decodeToken().profile_img} className={"w-10 h-10 rounded-full"} name={decodeToken().name} alt="profile picture" />
           <span>{decodeToken().name}</span>
           <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           {showLogOut ? (
