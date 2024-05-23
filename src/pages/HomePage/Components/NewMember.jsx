@@ -43,18 +43,17 @@ function NewMember(props) {
   async function onSubmit() {
     const data = new FormData();
     data.append("file", profilePic.picture);
-    console.log(data)
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
   
     try {
-      const response = await axios.post(path, data);
-      if (response.status === 200) {
+      const response =profilePic.picture && await axios.post(path, data);
+      if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
         await props.handlePictureUpdate(link);
+      }
         setProfilePic({});
         props.onSubmit(); // Call onSubmit after handlePictureUpdate completes
-      }
     } catch (error) {
       console.log(error);
     }
