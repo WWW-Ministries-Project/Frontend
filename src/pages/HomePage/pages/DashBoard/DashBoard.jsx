@@ -20,9 +20,9 @@ function DashBoard() {
   //   { name: "Total Number of Partners", value: 0, duration: "This month" },
   // ];
   const stats = [
-    { name: "Total Members", value: members.length, additionalInfo: "I wonder how it should appear" },
-    { name: "Males", value: userStats.males, additionalInfo: "As a tooltip or info card" },
-    { name: "Females", value: userStats.females },
+    { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
+    { name: "Males", value: userStats.total_males, additionalInfo: "As a tooltip or info card" },
+    { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
   ];
 
   const columns = dashboardColumns;
@@ -66,7 +66,7 @@ function DashBoard() {
       <section className="mt-6 bg-white p-7 shadow-md rounded ">
         {/* <BreakdownComponents /> */}
         <div className="text-dark900 H600">Members Breakdown</div>
-        <BarChart value={userStats} />
+        <BarChart value={userStats.stats} />
       </section>
       <section className="mt-6 bg-white p-7 ">
         <div className="flex justify-between items-center mb-5">

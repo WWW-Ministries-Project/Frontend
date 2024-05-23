@@ -7,7 +7,8 @@ export const dashboardColumns = [
       accessorKey:"name",
       cell: ({row}) => <div className="flex items-center gap-2">
           <ProfilePicture
-            src={row.photo || "/src/assets/images/profilePic.png"}
+            src={row.original.user_info?.photo}
+            name={row.original.name}
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
           />{" "}

@@ -1,18 +1,17 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import useState from "react-usestateref";
+import axios from "../../axiosInstance.js";
+import { getToken } from "../../utils/helperFunctions";
+import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
-import { useEffect} from "react";
-import useState from "react-usestateref";
 import NewMember from "./Components/NewMember";
-import axios from "../../axiosInstance.js";
-import { baseUrl } from "../Authentication/utils/helpers";
-import { useMemo } from "react";
-import { decodeToken, getToken } from "../../utils/helperFunctions";
 
 
 function HomePage() {
   const [userValue, setUserValue,userValueRef] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": "",link:""});
-  const [userStats, setUserStats] = useState({males: 0, females: 0, total: 0});
+  const [userStats, setUserStats] = useState({stats:{adults:{male: 0, female: 0, total: 0},children:{male: 0, female: 0, total: 0}}});
   const [displayForm, setDisplayForm] = useState(false);
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
@@ -42,7 +41,8 @@ function HomePage() {
       setMembers(res.data.data);
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
-      setUserStats(res.data.data);
+      setUserStats(res.data);
+      // console.log(res.data)
     })
     // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
     //   setDepartmentData(res.data.data);
@@ -89,7 +89,7 @@ function HomePage() {
   };
 
   const handlePictureUpdate = (obj) => {
-    setUserValue(prev=>({...prev,link:obj}))
+    setUserValue(prev=>({...prev,photo:obj}))
   }
   
   return (

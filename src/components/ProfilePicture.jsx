@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import pic from "/assets/home/profile-circle.svg";
+import { firstLetters } from '/src/utils/helperFunctions';
 
 
 
@@ -24,7 +24,8 @@ const  ProfilePic = (props)=> {
         <>
              <div className="flex">
                 <div className={'rounded-[50%] outline outline-offset-2 outline-1 outline-[#f2f2f2] relative '+props.className}>
-                    <img src={ props.src ? props.src : pic} alt={props.alt} className='w-full rounded-full h-full' id="profile" />
+                    {props.src ? <img src={ props.src} alt={props.alt} className='w-full rounded-full h-full' id="profile" /> : 
+                    <div className='w-full rounded-full h-full flex justify-center items-center'>{firstLetters(props.name)}</div>}
                     {props.editable? <label className=" absolute top-0 z-2 rounded-full w-full h-full flex justify-center items-center text-sm bg-blur cursor-pointer text-white" htmlFor={props.id}>
                     {/* <span className="fa fa-camera m-2"></span> */}
                     <span>Change Image</span>
@@ -47,7 +48,7 @@ ProfilePic.propTypes = {
     name: PropTypes.string,
     onClick: PropTypes.func, 
     onChange: PropTypes.func,
-    editable: PropTypes.bool 
+    editable: PropTypes.bool, 
 }
 
 export default ProfilePic

@@ -15,3 +15,7 @@ export const decodeToken = () => {
     const token = getToken();
     return token && jwtDecode(token);
 }
+export const firstLetters = (string="No Name") =>{
+    const arr = string.trim().split(" ");
+    return `${arr[0][0].toUpperCase()}${arr[arr.length - 1][0].toUpperCase()}`
+}

@@ -52,11 +52,17 @@ function NewMember(props) {
       if (response.status === 200) {
         const link = response.data.result.link;
         await props.handlePictureUpdate(link);
+        setProfilePic({});
         props.onSubmit(); // Call onSubmit after handlePictureUpdate completes
       }
     } catch (error) {
       console.log(error);
     }
+  }
+
+  function handleCloseForm (){
+    setProfilePic({});
+    props.CloseForm();
   }
   
 
@@ -133,7 +139,7 @@ function NewMember(props) {
             <Button
               value="Close"
               className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
-              onClick={props.CloseForm}
+              onClick={handleCloseForm}
             />
             <Button value="Save" className={" p-3 text-white"} onClick={onSubmit} loading={props.loading} disabled={props.disabled} />
           </div>

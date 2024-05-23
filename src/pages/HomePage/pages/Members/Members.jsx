@@ -24,7 +24,7 @@ function Members() {
       <main className="h-full">
         <section className="bg-white h-40 grid grid-cols-4 items-center">
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-        <p className="P900 dark900">{members.length}</p>
+        <p className="P900 dark900">{userStats.total_members || "-"}</p>
             <p className="P200 text-gray">Registered Church Members</p>
           </div>
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
@@ -32,11 +32,11 @@ function Members() {
             <p className="P200 text-gray">Partners</p>
           </div>
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.females || "-"}</p>
+            <p className="P900 dark900">{userStats.total_females || "-"}</p>
             <p className="P200 text-gray">Females</p>
           </div>
           <div className=" p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.males || "-"}</p>
+            <p className="P900 dark900">{userStats.total_males || "-"}</p>
             <p className="P200 text-gray">Males</p>
           </div>
         </section>

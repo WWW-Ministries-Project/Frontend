@@ -8,6 +8,7 @@ import { Chart as ChartJS,
  } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
+
 ChartJS.register(
     BarElement,
     CategoryScale,
@@ -19,11 +20,11 @@ ChartJS.register(
 
 const BarChart = ({value}) => {
     const data={
-        labels:['Males','Females','Other'],
+        labels:['Adult Males','Adult Females','Adult Other',"Children Males","Children Females","Children Other"],
         datasets:[{
-            data:[value.males,value.females,value.neutral],
+            data:[value.adults.Male,value.adults.Female,value.adults.other,value.children.Male,value.children.Female,value.children.other],
             label:'Demographic',
-            backgroundColor: ['rgba(54, 162, 235, 0.5)','rgba(255, 99, 132, 0.5)','rgba(255, 206, 86, 0.5)'],
+            backgroundColor: ['rgba(54, 162, 235, 0.8)','rgba(255, 99, 132, 0.8)','rgba(255, 206, 86, 0.8)','rgba(54, 162, 235, 0.3)','rgba(255, 99, 132, 0.3)','rgba(255, 206, 86, 0.3)'],
             // backgroundImages: ['rgba(54, 162, 235, 0.5)','rgba(255, 99, 132, 0.5)','rgba(255, 206, 86, 0.5)'],
         }
         ]
@@ -45,9 +46,16 @@ const BarChart = ({value}) => {
 
 BarChart.propTypes = {
     value: PropTypes.shape({
+    adults:{
       males: PropTypes.number.isRequired,
       females: PropTypes.number.isRequired,
       neutral: PropTypes.number
+    },
+    children:{
+      males: PropTypes.number.isRequired,
+      females: PropTypes.number.isRequired,
+      neutral: PropTypes.number
+    }
     }).isRequired
   };
 
