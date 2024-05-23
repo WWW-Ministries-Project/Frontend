@@ -11,7 +11,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
     function handleSubmit() {
         onSubmit();
     }
-    const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access Rights"];
+    const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access Rights","Assets"];
 
 
     const handleHideBlock = ({currentTarget}) => {
