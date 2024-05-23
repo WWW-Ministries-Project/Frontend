@@ -10,7 +10,7 @@ const SelectField = (props) => {
         <div>
             <div className={"flex flex-col "+props.className}>
                 <label htmlFor={props.id}>{props.label}</label>
-                <select name={props.id} id={props.id} className="input" onChange={handleChange} value={props.value||"hh"}>
+                <select name={props.id} id={props.id} className="input" onChange={handleChange} value={props.value}>
                     <option value="">{props.placeholder}</option>
                     {props.options.map((option, index) => (
                         <option key={index} value={(option.value)}>{option.name}</option>
@@ -25,8 +25,12 @@ SelectField.propTypes = {
     label: PropTypes.string,
     className: PropTypes.string,   
     id: PropTypes.string.isRequired,
-    value: PropTypes.number,
+    value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number
+      ]),
     onChange: PropTypes.func,
-    options: PropTypes.array
+    options: PropTypes.array,
+    placeholder: PropTypes.string
 }
 export default SelectField;
