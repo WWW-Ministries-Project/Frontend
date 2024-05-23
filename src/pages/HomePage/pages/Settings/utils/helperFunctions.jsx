@@ -119,7 +119,7 @@ export const accessValues =  {
 
 //Axios calls
 export async function deleteData(path, id) {
-  axios.delete(`${baseUrl}/${path}`, { data: { id } }).then((res) => {
+  axios.delete(`${baseUrl}/${path}`, { data: { id } }).then(() => {
   })
 }
 
