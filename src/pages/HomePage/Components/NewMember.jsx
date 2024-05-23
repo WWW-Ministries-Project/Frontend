@@ -8,7 +8,7 @@ import editIcon from "/assets/home/edit.svg";
 import ToggleSwitch from '../../../components/ToggleInput';
 import SelectField from './reusable/SelectField';
 import axios from 'axios';
-// import { baseUrl } from '/src/pages/Authentication/utils/helpers';
+import { baseUrl } from '/src/pages/Authentication/utils/helpers';
 
 function NewMember(props) {
   const [profilePic, setProfilePic] = useState({});
@@ -43,7 +43,7 @@ function NewMember(props) {
   async function onSubmit() {
     const data = new FormData();
     data.append("file", profilePic.picture);
-    const baseUrl = "https://jack.greatsohis.online"
+    console.log(data)
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
   

@@ -13,7 +13,8 @@ import Dialog from "/src/components/Dialog";
 import { DateTime } from "luxon";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
-import axios from "/src/axiosInstance.js";
+// import axios from "/src/axiosInstance.js";
+import axios from "axios";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
 
@@ -28,8 +29,11 @@ const AssetManagement = () => {
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
   const selectOptions = [{ name: "department", value: "department" }];
   // const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});
-  const [inputValue, setInputValue] = useState({ name: "" });
-
+  const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
+  const [profilePic, setProfilePic] = useState({});
+  function changePic(pic) {
+    setProfilePic(() => pic);
+  }
   const [showModal, setShowModal] = useState(false);
   const columns = [
     {
@@ -38,7 +42,7 @@ const AssetManagement = () => {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <ProfilePicture
-            src={row.original.user_info?.photo}
+            src={row.original.photo}
             name={row.original.name}
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
@@ -71,11 +75,10 @@ const AssetManagement = () => {
       accessorKey: "status",
       cell: (info) => (
         <div
-          className={`text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center ${
-            info.getValue() === "ASSIGNED"
-              ? "bg-green text-white"
-              : "bg-neutralGray text-lighterBlack"
-          }  `}
+          className={`text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center ${info.getValue() === "ASSIGNED"
+            ? "bg-green text-white"
+            : "bg-neutralGray text-lighterBlack"
+            }  `}
         >
           {info.getValue() === "ASSIGNED" ? "Assigned" : "Unassigned"}
         </div>
@@ -102,15 +105,16 @@ const AssetManagement = () => {
                 date_purchased: row.original?.date_purchased,
                 status: row.original?.status,
                 price: row.original?.price,
+                photo: row.original.photo
               }));
               setEditMode(true);
               setDisplayForm(true);
             }}
           />
           <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              handleShowModal()
-              setItemToDelete({ path: "assets/delete-asset", id: row.original?.id, name: row.original?.name, index: row.index })
-            }}  />
+            handleShowModal()
+            setItemToDelete({ path: "assets/delete-asset", id: row.original?.id, name: row.original?.name, index: row.index })
+          }} />
         </div>
       ),
     },
@@ -139,54 +143,72 @@ const AssetManagement = () => {
   }
 
   const handleClick = () => {
-    setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
+    setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "", photo:'' });
+    setProfilePic({})
     setDisplayForm(true);
     setEditMode(false);
   };
 
   const handleChange = (name, value) => {
     setInputValue((prev) => ({ ...prev, [name]: value }));
-    console.log(inputValue, "changed");
   };
   const handleCloseForm = () => {
     setDisplayForm(false);
   };
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     setLoading(true);
-    if (editMode){
-      axios
-      .put(`${baseUrl}/assets/update-asset`, inputValue)
-      .then((res) => {
-        setLoading(false);
-        // setData(res.data.data);
-        setAssertsData(prev =>prev.map(data=>{
-          if(data.id!==res.data.updatedAsset) return data
-          else return res.data.updatedAsset
-        }) )
-        setDisplayForm(false);
-        setEditMode(false);
-        setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
-    }
+    const data = new FormData();
+    data.append("file", profilePic.picture);
+    const endpoint = "/upload";
+    const path = `${baseUrl}${endpoint}`;
+    try {
+      const response = profilePic.picture && await axios.post(path, data);
+      if ( profilePic.picture && response.status === 200) {
+        const link = response.data.result.link;
+        setInputValue(prev=>({...prev,photo:link}))
+        setProfilePic({});
+      }
 
-    axios
-      .post(`${baseUrl}/assets/create-asset`, inputValue)
-      .then((res) => {
-        setLoading(false);
-        // setData(res.data.data);
-        setAssertsData(prev => [res.data.asset,...prev]);
-        setDisplayForm(false);
-        setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-      })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+        if (editMode) {
+          axios
+            .put(`${baseUrl}/assets/update-asset`, inputValueRef.current)
+            .then((res) => {
+              setLoading(false);
+              // setData(res.data.data);
+              setAssertsData(prev => prev.map(data => {
+                if (data.id !== res.data.updatedAsset) return data
+                else return res.data.updatedAsset
+              }))
+              setDisplayForm(false);
+              setEditMode(false);
+              setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
+            })
+            .catch((err) => {
+              console.log(err);
+              setLoading(false);
+            });
+        }
+        else {
+          axios
+            .post(`${baseUrl}/assets/create-asset`, inputValueRef.current)
+            .then((res) => {
+              setLoading(false);
+              // setData(res.data.data);
+              setAssertsData(prev => [res.data.asset, ...prev]);
+              setDisplayForm(false);
+              setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
+            })
+            .catch((err) => {
+              console.log(err);
+              setLoading(false);
+            });
+        }
+      
+    } catch(error) {
+      setLoading(false);
+      console.log(error);
+    }
   };
 
   return (
@@ -240,9 +262,8 @@ const AssetManagement = () => {
         </div>
       </section>
       <FormsComponent
-        className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${
-          displayForm ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"
+          }`}
         selectOptions={selectOptions}
         selectId={"selectedId"}
         // inputValue={inputValue}
@@ -257,9 +278,24 @@ const AssetManagement = () => {
           <div className=" border-2 border-[#F5F5F5] rounded-md p-2 py-10">
             <div className="flex flex-col gap-5">
               <div className="grid grid-cols-3 gap-1 items-center pb-5 border-b border-[#F5F5F5]">
-                <ProfilePicture
+                {/* <ProfilePicture
                   className="w-20 h-20 col-span-1"
                   alt="picture of asset"
+                  editable={true}
+                /> */}
+                <ProfilePicture
+                  src={profilePic.src || inputValue.photo}
+                  template={true}
+                  editable={true}
+                  text={""}
+                  alt="profile pic"
+
+                  name={"firstname"}
+                  alternative="edit button"
+                  className="w-20 h-20 profilePic transition-all duration-1000 mx-auto"
+                  textClass={"text-[32px] leading-[36px] mx-8 "}
+                  onChange={changePic}
+                  id={"pic"}
                 />
                 <div className="col-span-2 flex flex-col gap-2">
                   <InputDiv
@@ -323,6 +359,7 @@ const AssetManagement = () => {
               className={" p-3 text-white"}
               onClick={handleFormSubmit}
               loading={loading}
+              disabled={!inputValue.name}
             />
           </div>
         </form>
