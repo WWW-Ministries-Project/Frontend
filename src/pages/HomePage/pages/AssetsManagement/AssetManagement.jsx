@@ -13,8 +13,8 @@ import Dialog from "/src/components/Dialog";
 import { DateTime } from "luxon";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
-// import axios from "/src/axiosInstance.js";
-import axios from "axios";
+import axios,{pictureInstance as axiosFile} from "/src/axiosInstance.js";
+// import axios from "axios";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
 
@@ -163,7 +163,7 @@ const AssetManagement = () => {
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
     try {
-      const response = profilePic.picture && await axios.post(path, data);
+      const response = profilePic.picture && await axiosFile.post(path, data);
       if ( profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
         setInputValue(prev=>({...prev,photo:link}))
