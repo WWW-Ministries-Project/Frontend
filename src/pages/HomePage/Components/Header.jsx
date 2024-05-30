@@ -7,15 +7,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
+import { useAuth } from "../../../auth/AuthWrapper";
 
 function Header() {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
+  const { logout } = useAuth();
   const handleClick = () => {
     setShowLogOut(prev => !prev);
   };
   const handleLogOut = () => {
     removeToken();
+    logout();
     navigate("/login");
   }
   return (
