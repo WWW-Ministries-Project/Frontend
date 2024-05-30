@@ -1,15 +1,15 @@
+import axios from "axios";
 import PropTypes from "prop-types";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../auth/AuthWrapper";
 import Button from "../../../../components/Button";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
+import { decodeToken, setToken } from "../../../../utils/helperFunctions";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
-import { validate } from "../../utils/helpers";
-import { baseUrl } from "../../utils/helpers";
-import axios from "axios";
-import { setToken } from "../../../../utils/helperFunctions";
+import { baseUrl, validate } from "../../utils/helpers";
 
 function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
@@ -17,23 +17,27 @@ function LoginPage() {
   const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const { login } = useAuth();
+
   const navigate=useNavigate();
   function handleSubmit() {
 
     // console.log("login");
     setLoading(true);
-    if (error.email){
+    // if (error.email){
 
-    }
+    // }
     (async () => {
       try {
         const endpoint = baseUrl + "/user/login";
         const response = await axios.post(endpoint, loginValues);
         setLoading(false);
         const token = response.data.token;
+        login(decodeToken(token));
         // Set the Authorization header for future requests
         setToken(token);
         response.status == 200 && navigate('/home/dashboard')
+        console.log(response, "response");
       } catch (error) {
         console.log(error, "error");
         setResponse(error.response);
@@ -119,10 +123,10 @@ function LoginPage() {
                 Reset
               </Link>
             </div>
-            <div className="">
+            {/* <div className="">
               Don't have an account?{" "}
               <span className="text-primaryViolet">Register</span>
-            </div>
+            </div> */}
           </div>
 
           {/* </div> */}

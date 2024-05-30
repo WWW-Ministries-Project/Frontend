@@ -11,8 +11,8 @@ export const removeToken = () => {
     return Cookies.remove("token"); 
 };
 
-export const decodeToken = () => {
-    const token = getToken();
+export const decodeToken = (value) => {
+    const token = value ? value : getToken();
     return token && jwtDecode(token);
 }
 export const firstLetters = (string="No Name") =>{
