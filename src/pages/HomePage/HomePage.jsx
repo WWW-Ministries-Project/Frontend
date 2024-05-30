@@ -7,6 +7,7 @@ import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import NewMember from "./Components/NewMember";
+import { useAuth } from "../../auth/AuthWrapper";
 
 
 function HomePage() {
@@ -18,6 +19,7 @@ function HomePage() {
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [loading, setLoading] = useState(false);
   const token = getToken();
+  const { user } = useAuth();
 
   //side nav
   const [show, setShow] = useState(true);
@@ -38,6 +40,7 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
+      console.log(user, "name");	
       setMembers(res.data.data);
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
@@ -48,7 +51,7 @@ function HomePage() {
     //   setDepartmentData(res.data.data);
 
     // });
-  }, []);
+  }, [user]);
   useEffect(() => {
     axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       setDepartmentData(res.data.data);

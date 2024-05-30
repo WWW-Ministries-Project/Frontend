@@ -1,4 +1,5 @@
-import axios from "axios";
+// import axios from "axios";
+import axios, { pictureInstance } from "../../../../axiosInstance";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -36,8 +37,9 @@ function LoginPage() {
         login(decodeToken(token));
         // Set the Authorization header for future requests
         setToken(token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         response.status == 200 && navigate('/home/dashboard')
-        console.log(response, "response");
       } catch (error) {
         console.log(error, "error");
         setResponse(error.response);
@@ -52,7 +54,7 @@ function LoginPage() {
     setError((prev) => ({ ...prev, [name]: !isValid }));
     !isValid && e.target.setCustomValidity("Invalid format");
     // console.log(e.target, "tag");
-    console.log(error, "err", validate(name, loginValues));
+    // console.log(error, "err", validate(name, loginValues));
   }
 
   function handleInputChange(e) {
