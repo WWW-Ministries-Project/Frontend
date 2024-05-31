@@ -4,12 +4,11 @@ import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";  
 import { useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
-import MemberCard from "./Components/MemberCard";
-
 function Members() {
   const { setDisplayForm,members,userStats } = useOutletContext();
   
   const [filterMembers, setFilterMembers] = useState("");
+  const [tableView, setTableView] = useState(false);
 
   const columns = membersColumns;
   const handleSearchChange = (e) => {
@@ -44,6 +43,7 @@ function Members() {
         <section className="mt-6 bg-white p-7 ">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
+              <div onClick={() => setTableView(true)}>Table</div><div onClick={() => setTableView(false)}>Grid</div>
               <SearchBar
                 className="w-[40.9%] h-10"
                 placeholder="Search members here..."
@@ -83,6 +83,7 @@ function Members() {
               data={members}
               filter={filterMembers}
               setFilter={setFilterMembers}
+              tableView={tableView}
             />
             {/* <MemberCard /> */}
           </div>
