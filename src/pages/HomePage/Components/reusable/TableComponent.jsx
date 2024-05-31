@@ -8,9 +8,11 @@ import {
 } from "@tanstack/react-table";
 import { useState } from "react";
 import PropTypes from 'prop-types';
+import MemberCard from "../../pages/Members/Components/MemberCard";
 
-function TableComponent({data,columns,filter,setFilter}) {
+function TableComponent({ data, columns, filter, setFilter, tableView }) {
   const [sorting, setSorting] = useState([]);
+  const [displayedCount, setDisplayedCount] = useState(tableView ? 10 : 12);
   const table = useReactTable({
     data,
     columns,
@@ -22,13 +24,19 @@ function TableComponent({data,columns,filter,setFilter}) {
       sorting: sorting,
       globalFilter: filter,
     },
+    initialState: {
+      pagination: {
+        pageIndex: 0, //custom initial page index
+        pageSize: displayedCount, //custom default page size
+      },
+    },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
   });
 
   return (
     <>
-      <table className="w-full">
+      {tableView ? <table className="w-full">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
@@ -46,7 +54,7 @@ function TableComponent({data,columns,filter,setFilter}) {
                   <span>
                     {
                       { asc: "  ↑", desc: "  ↓" }[
-                        header.column.getIsSorted() ?? null
+                      header.column.getIsSorted() ?? null
                       ]
                     }
                   </span>
@@ -68,8 +76,11 @@ function TableComponent({data,columns,filter,setFilter}) {
             </tr>
           ))}
         </tbody>
-      </table>
-      {data.length > 10 ?<div className="flex justify-end gap-1 text-gray my-6 ">
+      </table> :
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-center">
+          {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} name={row.original.name} email={row.original.email} userInfo={row.original.user_info} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
+        </div>}
+      {data.length > displayedCount ? <div className="flex justify-end gap-1 text-gray my-6 ">
         <button
           onClick={() => table.setPageIndex(0)}
           className={
@@ -108,7 +119,7 @@ function TableComponent({data,columns,filter,setFilter}) {
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
           Last page
         </button>
-      </div>: null}
+      </div> : null}
     </>
   );
 }
@@ -117,6 +128,7 @@ TableComponent.propTypes = {
   data: PropTypes.array,
   columns: PropTypes.array,
   filter: PropTypes.string,
-  setFilter: PropTypes.func
+  setFilter: PropTypes.func,
+  tableView: PropTypes.bool
 }
 export default TableComponent;

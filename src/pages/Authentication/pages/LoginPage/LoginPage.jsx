@@ -37,7 +37,7 @@ function LoginPage() {
         login(decodeToken(token));
         // Set the Authorization header for future requests
         setToken(token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         response.status == 200 && navigate('/home/dashboard')
       } catch (error) {
