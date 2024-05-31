@@ -4,6 +4,7 @@ import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";  
 import { useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
+import MemberCard from "./Components/MemberCard";
 
 function Members() {
   const { setDisplayForm,members,userStats } = useOutletContext();
@@ -76,18 +77,18 @@ function Members() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <div>
+          <div className="w-full mx-auto">
             <TableComponent
               columns={columns}
               data={members}
               filter={filterMembers}
               setFilter={setFilterMembers}
             />
+            {/* <MemberCard /> */}
           </div>
         </section>
       </main>
     </>
   );
 }
-
 export default Members;
