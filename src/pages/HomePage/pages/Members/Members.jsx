@@ -44,7 +44,7 @@ function Members() {
         </section>
 
         {/* Members Table Section */}
-        <section className="mt-6 bg-white p-7 ">
+        <section className={`mt-6 p-7 ${tableView ? "bg-white":"bg-[#fafafa]"} `}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">

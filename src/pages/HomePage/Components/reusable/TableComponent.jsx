@@ -9,10 +9,12 @@ import {
 import { useState } from "react";
 import PropTypes from 'prop-types';
 import MemberCard from "../../pages/Members/Components/MemberCard";
+import { useLocation } from "react-router-dom";
 
 function TableComponent({ data, columns, filter, setFilter, tableView }) {
   const [sorting, setSorting] = useState([]);
   const [displayedCount, setDisplayedCount] = useState(tableView ? 10 : 12);
+  const location = useLocation();
   const table = useReactTable({
     data,
     columns,
@@ -36,7 +38,10 @@ function TableComponent({ data, columns, filter, setFilter, tableView }) {
 
   return (
     <>
-      {tableView ? <table className="w-full">
+      {(!tableView && location.pathname === "/home/members") ? 
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-center">
+          {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} name={row.original.name} email={row.original.email} userInfo={row.original.user_info} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
+        </div> : <table className="w-full">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
@@ -76,10 +81,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView }) {
             </tr>
           ))}
         </tbody>
-      </table> :
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-center">
-          {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} name={row.original.name} email={row.original.email} userInfo={row.original.user_info} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
-        </div>}
+      </table> }
       {data.length > displayedCount ? <div className="flex justify-end gap-1 text-gray my-6 ">
         <button
           onClick={() => table.setPageIndex(0)}
