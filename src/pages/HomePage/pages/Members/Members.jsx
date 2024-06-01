@@ -1,12 +1,14 @@
 import { useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import TableComponent from "../../Components/reusable/TableComponent";  
+import TableComponent from "../../Components/reusable/TableComponent";
 import { useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
+import TableAsset from "/src/assets/TableAssets";
+import GridAsset from "/src/assets/GridAsset";
 function Members() {
-  const { setDisplayForm,members,userStats } = useOutletContext();
-  
+  const { setDisplayForm, members, userStats } = useOutletContext();
+
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(false);
 
@@ -24,7 +26,7 @@ function Members() {
       <main className="h-full">
         <section className="bg-white h-40 grid grid-cols-4 items-center">
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-        <p className="P900 dark900">{userStats.total_members || "-"}</p>
+            <p className="P900 dark900">{userStats.total_members || "-"}</p>
             <p className="P200 text-gray">Registered Church Members</p>
           </div>
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
@@ -40,10 +42,15 @@ function Members() {
             <p className="P200 text-gray">Males</p>
           </div>
         </section>
+
+        {/* Members Table Section */}
         <section className="mt-6 bg-white p-7 ">
+          {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              <div onClick={() => setTableView(true)}>Table</div><div onClick={() => setTableView(false)}>Grid</div>
+              <div className="flex gap-1 bg-lightGray p-1 rounded-md">
+                <div onClick={() => setTableView(true)}><TableAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              </div>
               <SearchBar
                 className="w-[40.9%] h-10"
                 placeholder="Search members here..."
