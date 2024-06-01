@@ -45,18 +45,21 @@ const BarChart = ({value}) => {
 }
 
 BarChart.propTypes = {
-    value: PropTypes.shape({
-    adults:{
-      males: PropTypes.number.isRequired,
-      females: PropTypes.number.isRequired,
-      neutral: PropTypes.number
-    },
-    children:{
-      males: PropTypes.number.isRequired,
-      females: PropTypes.number.isRequired,
-      neutral: PropTypes.number
-    }
-    }).isRequired
+    value: PropTypes.object.isRequired
   };
+// BarChart.propTypes = {
+//     value: PropTypes.shape({
+//     adults:{
+//       males: PropTypes.number.isRequired,
+//       females: PropTypes.number.isRequired,
+//       neutral: PropTypes.number
+//     },
+//     children:{
+//       males: PropTypes.number.isRequired,
+//       females: PropTypes.number.isRequired,
+//       neutral: PropTypes.number
+//     }
+//     }).isRequired
+//   };
 
 export default BarChart;

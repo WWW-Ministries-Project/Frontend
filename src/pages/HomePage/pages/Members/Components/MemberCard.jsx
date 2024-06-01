@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 const MemberCard = (props) => {
     return (
         <div className="max-w-[300px] min-w-[250px] p-3 flex gap-3 text-darkGray rounded shadow-md border-1 bg-white">
-            <ProfilePic className="w-20 h-20 shadow" src={props.userInfo.photo} />
+            <ProfilePic className="w-20 h-20 shadow" src={props.userInfo.photo} alt="profile pic" />
             <div className="w-full text-xs flex flex-col gap-1">
                 <div className='flex justify-between w-full'>
                     <p className='font-bold text-sm'>{props.name}</p>

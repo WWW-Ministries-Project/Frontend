@@ -30,7 +30,7 @@ const SideBar = ({ show, ...props }) => {
                 <NavLink to={items[index]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
                     (isActive ? { background: '#6539C3', color: "white" } : null)} key={index} >
                     <div className=' py-4 flex items-center bg-inherit justify-start' >
-                        <img src={icons[index]} alt={icons[index] + " icon"} className={`${show ? "mr-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
+                        <img src={icons[index]} alt={icons[index] + " icon"} className={`${show ? "mx-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
                         {show && <div>{item}</div>}
                     </div>
                 </NavLink>

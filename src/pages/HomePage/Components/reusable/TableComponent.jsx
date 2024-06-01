@@ -13,7 +13,7 @@ import { useLocation } from "react-router-dom";
 
 function TableComponent({ data, columns, filter, setFilter, tableView }) {
   const [sorting, setSorting] = useState([]);
-  const [displayedCount, setDisplayedCount] = useState(tableView ? 10 : 12);
+  const [displayedCount] = useState(tableView ? 10 : 12);
   const location = useLocation();
   const table = useReactTable({
     data,
@@ -38,7 +38,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView }) {
 
   return (
     <>
-      {(!tableView && location.pathname === "/home/members") ? 
+      {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-center">
           {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} name={row.original.name} email={row.original.email} userInfo={row.original.user_info} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
         </div> : <table className="w-full">
@@ -74,7 +74,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView }) {
               key={row.id}
               className="border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999]">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id}>
+                <td key={cell.id} className="px-1">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
