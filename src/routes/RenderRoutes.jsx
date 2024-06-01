@@ -1,60 +1,38 @@
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import PropTypes from "prop-types";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "../auth/AuthWrapper";
 import { routes } from "./appRoutes";
-import { useContext } from "react";
-import { AuthContext, AuthWrapper, useAuth } from "../auth/AuthWrapper";
-
-
 
 export const RenderRoutes = () => {
-    const navigate = useNavigate();
-    const { name, email } = useAuth();
+    const { user: { permissions } } = useAuth();
+    
     return (
         <Routes>
-            {routes.map((route, i) => {
-
-                return <Route
+            {routes.map((route, i) => (
+                <Route
                     key={i}
                     path={route.path}
-                    element={route.isPrivate && name ? (
+                    element={route.isPrivate && !permissions[route.permissionNeeded] ? (
                         <Navigate to="/login" />
-                      ) : (
+                    ) : (
                         route.element
-                      )}
+                    )}
                 >
                     {/* Render child routes */}
-                    {route.children && (
-                        <Route>
-                            {route.children.map((childRoute, j) => (
-                                <Route
-                                    key={j}
-                                    path={childRoute.path}
-                                    element={childRoute.element}
-                                />
-                            ))}
-                        </Route>
-                    )}
+                    {route.children && route.children.map((childRoute, j) => (
+                        <Route
+                            key={j}
+                            path={childRoute.path}
+                            element={childRoute.isPrivate && !permissions[childRoute.permissionNeeded] ? (
+                                <Navigate to="/login" />
+                            ) : (
+                                childRoute.element
+                            )}
+                        />
+                    ))}
                 </Route>
-
-            }
-            )}
+            ))}
         </Routes>
     );
-};
-
-RenderRoutes.propTypes = {
-    routes: PropTypes.arrayOf(
-        PropTypes.shape({
-            path: PropTypes.string.isRequired,
-            element: PropTypes.elementType.isRequired,
-            children: PropTypes.arrayOf(
-                PropTypes.shape({
-                    path: PropTypes.string.isRequired,
-                    element: PropTypes.elementType.isRequired,
-                })
-            ),
-        })
-    ),
 };
 
 export default RenderRoutes;

@@ -6,12 +6,16 @@ export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthWrapper = ({ children }) => {
-    const [user, setUser] = useState({ name: "", email: "" });
-    const login = (name, email) => {
-        setUser({ name, email });
+    const storedUser = JSON.parse(sessionStorage.getItem("user"));
+    const [user, setUser] = useState(storedUser ||{ name: "", email: "", permissions: {} });
+
+    const login = ({name,permissions={}}) => {
+        sessionStorage.setItem("user", JSON.stringify({name,permissions}));
+        setUser({name,permissions});
     };
     const logout = () => {
-        setUser({ name: "", email: "" });
+        setUser({ name: "", email: "", permissions: {} });
+        sessionStorage.removeItem('user')
     };
     return (
         <AuthContext.Provider value={{ user, login, logout }}>
