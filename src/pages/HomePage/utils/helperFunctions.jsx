@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import ProfilePicture from "/src/components/ProfilePicture";
+
 // const formatTableData = (data) => {
 //     switch (data) {
 //         case 'last_visited': 
@@ -10,7 +11,7 @@ export const membersColumns = [
   {
     header: "Name",
     accessorKey:"name",
-    cell: ({row}) => <div className="flex items-center gap-2">
+    cell: ({row}) => <div className="flex items-center gap-2 cursor-pointer" onClick={()=>{window.location.href = `/home/member/${row.original.id}`}}>
         <ProfilePicture
           src={row.original.user_info?.photo}
           name={row.original.name}

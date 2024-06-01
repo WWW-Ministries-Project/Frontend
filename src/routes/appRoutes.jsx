@@ -1,3 +1,4 @@
+import ProfileDetails from "/src/pages/HomePage/pages/ProfileDetails/ProfileDetails.jsx";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -56,6 +57,10 @@ export const routes = [
       {
         path: "members",
         element: <Members />,
+      },
+      {
+        path: "member/:id",
+        element: <ProfileDetails />,
       },
       {
         path: "settings",
