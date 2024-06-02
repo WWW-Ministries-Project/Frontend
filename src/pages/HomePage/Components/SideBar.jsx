@@ -8,13 +8,15 @@ import Management from "/src/assets/sidebar/management.svg";
 import Settings from "/src/assets/sidebar/settings.svg";
 import leftArrow from "/src/assets/leftArrow.svg";
 import rightArrow from "/src/assets/rightArrow.svg";
+import { useAuth } from "../../../auth/AuthWrapper";
 // import Reports from "../assets/images/icons/Reports.png"
 // import Support from "../../../assets/images/icons/Support.png";
 
 
 const SideBar = ({ show, ...props }) => {
-    const items = ['Dashboard', 'Members', 'Reports', "Manage users", "Assets management", "Settings"];
+    const items = [{name:'Dashboard',key:'Dashboard'},{name:'Members',key:'Members'}, {name:'Reports', key:'Reports'}, {name:"Manage users",key:"Users"}, {name:"Assets management",key:"Assets"}, {name:"Settings",key:"Settings"}];
     const icons = [Home, Members, Reports, Users, Management, Settings];
+    const {user:{permissions}} = useAuth();
 
     function handleClick() {
         props.onClick()
@@ -26,12 +28,12 @@ const SideBar = ({ show, ...props }) => {
         // <div className='w-[15.5%] min-w-[200px] min-h-screen text-white fixed z-10 bg-white shadow-md  ' style={props.style}>
         <div className={`min-h-screen text-white fixed z-10 bg-white shadow-md  } ${!show ? "w-10 min-w-[40px]" : "w-[15%] min-w-[200px]"} transition-all duration-400  
             linear `} style={props.style}>
-            {items.map((item, index) =>
-                <NavLink to={items[index]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
+            {items.map((item, index) => permissions["view_" + item["key"]] &&
+                <NavLink to={items[index]["name"]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
                     (isActive ? { background: '#6539C3', color: "white" } : null)} key={index} >
                     <div className=' py-4 flex items-center bg-inherit justify-start' >
                         <img src={icons[index]} alt={icons[index] + " icon"} className={`${show ? "mx-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
-                        {show && <div>{item}</div>}
+                        {show && <div>{item["name"]}</div>}
                     </div>
                 </NavLink>
 

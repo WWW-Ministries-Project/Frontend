@@ -11,7 +11,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
     function handleSubmit() {
         onSubmit();
     }
-    const topOptions = ["Dashboard", "Members", "Departments", "Positions", "Access","Assets"];
+    const topOptions = [{name:"Dashboard",key:"Dashboard"}, {name:"Members",key:"Members"}, {name:"Departments",key:"Departments"}, {name:"Positions",key:"Positions"}, {name:"Access",key:"Access"},{name:"Assets Management",key:"Assets"}];
 
 
     const handleHideBlock = ({currentTarget}) => {
@@ -36,18 +36,18 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                     {/* <div className="flex flex-col gap-3 "> */}
                         {topOptions.map((option) => {
                             return (
-                                <div className="flex flex-col gap-3 my-7" key={option}>
+                                <div className="flex flex-col gap-3 my-7" key={option.key}>
                                     <div  className='flex justify-between P100 font-semibold text-primaryViolet'>
-                                        <div>{option}</div>
+                                        <div>{option['name']}</div>
                                         {/* <img src="/src/assets/down.svg" alt="down arrow" aria-roledescription='down' className="cursor-pointer" ref={permissionBlock} onClick={handleHideBlock} /> */}
                                         <div className="cursor-pointer text-gray down" onClick={handleHideBlock}><img src={arrowDown} alt="arrow down" /></div>
                                         <div className="cursor-pointer hidden text-gray right" onClick={handleShowBlock}><img src={rightArrow} alt="right arrow" className='w-4 h-4 bg-gray rounded' /></div>
                                     </div>
                                     <div className="flex flex-col gap-3">
-                                        <ToggleSwitch onChange={handleChange} name={`create_${option}`} label="Create" isChecked={permissionsValues[`create_${option}`]}   />
-                                        <ToggleSwitch onChange={handleChange} name={`edit_${option}`} label="Edit" isChecked={permissionsValues[`edit_${option}`]} />
-                                        <ToggleSwitch onChange={handleChange} name={`delete_${option}`} label="Delete" isChecked={permissionsValues[`delete_${option}`]} />
-                                        <ToggleSwitch onChange={handleChange} name={`view_${option}`} label="View" isChecked={permissionsValues[`view_${option}`]} />
+                                        <ToggleSwitch onChange={handleChange} name={`create_${option['key']}`} label="Create" isChecked={permissionsValues[`create_${option['key']}`]}   />
+                                        <ToggleSwitch onChange={handleChange} name={`edit_${option['key']}`} label="Edit" isChecked={permissionsValues[`edit_${option['key']}`]} />
+                                        <ToggleSwitch onChange={handleChange} name={`delete_${option['key']}`} label="Delete" isChecked={permissionsValues[`delete_${option['key']}`]} />
+                                        <ToggleSwitch onChange={handleChange} name={`view_${option['key']}`} label="View" isChecked={permissionsValues[`view_${option['key']}`]} />
                                     </div>
                                 </div>
                             )
