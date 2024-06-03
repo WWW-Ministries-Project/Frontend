@@ -71,7 +71,7 @@ export const routes = [
         permissionNeeded: "view_Members",
         children: [
           {
-            path: "",
+            path: "info",
             element: <MemberInformation />,
             isPrivate: true,
             permissionNeeded: "view_Members",

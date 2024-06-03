@@ -1,13 +1,9 @@
-import { Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import coverImage from "/src/assets/images/CoverImage.jpg";
-import { useNavigate } from "react-router-dom";
 
 const ProfileDetails = () => {
+    const links =[{name:"Member Information",path:"info"},{name:"Assets",path:"assets"}]
 
-    const navigate = useNavigate();
-    const handleRoute = (path) => {
-        navigate(path);
-    }
 
     return (
         <section className=" w-full h-full">
@@ -15,12 +11,12 @@ const ProfileDetails = () => {
                 <img src={coverImage} alt="cover Image" className="w-full" />
             </div>
             <div className="w-full flex justify-start gap-4 py-2 border-1 border-lightGray border-b-2">
-                <div className="h-full text-black cursor-pointer" onClick={() => handleRoute("")}>
-                    Member Information
-                </div>
-                <div className="h-full text-lightGray cursor-pointer" onClick={() => handleRoute("assets")}>
-                    Assets
-                </div>
+                {links.map((link, index) => (
+                    <NavLink to={link.path} className="h-full cursor-pointer" style={({ isActive }) =>
+                        (isActive ? {color: "black" } : {color: "lightgray"})} key={index}>
+                        {link.name}
+                    </NavLink>
+                ))}
             </div>
             <Outlet/>
         </section>
