@@ -101,7 +101,7 @@ function HomePage() {
         (<><Header />
           <main className="min-h-screen max-w-screen" onClick={CloseForm}>
             <SideBar style={{ paddingTop: "90px" }} onClick={handleShowNav} show={show} />
-            <section className={` h-screen pt-20 px-5 pb-5 bg-[#FAFAFA] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+            <section className={` min-h-screen pt-20 px-5 pb-5 bg-[#FAFAFA] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
               <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
             </section>
           </main>

@@ -8,9 +8,9 @@ const SelectField = (props) => {
       }
     return (
         <div>
-            <div className={"flex flex-col "+props.className}>
+            <div className={"flex flex-col gap-1 "+props.className}>
                 <label htmlFor={props.id}>{props.label}</label>
-                <select name={props.id} id={props.id} className="input" onChange={handleChange} value={props.value}>
+                <select name={props.id} id={props.id} className="input" onChange={handleChange} value={props.value} disabled={props.disabled}>
                     <option value="">{props.placeholder}</option>
                     {props.options.map((option, index) => (
                         <option key={index} value={(option.value)}>{option.name}</option>
@@ -31,6 +31,7 @@ SelectField.propTypes = {
       ]),
     onChange: PropTypes.func,
     options: PropTypes.array,
-    placeholder: PropTypes.string
+    placeholder: PropTypes.string,
+    disabled: PropTypes.bool
 }
 export default SelectField;

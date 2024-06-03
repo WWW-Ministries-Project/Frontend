@@ -10,7 +10,7 @@ function InputDiv (props) {
         <>
             <div className={"flex flex-col gap-1  "+props.className}>
               <label htmlFor={props.id}>{props.label}</label>
-              <input className={'input' + ' ' + props.inputClass} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange} placeholder={props.placeholder}/>
+              <input className={'input' + ' ' + props.inputClass} id={props.id} name={props.id} type={props.type || 'text'} value={props.value} onChange={handleChange} placeholder={props.placeholder} disabled={props.disabled}/>
           </div>
         </>
     )
@@ -27,7 +27,8 @@ InputDiv.propTypes = {
         PropTypes.string,
         PropTypes.number
     ]),
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    disabled: PropTypes.bool
 }
 
 export default InputDiv

@@ -220,6 +220,19 @@ function Settings() {
     setInputValue((prev) => ({ ...prev, [name]: value }));
   }
   const handleAccessChange = (name, value) => {
+    if (
+      !permissionsValuesRef.current['view_Positions'] &&
+      !permissionsValuesRef.current['view_Departments'] &&
+      !permissionsValuesRef.current['view_Access']
+    ) {
+      setPermissionsValues((prev) => ({ ...prev, "view_Settings": false }));
+    } else if (
+      permissionsValuesRef.current['view_Positions'] ||
+      permissionsValuesRef.current['view_Departments'] ||
+      permissionsValuesRef.current['view_Access']
+    ) {
+      setPermissionsValues((prev) => ({ ...prev, "view_Settings": true }));
+    }
     setPermissionsValues((prev) => ({ ...prev, [name]: value }));
   }
 

@@ -10,6 +10,8 @@ import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
+import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
 
 
 
@@ -32,43 +34,67 @@ export const routes = [
   {
     path: "/forgot-password",
     element: <ForgotPassword />,
-    isPrivate: true,
     
   },  
   {
     path: "/reset-password",
     element: <ResetPassword />,
-    isPrivate: true,
     
   },  
   {
     path: "/home",
     element: <HomePage />,
-    isPrivate: true,
+    // isPrivate: true,
     children: [
       {
         path: "",
         element: <DashBoard />,
+        isPrivate: true,
+        permissionNeeded: "view_Dashboard",
       },
       {
         path: "dashboard",
         element: <DashBoard />,
+        isPrivate: true,
+        permissionNeeded: "view_Dashboard",
       },
       {
         path: "members",
         element: <Members />,
+        isPrivate: true,
+        permissionNeeded: "view_Members",
       },
       {
         path: "member/:id",
         element: <ProfileDetails />,
+        isPrivate: true,
+        permissionNeeded: "view_Members",
+        children: [
+          {
+            path: "info",
+            element: <MemberInformation />,
+            isPrivate: true,
+            permissionNeeded: "view_Members",
+          },
+          {
+            path: "assets",
+            element: <MembersAssets />,
+            isPrivate: true,
+            permissionNeeded: "view_Members",
+          },
+        ]
       },
       {
         path: "settings",
         element: <Settings />,
+        isPrivate: true,
+        permissionNeeded: "view_Settings",
       },
       {
         path: "Assets management",
         element: <AssetManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Assets",
       },
       {
         path: "*",
