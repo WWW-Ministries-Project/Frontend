@@ -65,7 +65,7 @@ export const routes = [
         permissionNeeded: "view_Members",
       },
       {
-        path: "member/:id",
+        path: "members/:id",
         element: <ProfileDetails />,
         isPrivate: true,
         permissionNeeded: "view_Members",
