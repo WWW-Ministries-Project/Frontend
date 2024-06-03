@@ -1,9 +1,10 @@
 
 import PropTypes from "prop-types";
+import { useOutletContext } from "react-router-dom";
 import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 const MemberInformation = (props) => {
-    const edit = true;
+    const {edit} = useOutletContext();
     return (
         <section>
             <section>
