@@ -11,6 +11,7 @@ import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
+import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
 
 
 
@@ -72,6 +73,12 @@ export const routes = [
           {
             path: "",
             element: <MemberInformation />,
+            isPrivate: true,
+            permissionNeeded: "view_Members",
+          },
+          {
+            path: "assets",
+            element: <MembersAssets />,
             isPrivate: true,
             permissionNeeded: "view_Members",
           },
