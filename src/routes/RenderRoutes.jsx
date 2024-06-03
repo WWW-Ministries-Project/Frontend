@@ -27,7 +27,20 @@ export const RenderRoutes = () => {
                             ) : (
                                 childRoute.element
                             )}
-                        />
+                        >
+                            {/* Render child routes */}
+                            {childRoute.children && childRoute.children.map((grandChildRoute, k) => (
+                                <Route
+                                    key={k}
+                                    path={grandChildRoute.path}
+                                    element={grandChildRoute.isPrivate && !permissions[grandChildRoute.permissionNeeded] ? (
+                                        <Navigate to="/login" />
+                                    ) : (
+                                        grandChildRoute.element
+                                    )}
+                                />
+                            ))}
+                        </Route>
                     ))}
                 </Route>
             ))}

@@ -10,6 +10,7 @@ import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
 
 
 
@@ -67,6 +68,14 @@ export const routes = [
         element: <ProfileDetails />,
         isPrivate: true,
         permissionNeeded: "view_Members",
+        children: [
+          {
+            path: "",
+            element: <MemberInformation />,
+            isPrivate: true,
+            permissionNeeded: "view_Members",
+          },
+        ]
       },
       {
         path: "settings",
