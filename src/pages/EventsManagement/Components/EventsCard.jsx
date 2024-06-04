@@ -25,11 +25,11 @@ const EventsCard = (props) => {
                 <p>Location</p>
             </div>
             <div className="flex gap-1 items-center justify-between border-1 border-lightGray border-t-2 py-2 text-xxs">
-                <div className='flex gap-1 text-dark900 font-bold'>
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer'>
                     <img src={edit} alt="edit icon" className='w-3' />
                     <p>Edit</p>
                 </div>
-                <div className='flex gap-1 text-dark900 font-bold'>
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer'>
                     <img src={edit} alt="view icon" className='w-3' />
                     <p>View</p>
                 </div>

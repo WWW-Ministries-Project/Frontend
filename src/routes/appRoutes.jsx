@@ -13,6 +13,7 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx"
 import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
 import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
+import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
 
 
 
@@ -100,6 +101,12 @@ export const routes = [
       {
         path: "events",
         element: <EventsManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+      },
+      {
+        path: "manage-event",
+        element: <CreateEvent />,
         isPrivate: true,
         permissionNeeded: "view_Events",
       },
