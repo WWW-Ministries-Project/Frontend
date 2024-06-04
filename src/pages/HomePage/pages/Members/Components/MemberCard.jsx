@@ -23,7 +23,7 @@ const MemberCard = (props) => {
                     {props.email}
                 </div>
                 <div>{props.userInfo.primary_number}</div>
-                <Button value={"View Profile"} onClick={() => {navigate(`/home/member/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border " />
+                <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border " />
             </div>
         </div>
     );
