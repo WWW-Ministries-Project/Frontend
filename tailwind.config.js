@@ -96,6 +96,10 @@ export default {
           'font-size': '13.33px',
           'line-height': '16px',
         },
+        '.text-xxs': {
+          'font-size': '10px',
+          'line-height': '16px',
+        },
         '.H600': {
           'font-family': 'Rubik',
           'font-size': '19.2px',
