@@ -3,12 +3,13 @@ import ellipse from "/src/assets/ellipse.svg";
 import Button from '/src/components/Button';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import CardWrapper from '/src/Wrappers/CardWrapper';
 
 const MemberCard = (props) => {
     const navigate = useNavigate();
 
     return (
-        <div className="max-w-[300px] min-w-[250px] p-3 flex gap-3 text-darkGray rounded shadow-md border-1 bg-white">
+        <CardWrapper>
             <ProfilePic className="w-20 h-20 shadow" src={props.userInfo.photo} alt="profile pic" />
             <div className="w-full text-xs flex flex-col gap-1">
                 <div className='flex justify-between w-full'>
@@ -25,7 +26,7 @@ const MemberCard = (props) => {
                 <div>{props.userInfo.primary_number}</div>
                 <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border " />
             </div>
-        </div>
+        </CardWrapper>
     );
 }
 MemberCard.propTypes = {
