@@ -5,7 +5,7 @@ import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 import Button from "/src/components/Button";
 const MemberInformation = (props) => {
-    const { edit } = useOutletContext();
+    const { edit, handleEdit } = useOutletContext();
     return (
         <section>
             <section>
@@ -56,13 +56,13 @@ const MemberInformation = (props) => {
                     <InputDiv label="Position" disabled={!edit} value={props.user?.occupation?.position} id="position" />
                 </div>
             </section>
-            <section className="w-3/4">
+            {edit &&<section className="w-3/4">
 
-            <div className="flex justify-end gap-4">
-                <Button value={"Cancel"}  className="w-32 my-2 px-2 bg-transparent h-8 border border-primaryViolet text-primaryViolet " />
-                <Button value={"Save"}  className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white " />
+                <div className="flex justify-end gap-4">
+                    <Button value={"Cancel"} onClick={handleEdit} className="w-32 my-2 px-2 bg-transparent h-8 border border-primaryViolet text-primaryViolet " />
+                    <Button value={"Save"} className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white " />
                 </div>
-            </section>
+            </section>}
         </section>
     );
 }

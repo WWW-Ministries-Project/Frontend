@@ -5,6 +5,11 @@ import Banner from "./Components/Banner";
 const ProfileDetails = () => {
     const links =[{name:"Member Information",path:"info"},{name:"Assets",path:"assets"}]
     const [edit, setEdit] = useState(false);
+    const [profilePic, setProfilePic] = useState({});
+    
+    function changePic(pic) {
+        setProfilePic(() => pic);
+    }
     const handleEdit = () => {
         setEdit(!edit);
     }
@@ -12,7 +17,7 @@ const ProfileDetails = () => {
 
     return (
         <section className=" w-full h-full">
-            <Banner onClick={handleEdit} edit={edit}/>
+            <Banner onClick={handleEdit} edit={edit} src={profilePic.src} onPicChange={changePic}/>
             <div className="w-full flex justify-start gap-4 py-2 border-1 border-lightGray border-b-2">
                 {links.map((link, index) => (
                     <NavLink to={link.path} className="h-full cursor-pointer" style={({ isActive }) =>
