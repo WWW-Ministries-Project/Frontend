@@ -9,14 +9,15 @@ import Settings from "/src/assets/sidebar/settings.svg";
 import leftArrow from "/src/assets/leftArrow.svg";
 import rightArrow from "/src/assets/rightArrow.svg";
 import { useAuth } from "../../../auth/AuthWrapper";
+import { sideTabs } from "../utils/helperFunctions";
 // import Reports from "../assets/images/icons/Reports.png"
 // import Support from "../../../assets/images/icons/Support.png";
 
 
 const SideBar = ({ show, ...props }) => {
-    const items = [{name:'Dashboard',key:'Dashboard'},{name:'Members',key:'Members'}, {name:'Reports', key:'Reports'}, {name:"Manage users",key:"Users"}, {name:"Assets management",key:"Assets"}, {name:"Settings",key:"Settings"}];
-    const icons = [Home, Members, Reports, Users, Management, Settings];
-    const {user:{permissions}} = useAuth();
+    const items = sideTabs;
+    const icons = [Home, Members, Management, Reports, Users, Management, Settings];
+    const { user: { permissions } } = useAuth();
 
     function handleClick() {
         props.onClick()
@@ -29,7 +30,7 @@ const SideBar = ({ show, ...props }) => {
         <div className={`min-h-screen text-white fixed z-10 bg-white shadow-md  } ${!show ? "w-10 min-w-[40px]" : "w-[15%] min-w-[200px]"} transition-all duration-400  
             linear `} style={props.style}>
             {items.map((item, index) => permissions["view_" + item["key"]] &&
-                <NavLink to={items[index]["name"]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
+                <NavLink to={items[index]["key"]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
                     (isActive ? { background: '#6539C3', color: "white" } : null)} key={index} >
                     <div className=' py-4 flex items-center bg-inherit justify-start' >
                         <img src={icons[index]} alt={icons[index] + " icon"} className={`${show ? "mx-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />

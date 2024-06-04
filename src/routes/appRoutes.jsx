@@ -12,6 +12,7 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
+import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
 
 
 
@@ -91,10 +92,16 @@ export const routes = [
         permissionNeeded: "view_Settings",
       },
       {
-        path: "Assets management",
+        path: "Assets",
         element: <AssetManagement />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
+      },
+      {
+        path: "events",
+        element: <EventsManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
       },
       {
         path: "*",
