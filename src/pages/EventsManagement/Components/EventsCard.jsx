@@ -16,19 +16,19 @@ const EventsCard = (props) => {
         <CardWrapper className={"flex-col text-gray text-xs"}>
             <div className="flex gap-1 items-center font-bold">
                 <div className={'w-4 h-4 bg-green rounded-full ' + props.className}></div>
-                <p>Event Name</p>
+                <p>{props.event.name}</p>
             </div>
             <div className="flex gap-1">
                 <img src={time} alt="clock icon" />
-                <p><span className="text-green">12:30 PM </span><span className="text-red-400">- 01:30 PM (GMT)</span></p>
+                <p><span className="text-green">{props.event.start_time}</span><span className="text-red-400">- {props.event.end_time} (GMT)</span></p>
             </div>
             <div className="flex gap-1 items-center">
                 <img src={calendar} alt="clock icon" />
-                <p>{"props.date"}</p>
+                <p>{props.event.start_date || "TBD"} - {props.event.end_date || "TBD"}</p>
             </div>
             <div className="flex gap-1">
                 <img src={location} alt="location" />
-                <p>Location</p>
+                <p>{props.event.location}</p>
             </div>
             <div className="flex gap-1 items-center justify-between border-1 border-lightGray border-t-2 py-2 text-xxs">
                 <div className='flex gap-1 text-dark900 font-bold cursor-pointer'>
@@ -47,7 +47,16 @@ const EventsCard = (props) => {
 
 EventsCard.propTypes = {
     className: PropTypes.string,
-    date: PropTypes.string
+    event:PropTypes.shape({
+        name: PropTypes.string,
+        start_date: PropTypes.string,
+        end_date: PropTypes.string,
+        location: PropTypes.string,
+        description: PropTypes.string,
+        id: PropTypes.number,
+        start_time: PropTypes.string,
+        end_time: PropTypes.string,
+    })
 
 }
 
