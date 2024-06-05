@@ -9,6 +9,7 @@ import {useState } from "react";
 const CreateEvent = () => {
     const {user} = useAuth();
     const [inputValue, setInputValue] = useState({ name: "", start_date: "", end_date: "", start_time: "", end_time: "", location: "", description: "",created_by: user?.id });
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (name, value) => {
         setInputValue({ ...inputValue, [name]: value });
@@ -16,11 +17,12 @@ const CreateEvent = () => {
     };
 
     const handleSubmit = () => {
-
+        setLoading(true);
         axios.post("/event/create-event", inputValue).then((res) => {
-            // window.location.href = "/home/events";
-            console.log(res, "res");
+            setLoading(false);
+            window.location.href = "/home/events";
         }).catch((err) => {
+            setLoading(false);
             console.log(err, "err");
         })
     };
@@ -52,8 +54,8 @@ const CreateEvent = () => {
                     <TextField label="Description" type="text" id="description" onChange={handleChange} />
                 </div>
                 <div className="flex gap-4 justify-end">
-                    <Button value="Cancel" className="p-2 px-4 text-primaryViolet bg-transparent border" />
-                    <Button value="Save" className="p-2 px-4 text-white" onClick={handleSubmit} />
+                    <Button value="Cancel" className="p-2 px-4 text-primaryViolet bg-transparent border" onClick={() => window.history.back()} />
+                    <Button value="Save" className="p-2 px-4 text-white" onClick={handleSubmit} loading={loading} disabled={loading || !inputValue.name} />
                 </div>
             </form>
         </section>
