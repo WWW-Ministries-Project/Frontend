@@ -10,10 +10,10 @@ const MemberCard = (props) => {
 
     return (
         <CardWrapper>
-            <ProfilePic className="w-20 h-20 shadow" src={props.userInfo.photo} alt="profile pic" />
+            <ProfilePic className="w-20 h-20 shadow border border-primaryViolet " src={props.userInfo.photo} alt="profile pic" />
             <div className="w-full text-xs flex flex-col gap-1">
                 <div className='flex justify-between w-full'>
-                    <p className='font-bold text-sm'>{props.name}</p>
+                    <p className='font-bold text-sm text-gray'>{props.name}</p>
                     <img src={ellipse} alt="options" className='w-3 h-3 ' />
                 </div> 
                 <div className='flex gap-1'>
@@ -24,7 +24,7 @@ const MemberCard = (props) => {
                     {props.email}
                 </div>
                 <div>{props.userInfo.primary_number}</div>
-                <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border " />
+                <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
             </div>
         </CardWrapper>
     );
