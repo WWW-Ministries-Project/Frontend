@@ -4,8 +4,14 @@ import time from "/src/assets/clock.svg";
 import calendar from "/src/assets/calendar.svg";
 import location from "/src/assets/location.svg";
 import edit from "/src/assets/edit.svg";
+import { useNavigate } from 'react-router-dom';
 
 const EventsCard = (props) => {
+    const navigate = useNavigate();
+    const handleNavigation = (path) => {
+        navigate(path);
+    }
+
     return (
         <CardWrapper className={"flex-col text-gray text-xs"}>
             <div className="flex gap-1 items-center font-bold">
@@ -29,7 +35,7 @@ const EventsCard = (props) => {
                     <img src={edit} alt="edit icon" className='w-3' />
                     <p>Edit</p>
                 </div>
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer'>
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={handleNavigation()}>
                     <img src={edit} alt="view icon" className='w-3' />
                     <p>View</p>
                 </div>
