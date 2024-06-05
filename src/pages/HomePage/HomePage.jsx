@@ -40,7 +40,6 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
-      console.log(user, "name");	
       setMembers(res.data.data);
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
