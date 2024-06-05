@@ -4,12 +4,28 @@ import SelectField from "/src/pages/HomePage/Components/reusable/SelectField";
 import TextField from "/src/pages/HomePage/Components/reusable/TextField";
 import axios from "/src/axiosInstance";
 import { useAuth } from "/src/auth/AuthWrapper";
+import { useEffect } from "react";
+import { formatInputDate } from "/src/utils/helperFunctions";
 
 import {useState } from "react";
 const CreateEvent = () => {
     const {user} = useAuth();
-    const [inputValue, setInputValue] = useState({ name: "", start_date: "", end_date: "", start_time: "", end_time: "", location: "", description: "",created_by: user?.id });
+    const [inputValue, setInputValue] = useState({ name: "", start_date: "", end_date: "", start_time: "", end_time: "", location: "", description: ""});
     const [loading, setLoading] = useState(false);
+
+    const query = location.search;
+    const params = new URLSearchParams(query);
+    const id = params.get('event_id');
+    useEffect(() => {
+        if(id){
+            setInputValue(prev=>({...prev, updated_by: user?.id}))
+            axios.get(`/event/get-event?id=${id}`).then((res) => {
+                setInputValue(res.data.data);
+            })
+        }else{
+            setInputValue(prev=>({...prev, created_by: user?.id}))
+        }
+    }, [])
 
     const handleChange = (name, value) => {
         setInputValue({ ...inputValue, [name]: value });
@@ -39,8 +55,8 @@ const CreateEvent = () => {
                 <div className="flex flex-col gap-1">
                     <h2 className="H600 my-4">Date & Time Informations</h2>
                     <div className="grid grid-cols-2 gap-4">
-                        <InputDiv label="Start Date" type="date" id="start_date" value={inputValue.date} onChange={handleChange} />
-                        <InputDiv label="End Date" type="date" id="end_date" value={inputValue.end_date} onChange={handleChange} />
+                        <InputDiv label="Start Date" type="date" id="start_date" value={formatInputDate(inputValue.start_date)} onChange={handleChange} />
+                        <InputDiv label="End Date" type="date" id="end_date" value={formatInputDate(inputValue.end_date)} onChange={handleChange} />
                         {/* <SelectField label="Repeat" type="date" id="end_date" value={inputValue.repeat} onChange={handleChange} placeholder="Does event repeat" options={[{ name: "Repeat", value: "repeat" }, { name: "Doesn't repeat", value: "end_date" }]} /> */}
                         <InputDiv label="Start Time" type="time" id="start_time" value={inputValue.start_time} onChange={handleChange} />
                         <InputDiv label="End Time" type="time" id="end_time" value={inputValue.end_time} onChange={handleChange} />
@@ -49,9 +65,9 @@ const CreateEvent = () => {
                 <div className="flex flex-col gap-1">
                     <h2 className="H600 my-4">Other Information</h2>
                     <div className="grid grid-cols-2 gap-4">
-                        <InputDiv label="Location" type="text" id="location" onChange={handleChange} />
+                        <InputDiv label="Location" type="text" id="location" value={inputValue.location} onChange={handleChange} />
                     </div>
-                    <TextField label="Description" type="text" id="description" onChange={handleChange} />
+                    <TextField label="Description" type="text" id="description" value={inputValue.description} onChange={handleChange} />
                 </div>
                 <div className="flex gap-4 justify-end">
                     <Button value="Cancel" className="p-2 px-4 text-primaryViolet bg-transparent border" onClick={() => window.history.back()} />

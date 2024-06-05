@@ -1,10 +1,10 @@
-import CardWrapper from '/src/Wrappers/CardWrapper';
 import PropTypes from 'prop-types';
-import time from "/src/assets/clock.svg";
-import calendar from "/src/assets/calendar.svg";
-import location from "/src/assets/location.svg";
-import edit from "/src/assets/edit.svg";
 import { useNavigate } from 'react-router-dom';
+import CardWrapper from '/src/Wrappers/CardWrapper';
+import calendar from "/src/assets/calendar.svg";
+import time from "/src/assets/clock.svg";
+import edit from "/src/assets/edit.svg";
+import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
 
 const EventsCard = (props) => {
@@ -32,11 +32,11 @@ const EventsCard = (props) => {
                 <p>{props.event.location}</p>
             </div>
             <div className="flex gap-1 items-center justify-between border-1 border-lightGray border-t-2 py-2 text-xxs">
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer'>
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={()=>handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
                     <img src={edit} alt="edit icon" className='w-3' />
                     <p>Edit</p>
                 </div>
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={handleNavigation()}>
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' >
                     <img src={edit} alt="view icon" className='w-3' />
                     <p>View</p>
                 </div>
