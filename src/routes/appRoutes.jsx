@@ -14,6 +14,7 @@ import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/Me
 import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
 import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
 import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
+import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
 
 
 
@@ -107,6 +108,12 @@ export const routes = [
       {
         path: "manage-event",
         element: <CreateEvent />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+      },
+      {
+        path: "events/view-event",
+        element: <ViewEvent />,
         isPrivate: true,
         permissionNeeded: "view_Events",
       },
