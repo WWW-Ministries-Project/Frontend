@@ -5,6 +5,7 @@ import calendar from "/src/assets/calendar.svg";
 import location from "/src/assets/location.svg";
 import edit from "/src/assets/edit.svg";
 import { useNavigate } from 'react-router-dom';
+import { formatTime } from '/src/utils/helperFunctions';
 
 const EventsCard = (props) => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const EventsCard = (props) => {
             </div>
             <div className="flex gap-1 items-center">
                 <img src={calendar} alt="clock icon" />
-                <p>{props.event.start_date || "TBD"} - {props.event.end_date || "TBD"}</p>
+                <p>{formatTime(props.event.start_date) || "TBD"}</p>
             </div>
             <div className="flex gap-1">
                 <img src={location} alt="location" />
