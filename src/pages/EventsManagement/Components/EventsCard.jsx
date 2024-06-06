@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
 import CardWrapper from '/src/Wrappers/CardWrapper';
 import calendar from "/src/assets/calendar.svg";
 import time from "/src/assets/clock.svg";
@@ -8,9 +7,8 @@ import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
 
 const EventsCard = (props) => {
-    const navigate = useNavigate();
     const handleNavigation = (path) => {
-        navigate(path);
+        props.onNavigate(path);
     }
 
     return (
@@ -36,7 +34,7 @@ const EventsCard = (props) => {
                     <img src={edit} alt="edit icon" className='w-3' />
                     <p>Edit</p>
                 </div>
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' >
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={()=>handleNavigation(`/home/events/view-event`)} >
                     <img src={edit} alt="view icon" className='w-3' />
                     <p>View</p>
                 </div>
@@ -57,7 +55,8 @@ EventsCard.propTypes = {
         id: PropTypes.number,
         start_time: PropTypes.string,
         end_time: PropTypes.string,
-    })
+    }),
+    onNavigate: PropTypes.func
 
 }
 
