@@ -50,7 +50,7 @@ const ViewEvents = () => {
                     </div>
                 </section>
             </div>
-            <aside className="w-[360px] h-[360px] flex flex-col justify-center items-center shadow rounded  ">
+            <aside className="w-[360px] h-[360px] flex flex-col justify-center items-center shadow-sm rounded  ">
                     <div className="w-40 mx-auto shadow">
                         <img src={QR} alt="Qr code" className="w-full" />
                     </div>
