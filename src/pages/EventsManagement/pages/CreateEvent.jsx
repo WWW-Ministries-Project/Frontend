@@ -29,7 +29,6 @@ const CreateEvent = () => {
 
     const handleChange = (name, value) => {
         setInputValue({ ...inputValue, [name]: value });
-        console.log(inputValue, "inputValue");
     };
 
     const handleSubmit = () => {
