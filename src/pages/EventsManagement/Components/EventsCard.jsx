@@ -30,11 +30,11 @@ const EventsCard = (props) => {
                 <p>{props.event.location}</p>
             </div>
             <div className="flex gap-1 items-center justify-between border-1 border-lightGray border-t-2 py-2 text-xxs">
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={()=>handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
                     <img src={edit} alt="edit icon" className='w-3' />
                     <p>Edit</p>
                 </div>
-                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={()=>handleNavigation(`/home/events/view-event`)} >
+                <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} >
                     <img src={edit} alt="view icon" className='w-3' />
                     <p>View</p>
                 </div>
@@ -46,7 +46,7 @@ const EventsCard = (props) => {
 
 EventsCard.propTypes = {
     className: PropTypes.string,
-    event:PropTypes.shape({
+    event: PropTypes.shape({
         name: PropTypes.string,
         start_date: PropTypes.string,
         end_date: PropTypes.string,
