@@ -19,7 +19,7 @@ const EventsManagement = () => {
         <>
             <EventsManagerHeader onNavigate={handleNavigation}/>
             <GridWrapper>
-                {events.map((event) => <EventsCard event={event} key={Math.random()} />)}
+                {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
             </GridWrapper>
         </>
     );
