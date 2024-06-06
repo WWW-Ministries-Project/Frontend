@@ -114,6 +114,13 @@ export default {
           'font-weight': '700',
           'line-height': '28px',
         },
+        '.H400': {
+          'font-family': 'Rubik',
+          'font-size': '18px',
+          'font-style': 'bold',
+          'font-weight': '600',
+          'line-height': '28px',
+        },
         '.P100': {
           'font-family': 'Rubik',
           'font-size': '13.33x',
