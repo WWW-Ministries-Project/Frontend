@@ -3,6 +3,14 @@ import QR from "/src/assets/images/QRCode.png";
 import Button from "/src/components/Button";
 
 const ViewEvents = () => {
+    const handleQrDownload = () => {
+        const anchor = document.createElement('a');
+        anchor.href = QR; // URL of the QR code image
+        anchor.download = 'QRCode.png'; // Filename for the downloaded image
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+    };
     return (
         <div className="w-full flex justify-between gap-4">
             <div className="w-2/3 ">
@@ -46,7 +54,7 @@ const ViewEvents = () => {
                     <div className="w-40 mx-auto shadow">
                         <img src={QR} alt="Qr code" className="w-full" />
                     </div>
-                        <Button value="Download QR Code" className=" px-4 mt-8 text-white text-xs h-8  " />
+                        <Button value="Download QR Code" className=" px-4 mt-8 text-white text-xs h-8  " onClick={handleQrDownload} />
                 </aside>
         </div>
     );
