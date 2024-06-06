@@ -96,6 +96,10 @@ export default {
           'font-size': '13.33px',
           'line-height': '16px',
         },
+        '.text-xxs': {
+          'font-size': '10px',
+          'line-height': '16px',
+        },
         '.H600': {
           'font-family': 'Rubik',
           'font-size': '19.2px',
@@ -108,6 +112,13 @@ export default {
           'font-size': '23.04px',
           'font-style': 'normal',
           'font-weight': '700',
+          'line-height': '28px',
+        },
+        '.H400': {
+          'font-family': 'Rubik',
+          'font-size': '18px',
+          'font-style': 'bold',
+          'font-weight': '600',
           'line-height': '28px',
         },
         '.P100': {

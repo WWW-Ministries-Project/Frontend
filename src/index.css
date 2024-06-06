@@ -47,11 +47,13 @@ body::-webkit-scrollbar-track {
   border-radius: 4px;
   padding:4px;
   opacity:50%;
-  border:solid 1px #f2f2f2;
+  border:solid 2px #f2f2f2;
 }
-.input::placeholder {
+input.input::placeholder {
   font-weight: normal;
   font-size: smaller;
+  color: #6539C3;
+  opacity: 40% !important;
 }
 
 

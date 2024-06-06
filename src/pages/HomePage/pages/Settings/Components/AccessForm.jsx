@@ -11,7 +11,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
     function handleSubmit() {
         onSubmit();
     }
-    const topOptions = [{name:"Dashboard",key:"Dashboard"}, {name:"Members",key:"Members"}, {name:"Departments",key:"Departments"}, {name:"Positions",key:"Positions"}, {name:"Access",key:"Access"},{name:"Assets Management",key:"Assets"}];
+    const topOptions = [{name:"Dashboard",key:"Dashboard"}, {name:"Members",key:"Members"}, {name:"Departments",key:"Departments"}, {name:"Positions",key:"Positions"}, {name:"Access",key:"Access"},{name:"Assets Management",key:"Assets"},{name:"Events Management",key:"Events"}];
 
 
     const handleHideBlock = ({currentTarget}) => {

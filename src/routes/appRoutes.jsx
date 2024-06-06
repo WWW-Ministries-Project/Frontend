@@ -12,6 +12,11 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
+import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
+import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
+import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
+import FormWrapper from "/src/Wrappers/FormWrapper.jsx";
+import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
 
 
 
@@ -91,10 +96,28 @@ export const routes = [
         permissionNeeded: "view_Settings",
       },
       {
-        path: "Assets management",
+        path: "Assets",
         element: <AssetManagement />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
+      },
+      {
+        path: "events",
+        element: <EventsManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+      },
+      {
+        path: "manage-event",
+        element: <CreateEvent />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+      },
+      {
+        path: "events/view-event",
+        element: <ViewEvent />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
       },
       {
         path: "*",
@@ -103,4 +126,10 @@ export const routes = [
     ]
     
   },  
+  {
+    path: "events/register-event",
+    element: <EventRegister />,
+    isPrivate: true,
+    permissionNeeded: "view_Events",
+  },
 ];
