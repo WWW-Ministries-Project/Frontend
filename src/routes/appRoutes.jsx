@@ -16,6 +16,7 @@ import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
 import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
 import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
 import FormWrapper from "/src/Wrappers/FormWrapper.jsx";
+import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
 
 
 
@@ -127,7 +128,7 @@ export const routes = [
   },  
   {
     path: "events/register-event",
-    element: <FormWrapper />,
+    element: <EventRegister />,
     isPrivate: true,
     permissionNeeded: "view_Events",
   },
