@@ -9,6 +9,7 @@ import { baseUrl } from '/src/pages/Authentication/utils/helpers';
 import SearchMember from '../Components/SearchMember';
 import MemberConfirmation from '../Components/MemberConfirmation';
 import MemberConfirmed from '../Components/MemberConfirmed';
+import RegisterMember from '../Components/RegisterMember';
 // import axios from "/src/axiosInstance.js"
 
 const EventRegister = () => {
