@@ -97,16 +97,16 @@ function HomePage() {
   return (
     <>
       {token ?
-        (<><Header />
+        (<div className="bg-[#f2f3f8]"><Header />
           <main className="min-h-screen max-w-screen" onClick={CloseForm}>
             <SideBar style={{ paddingTop: "90px" }} onClick={handleShowNav} show={show} />
-            <section className={` min-h-screen pt-20 px-5 pb-5 bg-[#FAFAFA] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+            <section className={` min-h-screen pt-20 px-5 pb-5 bg-[#F2F3F8] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
               <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
             </section>
           </main>
 
           <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} disabled={!userValue.name} handlePictureUpdate={handlePictureUpdate} />
-        </>) : (<Navigate to="/login" />)}
+        </div>) : (<Navigate to="/login" />)}
     </>
   );
 }

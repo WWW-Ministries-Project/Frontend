@@ -27,11 +27,11 @@ const SideBar = ({ show, ...props }) => {
     return (
         // <>
         // <div className='w-[15.5%] min-w-[200px] min-h-screen text-white fixed z-10 bg-white shadow-md  ' style={props.style}>
-        <div className={`min-h-screen text-white fixed z-10 bg-white shadow-md  } ${!show ? "w-10 min-w-[40px]" : "w-[15%] min-w-[200px]"} transition-all duration-400  
+        <div className={`min-h-screen text-white fixed z-10 bg-white shadow-xs  } ${!show ? "w-10 min-w-[40px]" : "w-[15%] min-w-[200px]"} transition-all duration-400  
             linear `} style={props.style}>
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink to={items[index]["key"]} className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C]" style={({ isActive }) =>
-                    (isActive ? { background: '#6539C3', color: "white" } : null)} key={index} >
+                    (isActive ? { background: '#6539C3', color: "white",border:'1px', borderRadius: '50px' } : null)} key={index} >
                     <div className=' py-4 flex items-center bg-inherit justify-start' >
                         <img src={icons[index]} alt={icons[index] + " icon"} className={`${show ? "mx-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
                         {show && <div>{item["name"]}</div>}
