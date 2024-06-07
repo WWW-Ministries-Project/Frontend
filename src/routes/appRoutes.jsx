@@ -129,7 +129,6 @@ export const routes = [
   {
     path: "events/register-event",
     element: <EventRegister />,
-    isPrivate: true,
-    permissionNeeded: "view_Events",
+    isPrivate: false
   },
 ];

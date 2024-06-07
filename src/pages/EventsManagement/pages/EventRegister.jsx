@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import InputDiv from '/src/pages/HomePage/Components/reusable/InputDiv';
 import Button from '/src/components/Button';
 import success from '/src/assets/images/success.png';
-// import axios from 'axios';
-import axios from "/src/axiosInstance.js"
+import axios from 'axios';
+// import axios from "/src/axiosInstance.js"
 
 const EventRegister = () => {
     const [memberDetails, setMemberDetails] = useState({ phone_number: '' });
@@ -13,10 +13,12 @@ const EventRegister = () => {
     const [loading, setLoading] = useState(false);
     const handleFindMember = () => {
         setLoading(true)
-        axios.get("/event/search-user", { phone_number: memberDetails.phone_number }).then((res) => {
+        axios.get(`/event/search-user?phone=${memberDetails.phone_number}`).then((res) => {
             setLoading(false)
             setMemberDetails(res.data.data)
             setMemberFound("found");
+        }).catch(()=>{
+            setLoading(false)
         })
     }
     const handleConfirm = () => {
@@ -24,7 +26,7 @@ const EventRegister = () => {
         axios.post(`/event/sign-attendance?event_id=${memberDetails.user_id}`, { phone_number: memberDetails.primary_number, new_member: false }).then(() => {
             setLoading(false)
             setMemberFound("confirmed");
-        }).catch(()=>{})
+        }).catch(()=>{setLoading(false)})
     }
 
     const handleChange = (name, value) => {
