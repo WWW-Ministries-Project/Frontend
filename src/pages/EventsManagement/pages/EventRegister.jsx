@@ -1,46 +1,70 @@
+import { useState } from 'react';
 import FormWrapper from '/src/Wrappers/FormWrapper';
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import InputDiv from '/src/pages/HomePage/Components/reusable/InputDiv';
-import Button from '/src/components/Button';
-import success from '/src/assets/images/success.png';
+
+import axios from 'axios';
+import MemberConfirmation from '../Components/MemberConfirmation';
+import MemberConfirmed from '../Components/MemberConfirmed';
+import RegisterMember from '../Components/RegisterMember';
+import SearchMember from '../Components/SearchMember';
+import { baseUrl } from '/src/pages/Authentication/utils/helpers';
+// import axios from "/src/axiosInstance.js"
 
 const EventRegister = () => {
+    const [memberDetails, setMemberDetails] = useState({ phone_number: '' });
     const [memberFound, setMemberFound] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const query = location.search;
+    const params = new URLSearchParams(query);
+    const name = params.get('event_name');
+    const id = params.get('event_id')
     const handleFindMember = () => {
-        setMemberFound("found");
+        setLoading(true)
+        axios.get(`${baseUrl}/event/search-user?phone=${memberDetails.phone_number}`).then((res) => {
+            setLoading(false)
+            if (res.status == 200) {
+                setMemberDetails(res.data.data)
+                setMemberFound("found");
+            }else if(res.status==204){
+                setMemberDetails({phone_number:"",first_name:"",last_name:"",other_name:"",gender:"",new_member:true})
+                setMemberFound("not_found")
+            }
+        }).catch(() => {
+            setMemberFound("not_found")
+            setLoading(false)
+        })
     }
     const handleConfirm = () => {
-        setMemberFound("confirmed");
+        setLoading(true)
+        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number, new_member: false }).then(() => {
+            setLoading(false)
+            setMemberFound("confirmed");
+        }).catch(() => { setLoading(false) })
+    }
+
+    const handleChange = (name, value) => {
+        setMemberDetails((prev) => ({ ...prev, [name]: value }));
+    }
+    const handleNewAttendee = () => {
+        setLoading(true);
+        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, memberDetails).then((res) => {
+            setLoading(false)
+            setMemberFound('confirmed')
+        }).catch(() => {
+            setLoading(false)
+        })
     }
 
     return (
         <FormWrapper >
-            {!memberFound && <div>
-                <h2 className='H400'>Welcome to {"props.event.name"}</h2>
-                <p className='text-sma text-mainGray'>Fill the form below to capture your attendance</p>
-                <div className='w-full mt-10'>
-                    <InputDiv label="Phone number" inputClass="border border-2" type="tel" id="phone_number" placeholder="Enter your phone number" value="" onChange={() => { }} />
-                    <Button value="Next" className="w-full mt-8 text-white mt-10 h-8 border border-primaryViolet " onClick={handleFindMember} />
-                </div>
-            </div>}
-            {memberFound=="found" &&
-                <div>
-                    <h2 className='H400'>Confirmation</h2>
-                    <p className='text-sma text-mainGray'>Confirm if the details below are yours</p>
-                    <div className='w-full mt-10'>
-                        <InputDiv label="Name" inputClass="border border-2 mb-4" type="tel" id="phone_number" value="" disabled={true} />
-                        <InputDiv label="Phone number" inputClass="border border-2" type="tel" id="phone_number" value="" disabled={true} />
-                        <Button value="Confirm" className="w-full mt-8 text-white mt-10 h-8 border border-primaryViolet " onClick={handleConfirm} />
-                    </div>
-                </div>}
-            {memberFound=="confirmed" &&
-                <div>
-                    <div className='w-full flex flex-col items-center gap-4'>           
-                    <img src={success} alt="" />
-                    <h2 className='H400 text-primaryViolet'>Attendance recorded successfully</h2>
-                    </div>
-                </div>}
+            {!memberFound && <>
+                <SearchMember memberDetails={memberDetails} handleFindMember={handleFindMember} handleChange={handleChange} loading={loading} name={name} />
+            </>}
+            {memberFound == "found" &&
+                <MemberConfirmation memberDetails={memberDetails} handleConfirm={handleConfirm} loading={loading} />}
+            {memberFound == "not_found" &&
+                <RegisterMember memberDetails={memberDetails} loading={loading} name={name} handleChange={handleChange} onSubmit={handleNewAttendee} />}
+            {memberFound == "confirmed" &&
+                <MemberConfirmed />}
 
 
         </FormWrapper>

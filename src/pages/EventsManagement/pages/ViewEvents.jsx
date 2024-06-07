@@ -49,7 +49,7 @@ const ViewEvents = () => {
                         </div>
                         <div>
                             <h2 className="H400 text-mainGray">Event registration url</h2>
-                            <p className="text-xs text-primaryViolet" ><a href={`${window.location.origin}/events/register-event?event_id=${id}`} target="_blank" rel="noreferrer">{`${window.location.origin}/events/register-event?event_id=${id}`}</a></p>
+                            <p className="text-xs text-primaryViolet" ><a href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`} target="_blank" rel="noreferrer">event registration link</a></p>
                         </div>
 
                     </div>
