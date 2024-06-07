@@ -1,3 +1,5 @@
+import { formatTime } from "/src/utils/helperFunctions";
+
 export const months = [
   {name: "January", value: 1},
   {name: "February", value: 2},
@@ -15,3 +17,20 @@ export const months = [
 ];
 
 export const years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
+export const registeredEventAttendance =[
+  {
+    header: "Name",
+    accessorKey: "name",
+    cell:({row}) => row.original.user.user_info.name
+  },
+  {
+    header: "Phone number",
+    accessorKey: "user_info.primary_number",
+    cell:({row}) => row.original.user.user_info.primary_number
+  },
+  {
+    header: "last visited",
+    accessorKey: "last_visited",
+    cell: ({row}) => formatTime(row.original.created_at)
+  },
+]

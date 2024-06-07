@@ -4,6 +4,8 @@ import Button from "/src/components/Button";
 import EmptyState from "/src/components/EmptyState";
 import axios from "/src/axiosInstance";
 import { formatTime } from "/src/utils/helperFunctions";
+import TableComponent from "/src/pages/HomePage/Components/reusable/TableComponent";
+import {registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers"
 
 const ViewEvents = () => {
     const [eventdetails, setEventdetails] = useState({});
@@ -13,6 +15,7 @@ const ViewEvents = () => {
     useEffect(() => {
         axios.get(`/event/get-event?id=${id}`).then((res) => {
             setEventdetails(res.data.data);
+            console.log(res.data.data.event_attendance,"hello")
         })
     }, [])
 
@@ -59,7 +62,8 @@ const ViewEvents = () => {
                         <h2 className="H400 text-mainGray">Event Attendees</h2>
                     </div>
                     <div className="flex justify-center py-10">
-                        <EmptyState msg="😞 Sorry, No attendees yet" />
+                        {!eventdetails.event_attendance ? <EmptyState msg="😞 Sorry, No attendees yet" />:
+                        <TableComponent columns={attendanceColumn} data={eventdetails.event_attendance || []} />}
                     </div>
                 </section>
             </div>

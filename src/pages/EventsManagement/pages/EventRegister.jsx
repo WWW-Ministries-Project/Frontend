@@ -46,7 +46,7 @@ const EventRegister = () => {
     }
     const handleNewAttendee = () => {
         setLoading(true);
-        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, memberDetails).then((res) => {
+        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, memberDetails).then(() => {
             setLoading(false)
             setMemberFound('confirmed')
         }).catch(() => {
