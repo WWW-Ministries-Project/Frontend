@@ -35,11 +35,17 @@ const EventsManagement = () => {
     }, [])
     return (
         <>
-            <div className="flex gap-1 bg-lightGray p-1 rounded-md w-[4vw]">
+            <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
                 <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
               </div>
               {!tableView?<div>
-                <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
+                <div className="flex gap-4 my-4">
+                {/* <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
+                <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              </div> */}
+              <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
+                </div>
+                
                 <GridWrapper>
                     {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
                 </GridWrapper>
