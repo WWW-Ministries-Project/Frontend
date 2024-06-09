@@ -23,6 +23,7 @@ function DashBoard() {
     { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
     { name: "Males", value: userStats.total_males, additionalInfo: "As a tooltip or info card" },
     { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
+    { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
   ];
 
   const columns = dashboardColumns;
@@ -53,7 +54,7 @@ function DashBoard() {
           {/* <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4] cursor-pointer">
               Date: <span className="P250 text-dark900 ">This Month</span>
             </div> */}
-          <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4] cursor-pointer" onClick={exportToExcel}>
+          <div className="bg-white rounded shadow-sm flex gap-2 items-center justify-between h-10 px-2 py-4 border-1 border-[#EEF2F4] cursor-pointer" onClick={exportToExcel}>
             <span className="P250 text-dark900"> Export </span><img src="/assets/home/fi_download.svg" alt="export" className="inline-block" />
           </div>
         </div>
@@ -63,12 +64,20 @@ function DashBoard() {
           <StatsCard stats={stat} key={stat.name} />
         ))}
       </section>
-      <section className="mt-6 bg-white p-7 shadow-md rounded ">
+      <div className="flex justify-between">
+      <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%] ">
         {/* <BreakdownComponents /> */}
         <div className="text-dark900 H600">Members Breakdown</div>
         <BarChart value={userStats.stats} />
       </section>
-      <section className="mt-6 bg-white p-7 ">
+      <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%]">
+        {/* <BreakdownComponents /> */}
+        <div className="text-dark900 H600">Event data</div>
+        <BarChart value={userStats.stats} />
+      </section>
+      </div>
+      
+      <section className="mt-6 bg-white p-7 w-[49.5%]">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} />

@@ -23,7 +23,7 @@ function Header() {
   }
   return (
     <>
-      <header className="flex justify-between h-16 items-center bg-white px-3 fixed w-full z-20">
+      <header className="flex justify-between h-16 items-center bg-white shadow-sm px-3 fixed w-full z-20">
         <ChurchLogo />
         <div className="w-[40.9%]">
           {/* <SearchBar placeholder="Search here" value="" onChange={() => {}}/> */}

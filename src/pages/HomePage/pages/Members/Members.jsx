@@ -24,7 +24,7 @@ function Members() {
   return (
     <>
       <main className="h-full">
-        <section className="bg-white h-40 grid grid-cols-4 items-center">
+        {/* <section className="bg-white h-40 grid grid-cols-4 items-center">
           <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
             <p className="P900 dark900">{userStats.total_members || "-"}</p>
             <p className="P200 text-gray">Registered Church Members</p>
@@ -41,10 +41,10 @@ function Members() {
             <p className="P900 dark900">{userStats.total_males || "-"}</p>
             <p className="P200 text-gray">Males</p>
           </div>
-        </section>
+        </section> */}
 
         {/* Members Table Section */}
-        <section className={`mt-6 p-7 ${tableView ? "bg-white":"bg-[#fafafa]"} `}>
+        <section className={`mt-6 p-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">

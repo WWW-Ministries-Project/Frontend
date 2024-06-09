@@ -4,6 +4,9 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import axios from "/src/axiosInstance";
+import Calendar from "./Components/Calenda";
+import TableAssets from "/src/assets/TableAssets";
+import GridAsset from "/src/assets/GridAsset";
 
 
 const EventsManagement = () => {
@@ -26,15 +29,29 @@ const EventsManagement = () => {
         }
         return axios.get(`/event/list-events`).then((res) => setEvents(res.data.data))
     }
+    const [tableView, setTableView] = useState(false);
     useEffect(() => {
       axios.get("/event/list-events").then((res) => setEvents(res.data.data))  
     }, [])
     return (
         <>
-            <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
-            <GridWrapper>
-                {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
-            </GridWrapper>
+            <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
+                <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              </div>
+              {!tableView?<div>
+                <div className="flex gap-4 my-4">
+                {/* <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
+                <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              </div> */}
+              <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
+                </div>
+                
+                <GridWrapper>
+                    {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
+                </GridWrapper>
+              </div>
+            
+            :<Calendar events={events}/>}
         </>
     );
 }

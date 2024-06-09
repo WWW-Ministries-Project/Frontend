@@ -17,7 +17,7 @@ const EventsManagerHeader = (props) => {
     }
     
     return (
-        <div  className="flex justify-between items-center my-4">
+        <div  className="flex w-full justify-between items-center">
             <div className="flex gap-4">
                 <Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
