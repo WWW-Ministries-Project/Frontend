@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import axios from "/src/axiosInstance";
 import Calendar from "./Components/Calenda";
+import TableAssets from "/src/assets/TableAssets";
+import GridAsset from "/src/assets/GridAsset";
 
 
 const EventsManagement = () => {
@@ -33,12 +35,17 @@ const EventsManagement = () => {
     }, [])
     return (
         <>
+            <div className="flex gap-1 bg-lightGray p-1 rounded-md w-[4vw]">
+                <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              </div>
+              {!tableView?<div>
+                <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
+                <GridWrapper>
+                    {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
+                </GridWrapper>
+              </div>
             
-            <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} />
-            <GridWrapper>
-                {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
-            </GridWrapper>
-            {events?<Calendar events={events}/>:""}
+            :<Calendar events={events}/>}
         </>
     );
 }
