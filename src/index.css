@@ -42,9 +42,9 @@ body::-webkit-scrollbar-track {
 }
 
 .input {
-  height: 5vh;
+  height: 35px;
   background:white;
-  border-radius: 10px;
+  border-radius: 5px;
   padding:8px;
   opacity:50%;
   border:solid 0.5px #e6e4e4;

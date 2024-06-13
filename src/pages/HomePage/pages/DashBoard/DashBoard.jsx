@@ -83,7 +83,7 @@ function DashBoard() {
             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} />
           </div>
           <div>
-            <Button value="View all members →" className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => navigate("/home/members")} />
+            <Button value="View all members " className={" p-1 text-white h-10 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => navigate("/home/members")} />
           </div>
         </div>
         {/* <TableComponent /> */}

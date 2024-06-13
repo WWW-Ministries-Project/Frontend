@@ -15,14 +15,13 @@ const ViewEvents = () => {
     useEffect(() => {
         axios.get(`/event/get-event?id=${id}`).then((res) => {
             setEventdetails(res.data.data);
-            console.log(res.data.data.event_attendance,"hello")
         })
     }, [])
 
     const handleQrDownload = () => {
         const anchor = document.createElement('a');
         anchor.href = QR; // URL of the QR code image
-        anchor.download = 'QRCode.png'; // Filename for the downloaded image
+        anchor.download = `${eventdetails.name}_${formatTime(eventdetails.start_date)}.png`; // Filename for the downloaded image
         document.body.appendChild(anchor);
         anchor.click();
         document.body.removeChild(anchor);
@@ -33,7 +32,7 @@ const ViewEvents = () => {
                 <section className="w-full bg-white shadow rounded ">
                     <div className="w-full sm:w-1/2 md:w-2/3  flex flex-col gap-5 p-4 text-mainGray ">
                         <div>
-                            <h1 className="H400 text-mainGray">View Events</h1>
+                            <h1 className="H400 text-mainGray">Event Title</h1>
                             <p className="">{eventdetails.name}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -62,7 +61,7 @@ const ViewEvents = () => {
                         <h2 className="H400 text-mainGray">Event Attendees</h2>
                     </div>
                     <div className="flex justify-center py-10">
-                        {!eventdetails.event_attendance ? <EmptyState msg="😞 Sorry, No attendees yet" />:
+                        {!eventdetails.event_attendance.length ? <EmptyState msg="😞 Sorry, No attendees yet" />:
                         <TableComponent columns={attendanceColumn} data={eventdetails.event_attendance || []} />}
                     </div>
                 </section>
