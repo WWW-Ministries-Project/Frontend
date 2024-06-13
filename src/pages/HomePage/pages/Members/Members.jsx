@@ -88,6 +88,7 @@ function Members() {
             <TableComponent
               columns={columns}
               data={members}
+              displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
               tableView={tableView}
