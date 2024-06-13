@@ -17,6 +17,7 @@ import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
 import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
 import FormWrapper from "/src/Wrappers/FormWrapper.jsx";
 import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
+import AddMember from "../pages/HomePage/pages/Members/AddMember.jsx";
 
 
 
@@ -66,6 +67,12 @@ export const routes = [
       {
         path: "members",
         element: <Members />,
+        isPrivate: true,
+        permissionNeeded: "view_Members",
+      },
+      {
+        path: "members/add-member",
+        element: <AddMember />,
         isPrivate: true,
         permissionNeeded: "view_Members",
       },

@@ -10,18 +10,18 @@ const MemberCard = (props) => {
 
     return (
         <CardWrapper>
-            <ProfilePic className="w-20 h-20 shadow border border-primaryViolet " src={props.userInfo.photo} alt="profile pic" />
+            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.userInfo.photo} alt="profile pic" />
             <div className="w-full text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>
-                    <p className='font-bold text-sm text-gray'>{props.name}</p>
-                    <img src={ellipse} alt="options" className='w-3 h-3 ' />
+                    <p className='font-bold text-[1rem] '>{props.name}</p>
+                    <img src={ellipse} alt="options" className='w-4 h-4 ' />
                 </div> 
-                <div className='flex gap-1'>
-                    <p className='text-sm '>{props.department}</p>
-                    <p className='text-sm '>Position</p>
+                <div className='flex gap-1 my-1'>
+                    <p className='text-sm '>{props.department || "Department"}</p> <span>|</span>
+                    <p className='text-sm'>Position</p>
                 </div>
                 <div className='flex gap-1 text-xs'>
-                    {props.email}
+                <p className='text-sm '>{props.email|| "email"}</p>
                 </div>
                 <div>{props.userInfo.primary_number}</div>
                 <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />

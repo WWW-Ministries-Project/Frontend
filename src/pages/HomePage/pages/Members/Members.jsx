@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
@@ -9,6 +9,7 @@ import GridAsset from "/src/assets/GridAsset";
 function Members() {
   const { setDisplayForm, members, userStats } = useOutletContext();
 
+  const navigate = useNavigate()
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(false);
 
@@ -20,6 +21,9 @@ function Members() {
   const handleClick = () => {
     setDisplayForm(true);
   };
+  const handleNavigation = () => {
+    navigate('add-member')
+  }
 
   return (
     <>
@@ -80,6 +84,11 @@ function Members() {
                 value="Add member"
                 className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
                 onClick={handleClick}
+              />
+              <Button
+                value="Add member new"
+                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
+                onClick={handleNavigation}
               />
             </div>
           </div>
