@@ -82,12 +82,12 @@ function Members() {
             <div>
               <Button
                 value="Add member"
-                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
+                className={" text-white h-10 p-2 gradientBtn"}
                 onClick={handleClick}
               />
               <Button
                 value="Add member new"
-                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
+                className={" text-white h-10 p-2 gradientBtn"}
                 onClick={handleNavigation}
               />
             </div>

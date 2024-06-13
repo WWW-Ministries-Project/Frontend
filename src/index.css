@@ -109,4 +109,4 @@ input.input::placeholder {
   100% { transform: translateX(0); }
 }
 
-/* bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105 */
+/* gradientBtn */

@@ -97,7 +97,7 @@ function Settings() {
           </div>
         )
       },
-  ]
+    ]
 
   const positionsColumns = [
     {
@@ -418,7 +418,7 @@ function Settings() {
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
             <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
+              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 gradientBtn"} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
             </div>
           </div>
           <TableComponent
@@ -430,7 +430,7 @@ function Settings() {
         </section>
 
         {selectedTab !== "Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode}  />
+          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
 
         ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} editMode={editMode}  >
           <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ? 'Update' : 'Create'} members={members} selectedUsers={selectedUsers} onMembersSelect={selectUser} />
