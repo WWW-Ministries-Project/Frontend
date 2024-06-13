@@ -19,14 +19,13 @@ const AddMember = () => {
             <section>
             <ProfilePicture
             src={profilePic.src}
-            template={true}
             editable={true}
             text={""}
             alt="profile pic"
             icon={editIcon}
             name={"firstname"}
             alternative="edit button"
-            className="h-[10rem] w-[10rem] mt-3 profilePic transition-all duration-1000 mx-aut"
+            className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all duration-1000 mx-aut"
             textClass={"text-[32px] leading-[36px] mx-8 "}
             onChange={changePic}
             id={"pic"}

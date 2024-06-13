@@ -22,7 +22,7 @@ function DashBoard() {
   const stats = [
     { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
     { name: "Males", value: userStats.total_males, additionalInfo: "As a tooltip or info card" },
-    { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
+    { name: "Female", value: userStats.total_females, additionalInfo: "Number of female adults" },
     { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
   ];
 
@@ -86,7 +86,6 @@ function DashBoard() {
             <Button value="View all members " className={" p-1 text-white h-10 gradientBtn"} onClick={() => navigate("/home/members")} />
           </div>
         </div>
-        {/* <TableComponent /> */}
         <div>
 
           <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} />

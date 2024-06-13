@@ -86,7 +86,7 @@ function NewMember(props) {
           {/* <ProfilePicture  id="profilePic" alt="profile pic" imageId="uploadedPic" icon={editIcon}  /> */}
           <ProfilePicture
             src={profilePic.src}
-            template={true}
+
             editable={true}
             text={""}
             alt="profile pic"

@@ -23,13 +23,15 @@ const  ProfilePic = (props)=> {
     return (
         <>
              <div className="flex">
-                <div className={'rounded-[50%] outline outline-offset-2 outline-1 outline-[#f2f2f2] relative '+props.className}>
+                <div className={'rounded-[50%] outline outline-offset-2 outline-1 outline-[#f2f2f2] relative  '+props.className}>
                     {props.src ? <img src={ props.src} alt={props.alt} className='w-full rounded-full h-full' id="profile" /> : 
                     <div className='w-full rounded-full h-full flex justify-center items-center'>{firstLetters(props.name)}</div>}
-                    {props.editable? <label className=" absolute top-0 z-2 rounded-full w-full h-full flex justify-center items-center text-sm bg-blur cursor-pointer text-white" htmlFor={props.id}>
-                    {/* <span className="fa fa-camera m-2"></span> */}
-                    <span>Change Image</span>
+                    {props.editable? <label className="absolute left-2/3 bottom-0 cursor-pointer " htmlFor={props.id}>
+                    <span><img src={props.icon} alt="" /></span>
                 </label>: null}
+                    {/* {props.editable? <label className=" absolute top-0 z-2 rounded-full w-full h-full flex justify-center items-center text-sm bg-blur cursor-pointer text-white" htmlFor={props.id}>
+                    <span>Change Image</span>
+                </label>: null} */}
                 <input  type="file" id={props.id} className='hidden' onChange={props.onChange && handlePicChange} accept="image/*" capture='user'/>
                 </div>
             </div>

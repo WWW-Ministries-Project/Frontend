@@ -285,7 +285,7 @@ const AssetManagement = () => {
                 /> */}
                 <ProfilePicture
                   src={profilePic.src || inputValue.photo}
-                  template={true}
+
                   editable={true}
                   text={""}
                   alt="profile pic"
