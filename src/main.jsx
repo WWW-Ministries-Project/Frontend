@@ -4,6 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthWrapper } from "./auth/AuthWrapper.jsx";
 import "./index.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
+import { store, persistor } from './store'
+import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react';
+
 
 
 
@@ -71,10 +75,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   //   <RouterProvider router={router} />
   // </React.StrictMode>
-  <BrowserRouter>
-    {/* <RenderRoutes  /> */}
-    <AuthWrapper>
-      <RenderRoutes />
-    </AuthWrapper>
-  </BrowserRouter>
+  <Provider store={store}>
+    <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+      <BrowserRouter>
+        {/* <RenderRoutes  /> */}
+        <AuthWrapper>
+          <RenderRoutes />
+        </AuthWrapper>
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
 );

@@ -8,7 +8,8 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import NewMember from "./Components/NewMember";
 import { useAuth } from "../../auth/AuthWrapper";
-
+import { useDispatch } from "react-redux";
+import { fetchMembers } from "../../features/memberSlice.js";
 
 function HomePage() {
   const [userValue, setUserValue, userValueRef] = useState({ "password": "123456", "department_id": "", "name": "", "email": "", "primary_number": "", "date_of_birth": "", "gender": "", "is_active": true, "address": "", "occupation": "", "company": "", "department_head": 0, "country": "", link: "" });
@@ -20,6 +21,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const token = getToken();
   const { user } = useAuth();
+  const dispatch = useDispatch()
 
   //side nav
   const [show, setShow] = useState(true);
@@ -39,9 +41,17 @@ function HomePage() {
 
   //initial data fetching
   useEffect(() => {
-    axios.get(`${baseUrl}/user/list-users`).then((res) => {
-      setMembers(res.data.data);
-    });
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchMembers())
+      } catch (error) {
+        console.log("Error fetching members", error.message);
+      }
+    }
+    fetchData();
+    // axios.get(`${baseUrl}/user/list-users`).then((res) => {
+    //   setMembers(res.data.data);
+    // });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
       // console.log(res.data)

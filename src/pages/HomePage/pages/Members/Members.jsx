@@ -6,8 +6,18 @@ import { useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
 import TableAsset from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
+import { useSelector } from "react-redux";
+import { selectAllMembers } from "../../../../features/memberSlice";
+
 function Members() {
   const { setDisplayForm, members, userStats } = useOutletContext();
+
+  const allMembers = useSelector(selectAllMembers) 
+
+  // useEffect(() => {
+  //   console.log();
+  // }, [third])
+  
 
   const navigate = useNavigate()
   const [filterMembers, setFilterMembers] = useState("");
@@ -96,7 +106,7 @@ function Members() {
           <div className="w-full mx-auto">
             <TableComponent
               columns={columns}
-              data={members}
+              data={allMembers}
               filter={filterMembers}
               setFilter={setFilterMembers}
               tableView={tableView}
