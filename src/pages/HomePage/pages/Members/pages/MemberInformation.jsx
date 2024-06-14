@@ -1,14 +1,11 @@
 
 import PropTypes from "prop-types";
 import { useOutletContext } from "react-router-dom";
-import InputDiv from "../../../Components/reusable/InputDiv";
-import SelectField from "../../../Components/reusable/SelectField";
-import Button from "/src/components/Button";
 import MembersForm from "../Components/MembersForm";
-const MemberInformation = (props) => {
+const MemberInformation = () => {
     const { edit, handleEdit } = useOutletContext();
     return (
-        <MembersForm edit={edit}  />
+        <MembersForm edit={edit} />
     );
 }
 MemberInformation.propTypes = {
