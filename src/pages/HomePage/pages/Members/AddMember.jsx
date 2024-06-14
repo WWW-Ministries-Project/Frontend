@@ -6,7 +6,7 @@ import MemberInformation from "../ProfileDetails/pages/MemberInformation";
 
 const AddMember = () => {
     const [profilePic, setProfilePic] = useState({});
-  // const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
+  const [userValue, setUserValue] = useState({"password": "123456","department_id": "","name": "","email": "","primary_number": "","date_of_birth": "","gender": "","is_active": true,"address": "","occupation": "","company": "","department_head": 0,"country": ""});
   function changePic(pic) {
     setProfilePic(() => pic);
   }
@@ -33,7 +33,7 @@ const AddMember = () => {
           <div className="text-sm text-[#8F95B2] mt-3">Image size must be less <br/> than 2mb, jpeg or png</div>
             </section>
             
-            <MemberInformation/>
+            <MemberInformation user={userValue} edit={false} onChange={setUserValue}/>
         </section>
      );
 }
