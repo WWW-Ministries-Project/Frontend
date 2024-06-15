@@ -36,12 +36,12 @@ const EventsCard = (props) => {
             </div>
             <div className="flex gap-1 items-center justify-between border-1 border-lightGray border-t py-2 text-xxs">
                 <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
-                    <img src={edit} alt="edit icon" className='w-3' />
-                    <p>Edit</p>
+                    <img src={edit} alt="edit icon" className='w-4' />
+                    <p className='text-sm'>Edit</p>
                 </div>
                 <div className='flex gap-1 text-dark900 font-bold cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} >
-                    <img src={edit} alt="view icon" className='w-3' />
-                    <p>View</p>
+                    <img src={edit} alt="view icon" className='w-4' />
+                    <p className='text-sm'>View</p>
                 </div>
                 
             </div>

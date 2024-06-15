@@ -23,10 +23,10 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   return (
     <section>
       <section>
-        <div className="w-full text-black font-bold my-5">
+        <div className=" text-black font-bold my-5">
           Personal Information
         </div>
-        <div className="w-3/4 grid sm:grid-cols-2 gap-4">
+        <div className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4 grid tablet:grid-cols-2 gap-4">
           {/* <InputDiv label="Name" value="Saah Asiedu" id="name" disabled={!props.edit} /> */}
           <SelectField
             label="Title"
@@ -89,10 +89,10 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
       </section>
       <section>
-        <div className="w-full text-black font-bold my-5">
+        <div className=" text-black font-bold my-5">
           Contact Information
         </div>
-        <div className="w-3/4 grid sm:grid-cols-2 gap-4">
+        <div className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4 grid tablet:grid-cols-2 gap-4">
           <InputDiv
             label="Phone Number"
             value={props.user?.primary_number}
@@ -125,10 +125,10 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
       </section>
       <section>
-        <div className="w-full text-black font-bold my-5">
+        <div className=" text-black font-bold my-5">
           Church Information
         </div>
-        <div className="w-3/4 grid sm:grid-cols-2 gap-4">
+        <div className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4 grid tablet:grid-cols-2 gap-4">
           <SelectField
             label="Ministry/Department"
             value={props.user?.department?.id}
@@ -148,8 +148,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
       </section>
       <section>
-        <div className="w-full text-black font-bold my-5">Work Information</div>
-        <div className="w-3/4 grid sm:grid-cols-2 gap-4">
+        <div className=" text-black font-bold my-5">Work Information</div>
+        <div className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4 grid tablet:grid-cols-2 gap-4">
           <InputDiv
             label="Name of Institution"
             value={props.user?.occupation?.name}
@@ -174,10 +174,10 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
       </section>
       <section>
-        <div className="w-full text-black font-bold my-5">
+        <div className=" text-black font-bold my-5">
           Emergency Contact
         </div>
-        <div className="w-3/4 grid sm:grid-cols-2 gap-4">
+        <div className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4 grid tablet:grid-cols-2 gap-4">
           <InputDiv
             label="Name of Institution"
             disabled={!props.edit}
@@ -213,7 +213,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
       </section>
       {props.edit && (
-        <section className="w-3/4">
+        <section className="w-full phone:w-3/4 tablet:w-full laptop:w-3/4">
           <div className="flex justify-end gap-4">
             <Button
               value={"Cancel"}

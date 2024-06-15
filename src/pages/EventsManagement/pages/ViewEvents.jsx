@@ -38,7 +38,7 @@ const ViewEvents = () => {
         <div className="w-full flex justify-between gap-4">
             
             <div className="w-2/3 border border-1 border-[#dcdcdc] p-4 rounded-xl">
-                <section className="flex w-full  rounded mb-16">
+                <section className="flex w-full  rounded mb-16 gap-4">
                     <div className="w-full sm:w-1/2 md:w-2/3  flex flex-col gap-2  text-mainGray ">
                         <div>
                             <h1 className="text-2xl font-bold p-0 m-0 text-mainGray">{eventdetails.name}</h1>
@@ -50,7 +50,7 @@ const ViewEvents = () => {
                         <p className="text text-primaryViolet" ><a href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`} target="_blank" rel="noreferrer">event registration link</a></p>
                         </div>
                         <div>
-                            <p className="text">{eventdetails.description}</p>
+                            <p className="text text-justify">{eventdetails.description}</p>
                         </div>
                         
 

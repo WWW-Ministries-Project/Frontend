@@ -27,6 +27,7 @@ const MemberCard = (props) => {
                 <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
             </div>
         </CardWrapper>
+
     );
 }
 MemberCard.propTypes = {

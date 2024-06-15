@@ -83,6 +83,19 @@ export default {
       fontRoboto: ['"Roboto"', "sans-serif"],
       manrope: ["Manrope", "sans-serif"],
     },
+    screens: {
+      'phone': '450px',
+      'tablet': '640px',
+      'sm': '640px',
+      // => @media (min-width: 640px) { ... }
+      'md': '768px',
+      'laptop': '1024px',
+      // => @media (min-width: 1024px) { ... }
+
+      'desktop': '1280px',
+      'xl': '1280px',
+      // => @media (min-width: 1280px) { ... }
+    },
   },
   plugins: [
     function ({ addUtilities }) {
