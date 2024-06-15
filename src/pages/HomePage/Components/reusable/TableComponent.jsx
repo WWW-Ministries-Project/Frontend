@@ -46,12 +46,12 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              className="text-center text-[#080808] font-normal py-4 bg-[#f8f9f999]">
+              className="text-center text-[#080808] font-bold py-4 bg-[#f8f9f999]">
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
                   onClick={header.column.getToggleSortingHandler()}
-                  className="py-4 px-2 text-left text-[#080808] font-normal cursor-pointer">
+                  className="py-4 px-2 text-left text-mainGray text-[#080808] font-semi-bold cursor-pointer">
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext()
