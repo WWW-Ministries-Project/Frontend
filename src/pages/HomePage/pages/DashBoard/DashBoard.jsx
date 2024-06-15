@@ -22,7 +22,7 @@ function DashBoard() {
   const stats = [
     { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
     { name: "Males", value: userStats.total_males, additionalInfo: "As a tooltip or info card" },
-    { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
+    { name: "Female", value: userStats.total_females, additionalInfo: "Number of female adults" },
     { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
   ];
 
@@ -65,28 +65,27 @@ function DashBoard() {
         ))}
       </section>
       <div className="flex justify-between">
-      <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%] ">
-        {/* <BreakdownComponents /> */}
-        <div className="text-dark900 H600">Members Breakdown</div>
-        <BarChart value={userStats.stats} />
-      </section>
-      <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%]">
-        {/* <BreakdownComponents /> */}
-        <div className="text-dark900 H600">Event data</div>
-        <BarChart value={userStats.stats} />
-      </section>
+        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%] ">
+          {/* <BreakdownComponents /> */}
+          <div className="text-dark900 H600">Members Breakdown</div>
+          <BarChart value={userStats.stats} />
+        </section>
+        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%]">
+          {/* <BreakdownComponents /> */}
+          <div className="text-dark900 H600">Event data</div>
+          <BarChart value={userStats.stats} />
+        </section>
       </div>
-      
+
       <section className="mt-6 bg-white p-7 w-[49.5%]">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} />
           </div>
           <div>
-            <Button value="View all members →" className={"  text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"} onClick={() => navigate("/home/members")} />
+            <Button value="View all members " className={" p-1 text-white h-10 gradientBtn"} onClick={() => navigate("/home/members")} />
           </div>
         </div>
-        {/* <TableComponent /> */}
         <div>
 
           <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} />

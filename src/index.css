@@ -42,12 +42,12 @@ body::-webkit-scrollbar-track {
 }
 
 .input {
-  height: 5vh;
+  height: 35px;
   background:white;
-  border-radius: 10px;
+  border-radius: 5px;
   padding:8px;
   opacity:50%;
-  border:solid 0.5px #e6e4e4;
+  border:solid 0.5px #6539C350;
 }
 input.input::placeholder {
   font-weight: normal;
@@ -109,4 +109,4 @@ input.input::placeholder {
   100% { transform: translateX(0); }
 }
 
-/* bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105 */
+/* gradientBtn */

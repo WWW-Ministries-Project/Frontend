@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import useState from "react-usestateref";
-import axios from "../../axiosInstance.js";
+import axios, { changeAuth } from "../../axiosInstance.js";
 import { getToken } from "../../utils/helperFunctions";
 import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
@@ -39,6 +39,7 @@ function HomePage() {
 
   //initial data fetching
   useEffect(() => {
+    changeAuth(token);
     axios.get(`${baseUrl}/user/list-users`).then((res) => {
       setMembers(res.data.data);
     });

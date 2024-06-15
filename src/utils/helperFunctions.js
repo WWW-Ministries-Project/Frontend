@@ -22,8 +22,10 @@ export const firstLetters = (string="No Name") =>{
 }
 
 export const formatTime = (value) => {
-    return DateTime.fromISO(value).toLocaleString(DateTime.DATE_MED);
+    return DateTime.fromISO(value).toLocaleString(DateTime.DATE_FULL);
 }
 export const formatInputDate = (value) => {
     return DateTime.fromISO(value).toFormat("yyyy-MM-dd");
 }
+export const genderOptions = [{name:'Male',value:"male"},{name:'Female',value:"female"},{name:"other",value:"other"}]
+export const memberValues = { "password": "123456", "department_id": "", "first_name": "","other_name": "","last_name": "", "email": "", "primary_number": "", "date_of_birth": "", "gender": "", "is_active": true, "address": "", "occupation": "", "company": "", "department_head": 0, "country": "" }

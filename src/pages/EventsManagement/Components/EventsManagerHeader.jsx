@@ -1,7 +1,7 @@
-import Button from "/src/components/Button";
-import Filter from "/src/pages/HomePage/Components/reusable/Filter";
 import PropTypes from 'prop-types';
 import { months, years } from "../utils/eventHelpers";
+import Button from "/src/components/Button";
+import Filter from "/src/pages/HomePage/Components/reusable/Filter";
 
 
 const EventsManagerHeader = (props) => {
@@ -15,19 +15,19 @@ const EventsManagerHeader = (props) => {
     const handleFilter = () => {
         props.onFilter();
     }
-    
+
     return (
-        <div  className="flex w-full justify-between items-center">
+        <div className="flex w-full justify-between items-center">
             <div className="flex gap-4">
-                <Filter options={monthsOptions} name="month" onChange={handleChange} />
+                {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
-                <Button value="Filter" onClick={handleFilter} className={"text-white h-10 p-2 "} />
+                <Button value="Filter" onClick={handleFilter} className={"text-white h-10 p-2 "} /></>}
             </div>
             <Button
                 value="Create Event"
-                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
-                onClick={() => {props.onNavigate("/home/manage-event")}}
-              />
+                className={" text-white h-10 p-2 gradientBtn"}
+                onClick={() => { props.onNavigate("/home/manage-event") }}
+            />
         </div>
     );
 }
@@ -35,7 +35,8 @@ const EventsManagerHeader = (props) => {
 EventsManagerHeader.propTypes = {
     onNavigate: PropTypes.func,
     onChange: PropTypes.func,
-    onFilter: PropTypes.func
+    onFilter: PropTypes.func,
+    viewfilter: PropTypes.bool,
 };
 
 export default EventsManagerHeader;

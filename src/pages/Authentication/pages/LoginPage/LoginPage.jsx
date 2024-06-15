@@ -11,6 +11,7 @@ import { decodeToken, setToken } from "../../../../utils/helperFunctions";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
+import waves from '../../../../assets/waves.svg'
 
 function LoginPage() {
   const [loginValues, setLoginValues] = useState({  });
@@ -70,7 +71,7 @@ function LoginPage() {
     }
   }
   return (
-    <>
+    <div className="bg-[url('src/assets/waves.svg')] bg-no-repeat bg-right bg-contain">
       <OuterDiv>
         <AuthenticationForm
           response={response}
@@ -134,7 +135,8 @@ function LoginPage() {
           {/* </div> */}
         </AuthenticationForm>
       </OuterDiv>
-    </>
+
+    </div>
   );
 }
 

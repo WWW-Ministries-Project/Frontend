@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
@@ -7,8 +7,9 @@ import { membersColumns } from "../../utils/helperFunctions";
 import TableAsset from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
 function Members() {
-  const { setDisplayForm, members, userStats } = useOutletContext();
+  const { setDisplayForm, members } = useOutletContext();
 
+  const navigate = useNavigate()
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(false);
 
@@ -17,9 +18,9 @@ function Members() {
     setFilterMembers(e.target.value);
   };
 
-  const handleClick = () => {
-    setDisplayForm(true);
-  };
+  const handleNavigation = () => {
+    navigate('add-member')
+  }
 
   return (
     <>
@@ -44,7 +45,7 @@ function Members() {
         </section> */}
 
         {/* Members Table Section */}
-        <section className={`mt-6 p-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
+        <section className={` p-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -78,8 +79,8 @@ function Members() {
             <div>
               <Button
                 value="Add member"
-                className={" text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"}
-                onClick={handleClick}
+                className={" text-white h-10 p-2 gradientBtn"}
+                onClick={handleNavigation}
               />
             </div>
           </div>
@@ -88,6 +89,7 @@ function Members() {
             <TableComponent
               columns={columns}
               data={members}
+              displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
               tableView={tableView}

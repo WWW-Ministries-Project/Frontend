@@ -1,4 +1,4 @@
-import { useEffect} from "react";
+import { useEffect } from "react";
 import useState from "react-usestateref";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
@@ -13,7 +13,7 @@ import Dialog from "/src/components/Dialog";
 import { DateTime } from "luxon";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
-import axios,{pictureInstance as axiosFile} from "/src/axiosInstance.js";
+import axios, { pictureInstance as axiosFile } from "/src/axiosInstance.js";
 // import axios from "axios";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
@@ -143,7 +143,7 @@ const AssetManagement = () => {
   }
 
   const handleClick = () => {
-    setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "", photo:'' });
+    setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "", photo: '' });
     setProfilePic({})
     setDisplayForm(true);
     setEditMode(false);
@@ -164,48 +164,48 @@ const AssetManagement = () => {
     const path = `${baseUrl}${endpoint}`;
     try {
       const response = profilePic.picture && await axiosFile.post(path, data);
-      if ( profilePic.picture && response.status === 200) {
+      if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
-        setInputValue(prev=>({...prev,photo:link}))
+        setInputValue(prev => ({ ...prev, photo: link }))
         setProfilePic({});
       }
 
-        if (editMode) {
-          axios
-            .put(`${baseUrl}/assets/update-asset`, inputValueRef.current)
-            .then((res) => {
-              setLoading(false);
-              // setData(res.data.data);
-              setAssertsData(prev => prev.map(data => {
-                if (data.id !== res.data.updatedAsset) return data
-                else return res.data.updatedAsset
-              }))
-              setDisplayForm(false);
-              setEditMode(false);
-              setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-            })
-            .catch((err) => {
-              console.log(err);
-              setLoading(false);
-            });
-        }
-        else {
-          axios
-            .post(`${baseUrl}/assets/create-asset`, inputValueRef.current)
-            .then((res) => {
-              setLoading(false);
-              // setData(res.data.data);
-              setAssertsData(prev => [res.data.asset, ...prev]);
-              setDisplayForm(false);
-              setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-            })
-            .catch((err) => {
-              console.log(err);
-              setLoading(false);
-            });
-        }
-      
-    } catch(error) {
+      if (editMode) {
+        axios
+          .put(`${baseUrl}/assets/update-asset`, inputValueRef.current)
+          .then((res) => {
+            setLoading(false);
+            // setData(res.data.data);
+            setAssertsData(prev => prev.map(data => {
+              if (data.id !== res.data.updatedAsset) return data
+              else return res.data.updatedAsset
+            }))
+            setDisplayForm(false);
+            setEditMode(false);
+            setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
+          })
+          .catch((err) => {
+            console.log(err);
+            setLoading(false);
+          });
+      }
+      else {
+        axios
+          .post(`${baseUrl}/assets/create-asset`, inputValueRef.current)
+          .then((res) => {
+            setLoading(false);
+            // setData(res.data.data);
+            setAssertsData(prev => [res.data.asset, ...prev]);
+            setDisplayForm(false);
+            setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
+          })
+          .catch((err) => {
+            console.log(err);
+            setLoading(false);
+          });
+      }
+
+    } catch (error) {
       setLoading(false);
       console.log(error);
     }
@@ -245,7 +245,7 @@ const AssetManagement = () => {
             <Button
               value="Add asset"
               className={
-                " text-white h-10 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105"
+                " text-white h-10 p-2 gradientBtn"
               }
               onClick={handleClick}
             />
@@ -285,7 +285,7 @@ const AssetManagement = () => {
                 /> */}
                 <ProfilePicture
                   src={profilePic.src || inputValue.photo}
-                  template={true}
+
                   editable={true}
                   text={""}
                   alt="profile pic"
