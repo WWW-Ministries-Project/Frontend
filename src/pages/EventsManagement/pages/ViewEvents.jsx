@@ -61,7 +61,7 @@ const ViewEvents = () => {
                         <h2 className="H400 text-mainGray">Event Attendees</h2>
                     </div>
                     <div className="flex justify-center py-10">
-                        {!eventdetails.event_attendance.length ? <EmptyState msg="😞 Sorry, No attendees yet" />:
+                        {!eventdetails.event_attendance ? <EmptyState msg="😞 Sorry, No attendees yet" />:
                         <TableComponent columns={attendanceColumn} data={eventdetails.event_attendance || []} />}
                     </div>
                 </section>
