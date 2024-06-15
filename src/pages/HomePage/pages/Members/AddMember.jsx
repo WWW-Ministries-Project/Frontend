@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ProfilePicture from "../../../../components/ProfilePicture";
-import MemberInformation from "./pages/MemberInformation";
+import MembersForm from "./Components/MembersForm";
 import editIcon from "/assets/home/edit.svg";
 
 
@@ -33,7 +33,7 @@ const AddMember = () => {
         <div className="text-sm text-[#8F95B2] mt-3">Image size must be less <br /> than 2mb, jpeg or png</div>
       </section>
 
-      <MemberInformation user={userValue} edit={false} onChange={setUserValue} />
+      <MembersForm user={userValue} edit={true} onChange={setUserValue} />
     </section>
   );
 }
