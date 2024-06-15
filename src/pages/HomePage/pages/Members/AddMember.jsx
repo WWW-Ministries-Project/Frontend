@@ -1,28 +1,36 @@
+import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import ProfilePicture from "../../../../components/ProfilePicture";
-import MembersForm from "./Components/MembersForm";
-import editIcon from "/assets/home/edit.svg";
+import { memberValues } from "../../../../utils/helperFunctions";
 import { baseUrl } from "../../../Authentication/utils/helpers";
-import axios,{pictureInstance as axiosPic} from '/src/axiosInstance';
+import MembersForm from "./Components/MembersForm";
 import { addNewMember } from "./utils/apiCalls";
+import editIcon from "/assets/home/edit.svg";
+import { pictureInstance as axiosPic } from '/src/axiosInstance';
 
 
 const AddMember = () => {
   const [profilePic, setProfilePic] = useState({});
-  const [userValue, setUserValue, userValueRef] = useState({ "password": "123456", "department_id": "", "first_name": "","other_name": "","last_name": "", "email": "", "primary_number": "", "date_of_birth": "", "gender": "", "is_active": true, "address": "", "occupation": "", "company": "", "department_head": 0, "country": "" });
+  const [loading, setLoading] = useState(false);
+  const [userValue, setUserValue, userValueRef] = useState(memberValues);
+  const navigate = useNavigate();
   function changePic(pic) {
     setProfilePic(() => pic);
   }
   const handleChange = (name, value) => {
     setUserValue((prev) => ({ ...prev, [name]: value }));
 }
+const handleCancel = () => {
+  setUserValue(memberValues);
+  setProfilePic({});
+  navigate("/home/members");
+}
 async function handleSubmit() {
+  setLoading(true);
   const data = new FormData();
   data.append("file", profilePic.picture);
   const endpoint = "/upload";
   const path = `${baseUrl}${endpoint}`;
-  console.log(data,"profilePic");
-
   try {
     const response =profilePic.picture && await axiosPic.post(path, data);
     if (profilePic.picture && response.status === 200) {
@@ -31,8 +39,10 @@ async function handleSubmit() {
     }
       setProfilePic({});
       addNewMember(userValueRef.current); // sends data after picture link is received
+      setLoading(false);
   } catch (error) {
     console.log(error);
+    setLoading(false);
   }
 }
   return (
@@ -57,7 +67,7 @@ async function handleSubmit() {
         <div className="text-sm text-[#8F95B2] mt-3">Image size must be less <br /> than 2mb, jpeg or png</div>
       </section>
 
-      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} disabled={!userValue.email || !userValue.first_name} />
+      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} onCancel={handleCancel} disabled={!userValue.email || !userValue.first_name} loading={loading} />
     </section>
   );
 }

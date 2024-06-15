@@ -217,7 +217,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           <div className="flex justify-end gap-4">
             <Button
               value={"Cancel"}
-              onClick={() => {}}
+              onClick={props.onCancel}
               className="w-32 my-2 px-2 bg-transparent h-8 border border-primaryViolet text-primaryViolet "
             />
             <Button
