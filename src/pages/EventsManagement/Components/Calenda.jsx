@@ -35,7 +35,6 @@ const Calendar = ({ events }) => {
     };
 
     window.addEventListener('resize', handleResize);
-    console.log("window width: " + window.innerWidth);
     handleResize(); // Set initial value
 
     return () => window.removeEventListener('resize', handleResize);
@@ -90,22 +89,40 @@ const Calendar = ({ events }) => {
 
   const handleDayClick = (event, dayEvents) => {
     const rect = event.target.getBoundingClientRect();
-    const left = (rect.right > window.innerWidth) ? rect.left  : rect.left;
-    setModalPosition({
-      top: rect.top + window.scrollY + rect.height + 10 + 'px',
-      left: left + 'px'
-    });
+    const modalHeight = 300; // Example height of the modal
+    const modalWidth = 300; // Example width of the modal
+    let top = rect.top + window.scrollY + rect.height + 10;
+    let left = rect.left;
+
+    if (rect.bottom + modalHeight > window.innerHeight) {
+      top = rect.top + window.scrollY - modalHeight - 10;
+    }
+
+    if (rect.right + modalWidth > window.innerWidth) {
+      left = rect.left - modalWidth;
+    }
+
+    setModalPosition({ top: `${top}px`, left: `${left}px` });
     setSelectedDayEvents(dayEvents);
     setModalIsOpen(true);
   };
 
   const handleEventClick = (event, dayEvent) => {
     const rect = event.target.getBoundingClientRect();
-    const left = (rect.right + 300 > window.innerWidth) ? rect.left - 300 : rect.left;
-    setModalPosition({
-      top: rect.top + window.scrollY + rect.height + 10 + 'px',
-      left: left + 'px'
-    });
+    const modalHeight = 300; // Example height of the modal
+    const modalWidth = 300; // Example width of the modal
+    let top = rect.top + window.scrollY + rect.height + 10;
+    let left = rect.left;
+
+    if (rect.bottom + modalHeight > window.innerHeight) {
+      top = rect.top + window.scrollY - modalHeight - 10;
+    }
+
+    if (rect.right + modalWidth > window.innerWidth) {
+      left = rect.left - modalWidth;
+    }
+
+    setModalPosition({ top: `${top}px`, left: `${left}px` });
     setSelectedEvent(dayEvent);
     setModalIsOpen(false);
     setEventModalOpen(true);
@@ -153,7 +170,7 @@ const Calendar = ({ events }) => {
           style={{ height: '20vh', cursor: 'pointer' }}
         >
           {isToday && (
-            <div className="absolute  h-6 w-6 border rounded-full border-[#6539C3] flex items-center justify-center text-[#6539C3]">
+            <div className="h-6 w-6 border rounded-full border-[#6539C3] flex items-center justify-center text-[#6539C3]">
               {day}
             </div>
           )}
@@ -186,7 +203,6 @@ const Calendar = ({ events }) => {
           <button className='px-4 py-1 ms-4 border border-[#dcdcdc] rounded-lg' onClick={handleNextMonth}>&gt;</button>
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
         </div>
-        
       </div>
       <div className=" bg-white shadow-lg  rounded-xl grid grid-cols-7 gap-[0.5]">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
