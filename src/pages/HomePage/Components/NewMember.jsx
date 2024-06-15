@@ -45,15 +45,16 @@ function NewMember(props) {
     data.append("file", profilePic.picture);
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
+    console.log(data,"profilePic");  
   
     try {
       const response =profilePic.picture && await axios.post(path, data);
-      if (profilePic.picture && response.status === 200) {
-        const link = response.data.result.link;
-        await props.handlePictureUpdate(link);
-      }
-        setProfilePic({});
-        props.onSubmit(); // Call onSubmit after handlePictureUpdate completes
+      // if (profilePic.picture && response.status === 200) {
+      //   const link = response.data.result.link;
+      //   await props.handlePictureUpdate(link);
+      // }
+      //   setProfilePic({});
+      //   props.onSubmit(); // Call onSubmit after handlePictureUpdate completes
     } catch (error) {
       console.log(error);
     }
