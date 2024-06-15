@@ -24,12 +24,22 @@ export const registeredEventAttendance =[
     cell:({row}) => row.original.user.user_info.name
   },
   {
+    header: "Membership status",
+    accessorKey: "name",
+    cell:({row}) => row.original.user.user_info.name
+  },
+  {
     header: "Phone number",
     accessorKey: "user_info.primary_number",
     cell:({row}) => row.original.user.user_info.primary_number
   },
   {
-    header: "last visited",
+    header: "Arrival time",
+    accessorKey: "name",
+    cell:({row}) => row.original.user.user_info.name
+  },
+  {
+    header: "Last visited",
     accessorKey: "last_visited",
     cell: ({row}) => formatTime(row.original.created_at)
   },
