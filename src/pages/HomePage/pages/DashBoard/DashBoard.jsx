@@ -64,26 +64,26 @@ function DashBoard() {
           <StatsCard stats={stat} key={stat.name} />
         ))}
       </section>
-      <div className="flex justify-between">
-        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%] ">
+      <div className="flex flex-col items-center tablet:flex-row justify-between ">
+        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full tablet:w-[49.5%] ">
           {/* <BreakdownComponents /> */}
           <div className="text-dark900 H600">Members Breakdown</div>
           <BarChart value={userStats.stats} />
         </section>
-        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-[49.5%]">
+        <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full tablet:w-[49.5%]">
           {/* <BreakdownComponents /> */}
           <div className="text-dark900 H600">Event data</div>
           <BarChart value={userStats.stats} />
         </section>
       </div>
 
-      <section className="mt-6 bg-white p-7 w-[49.5%]">
+      <section className="mt-6 bg-white p-7 tablet:w-[49.5%] w-full">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
             <SearchBar className="w-[40.9%] h-10" placeholder='Search members here...' value={filter} onChange={handleSearchChange} />
           </div>
           <div>
-            <Button value="View all members " className={" p-1 text-white h-10 gradientBtn"} onClick={() => navigate("/home/members")} />
+            <Button value="View members " className={" p-1 m-1 text-white min-h-10 max-h-14 gradientBtn"} onClick={() => navigate("/home/members")} />
           </div>
         </div>
         <div>
