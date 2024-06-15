@@ -19,9 +19,9 @@ const EventsManagerHeader = (props) => {
     return (
         <div className="flex w-full justify-between items-center">
             <div className="flex gap-4">
-                <Filter options={monthsOptions} name="month" onChange={handleChange} />
+                {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
-                <Button value="Filter" onClick={handleFilter} className={"text-white h-10 p-2 "} />
+                <Button value="Filter" onClick={handleFilter} className={"text-white h-10 p-2 "} /></>}
             </div>
             <Button
                 value="Create Event"
@@ -35,7 +35,8 @@ const EventsManagerHeader = (props) => {
 EventsManagerHeader.propTypes = {
     onNavigate: PropTypes.func,
     onChange: PropTypes.func,
-    onFilter: PropTypes.func
+    onFilter: PropTypes.func,
+    viewfilter: PropTypes.bool,
 };
 
 export default EventsManagerHeader;

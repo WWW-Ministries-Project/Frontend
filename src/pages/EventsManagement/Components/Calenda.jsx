@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EventsCard from './EventsCard';
+import { useNavigate } from 'react-router-dom';
 
 const Calendar = ({ events }) => {
+  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -19,20 +21,21 @@ const Calendar = ({ events }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 600) {
-        setEventsToShow(2);
+        setEventsToShow(1);
       } else if (window.innerWidth < 900) {
         setEventsToShow(3);
       } 
-      else if (window.innerWidth < 1200) {
+      else if (window.innerWidth < 1600) {
         setEventsToShow(3);}
-        else if (window.innerWidth < 1500) {
+        else if (window.innerWidth < 1900) {
           setEventsToShow(3);}
       else {
-        setEventsToShow(5);
+        setEventsToShow(selectedDayEvents.length-selectedDayEvents.length);
       }
     };
 
     window.addEventListener('resize', handleResize);
+    console.log("window width: " + window.innerWidth);
     handleResize(); // Set initial value
 
     return () => window.removeEventListener('resize', handleResize);
@@ -183,9 +186,9 @@ const Calendar = ({ events }) => {
           <button className='px-4 py-1 ms-4 border border-[#dcdcdc] rounded-lg' onClick={handleNextMonth}>&gt;</button>
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
         </div>
-        <button className='px-4 py-1 border border-[#dcdcdc] rounded-lg float-right' onClick={handleToday}>Today</button>
+        
       </div>
-      <div className="  rounded-xl grid grid-cols-7 gap-[0.5]">
+      <div className=" bg-white shadow-lg  rounded-xl grid grid-cols-7 gap-[0.5]">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-[#6539C3] font-bold">{day}</div>
         ))}

@@ -6,7 +6,7 @@ const Filter = (props) => {
       }
     return (
         <div className=''>
-            <select name={props.name || "filter"} id="filter" placeholder={props.placeholder || "Filter"}  className={"h-10 border border-[#dcdcdc] bg-white rounded-lg p-1 opacity-50 border border-[#f2f2f2] "+props.className} onChange={handleChange}>
+            <select name={props.name || "filter"} id="filter" placeholder={props.placeholder || "Filter"}  className={"h-10 border border-[#dcdcdc] bg-white rounded-lg p-1   "+props.className} onChange={handleChange}>
                 <option value="">{props.name}</option>
                 {props.options.map((option) => <option key={option.name || option} value={option.value || option}>{option.name || option}</option>)}
              </select>
