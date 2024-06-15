@@ -30,7 +30,7 @@ const Calendar = ({ events }) => {
         else if (window.innerWidth < 1900) {
           setEventsToShow(3);}
       else {
-        setEventsToShow(selectedDayEvents.length-selectedDayEvents.length);
+        setEventsToShow(7);
       }
     };
 
