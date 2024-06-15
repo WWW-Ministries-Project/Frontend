@@ -14,12 +14,12 @@ const EventsCard = (props) => {
     }
 
     return (
-        <CardWrapper className={"flex-col text-gray text-xs"+"border border border-[#FF576560]"}>
+        <CardWrapper className={"flex-col text-gray text-xs"+"border border border-[#FF576550]"}>
             <div className=''>
-                <img className='rounded-xl' src={props.event.banner||defaultImage} alt="" />
+                <img className='rounded-xl' src={props.event.poster||defaultImage} alt="" />
             </div>
             <div className="flex gap-1 items-center font-bold">
-                <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}></div>
+                <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
                 <p>{props.event.name}</p>
             </div>
             <div className="flex gap-1 text-sm">
