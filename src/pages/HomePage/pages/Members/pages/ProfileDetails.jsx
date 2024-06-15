@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import Banner from "./Components/Banner";
+import Banner from "../Components/Banner";
 
 const ProfileDetails = () => {
     const links =[{name:"Member Information",path:"info"},{name:"Assets",path:"assets"}]

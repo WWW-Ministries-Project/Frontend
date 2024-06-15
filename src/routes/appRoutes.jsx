@@ -1,4 +1,4 @@
-import ProfileDetails from "/src/pages/HomePage/pages/ProfileDetails/ProfileDetails.jsx";
+import ProfileDetails from "/src/pages/HomePage/pages/Members/pages/ProfileDetails.jsx";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -10,8 +10,8 @@ import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/ProfileDetails/pages/MemberInformation.jsx";
-import MembersAssets from "/src/pages/HomePage/pages/ProfileDetails/pages/MembersAssets.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
+import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
 import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
 import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
