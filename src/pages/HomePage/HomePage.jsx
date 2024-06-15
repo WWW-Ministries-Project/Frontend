@@ -8,6 +8,7 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import NewMember from "./Components/NewMember";
 import { useAuth } from "../../auth/AuthWrapper";
+import useWindowSize from "../../CustomHooks/useWindowSize";
 
 
 function HomePage() {
@@ -23,6 +24,7 @@ function HomePage() {
 
   //side nav
   const [show, setShow] = useState(true);
+  const {screenWidth} = useWindowSize();
   const handleShowNav = () => {
     setShow((prev) => !prev);
   }
@@ -36,6 +38,13 @@ function HomePage() {
   const CloseForm = () => {
     setDisplayForm(false);
   }
+
+  //minimize side nav based on screen width
+  useEffect(() => {
+    if (screenWidth < 768) {
+      setShow(false);
+    }
+  }, [screenWidth])
 
   //initial data fetching
   useEffect(() => {
