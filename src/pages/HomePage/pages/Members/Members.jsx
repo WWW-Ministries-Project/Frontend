@@ -7,7 +7,7 @@ import { membersColumns } from "../../utils/helperFunctions";
 import TableAsset from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
 function Members() {
-  const { setDisplayForm, members, userStats } = useOutletContext();
+  const { setDisplayForm, members } = useOutletContext();
 
   const navigate = useNavigate()
   const [filterMembers, setFilterMembers] = useState("");
@@ -18,9 +18,6 @@ function Members() {
     setFilterMembers(e.target.value);
   };
 
-  const handleClick = () => {
-    setDisplayForm(true);
-  };
   const handleNavigation = () => {
     navigate('add-member')
   }
@@ -82,11 +79,6 @@ function Members() {
             <div>
               <Button
                 value="Add member"
-                className={" text-white h-10 p-2 gradientBtn"}
-                onClick={handleClick}
-              />
-              <Button
-                value="Add member new"
                 className={" text-white h-10 p-2 gradientBtn"}
                 onClick={handleNavigation}
               />
