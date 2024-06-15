@@ -3,13 +3,17 @@ import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import Button from "../../../../../components/Button";
+import { genderOptions } from "../../../../../utils/helperFunctions";
 
 interface MembersFormProps {
   edit: boolean;
   user?: UserType;
   department?: OptionsType[];
   onChange: (name: string, value: string) => void;
-  onSubmit: (name: string, value: string) => void;
+  onSubmit: () => void;
+  onCancel: ()=>void;
+  disabled: boolean
+  loading: boolean
 }
 
 const MembersForm: React.FC<MembersFormProps> = (props) => {
@@ -40,21 +44,21 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             label="First Name"
             value={props.user?.first_name}
             disabled={!props.edit}
-            id="firstname"
+            id="first_name"
             onChange={handleChange}
           />
           <InputDiv
             label="Other Name"
             value={props.user?.other_name}
             disabled={!props.edit}
-            id="othername"
+            id="other_name"
             onChange={handleChange}
           />
           <InputDiv
             label="Last Name"
             value={props.user?.last_name}
             disabled={!props.edit}
-            id="lastname"
+            id="last_name"
             onChange={handleChange}
           />
           <InputDiv
@@ -65,11 +69,13 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             type="date"
             onChange={handleChange}
           />
-          <InputDiv
+          <SelectField
             label="Gender"
-            value={props.user?.email}
+            value={props.user?.gender}
+            options={genderOptions}
             disabled={!props.edit}
             id="gender"
+            placeholder={"select gender"}
             onChange={handleChange}
           />
           <InputDiv
@@ -217,6 +223,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             <Button
               value={"Save"}
               onClick={props.onSubmit}
+              loading={props.loading}
+              disabled={props.disabled}
               className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
             />
           </div>

@@ -9,7 +9,7 @@ import { addNewMember } from "./utils/apiCalls";
 
 const AddMember = () => {
   const [profilePic, setProfilePic] = useState({});
-  const [userValue, setUserValue, userValueRef] = useState({ "password": "123456", "department_id": "", "name": "", "email": "", "primary_number": "", "date_of_birth": "", "gender": "", "is_active": true, "address": "", "occupation": "", "company": "", "department_head": 0, "country": "" });
+  const [userValue, setUserValue, userValueRef] = useState({ "password": "123456", "department_id": "", "first_name": "","other_name": "","last_name": "", "email": "", "primary_number": "", "date_of_birth": "", "gender": "", "is_active": true, "address": "", "occupation": "", "company": "", "department_head": 0, "country": "" });
   function changePic(pic) {
     setProfilePic(() => pic);
   }
@@ -48,7 +48,6 @@ async function handleSubmit() {
           text={""}
           alt="profile pic"
           icon={editIcon}
-          name={"firstname"}
           alternative="edit button"
           className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all duration-1000 mx-aut"
           textClass={"text-[32px] leading-[36px] mx-8 "}
@@ -58,7 +57,7 @@ async function handleSubmit() {
         <div className="text-sm text-[#8F95B2] mt-3">Image size must be less <br /> than 2mb, jpeg or png</div>
       </section>
 
-      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} />
+      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} disabled={!userValue.email || !userValue.first_name} />
     </section>
   );
 }

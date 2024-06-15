@@ -27,3 +27,4 @@ export const formatTime = (value) => {
 export const formatInputDate = (value) => {
     return DateTime.fromISO(value).toFormat("yyyy-MM-dd");
 }
+export const genderOptions = [{name:'Male',value:"male"},{name:'Female',value:"female"},{name:"other",value:"other"}]
