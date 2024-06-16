@@ -1,14 +1,20 @@
-import PropTypes from 'prop-types';
+import Button from "@/components/Button";
+import Filter from "@/pages/HomePage/Components/reusable/Filter";
 import { months, years } from "../utils/eventHelpers";
-import Button from "/src/components/Button";
-import Filter from "/src/pages/HomePage/Components/reusable/Filter";
+
+interface EventsManagerHeaderProps {
+    onNavigate: (path: string) => void
+    onChange: (name: string, value: string) => void
+    onFilter: () => void
+    viewfilter: boolean
+}
 
 
-const EventsManagerHeader = (props) => {
+const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
     const monthsOptions = months;
     const yearOptions = years;
 
-    function handleChange(name, value) {
+    function handleChange(name: string, value: string) {
         props.onChange(name, value);
     }
 
@@ -31,12 +37,5 @@ const EventsManagerHeader = (props) => {
         </div>
     );
 }
-
-EventsManagerHeader.propTypes = {
-    onNavigate: PropTypes.func,
-    onChange: PropTypes.func,
-    onFilter: PropTypes.func,
-    viewfilter: PropTypes.bool,
-};
 
 export default EventsManagerHeader;
