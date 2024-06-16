@@ -12,7 +12,7 @@ import MemberCard from "../../pages/Members/Components/MemberCard";
 import { useLocation } from "react-router-dom";
 import GridWrapper from "/src/Wrappers/GridWrapper";
 
-function TableComponent({ data, columns, filter, setFilter, tableView, displayedCount }) {
+function TableComponent({ data, columns, filter, setFilter, tableView, displayedCount,...props }) {
   const [sorting, setSorting] = useState([]);
   const location = useLocation();
   const table = useReactTable({
@@ -46,7 +46,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              className="text-center text-[#080808] font-bold py-4 bg-[#f8f9f999]">
+              className={"text-center text-[#080808] font-bold py-4 bg-[#f8f9f999] " + props.rowClass}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
@@ -72,7 +72,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className="border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999]">
+              className={"border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999]  "+ props.rowClass} >
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-1">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -132,6 +132,7 @@ TableComponent.propTypes = {
   filter: PropTypes.string,
   setFilter: PropTypes.func,
   tableView: PropTypes.bool,
-  displayedCount: PropTypes.number
+  displayedCount: PropTypes.number,
+  rowClass: PropTypes.string
 }
 export default TableComponent;

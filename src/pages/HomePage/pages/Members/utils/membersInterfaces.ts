@@ -10,6 +10,7 @@ export interface UserType {
   email?: string;
   address?: string;
   country?: string;
+  photo?: string;
   department?: { id: string };
   occupation?: {
     name?: string;
