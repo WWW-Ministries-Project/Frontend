@@ -8,9 +8,10 @@
 // jsconfig.json
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@components/*": ["components/*"]
     }
   },
   "include": ["src"]

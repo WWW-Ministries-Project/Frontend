@@ -2,18 +2,29 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
 import TableAsset from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
+import useWindowSize from "../../../../CustomHooks/useWindowSize";
 function Members() {
-  const { setDisplayForm, members } = useOutletContext();
+  const { members } = useOutletContext();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { screenWidth } = useWindowSize();
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(false);
 
   const columns = membersColumns;
+
+  useEffect(() => {
+    if (screenWidth <= 540) {
+      setTableView(false);
+      document.getElementById("switch").classList.add("hidden")
+    }else{
+      document.getElementById("switch").classList.remove("hidden")
+    }
+  },[screenWidth])
   const handleSearchChange = (e) => {
     setFilterMembers(e.target.value);
   };
@@ -25,32 +36,14 @@ function Members() {
   return (
     <>
       <main className="h-full">
-        {/* <section className="bg-white h-40 grid grid-cols-4 items-center">
-          <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.total_members || "-"}</p>
-            <p className="P200 text-gray">Registered Church Members</p>
-          </div>
-          <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.partners || "-"}</p>
-            <p className="P200 text-gray">Partners</p>
-          </div>
-          <div className="border-r border-[#EEF2F4] p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.total_females || "-"}</p>
-            <p className="P200 text-gray">Females</p>
-          </div>
-          <div className=" p-2 justify-items-start">
-            <p className="P900 dark900">{userStats.total_males || "-"}</p>
-            <p className="P200 text-gray">Males</p>
-          </div>
-        </section> */}
 
         {/* Members Table Section */}
         <section className={` py-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              <div className="flex gap-1 bg-lightGray p-1 rounded-md">
-                <div onClick={() => setTableView(true)}><TableAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-white rounded-md':''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView?'bg-lightGray rounded-md':'bg-white  rounded-md'} /></div>
+              <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
+                <div onClick={() => setTableView(true)}><TableAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} /></div>
               </div>
               <SearchBar
                 className="w-[40.9%] h-10"
@@ -79,7 +72,7 @@ function Members() {
             <div>
               <Button
                 value="Add member"
-                className={" text-white h-10 p-2 gradientBtn"}
+                className={" text-white min-h-12 max-h-14 p-2 gradientBtn"}
                 onClick={handleNavigation}
               />
             </div>

@@ -25,7 +25,7 @@ export const registeredEventAttendance =[
   },
   {
     header: "Membership status",
-    accessorKey: "name",
+  
     cell:({row}) => row.original.user.user_info.name
   },
   {
@@ -35,12 +35,12 @@ export const registeredEventAttendance =[
   },
   {
     header: "Arrival time",
-    accessorKey: "name",
+  
     cell:({row}) => row.original.user.user_info.name
   },
   {
     header: "Last visited",
-    accessorKey: "last_visited",
+    accessorKey: "created_at",
     cell: ({row}) => formatTime(row.original.created_at)
   },
 ]

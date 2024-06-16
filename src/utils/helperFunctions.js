@@ -17,8 +17,13 @@ export const decodeToken = (value) => {
     return token && jwtDecode(token);
 }
 export const firstLetters = (string="No Name") =>{
+    string = string.length > 0 ? string : "No Name"
     const arr = string.trim().split(" ");
-    return `${arr[0][0]}${arr[arr.length - 1][0]}`
+    let initials="";
+    if(arr[0][0])initials+=arr[0][0].toUpperCase();
+    if(arr[arr.length - 1][0])initials+=arr[arr.length - 1][0].toUpperCase();
+
+    return initials;
 }
 
 export const formatTime = (value) => {
