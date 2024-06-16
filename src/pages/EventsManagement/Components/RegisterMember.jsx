@@ -7,6 +7,9 @@ const RegisterMember = ({memberDetails, name, loading,handleChange,onSubmit}) =>
     const handleSubmit=() =>{
         onSubmit()
     }
+    const handleCancel = () => {
+        window.location.reload();
+    }
     return (
         <div className="">
             <h2 className="H400">Welcome to {name}</h2>
@@ -20,7 +23,7 @@ const RegisterMember = ({memberDetails, name, loading,handleChange,onSubmit}) =>
                 <SelectField options={[{name:'Male',value:"Male"},{name:'Female',value:"Female"}]} id='gender' label='Gender' placeholder="Select Gender" onChange={handleChange} />
                 {/* <SelectField options={[{name:'Male',value:"male"},{name:'females',value:"female"}]} label='Memebership status' placeholder="Select Membership status" /> */}
                 <div className="flex justify-between my-4">
-                    <Button value="Cancel" className="text-primaryViolet bg-transparent w-40 py-1 border rounded-sm" />
+                    <Button value="Cancel" className="text-primaryViolet bg-transparent w-40 py-1 border rounded-sm"onClick={handleCancel} />
                     <Button value="Save" className="text-white w-40 py-1 border rounded-sm" loading={loading} onClick={handleSubmit}  disabled={!memberDetails.first_name || !memberDetails.phone_number || loading} />
                 </div>
             </div>
