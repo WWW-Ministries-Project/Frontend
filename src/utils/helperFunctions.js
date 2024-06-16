@@ -19,7 +19,7 @@ export const decodeToken = (value) => {
 export const firstLetters = (string="No Name") =>{
     string = string.length > 0 ? string : "No Name"
     const arr = string.trim().split(" ");
-    return `${arr[0][0]?.toUpperCase()}${arr[arr.length - 1][0]?.toUpperCase()}`
+    return `${arr[0][0].toUpperCase()}${arr[arr.length - 1][0].toUpperCase()}`
 }
 
 export const formatTime = (value) => {

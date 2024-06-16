@@ -56,7 +56,7 @@ function Members() {
         </section> */}
 
         {/* Members Table Section */}
-        <section className={` p-7 ${tableView ? "bg-white" : "bg-[#f2f3f8]"} `}>
+        <section className={` py-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">

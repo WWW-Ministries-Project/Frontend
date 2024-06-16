@@ -9,7 +9,7 @@ const MemberCard = (props) => {
     const navigate = useNavigate();
 
     return (
-        <CardWrapper>
+        <CardWrapper className="max-w-[400px] min-w-[295px] ">
             <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.userInfo.photo} alt="profile pic" />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>
@@ -27,6 +27,7 @@ const MemberCard = (props) => {
                 <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
             </div>
         </CardWrapper>
+
     );
 }
 MemberCard.propTypes = {
