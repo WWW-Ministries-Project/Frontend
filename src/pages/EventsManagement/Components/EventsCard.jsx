@@ -14,10 +14,11 @@ const EventsCard = (props) => {
     }
 
     return (
-        <CardWrapper className={"flex-col text-gray text-xs"+"border border border-[#FF576550]"}>
+        <div className="authForm pb-1 rounded-xl shadow-lg mx-auto bg-primaryViolet">
             <div className=''>
                 <img className='rounded-xl' src={props.event.poster||defaultImage} alt="" />
             </div>
+        <CardWrapper className={"flex-col text-gray "+""}>
             <div className="flex gap-1 items-center font-bold">
                 <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
                 <p>{props.event.name}</p>
@@ -47,6 +48,7 @@ const EventsCard = (props) => {
             </div>
 
         </CardWrapper>
+        </div>
     );
 }
 
