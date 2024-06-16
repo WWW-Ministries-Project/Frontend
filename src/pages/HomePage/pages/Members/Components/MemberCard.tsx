@@ -4,6 +4,7 @@ import Button from '@/components/Button';
 import ProfilePic from '@/components/ProfilePicture.jsx';
 import { useNavigate } from 'react-router-dom';
 import { UserType } from '../utils/membersInterfaces';
+import { useUserStore } from '@/store/userStore';
 
 interface MemberCardProps {
     name: string;
@@ -18,6 +19,19 @@ interface MemberCardProps {
 
 const MemberCard:React.FC<MemberCardProps> = (props) => {
     const navigate = useNavigate();
+    const userStore = useUserStore();
+    
+    const handleClick = () => {
+        const temp={
+            name:props.name,
+            email:props.email,
+            userInfo:props.userInfo,
+            title:props.userInfo.title
+        }
+        userStore.setSelectedMember(temp)
+        navigate(`/home/members/${props.id}/info`)
+    }
+
 
     return (
         <CardWrapper className="max-w-[400px] min-w-[295px] ">
@@ -35,7 +49,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
                 <p className='text-sm '>{props.email|| "email"}</p>
                 </div>
                 <div>{props.userInfo.primary_number || "Phone Number"}</div>
-                <Button value={"View Profile"} onClick={() => {navigate(`/home/members/${props.id}/info`)}} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
+                <Button value={"View Profile"} onClick={handleClick} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
             </div>
         </CardWrapper>
 
