@@ -88,7 +88,7 @@ function DashBoard() {
         </div>
         <div>
 
-          <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} />
+          <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} displayedCount={5} rowClass={"!h-10"} />
         </div>
       </section>
     </main>
