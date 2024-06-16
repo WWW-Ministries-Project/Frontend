@@ -1,16 +1,27 @@
-import ProfilePic from '/src/components/ProfilePicture';
-import ellipse from "/src/assets/ellipse.svg";
-import Button from '/src/components/Button';
-import PropTypes from 'prop-types';
+import CardWrapper from '@/Wrappers/CardWrapper';
+import ellipse from "@/assets/ellipse.svg";
+import Button from '@/components/Button';
+import ProfilePic from '@/components/ProfilePicture.jsx';
 import { useNavigate } from 'react-router-dom';
-import CardWrapper from '/src/Wrappers/CardWrapper';
+import { UserType } from '../utils/membersInterfaces';
 
-const MemberCard = (props) => {
+interface MemberCardProps {
+    name: string;
+    position?: string;
+    image?: string;
+    primary_number?: string;
+    id: number;
+    department?: string;
+    email?: string;
+    userInfo: UserType
+}
+
+const MemberCard:React.FC<MemberCardProps> = (props) => {
     const navigate = useNavigate();
 
     return (
         <CardWrapper className="max-w-[400px] min-w-[295px] ">
-            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.userInfo.photo} alt="profile pic" />
+            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.userInfo?.photo} alt="profile pic" />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>
                     <p className='font-bold text-[1rem] '>{props.name}</p>
@@ -29,15 +40,6 @@ const MemberCard = (props) => {
         </CardWrapper>
 
     );
-}
-MemberCard.propTypes = {
-    name: PropTypes.string,
-    email: PropTypes.string,
-    department: PropTypes.string,
-    image: PropTypes.string,
-    position: PropTypes.string,
-    userInfo: PropTypes.object,
-    id: PropTypes.number
 }
 
 export default MemberCard;
