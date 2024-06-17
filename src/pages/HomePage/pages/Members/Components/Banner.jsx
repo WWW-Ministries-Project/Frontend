@@ -1,6 +1,7 @@
 
 import PropTypes from 'prop-types';
 import coverImage from "/src/assets/images/CoverImage.jpg";
+import coverImage1 from "/src/assets/CoverImage.svg";
 import Button from '/src/components/Button';
 import ProfilePic from "/src/components/ProfilePicture";
 
@@ -10,8 +11,8 @@ const Banner = (props) => {
     }
     return (
         <div className="w-full relative">
-            <img src={coverImage} alt="cover Image" className="w-full h-48" />
-            <div className="absolute bottom-0 left-0 w-full h-48 flex items-center justify-between px-2">
+            <img src={coverImage1} alt="cover Image" className="w-full rounded-xl" />
+            <div className={"absolute px-4 bottom-0 left-0 w-full h-48 flex items-center justify-between px-2 bg-[url({coverImage1})]"}>
                 <div className='flex gap-4 items-center'>
                     <ProfilePic className="w-40 h-40 shadow" src={props.src} alt="cover Image" name={props.name} editable={props.edit} id="coverPic" onChange={props.onPicChange} />
                     <article>
