@@ -43,17 +43,17 @@ const CreateEvent = () => {
     };
 
     return (
-        <section className="px-4 text-mainGray">
-            <h1 className="H700 mb-4">Create Event</h1>
+        <section className="p-8 container text-mainGray bg-white rounded-xl mx-auto">
+            <h1 className="H700 ">Create Event</h1>
             <p className="text-sma text-lightGray">Fill in the form below with the event details</p>
-            <form className="flex flex-col gap-4 mt-4 w-full sm:w-1/2 md:w-2/3 ">
+            <form className="flex flex-col gap-4 mt-4 w-full ">
                 <h2 className="H600">Event Information</h2>
                 <div className="w-full sm:w-1/2">
                     <InputDiv label="Event Name" type="text" id="name" value={inputValue.name} onChange={handleChange} />
                 </div>
                 <div className="flex flex-col gap-1">
                     <h2 className="H600 my-4">Date & Time Informations</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid phone:grid-cols-2 grid tablet:grid-cols-2 gap-4">
                         <InputDiv label="Start Date" type="date" id="start_date" value={formatInputDate(inputValue.start_date)} onChange={handleChange} />
                         <InputDiv label="End Date" type="date" id="end_date" value={formatInputDate(inputValue.end_date)} onChange={handleChange} />
                         {/* <SelectField label="Repeat" type="date" id="end_date" value={inputValue.repeat} onChange={handleChange} placeholder="Does event repeat" options={[{ name: "Repeat", value: "repeat" }, { name: "Doesn't repeat", value: "end_date" }]} /> */}
@@ -63,7 +63,7 @@ const CreateEvent = () => {
                 </div>
                 <div className="flex flex-col gap-1">
                     <h2 className="H600 my-4">Other Information</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className=" phone:grid-cols-2 grid tablet:grid-cols-2 gap-4">
                         <InputDiv label="Location" type="text" id="location" value={inputValue.location} onChange={handleChange} />
                     </div>
                     <TextField label="Description" type="text" id="description" value={inputValue.description} onChange={handleChange} />

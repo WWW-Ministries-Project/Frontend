@@ -12,7 +12,7 @@ const Button = (props) => {
     <>
       <button
         className={
-          "leading-5 rounded-lg bg-primaryViolet text-center text-black disabled:bg-lightGray  " +
+          "leading-5 rounded-lg  text-center text-black disabled:bg-lightGray  " +
           props.className
         }
         disabled={props.disabled||false}

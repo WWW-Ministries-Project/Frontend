@@ -46,7 +46,7 @@ const AddMember = () => {
     }
   }
   return (
-    <section >
+    <section className="mx-auto p-8 container bg-white rounded-xl">
       <div className="flex flex-col gap-4 items-center tablet:items-start">
         <div className="font-bold text-xl">Member Information</div>
         <div className="text text-[#8F95B2] mt-">

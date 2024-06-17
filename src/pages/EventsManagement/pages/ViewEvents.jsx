@@ -5,6 +5,7 @@ import axios from "/src/axiosInstance";
 import { formatTime } from "/src/utils/helperFunctions";
 import TableComponent from "/src/pages/HomePage/Components/reusable/TableComponent";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers"
+import defaultImage1 from "/src/assets/images/default.png"
 
 const ViewEvents = () => {
     const [eventdetails, setEventdetails] = useState({});
@@ -44,7 +45,7 @@ const ViewEvents = () => {
         }
     };
     return (
-        <div>
+        <div className="container mx-auto">
             <div className="flex justify-between mb-8">
                 <div className="text-2xl H500 font-bold">Event Details</div>
                 <div>
@@ -54,8 +55,8 @@ const ViewEvents = () => {
 
             <div className="w-full flex justify-between gap-4">
 
-                <div className="w-2/3 border border-1 border-[#dcdcdc] p-4 rounded-xl">
-                    <section className="flex w-full  rounded mb-16 gap-4">
+                <div className="w-2/3 bg-white gap-5 border border-1 border-[#dcdcdc] p-4 rounded-xl">
+                    <section className="flex w-full  rounded gap-4">
                         <div className="w-full sm:w-1/2 md:w-2/3  flex flex-col gap-2  text-mainGray ">
                             <div>
                                 <h1 className="text-2xl font-bold p-0 m-0 text-mainGray">{eventdetails.name}</h1>
@@ -73,7 +74,7 @@ const ViewEvents = () => {
 
                         </div>
                         <div>
-                            <img className="rounded-xl" src="https://picsum.photos/seed/picsum/600/200" alt="" />
+                            <img className="rounded-xl w-[70vh]" src={eventdetails.poster||defaultImage1} alt="" />
                         </div>
                     </section>
                     <section className="w-full  rounded ">
@@ -86,11 +87,11 @@ const ViewEvents = () => {
                         </div>
                     </section>
                 </div>
-                <aside className="w-[360px] h-[360px] flex flex-col justify-center items-center rounded border border-[#dcdcdc] ">
+                <aside className="w-[360px] h-[360px] flex flex-col justify-center items-center rounded-xl border border-[#dcdcdc] ">
                     <div className="w-40 mx-auto shadow">
                         <img src={eventdetails.qr_code} alt="Qr code" className="w-full" />
                     </div>
-                    <Button value="Download QR Code" className=" px-4 mt-8 text-white text-xs h-8  " loading={loading} disabled={loading} onClick={() => { handleQrDownload(eventdetails.qr_code) }} />
+                    <Button value="Download QR Code" className=" px-4 mt-8 text-white text-xs h-8  bg-primaryViolet" loading={loading} disabled={loading} onClick={() => { handleQrDownload(eventdetails.qr_code) }} />
                 </aside>
             </div>
         </div>
