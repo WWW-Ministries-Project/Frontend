@@ -46,7 +46,7 @@ const ViewEvents = () => {
     };
     return (
         <div className="container mx-auto">
-            <div className="flex justify-between mb-8">
+            <div className="flex justify-between mb-2">
                 <div className="text-2xl H500 font-bold">Event Details</div>
                 <div>
                     <button className='px-4 py-2  border border-[#dcdcdc] rounded-lg' >Edit</button>
