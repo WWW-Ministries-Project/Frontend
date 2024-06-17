@@ -26,6 +26,7 @@ const AddMember = () => {
     navigate("/home/members");
   }
   async function handleSubmit() {
+
     setLoading(true);
     const data = new FormData();
     data.append("file", profilePic.picture);
@@ -37,6 +38,7 @@ const AddMember = () => {
         const link = response.data.result.link;
         setUserValue(prev => ({ ...prev, photo: link }));
       }
+      setLoading(true);
       setProfilePic({});
       addNewMember(userValueRef.current); // sends data after picture link is received
       setLoading(false);
@@ -69,7 +71,7 @@ const AddMember = () => {
           <div className="text-sm text-[#8F95B2] mt-3">Image size must be less <br /> than 2mb, jpeg or png</div>
         </section>
       </div>
-      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} onCancel={handleCancel} disabled={!userValue.email || !userValue.first_name} loading={loading} />
+      <MembersForm user={userValue} edit={true} onChange={handleChange} onSubmit={handleSubmit} onCancel={handleCancel} disabled={!userValue.email || !userValue.first_name || loading} loading={loading} />
     </section>
   );
 }

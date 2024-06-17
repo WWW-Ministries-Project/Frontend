@@ -27,7 +27,7 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
             <div className="flex gap-4">
                 {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
-                <Button value="Filter" onClick={handleFilter} className={"text-white h-10 p-2 "} /></>}
+                <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>}
             </div>
             <Button
                 value="Create Event"
