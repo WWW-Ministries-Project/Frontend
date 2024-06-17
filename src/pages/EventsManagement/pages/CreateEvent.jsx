@@ -70,7 +70,7 @@ const CreateEvent = () => {
                 </div>
                 <div className="flex gap-4 justify-end">
                     <Button value="Cancel" className="p-2 px-4 text-primaryViolet bg-transparent border" onClick={() => window.history.back()} />
-                    <Button value="Save" className="p-2 px-4 text-white" onClick={handleSubmit} loading={loading} disabled={loading || !inputValue.name} />
+                    <Button value="Save" className="p-2 px-4 text-white bg-primaryViolet" onClick={handleSubmit} loading={loading} disabled={loading || !inputValue.name} />
                 </div>
             </form>
         </section>
