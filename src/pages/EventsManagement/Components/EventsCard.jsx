@@ -38,7 +38,9 @@ const EventsCard = (props) => {
                 <img src={location} alt="location" />
                 <p>{props.event.location}</p>
             </div>
-            <div className="flex gap-3 items-center  border-1 border-lightGray border-t pt-3 text-xxs">
+            <hr className='text-[lightGray]'/>
+            <div className="flex gap-3 items-center w-full right-0 relative  border-1 border-lightGray ">
+                
                 <div className='flex gap-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
 
                     <Button value="Edit" className=" p-2 border border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)}/>
