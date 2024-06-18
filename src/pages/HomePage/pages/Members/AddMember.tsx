@@ -1,3 +1,5 @@
+import { pictureInstance as axiosPic } from '@/axiosInstance';
+import { pictureType } from "@/utils/interfaces";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import ProfilePicture from "../../../../components/ProfilePicture";
@@ -6,23 +8,22 @@ import { baseUrl } from "../../../Authentication/utils/helpers";
 import MembersForm from "./Components/MembersForm";
 import { addNewMember } from "./utils/apiCalls";
 import editIcon from "/assets/home/edit.svg";
-import { pictureInstance as axiosPic } from '/src/axiosInstance';
 
 
 const AddMember = () => {
-  const [profilePic, setProfilePic] = useState({});
+  const [profilePic, setProfilePic] = useState<pictureType>({ picture: "", src: "" });
   const [loading, setLoading] = useState(false);
   const [userValue, setUserValue, userValueRef] = useState(memberValues);
   const navigate = useNavigate();
-  function changePic(pic) {
+  function changePic(pic:pictureType) {
     setProfilePic(() => pic);
   }
-  const handleChange = (name, value) => {
+  const handleChange = (name:string, value:string) => {
     setUserValue((prev) => ({ ...prev, [name]: value }));
   }
   const handleCancel = () => {
     setUserValue(memberValues);
-    setProfilePic({});
+    setProfilePic({picture:"",src:""});
     navigate("/home/members");
   }
   async function handleSubmit() {
@@ -33,13 +34,13 @@ const AddMember = () => {
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
     try {
-      const response = profilePic.picture && await axiosPic.post(path, data);
+      const response:any = profilePic.picture && await axiosPic.post(path, data);
       if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
         setUserValue(prev => ({ ...prev, photo: link }));
       }
       setLoading(true);
-      setProfilePic({});
+      setProfilePic({picture:"",src:""});
       addNewMember(userValueRef.current); // sends data after picture link is received
       setLoading(false);
     } catch (error) {
@@ -62,7 +63,6 @@ const AddMember = () => {
             text={""}
             alt="profile pic"
             icon={editIcon}
-            alternative="edit button"
             className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all duration-1000 mx-aut"
             textClass={"text-[32px] leading-[36px] mx-8 "}
             onChange={changePic}
