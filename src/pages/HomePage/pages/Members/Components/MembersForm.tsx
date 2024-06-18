@@ -3,6 +3,7 @@ import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import Button from "../../../../../components/Button";
+import ContactInput from "../../../../../components/ContactInput";
 import { genderOptions } from "../../../../../utils/helperFunctions";
 
 interface MembersFormProps {
@@ -95,13 +96,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           Contact Information
         </div>
         <div className="w-full  grid tablet:grid-cols-2 gap-4">
-          <InputDiv
-            label="Phone Number"
-            value={props.user?.primary_number}
-            id="primary_number"
-            disabled={!props.edit}
-            onChange={handleChange}
-          />
+          <ContactInput label="zip" contactValue={props.user?.primary_number} zipCode={props.user?.country_code} id="primary_number" disabled={!props.edit} onChange={handleChange} placeholder="enter phone number"/>
           <InputDiv
             label="Email"
             value={props.user?.email}

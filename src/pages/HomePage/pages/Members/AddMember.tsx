@@ -41,8 +41,8 @@ const AddMember = () => {
       }
       setLoading(true);
       setProfilePic({picture:"",src:""});
-      addNewMember(userValueRef.current); // sends data after picture link is received
-      setLoading(false);
+      const res = await addNewMember(userValueRef.current)
+      if(res && res.status === 200) navigate("/home/members"); // sends data after picture link is received
     } catch (error) {
       console.log(error);
       setLoading(false);

@@ -6,7 +6,8 @@ export interface UserType {
   date_of_birth?: string;
   gender?: string;
   marital_status?: string;
-  primary_number?: string;
+  primary_number: string;
+  country_code?: string;
   email?: string;
   address?: string;
   country?: string;
