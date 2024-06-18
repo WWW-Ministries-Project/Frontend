@@ -218,7 +218,7 @@ const AssetManagement = () => {
 
   return (
     <>
-      <section className="mt-6  p-7 ">
+      <section className="mt-6   ">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
           <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
@@ -270,7 +270,7 @@ const AssetManagement = () => {
         </div>:
         <div>
         <GridWrapper>
-          {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()}/>)}
+          {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
           {console.log("Props", assertsData)}
           {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
         </GridWrapper>

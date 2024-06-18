@@ -12,7 +12,7 @@ import Button from '/src/components/Button';
 
 const AssetCard = (props) => {
     const handleNavigation = (path) => {
-        // props.onNavigate(path);
+        props.onNavigate(path);
     }
 
     return (
