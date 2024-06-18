@@ -95,7 +95,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         <div className=" text-black font-bold my-5">
           Contact Information
         </div>
-        <div className="w-full  grid tablet:grid-cols-2 gap-4">
+        <div className="w-full grid tablet:grid-cols-2 gap-4">
           <ContactInput label="zip" contactValue={props.user?.primary_number} zipCode={props.user?.country_code} id="primary_number" disabled={!props.edit} onChange={handleChange} placeholder="enter phone number"/>
           <InputDiv
             label="Email"

@@ -83,7 +83,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           id={"country_code"}
           onChange={handleInputChange}
           value={searchTerm}
-          className={" w-20 " + props.zipClass}
+          className={" w-16 " + props.zipClass}
         />
         {searchTerm && (
           <div className="absolute left-0 right-0 mt-1 bg-white rounded shadow w-24 max-h-60 overflow-y-auto text-sma">
@@ -108,8 +108,8 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         label={props.label}
         placeholder={props.placeholder}
         id={props.id}
-        onChange={handleInputChange}
-        value={searchTerm}
+        onChange={props.onChange}
+        value={props.contactValue}
         className={" w-full " + props.className}
       />
     </div>
