@@ -25,7 +25,7 @@ export const membersColumns = [
   },
   {
     header: "Phone number",
-    accessorKey: "user_info.primary_number",
+    accessorKey: "primary_number",
   },
   {
     header: "last visited",
