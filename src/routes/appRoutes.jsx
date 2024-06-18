@@ -17,7 +17,7 @@ import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
 import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
 import FormWrapper from "/src/Wrappers/FormWrapper.jsx";
 import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
-import AddMember from "../pages/HomePage/pages/Members/AddMember.jsx";
+import AddMember from "../pages/HomePage/pages/Members/AddMember";
 
 
 
