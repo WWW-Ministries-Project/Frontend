@@ -10,7 +10,7 @@ import { formatTime } from '/src/utils/helperFunctions';
 import Button from '/src/components/Button';
 
 
-const EventsCard = (props) => {
+const AssetCard = (props) => {
     const handleNavigation = (path) => {
         props.onNavigate(path);
     }
@@ -18,29 +18,30 @@ const EventsCard = (props) => {
     return (
         <div className="authForm  rounded-xl shadow-lg mx-auto ">
             <div className='relative top-2'>
-                <img className='rounded-xl' src={props.event.poster||defaultImage1} alt="" />
+                <div className={`text-xs relative top-7 float-right mx-4 rounded-md text-lighterBlack w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
+            : "bg-neutralGray text-lighterBlack"}`}>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</div>
+                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.assets.photo || defaultImage} alt="lk" />
+                {/* <div>{props}jjkjkj</div> */}
             </div>
             <div className='pb-1 rounded-xl bg-primaryViolet'>
         <CardWrapper className={"flex-col text-gray rounded-b-xl"}>
-            <div className="flex pt-2 gap-1 items-center font-bold">
-                <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
-                <p>{props.event.name}</p>
+            <div className="flex pt-2 gap-2 items-center font-bold">
+                {/* <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/> */}
+                <p>{props.assets.name}</p>
             </div>
             <div className="flex gap-1 text-sm">
-                <img src={time} alt="clock icon" />
-                <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p>
+                {/* <img src={time} alt="clock icon" /> */}
+                {/* <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p> */}
             </div>
             <div className="flex gap-1 items-center text-sm">
-                <img src={calendar} alt="clock icon" />
-                <p>{formatTime(props.event.start_date) || "TBD"}</p>
+                {/* <img src={calendar} alt="clock icon" /> */}
+                {/* <p>{formatTime(props.event.start_date) || "TBD"}</p> */}
             </div>
             <div className="flex gap-1 text-sm">
-                <img src={location} alt="location" />
-                <p>{props.event.location}</p>
+                {/* <img src={location} alt="location" /> */}
+                {/* <p>{props.event.location}</p> */}
             </div>
-            <hr className='text-[lightGray]'/>
-            <div className="flex gap-3 items-center w-full right-0 relative  border-1 border-lightGray ">
-                
+            {/* <div className="flex gap-3 items-center  border-1 border-lightGray border-t pt-3 text-xxs">
                 <div className='flex gap-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
 
                     <Button value="Edit" className=" p-2 border border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)}/>
@@ -49,7 +50,7 @@ const EventsCard = (props) => {
                 
                     <Button value="View" className=" p-2  text-white text-xs  bg-primaryViolet " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}/>
                 </div>
-            </div>
+            </div> */}
             
         </CardWrapper>
         </div>
@@ -57,21 +58,19 @@ const EventsCard = (props) => {
     );
 }
 
-EventsCard.propTypes = {
+AssetCard.propTypes = {
     className: PropTypes.string,
-    event: PropTypes.shape({
+    assets: PropTypes.shape({
         name: PropTypes.string,
-        start_date: PropTypes.string,
-        end_date: PropTypes.string,
-        location: PropTypes.string,
+        date_purchased: PropTypes.string,
+        photo: PropTypes.string,
         description: PropTypes.string,
         id: PropTypes.number,
-        start_time: PropTypes.string,
-        end_time: PropTypes.string,
+        status: PropTypes.string,
     }),
-    onNavigate: PropTypes.func,
-    calendarView: PropTypes.bool,
+    // onNavigate: PropTypes.func,
+    // calendarView: PropTypes.bool,
 
 }
 
-export default EventsCard;
+export default AssetCard;

@@ -3,6 +3,7 @@ import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import Button from "../../../../../components/Button";
+import ContactInput from "../../../../../components/ContactInput";
 import { genderOptions } from "../../../../../utils/helperFunctions";
 
 interface MembersFormProps {
@@ -21,14 +22,13 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
     props.onChange(name, value);
   }
   return (
-    <section                                         >
+    <form>
       <section>
         <div className=" text-black font-bold my-5">
           Personal Information
         </div>
-        <div className="w-full grid tablet:grid-cols-2 gap-4">
-          {/* <InputDiv label="Name" value="Saah Asiedu" id="name" disabled={!props.edit} /> */}
-          <SelectField
+        <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
+        <SelectField
             label="Title"
             value={props.user?.title}
             disabled={!props.edit}
@@ -40,6 +40,9 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               { name: "Miss", value: "Miss" },
             ]}
           />
+        </div>
+        <div className="w-full grid tablet:grid-cols-2 gap-4">
+          {/* <InputDiv label="Name" value="Saah Asiedu" id="name" disabled={!props.edit} /> */}
           <InputDiv
             label="First Name"
             value={props.user?.first_name}
@@ -65,7 +68,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             label="Date of Birth"
             value={props.user?.date_of_birth}
             disabled={!props.edit}
-            id="dateofbirth"
+            id="date_of_birth"
             type="date"
             onChange={handleChange}
           />
@@ -93,17 +96,12 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           Contact Information
         </div>
         <div className="w-full  grid tablet:grid-cols-2 gap-4">
-          <InputDiv
-            label="Phone Number"
-            value={props.user?.primary_number}
-            id="phonenumber"
-            disabled={!props.edit}
-            onChange={handleChange}
-          />
+          <ContactInput label="zip" contactValue={props.user?.primary_number} zipCode={props.user?.country_code} id="primary_number" disabled={!props.edit} onChange={handleChange} placeholder="enter phone number"/>
           <InputDiv
             label="Email"
             value={props.user?.email}
             id="email"
+            type={"email"}
             disabled={!props.edit}
             onChange={handleChange}
           />
@@ -152,22 +150,22 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         <div className="w-full  grid tablet:grid-cols-2 gap-4">
           <InputDiv
             label="Name of Institution"
-            value={props.user?.occupation?.name}
-            id="occupation"
+            value={props.user?.work_name}
+            id="work_name"
             disabled={!props.edit}
             onChange={handleChange}
           />
           <InputDiv
             label="Industry"
-            value={props.user?.occupation?.industry}
-            id="industry"
+            value={props.user?.work_industry}
+            id="work_industry"
             disabled={!props.edit}
             onChange={handleChange}
           />
           <InputDiv
             label="Position"
-            value={props.user?.occupation?.position}
-            id="position"
+            value={props.user?.work_position}
+            id="work_position"
             disabled={!props.edit}
             onChange={handleChange}
           />
@@ -179,17 +177,17 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         </div>
         <div className="w-full  grid tablet:grid-cols-2 gap-4">
           <InputDiv
-            label="Name of Institution"
+            label="Name of Contact"
             disabled={!props.edit}
-            value={props.user?.emergency_contact?.name}
-            id="emergencycontact"
+            value={props.user?.emergency_contact_name}
+            id="emergency_contact_name"
             onChange={handleChange}
           />
           <SelectField
             label="Relation"
             disabled={!props.edit}
-            value={props.user?.occupation?.industry}
-            id="relation"
+            value={props.user?.emergency_contact_relation}
+            id="emergency_contact_relation"
             onChange={handleChange}
             options={[
               { name: "brother", value: "brother" },
@@ -204,10 +202,10 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             ]}
           />
           <InputDiv
-            label="Position"
+            label="Phone Number"
             disabled={!props.edit}
-            value={props.user?.occupation?.position}
-            id="position"
+            value={props.user?.emergency_contact_phone_number}
+            id="emergency_contact_phone_number"
             onChange={handleChange}
           />
         </div>
@@ -230,7 +228,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           </div>
         </section>
       )}
-    </section>
+    </form>
   );
 };
 

@@ -6,25 +6,21 @@ export interface UserType {
   date_of_birth?: string;
   gender?: string;
   marital_status?: string;
-  primary_number?: string;
+  primary_number: string;
+  country_code?: string;
   email?: string;
   address?: string;
   country?: string;
   photo?: string;
   department?: { id: string };
-  occupation?: {
-    name?: string;
-    industry?: string;
-    position?: string;
-  };
-  emergency_contact?: {
-    name?: string;
-    relation?: string;
-  };
+  work_name?: string;
+  work_industry?: string;
+  work_position?: string;
+  emergency_contact_name?: string;
+  emergency_contact_relation?: string;
+  emergency_contact_phone_number?: string;
 }
 export interface OptionsType {
   name: string;
   value: string;
 }
-
-

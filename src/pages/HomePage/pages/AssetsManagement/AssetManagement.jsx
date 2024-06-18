@@ -17,6 +17,10 @@ import axios, { pictureInstance as axiosFile } from "/src/axiosInstance.js";
 // import axios from "axios";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
+import GridWrapper from "/src/Wrappers/GridWrapper";
+import AssetCard from "./AssetCard";
+import TableAssets from "/src/assets/TableAssets";
+import GridAsset from "/src/assets/GridAsset";
 
 const AssetManagement = () => {
   // const columns = assetsColumns;
@@ -28,6 +32,7 @@ const AssetManagement = () => {
   const [editMode, setEditMode] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
   const selectOptions = [{ name: "department", value: "department" }];
+  const [tableView, setTableView] = useState(false);
   // const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});
   const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
   const [profilePic, setProfilePic] = useState({});
@@ -213,9 +218,12 @@ const AssetManagement = () => {
 
   return (
     <>
-      <section className="mt-6 bg-white p-7 ">
+      <section className="mt-6   ">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
+          <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
+                <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} /></div>
+              </div>
             <SearchBar
               className="w-[40.9%] h-10"
               placeholder="Search asserts here..."
@@ -252,14 +260,21 @@ const AssetManagement = () => {
           </div>
         </div>
         {/* <TableComponent /> */}
-        <div>
+        {tableView?<div className="bg-white">
           <TableComponent
             columns={columns}
             data={assertsData}
             filter={filter}
             setFilter={setFilter}
           />
-        </div>
+        </div>:
+        <div>
+        <GridWrapper>
+          {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
+          {console.log("Props", assertsData)}
+          {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
+        </GridWrapper>
+        </div>}
       </section>
       <FormsComponent
         className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 const SelectField = (props) => {
 
     function handleChange(e) {
+        e.preventDefault();
         const name = e.target.name;
         props.onChange(name, e.target.value);
       }

@@ -15,6 +15,7 @@ interface MemberCardProps {
     department?: string;
     email?: string;
     userInfo: UserType
+    photo: string
 }
 
 const MemberCard:React.FC<MemberCardProps> = (props) => {
@@ -35,7 +36,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
 
     return (
         <CardWrapper className="max-w-[400px] min-w-[295px] rounded-xl">
-            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.userInfo?.photo} alt="profile pic" />
+            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>
                     <p className='font-bold text-[1rem] '>{props.name}</p>
@@ -48,7 +49,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
                 <div className='flex gap-1 text-xs'>
                 <p className='text-sm '>{props.email|| "email"}</p>
                 </div>
-                <div>{props.userInfo.primary_number || "Phone Number"}</div>
+                <div>{props.primary_number || "Phone Number"}</div>
                 <Button value={"View Profile"} onClick={handleClick} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " />
             </div>
         </CardWrapper>

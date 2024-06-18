@@ -6,12 +6,14 @@ import { formatTime } from "/src/utils/helperFunctions";
 import TableComponent from "/src/pages/HomePage/Components/reusable/TableComponent";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers"
 import defaultImage1 from "/src/assets/images/default.png"
+import { useNavigate } from "react-router-dom";
 
 const ViewEvents = () => {
     const [eventdetails, setEventdetails] = useState({});
     const [loading, setLoading] = useState(false);
     const query = location.search;
     const params = new URLSearchParams(query);
+    const navigate = useNavigate();
     const id = params.get('event_id');
     useEffect(() => {
         axios.get(`/event/get-event?id=${id}`).then((res) => {
@@ -48,9 +50,7 @@ const ViewEvents = () => {
         <div className="container mx-auto">
             <div className="flex justify-between mb-2">
                 <div className="text-2xl H500 font-bold">Event Details</div>
-                <div>
-                    <button className='px-4 py-2  border border-[#dcdcdc] rounded-lg' >Edit</button>
-                </div>
+                <Button value="Edit" className="px-4 py-2  border border-[#dcdcdc] rounded-lg" onClick={() => { navigate(`/home/manage-event?event_id=${id}` )}} />
             </div>
 
             <div className="w-full flex justify-between gap-4">
@@ -74,7 +74,7 @@ const ViewEvents = () => {
 
                         </div>
                         <div>
-                            <img className="rounded-xl w-[70vh]" src={eventdetails.poster||defaultImage1} alt="" />
+                            <img className="rounded-xl w-[70vh]" src={eventdetails.poster||defaultImage1} alt=" banner for event" />
                         </div>
                     </section>
                     <section className="w-full  rounded ">
