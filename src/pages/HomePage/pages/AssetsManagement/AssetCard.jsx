@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import CardWrapper from '/src/Wrappers/CardWrapper';
 import calendar from "/src/assets/calendar.svg";
 import time from "/src/assets/clock.svg";
-import defaultImage from "/src/assets/images/earth.png"
-import defaultImage1 from "/src/assets/images/default.png"
+import defaultImage from "/src/assets/images/image.png"
+import defaultImage1 from "/src/assets/image.svg"
 import edit from "/src/assets/edit.svg";
 import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
@@ -16,12 +16,15 @@ const AssetCard = (props) => {
     }
 
     return (
-        <div className="authForm  rounded-xl shadow-lg mx-auto ">
-            <div className='relative top-2'>
-                <div className={`text-xs relative top-7 float-right mx-4 rounded-md text-lighterBlack w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
+        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto ">
+            <div className='relative top'>
+            <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
+                <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
             : "bg-neutralGray text-lighterBlack"}`}>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</div>
-                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.assets.photo || defaultImage} alt="lk" />
-                {/* <div>{props}jjkjkj</div> */}
+            
+                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.assets.photo || defaultImage1} alt="lk" />
+                
+                
             </div>
             <div className='pb-1 rounded-xl bg-primaryViolet'>
         <CardWrapper className={"flex-col text-gray rounded-b-xl"}>
