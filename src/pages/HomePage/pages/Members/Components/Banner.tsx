@@ -1,10 +1,23 @@
 
 import PropTypes from 'prop-types';
 import coverImage1 from "/src/assets/CoverImage.svg";
-import Button from '/src/components/Button';
-import ProfilePic from "/src/components/ProfilePicture";
+import Button from '@/components/Button';
+import ProfilePic from "@/components/ProfilePicture";
+import React from 'react';
 
-const Banner = (props) => {
+interface BannerProps {
+    name: string;
+    department: string;
+    position: string;
+    email: string;
+    primary_number: string;
+    src: string;
+    onClick: () => void;
+    edit: boolean;
+    onPicChange: () => void;
+}
+
+const Banner:React.FC<BannerProps> = (props) => {
     const handleClick = () => {
         props.onClick();
     }
@@ -29,19 +42,5 @@ const Banner = (props) => {
         </div>
     );
 };
-
-
-Banner.propTypes = {
-    name: PropTypes.string,
-    department: PropTypes.string,
-    position: PropTypes.string,
-    email: PropTypes.string,
-    primary_number: PropTypes.string,
-    src: PropTypes.string,
-    onClick: PropTypes.func,
-    edit: PropTypes.bool,
-    onPicChange: PropTypes.func
-
-}
 
 export default Banner;
