@@ -7,7 +7,7 @@ const MemberInformation = () => {
     const { edit, handleEdit } = useOutletContext();
     const {selectedMember} = useUserStore();
     return (
-        <MembersForm edit={edit} user={selectedMember} />
+        <MembersForm edit={edit} user={selectedMember.userInfo} />
     );
 }
 MemberInformation.propTypes = {

@@ -40,7 +40,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
     <>
       {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
         <GridWrapper>
-        {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} id={row.original.id} name={row.original.name} email={row.original.email} primary_number={row.original.primary_number} photo={row.original.photo} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
+        {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} id={row.original.id} name={row.original.name} userInfo={row.original} email={row.original.email} primary_number={row.original.primary_number} photo={row.original.photo} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
         </GridWrapper> : <table className="w-full">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
