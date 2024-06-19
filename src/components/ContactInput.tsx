@@ -81,6 +81,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           label={"code"}
           placeholder={"code"}
           id={"country_code"}
+          disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
           className={" w-16 " + props.zipClass}
@@ -110,6 +111,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         id={props.id}
         onChange={props.onChange}
         value={props.contactValue}
+        disabled={props.disabled}
         className={" w-full " + props.className}
       />
     </div>

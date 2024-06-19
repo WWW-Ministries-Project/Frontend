@@ -1,4 +1,4 @@
-import ProfileDetails from "/src/pages/HomePage/pages/Members/pages/ProfileDetails.jsx";
+import ProfileDetails from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
