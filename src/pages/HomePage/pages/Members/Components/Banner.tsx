@@ -1,10 +1,9 @@
 
-import PropTypes from 'prop-types';
-import coverImage1 from "/src/assets/CoverImage.svg";
 import Button from '@/components/Button';
 import ProfilePic from "@/components/ProfilePicture";
-import React from 'react';
 import { pictureType } from '@/utils/interfaces';
+import React from 'react';
+import coverImage1 from "/src/assets/CoverImage.svg";
 
 interface BannerProps {
     name?: string;

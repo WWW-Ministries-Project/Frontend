@@ -20,7 +20,6 @@ interface MembersFormProps {
 const MembersForm: React.FC<MembersFormProps> = (props) => {
   function handleChange(name: string, value: string) {
     props.onChange(name, value);
-    console.log(props.user,"props.user")
   }
   return (
     <form>

@@ -1,21 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
+import useState from "react-usestateref";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import Banner from "../Components/Banner";
-import { fetchAMember } from "../utils/apiCalls";
+import { fetchAMember, updateAMember } from "../utils/apiCalls";
 import { pictureType } from "@/utils/interfaces";
 import { UserType } from "../utils/membersInterfaces";
+import { pictureInstance as axiosPic } from "@/axiosInstance";
 
 const ProfileDetails = () => {
     const links = [{ name: "Member Information", path: "info" }, { name: "Assets", path: "assets" }]
     const [edit, setEdit] = useState(false);
     const [profilePic, setProfilePic] = useState<pictureType>({ picture: "", src: "" });
     const [details, setDetails] = useState<UserType>({primary_number:"",email:"",name:""});
+    const [userValue, setUserValue, userValueRef] = useState<UserType | object>({});
+    const [loading, setLoading] = useState(false);
     const { id }= useParams();
 
     useEffect(() => {
         if (id){
             fetchAMember(id).then((res) => {
-                if(res && res.status <= 202) setDetails(res.data.data);
+                if(res && res.status <= 202) {
+                    setDetails(res.data.data)
+                    setProfilePic({ picture: "", src: res.data.data.photo || "" });
+                };
             })
         }
     }, [])
@@ -27,7 +34,39 @@ const ProfileDetails = () => {
         setEdit(bool);
     }
     const handleChange = (name:string, value:string) => {
+        setUserValue((prev) => ({ ...prev, [name]: value }));
         setDetails((prev) => ({ ...prev, [name]: value }));
+    }
+    // const handleSubmit = () => {
+    //     setUserValue(prev=>({...prev,id:details.id}));
+    //     updateAMember(userValueRef.current as UserType)
+
+    // }
+    async function handleSubmit() {
+
+        setLoading(true);
+        const data = new FormData();
+        data.append("file", profilePic.picture);
+        const endpoint = "/upload";
+        const path = `${endpoint}`;
+        try {
+          const response:any = profilePic.picture && await axiosPic.post(path, data);
+          if (profilePic.picture && response.status === 200) {
+            const link = response.data.result.link;
+            setUserValue(prev => ({ ...prev, photo: link }));
+          }
+          setLoading(true);
+          setProfilePic(prev=>({...prev,picture:""}));
+          setUserValue(prev=>({...prev,id:details.id}));
+          const res = await updateAMember(userValueRef.current as UserType)
+          if(res && res.status === 200) setLoading(false);
+        } catch (error) {
+          console.log(error);
+          setLoading(false);
+        }
+      }
+    const handleCancel = () => {
+        setEdit(false);
     }
 
 
@@ -43,7 +82,7 @@ const ProfileDetails = () => {
                 ))}
             </div>
             <div className="px-8 pb-8">
-                <Outlet context={{ edit, handleEdit, details }} />
+                <Outlet context={{ edit, handleEdit, details, handleChange, handleSubmit, handleCancel, loading }} />
             </div>
         </section>
     );

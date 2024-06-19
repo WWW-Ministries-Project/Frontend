@@ -25,3 +25,14 @@ export const fetchAMember = (id:string|number) => {
       console.log(error);
     });
 }
+
+export const updateAMember = (obj:UserType) => {
+  return axios
+    .post(`${baseUrl}/user/update-user`, obj)
+    .then((response: AxiosResponse<{data:UserType}>) => {
+      return {data:response.data,status:response.status};
+    })
+    .catch((error: any) => {
+      console.log(error);
+    });
+}
