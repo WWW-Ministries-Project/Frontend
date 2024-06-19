@@ -53,9 +53,9 @@ const ViewEvents = () => {
                 <Button value="Edit" className="px-4 py-2  border border-[#dcdcdc] rounded-lg" onClick={() => { navigate(`/home/manage-event?event_id=${id}` )}} />
             </div>
 
-            <div className="w-full flex justify-between gap-4">
+            <div className="w-full gap-x-5 flex justify-between ">
 
-                <div className="w-2/3 bg-white gap-5 border border-1 border-[#dcdcdc] p-4 rounded-xl">
+                <div className="w-3/4 bg-white gap-3 border border-1 border-[#dcdcdc] p-4 rounded-xl">
                     <section className="flex w-full  rounded gap-4">
                         <div className="w-full sm:w-1/2 md:w-2/3  flex flex-col gap-2  text-mainGray ">
                             <div>
@@ -74,7 +74,7 @@ const ViewEvents = () => {
 
                         </div>
                         <div>
-                            <img className="rounded-xl w-[70vh]" src={eventdetails.poster||defaultImage1} alt=" banner for event" />
+                            <img className="rounded-xl w-[50vh]" src={eventdetails.poster||defaultImage1} alt=" banner for event" />
                         </div>
                     </section>
                     <section className="w-full  rounded ">
@@ -87,8 +87,8 @@ const ViewEvents = () => {
                         </div>
                     </section>
                 </div>
-                <aside className="w-[360px] h-[360px] flex flex-col justify-center items-center rounded-xl border border-[#dcdcdc] ">
-                    <div className="w-40 mx-auto shadow">
+                <aside className="w-[320px] h-[320px] bg-white flex flex-col justify-center items-center rounded-xl border border-[#dcdcdc] ">
+                    <div className="w-40 mx-auto ">
                         <img src={eventdetails.qr_code} alt="Qr code" className="w-full" />
                     </div>
                     <Button value="Download QR Code" className=" px-4 mt-8 text-white text-xs h-8  bg-primaryViolet" loading={loading} disabled={loading} onClick={() => { handleQrDownload(eventdetails.qr_code) }} />
