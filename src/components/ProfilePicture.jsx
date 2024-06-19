@@ -34,6 +34,7 @@ const  ProfilePic = (props)=> {
                 </label>: null} */}
                 <input  type="file" id={props.id} className='hidden' onChange={props.onChange && handlePicChange} accept="image/*" capture='user'/>
                 </div>
+                
             </div>
         </>
     )
