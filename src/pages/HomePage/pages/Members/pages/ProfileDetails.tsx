@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import Banner from "../Components/Banner";
 import { fetchAMember } from "../utils/apiCalls";
+import { pictureType } from "@/utils/interfaces";
 
 const ProfileDetails = () => {
     const links = [{ name: "Member Information", path: "info" }, { name: "Assets", path: "assets" }]
     const [edit, setEdit] = useState(false);
-    const [profilePic, setProfilePic] = useState({ picture: "", src: "" });
+    const [profilePic, setProfilePic] = useState<pictureType>({ picture: "", src: "" });
     const [details, setDetails] = useState({});
     const { id }= useParams();
 
@@ -14,18 +15,17 @@ const ProfileDetails = () => {
         if (id){
             fetchAMember(id).then((res) => {
                 if(res && res.status <= 202) setDetails(res.data.data);
-                console.log(res.data);
             })
         }
     }, [])
 
-    function changePic(pic) {
+    function changePic(pic:pictureType) {
         setProfilePic(() => pic);
     }
     const handleEdit = () => {
         setEdit(!edit);
     }
-    const handleChange = (name, value) => {
+    const handleChange = (name:string, value:) => {
         setDetails((prev) => ({ ...prev, [name]: value }));
     }
 
