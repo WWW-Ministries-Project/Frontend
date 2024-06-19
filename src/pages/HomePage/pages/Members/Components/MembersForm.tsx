@@ -1,10 +1,10 @@
 import React from "react";
+import Button from "../../../../../components/Button";
+import ContactInput from "../../../../../components/ContactInput";
+import { formatInputDate, genderOptions } from "../../../../../utils/helperFunctions";
 import InputDiv from "../../../Components/reusable/InputDiv";
 import SelectField from "../../../Components/reusable/SelectField";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
-import Button from "../../../../../components/Button";
-import ContactInput from "../../../../../components/ContactInput";
-import { genderOptions } from "../../../../../utils/helperFunctions";
 
 interface MembersFormProps {
   edit: boolean;
@@ -20,6 +20,7 @@ interface MembersFormProps {
 const MembersForm: React.FC<MembersFormProps> = (props) => {
   function handleChange(name: string, value: string) {
     props.onChange(name, value);
+    console.log(props.user,"props.user")
   }
   return (
     <form>
@@ -66,7 +67,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           />
           <InputDiv
             label="Date of Birth"
-            value={props.user?.date_of_birth}
+            value={formatInputDate(props.user?.date_of_birth)}
             disabled={!props.edit}
             id="date_of_birth"
             type="date"
@@ -150,21 +151,21 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
         <div className="w-full  grid tablet:grid-cols-2 gap-4">
           <InputDiv
             label="Name of Institution"
-            value={props.user?.work_name}
+            value={props.user?.work_name|| props.user?.work_info?.name_of_institution}
             id="work_name"
             disabled={!props.edit}
             onChange={handleChange}
           />
           <InputDiv
             label="Industry"
-            value={props.user?.work_industry}
+            value={props.user?.work_industry|| props.user?.work_info?.industry}
             id="work_industry"
             disabled={!props.edit}
             onChange={handleChange}
           />
           <InputDiv
             label="Position"
-            value={props.user?.work_position}
+            value={props.user?.work_position|| props.user?.work_info?.position}
             id="work_position"
             disabled={!props.edit}
             onChange={handleChange}
@@ -179,14 +180,14 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           <InputDiv
             label="Name of Contact"
             disabled={!props.edit}
-            value={props.user?.emergency_contact_name}
+            value={props.user?.emergency_contact_name || props.user?.emergency_contact?.name}
             id="emergency_contact_name"
             onChange={handleChange}
           />
           <SelectField
             label="Relation"
             disabled={!props.edit}
-            value={props.user?.emergency_contact_relation}
+            value={props.user?.emergency_contact_relation|| props.user?.emergency_contact?.relation} 
             id="emergency_contact_relation"
             onChange={handleChange}
             options={[
@@ -204,7 +205,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           <InputDiv
             label="Phone Number"
             disabled={!props.edit}
-            value={props.user?.emergency_contact_phone_number}
+            value={props.user?.emergency_contact_phone_number || props.user?.emergency_contact?.phone_number}
             id="emergency_contact_phone_number"
             onChange={handleChange}
           />

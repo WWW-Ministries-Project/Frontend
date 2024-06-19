@@ -2,12 +2,10 @@
 import PropTypes from "prop-types";
 import { useOutletContext } from "react-router-dom";
 import MembersForm from "../Components/MembersForm";
-import { useUserStore } from "@/store/userStore";
 const MemberInformation = () => {
-    const { edit, handleEdit } = useOutletContext();
-    const {selectedMember} = useUserStore();
+    const { edit, handleEdit,details } = useOutletContext();
     return (
-        <MembersForm edit={edit} user={selectedMember.userInfo} />
+        <MembersForm edit={edit} user={details} department={[]} positions={[]} onChange={() => {}} onSubmit={() => {}} onCancel={() => {}} />
     );
 }
 MemberInformation.propTypes = {

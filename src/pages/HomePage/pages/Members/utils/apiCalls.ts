@@ -13,4 +13,15 @@ export const addNewMember = (obj:UserType) => {
       .catch((error: any) => {
         console.log(error);
       });
-  }
+}
+
+export const fetchAMember = (id:string|number) => {
+  return axios
+    .get(`${baseUrl}/user/get-user?user_id=${id}`)
+    .then((response: AxiosResponse<UserType>) => {
+      return {data:response.data,status:response.status};
+    })
+    .catch((error: any) => {
+      console.log(error);
+    });
+}
