@@ -1,18 +1,20 @@
 export interface UserType {
   title?: string;
+  name?: string;
   first_name?: string;
   other_name?: string;
   last_name?: string;
   date_of_birth?: string;
   gender?: string;
   marital_status?: string;
-  primary_number?: string;
+  primary_number: string;
   country_code?: string;
-  email?: string;
+  email: string;
   address?: string;
   country?: string;
   photo?: string;
-  department?: { id: string };
+  department?: { id: string, name: string };
+  position?: { id: string, name: string };
   work_name?: string;
   work_industry?: string;
   work_position?: string;

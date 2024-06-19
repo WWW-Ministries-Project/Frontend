@@ -15,7 +15,7 @@ type Action = {
 export const useUserStore = create<userType & Action>((set)=>({
 name:"",
 email:"",
-selectedMember:{},
+selectedMember:{email:"",name:"",primary_number:""},
 
 
 setName:(name:string)=>set({name}),

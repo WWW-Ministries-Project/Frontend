@@ -4,22 +4,23 @@ import coverImage1 from "/src/assets/CoverImage.svg";
 import Button from '@/components/Button';
 import ProfilePic from "@/components/ProfilePicture";
 import React from 'react';
+import { pictureType } from '@/utils/interfaces';
 
 interface BannerProps {
-    name: string;
+    name?: string;
     department: string;
     position: string;
     email: string;
     primary_number: string;
     src: string;
-    onClick: () => void;
+    onClick: (bool: boolean) => void;
     edit: boolean;
-    onPicChange: () => void;
+    onPicChange: (obj: pictureType) => void;
 }
 
 const Banner:React.FC<BannerProps> = (props) => {
     const handleClick = () => {
-        props.onClick();
+        props.onClick(true);
     }
     return (
         <div className="w-full h-48 relative">
