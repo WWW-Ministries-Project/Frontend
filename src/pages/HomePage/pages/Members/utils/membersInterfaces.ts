@@ -14,6 +14,7 @@ export interface UserType {
   email: string;
   address?: string;
   country?: string;
+  membership_type?: string;
   photo?: string;
   department?: { id: string, name: string };
   position?: { id: string, name: string };

@@ -28,6 +28,40 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   return (
     <form>
       <section>
+        <div className=" text-black font-bold my-5">Membership Status</div>
+        <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
+          <SelectField
+            label="Membership Type"
+            value={props.user?.membership_type}
+            disabled={!props.edit}
+            id="membership_type"
+            onChange={handleChange}
+            options={[
+              { name: "Member", value: "MEMBER" },
+              { name: "Visitor", value: "VISITOR" },
+            ]}
+          />
+        </div>
+        <div className="w-full grid tablet:grid-cols-2 gap-4">
+          {/* <InputDiv label="Name" value="Saah Asiedu" id="name" disabled={!props.edit} /> */}
+          <InputDiv
+            label="First Name"
+            value={props.user?.first_name}
+            disabled={!props.edit}
+            id="first_name"
+            onChange={handleChange}
+          />
+          <InputDiv
+            label="Other Name"
+            value={props.user?.other_name}
+            disabled={!props.edit}
+            id="other_name"
+            onChange={handleChange}
+          />
+
+        </div>
+      </section>
+      <section>
         <div className=" text-black font-bold my-5">Personal Information</div>
         <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
           <SelectField
