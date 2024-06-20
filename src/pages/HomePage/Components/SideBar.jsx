@@ -25,12 +25,12 @@ const SideBar = ({ show, ...props }) => {
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink 
                     to={items[index]["key"]} 
-                    className="hover:bg-[#9D7ED7] hover:text-white h-10 text-[#8C8C8C] flex items-center px-4 m-2 rounded-xl" 
+                    className={`hover:bg-[#9D7ED7] hover:text-white h-10  text-[#8C8C8C] flex items-center   ${!show ? "px-auto" : "px-2 py-7 mx-2"}   my-2 rounded-xl`}
                     style={({ isActive }) => 
                         (isActive ? { background: '#6539C3', color: "white" } : null)} 
                     key={index}
                 >
-                    <img src={icons[index]} alt={`${icons[index]} icon`} className={`${show ? "mr-4" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
+                    <img src={icons[index]} alt={`${icons[index]} icon`} className={`${show ? "mr-2" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
                     {show && <div>{item["name"]}</div>}
                 </NavLink>
             )}
