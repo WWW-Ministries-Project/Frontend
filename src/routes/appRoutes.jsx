@@ -8,16 +8,15 @@ import HomePage from "../pages/HomePage/HomePage.jsx";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard.jsx";
 import Members from "../pages/HomePage/pages/Members/Members.jsx";
+import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
-import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
 import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
-import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
-import FormWrapper from "/src/Wrappers/FormWrapper.jsx";
 import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
-import AddMember from "../pages/HomePage/pages/Members/AddMember";
+import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
+import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 
 
 
@@ -30,23 +29,23 @@ export const routes = [
   {
     path: "/",
     element: <LoginPage />,
-    errorElement: <ErrorPage/>
+    errorElement: <ErrorPage />
   },
   {
     path: "/login",
     element: <LoginPage />,
-    
+
   },
   {
     path: "/forgot-password",
     element: <ForgotPassword />,
-    
-  },  
+
+  },
   {
     path: "/reset-password",
     element: <ResetPassword />,
-    
-  },  
+
+  },
   {
     path: "/home",
     element: <HomePage />,
@@ -131,8 +130,8 @@ export const routes = [
         element: <UnderConstruction />,
       },
     ]
-    
-  },  
+
+  },
   {
     path: "events/register-event",
     element: <EventRegister />,
