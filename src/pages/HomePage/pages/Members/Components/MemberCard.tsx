@@ -24,10 +24,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
     
     const handleClick = () => {
         const temp={
-            name:props.name,
-            email:props.email,
-            userInfo:props.userInfo,
-            title:props.userInfo.title
+            ...props.userInfo
         }
         userStore.setSelectedMember(temp)
         navigate(`/home/members/${props.id}/info`)
