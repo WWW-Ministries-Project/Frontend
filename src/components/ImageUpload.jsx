@@ -71,7 +71,7 @@ const ImageUpload = ({ onFileChange }) => {
       />
       <label htmlFor="fileUpload" className="flex items-center">
         {preview ? (
-          <img src={preview} alt="Preview" className=" w-[20vw] object-cover p-2 rounded-xl cursor-pointer" style={{transform: 'scale(1)' }}/>
+          <img src={preview} alt="Preview" className="object-cover p-2 rounded-xl cursor-pointer" style={{transform: 'scale(1)' }}/>
         ) : (
         //   <p className="text-gray-600 text-center">Drag 'n' drop some files here, <br/> or click to select files</p>
         <div>
