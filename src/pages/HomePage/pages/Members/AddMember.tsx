@@ -18,7 +18,7 @@ const AddMember = () => {
   function changePic(pic:pictureType) {
     setProfilePic(() => pic);
   }
-  const handleChange = (name:string, value:string) => {
+  const handleChange = (name:string, value:string|boolean) => {
     setUserValue((prev) => ({ ...prev, [name]: value }));
   }
   const handleCancel = () => {

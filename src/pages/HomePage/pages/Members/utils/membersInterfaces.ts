@@ -1,5 +1,6 @@
 export interface UserType {
   id?: string;
+  is_user?: boolean;
   title?: string;
   name?: string;
   first_name?: string;
