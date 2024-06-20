@@ -40,7 +40,7 @@ const FormsComponent = (props) => {
                             className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
                             onClick={props.CloseForm}
                         />
-                        <Button value={props.editMode ? "Update" : "Save"} className={" p-3 text-white disabled:opacity-50"} onClick={onSubmit} loading={props.loading} disabled={!props.inputValue.name} />
+                        <Button value={props.editMode ? "Update" : "Save"} className={" p-3 bg-primaryViolet text-white disabled:opacity-50"} onClick={onSubmit} loading={props.loading} disabled={!props.inputValue.name} />
                     </div>
                 </form>
                 }
