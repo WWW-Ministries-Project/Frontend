@@ -3,7 +3,7 @@ import CardWrapper from '/src/Wrappers/CardWrapper';
 import calendar from "/src/assets/calendar.svg";
 import time from "/src/assets/clock.svg";
 import defaultImage from "/src/assets/images/earth.png"
-import defaultImage1 from "/src/assets/images/default.png"
+import defaultImage1 from "/src/assets/image.svg"
 import edit from "/src/assets/edit.svg";
 import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
@@ -16,38 +16,50 @@ const EventsCard = (props) => {
     }
 
     return (
-        <div className="authForm  rounded-xl shadow-lg mx-auto ">
-            <div className='relative top-2'>
-                <img className='rounded-xl' src={props.event.poster||defaultImage1} alt="" />
+        // <div className="authForm  rounded-xl shadow-lg mx-auto ">
+        //     <div className='relative top-2'>
+        //         <img className='rounded-xl' src={props.event.poster||defaultImage1} alt="" />
+        //     </div>
+        //     <div className='pb-1 rounded-xl bg-primaryViolet'>
+        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto ">
+            <div className='relative top cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
+            <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
+                <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.event.status=== "ASSIGNED"? "bg-green "
+            : "bg-neutralGray text-lighterBlack"}`}>{props.event.status=== "ASSIGNED" ? "Confirmed" : "Tentative"}</div>
+            
+                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.photo || defaultImage1} alt="lk" />
+                
+                
             </div>
             <div className='pb-1 rounded-xl bg-primaryViolet'>
         <CardWrapper className={"flex-col text-gray rounded-b-xl"}>
-            <div className="flex pt-2 gap-1 items-center font-bold">
+            <div className="flex gap-1 items-center font-bold">
                 <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
                 <p>{props.event.name}</p>
             </div>
-            <div className="flex gap-1 text-sm">
+            {/* <div className="flex gap-1 text-sm">
                 <img src={time} alt="clock icon" />
                 <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p>
-            </div>
+            </div> */}
             <div className="flex gap-1 items-center text-sm">
                 <img src={calendar} alt="clock icon" />
-                <p>{formatTime(props.event.start_date) || "TBD"}</p>
+                <p>{formatTime(props.event.start_date) || "TBD"}</p> | 
+                <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p>
             </div>
             <div className="flex gap-1 text-sm">
                 <img src={location} alt="location" />
                 <p>{props.event.location}</p>
             </div>
             <hr className='text-[lightGray]'/>
-            <div className="flex gap-3 items-center w-full right-0 relative  border-1 border-lightGray ">
+            <div className="flex gap-x-2 items-center justify-between  border-1 border-lightGray ">
                 
-                <div className='flex gap-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
+                <div className='flex  gap-x-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
 
-                    <Button value="Edit" className=" p-2 border border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)}/>
+                    <Button value="Edit" className=" px-2 border-0 border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)}/>
                 </div>
                 <div className='flex  text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} >
                 
-                    <Button value="View" className=" p-2  text-white text-xs  bg-primaryViolet " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}/>
+                    <Button value="View" className=" px-2  text-primaryViolet text-xs   bg-primaryVioletk " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}/>
                 </div>
             </div>
             

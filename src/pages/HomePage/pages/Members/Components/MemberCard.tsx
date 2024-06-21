@@ -24,10 +24,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
     
     const handleClick = () => {
         const temp={
-            name:props.name,
-            email:props.email,
-            userInfo:props.userInfo,
-            title:props.userInfo.title
+            ...props.userInfo
         }
         userStore.setSelectedMember(temp)
         navigate(`/home/members/${props.id}/info`)
@@ -36,7 +33,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
 
     return (
         <CardWrapper className="max-w-[400px] min-w-[295px] rounded-xl">
-            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" />
+            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" name={props.name} />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>
                     <p className='font-bold text-[1rem] '>{props.name}</p>

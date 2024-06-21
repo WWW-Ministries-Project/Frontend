@@ -81,12 +81,13 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           label={"code"}
           placeholder={"code"}
           id={"country_code"}
+          disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
-          className={" w-20 " + props.zipClass}
+          className={" w-16 " + props.zipClass}
         />
         {searchTerm && (
-          <div className="absolute left-0 right-0 mt-1 bg-white rounded shadow w-24 max-h-60 overflow-y-auto text-sma">
+          <div className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow w-20 max-h-60 overflow-y-auto text-sma codes">
             {filteredCountries.map((country) => (
               <div
                 key={country.countryCode}
@@ -98,7 +99,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
                   alt="country flag"
                   className="h-5 w-5"
                 />
-                {country.dialCode} ({country.initials})
+                {country.dialCode}
               </div>
             ))}
           </div>
@@ -108,8 +109,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         label={props.label}
         placeholder={props.placeholder}
         id={props.id}
-        onChange={handleInputChange}
-        value={searchTerm}
+        onChange={props.onChange}
+        value={props.contactValue}
+        disabled={props.disabled}
         className={" w-full " + props.className}
       />
     </div>
