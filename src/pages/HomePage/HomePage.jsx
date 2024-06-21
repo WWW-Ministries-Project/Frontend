@@ -9,6 +9,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import NewMember from "./Components/NewMember";
 import { useAuth } from "../../auth/AuthWrapper";
 import useWindowSize from "../../CustomHooks/useWindowSize";
+import waves from "../../assets/wavescx.svg"
 
 
 function HomePage() {
@@ -109,7 +110,7 @@ function HomePage() {
       {token ?
         (<div className="bg-[#f2f3f8]"><Header />
           <main className="min-h-screen max-w-screen" onClick={CloseForm}>
-            <SideBar style={{ paddingTop: "90px" }} onClick={handleShowNav} show={show} />
+            <SideBar style={{ marginTop: "65px", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.svg')" }} onClick={handleShowNav} show={show} />
             <section className={` min-h-screen pt-20 px-5 pb-5 bg-[#F2F3F8] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
               <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
             </section>
