@@ -1,5 +1,5 @@
 import { FieldProps, getIn } from 'formik'
-import InputDiv, {InputDivProps} from '@/pages/HomePage/Components/reusable/InputDs'
+import InputDiv, {InputDivProps} from '@/pages/HomePage/Components/reusable/InputDiv'
 
 
 

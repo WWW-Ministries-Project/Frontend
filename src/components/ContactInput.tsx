@@ -19,7 +19,7 @@ interface ContactInputProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
-  onChange: (name: string, value: string) => void;
+  onChange: (name: string, value: string|number) => void;
 }
 
 const ContactInput: React.FC<ContactInputProps> = (props) => {
@@ -53,8 +53,8 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     }
   };
 
-  const handleInputChange = (name: string, val: string) => {
-    const value = val.toLowerCase();
+  const handleInputChange = (name: string, val: string|number) => {
+    const value = val.toString().toLowerCase();
     setSearchTerm(value);
     const filtered = countries.filter(
       (country) =>
