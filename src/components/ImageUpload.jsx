@@ -75,7 +75,7 @@ const ImageUpload = ({ onFileChange }) => {
         ) : (
         //   <p className="text-gray-600 text-center">Drag 'n' drop some files here, <br/> or click to select files</p>
         <div>
-                    <img className="mx-auto" src={cloud_upload} alt="" srcset="" />
+                    <img className="mx-auto" src={cloud_upload} alt="" srcSet="" />
                     <div className="text-center">Click here to upload the event banner</div>
                 </div>
         )}

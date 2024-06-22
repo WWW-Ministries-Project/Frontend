@@ -1,19 +1,8 @@
 import PropTypes from 'prop-types';
 
-interface InputDivProps {
-    type?: string
-    label?: string
-    placeholder?: string
-    className?: string
-    inputClass?: string
-    id: string
-    value?: string | number
-    onChange: (name: string, value: string | number) => void
-    disabled?: boolean
-}
-function InputDiv (props: InputDivProps) {
+function InputDiv (props) {
 
-    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleChange(e) {
         const name = e.target.name;
         props.onChange(name, e.target.value);
       }

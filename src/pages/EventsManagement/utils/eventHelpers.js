@@ -44,3 +44,22 @@ export const registeredEventAttendance =[
     cell: ({row}) => formatTime(row.original.created_at)
   },
 ]
+export const eventInput = {
+  name: "",
+  type: "",
+  start_date: "",
+  end_date: "",
+  start_time: "",
+  end_time: "",
+  location: "",
+  description: "",
+  isRepetitive: false,
+  repeatEvery: 1,
+  repeatUnit: "months",
+  repeatDays: [],
+  ends: "end_of_year",
+  endsOn: "",
+  isMultiDay: false,
+  number_days: 1,
+  poster: "",
+}
