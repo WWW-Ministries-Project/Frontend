@@ -5,6 +5,7 @@ import Button from "@/components/Button";
 import React from "react";
 // import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import FormikSelectField from "@/components/FormikSelect";
+import { eventFormValidator } from "../utils/eventHelpers";
 
 interface EventsFormProps {
   inputValue: any;
@@ -28,8 +29,10 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     <Formik
       onSubmit={(val) => {
         props.onSubmit(val);
+        console.log(val);
       }}
       initialValues={props.inputValue}
+      validationSchema={eventFormValidator}
     >
       {(props) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
@@ -41,6 +44,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               id="name"
               name="name"
             />
+            {/* <ErrorMessage name="name" component={"div"} /> */}
             <Field
               component={FormikSelectField}
               options={[
@@ -207,9 +211,13 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 <div className="mt-4">
                   <p className="text-sm text-gray-600">Repeat on:</p>
                   <div className="flex gap-5">
-                    {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
-                      <label key={index} className="flex items-center gap-x-1">
-                        <input
+                    {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                      (day, index) => (
+                        <label
+                          key={index}
+                          className="flex items-center gap-x-1"
+                        >
+                          <input
                             type="checkbox"
                             value={day}
                             checked={props.values.repeatDays.includes(day)}
@@ -223,23 +231,24 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                             }}
                             className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                           />
-                        {day}
-                      </label>
-                    ))}
+                          {day}
+                        </label>
+                      )
+                    )}
                   </div>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm text-gray-600">Ends:</p>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="ends" value="year" />
+                      <Field type="radio" name="ends" value="year" />
                       End of the year
                     </label>
                     <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="repetition" value="on" />
+                      <Field type="radio" name="repetition" value="on" />
                       On
                       <Field
-                      component={FormikInputDiv}
+                        component={FormikInputDiv}
                         label=""
                         type="date"
                         id="endsOn"
@@ -253,38 +262,38 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
           </div>
           <h2 className="H400 my-3">Other Information</h2>
           <div className="grid grid-cols-2 gap-4">
-          <Field
-          component={FormikInputDiv}
-            label="Location"
-            type="text"
-            id="location"
-            name="location"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Field
-            component={FormikInputDiv}
-            label="Event Description"
-            id="description"
-            name="description"
-            type="textarea"
-            inputClass=" !h-48 resize-none"
-          />
-        </div>
-        <div className="flex gap-4 justify-end mt-4">
-          <Button
-            value="Cancel"
-            className="p-2 px-4 text-primaryViolet bg-transparent border"
-            onClick={() => window.history.back()}
-          />
-          <Button
-            value="Save"
-            className="p-2 px-4 text-white bg-primaryViolet"
-            onClick={() => {
+            <Field
+              component={FormikInputDiv}
+              label="Location"
+              type="text"
+              id="location"
+              name="location"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Event Description"
+              id="description"
+              name="description"
+              type="textarea"
+              inputClass=" !h-48 resize-none"
+            />
+          </div>
+          <div className="flex gap-4 justify-end mt-4">
+            <Button
+              value="Cancel"
+              className="p-2 px-4 text-primaryViolet bg-transparent border"
+              onClick={() => window.history.back()}
+            />
+            <Button
+              value="Save"
+              className="p-2 px-4 text-white bg-primaryViolet"
+              onClick={() => {
                 props.handleSubmit();
               }}
-          />
-        </div>
+            />
+          </div>
         </div>
       )}
     </Formik>

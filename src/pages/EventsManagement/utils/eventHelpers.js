@@ -1,4 +1,5 @@
 import { formatTime } from "/src/utils/helperFunctions";
+import * as Yup from "yup";
 
 export const months = [
   {name: "January", value: 1},
@@ -63,3 +64,15 @@ export const eventInput = {
   number_days: 1,
   poster: "",
 }
+export const eventFormValidator = Yup.object({
+  name: Yup.string()
+  .max(15, 'Must be 15 characters or less')
+  .required('Required'),
+ type: Yup.string()
+  .required('Required'),
+start_date: Yup.date().required('Required'),
+start_date: Yup.date(),
+start_time: Yup.string().required("Required"),
+end_time: Yup.string().required("Required"),
+location: Yup.string().required("Required"),
+})

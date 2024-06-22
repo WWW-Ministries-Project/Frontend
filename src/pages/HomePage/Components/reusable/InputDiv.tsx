@@ -9,7 +9,9 @@ export interface InputDivProps {
   id: string;
   value?: string | number;
   onChange: (name: string, value: string | number) => void;
+  onBlur?: (e: React.FocusEvent<any>) => void;
   disabled?: boolean;
+  error?:string
 }
 function InputDiv(props: InputDivProps) {
   function handleChange(
@@ -17,6 +19,11 @@ function InputDiv(props: InputDivProps) {
   ) {
     const name = e.target.name;
     props.onChange(name, e.target.value);
+  }
+
+  function handleBlur (e:React.FocusEvent<HTMLAreaElement | HTMLInputElement >)
+  {
+    props.onBlur && props.onBlur(e)
   }
   return (
     <>
@@ -34,16 +41,18 @@ function InputDiv(props: InputDivProps) {
           />
         ) : (
           <input
-            className={"input rounded-xl" + " " + props.inputClass}
+            className={`input rounded-xl border ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
             id={props.id}
             name={props.id}
             type={props.type || "text"}
             value={props.value}
             onChange={handleChange}
+            onBlur={handleBlur}
             placeholder={props.placeholder}
             disabled={props.disabled}
           />
-        )}
+          )}
+        {props.error &&<div className="text-error text-sma">{props.error}</div>}
       </div>
     </>
   );
