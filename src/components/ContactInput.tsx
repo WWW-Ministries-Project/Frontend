@@ -19,7 +19,7 @@ interface ContactInputProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
-  onChange: (name: string, value: string|number) => void;
+  onChange: (name: string, value: string|number|boolean) => void;
 }
 
 const ContactInput: React.FC<ContactInputProps> = (props) => {
@@ -69,7 +69,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
-    props.onChange("code", country.dialCode);
+    props.onChange("country_code", country.dialCode);
     setSearchTerm(() => country.dialCode);
     setFilteredCountries([]);
   };
