@@ -62,10 +62,10 @@ const ProfileDetails = () => {
         profilePic.picture && (await axiosPic.post(path, data));
       if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
-        setUserValue((prev) => ({ val, photo: link }));
+        setUserValue((prev) => ({ ...val, photo: link }));
       }
       setProfilePic((prev) => ({ ...prev, picture: "" }));
-      setUserValue((prev) => ({ val, id: details.id }));
+      setUserValue((prev) => ({ ...val, id: details.id }));
       const res = await updateAMember(userValueRef.current as UserType);
       if (res && res.status === 200) {
         setDetails(prev=>({...prev,val}))

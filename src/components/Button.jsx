@@ -17,6 +17,7 @@ const Button = (props) => {
         }
         disabled={props.disabled||false}
         style={props.style}
+        type={props.type}
         onClick={handleClick}
         role="submit button">
         {props.value}{" "}
@@ -43,6 +44,7 @@ Button.propTypes = {
   link: PropTypes.string,
   value: PropTypes.string.isRequired,
   target: PropTypes.string,
+  type: PropTypes.string,
   className: PropTypes.string,
   onClick: PropTypes.func,
   style: PropTypes.object,
