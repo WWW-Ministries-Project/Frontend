@@ -80,9 +80,6 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               type="time"
               id="end_time"
               name="end_time"
-              onChange={() => {
-                console.log(props);
-              }}
             />
           </div>
           <div className="mt-4">
@@ -252,6 +249,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                         label=""
                         type="date"
                         id="endsOn"
+                        name="endsOn"
                         className="ml-2"
                       />
                     </label>

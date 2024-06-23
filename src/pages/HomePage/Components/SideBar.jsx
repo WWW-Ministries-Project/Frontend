@@ -23,7 +23,7 @@ const SideBar = ({ show, ...props }) => {
 
     return (
         <div className="">
-        <div className={`min-h-screen pt-4 text-black fixed  bg-white shadow-xs ${!show ? "w-10 min-w-[2vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
+        <div className={`min-h-screen pt-4 text-black fixed  bg-white shadow-sm z-10 ${!show ? "w-10 min-w-[2vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink 
                     to={items[index]["key"]} 

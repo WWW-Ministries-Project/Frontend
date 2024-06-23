@@ -66,7 +66,7 @@ export const eventInput = {
 }
 export const eventFormValidator = Yup.object({
   name: Yup.string()
-  .max(15, 'Must be 15 characters or less')
+  .max(30, 'Must be 15 characters or less')
   .required('Required'),
  type: Yup.string()
   .required('Required'),
