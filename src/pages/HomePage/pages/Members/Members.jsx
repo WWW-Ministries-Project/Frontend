@@ -34,11 +34,11 @@ function Members() {
   }
 
   return (
-    <>
-      <main className="h-full">
+    <div className="">
+      <main >
 
         {/* Members Table Section */}
-        <section className={` `}>
+        <section className={``}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -91,7 +91,7 @@ function Members() {
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 }
 export default Members;

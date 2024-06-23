@@ -37,11 +37,14 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
   });
 
   return (
-    <>
+    <div className="">
+      <div className="rounded-xl">
       {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
         <GridWrapper>
         {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} id={row.original.id} name={row.original.name} userInfo={row.original} email={row.original.email} primary_number={row.original.primary_number} photo={row.original.photo} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
-        </GridWrapper> : <table className="w-full">
+        </GridWrapper> :
+        <div className="h-[75vh] overflow-y-scroll rounded-xl">
+        <table className="w-full rounded-xl">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
@@ -81,8 +84,10 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
             </tr>
           ))}
         </tbody>
-      </table> }
-      {data.length > displayedCount ? <div className="flex justify-end gap-1 text-gray my-6 ">
+      </table> 
+      </div>}
+      </div>
+      {data.length > displayedCount ? <div className={`flex justify-end gap-1 text-gray  ${(!tableView && location.pathname?.toLowerCase() === "/home/members")? 'my-4':'my-4'}`}>
         <button
           onClick={() => table.setPageIndex(0)}
           className={
@@ -122,7 +127,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
           Last page
         </button>
       </div> : null}
-    </>
+    </div>
   );
 }
 

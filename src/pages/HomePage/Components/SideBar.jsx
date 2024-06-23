@@ -11,6 +11,7 @@ import Reports from "/src/assets/sidebar/report.svg";
 import Settings from "/src/assets/sidebar/settings.svg";
 import Users from "/src/assets/sidebar/user.svg";
 import Wavesb from "../../../assets/wavesb.svg";
+import ChurchLogo from '@/components/ChurchLogo';
 
 const SideBar = ({ show, ...props }) => {
     const items = sideTabs;
@@ -45,8 +46,8 @@ const SideBar = ({ show, ...props }) => {
 
             {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
         </div>
-        {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
-        </div>
+        // {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
+        // </div>
     );
 };
 

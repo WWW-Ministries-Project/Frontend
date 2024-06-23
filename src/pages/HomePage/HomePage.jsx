@@ -108,12 +108,15 @@ function HomePage() {
   return (
     <>
       {token ?
-        (<div className="bg-[#f2f3f8]"><Header />
-          <main className="min-h-screen max-w-screen" onClick={CloseForm}>
-            <SideBar style={{ marginTop: "65px", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.svg')" }} onClick={handleShowNav} show={show} />
-            <section className={` min-h-screen pt-20 px-5 pb-5 bg-[#F2F3F8] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+        (<div className="bg-white p-2 mx-1 overflow-hidden overscoll-contain">
+          {/* <Header /> */}
+          <main className=" max-w-screen " onClick={CloseForm}>
+            <div className="flex justify-center"></div>
+            <SideBar style={{ marginTop: "", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }} onClick={handleShowNav} show={show} />
+            <div className={` h-[98vh] rounded-xl  px-5  bg-[#F2F3F8] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+            <Header />
               <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
-            </section>
+            </div>
           </main>
 
           <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} disabled={!userValue.name} handlePictureUpdate={handlePictureUpdate} />

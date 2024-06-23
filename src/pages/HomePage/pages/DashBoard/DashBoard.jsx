@@ -77,7 +77,7 @@ function DashBoard() {
         </section>
       </div>
 
-      <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
+      {/* <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
       <section className="mt-6 bg-white p-7 w-full rounded-xl">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -92,7 +92,7 @@ function DashBoard() {
           <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} displayedCount={5} rowClass={"h-10"} />
         </div>
       </section>
-      </div>
+      </div> */}
     </main>
   );
 }
