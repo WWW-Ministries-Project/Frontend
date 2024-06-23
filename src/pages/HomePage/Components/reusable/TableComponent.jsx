@@ -43,7 +43,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
         <GridWrapper>
         {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} id={row.original.id} name={row.original.name} userInfo={row.original} email={row.original.email} primary_number={row.original.primary_number} photo={row.original.photo} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
         </GridWrapper> :
-        <div className="h-[75vh] overflow-y-scroll rounded-xl">
+        <div className="xl:h-[75vh] lg:h-[72vh] overflow-y-auto rounded-xl">
         <table className="w-full rounded-xl">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -87,7 +87,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
       </table> 
       </div>}
       </div>
-      {data.length > displayedCount ? <div className={`flex justify-end gap-1 text-gray  ${(!tableView && location.pathname?.toLowerCase() === "/home/members")? 'my-4':'my-4'}`}>
+      {data.length > displayedCount ? <div className={`flex justify-end gap-1 text-gray   ${(!tableView && location.pathname?.toLowerCase() === "/home/members")? 'my-2':'my-4'}`}>
         <button
           onClick={() => table.setPageIndex(0)}
           className={

@@ -48,7 +48,8 @@ function DashBoard() {
   return (
     <main className="">
       <NotificationFlag name={decodeToken().name} className={" mb-5"} />
-      <div className="my-5 flex items-center justify-between">
+      <div className={`pb-4 xl:h-[75vh] lg:h-[75vh] overflow-y-auto`}>
+      <div className={`my-5 flex items-center justify-between `}>
         <div className="H600">Overview</div>
         <div className="flex gap-2  justify-between">
           {/* <div className="bg-white rounded shadow flex gap-2 items-center justify-between h-10 px-2 py-4 border border-[#EEF2F4] cursor-pointer">
@@ -64,7 +65,7 @@ function DashBoard() {
           <StatsCard stats={stat} key={stat.name} />
         ))}
       </section>
-      <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
+      <div className="flex flex-col items-center tablet:flex-row justify-between grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 gap-4">
         <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full  ">
           {/* <BreakdownComponents /> */}
           <div className="text-dark900 H600">Members Breakdown</div>
@@ -77,7 +78,7 @@ function DashBoard() {
         </section>
       </div>
 
-      {/* <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
+      <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
       <section className="mt-6 bg-white p-7 w-full rounded-xl">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -92,7 +93,8 @@ function DashBoard() {
           <TableComponent columns={columns} data={members} filter={filter} setFilter={setFilter} displayedCount={5} rowClass={"h-10"} />
         </div>
       </section>
-      </div> */}
+      </div>
+      </div>
     </main>
   );
 }

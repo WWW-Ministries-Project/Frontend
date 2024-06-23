@@ -25,7 +25,7 @@ const Calendar = ({ events }) => {
       } else if (window.innerWidth < 900) {
         setEventsToShow(3);
       } else if (window.innerWidth < 1600) {
-        setEventsToShow(3);
+        setEventsToShow(4);
       } else if (window.innerWidth < 1900) {
         setEventsToShow(3);
       } else {
@@ -153,7 +153,7 @@ const Calendar = ({ events }) => {
       const date = new Date(prevMonthYear, prevMonth, day).toISOString().split('T')[0];
       const dayEvents = events?.filter(event => event.start_date.startsWith(date));
       days.push(
-        <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '13vh', cursor: 'pointer' }}>
+        <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '20vh', cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
@@ -181,7 +181,7 @@ const Calendar = ({ events }) => {
         <div
           key={day}
           className={`border border-[#dcdcdc] p-2 overflow-hidden ${isToday ? 'relative' : ''}`}
-          style={{ height: '13vh', cursor: 'pointer' }}
+          style={{ height: '20vh', cursor: 'pointer' }}
         >
           {isToday && (
             <div className="h-6 w-6 border rounded-full border-[#6539C3] flex items-center justify-center text-[#6539C3]">
@@ -215,7 +215,7 @@ const Calendar = ({ events }) => {
       const date = new Date(nextMonthYear, nextMonth, day).toISOString().split('T')[0];
       const dayEvents = events?.filter(event => event.start_date.startsWith(date));
       days.push(
-        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '13vh',  cursor: 'pointer' }}>
+        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '20vh',  cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
