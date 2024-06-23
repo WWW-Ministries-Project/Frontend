@@ -33,7 +33,7 @@ function Header() {
           <img src={bell} alt="" />
           {/* <div> */}
           {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
-          <div className="flex border border-[#6539C3] rounded-xl px-2 gap-x-2">
+          <div className="flex border border-[#6539C3] rounded-xl  gap-x-6">
           <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8    "} name={decodeToken().name} alt="profile picture" />
           {/* <span>{decodeToken().name}</span> */}
           <img src={arrowDown} alt="arrow down" onClick={handleClick} />

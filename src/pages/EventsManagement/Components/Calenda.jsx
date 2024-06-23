@@ -237,7 +237,7 @@ const Calendar = ({ events }) => {
   };
 
   return (
-    <div className="py-4 rounded-xl mx-auto">
+    <div className="py-4 rounded-xl mx-auto ">
       <div className="flex justify-between items-center mb-4">
         <div className='flex'>
           <button className='px-4 py-1 me-4 border border-[#dcdcdc] rounded-lg' onClick={handleToday}>Today</button>
@@ -246,7 +246,7 @@ const Calendar = ({ events }) => {
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
         </div>
       </div>
-      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] ">
+      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto xl:h-[78vh] lg:h-[50vh]">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-[#6539C3] font-bold">{day}</div>
         ))}

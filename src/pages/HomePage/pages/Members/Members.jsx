@@ -78,7 +78,7 @@ function Members() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <div className={`w-full mx-auto  ${tableView ? "bg-white p-2":"bg-[#f2f3f8] "} rounded-xl`}>
+          <div className={`w-full mx-auto  ${tableView ? "bg-white p-2":"bg-transparent "} rounded-xl`}>
             <TableComponent
               columns={columns}
               data={members}

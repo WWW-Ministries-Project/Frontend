@@ -113,7 +113,7 @@ function HomePage() {
           <main className=" max-w-screen " onClick={CloseForm}>
             <div className="flex justify-center"></div>
             <SideBar style={{ marginTop: "", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }} onClick={handleShowNav} show={show} />
-            <div className={` h-[98vh] rounded-xl  px-5  bg-[#F2F3F8] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
+            <div className={` h-[98vh] rounded-xl  px-5  bg-[#dcdde7] ${!show ? "ml-10" : "ml-[15.55%]"} `}>
             <Header />
               <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
             </div>

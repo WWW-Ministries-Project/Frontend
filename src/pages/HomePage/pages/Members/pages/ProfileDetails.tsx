@@ -80,7 +80,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full container mx-auto rounded-xl bg-white">
+    <section className=" w-full h-full container mx-auto rounded-xl bg-white xl:h-[90vh] lg:h-[80vh] ">
       <Banner
         onClick={handleEdit}
         edit={edit}
@@ -106,7 +106,7 @@ const ProfileDetails = () => {
           </NavLink>
         ))}
       </div>
-      <div className="px-8 pb-8">
+      <div className="hideScrollbar px-8 pb-8 xl:h-[63vh] lg:h-[50vh] overflow-y-auto">
         <Outlet
           context={{
             edit,

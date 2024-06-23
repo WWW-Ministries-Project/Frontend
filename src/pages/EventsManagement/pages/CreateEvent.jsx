@@ -60,11 +60,14 @@ const CreateEvent = () => {
   return (
     <section className="p-8 container  bg-white rounded-xl mx-auto">
       <h1 className="H700">Create Event</h1>
-      <p className="text-sma text-lightGray">
+      <p className="text-sma text-lightGray py-2">
         Fill in the form below with the event details
       </p>
+      <div className="hideScrollbar overflow-y-auto xl:h-[78vh] lg:h-[50vh]">
         <ImageUpload onFileChange={(file) => setFile(file)} />
+          
       <EventsForm inputValue={inputValue} onSubmit={handleSubmit} />
+      </div>
     </section>
   );
 };

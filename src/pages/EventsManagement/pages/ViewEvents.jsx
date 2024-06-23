@@ -47,13 +47,13 @@ const ViewEvents = () => {
         }
     };
     return (
-        <div className="container mx-auto">
+        <div className="container mx-auto ">
             <div className="flex justify-between mb-2">
                 <div className="text-2xl H500 font-bold">Event Details</div>
                 <Button value="Edit" className="px-4 py-2  border border-[#dcdcdc] rounded-lg" onClick={() => { navigate(`/home/manage-event?event_id=${id}` )}} />
             </div>
 
-            <div className="w-full gap-x-5 flex justify-between ">
+            <div className="w-full gap-x-5 flex justify-between h-[85vh]">
 
                 <div className="w-3/4 bg-white gap-3 border border-1 border-[#dcdcdc] p-4 rounded-xl">
                     <section className="flex w-full  rounded gap-4">
@@ -81,7 +81,7 @@ const ViewEvents = () => {
                         <div className="w-full border-b border-lightGray py-5 mb-2">
                             <h2 className="H400 text-mainGray">Event Attendees</h2>
                         </div>
-                        <div className="flex justify-center ">
+                        <div className=" ">
                             {!eventdetails.event_attendance ? <EmptyState msg="😞 Sorry, No attendees yet" /> :
                                 <TableComponent columns={attendanceColumn} data={eventdetails.event_attendance || []} />}
                         </div>
