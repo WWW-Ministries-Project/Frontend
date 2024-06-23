@@ -45,8 +45,8 @@ const EventsManagement = () => {
     }, [])
 
     return (
-        <>
-            <div className={!tableView ? "flex gap-4 my-8" : 'flex gap-4 mt-8'}>
+        <div className="">
+            <div className={!tableView ? "flex gap-4 my-" : 'flex gap-4 mt-'}>
                 <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
                     <div onClick={() => handleToggleView(true)}>
                         <CalendarAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} />
@@ -60,14 +60,14 @@ const EventsManagement = () => {
                 </div>
             </div>
             {!tableView ?
-                <div>
+                <div className="h-[84vh]  overscroll-none mt-4">
                     <GridWrapper>
                         {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
                     </GridWrapper>
                 </div>
                 :
                 <Calendar events={events} />}
-        </>
+        </div>
     );
 }
 

@@ -11,6 +11,7 @@ import Reports from "/src/assets/sidebar/report.svg";
 import Settings from "/src/assets/sidebar/settings.svg";
 import Users from "/src/assets/sidebar/user.svg";
 import Wavesb from "../../../assets/wavesb.svg";
+import ChurchLogo from '@/components/ChurchLogo';
 
 const SideBar = ({ show, ...props }) => {
     const items = sideTabs;
@@ -22,8 +23,10 @@ const SideBar = ({ show, ...props }) => {
     }
 
     return (
-        <div className="">
-        <div className={`min-h-screen pt-4 text-black fixed  bg-white shadow-xs ${!show ? "w-10 min-w-[2vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
+        // <div className="">
+            
+        <div className={`h-full pt-4 text-black fixed  bg-whit shadow-xs ${!show ? "w-10 min-w-[2vw]" : "w-[15%] min-w-[200px]"}  transition-all duration-400 linear`} style={props.style}>
+        <ChurchLogo/>
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink 
                     to={items[index]["key"]} 
@@ -45,8 +48,8 @@ const SideBar = ({ show, ...props }) => {
 
             {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
         </div>
-        {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
-        </div>
+        // {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
+        // </div>
     );
 };
 

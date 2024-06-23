@@ -23,19 +23,21 @@ function Header() {
   }
   return (
     <>
-      <header className="flex justify-between h-16 items-center bg-white shadow-sm px-3 fixed w-full z-20">
-        <ChurchLogo />
+      <header className="flex justify-between h-16 items-center bg-whit px-3 w-full z-20">
+        {/* <ChurchLogo /> */}
         <div className="w-[40.9%]">
           {/* <SearchBar placeholder="Search here" value="" onChange={() => {}}/> */}
         </div>
 
-        <div className="w-[246px] flex justify-between items-center">
+        <div className="w-[246px] flex justify-end gap-x-2 items-center">
           <img src={bell} alt="" />
           {/* <div> */}
           {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
-          <ProfilePicture src={decodeToken().profile_img} className={"w-10 h-10 rounded-full"} name={decodeToken().name} alt="profile picture" />
-          <span>{decodeToken().name}</span>
+          <div className="flex border border-[#6539C3] rounded-xl px-2 gap-x-2">
+          <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8    "} name={decodeToken().name} alt="profile picture" />
+          {/* <span>{decodeToken().name}</span> */}
           <img src={arrowDown} alt="arrow down" onClick={handleClick} />
+          </div>
           {showLogOut ? (
             <div onClick={handleLogOut} className="absolute top-16 right-0 h-16 w-32 bg-white flex justify-center items-center hover:bg-neutralGray cursor-pointer ">
               LogOut
