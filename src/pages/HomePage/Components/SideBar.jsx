@@ -46,8 +46,8 @@ const SideBar = ({ show, ...props }) => {
 
             {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
         </div>
-        // {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
-        // </div>
+        {/* <img className='absolute bottom-0 border' src={Wavesb} alt=""  /> */}
+        </div>
     );
 };
 
