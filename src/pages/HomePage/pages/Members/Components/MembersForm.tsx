@@ -8,6 +8,7 @@ import {
   formatInputDate,
   genderOptions,
 } from "../../../../../utils/helperFunctions";
+import { userFormValidator } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
 
@@ -18,7 +19,7 @@ interface MembersFormProps {
   onChange: (name: string, value: string | boolean) => void;
   onSubmit: (val: UserType) => void;
   onCancel: () => void;
-  disabled: boolean;
+  disabled?: boolean;
   loading: boolean;
 }
 
@@ -46,6 +47,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       // console.log('Changed values:', changedValues);
         props.onSubmit(changedValues);
       }}
+      validationSchema={userFormValidator}
     >
       {(form) => (
         <>
@@ -64,26 +66,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                 ]}
               />
             </div>
-            <div className="w-full grid tablet:grid-cols-2 gap-4">
-              <Field
-                component={FormikInputDiv}
-                label="First Name"
-                disabled={!props.edit}
-                id="first_name"
-                name="first_name"
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Other Name"
-                disabled={!props.edit}
-                id="other_name"
-                name="other_name"
-                value=""
-                onChange={() => {
-                  console.log(form, "jjj", props.user);
-                }}
-              />
-            </div>
+            
           </section>
           <section>
             <div className=" text-black font-bold my-5">
@@ -113,6 +96,7 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 id="first_name"
                 name="first_name"
               />
+              {/* <ErrorMessage name="first_name" component="div" /> */}
               <Field
                 component={FormikInputDiv}
                 label="Other Name"
@@ -320,7 +304,8 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 />
                 <Button
                   value={"Save"}
-                  // onClick={props.onSubmit}
+                  // onClick={()=>{console.log("clicked")}}
+                  type="submit"
                   onClick={form.handleSubmit}
                   loading={props.loading}
                   disabled={props.disabled}

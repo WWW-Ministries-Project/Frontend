@@ -8,6 +8,7 @@ import { baseUrl } from "../../../../Authentication/utils/helpers";
 import MembersForm from "../Components/MembersForm";
 import { addNewMember } from "../utils/apiCalls";
 import editIcon from "/assets/home/edit.svg";
+import { UserType } from "../utils/membersInterfaces";
 
 const AddMember = () => {
   const [profilePic, setProfilePic] = useState<pictureType>({
@@ -28,7 +29,7 @@ const AddMember = () => {
     setProfilePic({ picture: "", src: "" });
     navigate("/home/members");
   };
-  async function handleSubmit() {
+  async function handleSubmit(val:UserType) {
     setLoading(true);
     const data = new FormData();
     data.append("file", profilePic.picture);
@@ -39,10 +40,10 @@ const AddMember = () => {
         profilePic.picture && (await axiosPic.post(path, data));
       if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
-        setUserValue((prev) => ({ ...prev, photo: link }));
+        setUserValue((prev) => ({ ...prev, val, photo: link }));
       }
-      setLoading(true);
       setProfilePic({ picture: "", src: "" });
+      setUserValue(prev=>({...prev,...val}))
       const res = await addNewMember(userValueRef.current);
       if (res && res.status === 200) navigate("/home/members"); // sends data after picture link is received
     } catch (error) {
@@ -81,7 +82,7 @@ const AddMember = () => {
         onChange={handleChange}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        disabled={!userValue.email || !userValue.first_name || loading}
+        // disabled={!userValue.email || !userValue.first_name || loading}
         loading={loading}
       />
     </section>
