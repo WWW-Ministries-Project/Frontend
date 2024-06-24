@@ -7,9 +7,9 @@ function NotificationFlag (props) {
 
     return (
         <>
-            <div className={"w-full flex items-center bg-white "+props.className}>
-                <div className="w-[190px] shrink-0 h-full">
-                    <img src="/assets/home/notification.svg" alt="" />
+            <div className={"w-full flex items-center bg-white rounded-xl"+props.className}>
+                <div className="w-[190px] shrink-0 h-full ">
+                    <img src="/assets/home/notification.svg" alt="" className='rounded-s-xl h-'/>
                 </div>
                 <div className="px-5 ">
                     <h3 className="text-dark900 text-lg font-bold">Good afternoon {props.name}!</h3>

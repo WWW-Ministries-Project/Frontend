@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 
+
 function ChurchLogo (props) {
 
 
@@ -9,10 +10,10 @@ function ChurchLogo (props) {
                 <div className="w-[90.026px]">
                   <img src="/logo/main-logo.svg" alt="logo" />
                 </div>
-                <div className="flex flex-col gap-1.5">
+                {props.show&&<div className="flex flex-col gap-1.5">
                   <img src="/assets/authentication/churchName.svg" alt="" />
                   <img src="/assets/authentication/ministries.svg" alt="" />
-                </div>
+                </div>}
               </div>
         </>
     )
@@ -20,5 +21,6 @@ function ChurchLogo (props) {
 
 ChurchLogo.propTypes = {
     className: PropTypes.string,
+    show: PropTypes.string,
 }
 export default ChurchLogo

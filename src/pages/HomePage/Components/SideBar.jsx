@@ -25,8 +25,10 @@ const SideBar = ({ show, ...props }) => {
     return (
         <div className="">
             
-        <div className={`min-h-screen pt-4 text-black fixed  bg-white shadow-sm z-10 ${!show ? "w-10 min-w-[4vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
-        <ChurchLogo/>
+        <div className={`min-h-screen pt-4 text-black fixed  bg-white shadow-sm z-10  ${!show ? "w-10 min-w-[3vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
+        <div className='pb-8'>
+        <ChurchLogo show={show}/>
+        </div>
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink 
                     to={items[index]["key"]} 
