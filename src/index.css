@@ -129,4 +129,57 @@ input.input::placeholder {
   cursor: pointer;
 }
 
+
+@keyframes example {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(6px); }
+  50% { transform: translateX(0); }
+  75% { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
+}
+
 /* gradientBtn */
+
+.grid-wrapper {
+  display: grid;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 1rem;
+  justify-content: center;
+  height: calc(100vh - 20px); /* Adjusting height based on viewport height */
+}
+
+@media (min-width: 640px) {
+  .grid-wrapper {
+      grid-template-columns: repeat(2, 1fr);
+      height: calc(100vh - 40px); /* Adjusting height for different screen sizes */
+  }
+}
+
+@media (min-width: 768px) {
+  .grid-wrapper {
+      grid-template-columns: repeat(2, 1fr);
+      height: calc(100vh - 60px); /* Adjusting height for different screen sizes */
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-wrapper {
+      grid-template-columns: repeat(3, 1fr);
+      height: calc(80vh - 80px); /* Adjusting height for different screen sizes */
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-wrapper {
+      grid-template-columns: repeat(4, 1fr);
+      height: calc(88vh - 100px); /* Adjusting height for different screen sizes */
+  }
+}
+
+@media (min-width: 1536px) {
+  .grid-wrapper {
+      grid-template-columns: repeat(4, 1fr);
+      height: calc(92vh - 120px); /* Adjusting height for different screen sizes */
+  }
+}

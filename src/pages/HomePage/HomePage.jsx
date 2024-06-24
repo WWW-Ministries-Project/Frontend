@@ -105,31 +105,23 @@ function HomePage() {
     setUserValue(prev => ({ ...prev, photo: obj }))
   }
 
-  return token ? (
-    <div className="flex flex-col h-screen bg-white p-2">
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <SideBar onClick={handleShowNav} show={show} />
-        <div className={`flex-1 flex flex-col ${!show ? "ml-10" : "ml-[15.55%]"}`}>
-          <div className="flex-1 overflow-y-auto px-5 bg-[#dcdde7] rounded-b-md">
-            <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, departmentData, userStats }} />
-          </div>
-        </div>
-      </div>
-      <NewMember
-        CloseForm={CloseForm}
-        userValue={userValue}
-        onChange={handleChange}
-        onSubmit={addNewMember}
-        selectOptions={selectOptions}
-        className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`}
-        loading={loading}
-        disabled={!userValue.name}
-        handlePictureUpdate={handlePictureUpdate}
-      />
-    </div>
-  ) : (
-    <Navigate to="/login" />
+  return (
+    <>
+      {token ?
+        (<div className="bg-white p-2 mx-1 overflow-hidden overscoll-contain ">
+          {/* <Header /> */}
+          <main className=" max-w-screen " onClick={CloseForm}>
+            <div className="flex justify-center"></div>
+            <SideBar style={{ marginTop: "", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }} onClick={handleShowNav} show={show} />
+            <div className={` h-[98vh] rounded-xl  px-5  bg-[#dcdde7] ${!show ? "ml-24" : "ml-[15.55%]"} `}>
+            <Header />
+              <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
+            </div>
+          </main>
+
+          <NewMember CloseForm={CloseForm} userValue={userValue} onChange={handleChange} onSubmit={addNewMember} selectOptions={selectOptions} className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1500 ${displayForm ? "translate-x-0" : "translate-x-full"}`} loading={loading} disabled={!userValue.name} handlePictureUpdate={handlePictureUpdate} />
+        </div>) : (<Navigate to="/login" />)}
+    </>
   );
 }
 
