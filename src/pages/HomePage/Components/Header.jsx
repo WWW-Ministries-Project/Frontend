@@ -22,16 +22,14 @@ function Header() {
   }
   return (
     <>
-      <header className="flex justify-between h-16 items-center bg-whit px-3 w-full z-20">
+      <header className="flex justify-between h-16 items-center bg-[#dcdde7] px-3 w-full rounded-t-md ">
         {/* <ChurchLogo /> */}
         <div className="w-[40.9%]">
-          {/* <SearchBar placeholder="Search here" value="" onChange={() => {}}/> */}
         </div>
 
         <div className="w-[246px] flex justify-end gap-x-2 items-center">
           <img src={bell} alt="" />
           {/* <div> */}
-          {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
           <div className="flex border border-[#6539C3] rounded-xl  gap-x-6">
             <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8 outline-transparent  "} name={decodeToken().name} alt="profile picture" />
             {/* <span>{decodeToken().name}</span> */}
