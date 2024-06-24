@@ -1,13 +1,12 @@
 
 import bell from "/src/assets/bell.svg";
 import arrowDown from "/src/assets/down.svg";
-import ChurchLogo from "../../../components/ChurchLogo";
 // import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../auth/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
-import { useAuth } from "../../../auth/AuthWrapper";
 
 function Header() {
   const navigate = useNavigate();
@@ -34,9 +33,9 @@ function Header() {
           {/* <div> */}
           {/* <img src={decodeToken().profile_img} alt="profile pic" className="w-10 h-10 rounded-full" /> */}
           <div className="flex border border-[#6539C3] rounded-xl  gap-x-6">
-          <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8    "} name={decodeToken().name} alt="profile picture" />
-          {/* <span>{decodeToken().name}</span> */}
-          <img src={arrowDown} alt="arrow down" onClick={handleClick} />
+            <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8 outline-transparent  "} name={decodeToken().name} alt="profile picture" />
+            {/* <span>{decodeToken().name}</span> */}
+            <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           </div>
           {showLogOut ? (
             <div onClick={handleLogOut} className="absolute top-16 right-0 h-16 w-32 bg-white flex justify-center items-center hover:bg-neutralGray cursor-pointer ">
