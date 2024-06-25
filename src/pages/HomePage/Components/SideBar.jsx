@@ -10,12 +10,14 @@ import Members from "/src/assets/sidebar/members.svg";
 import Reports from "/src/assets/sidebar/report.svg";
 import Settings from "/src/assets/sidebar/settings.svg";
 import Users from "/src/assets/sidebar/user.svg";
+import Dashboard from "/src/assets/sidebar/dashboard.svg";
+import Instrument from "/src/assets/sidebar/Instruments.svg";
 import Wavesb from "../../../assets/wavesb.svg";
 import ChurchLogo from '@/components/ChurchLogo';
 
 const SideBar = ({ show, ...props }) => {
     const items = sideTabs;
-    const icons = [Home, Members, Management, Reports, Users, Management, Settings];
+    const icons = [Dashboard, Members, Management, Reports, Users, Instrument, Settings];
     const { user: { permissions } } = useAuth();
 
     function handleClick() {
@@ -32,12 +34,12 @@ const SideBar = ({ show, ...props }) => {
             {items.map((item, index) => permissions["view_" + item["key"]] &&
                 <NavLink 
                     to={items[index]["key"]} 
-                    className={`hover:bg-[#9D7ED7] hover:text-white h-10 z-10  flex items-center  py-7 ${!show ? " justify-center" : "px-2 py-7 mx-2"}   my-2 rounded-xl `}
+                    className={`hover:bg-[#9D7ED7] hover:text-whit h-10 z-10  flex items-center  py-7 ${!show ? " justify-center" : "px-2 py-7 mx-2"}   my-2 rounded-xl `}
                     style={({ isActive }) => 
-                        (isActive ? { background: '#6539C3', color: "white", boxShadow:"2px 2px 5px 2px #00000040" } : null)} 
+                        (isActive ? { background: '#6539C3', color: "whit", boxShadow:"2px 2px 5px 2px #00000040", filter: 'invert()'  } : null)} 
                     key={index}
                 >
-                    <img src={icons[index]} alt={`${icons[index]} icon`} className={`${show ? "mr-2" : " min-w-[1rem] min-h-[20px]"}`} />
+                    <img src={icons[index]} alt={`${icons[index]} icon`} className={` ${show ? "mr-2" : " min-w-[1rem] min-h-[20px]"}`} />
                     {show && <div>{item["name"]}</div>}
                 </NavLink>
             )}
