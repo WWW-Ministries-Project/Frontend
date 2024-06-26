@@ -21,7 +21,7 @@ const EventsCard = (props) => {
         //         <img className='rounded-xl' src={props.event.poster||defaultImage1} alt="" />
         //     </div>
         //     <div className='pb-1 rounded-xl bg-primaryViolet'>
-        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto ">
+        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto border-[#6539C3] border-b-4">
             <div className='relative top cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
             <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
                 <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.event.status=== "ASSIGNED"? "bg-green "
@@ -31,8 +31,8 @@ const EventsCard = (props) => {
                 
                 
             </div>
-            <div className='pb-1 rounded-xl bg-primaryViolet'>
-        <CardWrapper className={"flex-col text-gray rounded-b-xl"}>
+            {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
+        <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
             <div className="flex gap-1 items-center font-bold">
                 <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
                 <p>{props.event.name}</p>
@@ -64,7 +64,7 @@ const EventsCard = (props) => {
             </div>
             
         </CardWrapper>
-        </div>
+        {/* </div> */}
         </div>
     );
 }
