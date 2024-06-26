@@ -43,8 +43,8 @@ const EventsCard = (props) => {
             </div> */}
             <div className="flex gap-1 items-center text-sm">
                 <img src={calendar} alt="clock icon" />
-                <p>{formatTime(props.event.start_date) || "TBD"}</p> | 
-                <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p>
+                <p>{formatTime(props.event.start_date) || "TBD"} | 
+                <span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} </span></p>
             </div>
             <div className="flex gap-1 text-sm">
                 <img src={location} alt="location" />

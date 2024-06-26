@@ -3,7 +3,7 @@ import '../index.css';
 
 const GridWrapper = (props) => {
     return (
-        <div className={`grid-wrapper hideScrollbar ${props.className}`}>
+        <div className={`grid-wrapper hideScrollbar grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 md:grid grid-cols-1 gap-x-4 rounded-xl ${props.className}`}>
             {props.children}
         </div>
     );

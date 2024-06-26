@@ -43,7 +43,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
         <GridWrapper>
         {table.getRowModel().rows.map((row) => (<MemberCard key={row.id} id={row.original.id} name={row.original.name} userInfo={row.original} email={row.original.email} primary_number={row.original.primary_number} photo={row.original.photo} department={row.original.department[0] ? row.original.department[0].department_info.name : ""} />))}
         </GridWrapper> :
-        <div className="hideScrollbar xl:h-[75vh] lg:h-[72vh] overflow-y-auto rounded-xl">
+        <div className="hideScrollbar 2xl:h-[75vh] lg:h-[70vh] overflow-y-auto rounded-xl">
         <table className="w-full rounded-xl">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -87,12 +87,12 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
       </table> 
       </div>}
       </div>
-      {data.length > displayedCount ? <div className={`flex justify-end gap-1 text-gray   ${(!tableView && location.pathname?.toLowerCase() === "/home/members")? 'my-2':'my-4'}`}>
+      {data.length > displayedCount ? <div className={`flex justify-end gap-1 text-gray   ${(!tableView && location.pathname?.toLowerCase() === "/home/members")? 'my-2':'my-2'}`}>
         <button
           onClick={() => table.setPageIndex(0)}
           className={
             table.getCanPreviousPage()
-              ? "border border-lightGray p-1 rounded-md "
+              ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
               : "border border-lightGray p-1 rounded-md opacity-50"
           }>
           First page
@@ -100,7 +100,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
         <button
           className={
             table.getCanPreviousPage()
-              ? "border border-lightGray p-1 rounded-md "
+              ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
               : "border border-lightGray p-1 rounded-md opacity-50"
           }
           disabled={!table.getCanPreviousPage()}
@@ -110,7 +110,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
         <button
           className={
             table.getCanNextPage()
-              ? "border border-lightGray p-1 rounded-md "
+              ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
               : "border border-lightGray p-1 rounded-md opacity-50"
           }
           disabled={!table.getCanNextPage()}
@@ -120,7 +120,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
         <button
           className={
             table.getCanNextPage()
-              ? "border border-lightGray p-1 rounded-md "
+              ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
               : "border border-lightGray p-1 rounded-md opacity-50"
           }
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
