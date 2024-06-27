@@ -32,7 +32,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
 
 
     return (
-        <CardWrapper className=" min-w-[295px] rounded-xl">
+        <CardWrapper className="  rounded-xl">
             <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" name={props.name} />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full'>

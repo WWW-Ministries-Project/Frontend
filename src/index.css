@@ -146,40 +146,40 @@ input.input::placeholder {
   overflow-x: hidden;
   gap: 1rem;
   justify-content: center;
-  height: calc(100vh - 20px); /* Adjusting height based on viewport height */
+  /* height: calc(100vh - 20px);  */
 }
 
-@media (min-width: 640px) {
+@media (max-width: 400px) {
   .grid-wrapper {
-      grid-template-columns: repeat(2, 1fr);
-      height: calc(100vh - 40px); /* Adjusting height for different screen sizes */
+      grid-template-columns: repeat(1, 1fr);
+      height: calc(100vh - 40px); 
   }
 }
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
   .grid-wrapper {
       grid-template-columns: repeat(2, 1fr);
-      height: calc(100vh - 60px); /* Adjusting height for different screen sizes */
+      height: calc(100vh - 60px); 
   }
 }
 
 @media (min-width: 1024px) {
   .grid-wrapper {
       grid-template-columns: repeat(3, 1fr);
-      height: calc(80vh - 80px); /* Adjusting height for different screen sizes */
+      height: calc(80vh - 80px); 
   }
 }
 
 @media (min-width: 1280px) {
   .grid-wrapper {
       grid-template-columns: repeat(4, 1fr);
-      height: calc(88vh - 100px); /* Adjusting height for different screen sizes */
+      height: calc(88vh - 100px); 
   }
 }
 
 @media (min-width: 1536px) {
   .grid-wrapper {
       grid-template-columns: repeat(4, 1fr);
-      height: calc(92vh - 120px); /* Adjusting height for different screen sizes */
+      height: calc(92vh - 120px); 
   }
-}
+} */
