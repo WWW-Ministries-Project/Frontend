@@ -80,7 +80,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full container mx-auto rounded-xl bg-white 2xl:h-[90vh] xl:h-[87vh] ">
+    <section className=" w-full h-full container mx-auto rounded-xl bg-white 2xl:h-[90vh] lg:h-[89vh] xl:h-[87vh] md:h-[91vh] xs:h-[89vh]">
       <Banner
         onClick={handleEdit}
         edit={edit}
@@ -92,7 +92,7 @@ const ProfileDetails = () => {
         email={details.email}
         primary_number={details.primary_number}
       />
-      <div className="w-full flex justify-start gap-8 px-8 py-4 border-1 border-lightGray border-b-2">
+      {/* <div className="w-full flex justify-start gap-8 px-8 py-4 border-1 border-lightGray border-b-2">
         {links.map((link, index) => (
           <NavLink
             to={link.path}
@@ -105,8 +105,8 @@ const ProfileDetails = () => {
             {link.name}
           </NavLink>
         ))}
-      </div>
-      <div className="hideScrollbar px-8 pb-8 2xl:h-[63vh] lg:h-[50vh] overflow-y-auto">
+      </div> */}
+      <div className="hideScrollbar px-8 pb-8 2xl:h-[63vh] xl:h-[60vh] lg:h-[62vh] md:h-[72vh] xs:h-[65vh] overflow-y-auto">
         <Outlet
           context={{
             edit,
