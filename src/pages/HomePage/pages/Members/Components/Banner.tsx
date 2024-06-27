@@ -27,7 +27,7 @@ const Banner:React.FC<BannerProps> = (props) => {
             <div className="absolute bottom-0 rounded-lg left-0 w-full h-full flex items-center justify-between px-4" style={{ backgroundImage: `url(${coverImage1})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                 <div className='flex gap-4 items-center'>
                     <ProfilePic className="w-32 h-32 shadow" src={props.src} alt="cover Image" name={props.name} editable={props.edit} id="coverPic" onChange={props.onPicChange} />
-                    <article>
+                    <article className='xs:hidden md:inline'>
                         <div>{props.name || "No Name"}</div>
                         <div>{(props.department || "No Department") + " | " + (props.position || "No Position")}</div>
                         <div>{(props.email || "No Email") + " | " + (props.primary_number || "No Phone")}</div>
@@ -35,7 +35,7 @@ const Banner:React.FC<BannerProps> = (props) => {
                 </div>
                 {!props.edit && (
                     <div>
-                        <Button value="Edit Profile" onClick={handleClick} className="w-full mt-2 p-2 bg-transparent min-h-8 border" />
+                        <Button value="Edit Profile" onClick={handleClick} className="w-full mt-2 p-2 bg-transparent min-h-8 border md:border-primaryViolet md:bg-primaryViolet md:text-white" />
                     </div>
                 )}
             </div>
