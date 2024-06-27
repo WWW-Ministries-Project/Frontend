@@ -84,20 +84,17 @@ export default {
       manrope: ["Manrope", "sans-serif"],
     },
     screens: {
-      'phone': '450px',
-      'tablet': '640px',
-      'sm': '640px',
-      // => @media (min-width: 640px) { ... }
-      'md': '768px',
-      'laptop': '1024px',
-      'lg': '1024px',
-      // => @media (min-width: 1024px) { ... }
-
-      'desktop': '1280px',
-      'xl': '1280px',
-      // => @media (min-width: 1280px) { ... }
-      
-      '2xl':'1536px'
+      'xs': '320px',       // Extra small devices (e.g., older phones)
+      'phone': '450px',    // Small phones
+      'tablet': '640px',   // Tablets
+      'sm': '640px',       // Small devices
+      'md': '768px',       // Medium devices
+      'laptop': '1024px',  // Laptops
+      'lg': '1024px',      // Large devices
+      'desktop': '1280px', // Desktops
+      'xl': '1280px',      // Extra large devices
+      '2xl': '1536px',     // Extra extra large devices
+      '3xl': '1920px'      // Ultra large devices (e.g., 4K screens)
     },
   },
   plugins: [

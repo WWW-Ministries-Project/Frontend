@@ -15,6 +15,18 @@ function DashBoard() {
   const [welcomeMsg, setWelcomeMsg] = useState(
     JSON.parse(localStorage.getItem("welcomeMsg")) !== false
   );
+  const [isTabletOrAbove, setIsTabletOrAbove] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsTabletOrAbove(window.innerWidth >= 640);
+    };
+    
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const stats = [
     { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
@@ -49,8 +61,8 @@ function DashBoard() {
   };
 
   return (
-    <main className={`hideScrollbar pb-4 2xl:h-[85vh] xl:h-[88vh] overflow-y-auto rounded-xl`}>
-      {welcomeMsg && (
+    <main className={`hideScrollbar pb-4 2xl:h-[90vh] xl:h-[88vh] md:h-[90vh] xs:h-[90vh] overflow-y-auto rounded-xl`}>
+      {welcomeMsg && isTabletOrAbove && (
           <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView}/>
       )}
       <div className=''>
@@ -66,7 +78,7 @@ function DashBoard() {
             </div>
           </div>
         </div>
-        <section className="grid grid-cols-4 gap-4">
+        <section className="grid xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2  gap-4">
           {stats.map((stat) => (
             <StatsCard stats={stat} key={stat.name} />
           ))}
@@ -81,7 +93,7 @@ function DashBoard() {
             <BarChart value={userStats.stats} />
           </section>
         </div>
-        <div className="flex flex-col items-center tablet:flex-row justify-between grid grid-cols-2 md:grid grid-cols-1 gap-4">
+        <div className="flex flex-col items-center tablet:flex-row justify-between grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 gap-4">
           <section className="mt-6 bg-white p-7 w-full rounded-xl">
             <div className="flex justify-between items-center mb-5">
               <div className="flex justify-start gap-2 items-center w-2/3">
@@ -100,7 +112,7 @@ function DashBoard() {
                 />
               </div>
             </div>
-            <div>
+            <div className="">
               <TableComponent
                 columns={columns}
                 data={members}
