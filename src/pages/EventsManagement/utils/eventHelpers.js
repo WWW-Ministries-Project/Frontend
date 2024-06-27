@@ -1,50 +1,49 @@
-import { formatTime } from "/src/utils/helperFunctions";
 import * as Yup from "yup";
+import { formatTime } from "/src/utils/helperFunctions";
 
 export const months = [
-  {name: "January", value: 1},
-  {name: "February", value: 2},
-  {name: "March", value: 3},
-  {name: "April", value: 4},
-  {name: "May", value: 5},
-  {name: "June", value: 6},
-  {name: "July", value:7},
-  {name: "August", value:8},
-  {name: "September", value:9},
-  {name: "October", value:10},
-  {name: "November", value:11},
-  {name: "December", value:12},
-
+  { name: "January", value: 1 },
+  { name: "February", value: 2 },
+  { name: "March", value: 3 },
+  { name: "April", value: 4 },
+  { name: "May", value: 5 },
+  { name: "June", value: 6 },
+  { name: "July", value: 7 },
+  { name: "August", value: 8 },
+  { name: "September", value: 9 },
+  { name: "October", value: 10 },
+  { name: "November", value: 11 },
+  { name: "December", value: 12 },
 ];
 
 export const years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
-export const registeredEventAttendance =[
+export const registeredEventAttendance = [
   {
     header: "Name",
     accessorKey: "name",
-    cell:({row}) => row.original.user.user_info.name
+    cell: ({ row }) => row.original.user.user_info.name,
   },
   {
     header: "Membership status",
-  
-    cell:({row}) => row.original.user.user_info.name
+
+    cell: ({ row }) => row.original.user.user_info.name,
   },
   {
     header: "Phone number",
     accessorKey: "user_info.primary_number",
-    cell:({row}) => row.original.user.user_info.primary_number
+    cell: ({ row }) => row.original.user.user_info.primary_number,
   },
   {
     header: "Arrival time",
-  
-    cell:({row}) => row.original.user.user_info.name
+
+    cell: ({ row }) => row.original.user.user_info.name,
   },
   {
     header: "Last visited",
     accessorKey: "created_at",
-    cell: ({row}) => formatTime(row.original.created_at)
+    cell: ({ row }) => formatTime(row.original.created_at),
   },
-]
+];
 export const eventInput = {
   name: "",
   type: "",
@@ -54,25 +53,34 @@ export const eventInput = {
   end_time: "",
   location: "",
   description: "",
-  isRepetitive: false,
+  isRepetitive: "no",
   repeatEvery: 1,
   repeatUnit: "months",
   repeatDays: [],
+  onDays: [],
   ends: "end_of_year",
   endsOn: "",
   isMultiDay: false,
-  number_days: 1,
+  number_days: 2,
   poster: "",
-}
+};
 export const eventFormValidator = Yup.object({
-  name: Yup.string()
-  .max(30, 'Must be 15 characters or less')
-  .required('Required'),
- type: Yup.string()
-  .required('Required'),
-start_date: Yup.date().required('Required'),
-start_date: Yup.date(),
-start_time: Yup.string().required("Required"),
-end_time: Yup.string().required("Required"),
-location: Yup.string().required("Required"),
-})
+  name: Yup.string().required("Required"),
+  type: Yup.string().required("Required"),
+  start_date: Yup.date().required("Required"),
+  start_date: Yup.date().required("Required"),
+  start_time: Yup.string().required("Required"),
+  end_time: Yup.string().required("Required"),
+  location: Yup.string().required("Required"),
+  number_days:Yup.number().min(2,"should have a minimum of 2"),
+  repeatEvery:Yup.number().min(1,"should have a minimum of 1")
+  // isRepetitive: Yup.boolean().required("Required")
+});
+
+export const maxMinValueForDate = ()=>{
+  const currentYear = new Date().getFullYear();
+  const today = new Date()
+  const maxDate = currentYear + "-12-31";
+  const minDate = today.toISOString().split('T')[0];
+  return {minDate,maxDate}
+}

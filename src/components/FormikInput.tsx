@@ -25,9 +25,7 @@ export function fieldToInputDiv({
     disabled: props.disabled,
     className: props.className,
     inputClass: props.inputClass,
-    label: props.label,
     placeholder: props.placeholder,
-    type: props.type,
     error: showError,
   };
 }
