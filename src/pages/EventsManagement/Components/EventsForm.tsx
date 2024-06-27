@@ -28,8 +28,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
   return (
     <Formik
       onSubmit={(val) => {
-        // props.onSubmit(val);
-        console.log(val);
+        props.onSubmit(val);
+        // console.log(val);
       }}
       initialValues={props.inputValue}
       validationSchema={eventFormValidator}
@@ -48,9 +48,9 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             <Field
               component={FormikSelectField}
               options={[
-                { name: "Conference", value: "conference" },
-                { name: "Workshop", value: "workshop" },
-                { name: "Webinar", value: "webinar" },
+                { name: "Activity", value: "ACTIVITY" },
+                { name: "Program", value: "PROGRAM" },
+                { name: "Service", value: "SERVICE" },
                 { name: "Other", value: "other" },
               ]}
               label="Event Type"
@@ -88,15 +88,15 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             </p>
             <div className="mt-2 flex gap-4">
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="isMultiDay" value={"one"} />
+                <Field type="radio" name="day_event" value={"one"} />
                 One-day
               </label>
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="isMultiDay" value="multi" />
+                <Field type="radio" name="day_event" value="multi" />
                 Multi-day
               </label>
             </div>
-            {props.values.isMultiDay == "multi" && (
+            {props.values.day_event == "multi" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
@@ -108,37 +108,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     min={2}
                   />
                 </div>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">On Days:</p>
-                  <div className="flex gap-2">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                      (day, index) => (
-                        <label
-                          key={index}
-                          className="flex items-center gap-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            value={index}
-                            checked={props.values.repeatDays.includes(
-                              index + ""
-                            )}
-                            onChange={() => {
-                              console.log("changed");
-                              const temp = handleMultiSelectChange(
-                                index + "",
-                                props.values.repeatDays
-                              );
-                              props.setFieldValue("onDays", temp);
-                            }}
-                            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                          />
-                          {day}
-                        </label>
-                      )
-                    )}
-                  </div>
-                </div>
+                
               </div>
             )}
           </div>
@@ -149,11 +119,11 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             </p>
             <div className="mt-2 flex gap-4">
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="repetition" value="yes" />
+                <Field type="radio" name="repetitive" value="yes" />
                 Yes
               </label>
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="repetition" value="no" />
+                <Field type="radio" name="repetitive" value="no" />
                 No
               </label>
             </div>
@@ -259,6 +229,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             />
             <Button
               value="Save"
+              type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
               onClick={() => {
                 props.handleSubmit();

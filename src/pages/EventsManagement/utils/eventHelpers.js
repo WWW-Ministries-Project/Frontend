@@ -53,16 +53,23 @@ export const eventInput = {
   end_time: "",
   location: "",
   description: "",
-  isRepetitive: "no",
-  repeatEvery: 1,
+  repetitive: "no",
+  repeatEvery: null,
   repeatUnit: "months",
   repeatDays: [],
   onDays: [],
   ends: "end_of_year",
   endsOn: "",
-  isMultiDay: false,
-  number_days: 2,
+  day_event: "one",
+  number_days: null,
   poster: "",
+  recurring: {
+    frequency: "",
+    interval: "",
+    daysOfWeek: [],
+    dayOfMonth: null,
+    monthOfYear: null,
+  },
 };
 export const eventFormValidator = Yup.object({
   name: Yup.string().required("Required"),
@@ -72,15 +79,15 @@ export const eventFormValidator = Yup.object({
   start_time: Yup.string().required("Required"),
   end_time: Yup.string().required("Required"),
   location: Yup.string().required("Required"),
-  number_days:Yup.number().min(2,"should have a minimum of 2"),
-  repeatEvery:Yup.number().min(1,"should have a minimum of 1")
-  // isRepetitive: Yup.boolean().required("Required")
+  // number_days:Yup.number().min(2,"should have a minimum of 2"),
+  // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
+  // repetitive: Yup.boolean().required("Required")
 });
 
-export const maxMinValueForDate = ()=>{
+export const maxMinValueForDate = () => {
   const currentYear = new Date().getFullYear();
-  const today = new Date()
+  const today = new Date();
   const maxDate = currentYear + "-12-31";
-  const minDate = today.toISOString().split('T')[0];
-  return {minDate,maxDate}
-}
+  const minDate = today.toISOString().split("T")[0];
+  return { minDate, maxDate };
+};
