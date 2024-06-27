@@ -45,31 +45,29 @@ export const registeredEventAttendance = [
   },
 ];
 export const eventInput = {
-  name: "",
-  type: "",
-  start_date: "",
-  end_date: "",
-  start_time: "",
-  end_time: "",
-  location: "",
-  description: "",
-  repetitive: "no",
-  repeatEvery: null,
-  repeatUnit: "months",
-  repeatDays: [],
-  onDays: [],
-  ends: "end_of_year",
-  endsOn: "",
-  day_event: "one",
-  number_days: null,
-  poster: "",
-  recurring: {
-    frequency: "",
-    interval: "",
-    daysOfWeek: [],
-    dayOfMonth: null,
-    monthOfYear: null,
-  },
+  // name: "",
+  // type: "",
+  // start_date: "",
+  // end_date: "",
+  // start_time: "",
+  // end_time: "",
+  // location: "",
+  // description: "",
+  // repetitive: "no",
+  // repeatUnit: "months",
+  // repeatDays: [],
+  // onDays: [],
+  // ends: "end_of_year",
+  // endsOn: "",
+  // day_event: "one",
+  // poster: "",
+  // recurring: {
+  //   frequency: "",
+  //   interval: 0,
+  //   daysOfWeek: null,
+  //   dayOfMonth: null,
+  //   monthOfYear: null,
+  // },
 };
 export const eventFormValidator = Yup.object({
   name: Yup.string().required("Required"),
@@ -82,6 +80,26 @@ export const eventFormValidator = Yup.object({
   // number_days:Yup.number().min(2,"should have a minimum of 2"),
   // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
   // repetitive: Yup.boolean().required("Required")
+  // recurring: Yup.object({
+  //   frequency: Yup.string().when("repetitive", {
+  //     is: "yes",
+  //     then: Yup.oneOf(["daily", "weekly", "monthly", "yearly"]).required(
+  //       "Required"
+  //     ),
+  //   }),
+  //   daysOfWeek: Yup.number()
+  //     .min(1)
+  //     .when("repetitive", {
+  //       is: "yes",
+  //       then: Yup.number().min(1, "Minimum is 1").required("Required"),
+  //     }),
+  //   interval: Yup.number()
+  //     .min(1)
+  //     .when("repetitive", {
+  //       is: "yes",
+  //       then: Yup.number().min(1, "Minimum is 1").required("Required"),
+  //     }),
+  // }),
 });
 
 export const maxMinValueForDate = () => {

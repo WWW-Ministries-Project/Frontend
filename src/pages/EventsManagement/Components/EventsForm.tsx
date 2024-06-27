@@ -103,8 +103,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     component={FormikInputDiv}
                     label="Number of days"
                     type="number"
-                    id="number_days"
-                    name="number_days"
+                    id="recurring.daysOfWeek"
+                    name="recurring.daysOfWeek"
                     min={2}
                   />
                 </div>
@@ -127,30 +127,39 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 No
               </label>
             </div>
-            {props.values.repetition == "yes" && (
+            {props.values.repetitive == "yes" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
                     component={FormikInputDiv}
                     label="Repeat Every"
                     type="number"
-                    id="repeatEvery"
-                    name="repeatEvery"
+                    id="recurring.interval"
+                    name="recurring.interval"
                     min={1}
                   />
                   <Field
                     component={FormikSelectField}
                     label="Repeat Unit"
-                    id="repeatUnit"
-                    name="repeatUnit"
+                    id="recurring.frequency"
+                    name="recurring.frequency"
                     options={[
-                      { name: "Days", value: "days" },
-                      { name: "Weeks", value: "weeks" },
-                      { name: "Months", value: "months" },
+                      { name: "Days", value: "daily" },
+                      { name: "Weeks", value: "weekly" },
+                      { name: "Months", value: "monthly" },
                     ]}
                   />
+                  <Field
+                    component={FormikInputDiv}
+                    label="End Date"
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    min={props.values.start_date}
+                    max={maxMinValueForDate().maxDate}
+                  />
                 </div>
-                {props.values.repeatUnit == "weeks" && (
+                {/* {props.values.recurring.frequency == "weeks" && (
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Repeat on:</p>
                     <div className="flex gap-5">
@@ -180,8 +189,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                       )}
                     </div>
                   </div>
-                )}
-                {props.values.repeatUnit == "months" && (
+                )} */}
+                {props.values.recurring?.frequency == "months" && (
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Ends:</p>
                     <div className="flex gap-4">
@@ -189,8 +198,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                         component={FormikInputDiv}
                         label=""
                         type="date"
-                        id="endsOn"
-                        name="endsOn"
+                        id="end_date"
+                        name="end_date"
                         min={maxMinValueForDate().minDate}
                         max={maxMinValueForDate().maxDate}
                         className="ml-2"
