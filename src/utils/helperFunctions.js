@@ -27,7 +27,7 @@ export const firstLetters = (string="No Name") =>{
 }
 
 export const formatTime = (value) => {
-    return DateTime.fromISO(value).toLocaleString(DateTime.DATE_FULL);
+    return DateTime.fromISO(value).toLocaleString(DateTime.DATE_MED);
 }
 export const formatInputDate = (value) => {
     return DateTime.fromISO(value).toFormat("yyyy-MM-dd");

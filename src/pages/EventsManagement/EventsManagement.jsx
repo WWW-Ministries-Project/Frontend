@@ -60,7 +60,7 @@ const EventsManagement = () => {
                 </div>
             </div>
             {!tableView ?
-                <div className="h-[84vh]  overscroll-none mt-4">
+                <div className="h-[84vh]  overscroll-none mt-4 rounded-xl">
                     <GridWrapper>
                         {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
                     </GridWrapper>

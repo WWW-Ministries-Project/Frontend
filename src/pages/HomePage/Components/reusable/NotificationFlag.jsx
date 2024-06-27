@@ -6,7 +6,12 @@ function NotificationFlag (props) {
 
 
     return (
-        <>
+        <div className='relative'>
+            <p 
+            onClick={props.onClose} 
+            className="text-xs cursor-pointer hover:bg-[#6539C3] hover:text-white flex text-[#6539C3] outline outline-1 outline-[#6539C3] rounded-full justify-center items-center h-5 w-5 absolute right-2 my-2">
+            X
+          </p>
             <div className={"w-full flex items-center bg-white rounded-xl"+props.className}>
                 <div className="w-[190px] shrink-0 h-full ">
                     <img src="/assets/home/notification.svg" alt="" className='rounded-s-xl h-'/>
@@ -16,14 +21,15 @@ function NotificationFlag (props) {
                     <p className="text-gray">Welcome to your world wide ministries admin dashboard. You can track your contacts and membership information all in one place. Filter the data to view the most relevant information you need.</p>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 
 
 NotificationFlag.propTypes = {
     className: PropTypes.string,
-    name: PropTypes.string
+    name: PropTypes.string,
+    onClose: PropTypes.func
 };
 
 export default NotificationFlag
