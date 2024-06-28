@@ -12,6 +12,8 @@ export interface InputDivProps {
   onBlur?: (e: React.FocusEvent<any>) => void;
   disabled?: boolean;
   error?:string
+  min?:string
+  max?:string
 }
 function InputDiv(props: InputDivProps) {
   function handleChange(
@@ -50,6 +52,8 @@ function InputDiv(props: InputDivProps) {
             onBlur={handleBlur}
             placeholder={props.placeholder}
             disabled={props.disabled}
+            min={props.min}
+            max={props.max}
           />
           )}
         {props.error &&<div className="text-error text-sma">{props.error}</div>}

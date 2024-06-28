@@ -5,7 +5,7 @@ import Button from "@/components/Button";
 import React from "react";
 // import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import FormikSelectField from "@/components/FormikSelect";
-import { eventFormValidator } from "../utils/eventHelpers";
+import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
 
 interface EventsFormProps {
   inputValue: any;
@@ -29,7 +29,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     <Formik
       onSubmit={(val) => {
         props.onSubmit(val);
-        console.log(val);
+        // console.log(val);
       }}
       initialValues={props.inputValue}
       validationSchema={eventFormValidator}
@@ -48,12 +48,12 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             <Field
               component={FormikSelectField}
               options={[
-                { name: "Conference", value: "conference" },
-                { name: "Workshop", value: "workshop" },
-                { name: "Webinar", value: "webinar" },
+                { name: "Activity", value: "ACTIVITY" },
+                { name: "Program", value: "PROGRAM" },
+                { name: "Service", value: "SERVICE" },
                 { name: "Other", value: "other" },
               ]}
-              label="Event Name"
+              label="Event Type"
               id="type"
               name="type"
             />
@@ -88,82 +88,27 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             </p>
             <div className="mt-2 flex gap-4">
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="isMultiDay" value={"one"} />
+                <Field type="radio" name="day_event" value={"one"} />
                 One-day
               </label>
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="isMultiDay" value="multi" />
+                <Field type="radio" name="day_event" value="multi" />
                 Multi-day
               </label>
             </div>
-            {props.values.isMultiDay == "multi" && (
+            {props.values.day_event == "multi" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
                     component={FormikInputDiv}
                     label="Number of days"
                     type="number"
-                    id="number_days"
-                    name="number_days"
-                  />
-                  <Field
-                    component={FormikInputDiv}
-                    label="End Date"
-                    type="date"
-                    id="end_date"
-                    name="end_date"
+                    id="recurring.daysOfWeek"
+                    name="recurring.daysOfWeek"
+                    min={2}
                   />
                 </div>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">Repeat on:</p>
-                  <div className="flex gap-2">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                      (day, index) => (
-                        <label
-                          key={index}
-                          className="flex items-center gap-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            value={day}
-                            checked={props.values.repeatDays.includes(day)}
-                            onChange={() => {
-                              console.log("changed");
-                              const temp = handleMultiSelectChange(
-                                day,
-                                props.values.repeatDays
-                              );
-                              props.setFieldValue("repeatDays", temp);
-                            }}
-                            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                          />
-                          {day}
-                        </label>
-                      )
-                    )}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">Ends:</p>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-x-2">
-                      <Field type="radio" name="ends" value="end_of_year" />
-                      End of the year
-                    </label>
-                    <label className="flex items-center gap-x-2">
-                      <Field type="radio" name="ends" value="on" />
-                      On
-                      <Field
-                        component={FormikInputDiv}
-                        label=""
-                        type="date"
-                        id="endsOn"
-                        name="endsOn"
-                        className="ml-2"
-                      />
-                    </label>
-                  </div>
-                </div>
+                
               </div>
             )}
           </div>
@@ -174,87 +119,94 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             </p>
             <div className="mt-2 flex gap-4">
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="repetition" value="yes" />
+                <Field type="radio" name="repetitive" value="yes" />
                 Yes
               </label>
               <label className="flex items-center gap-x-2">
-                <Field type="radio" name="repetition" value="no" />
+                <Field type="radio" name="repetitive" value="no" />
                 No
               </label>
             </div>
-            {props.values.repetition == "yes" && (
+            {props.values.repetitive == "yes" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
                     component={FormikInputDiv}
                     label="Repeat Every"
                     type="number"
-                    id="repeatEvery"
-                    name="repeatEvery"
+                    id="recurring.interval"
+                    name="recurring.interval"
+                    min={1}
                   />
                   <Field
                     component={FormikSelectField}
                     label="Repeat Unit"
-                    id="repeatUnit"
-                    name="repeatUnit"
+                    id="recurring.frequency"
+                    name="recurring.frequency"
                     options={[
-                      { name: "Days", value: "days" },
-                      { name: "Weeks", value: "weeks" },
-                      { name: "Months", value: "months" },
-                      { name: "Years", value: "years" },
+                      { name: "Days", value: "daily" },
+                      { name: "Weeks", value: "weekly" },
+                      { name: "Months", value: "monthly" },
                     ]}
                   />
+                  <Field
+                    component={FormikInputDiv}
+                    label="End Date"
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    min={props.values.start_date}
+                    max={maxMinValueForDate().maxDate}
+                  />
                 </div>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">Repeat on:</p>
-                  <div className="flex gap-5">
-                    {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                      (day, index) => (
-                        <label
-                          key={index}
-                          className="flex items-center gap-x-1"
-                        >
-                          <input
-                            type="checkbox"
-                            value={day}
-                            checked={props.values.repeatDays.includes(day)}
-                            onChange={() => {
-                              console.log("changed");
-                              const temp = handleMultiSelectChange(
-                                day,
-                                props.values.repeatDays
-                              );
-                              props.setFieldValue("repeatDays", temp);
-                            }}
-                            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                          />
-                          {day}
-                        </label>
-                      )
-                    )}
+                {/* {props.values.recurring.frequency == "weeks" && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600">Repeat on:</p>
+                    <div className="flex gap-5">
+                      {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                        (day, index) => (
+                          <label
+                            key={index}
+                            className="flex items-center gap-x-1"
+                          >
+                            <input
+                              type="checkbox"
+                              value={day}
+                              checked={props.values.repeatDays.includes(day)}
+                              onChange={() => {
+                                console.log("changed");
+                                const temp = handleMultiSelectChange(
+                                  day,
+                                  props.values.repeatDays
+                                );
+                                props.setFieldValue("repeatDays", temp);
+                              }}
+                              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                            />
+                            {day}
+                          </label>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">Ends:</p>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-x-2">
-                      <Field type="radio" name="ends" value="year" />
-                      End of the year
-                    </label>
-                    <label className="flex items-center gap-x-2">
-                      <Field type="radio" name="repetition" value="on" />
-                      On
+                )} */}
+                {props.values.recurring?.frequency == "months" && (
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600">Ends:</p>
+                    <div className="flex gap-4">
                       <Field
                         component={FormikInputDiv}
                         label=""
                         type="date"
-                        id="endsOn"
-                        name="endsOn"
+                        id="end_date"
+                        name="end_date"
+                        min={maxMinValueForDate().minDate}
+                        max={maxMinValueForDate().maxDate}
                         className="ml-2"
                       />
-                    </label>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -286,6 +238,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             />
             <Button
               value="Save"
+              type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
               onClick={() => {
                 props.handleSubmit();

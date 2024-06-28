@@ -26,10 +26,10 @@ const CreateEvent = () => {
     }
   }, [id, user]);
 
-  const handleSubmit = (val)=>{
+  const ahandleSubmit = (val)=>{
     console.log(val,"vjv")
   }
-  const ahandleSubmit = async () => {
+  const handleSubmit = async (val) => {
     setLoading(true);
     const data = new FormData();
     if (file) {
@@ -45,11 +45,11 @@ const CreateEvent = () => {
         }
       }
 
-      const eventData = { ...inputValue, poster: posterLink };
+      const eventData = { ...val, poster: posterLink };
 
       const response = await axios.post("/event/create-event", eventData);
       if (response.status === 200) {
-        window.location.href = "/home/events";
+        // window.location.href = "/home/events";
       }
     } catch (error) {
       console.log(error);
