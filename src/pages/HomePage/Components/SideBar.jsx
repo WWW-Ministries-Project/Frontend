@@ -14,15 +14,15 @@ import Users from "/src/assets/sidebar/user.svg";
 import Dashboard from "/src/assets/sidebar/dashboard.svg";
 import Instrument from "/src/assets/sidebar/Instruments.svg";
 import Wavesb from "../../../assets/wavesb.svg";
-import ChurchLogo from '@/components/ChurchLogo';
-import DashboardIcon from '@/assets/sidebar/DashboardIcon';
-import MembersIcon from '@/assets/sidebar/MembersIcon';
-import ManagementIcon from '@/assets/sidebar/ManagementIcon';
-import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
-import SettingsIcon from '@/assets/sidebar/SettingIcon';
-import LogoutIcon from '@/assets/sidebar/Logout';
-import LoginIcon from '@/assets/sidebar/LoginIcon';
-import HoverSwitch from '@/components/HoverSwitch';
+import ChurchLogo from '/src/components/ChurchLogo';
+import DashboardIcon from '/src/assets/sidebar/DashboardIcon';
+import MembersIcon from '/src/assets/sidebar/MembersIcon';
+import ManagementIcon from '/src/assets/sidebar/ManagementIcon';
+import InstrumentIcon from '/src/assets/sidebar/InstrumentIcon';
+import SettingsIcon from '/src/assets/sidebar/SettingIcon';
+import LogoutIcon from '/src/assets/sidebar/Logout';
+import LoginIcon from '/src/assets/sidebar/LoginIcon';
+import HoverSwitch from '/src/components/HoverSwitch';
 
 const icons = {
     // DashboardIcon, 
