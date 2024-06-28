@@ -45,12 +45,18 @@ const CreateEvent = () => {
         }
       }
 
-      const eventData = { ...val, poster: posterLink, created_by:user?.id };
+      const response ="";
+      if (!id){
+        const eventData = { ...val, poster: posterLink, created_by:user?.id };
+        response = await axios.post("/event/create-event", eventData);
+      }else{
+        const eventData = { ...val, poster: posterLink, updated_by:user?.id };
+        response = await axios.put("/event/update-event",eventData)
+      }
 
-      const response = await axios.post("/event/create-event", eventData);
       if (response.status === 200) {
-        setLoading(false)
-        // window.location.href = "/home/events";
+        // setLoading(false)
+        window.location.href = "/home/events";
       }
     } catch (error) {
       console.log(error);
