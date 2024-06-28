@@ -34,11 +34,11 @@ function Members() {
   }
 
   return (
-    <>
-      <main className="h-full">
+    <div className="">
+      <main >
 
         {/* Members Table Section */}
-        <section className={` py-7 ${tableView ? "bg-white":"bg-[#f2f3f8]"} `}>
+        <section className={``}>
           {/* search component and add member */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -78,7 +78,7 @@ function Members() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <div className="w-full mx-auto">
+          <div className={`w-full mx-auto  ${tableView ? "bg-white p-2":"bg-transparent "} rounded-xl`}>
             <TableComponent
               columns={columns}
               data={members}
@@ -91,7 +91,7 @@ function Members() {
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 }
 export default Members;

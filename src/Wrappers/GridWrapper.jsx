@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types';
+import '../index.css';
+
 const GridWrapper = (props) => {
     return (
-        <div className={" grid gap-5 justify-center grid-cols-1 min-[710px]:grid-cols-2 tablet:gap-4 laptop:grid-cols-3 desktop:grid-cols-4 min-[1284px]:grid-cols-4 "+props.className }>
+        <div className={` hideScrollbar 2xl:h-[80vh] lg:h-[75vh] md:h-[83vh] sm:h-[79vh] xs:h-[78vh] grid-wrapper overflow-y-auto gap-4 grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-x-4 rounded-xl ${props.className}`}>
             {props.children}
         </div>
-
     );
 }
 

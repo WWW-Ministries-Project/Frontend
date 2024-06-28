@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EventsCard from './EventsCard';
 import { useNavigate } from 'react-router-dom';
+import "../../../index.css"
 
 const Calendar = ({ events }) => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Calendar = ({ events }) => {
       } else if (window.innerWidth < 900) {
         setEventsToShow(3);
       } else if (window.innerWidth < 1600) {
-        setEventsToShow(3);
+        setEventsToShow(4);
       } else if (window.innerWidth < 1900) {
         setEventsToShow(3);
       } else {
@@ -215,7 +216,7 @@ const Calendar = ({ events }) => {
       const date = new Date(nextMonthYear, nextMonth, day).toISOString().split('T')[0];
       const dayEvents = events?.filter(event => event.start_date.startsWith(date));
       days.push(
-        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '20vh',  cursor: 'pointer' }}>
+        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '20vh',  cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
@@ -237,7 +238,7 @@ const Calendar = ({ events }) => {
   };
 
   return (
-    <div className="py-4 rounded-xl mx-auto">
+    <div className="py-4 rounded-xl mx-auto scale-1 ">
       <div className="flex justify-between items-center mb-4">
         <div className='flex'>
           <button className='px-4 py-1 me-4 border border-[#dcdcdc] rounded-lg' onClick={handleToday}>Today</button>
@@ -246,7 +247,7 @@ const Calendar = ({ events }) => {
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
         </div>
       </div>
-      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5]">
+      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto 2xl:h-[78vh] xl:h-[73vh] laptop:h-[50vh] ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-[#6539C3] font-bold">{day}</div>
         ))}

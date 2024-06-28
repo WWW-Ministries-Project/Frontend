@@ -1,45 +1,74 @@
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { sideTabs } from "../utils/helperFunctions";
-import leftArrow from "/src/assets/leftArrow.svg";
-import rightArrow from "/src/assets/rightArrow.svg";
-import Home from "/src/assets/sidebar/home.svg";
-import Management from "/src/assets/sidebar/management.svg";
-import Members from "/src/assets/sidebar/members.svg";
-import Reports from "/src/assets/sidebar/report.svg";
-import Settings from "/src/assets/sidebar/settings.svg";
-import Users from "/src/assets/sidebar/user.svg";
+import ChurchLogo from '@/components/ChurchLogo';
+import DashboardIcon from '@/assets/sidebar/DashboardIcon';
+import MembersIcon from '@/assets/sidebar/MembersIcon';
+import ManagementIcon from '@/assets/sidebar/ManagementIcon';
+import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
+import SettingsIcon from '@/assets/sidebar/SettingIcon';
+import LogoutIcon from '@/assets/sidebar/Logout';
+import LoginIcon from '@/assets/sidebar/LoginIcon';
+
+const icons = {
+    Dashboard: DashboardIcon,
+    Members: MembersIcon,
+    Events: ManagementIcon,
+    Assets: InstrumentIcon,
+    Settings: SettingsIcon
+};
 
 const SideBar = ({ show, ...props }) => {
     const items = sideTabs;
-    const icons = [Home, Members, Management, Reports, Users, Management, Settings];
     const { user: { permissions } } = useAuth();
+
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handleMouseEnter = () => {
+        setIsHovered(true);
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+    };
 
     function handleClick() {
         props.onClick();
     }
 
     return (
-        <div className={`min-h-screen text-white fixed z-10 bg-white shadow-xs ${!show ? "w-10 min-w-[40px]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
-            {items.map((item, index) => permissions["view_" + item["key"]] &&
-                <NavLink 
-                    to={items[index]["key"]} 
-                    className={`hover:bg-[#9D7ED7] hover:text-white h-10  text-[#8C8C8C] flex items-center   ${!show ? "px-auto" : "px-2 py-7 mx-2"}   my-2 rounded-xl`}
-                    style={({ isActive }) => 
-                        (isActive ? { background: '#6539C3', color: "white" } : null)} 
-                    key={index}
-                >
-                    <img src={icons[index]} alt={`${icons[index]} icon`} className={`${show ? "mr-2" : "ml-2 min-w-[20px] min-h-[20px]"}`} />
-                    {show && <div>{item["name"]}</div>}
-                </NavLink>
-            )}
-            <span
-                className={`absolute gradientBtn h-6 w-6 rounded-full flex items-center py-0 px-2 shadow-md z-40 m-8 top-10 hideNav ${show ? "left-[80%]" : "left-0"}`} 
-                onClick={handleClick}
-            >
-                {show ? <img src={leftArrow} alt="expand side" className="divs" /> : <img src={rightArrow} alt="minimize side" />}
-            </span>
+        <div className="" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <div className={`lg:min-h-screen xs:rounded-2xl pt-4 fixed bg-white shadow-sm z-10 ${!show ? "lg:w-10 lg:min-w-[3vw]" : "lg:w-[15%] lg:min-w-[200px]"} transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col `} style={props.style}>
+                <div className={`xs:hidden lg:block pb-8 ${!show ? "mx-auto " : ""} xs:pb-0 xs:flex xs:items-center`}>
+                    {show ? <div className='flex gap-x-4 '><ChurchLogo show={show} /><div className='flex my-auto' onClick={handleClick}><LogoutIcon /></div></div> : <div onClick={handleClick}><div>
+                        {isHovered ? <div className='flex justify-center'> <LoginIcon /> </div> : <ChurchLogo />}
+                    </div></div>}
+                </div>
+                <div className="xs:flex lg:flex-col  xs:justify-around xs:w-full">
+                    {items.map((item, index) => {
+                        const IconComponent = icons[item.key];
+
+                        if (!IconComponent) {
+                            console.error(`Icon component for ${item.key} not found`);
+                            return null;
+                        }
+
+                        return permissions["view_" + item["key"]] && (
+                            <NavLink
+                                to={item["key"]}
+                                className={({ isActive }) =>
+                                    `hover:border-[#6539C3] hover:border-l-2  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full`}
+                                key={index}
+                            >
+                                <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />
+                                {show && <div className='xs:hidden lg:block'>{item["name"]}</div>}
+                            </NavLink>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 };

@@ -218,7 +218,7 @@ const AssetManagement = () => {
 
   return (
     <>
-      <section className="mt-6   ">
+      <section className="mt-   ">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
           <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
