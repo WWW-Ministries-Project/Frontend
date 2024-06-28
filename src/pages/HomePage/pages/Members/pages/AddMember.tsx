@@ -8,6 +8,7 @@ import { baseUrl } from "../../../../Authentication/utils/helpers";
 import MembersForm from "../Components/MembersForm";
 import { addNewMember } from "../utils/apiCalls";
 import editIcon from "/assets/home/edit.svg";
+import { UserType } from "../utils/membersInterfaces";
 
 const AddMember = () => {
   const [profilePic, setProfilePic] = useState<pictureType>({
@@ -28,7 +29,7 @@ const AddMember = () => {
     setProfilePic({ picture: "", src: "" });
     navigate("/home/members");
   };
-  async function handleSubmit() {
+  async function handleSubmit(val:UserType) {
     setLoading(true);
     const data = new FormData();
     data.append("file", profilePic.picture);
@@ -39,10 +40,10 @@ const AddMember = () => {
         profilePic.picture && (await axiosPic.post(path, data));
       if (profilePic.picture && response.status === 200) {
         const link = response.data.result.link;
-        setUserValue((prev) => ({ ...prev, photo: link }));
+        setUserValue((prev) => ({ ...prev, val, photo: link }));
       }
-      setLoading(true);
       setProfilePic({ picture: "", src: "" });
+      setUserValue(prev=>({...prev,...val}))
       const res = await addNewMember(userValueRef.current);
       if (res && res.status === 200) navigate("/home/members"); // sends data after picture link is received
     } catch (error) {
@@ -51,7 +52,7 @@ const AddMember = () => {
     }
   }
   return (
-    <section className="mx-auto p-8 container bg-white rounded-xl">
+    <section className="hideScrollbar mx-auto p-8 container bg-white rounded-xl 2xl:h-[89vh] xl:h-[89vh] lg:h-[89vh] md:h-[89vh] xs:h-[89vh] overflow-y-auto">
       <div className="flex flex-col gap-4 items-center tablet:items-start">
         <div className="font-bold text-xl">Member Information</div>
         <div className="text text-[#8F95B2] mt-">
@@ -65,12 +66,12 @@ const AddMember = () => {
             text={""}
             alt="profile pic"
             icon={editIcon}
-            className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all duration-1000 mx-aut"
+            className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
             textClass={"text-[32px] leading-[36px] mx-8 "}
             onChange={changePic}
             id={"profilePic"}
           />
-          <div className="text-sm text-[#8F95B2] mt-3">
+          <div className="text-xs text-[#8F95B2] mt-3">
             Image size must be less <br /> than 2mb, jpeg or png
           </div>
         </section>
@@ -81,7 +82,7 @@ const AddMember = () => {
         onChange={handleChange}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        disabled={!userValue.email || !userValue.first_name || loading}
+        // disabled={!userValue.email || !userValue.first_name || loading}
         loading={loading}
       />
     </section>

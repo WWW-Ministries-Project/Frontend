@@ -1,7 +1,14 @@
 import { DateTime } from "luxon";
 import ProfilePicture from "/src/components/ProfilePicture";
 
-export const sideTabs = [{ name: 'Dashboard', key: 'Dashboard' }, { name: 'Members', key: 'Members' }, { name: "Events Management", key: "Events" }, { name: 'Reports', key: 'Reports' }, { name: "Manage users", key: "Users" }, { name: "Assets management", key: "Assets" }, { name: "Settings", key: "Settings" }];
+export const sideTabs = [
+  { name: 'Dashboard', key: 'Dashboard' }, 
+  { name: 'Members', key: 'Members' }, 
+  { name: "Events Management", key: "Events" }, 
+  // { name: 'Reports', key: 'Reports' }, 
+  // { name: "Manage users", key: "Users" }, 
+  { name: "Assets management", key: "Assets" }, 
+  { name: "Settings", key: "Settings" }];
 
 // const formatTableData = (data) => {
 //     switch (data) {

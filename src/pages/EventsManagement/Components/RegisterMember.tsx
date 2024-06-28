@@ -13,7 +13,7 @@ interface RegisterMemberProps {
     }
     name: string
     loading: boolean
-    handleChange: (name: string, value: string) => void
+    handleChange: (name: string, value: string|number) => void
     onSubmit: () => void
 }
 
