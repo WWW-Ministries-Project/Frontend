@@ -1,28 +1,16 @@
-import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { sideTabs } from "../utils/helperFunctions";
-import leftArrow from "/src/assets/leftArrow.svg";
-import rightArrow from "/src/assets/rightArrow.svg";
-import Home from "/src/assets/sidebar/home.svg";
-import Management from "/src/assets/sidebar/management.svg";
-import Members from "/src/assets/sidebar/members.svg";
-import Reports from "/src/assets/sidebar/report.svg";
-import Settings from "/src/assets/sidebar/settings.svg";
-import Users from "/src/assets/sidebar/user.svg";
-import Dashboard from "/src/assets/sidebar/dashboard.svg";
-import Instrument from "/src/assets/sidebar/Instruments.svg";
-import Wavesb from "../../../assets/wavesb.svg";
-import ChurchLogo from '/src/components/ChurchLogo';
 import DashboardIcon from '/src/assets/sidebar/DashboardIcon';
-import MembersIcon from '/src/assets/sidebar/MembersIcon';
-import ManagementIcon from '/src/assets/sidebar/ManagementIcon';
 import InstrumentIcon from '/src/assets/sidebar/InstrumentIcon';
-import SettingsIcon from '/src/assets/sidebar/SettingIcon';
-import LogoutIcon from '/src/assets/sidebar/Logout';
 import LoginIcon from '/src/assets/sidebar/LoginIcon';
-import HoverSwitch from '/src/components/HoverSwitch';
+import LogoutIcon from '/src/assets/sidebar/Logout';
+import ManagementIcon from '/src/assets/sidebar/ManagementIcon';
+import MembersIcon from '/src/assets/sidebar/MembersIcon';
+import SettingsIcon from '/src/assets/sidebar/SettingIcon';
+import ChurchLogo from '/src/components/ChurchLogo';
 
 const icons = {
     // DashboardIcon, 
