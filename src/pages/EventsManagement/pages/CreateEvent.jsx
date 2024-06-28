@@ -45,11 +45,18 @@ const CreateEvent = () => {
         }
       }
 
-      const eventData = { ...val, poster: posterLink };
+      const response ="";
+      if (!id){
+        const eventData = { ...val, poster: posterLink, created_by:user?.id };
+        response = await axios.post("/event/create-event", eventData);
+      }else{
+        const eventData = { ...val, poster: posterLink, updated_by:user?.id };
+        response = await axios.put("/event/update-event",eventData)
+      }
 
-      const response = await axios.post("/event/create-event", eventData);
       if (response.status === 200) {
-        // window.location.href = "/home/events";
+        // setLoading(false)
+        window.location.href = "/home/events";
       }
     } catch (error) {
       console.log(error);
@@ -66,7 +73,7 @@ const CreateEvent = () => {
       <div className="hideScrollbar overflow-y-auto 2xl:h-[77vh] xl:h-[70vh] lg:h-[50vh]">
         <ImageUpload onFileChange={(file) => setFile(file)} />
           
-      <EventsForm inputValue={inputValue} onSubmit={handleSubmit} />
+      <EventsForm inputValue={inputValue} onSubmit={handleSubmit} loading={loading} />
       </div>
     </section>
   );

@@ -11,6 +11,7 @@ interface EventsFormProps {
   inputValue: any;
   handleMultiSelectChange: any;
   onSubmit: (val: any) => void;
+  loading?:boolean
 }
 
 const EventsForm: React.FC<EventsFormProps> = (props) => {
@@ -34,7 +35,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
       initialValues={props.inputValue}
       validationSchema={eventFormValidator}
     >
-      {(props) => (
+      {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
           <h2 className="H400">Event Information</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -96,7 +97,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 Multi-day
               </label>
             </div>
-            {props.values.day_event == "multi" && (
+            {form.values.day_event == "multi" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
@@ -127,7 +128,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 No
               </label>
             </div>
-            {props.values.repetitive == "yes" && (
+            {form.values.repetitive == "yes" && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Field
@@ -155,11 +156,11 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     type="date"
                     id="end_date"
                     name="end_date"
-                    min={props.values.start_date}
+                    min={form.values.start_date}
                     max={maxMinValueForDate().maxDate}
                   />
                 </div>
-                {/* {props.values.recurring.frequency == "weeks" && (
+                {/* {form.values.recurring.frequency == "weeks" && (
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Repeat on:</p>
                     <div className="flex gap-5">
@@ -172,14 +173,14 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                             <input
                               type="checkbox"
                               value={day}
-                              checked={props.values.repeatDays.includes(day)}
+                              checked={form.values.repeatDays.includes(day)}
                               onChange={() => {
                                 console.log("changed");
                                 const temp = handleMultiSelectChange(
                                   day,
-                                  props.values.repeatDays
+                                  form.values.repeatDays
                                 );
-                                props.setFieldValue("repeatDays", temp);
+                                form.setFieldValue("repeatDays", temp);
                               }}
                               className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                             />
@@ -190,7 +191,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     </div>
                   </div>
                 )} */}
-                {props.values.recurring?.frequency == "months" && (
+                {form.values.recurring?.frequency == "months" && (
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Ends:</p>
                     <div className="flex gap-4">
@@ -240,8 +241,9 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value="Save"
               type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
+              loading={props.loading}
               onClick={() => {
-                props.handleSubmit();
+                form.handleSubmit();
               }}
             />
           </div>

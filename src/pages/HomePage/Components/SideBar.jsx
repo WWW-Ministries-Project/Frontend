@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { sideTabs } from "../utils/helperFunctions";
