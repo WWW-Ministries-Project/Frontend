@@ -28,8 +28,8 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
     },
     initialState: {
       pagination: {
-        pageIndex: 0, // custom initial page index
-        pageSize: displayedCount || 12, // custom default page size
+        pageIndex: 0,
+        pageSize: displayedCount || 12,
       },
     },
     onSortingChange: setSorting,
@@ -37,7 +37,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
   });
 
   return (
-    <div className="">
+    <div className="overflow-x-auto">
       <div className="rounded-xl">
         {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
           <GridWrapper>
