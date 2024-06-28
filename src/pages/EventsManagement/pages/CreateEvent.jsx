@@ -45,10 +45,11 @@ const CreateEvent = () => {
         }
       }
 
-      const eventData = { ...val, poster: posterLink };
+      const eventData = { ...val, poster: posterLink, created_by:user?.id };
 
       const response = await axios.post("/event/create-event", eventData);
       if (response.status === 200) {
+        setLoading(false)
         // window.location.href = "/home/events";
       }
     } catch (error) {
@@ -66,7 +67,7 @@ const CreateEvent = () => {
       <div className="hideScrollbar overflow-y-auto 2xl:h-[77vh] xl:h-[70vh] lg:h-[50vh]">
         <ImageUpload onFileChange={(file) => setFile(file)} />
           
-      <EventsForm inputValue={inputValue} onSubmit={handleSubmit} />
+      <EventsForm inputValue={inputValue} onSubmit={handleSubmit} loading={loading} />
       </div>
     </section>
   );
