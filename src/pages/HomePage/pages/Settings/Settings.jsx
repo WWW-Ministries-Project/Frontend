@@ -14,7 +14,7 @@ import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
 import { deleteData, updateData } from "./utils/helperFunctions";
 import Dialog from "/src/components/Dialog.jsx";
-import { decodeToken } from "/src/utils/helperFunctions.js";
+import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
   const tabs = ["Department", "Position", "Access Rights"];
