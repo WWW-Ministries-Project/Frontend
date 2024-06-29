@@ -199,7 +199,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
               {/* bug from backend */}
-              {/* <Field
+              <Field
                 component={FormikSelectField}
                 label="Ministry/Department"
                 id="department_id"
@@ -214,7 +214,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 name="position_id"
                 options={positionOptions || []}
                 disabled={!props.edit}
-              /> */}
+              />
             </div>
           </section>
           <section>
