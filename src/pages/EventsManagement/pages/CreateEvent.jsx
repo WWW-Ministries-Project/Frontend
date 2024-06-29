@@ -55,8 +55,8 @@ const CreateEvent = () => {
       }
 
       if (response.status === 200) {
-        setLoading(false)
-        // window.location.href = "/home/events";
+        // setLoading(false)
+        window.location.href = "/home/events";
       }
     } catch (error) {
       console.log(error);
