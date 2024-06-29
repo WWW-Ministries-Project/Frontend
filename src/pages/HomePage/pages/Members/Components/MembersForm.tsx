@@ -7,6 +7,7 @@ import ContactInput from "../../../../../components/ContactInput";
 import {
   formatInputDate,
   genderOptions,
+  getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useDepartmentStore from "../../Settings/utils/departmentStore";
 import usePositionStore from "../../Settings/utils/positionStore";
@@ -32,16 +33,6 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   const departmentsOptions = useDepartmentStore().departmentsOptions;
   const positionOptions = usePositionStore().positionsOptions;
 
-  const getChangedValues = (initialValues: any, currentValues: any) => {
-    const changedValues: any = {};
-    for (const key in currentValues) {
-      if (typeof currentValues[key] == "object") continue;
-      if (currentValues[key] !== initialValues[key]) {
-        changedValues[key] = currentValues[key];
-      }
-    }
-    return changedValues;
-  };
   return (
     <Formik
       enableReinitialize={true}
@@ -219,7 +210,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 name="position_id"
                 options={positionOptions || []}
                 disabled={!props.edit}
-                parse={(value:string) => parseInt(value, 10)}
+                parse={(value: string) => parseInt(value, 10)}
               />
             </div>
           </section>
@@ -322,7 +313,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   type="submit"
                   onClick={form.handleSubmit}
                   loading={form.isSubmitting}
-                  disabled={props.disabled  || form.isSubmitting}
+                  disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />
               </div>
