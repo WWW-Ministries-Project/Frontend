@@ -22,9 +22,9 @@ const Banner:React.FC<BannerProps> = (props) => {
         props.onClick(true);
     }
     return (
-        <div className="w-full h-48 relative">
+        <div className="w-full h-48 w-full relative">
             {/* <img src={props.coverImage1} alt="cover Image" className="w-full rounded-xl" /> */}
-            <div className="absolute bottom-0 rounded-lg left-0 w-full h-full flex items-center justify-between px-4" style={{ backgroundImage: `url(${coverImage1})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+            <div className="absolute bottom-0 rounded-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover" style={{ backgroundImage: `url(${coverImage1})`, backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                 <div className='flex gap-4 items-center'>
                     <ProfilePic className="w-32 h-32 shadow" src={props.src} alt="cover Image" name={props.name} editable={props.edit} id="coverPic" onChange={props.onPicChange} />
                     <article className='xs:hidden md:inline'>

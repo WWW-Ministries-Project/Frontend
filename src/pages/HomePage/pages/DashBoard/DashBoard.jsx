@@ -61,7 +61,7 @@ function DashBoard() {
   };
 
   return (
-    <main className={`hideScrollbar pb-4 2xl:h-[90vh] xl:h-[88vh] md:h-[90vh] xs:h-[90vh] overflow-y-auto rounded-xl`}>
+    <main className={`hideScrollbar pb-4 2xl:h-[90vh] xl:h-[88vh] md:h-[87vh] xs:h-[86vh] overflow-y-auto rounded-xl`}>
       {welcomeMsg && isTabletOrAbove && (
           <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView}/>
       )}

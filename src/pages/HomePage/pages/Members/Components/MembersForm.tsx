@@ -295,7 +295,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
           </section>
           {props.edit && (
-            <section className="w-full ">
+            <section className="w-full pt-5">
               <div className="flex justify-end gap-4">
                 <Button
                   value={"Cancel"}

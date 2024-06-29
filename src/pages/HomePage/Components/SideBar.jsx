@@ -40,13 +40,13 @@ const SideBar = ({ show, ...props }) => {
 
     return (
         <div className="" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-            <div className={`lg:min-h-screen xs:rounded-2xl pt-4 fixed bg-white shadow-sm z-10 ${!show ? "lg:w-10 lg:min-w-[3vw]" : "lg:w-[15%] lg:min-w-[200px]"} transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col `} style={props.style}>
+            <div className={`bg-transparent mx-auto px-1 lg:min-h-screen xs:rounded-t-2xl pt-1 fixed bg-white z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : "lg:w-[15%] lg:min-w-[200px]"} transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `} style={props.style}>
                 <div className={`xs:hidden lg:block pb-8 ${!show ? "mx-auto " : ""} xs:pb-0 xs:flex xs:items-center`}>
                     {show ? <div className='flex gap-x-4 '><ChurchLogo show={show} /><div className='flex my-auto' onClick={handleClick}><LogoutIcon /></div></div> : <div onClick={handleClick}><div>
-                        {isHovered ? <div className='flex justify-center'> <LoginIcon /> </div> : <ChurchLogo />}
+                        {isHovered ? <div className='flex justify-center'> <LoginIcon /> </div> : <div className='flex justify-center'><ChurchLogo /></div>}
                     </div></div>}
                 </div>
-                <div className="xs:flex lg:flex-col  xs:justify-around xs:w-full">
+                <div className="xs:flex lg:flex-col  xs:justify-around xs:w-full ">
                     {items.map((item, index) => {
                         const IconComponent = icons[item.key];
 
@@ -68,6 +68,9 @@ const SideBar = ({ show, ...props }) => {
                         );
                     })}
                 </div>
+                {/* <div className='flex pb-2 hover:border-[#6539C3] hover:border-l-2  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full'>
+                <LogoutIcon />{show && <div className='xs:hidden lg:block'>{'Logout'}</div>}
+                </div> */}
             </div>
         </div>
     );

@@ -32,17 +32,17 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
 
 
     return (
-        <CardWrapper className="  rounded-xl">
+        <CardWrapper className="  rounded-xl ">
             <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" name={props.name} />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
-                <div className='flex justify-between w-full'>
+                <div className='flex justify-between w-full '>
                     <p className='font-bold text-[1rem] '>{props.name}</p>
                     {/* <img src={ellipse} alt="options" className='w-4 h-4 ' /> */}
                 </div> 
-                <div className='flex gap-1 my-1'>
+                {/* <div className='flex gap-1 my-1'>
                     <p className='text-sm '>{props.department || "Department"}</p> <span>|</span>
                     <p className='text-sm'>Position</p>
-                </div>
+                </div> */}
                 <div className='flex gap-1 text-xs'>
                 <p className='text-sm '>{props.email|| "email"}</p>
                 </div>
