@@ -1,15 +1,16 @@
 import * as Yup from 'yup';
+import { maxMinValueForDate } from '@/pages/HomePage/utils/helperFunctions';
 
 export const userFormValidator = Yup.object({
   membership_type: Yup.string().required('Required'),
   first_name: Yup.string().required('Required'),
   other_name: Yup.string(),
   last_name: Yup.string().required('Required'),
-  date_of_birth: Yup.date(),
+  date_of_birth: Yup.date().max(maxMinValueForDate().minDate,"date can't be after today").required("Required"),
   gender: Yup.string().required('Required'),
   marital_status: Yup.string(),
   primary_number: Yup.string().required('Required'),
-  country_code: Yup.string().required('Required'),
+  country_code: Yup.string().required('Required').max(5,"check code"),
   email: Yup.string().email('Invalid email address').required('Required'),
   address: Yup.string(),
   country: Yup.string().required('Required'),
