@@ -51,7 +51,7 @@ const useDepartmentStore = create<DepartmentStore>((set, get) => ({
     set((state) => ({
       departmentsOptions: state.departments?.map((department) => ({
         name: department.name,
-        value: department.id,
+        value: +department.id,
       })),
     }));
   },

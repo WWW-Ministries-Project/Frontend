@@ -51,7 +51,7 @@ const usePositionStore = create<PositionStore>((set, get) => ({
     set((state) => ({
       positionsOptions: state.positions.map((position) => ({
         name: position.name,
-        value: position.id,
+        value: +position.id,
       })),
     }));
   },

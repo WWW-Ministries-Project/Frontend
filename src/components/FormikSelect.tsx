@@ -16,6 +16,7 @@ interface SelectFieldProps {
   onChange: (name: string, value: string | number) => void;
   options: Option[];
   disabled?: boolean;
+  error?:string;
 }
 
 interface FormikSelectFieldProps extends FieldProps, Omit<SelectFieldProps, 'name' | 'value'> {
@@ -27,15 +28,14 @@ interface FormikSelectFieldProps extends FieldProps, Omit<SelectFieldProps, 'nam
 export function fieldToSelectField({
   form: { touched, errors },
   field: { onChange: fieldOnChange, ...field },
-  id,
   ...props
 }: FormikSelectFieldProps): SelectFieldProps {
-  const fieldError = getIn(errors, id);
-  const showError = getIn(touched, id) && !!fieldError;
+  const fieldError = getIn(errors, field.name);
+  const showError = getIn(touched, field.name) && fieldError;
 
   return {
     ...field,
-    id,
+    id:props.id,
     value: field.value,
     onChange: props.onChange ?? ((name: string, value: string | number) => fieldOnChange({ target: { name, value } })),
     disabled: props.disabled,
@@ -44,13 +44,12 @@ export function fieldToSelectField({
     label: props.label,
     placeholder: props.placeholder,
     type: props.type,
+    error:showError
   };
 }
 
-export default function FormikSelectField(props: FormikSelectFieldProps) {
-  const { id, field, ...rest } = props;
-  const updatedField = { ...field, name: id }; // Ensuring the field name is set to id
-  return <SelectField {...fieldToSelectField({ ...rest, field: updatedField, id })} />;
+export default function FormikSelectField({...props}: FormikSelectFieldProps) {
+  
+  return <SelectField {...fieldToSelectField(props)} />;
 }
-
 FormikSelectField.displayName = 'FormikSelectField';

@@ -47,7 +47,12 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       enableReinitialize={true}
       initialValues={props.user}
       onSubmit={(val) => {
-        const changedValues = getChangedValues(props.user, val);
+        const transformedValues = {
+          ...val,
+          position_id: val.position_id && parseInt(val.position_id, 10),
+          department_id: val.department_id && parseInt(val.department_id, 10),
+        };
+        const changedValues = getChangedValues(props.user, transformedValues);
         // console.log('Changed values:', changedValues);
         props.onSubmit(changedValues);
       }}
@@ -214,6 +219,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 name="position_id"
                 options={positionOptions || []}
                 disabled={!props.edit}
+                parse={(value:string) => parseInt(value, 10)}
               />
             </div>
           </section>
