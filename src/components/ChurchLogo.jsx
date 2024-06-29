@@ -21,6 +21,6 @@ function ChurchLogo (props) {
 
 ChurchLogo.propTypes = {
     className: PropTypes.string,
-    show: PropTypes.string,
+    show: PropTypes.bool,
 }
 export default ChurchLogo
