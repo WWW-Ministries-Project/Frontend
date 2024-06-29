@@ -32,7 +32,7 @@ export const membersColumns = [
   },
   {
     header: "Phone number",
-    accessorKey: "primary_number",
+    cell: ({row})=>(`${row.original.country_code?row.original.country_code:""} ${row.original.primary_number}`),
   },
   {
     header: "last visited",
