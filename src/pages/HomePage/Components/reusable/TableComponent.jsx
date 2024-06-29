@@ -54,8 +54,8 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
               />
             ))}
           </GridWrapper> :
-          <div className="hideScrollbar rounded-xl">
-            <table className="w-full rounded-xl">
+          <div className="hideScrollbar rounded-xl h-[75vh] overflow-y-scroll">
+            <table className="w-full rounded-xl ">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr
@@ -82,7 +82,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
                   </tr>
                 ))}
               </thead>
-              <tbody className="bg-white">
+              <tbody className="bg-white ">
                 {table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}

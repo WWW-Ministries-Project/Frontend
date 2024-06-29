@@ -247,7 +247,7 @@ const Calendar = ({ events }) => {
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
         </div>
       </div>
-      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto 2xl:h-[78vh] xl:h-[73vh] laptop:h-[50vh] ">
+      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto 2xl:h-[78vh] xl:h-[73vh] md:h-[75vh] ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-[#6539C3] font-bold">{day}</div>
         ))}
