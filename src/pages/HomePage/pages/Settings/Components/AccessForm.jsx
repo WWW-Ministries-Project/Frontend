@@ -62,7 +62,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                             className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
                             onClick={CloseForm}
                         />
-                        <Button value={buttonText} className={" p-3 text-white"} onClick={handleSubmit} loading={loading} />
+                        <Button value={buttonText} className={" p-3 text-white bg-primaryViolet"} onClick={handleSubmit} loading={loading} />
                     </div>
             </form>
         </div>

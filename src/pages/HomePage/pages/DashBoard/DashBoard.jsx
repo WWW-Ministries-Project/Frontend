@@ -32,7 +32,7 @@ function DashBoard() {
     { name: "Total Members", value: userStats.total_members, additionalInfo: "I wonder how it should appear" },
     { name: "Males", value: userStats.total_males, additionalInfo: "As a tooltip or info card" },
     { name: "Female", value: userStats.total_females, additionalInfo: "Number of female adults" },
-    { name: "Females", value: userStats.total_females, additionalInfo: "Number of female adults" },
+    { name: "Children", value: userStats.stats?.children?.Total, additionalInfo: "Number of all children" },
   ];
 
   const columns = dashboardColumns;

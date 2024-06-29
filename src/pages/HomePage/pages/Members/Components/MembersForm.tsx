@@ -7,7 +7,10 @@ import ContactInput from "../../../../../components/ContactInput";
 import {
   formatInputDate,
   genderOptions,
+  getChangedValues,
 } from "../../../../../utils/helperFunctions";
+import useDepartmentStore from "../../Settings/utils/departmentStore";
+import usePositionStore from "../../Settings/utils/positionStore";
 import { userFormValidator } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
@@ -27,24 +30,21 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   // function handleChange(name: string, value: string | boolean) {
   //   props.onChange(name, value);
   // }
+  const departmentsOptions = useDepartmentStore().departmentsOptions;
+  const positionOptions = usePositionStore().positionsOptions;
 
-  const getChangedValues = (initialValues:any, currentValues:any) => {
-    const changedValues:any = {};
-    for (const key in currentValues) {
-      if(typeof currentValues[key] =='object') continue
-      if (currentValues[key] !== initialValues[key]) {
-        changedValues[key] = currentValues[key];
-      }
-    }
-    return changedValues;
-  };
   return (
     <Formik
-    enableReinitialize={true}
-    initialValues={props.user}
+      enableReinitialize={true}
+      initialValues={props.user}
       onSubmit={(val) => {
-        const changedValues = getChangedValues(props.user, val);
-      // console.log('Changed values:', changedValues);
+        const transformedValues = {
+          ...val,
+          position_id: val.position_id && parseInt(val.position_id, 10),
+          department_id: val.department_id && parseInt(val.department_id, 10),
+        };
+        const changedValues = getChangedValues(props.user, transformedValues);
+        // console.log('Changed values:', changedValues);
         props.onSubmit(changedValues);
       }}
       validationSchema={userFormValidator}
@@ -66,7 +66,6 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                 ]}
               />
             </div>
-            
           </section>
           <section>
             <div className=" text-black font-bold my-5">
@@ -150,7 +149,9 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 zipCode={props.user?.country_code}
                 id="primary_number"
                 disabled={!props.edit}
-                onChange={(name,val)=>{form.setFieldValue(name,val)}}
+                onChange={(name, val) => {
+                  form.setFieldValue(name, val);
+                }}
                 placeholder="enter phone number"
               />
               <Field
@@ -187,25 +188,29 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
               </p>
               <RadioInput
                 value={form.values.is_user || false}
-                onChange={(name,val)=>{form.setFieldValue(name,val)}}
+                onChange={(name, val) => {
+                  form.setFieldValue(name, val);
+                }}
               />
             </div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
+              {/* bug from backend */}
               <Field
                 component={FormikSelectField}
                 label="Ministry/Department"
-                id="department"
-                name="department"
-                options={props.department || []}
+                id="department_id"
+                name="department_id"
+                options={departmentsOptions || []}
                 disabled={!props.edit}
               />
               <Field
                 component={FormikSelectField}
                 label="Position"
-                id="position"
-                name="position"
-                options={props.department || []}
+                id="position_id"
+                name="position_id"
+                options={positionOptions || []}
                 disabled={!props.edit}
+                parse={(value: string) => parseInt(value, 10)}
               />
             </div>
           </section>
@@ -307,8 +312,8 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
                   onClick={form.handleSubmit}
-                  loading={props.loading}
-                  disabled={props.disabled}
+                  loading={form.isSubmitting}
+                  disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />
               </div>

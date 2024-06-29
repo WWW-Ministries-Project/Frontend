@@ -41,12 +41,12 @@ const SideBar = ({ show, ...props }) => {
     return (
         <div className="" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <div className={`bg-transparent mx-auto px-1 lg:min-h-screen xs:rounded-t-2xl pt-1 fixed bg-white z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : "lg:w-[15%] lg:min-w-[200px]"} transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `} style={props.style}>
-                <div className={`xs:hidden lg:block pb-8 ${!show ? "mx-auto " : ""} xs:pb-0 xs:flex xs:items-center`}>
+                <div className={`xs:hidden lg:inline pb-8 ${!show ? "mx-auto " : ""} xs:pb-0 xs:flex xs:items-center`}>
                     {show ? <div className='flex gap-x-4 '><ChurchLogo show={show} /><div className='flex my-auto' onClick={handleClick}><LogoutIcon /></div></div> : <div onClick={handleClick}><div>
                         {isHovered ? <div className='flex justify-center'> <LoginIcon /> </div> : <div className='flex justify-center'><ChurchLogo /></div>}
                     </div></div>}
                 </div>
-                <div className="xs:flex lg:flex-col  xs:justify-around xs:w-full ">
+                <div className="xs:flex lg:flex-col  justify-around xs:w-full ">
                     {items.map((item, index) => {
                         const IconComponent = icons[item.key];
 

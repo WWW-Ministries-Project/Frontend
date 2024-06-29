@@ -48,7 +48,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
                 name={row.original.name}
                 userInfo={row.original}
                 email={row.original.email}
-                primary_number={row.original.primary_number}
+                primary_number={`${row.original.country_code?row.original.country_code:""} ${row.original.primary_number}`}
                 photo={row.original.photo}
                 department={row.original.department[0] ? row.original.department[0].department_info.name : ""} 
               />

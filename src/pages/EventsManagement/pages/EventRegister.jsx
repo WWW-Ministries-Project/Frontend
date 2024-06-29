@@ -19,7 +19,7 @@ const EventRegister = () => {
     const id = params.get('event_id')
     const handleFindMember = () => {
         setLoading(true)
-        axios.get(`${baseUrl}/event/search-user?phone=${memberDetails.phone_number}`).then((res) => {
+        axios.get(`${baseUrl}/event/search-user?phone=${memberDetails.phone_number}&country_code=${memberDetails.country_code}`).then((res) => {
             setLoading(false)
             if (res.status == 200) {
                 setMemberDetails(res.data.data)
@@ -35,7 +35,7 @@ const EventRegister = () => {
     }
     const handleConfirm = () => {
         setLoading(true)
-        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number, new_member: false }).then(() => {
+        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number,country_code:memberDetails.country_code, new_member: false }).then(() => {
             setLoading(false)
             setMemberFound("confirmed");
         }).catch(() => { setLoading(false) })

@@ -70,13 +70,13 @@ export const eventInput = {
   // },
 };
 export const eventFormValidator = Yup.object({
-  name: Yup.string().required("Required"),
-  type: Yup.string().required("Required"),
-  start_date: Yup.date().required("Required"),
-  start_date: Yup.date().required("Required"),
-  start_time: Yup.string().required("Required"),
-  end_time: Yup.string().required("Required"),
-  location: Yup.string().required("Required"),
+  // name: Yup.string().required("Required"),
+  // type: Yup.string().required("Required"),
+  // start_date: Yup.date().required("Required"),
+  // start_date: Yup.date().required("Required"),
+  // start_time: Yup.string().required("Required"),
+  // end_time: Yup.string().required("Required"),
+  // location: Yup.string().required("Required"),
   // number_days:Yup.number().min(2,"should have a minimum of 2"),
   // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
   // repetitive: Yup.boolean().required("Required")
