@@ -70,7 +70,7 @@ const CreateEvent = () => {
       <p className="text-sma text-lightGray py-2">
         Fill in the form below with the event details
       </p>
-      <div className="hideScrollbar overflow-y-auto 2xl:h-[77vh] xl:h-[70vh] lg:h-[50vh]">
+      <div className="hideScrollbar overflow-y-auto 2xl:h-[77vh] xl:h-[70vh] lg:h-[79vh] md:h-[75vh] sm:h-[70vh]">
         <ImageUpload onFileChange={(file) => setFile(file)} />
 
         <EventsForm inputValue={inputValue} onSubmit={handleSubmit} loading={loading} updating={id ? true : false} />
