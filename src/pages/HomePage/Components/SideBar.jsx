@@ -3,32 +3,22 @@ import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { sideTabs } from "../utils/helperFunctions";
-import DashboardIcon from '/src/assets/sidebar/DashboardIcon';
-import InstrumentIcon from '/src/assets/sidebar/InstrumentIcon';
-import LoginIcon from '/src/assets/sidebar/LoginIcon';
-import LogoutIcon from '/src/assets/sidebar/Logout';
-import ManagementIcon from '/src/assets/sidebar/ManagementIcon';
-import MembersIcon from '/src/assets/sidebar/MembersIcon';
-import SettingsIcon from '/src/assets/sidebar/SettingIcon';
-import ChurchLogo from '/src/components/ChurchLogo';
+import ChurchLogo from '@/components/ChurchLogo';
+import DashboardIcon from '@/assets/sidebar/DashboardIcon';
+import MembersIcon from '@/assets/sidebar/MembersIcon';
+import ManagementIcon from '@/assets/sidebar/ManagementIcon';
+import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
+import SettingsIcon from '@/assets/sidebar/SettingIcon';
+import LogoutIcon from '@/assets/sidebar/Logout';
+import LoginIcon from '@/assets/sidebar/LoginIcon';
 
 const icons = {
-    // DashboardIcon, 
-    // MembersIcon, 
-    // ManagementIcon, 
-    // // Reports, 
-    // // Users, 
-    // InstrumentIcon, 
-    // SettingsIcon,
     Dashboard: DashboardIcon,
     Members: MembersIcon,
     Events: ManagementIcon,
-    // reports: ReportsIcon,
-    // users: UsersIcon,
     Assets: InstrumentIcon,
     Settings: SettingsIcon
 };
-
 
 const SideBar = ({ show, ...props }) => {
     const items = sideTabs;
@@ -36,56 +26,51 @@ const SideBar = ({ show, ...props }) => {
 
     const [isHovered, setIsHovered] = useState(false);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
+    const handleMouseEnter = () => {
+        setIsHovered(true);
+    };
 
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+    };
 
     function handleClick() {
         props.onClick();
     }
 
     return (
-        <div className="" onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}>
-            <div className={`min-h-screen pt-4  fixed bg-white shadow-sm z-10 ${!show ? "w-10 min-w-[3vw]" : "w-[15%] min-w-[200px]"} transition-all duration-400 linear`} style={props.style}>
-                <div className={` pb-8  ${!show ? "mx-auto " : ""}`}>
-                {show?<div className='flex gap-x-4 '><ChurchLogo show={show} /><div className='flex my-auto' onClick={handleClick}><LogoutIcon/></div></div>:<div onClick={handleClick}><div>
-      {isHovered ? <div className='flex justify-center'> <LoginIcon/> </div>: <ChurchLogo/> }
-    </div></div>}
-               
-
+        <div className="" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <div className={`bg-transparent mx-auto px-1 lg:min-h-screen xs:rounded-t-2xl pt-1 fixed bg-white z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : "lg:w-[15%] lg:min-w-[200px]"} transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `} style={props.style}>
+                <div className={`xs:hidden lg:block pb-8 ${!show ? "mx-auto " : ""} xs:pb-0 xs:flex xs:items-center`}>
+                    {show ? <div className='flex gap-x-4 '><ChurchLogo show={show} /><div className='flex my-auto' onClick={handleClick}><LogoutIcon /></div></div> : <div onClick={handleClick}><div>
+                        {isHovered ? <div className='flex justify-center'> <LoginIcon /> </div> : <div className='flex justify-center'><ChurchLogo /></div>}
+                    </div></div>}
                 </div>
-                {items.map((item, index) => {
-                    const IconComponent = icons[item.key];
+                <div className="xs:flex lg:flex-col  xs:justify-around xs:w-full ">
+                    {items.map((item, index) => {
+                        const IconComponent = icons[item.key];
 
-                    if (!IconComponent) {
-                        console.error(`Icon component for ${item.key} not found`);
-                        return null;
-                    }
+                        if (!IconComponent) {
+                            console.error(`Icon component for ${item.key} not found`);
+                            return null;
+                        }
 
-                    return permissions["view_" + item["key"]] && (
-                        <NavLink 
-                            to={item["key"]} 
-                            className={({ isActive }) => 
-                                `hover:border-[#6539C3]  hover:border-l-2 transition h-10 z-10 flex items-center py-7 my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"}`}
-                            key={index}
-                        >
-                            <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />
-                            {show && <div>{item["name"]}</div>}
-                        </NavLink>
-                    );
-                })}
-                {/* <span
-                    className={`absolute gradientBtn h-6 w-6 rounded-full flex items-center py-0 px-2 shadow-md z-40 my-2 top-0 hideNav ${show ? "left-[80%] mx-10" : "left-0 mx-7"}`} 
-                    onClick={handleClick}
-                >
-                    {show ? <img src={leftArrow} alt="expand side" className="divs" /> : <img src={rightArrow} alt="minimize side" />}
-                </span> */}
+                        return permissions["view_" + item["key"]] && (
+                            <NavLink
+                                to={item["key"]}
+                                className={({ isActive }) =>
+                                    `hover:border-[#6539C3] hover:border-l-2  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full`}
+                                key={index}
+                            >
+                                <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />
+                                {show && <div className='xs:hidden lg:block'>{item["name"]}</div>}
+                            </NavLink>
+                        );
+                    })}
+                </div>
+                {/* <div className='flex pb-2 hover:border-[#6539C3] hover:border-l-2  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full'>
+                <LogoutIcon />{show && <div className='xs:hidden lg:block'>{'Logout'}</div>}
+                </div> */}
             </div>
         </div>
     );

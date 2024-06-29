@@ -80,7 +80,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full container mx-auto rounded-xl bg-white 2xl:h-[90vh] lg:h-[89vh] xl:h-[87vh] md:h-[91vh] xs:h-[89vh]">
+    <section className=" w-full h-full container mx-auto rounded-xl bg-white 2xl:h-[90vh] lg:h-[89vh] xl:h-[87vh] md:h-[87vh] sm:h-[84vh] xs:h-[89vh]">
       <Banner
         onClick={handleEdit}
         edit={edit}
@@ -106,7 +106,7 @@ const ProfileDetails = () => {
           </NavLink>
         ))}
       </div> */}
-      <div className="hideScrollbar px-8 pb-8 2xl:h-[63vh] xl:h-[60vh] lg:h-[62vh] md:h-[72vh] xs:h-[65vh] overflow-y-auto">
+      <div className="hideScrollbar px-8 pb-8 2xl:h-[70vh] xl:h-[60vh] lg:h-[62vh] md:h-[70vh] sm:h-[66vh] xs:h-[68vh] overflow-y-auto">
         <Outlet
           context={{
             edit,
