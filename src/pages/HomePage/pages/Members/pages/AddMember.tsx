@@ -74,7 +74,7 @@ const AddMember = () => {
             alt="profile pic"
             icon={editIcon}
             className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
-            textClass={"text-[32px] leading-[36px] mx-8 "}
+            textClass={"text-[32px] leading-[36px] "}
             onChange={changePic}
             id={"profilePic"}
           />
