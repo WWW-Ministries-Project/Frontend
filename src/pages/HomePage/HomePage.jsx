@@ -8,8 +8,7 @@ import { getToken } from "../../utils/helperFunctions";
 import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
-import useDepartmentStore from "./pages/Settings/utils/departmentStore";
-import usePositionStore from "./pages/Settings/utils/positionStore";
+import useSettingsStore from "./pages/Settings/utils/settingsStore";
 
 
 function HomePage() {
@@ -18,8 +17,7 @@ function HomePage() {
   const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
-  const departmentStore=useDepartmentStore();
-  const positionStore = usePositionStore();
+  const settingsStore = useSettingsStore();
   const [loading, setLoading] = useState(false);
   const token = getToken();
   const { user } = useAuth();
@@ -60,13 +58,13 @@ function HomePage() {
     // });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-      positionStore.setPositions(res.data.data)
+      settingsStore.setPositions(res.data.data)
     });
   }, [user]);
   useEffect(() => {
     axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       setDepartmentData(res.data.data);
-      departmentStore.setDepartments(res.data.data);
+      settingsStore.setDepartments(res.data.data);
     });
   }, [updatedDepartment]);
 

@@ -9,8 +9,7 @@ import {
   genderOptions,
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
-import useDepartmentStore from "../../Settings/utils/departmentStore";
-import usePositionStore from "../../Settings/utils/positionStore";
+import useSettingsStore from "../../Settings/utils/settingsStore";
 import { userFormValidator } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
@@ -30,8 +29,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   // function handleChange(name: string, value: string | boolean) {
   //   props.onChange(name, value);
   // }
-  const departmentsOptions = useDepartmentStore().departmentsOptions;
-  const positionOptions = usePositionStore().positionsOptions;
+  const departmentsOptions = useSettingsStore().departmentsOptions;
+  const positionOptions = useSettingsStore().positionsOptions;
 
   return (
     <Formik
