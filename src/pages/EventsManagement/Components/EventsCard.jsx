@@ -33,7 +33,7 @@ const EventsCard = (props) => {
             </div>
             {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
         <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
-            <div className="flex gap-1 items-center font-bold">
+            <div className="flex gap-1 items-center font-bold cursor-pointer" onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
                 <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
                 <p>{props.event.name}</p>
             </div>
