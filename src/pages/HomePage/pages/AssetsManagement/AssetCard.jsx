@@ -16,10 +16,10 @@ const AssetCard = (props) => {
     }
 
     return (
-        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto ">
+        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto border-[#6539C3] border-b-4">
             <div className='relative top'>
-            <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
-                <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
+            <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl'></div>
+                <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlac w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
             : "bg-neutralGray text-lighterBlack"}`}>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</div>
             
                 <img className='rounded-xl w-[70vw] h-[20vh]' src={props.assets.photo || defaultImage1} alt="lk" />
@@ -27,11 +27,18 @@ const AssetCard = (props) => {
                 
             </div>
             {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
-        <CardWrapper className={"flex-col text-gray rounded-b-xl border-[#6539C3] border-b-4"}>
-            <div className="flex  gap-2 items-center font-bold">
+        <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
+            <div className="flex  gap-y-2 gap-x-1 items-center ">
                 {/* <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/> */}
-                <p>{props.assets.name}</p>
+                <p className='font-bold'>Name:</p><p>{props.assets.name}</p>
             </div>
+            <div className="flex  gap-y-2 gap-x-1 items-center ">
+                {/* <p className='font-bold'>Status:</p><p>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</p> */}
+            </div>
+            <div className="flex  gap-y-2 gap-x-1 items-center ">
+                {<div className='flex gap-x-1'> <p className='font-bold'>Assigned to:</p><p>-</p> </div>}
+            </div>
+            
             <div className="flex gap-1 text-sm">
                 {/* <img src={time} alt="clock icon" /> */}
                 {/* <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p> */}

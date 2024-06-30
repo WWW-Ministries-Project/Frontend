@@ -24,7 +24,7 @@ const BarChart = ({value}) => {
         datasets:[{
             data:[value.adults.Male,value.adults.Female,value.adults.other,value.children.Male,value.children.Female,value.children.other],
             label:'Demographic',
-            backgroundColor: ['rgba(54, 162, 235, 0.8)','rgba(255, 99, 132, 0.8)','rgba(255, 206, 86, 0.8)','rgba(54, 162, 235, 0.3)','rgba(255, 99, 132, 0.3)','rgba(255, 206, 86, 0.3)'],
+            backgroundColor: ['#6539C3'],
             // backgroundImages: ['rgba(54, 162, 235, 0.5)','rgba(255, 99, 132, 0.5)','rgba(255, 206, 86, 0.5)'],
         }
         ]

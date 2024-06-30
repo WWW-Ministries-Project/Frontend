@@ -9,6 +9,7 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { dashboardColumns } from "./utils/dashboardFunctions";
 import SearchBar from "/src/components/SearchBar";
+import LineChart from "../../Components/LineChart";
 
 function DashBoard() {
   const { members, userStats } = useOutletContext();
@@ -66,18 +67,9 @@ function DashBoard() {
           <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView}/>
       )}
       <div className=''>
-        <div className={`my-5 flex items-center justify-between `}>
+        {/* <div className={`my-5 flex items-center justify-between `}>
           <div className="H600">Overview</div>
-          <div className="flex gap-2 justify-between">
-            <div
-              className="bg-white rounded shadow-sm flex gap-2 items-center justify-between h-10 px-2 py-4 border-1 border-[#EEF2F4] cursor-pointer"
-              onClick={exportToExcel}
-            >
-              <span className="P250 text-dark900"> Export </span>
-              <img src="/assets/home/fi_download.svg" alt="export" className="inline-block" />
-            </div>
-          </div>
-        </div>
+        </div> */}
         <section className="grid xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2  gap-4">
           {stats.map((stat) => (
             <StatsCard stats={stat} key={stat.name} />
@@ -89,12 +81,14 @@ function DashBoard() {
             <BarChart value={userStats.stats} />
           </section>
           <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full">
-            <div className="text-dark900 H600">Event data</div>
-            <BarChart value={userStats.stats} />
+            <div className="text-dark900 H600">Event Attendance</div>
+            {/* <BarChart value={userStats.stats} /> */}
+            <LineChart value={userStats.stats}/>
           </section>
         </div>
         <div className="flex flex-col items-center tablet:flex-row justify-between grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 gap-4">
           <section className="mt-6 bg-white p-7 w-full rounded-xl">
+          <div className="text-dark900 H600">First Timers</div>
             <div className="flex justify-between items-center mb-5">
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
@@ -106,7 +100,7 @@ function DashBoard() {
               </div>
               <div>
                 <Button
-                  value="View members"
+                  value="All Members"
                   className={" p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"}
                   onClick={() => navigate("/home/members")}
                 />
@@ -123,7 +117,39 @@ function DashBoard() {
               />
             </div>
           </section>
+          <section className="mt-6 bg-white p-7 w-full rounded-xl">
+            <div className="text-dark900 H600">Upcoming Event</div>
+            <div className="flex justify-between items-center mb-5">
+              
+              <div className="flex justify-start gap-2 items-center w-2/3">
+                <SearchBar
+                  className="w-[40.9%] h-10"
+                  placeholder="Search events here..."
+                  value={filter}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <div>
+                <Button
+                  value="All Events"
+                  className={" p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"}
+                  onClick={() => navigate("/home/events")}
+                />
+              </div>
+            </div>
+            <div className="">
+              <TableComponent
+                columns={columns}
+                data={members}
+                filter={filter}
+                setFilter={setFilter}
+                displayedCount={8}
+                rowClass={"h-10"}
+              />
+            </div>
+          </section>
         </div>
+        
       </div>
     </main>
   );
