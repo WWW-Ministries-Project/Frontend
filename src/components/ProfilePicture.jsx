@@ -26,7 +26,7 @@ const  ProfilePic = (props)=> {
              <div className="flex">
                 <div className={'rounded-[50%]  relative  '+props.className}>
                     {props.src ? <img src={ props.src} alt={props.alt} className='w-full rounded-full h-full' id="profile" /> : 
-                    <div className='w-full rounded-full h-full flex justify-center items-center'>{firstLetters(props.name)}</div>}
+                    <div className={'w-full rounded-full h-full flex justify-center items-center '+props.textClass}>{firstLetters(props.name)}</div>}
                     {props.editable? <label className="absolute left-2/3 bottom-0 cursor-pointer " htmlFor={props.id}>
                     <span><img src={props.icon || icon} alt="" /></span>
                 </label>: null}

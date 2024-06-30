@@ -82,19 +82,20 @@ export default {
     fontFamily: {
       fontRoboto: ['"Roboto"', "sans-serif"],
       manrope: ["Manrope", "sans-serif"],
+      "great-vibes": ["Great Vibes", "cursive"],
     },
     screens: {
-      'xs': '320px',       // Extra small devices (e.g., older phones)
-      'phone': '450px',    // Small phones
-      'tablet': '640px',   // Tablets
-      'sm': '450px',       // Small devices
-      'md': '768px',       // Medium devices
-      'laptop': '1024px',  // Laptops
-      'lg': '1024px',      // Large devices
-      'desktop': '1280px', // Desktops
-      'xl': '1280px',      // Extra large devices
-      '2xl': '1536px',     // Extra extra large devices
-      '3xl': '1920px'      // Ultra large devices (e.g., 4K screens)
+      xs: "320px", // Extra small devices (e.g., older phones)
+      phone: "450px", // Small phones
+      tablet: "640px", // Tablets
+      sm: "450px", // Small devices
+      md: "768px", // Medium devices
+      laptop: "1024px", // Laptops
+      lg: "1024px", // Large devices
+      desktop: "1280px", // Desktops
+      xl: "1280px", // Extra large devices
+      "2xl": "1536px", // Extra extra large devices
+      "3xl": "1920px", // Ultra large devices (e.g., 4K screens)
     },
   },
   plugins: [
@@ -157,8 +158,9 @@ export default {
           "font-weight": "400",
           "letter-spacing": "-0.8px",
         },
-        '.gradientBtn': {
-          '@apply bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105': {},
+        ".gradientBtn": {
+          "@apply bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105":
+            {},
         },
       };
       addUtilities(utilities);
