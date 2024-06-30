@@ -94,7 +94,7 @@ const ViewEvents = () => {
                             <h2 className="H400 text-mainGray">Event Attendees</h2>
                         </div>
                         <div>
-                            {!eventdetails.event_attendance ? 
+                            {!eventdetails.event_attendance?.length ? 
                                 <EmptyState msg="😞 Sorry, No attendees yet" /> :
                                 <TableComponent columns={attendanceColumn} data={eventdetails.event_attendance || []} />
                             }

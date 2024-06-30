@@ -17,16 +17,16 @@ export const months = [
 ];
 
 export const years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
-export const registeredEventAttendance = [
+export const  registeredEventAttendance = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => row.original.user.user_info.name,
+    cell: ({ row }) => row.original.user.user_info.user.name,
   },
   {
     header: "Membership status",
 
-    cell: ({ row }) => row.original.user.user_info.name,
+    cell: ({ row }) => row.original.event_status,
   },
   {
     header: "Phone number",
@@ -75,7 +75,7 @@ export const eventFormValidator = Yup.object({
   // start_date: Yup.date().required("Required"),
   // start_date: Yup.date().required("Required"),
   // start_time: Yup.string().required("Required"),
-  // end_time: Yup.string().required("Required"),
+  // // end_time: Yup.string().required("Required"),
   // location: Yup.string().required("Required"),
   // number_days:Yup.number().min(2,"should have a minimum of 2"),
   // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
