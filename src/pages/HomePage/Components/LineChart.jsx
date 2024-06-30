@@ -23,12 +23,12 @@ const LineChart = ({ value }) => {
     datasets: [{
       data: [value.adults.Male, value.adults.Female, value.adults.other, value.children.Male, value.children.Female, value.children.other],
       label: 'Demographic',
-      borderColor: 'rgba(54, 162, 235, 0.8)',
-      backgroundColor: 'rgba(54, 162, 235, 0.3)',
+      borderColor: '#6539C3',
+      backgroundColor: '#6539C4',
       fill: true,
       tension: 0.4,
-      pointBackgroundColor: 'rgba(54, 162, 235, 0.8)',
-      pointBorderColor: 'rgba(54, 162, 235, 0.8)',
+      pointBackgroundColor: '#6539C3',
+      pointBorderColor: '#6539C3',
     }]
   };
 
