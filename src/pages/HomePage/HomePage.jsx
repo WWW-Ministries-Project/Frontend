@@ -16,11 +16,11 @@ import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
 function HomePage() {
   const [userStats, setUserStats] = useState({ stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } } });
   const [displayForm, setDisplayForm] = useState(false);
-  const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const settingsStore = useSettingsStore();
   const store = useStore();
+  const members = store.members;
   const token = getToken();
   const { user } = useAuth();
 
@@ -48,7 +48,6 @@ function HomePage() {
   useEffect(() => {
     changeAuth(token);
     fetchAllMembers().then((res) => {
-      setMembers(res.data.data);
       store.setMembers(res.data.data);
     })
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
