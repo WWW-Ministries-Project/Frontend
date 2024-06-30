@@ -8,13 +8,13 @@ import { StoreState, UserType, MemberSlice } from './membersInterfaces';
     set((state: any) => ({
       members: [...state.members, member],
     }));
-    get().setMembersOptions();
+
   },
   removeMember: (memberId) => {
     set((state: any) => ({
       members: state.members.filter((pos: UserType) => pos.id !== memberId),
     }));
-    get().setMembersOptions();
+
   },
   updateMember: (updatedMember) => {
     set((state: any) => ({
@@ -22,11 +22,11 @@ import { StoreState, UserType, MemberSlice } from './membersInterfaces';
         pos.id === updatedMember.id ? updatedMember : pos
       ),
     }));
-    get().setMembersOptions();
+
   },
   setMembers: (members) => {
     set({ members });
-    get().setMembersOptions();
+
   },
 });
 

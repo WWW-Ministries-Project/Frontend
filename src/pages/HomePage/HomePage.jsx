@@ -9,6 +9,8 @@ import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import { useStore } from "@/store/useStore";
+import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
 
 
 function HomePage() {
@@ -18,7 +20,7 @@ function HomePage() {
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const settingsStore = useSettingsStore();
-  const [loading, setLoading] = useState(false);
+  const store = useStore();
   const token = getToken();
   const { user } = useAuth();
 
@@ -45,9 +47,10 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     changeAuth(token);
-    axios.get(`${baseUrl}/user/list-users`).then((res) => {
+    fetchAllMembers().then((res) => {
       setMembers(res.data.data);
-    });
+      store.setMembers(res.data.data);
+    })
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
       // console.log(res.data)

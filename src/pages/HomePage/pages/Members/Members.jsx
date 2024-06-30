@@ -1,14 +1,15 @@
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useStore } from "@/store/useStore";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import TableComponent from "../../Components/reusable/TableComponent";
-import { useEffect, useState } from "react";
 import { membersColumns } from "../../utils/helperFunctions";
-import TableAsset from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
-import useWindowSize from "../../../../CustomHooks/useWindowSize";
+import TableAsset from "/src/assets/TableAssets";
 function Members() {
-  const { members } = useOutletContext();
+  const members = useStore().members;
 
   const navigate = useNavigate();
   const { screenWidth } = useWindowSize();
@@ -21,10 +22,10 @@ function Members() {
     if (screenWidth <= 540) {
       setTableView(false);
       document.getElementById("switch").classList.add("hidden")
-    }else{
+    } else {
       document.getElementById("switch").classList.remove("hidden")
     }
-  },[screenWidth])
+  }, [screenWidth])
   const handleSearchChange = (e) => {
     setFilterMembers(e.target.value);
   };
@@ -78,7 +79,7 @@ function Members() {
             </div>
           </div>
           {/* <TableComponent /> */}
-          <div className={`w-full mx-auto  ${tableView ? "bg-white p-2":"bg-transparent "} rounded-xl`}>
+          <div className={`w-full mx-auto  ${tableView ? "bg-white p-2" : "bg-transparent "} rounded-xl`}>
             <TableComponent
               columns={columns}
               data={members}

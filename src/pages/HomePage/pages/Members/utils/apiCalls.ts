@@ -36,3 +36,14 @@ export const updateAMember = (obj:UserType) => {
       console.log(error);
     });
 }
+
+export const fetchAllMembers = () => {
+  return axios
+    .get(`${baseUrl}/user/list-users`)
+    .then((response: AxiosResponse<{data:UserType[]}>) => {
+      return {data:response.data,status:response.status};
+    })
+    .catch((error: any) => {
+      console.log(error);
+    });
+}

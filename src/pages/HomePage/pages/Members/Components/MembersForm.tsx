@@ -311,7 +311,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
                   onClick={form.handleSubmit}
-                  loading={form.isSubmitting}
+                  loading={props.loading}
                   disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />
