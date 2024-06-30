@@ -24,17 +24,17 @@ export const  registeredEventAttendance = [
     cell: ({ row }) => row.original.user.user_info.user.name,
   },
   {
-    header: "Membership status",
+    header: "Membership",
 
     cell: ({ row }) => row.original.event_status,
   },
   {
-    header: "Phone number",
+    header: "Phone",
     accessorKey: "user_info.primary_number",
     cell: ({ row }) => row.original.user.user_info.primary_number,
   },
   {
-    header: "Arrival time",
+    header: "Arrival",
 
     cell: ({ row }) => row.original.user.user_info.name,
   },
