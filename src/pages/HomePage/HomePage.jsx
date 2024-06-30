@@ -8,19 +8,19 @@ import { getToken } from "../../utils/helperFunctions";
 import { baseUrl } from "../Authentication/utils/helpers";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
-import useDepartmentStore from "./pages/Settings/utils/departmentStore";
-import usePositionStore from "./pages/Settings/utils/positionStore";
+import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import { useStore } from "@/store/useStore";
+import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
 
 
 function HomePage() {
   const [userStats, setUserStats] = useState({ stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } } });
   const [displayForm, setDisplayForm] = useState(false);
-  const [members, setMembers] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
-  const departmentStore=useDepartmentStore();
-  const positionStore = usePositionStore();
-  const [loading, setLoading] = useState(false);
+  const settingsStore = useSettingsStore();
+  const store = useStore();
+  const members = store.members;
   const token = getToken();
   const { user } = useAuth();
 
@@ -47,9 +47,9 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     changeAuth(token);
-    axios.get(`${baseUrl}/user/list-users`).then((res) => {
-      setMembers(res.data.data);
-    });
+    fetchAllMembers().then((res) => {
+      store.setMembers(res.data.data);
+    })
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
       // console.log(res.data)
@@ -60,13 +60,13 @@ function HomePage() {
     // });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-      positionStore.setPositions(res.data.data)
+      settingsStore.setPositions(res.data.data)
     });
   }, [user]);
   useEffect(() => {
     axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       setDepartmentData(res.data.data);
-      departmentStore.setDepartments(res.data.data);
+      settingsStore.setDepartments(res.data.data);
     });
   }, [updatedDepartment]);
 

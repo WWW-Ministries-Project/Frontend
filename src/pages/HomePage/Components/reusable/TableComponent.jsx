@@ -60,12 +60,12 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr
                     key={headerGroup.id}
-                    className={"text-center text-[#080808] font-bold py-4 bg-[#f8f9f999] " + props.rowClass}>
+                    className={"text-center text-mainGray py-4 bg-[#f8f9f999] " + props.rowClass}>
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         onClick={header.column.getToggleSortingHandler()}
-                        className="py-4 px-2 text-left text-mainGray text-[#080808] font-semi-bold cursor-pointer">
+                        className={"py-4 px-2 text-left cursor-pointer "+props.headClass}>
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
@@ -151,6 +151,7 @@ TableComponent.propTypes = {
   setFilter: PropTypes.func,
   tableView: PropTypes.bool,
   displayedCount: PropTypes.number,
-  rowClass: PropTypes.string
+  rowClass: PropTypes.string,
+  headClass: PropTypes.string
 }
 export default TableComponent;

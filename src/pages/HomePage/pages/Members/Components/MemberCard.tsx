@@ -33,7 +33,7 @@ const MemberCard:React.FC<MemberCardProps> = (props) => {
 
     return (
         <CardWrapper className="  rounded-xl ">
-            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " src={props.photo} alt="profile pic" name={props.name} />
+            <ProfilePic className="w-[7rem] h-[7rem] shadow border border-primaryViolet " textClass={"font-great-vibes font-bold gradientBtn overflow-hidden opacity-60"} src={props.photo} alt="profile pic" name={props.name} />
             <div className="w-full break-all text-xs flex flex-col gap-1 p-1">
                 <div className='flex justify-between w-full '>
                     <p className='font-bold text-[1rem] '>{props.name}</p>

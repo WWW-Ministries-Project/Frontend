@@ -19,7 +19,7 @@ interface SelectFieldProps {
   error?:string;
 }
 
-interface FormikSelectFieldProps extends FieldProps, Omit<SelectFieldProps, 'name' | 'value'> {
+interface FormikSelectFieldProps extends FieldProps, Omit<SelectFieldProps, 'name' > {
   id: string;
 }
 

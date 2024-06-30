@@ -7,8 +7,9 @@ import { memberValues } from "../../../../../utils/helperFunctions";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import MembersForm from "../Components/MembersForm";
 import { addNewMember } from "../utils/apiCalls";
-import editIcon from "/assets/home/edit.svg";
 import { UserType } from "../utils/membersInterfaces";
+import editIcon from "/assets/home/edit.svg";
+import { useStore } from "@/store/useStore";
 
 const AddMember = () => {
   const [profilePic, setProfilePic] = useState<pictureType>({
@@ -17,6 +18,7 @@ const AddMember = () => {
   });
   const [loading, setLoading] = useState(false);
   const [userValue, setUserValue, userValueRef] = useState(memberValues);
+  const store = useStore();
   const navigate = useNavigate();
   function changePic(pic: pictureType) {
     setProfilePic(() => pic);
@@ -29,7 +31,7 @@ const AddMember = () => {
     setProfilePic({ picture: "", src: "" });
     navigate("/home/members");
   };
-  async function handleSubmit(val:UserType) {
+  async function handleSubmit(val: UserType) {
     setLoading(true);
     const data = new FormData();
     data.append("file", profilePic.picture);
@@ -43,9 +45,14 @@ const AddMember = () => {
         setUserValue((prev) => ({ ...prev, val, photo: link }));
       }
       setProfilePic({ picture: "", src: "" });
-      setUserValue(prev=>({...prev,...val}))
+      setUserValue((prev) => ({ ...prev, ...val }));
       const res = await addNewMember(userValueRef.current);
-      if (res && res.status === 200) navigate("/home/members"); // sends data after picture link is received
+      if (res && res.status === 200) {
+        //@ts-ignore
+        const temp={...res.data.data,...res.data.data.user_info,name:res.data.data.name,email:res.data.data.email}
+        store.addMember(temp);
+        navigate("/home/members");
+      }
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -67,7 +74,7 @@ const AddMember = () => {
             alt="profile pic"
             icon={editIcon}
             className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
-            textClass={"text-[32px] leading-[36px] mx-8 "}
+            textClass={"text-[32px] leading-[36px] "}
             onChange={changePic}
             id={"profilePic"}
           />

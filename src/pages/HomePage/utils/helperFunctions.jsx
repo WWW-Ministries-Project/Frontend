@@ -25,7 +25,8 @@ export const membersColumns = [
         src={row.original.user_info?.photo}
         name={row.original.name}
         alt="profile pic"
-        className="h-[38px] w-[38px] rounded-full"
+        className="h-[38px] w-[38px] rounded-full border"
+        textClass="font-great-vibes overflow-hidden opacity-60"
       />{" "}
       {row.original.name}
     </div>,

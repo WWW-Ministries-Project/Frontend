@@ -45,7 +45,7 @@ const CreateEvent = () => {
         }
       }
 
-      const response = "";
+      let response = "";
       if (!id) {
         const eventData = { ...val, poster: posterLink, created_by: user?.id };
         response = await axios.post("/event/create-event", eventData);

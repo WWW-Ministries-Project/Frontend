@@ -2,6 +2,7 @@ import * as Yup from 'yup';
 import { maxMinValueForDate } from '@/pages/HomePage/utils/helperFunctions';
 
 export const userFormValidator = Yup.object({
+  // title: Yup.string().required('Required'),
   membership_type: Yup.string().required('Required'),
   first_name: Yup.string().required('Required'),
   other_name: Yup.string(),
@@ -10,7 +11,7 @@ export const userFormValidator = Yup.object({
   gender: Yup.string().required('Required'),
   marital_status: Yup.string(),
   primary_number: Yup.string().required('Required'),
-  country_code: Yup.string().required('Required').max(5,"check code"),
+  country_code: Yup.string().required('Required').max(6,"check code"),
   email: Yup.string().email('Invalid email address').required('Required'),
   address: Yup.string(),
   country: Yup.string().required('Required'),
@@ -24,11 +25,9 @@ export const userFormValidator = Yup.object({
 //     industry: Yup.string(),
 //     position: Yup.string(),
 //   }),
-//   emergency_contact: Yup.object({
-//     name: Yup.string().required('Required'),
-//     relation: Yup.string().required('Required'),
-//     phone_number: Yup.string().required('Required'),
-//   }),
+emergency_contact_name: Yup.string().required('Required'),
+  emergency_contact_relation: Yup.string().required('Required'),
+  emergency_contact_phone_number: Yup.string().required('Required'),
 });
 
 export const initialUser = {

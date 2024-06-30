@@ -9,8 +9,7 @@ import {
   genderOptions,
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
-import useDepartmentStore from "../../Settings/utils/departmentStore";
-import usePositionStore from "../../Settings/utils/positionStore";
+import useSettingsStore from "../../Settings/utils/settingsStore";
 import { userFormValidator } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
@@ -30,8 +29,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   // function handleChange(name: string, value: string | boolean) {
   //   props.onChange(name, value);
   // }
-  const departmentsOptions = useDepartmentStore().departmentsOptions;
-  const positionOptions = usePositionStore().positionsOptions;
+  const departmentsOptions = useSettingsStore().departmentsOptions;
+  const positionOptions = useSettingsStore().positionsOptions;
 
   return (
     <Formik
@@ -312,7 +311,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
                   onClick={form.handleSubmit}
-                  loading={form.isSubmitting}
+                  loading={props.loading}
                   disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />

@@ -1,5 +1,5 @@
 export interface UserType {
-  id?: string;
+  id?: number;
   is_user?: boolean;
   title?: string;
   name?: string;
@@ -41,3 +41,13 @@ export interface OptionsType {
   name: string;
   value: string;
 }
+
+export interface MemberSlice {
+  members: UserType[];
+  addMember: (member: UserType) => void;
+  removeMember: (memberId: number) => void;
+  updateMember: (updatedMember: UserType) => void;
+  setMembers: (members: UserType[]) => void;
+}
+
+export type StoreState =  MemberSlice;
