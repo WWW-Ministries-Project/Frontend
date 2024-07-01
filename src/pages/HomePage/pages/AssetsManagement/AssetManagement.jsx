@@ -269,7 +269,7 @@ const AssetManagement = () => {
           />
         </div>:
         <div>
-        <GridWrapper>
+        <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
           {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
           {console.log("Props", assertsData)}
           {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
