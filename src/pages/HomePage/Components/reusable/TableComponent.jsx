@@ -40,7 +40,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
     <div className="overflow-x-auto">
       <div className="rounded-xl">
         {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
-          <GridWrapper>
+          <GridWrapper className="2xl:h-[80vh] lg:h-[75vh] md:h-[78vh]  xs:h-[72vh]">
             {table.getRowModel().rows.map((row) => (
               <MemberCard 
                 key={row.id}

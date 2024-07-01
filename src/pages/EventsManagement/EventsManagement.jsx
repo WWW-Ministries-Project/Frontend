@@ -60,8 +60,8 @@ const EventsManagement = () => {
                 </div>
             </div>
             {!tableView ?
-                <div className="h-[84vh]  overscroll-none mt-4 rounded-xl">
-                    <GridWrapper>
+                <div className="h-[84vh]   mt-4 rounded-xl">
+                    <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
                         {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
                     </GridWrapper>
                 </div>
