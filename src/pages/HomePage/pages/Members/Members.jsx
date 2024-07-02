@@ -8,6 +8,7 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { membersColumns } from "../../utils/helperFunctions";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
+import GridComponent from "../../Components/reusable/GridComponent";
 function Members() {
   const members = useStore().members;
 
@@ -80,15 +81,22 @@ function Members() {
           </div>
           {/* <TableComponent /> */}
           <div className={`w-full mx-auto  ${tableView ? "bg-white p-2" : "bg-transparent "} rounded-xl`}>
-            <TableComponent
+            {tableView?<TableComponent
+              columns={columns}
+              data={members}
+              displayedCount={12}
+              filter={filterMembers}
+              setFilter={setFilterMembers}
+              tableView={tableView}
+            />:
+            <GridComponent
               columns={columns}
               data={members}
               displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
               tableView={tableView}
-            />
-            {/* <MemberCard /> */}
+            />}
           </div>
         </section>
       </main>
