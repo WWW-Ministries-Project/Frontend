@@ -99,7 +99,7 @@ function HomePage() {
   return (
     <>
       {token ? (
-          <main onClick={CloseForm} className="bg-white xs:h-[95vh] lg:h-[100vh]  flex  overflow-auto ">
+          <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
             <div className={` bg-primaryViole ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
             <SideBar
               className=""
