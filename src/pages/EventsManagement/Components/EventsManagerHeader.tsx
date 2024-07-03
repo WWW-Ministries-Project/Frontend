@@ -37,13 +37,13 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
                 <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>}
             </div>
-            <SearchBar
+            {props.viewfilter && <SearchBar
               className="max-w-[40.9%] min-w-[100px] h-10"
               placeholder="Search events here..."
               value={props.filterEvents}
               onChange={handleSearchChange}
               id="searchMembers"
-            />
+            />}
             <Button
                 value="Create Event"
                 className={" text-white h-10 p-2 gradientBtn"}
