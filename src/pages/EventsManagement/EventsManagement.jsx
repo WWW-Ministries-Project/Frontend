@@ -9,11 +9,13 @@ import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
+import { eventColumns } from "./utils/eventHelpers";
 
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [filter, setFilter] = useState({});
+    const [filterEvents, setFilterEvents] = useState("");
     const [queryLoading, setQueryLoading] = useState(false);
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
@@ -35,6 +37,9 @@ const EventsManagement = () => {
     const handleChange = (name, value) => {
         setFilter((prev) => ({ ...prev, [name]: value }))
     }
+    const handleSearchChange = (val) => {
+        setFilterEvents(val);
+      };
 
     const handleFilter = () => {
         setQueryLoading(true)
@@ -85,17 +90,21 @@ const EventsManagement = () => {
                     </div>
                 </div>
                 <div className="w-full">
-                    <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView} />
+                    <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView}
+                    filterEvents={filterEvents}
+                    onSearch={handleSearchChange} />
                 </div>
             </div>
             {!tableView ?
                 <GridComponent
-                    columns={[
-                    ]}
+                    columns={eventColumns}
                     data={events}
                     displayedCount={24}
                     renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} />}
+                    filter={filterEvents}
+                    setFilter={setFilterEvents}
                 />
+
                 :
                 <Calendar events={events} />}
             {queryLoading && <LoaderComponent />}
