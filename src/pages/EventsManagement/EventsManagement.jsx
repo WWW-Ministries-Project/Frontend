@@ -7,6 +7,7 @@ import axios from "/src/axiosInstance";
 import Calendar from "./Components/Calenda";
 import GridAsset from "/src/assets/GridAsset";
 import CalendarAssets from "../../assets/CalendarAsset";
+import useWindowSize from "../../CustomHooks/useWindowSize";
 
 const EventsManagement = () => {
     const navigate = useNavigate();
@@ -15,7 +16,16 @@ const EventsManagement = () => {
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
     );
+    const { screenWidth } = useWindowSize();
 
+    useEffect(() => {
+        if (screenWidth <= 540) {
+          setTableView(false);
+          document.getElementById("switch").classList.add("hidden")
+        } else {
+          document.getElementById("switch").classList.remove("hidden")
+        }
+      }, [screenWidth])
     const handleNavigation = (path) => {
         navigate(path);
     }
@@ -47,7 +57,7 @@ const EventsManagement = () => {
     return (
         <div className="">
             <div className={!tableView ? "flex gap-4 my-" : 'flex gap-4 mt-'}>
-                <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
+                <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer" id="switch">
                     <div onClick={() => handleToggleView(true)}>
                         <CalendarAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} />
                     </div>
