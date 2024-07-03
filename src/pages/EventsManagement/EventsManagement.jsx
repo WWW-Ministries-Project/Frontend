@@ -9,6 +9,7 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import GridWrapper from "/src/Wrappers/GridWrapper";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
+import GridComponent from "../HomePage/Components/reusable/GridComponent";
 
 const EventsManagement = () => {
     const navigate = useNavigate();
@@ -71,16 +72,18 @@ const EventsManagement = () => {
                         <GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} />
                     </div>
                 </div>
-                <div className="w-full">
+                <div className="w-full mb-4">
                     <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView} />
                 </div>
             </div>
             {!tableView ?
-                <div className="   mt-4 rounded-xl">
-                    <GridWrapper className="">
-                        {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
-                    </GridWrapper>
-                </div>
+                <GridComponent
+                    columns={[
+                    ]}
+                    data={events}
+                    displayedCount={24}
+                    renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} />}
+                />
                 :
                 <Calendar events={events} />}
             {queryLoading && <LoaderComponent />}
