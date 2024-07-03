@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import CalendarAssets from "../../assets/CalendarAsset";
+import GridComponent from "../HomePage/Components/reusable/GridComponent";
 import LoaderComponent from "../HomePage/Components/reusable/LoaderComponent";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
-import GridWrapper from "/src/Wrappers/GridWrapper";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
-import GridComponent from "../HomePage/Components/reusable/GridComponent";
 
 const EventsManagement = () => {
     const navigate = useNavigate();
@@ -38,14 +37,27 @@ const EventsManagement = () => {
     }
 
     const handleFilter = () => {
+        setQueryLoading(true)
         if (filter.month && filter.year) {
-            return axios.get(`/event/list-events?month=${filter.month}&year=${filter.year}`).then((res) => setEvents(res.data.data))
+            return axios.get(`/event/list-events?month=${filter.month}&year=${filter.year}`).then((res) => {
+                setQueryLoading(false)
+                setEvents(res.data.data)
+            })
         } else if (filter.month) {
-            return axios.get(`/event/list-events?month=${filter.month}`).then((res) => setEvents(res.data.data))
+            return axios.get(`/event/list-events?month=${filter.month}`).then((res) => {
+                setQueryLoading(false)
+                setEvents(res.data.data)
+            })
         } else if (filter.year) {
-            return axios.get(`/event/list-events?year=${filter.year}`).then((res) => setEvents(res.data.data))
+            return axios.get(`/event/list-events?year=${filter.year}`).then((res) => {
+                setQueryLoading(false)
+                setEvents(res.data.data)
+            })
         }
-        return axios.get(`/event/list-events`).then((res) => setEvents(res.data.data))
+        return axios.get(`/event/list-events`).then((res) => {
+            setQueryLoading(false)
+            setEvents(res.data.data)
+        })
     }
 
     const handleToggleView = (view) => {
@@ -56,14 +68,14 @@ const EventsManagement = () => {
     useEffect(() => {
         setQueryLoading(true);
         axios.get("/event/list-events").then((res) => {
-            setQueryLoading(false) ;
-             setEvents(res.data.data);
-            })
+            setQueryLoading(false);
+            setEvents(res.data.data);
+        })
     }, [])
 
     return (
         <div className="">
-            <div className={!tableView ? "flex gap-4 my-" : 'flex gap-4 mt-'}>
+            <div className={`flex gap-4 mb-4 ${!tableView ? " my-" : ' mt-'}`}>
                 <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer" id="switch">
                     <div onClick={() => handleToggleView(true)}>
                         <CalendarAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} />
@@ -72,7 +84,7 @@ const EventsManagement = () => {
                         <GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} />
                     </div>
                 </div>
-                <div className="w-full mb-4">
+                <div className="w-full">
                     <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView} />
                 </div>
             </div>
