@@ -54,7 +54,7 @@ const ImageUpload = ({ onFileChange }) => {
 
   return (
     <div
-      className={`flex justify-center items-center w-[20vw]  h-56 border border-dashed rounded-xl cursor-pointer focus:outline-none ${
+      className={`flex justify-center items-center md:w-[50vw] lg:w-[30vw] overflow-hidden  h-56 border border-dashed rounded-xl cursor-pointer focus:outline-none ${
         isDragActive ? 'border-gray-500' : 'border-gray-300'
       }`}
       onDragEnter={handleDragEnter}

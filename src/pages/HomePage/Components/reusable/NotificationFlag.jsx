@@ -6,7 +6,7 @@ function NotificationFlag (props) {
 
 
     return (
-        <div className='relative'>
+        <div className='relative mb-4'>
             <p 
             onClick={props.onClose} 
             className="text-xs cursor-pointer hover:bg-[#6539C3] hover:text-white flex text-[#6539C3] outline outline-1 outline-[#6539C3] rounded-full justify-center items-center h-5 w-5 absolute right-2 my-2">

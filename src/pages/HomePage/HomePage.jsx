@@ -1,6 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import useState from "react-usestateref";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { useAuth } from "../../auth/AuthWrapper";
 import axios, { changeAuth } from "../../axiosInstance.js";
@@ -12,9 +11,10 @@ import useSettingsStore from "./pages/Settings/utils/settingsStore";
 import { useStore } from "@/store/useStore";
 import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
 
-
 function HomePage() {
-  const [userStats, setUserStats] = useState({ stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } } });
+  const [userStats, setUserStats] = useState({
+    stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } },
+  });
   const [displayForm, setDisplayForm] = useState(false);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
@@ -24,45 +24,39 @@ function HomePage() {
   const token = getToken();
   const { user } = useAuth();
 
-
   //side nav
   const [show, setShow] = useState(true);
-  const {screenWidth} = useWindowSize();
+  const { screenWidth } = useWindowSize();
   const handleShowNav = () => {
     setShow((prev) => !prev);
-  }
-
+  };
 
   const CloseForm = () => {
     setDisplayForm(false);
-  }
+  };
 
   //minimize side nav based on screen width
   useEffect(() => {
     if (screenWidth < 768) {
       setShow(false);
     }
-  }, [screenWidth])
+  }, [screenWidth]);
 
   //initial data fetching
   useEffect(() => {
     changeAuth(token);
     fetchAllMembers().then((res) => {
       store.setMembers(res.data.data);
-    })
+    });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
-      // console.log(res.data)
-    })
-    // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-    //   setDepartmentData(res.data.data);
-
-    // });
+    });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-      settingsStore.setPositions(res.data.data)
+      settingsStore.setPositions(res.data.data);
     });
   }, [user]);
+
   useEffect(() => {
     axios.get(`${baseUrl}/department/list-departments`).then((res) => {
       setDepartmentData(res.data.data);
@@ -70,28 +64,68 @@ function HomePage() {
     });
   }, [updatedDepartment]);
 
-
   //table manipulation
   const [filter, setFilter] = useState("");
 
   const handleSearchChange = (val) => {
-    // setFilter(val);
+    setFilter(val);
   };
 
+  // scroll event to show/hide the browser UI
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY) {
+        // scrolling down
+        document.body.classList.add("hide-browser-ui");
+      } else {
+        // scrolling up
+        document.body.classList.remove("hide-browser-ui");
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <>
-      {token ?
-        (<div className="bg-white p-2  overflow-hidden overscoll-contain ">
-          {/* <Header /> */}
-          <main className=" max-w-screen " onClick={CloseForm}>
-            <SideBar style={{ marginTop: "", backgroundImage:"url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }} onClick={handleShowNav} show={show} />
-            <div className={`xs:h-[88vh] sm:h-[90vh] md:h-[92vh] lg:h-[98vh] rounded-xl  px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%] "} `}>
-            <Header />
-              <Outlet context={{ setDisplayForm, CloseForm, members, filter, setFilter, handleSearchChange, departmentData, setDepartmentData, userStats }} />
+      {token ? (
+          <main onClick={CloseForm} className="bg-white xs:h-[95vh] lg:h-[100vh]  flex  overflow-auto ">
+            <div className={` bg-primaryViole ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
+            <SideBar
+              className=""
+              style={{ marginTop: "", backgroundImage: "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }}
+              onClick={handleShowNav}
+              show={show}
+            />
+            </div>
+            
+            {/* <div className={`h-lvh w-5/6 overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%]"}`}> */}
+            <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] `}>
+              <Header />
+              <Outlet
+                context={{
+                  setDisplayForm,
+                  CloseForm,
+                  members,
+                  filter,
+                  setFilter,
+                  handleSearchChange,
+                  departmentData,
+                  setDepartmentData,
+                  userStats,
+                }}
+              />
             </div>
           </main>
-        </div>) : (<Navigate to="/login" />)}
+      ) : (
+        <Navigate to="/login" />
+      )}
     </>
   );
 }

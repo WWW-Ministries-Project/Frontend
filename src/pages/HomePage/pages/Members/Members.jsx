@@ -35,8 +35,8 @@ function Members() {
   }
 
   return (
-    <div className="">
-      <main >
+   
+      <main className={`hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl`}>
 
         {/* Members Table Section */}
         <section className={``}>
@@ -92,7 +92,6 @@ function Members() {
           </div>
         </section>
       </main>
-    </div>
   );
 }
 export default Members;

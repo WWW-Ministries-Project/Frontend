@@ -49,8 +49,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       validationSchema={userFormValidator}
     >
       {(form) => (
-        <>
-          <section>
+        <div className="h-full mb-4">
+          <section className="">
             <div className=" text-black font-bold my-5">Membership Status</div>
             <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
               <Field
@@ -318,7 +318,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
               </div>
             </section>
           )}
-        </>
+        </div>
       )}
     </Formik>
   );

@@ -40,7 +40,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
     <div className="overflow-x-auto">
       <div className="rounded-xl">
         {(!tableView && location.pathname?.toLowerCase() === "/home/members") ? 
-          <GridWrapper className="2xl:h-[80vh] lg:h-[75vh] md:h-[78vh]  xs:h-[72vh]">
+          <GridWrapper className="">
             {table.getRowModel().rows.map((row) => (
               <MemberCard 
                 key={row.id}
@@ -54,7 +54,7 @@ function TableComponent({ data, columns, filter, setFilter, tableView, displayed
               />
             ))}
           </GridWrapper> :
-          <div className="hideScrollbar rounded-xl h-[75vh] overflow-y-scroll">
+          <div className="hideScrollbar rounded-xl  overflow-y-scroll">
             <table className="w-full rounded-xl ">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (

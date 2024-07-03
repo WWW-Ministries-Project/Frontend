@@ -45,7 +45,7 @@ const EventsManagement = () => {
     }, [])
 
     return (
-        <div className="">
+        <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
             <div className={!tableView ? "flex gap-4 my-" : 'flex gap-4 mt-'}>
                 <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
                     <div onClick={() => handleToggleView(true)}>
@@ -60,8 +60,8 @@ const EventsManagement = () => {
                 </div>
             </div>
             {!tableView ?
-                <div className="h-[84vh]   mt-4 rounded-xl">
-                    <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
+                <div className="   mt-4 rounded-xl">
+                    <GridWrapper className="">
                         {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)}
                     </GridWrapper>
                 </div>
