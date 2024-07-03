@@ -3,14 +3,16 @@ import Filter from "@/pages/HomePage/Components/reusable/Filter";
 import { months, years } from "../utils/eventHelpers";
 import SearchBar from "@/components/SearchBar";
 import React from "react";
+import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
 
 interface EventsManagerHeaderProps {
     onNavigate: (path: string) => void
-    onChange: (name: string, value: string) => void
+    onChange: (val: { year: number, month: number }) => void;
     onSearch: (value: string) => void
     filterEvents: string
     onFilter: () => void
     viewfilter: boolean
+    filterByDate: Date
 }
 
 
@@ -18,8 +20,8 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
     const monthsOptions = months;
     const yearOptions = years;
 
-    function handleChange(name: string, value: string) {
-        props.onChange(name, value);
+    function handleChange(val: { year: number, month: number }) {
+        props.onChange(val);
     }
 
     const handleFilter = () => {
@@ -32,10 +34,11 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
 
     return (
         <div className="flex w-full justify-between items-center ">
-            <div className="flex gap-4 ">
-                {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
+            <div className="flex gap-4 bg-error">
+                {/* {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
-                <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>}
+                <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>} */}
+                <DateFilter onChange={handleChange} value={props.filterByDate} />
             </div>
             {props.viewfilter && <SearchBar
               className="max-w-[40.9%] min-w-[100px] h-10"
