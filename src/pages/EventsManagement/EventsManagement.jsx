@@ -14,7 +14,7 @@ import { eventColumns } from "./utils/eventHelpers";
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
-    const [filter, setFilter] = useState({});
+    const [filterByDate, setFilterByDate] = useState({});
     const [filterEvents, setFilterEvents] = useState("");
     const [queryLoading, setQueryLoading] = useState(false);
     const [tableView, setTableView] = useState(
@@ -30,40 +30,46 @@ const EventsManagement = () => {
             document.getElementById("switch").classList.remove("hidden")
         }
     }, [screenWidth])
+    useEffect(() => {
+        handleFilter();
+    },[filterByDate])
     const handleNavigation = (path) => {
         navigate(path);
     }
 
-    const handleChange = (name, value) => {
-        setFilter((prev) => ({ ...prev, [name]: value }))
+    const handleChange = (val) => {
+        // setFilterByDate((prev) => ({ ...prev, [name]: value }))
+        setFilterByDate(val);
+        console.log(val);
     }
     const handleSearchChange = (val) => {
         setFilterEvents(val);
       };
 
-    const handleFilter = () => {
-        setQueryLoading(true)
-        if (filter.month && filter.year) {
-            return axios.get(`/event/list-events?month=${filter.month}&year=${filter.year}`).then((res) => {
-                setQueryLoading(false)
-                setEvents(res.data.data)
-            })
-        } else if (filter.month) {
-            return axios.get(`/event/list-events?month=${filter.month}`).then((res) => {
-                setQueryLoading(false)
-                setEvents(res.data.data)
-            })
-        } else if (filter.year) {
-            return axios.get(`/event/list-events?year=${filter.year}`).then((res) => {
-                setQueryLoading(false)
-                setEvents(res.data.data)
-            })
+      const handleFilter = () => {
+        setQueryLoading(true);
+      
+        // Construct the query string based on available filters
+        const queryParams = [];
+        if (filterByDate.month) {
+          queryParams.push(`month=${filterByDate.month}`);
         }
-        return axios.get(`/event/list-events`).then((res) => {
-            setQueryLoading(false)
-            setEvents(res.data.data)
-        })
-    }
+        if (filterByDate.year) {
+          queryParams.push(`year=${filterByDate.year}`);
+        }
+        const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
+      
+        // Fetch the events
+        axios.get(`/event/list-events${queryString}`)
+          .then((res) => {
+            setQueryLoading(false);
+            setEvents(res.data.data);
+          })
+          .catch((error) => {
+            setQueryLoading(false);
+            console.error('Error fetching events:', error);
+          });
+      };
 
     const handleToggleView = (view) => {
         setTableView(view);
@@ -92,6 +98,7 @@ const EventsManagement = () => {
                 <div className="w-full">
                     <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView}
                     filterEvents={filterEvents}
+                    filterByDate={filterByDate.date}
                     onSearch={handleSearchChange} />
                 </div>
             </div>
