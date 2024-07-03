@@ -38,7 +38,7 @@ function Members() {
 
   return (
    
-      <main className={`hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl`}>
+      <main className={``}>
 
         {/* Members Table Section */}
         <section className={``}>

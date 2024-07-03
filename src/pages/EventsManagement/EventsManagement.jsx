@@ -45,7 +45,7 @@ const EventsManagement = () => {
     }, [])
 
     return (
-        <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
+        <div className="">
             <div className={!tableView ? "flex gap-4 my-" : 'flex gap-4 mt-'}>
                 <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer">
                     <div onClick={() => handleToggleView(true)}>
