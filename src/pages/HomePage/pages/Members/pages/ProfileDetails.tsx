@@ -7,12 +7,14 @@ import Banner from "../Components/Banner";
 import { fetchAMember, updateAMember } from "../utils/apiCalls";
 import { initialUser } from "../utils/membersHelpers";
 import { UserType } from "../utils/membersInterfaces";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 
 const ProfileDetails = () => {
   const links = [
     { name: "Member Information", path: "info" },
     { name: "Assets", path: "assets" },
   ];
+  const [queryLoading, setQueryLoading] = useState(false);
   const [edit, setEdit] = useState(false);
   const [profilePic, setProfilePic] = useState<pictureType>({
     picture: "",
@@ -27,7 +29,9 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     if (id) {
+      setQueryLoading(true);
       fetchAMember(id).then((res) => {
+        setQueryLoading(false);
         if (res && res.status <= 202) {
           setDetails(res.data.data);
           setProfilePic({ picture: "", src: res.data.data.photo || "" });
@@ -105,6 +109,7 @@ const ProfileDetails = () => {
           }}
         />
       </div>
+      {queryLoading && <LoaderComponent />}
     </section>
   );
 };

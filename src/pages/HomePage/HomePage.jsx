@@ -10,6 +10,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 import { useStore } from "@/store/useStore";
 import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
+import LoaderComponent from "./Components/reusable/LoaderComponent";
 
 function HomePage() {
   const [userStats, setUserStats] = useState({
@@ -18,6 +19,7 @@ function HomePage() {
   const [displayForm, setDisplayForm] = useState(false);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
+  const [queryLoading, setQueryLoading] = useState(false);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -45,11 +47,13 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     changeAuth(token);
+    setQueryLoading(true);
     fetchAllMembers().then((res) => {
       store.setMembers(res.data.data);
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
+      setQueryLoading(false);
     });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
@@ -123,7 +127,7 @@ function HomePage() {
                 }}
               />
               </div>
-              
+              {queryLoading && <LoaderComponent />}
             </div>
           </main>
       ) : (

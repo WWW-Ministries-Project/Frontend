@@ -17,7 +17,7 @@ export const months = [
 ];
 
 export const years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
-export const  registeredEventAttendance = [
+export const registeredEventAttendance = [
   {
     header: "Name",
     accessorKey: "name",
@@ -43,6 +43,11 @@ export const  registeredEventAttendance = [
     accessorKey: "created_at",
     cell: ({ row }) => formatTime(row.original.created_at),
   },
+];
+
+export const eventColumns = [
+  { header: "Name", accessorKey: "name", id: "title" },
+  { header: "Location", accessorKey: "location", id: "location" },
 ];
 export const eventInput = {
   // name: "",
