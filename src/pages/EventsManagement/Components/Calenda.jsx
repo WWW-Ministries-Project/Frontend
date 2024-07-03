@@ -24,13 +24,13 @@ const Calendar = ({ events }) => {
       if (window.innerWidth < 600) {
         setEventsToShow(1);
       } else if (window.innerWidth < 900) {
-        setEventsToShow(3);
+        setEventsToShow(2);
       } else if (window.innerWidth < 1600) {
-        setEventsToShow(4);
+        setEventsToShow(3);
       } else if (window.innerWidth < 1900) {
         setEventsToShow(3);
       } else {
-        setEventsToShow(7);
+        setEventsToShow(4);
       }
     };
 
@@ -154,7 +154,7 @@ const Calendar = ({ events }) => {
       const date = new Date(prevMonthYear, prevMonth, day).toISOString().split('T')[0];
       const dayEvents = events?.filter(event => event.start_date.startsWith(date));
       days.push(
-        <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '20vh', cursor: 'pointer' }}>
+        <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '15vh', cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
@@ -182,7 +182,7 @@ const Calendar = ({ events }) => {
         <div
           key={day}
           className={`border border-[#dcdcdc] p-2 overflow-hidden ${isToday ? 'relative' : ''}`}
-          style={{ height: '20vh', cursor: 'pointer' }}
+          style={{ height: '15vh', cursor: 'pointer' }}
         >
           {isToday && (
             <div className="h-6 w-6 border rounded-full border-[#6539C3] flex items-center justify-center text-[#6539C3]">
@@ -216,7 +216,7 @@ const Calendar = ({ events }) => {
       const date = new Date(nextMonthYear, nextMonth, day).toISOString().split('T')[0];
       const dayEvents = events?.filter(event => event.start_date.startsWith(date));
       days.push(
-        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '20vh',  cursor: 'pointer' }}>
+        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '15vh',  cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
@@ -238,16 +238,17 @@ const Calendar = ({ events }) => {
   };
 
   return (
-    <div className="py-4 rounded-xl mx-auto scale-1 ">
-      <div className="flex justify-between items-center mb-4">
+    <div className="rounded-xl mx-auto  ">
+      <div className="flex justify-between items-center my-2">
         <div className='flex'>
-          <button className='px-4 py-1 me-4 border border-[#dcdcdc] rounded-lg' onClick={handleToday}>Today</button>
-          <button className='px-4 py-1 border border-[#dcdcdc] rounded-lg' onClick={handlePrevMonth}>&lt;</button>
-          <button className='px-4 py-1 ms-4 border border-[#dcdcdc] rounded-lg' onClick={handleNextMonth}>&gt;</button>
+          <button className='px-4 py-1 me-4 border border-primaryViolet rounded-lg' onClick={handleToday}>Today</button>
+          <button className='px-4 py-1 border border-primaryViolet rounded-lg' onClick={handlePrevMonth}>&lt;</button>
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
+          <button className='px-4 py-1 ms-4 border border-primaryViolet rounded-lg' onClick={handleNextMonth}>&gt;</button>
+          
         </div>
       </div>
-      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto 2xl:h-[78vh] xl:h-[73vh] md:h-[75vh] ">
+      <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto  ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-[#6539C3] font-bold">{day}</div>
         ))}

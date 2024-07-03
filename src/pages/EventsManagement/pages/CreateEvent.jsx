@@ -65,12 +65,12 @@ const CreateEvent = () => {
   };
 
   return (
-    <section className="p-8 container  bg-white rounded-xl mx-auto">
+    <section className="p-8 lg:container  bg-white rounded-xl mx-auto hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
       <h1 className="H700">Create Event</h1>
       <p className="text-sma text-lightGray py-2">
         Fill in the form below with the event details
       </p>
-      <div className="hideScrollbar overflow-y-auto 2xl:h-[77vh] xl:h-[70vh] lg:h-[79vh] md:h-[75vh] sm:h-[70vh]">
+      <div className="hideScrollbar overflow-y-auto">
         <ImageUpload onFileChange={(file) => setFile(file)} />
 
         <EventsForm inputValue={inputValue} onSubmit={handleSubmit} loading={loading} updating={id ? true : false} />

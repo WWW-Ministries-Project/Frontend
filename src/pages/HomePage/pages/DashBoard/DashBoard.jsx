@@ -62,34 +62,31 @@ function DashBoard() {
   };
 
   return (
-    <main className={`hideScrollbar pb-4 2xl:h-[90vh] xl:h-[88vh] md:h-[87vh] xs:h-[86vh] overflow-y-auto rounded-xl`}>
+    <main className={`hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl`}>
       {welcomeMsg && isTabletOrAbove && (
           <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView}/>
       )}
-      <div className=''>
-        {/* <div className={`my-5 flex items-center justify-between `}>
-          <div className="H600">Overview</div>
-        </div> */}
-        <section className="grid xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2  gap-4">
+      <div className='grid gap-y-4'>
+        <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2 ">
           {stats.map((stat) => (
             <StatsCard stats={stat} key={stat.name} />
           ))}
         </section>
-        <div className="flex flex-col items-center tablet:flex-row justify-between grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 gap-4">
-          <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full">
+        <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 ">
+          <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-dark900 H600">Members Breakdown</div>
             <BarChart value={userStats.stats} />
           </section>
-          <section className="mt-6 bg-white p-7 shadow-sm rounded-xl w-full">
+          <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-dark900 H600">Event Attendance</div>
             {/* <BarChart value={userStats.stats} /> */}
             <LineChart value={userStats.stats}/>
           </section>
         </div>
-        <div className="flex flex-col items-center tablet:flex-row justify-between grid 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 gap-4">
-          <section className="mt-6 bg-white p-7 w-full rounded-xl">
+        <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
+          <section className="bg-white p-7 w-full rounded-xl">
           <div className="text-dark900 H600">First Timers</div>
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center ">
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
                   className="w-[40.9%] h-10"
@@ -112,14 +109,14 @@ function DashBoard() {
                 data={members}
                 filter={filter}
                 setFilter={setFilter}
-                displayedCount={8}
+                displayedCount={4}
                 rowClass={"h-10"}
               />
             </div>
           </section>
-          <section className="mt-6 bg-white p-7 w-full rounded-xl">
+          <section className="bg-white p-7 w-full rounded-xl">
             <div className="text-dark900 H600">Upcoming Event</div>
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center ">
               
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
@@ -143,7 +140,7 @@ function DashBoard() {
                 data={members}
                 filter={filter}
                 setFilter={setFilter}
-                displayedCount={8}
+                displayedCount={4}
                 rowClass={"h-10"}
               />
             </div>

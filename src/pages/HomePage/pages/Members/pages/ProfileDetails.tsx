@@ -80,7 +80,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full container mx-auto rounded-xl bg-white 2xl:h-[90vh] lg:h-[89vh] xl:h-[87vh] md:h-[87vh] sm:h-[84vh] xs:h-[89vh]">
+    <section className=" w-full h-full mb-4 lg:container mx-auto rounded-xl bg-white ">
       <Banner
         onClick={handleEdit}
         edit={edit}
@@ -92,21 +92,7 @@ const ProfileDetails = () => {
         email={details.email}
         primary_number={details.primary_number}
       />
-      {/* <div className="w-full flex justify-start gap-8 px-8 py-4 border-1 border-lightGray border-b-2">
-        {links.map((link, index) => (
-          <NavLink
-            to={link.path}
-            className="h-full cursor-pointer"
-            style={({ isActive }) =>
-              isActive ? { color: "black" } : { color: "lightgray" }
-            }
-            key={index}
-          >
-            {link.name}
-          </NavLink>
-        ))}
-      </div> */}
-      <div className="hideScrollbar px-8 pb-8 2xl:h-[70vh] xl:h-[60vh] lg:h-[62vh] md:h-[70vh] sm:h-[66vh] xs:h-[68vh] overflow-y-auto">
+      <div className="hideScrollbar px-8 pb-8 mx-auto lg:container bg-white rounded-xl h-[75vh]  overflow-y-auto">
         <Outlet
           context={{
             edit,

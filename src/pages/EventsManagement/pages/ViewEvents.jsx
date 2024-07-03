@@ -53,7 +53,7 @@ const ViewEvents = () => {
     };
 
     return (
-        <div className="container mx-auto">
+        <div className="container mx-auto hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
             <div className="flex justify-between mb-2">
                 <div className="text-2xl H500 font-bold">Event Details</div>
                 <Button value="Edit" className="px-4 py-2 border border-[#dcdcdc] rounded-lg" onClick={() => { navigate(`/home/manage-event?event_id=${id}`) }} />
@@ -63,7 +63,7 @@ const ViewEvents = () => {
             {/* <div className="lg:hidden ">
                             <img className="rounded-xl w-[50vh]" src={eventdetails.poster || defaultImage1} alt="banner for event" />
                         </div> */}
-            <div className="w-full gap-x-5 flex justify-between h-[85vh]">
+            <div className="w-full gap-x-5 flex justify-between ">
                 <div className="w-full lg:w-3/4 bg-white gap-3 border border-1 border-[#dcdcdc]  lg:p-4 rounded-xl">
                     <section className="flex w-full rounded gap-4">
                         <div className="w-full relative  lg:w-2/3 flex flex-col xs:gap-2 md:gap-0 lg:gap-2 text-mainGray">

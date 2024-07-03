@@ -59,7 +59,7 @@ const AddMember = () => {
     }
   }
   return (
-    <section className="hideScrollbar mx-auto p-8 container bg-white rounded-xl 2xl:h-[89vh] xl:h-[89vh] lg:h-[89vh] md:h-[87vh] xs:h-[82vh] overflow-y-auto">
+    <section className="hideScrollbar mx-auto p-8 lg:container bg-white rounded-xl h-[90vh] mb-4 overflow-y-auto">
       <div className="flex flex-col gap-4 items-center tablet:items-start">
         <div className="font-bold text-xl">Member Information</div>
         <div className="text text-[#8F95B2] mt-">

@@ -48,7 +48,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
           <h2 className="H400">Event Information</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
               label="Event Name"
@@ -72,7 +72,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             />
           </div>
           <h2 className="H400 my-4">Date & Time Information</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
               label="Start Date"
@@ -119,7 +119,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 </div>
                 {form.values.day_event == "multi" && (
                   <div className="mt-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <Field
                         component={FormikInputDiv}
                         label="Number of days"
@@ -149,7 +149,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 </div>
                 {form.values.repetitive == "yes" && (
                   <div className="mt-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <Field
                         component={FormikInputDiv}
                         label="Repeat Every"
@@ -233,7 +233,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             </>
           )}
           <h2 className="H400 my-3">Other Information</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
               label="Location"
@@ -243,7 +243,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.location || props.inputValue.location}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
               label="Event Description"
