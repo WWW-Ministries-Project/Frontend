@@ -10,6 +10,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 import { useStore } from "@/store/useStore";
 import { fetchAllMembers } from "./pages/Members/utils/apiCalls";
+import LoaderComponent from "./Components/reusable/LoaderComponent";
 
 function HomePage() {
   const [userStats, setUserStats] = useState({
@@ -18,6 +19,7 @@ function HomePage() {
   const [displayForm, setDisplayForm] = useState(false);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
+  const [queryLoading, setQueryLoading] = useState(false);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -45,11 +47,13 @@ function HomePage() {
   //initial data fetching
   useEffect(() => {
     changeAuth(token);
+    setQueryLoading(true);
     fetchAllMembers().then((res) => {
       store.setMembers(res.data.data);
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
+      setQueryLoading(false);
     });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
@@ -95,7 +99,7 @@ function HomePage() {
   return (
     <>
       {token ? (
-          <main onClick={CloseForm} className="bg-white xs:h-[95vh] lg:h-[100vh]  flex  overflow-auto ">
+          <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
             <div className={` bg-primaryViole ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
             <SideBar
               className=""
@@ -108,7 +112,8 @@ function HomePage() {
             {/* <div className={`h-lvh w-5/6 overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%]"}`}> */}
             <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] `}>
               <Header />
-              <Outlet
+              <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
+                <Outlet
                 context={{
                   setDisplayForm,
                   CloseForm,
@@ -121,6 +126,8 @@ function HomePage() {
                   userStats,
                 }}
               />
+              </div>
+              {queryLoading && <LoaderComponent />}
             </div>
           </main>
       ) : (

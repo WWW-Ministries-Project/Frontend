@@ -22,7 +22,7 @@ function Header() {
   }
   return (
     <>
-      <header className="flex justify-between h-16 items-center bg-[#dcdde7] p w-full rounded-t-md ">
+      <header className="flex justify-between header items-center bg-[#dcdde7] p w-full rounded-t-md ">
         {/* <ChurchLogo /> */}
         <div className="w-[40.9%]">
         </div>

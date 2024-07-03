@@ -7,7 +7,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import React, { useState } from "react";
-import MemberCard from "../../pages/Members/Components/MemberCard";
 
 interface GridComponentProps {
   data: any;
@@ -16,6 +15,7 @@ interface GridComponentProps {
   setFilter: any;
   tableView: boolean;
   displayedCount: number;
+  renderRow: (row: any) => React.ReactNode;
 }
 
 const GridComponent: React.FC<GridComponentProps> = ({
@@ -25,6 +25,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
   setFilter,
   tableView,
   displayedCount,
+  renderRow,
   ...props
 }) => {
   const [sorting, setSorting] = useState([]);
@@ -49,37 +50,11 @@ const GridComponent: React.FC<GridComponentProps> = ({
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
   });
+
   return (
     <div>
       <GridWrapper>
-        {table.getRowModel().rows.map((row) => {
-          const member = row.original as any;
-          const {
-            id,
-            name,
-            email,
-            photo,
-            country_code,
-            primary_number,
-            department,
-          } = member;
-          const departmentName = department?.[0]?.department_info?.name || "";
-
-          return (
-            <MemberCard
-              key={row.id}
-              id={id}
-              name={name}
-              userInfo={member}
-              email={email}
-              primary_number={`${
-                country_code ? country_code : ""
-              } ${primary_number}`}
-              photo={photo}
-              department={departmentName}
-            />
-          );
-        })}
+        {table.getRowModel().rows.map((row) => renderRow(row))}
       </GridWrapper>
       {data.length > displayedCount ? (
         <div className={`flex justify-end gap-1 text-gray my-2`}>
