@@ -217,7 +217,7 @@ const AssetManagement = () => {
   };
 
   return (
-    <>
+    <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
       <section className="mt-   ">
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -385,7 +385,7 @@ const AssetManagement = () => {
         data={itemToDelete}
         onDelete={handleDelete}
       />
-    </>
+    </div>
   );
 };
 
