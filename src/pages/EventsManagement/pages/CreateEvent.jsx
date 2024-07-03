@@ -65,7 +65,7 @@ const CreateEvent = () => {
   };
 
   return (
-    <section className="p-8 lg:container  bg-white rounded-xl mx-auto hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
+    <section className="p-8 lg:container  bg-white mx-auto">
       <h1 className="H700">Create Event</h1>
       <p className="text-sma text-lightGray py-2">
         Fill in the form below with the event details
