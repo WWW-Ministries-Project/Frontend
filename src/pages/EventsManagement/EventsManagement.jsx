@@ -1,18 +1,20 @@
-import EventsCard from "./Components/EventsCard";
-import GridWrapper from "/src/Wrappers/GridWrapper";
-import EventsManagerHeader from "./Components/EventsManagerHeader";
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
-import axios from "/src/axiosInstance";
-import Calendar from "./Components/Calenda";
-import GridAsset from "/src/assets/GridAsset";
-import CalendarAssets from "../../assets/CalendarAsset";
+import { useNavigate } from 'react-router-dom';
 import useWindowSize from "../../CustomHooks/useWindowSize";
+import CalendarAssets from "../../assets/CalendarAsset";
+import LoaderComponent from "../HomePage/Components/reusable/LoaderComponent";
+import Calendar from "./Components/Calenda";
+import EventsCard from "./Components/EventsCard";
+import EventsManagerHeader from "./Components/EventsManagerHeader";
+import GridWrapper from "/src/Wrappers/GridWrapper";
+import GridAsset from "/src/assets/GridAsset";
+import axios from "/src/axiosInstance";
 
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [filter, setFilter] = useState({});
+    const [queryLoading, setQueryLoading] = useState(false);
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
     );
@@ -20,12 +22,12 @@ const EventsManagement = () => {
 
     useEffect(() => {
         if (screenWidth <= 540) {
-          setTableView(false);
-          document.getElementById("switch").classList.add("hidden")
+            setTableView(false);
+            document.getElementById("switch").classList.add("hidden")
         } else {
-          document.getElementById("switch").classList.remove("hidden")
+            document.getElementById("switch").classList.remove("hidden")
         }
-      }, [screenWidth])
+    }, [screenWidth])
     const handleNavigation = (path) => {
         navigate(path);
     }
@@ -51,7 +53,11 @@ const EventsManagement = () => {
     }
 
     useEffect(() => {
-        axios.get("/event/list-events").then((res) => setEvents(res.data.data))
+        setQueryLoading(true);
+        axios.get("/event/list-events").then((res) => {
+            setQueryLoading(false) ;
+             setEvents(res.data.data);
+            })
     }, [])
 
     return (
@@ -77,6 +83,7 @@ const EventsManagement = () => {
                 </div>
                 :
                 <Calendar events={events} />}
+            {queryLoading && <LoaderComponent />}
         </div>
     );
 }
