@@ -27,7 +27,7 @@ const EventsCard = (props) => {
                 <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.event.status=== "ASSIGNED"? "bg-green "
             : "bg-neutralGray text-lighterBlack"}`}>{props.event.status=== "ASSIGNED" ? "Confirmed" : "Tentative"}</div>
             
-                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.photo || defaultImage1} alt="lk" />
+                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.poster || defaultImage1} alt="lk" />
                 
                 
             </div>
