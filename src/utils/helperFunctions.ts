@@ -6,13 +6,13 @@ export const getToken = () => {
     return Cookies.get("token");
 };
 export const setToken = (token:string) => {
-    return Cookies.set("token", token);
+    return Cookies.set("token", token, { expires: new Date(decodeToken(token)?.exp * 1000) });
 };
 export const removeToken = () => {
     return Cookies.remove("token"); 
 };
 
-export const decodeToken = (value:string) => {
+export const decodeToken = (value:string):any => {
     const token = value ? value : getToken();
     return token && jwtDecode(token);
 }
