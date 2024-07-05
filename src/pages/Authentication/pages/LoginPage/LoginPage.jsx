@@ -71,7 +71,7 @@ function LoginPage() {
     }
   }
   return (
-    <div className="bg-[url('src/assets/waves.svg')] bg-no-repeat bg-right bg-contain">
+    <div className="bg-[url('src/assets/waves.svg')] bg-no-repeat bg-right bg-cover">
       <OuterDiv>
         <AuthenticationForm
           response={response}
