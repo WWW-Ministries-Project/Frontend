@@ -27,6 +27,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
   const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [error,setErrors] =useState<{[key:string]:string}>({code:"",phone:""})
 
   useEffect(() => {
     fetchCountries();
@@ -74,6 +75,19 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     setFilteredCountries([]);
   };
 
+  const handleBlur = (name:string) => {
+    if (name=="code"){
+      if (!searchTerm.match(/^\+\d+$/)) {
+      setErrors(prev=>({...prev,[name]:"Please enter a valid country code"}))
+    }else setErrors((prev)=>({...prev,[name]:""}))
+    }
+    if (name=="phone"){
+      if (!searchTerm.match(/^\+\d+$/)) {
+      setErrors(prev=>({...prev,[name]:"Please enter a valid phone number"}))
+    }else setErrors((prev)=>({...prev,[name]:""}))
+    }
+    
+  }
   return (
     <div className="flex gap-2 ">
       <div className="relative">
@@ -81,6 +95,8 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           label={"code"}
           placeholder={"code"}
           id={"country_code"}
+          error={error.code}
+          onBlur={()=>{handleBlur("code")}}
           disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
@@ -110,7 +126,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         placeholder={props.placeholder}
         id={props.id}
         onChange={props.onChange}
+        onBlur={()=>{handleBlur("phone")}}
         value={props.contactValue}
+        error={error.phone}
         disabled={props.disabled}
         className={" w-full " + props.className}
       />

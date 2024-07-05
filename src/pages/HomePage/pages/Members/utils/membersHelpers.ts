@@ -56,4 +56,11 @@ export const initialUser = {
       phone_number: "", 
     },
   };
-  
+  export const titleOptions = [
+    { name: "Mr", value: "Mr" },
+    { name: "Mrs", value: "Mrs" },
+    { name: "Miss", value: "Miss" },
+    { name: "Doc", value: "Doc" },
+    { name: "Prof", value: "Prof" },
+    { name: "Pastor", value: "Pastor" },
+  ]

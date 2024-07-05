@@ -1,7 +1,6 @@
 //@ts-nocheck
 import React, { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
-import InputDiv from './InputDiv';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface DateFilterProps {

@@ -10,7 +10,7 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { userFormValidator } from "../utils/membersHelpers";
+import { userFormValidator, titleOptions } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
 
@@ -77,11 +77,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                 disabled={!props.edit}
                 id="title"
                 name="title"
-                options={[
-                  { name: "Mr", value: "Mr" },
-                  { name: "Mrs", value: "Mrs" },
-                  { name: "Miss", value: "Miss" },
-                ]}
+                options={titleOptions}
               />
             </div>
             <div className="w-full grid tablet:grid-cols-2 gap-4">
@@ -192,7 +188,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 }}
               />
             </div>
-            <div className="w-full  grid tablet:grid-cols-2 gap-4">
+            {form.values.is_user && <div className="w-full  grid tablet:grid-cols-2 gap-4">
               {/* bug from backend */}
               <Field
                 component={FormikSelectField}
@@ -211,7 +207,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 disabled={!props.edit}
                 parse={(value: string) => parseInt(value, 10)}
               />
-            </div>
+            </div>}
           </section>
           <section>
             <div className=" text-black font-bold my-5">Work Information</div>
@@ -310,7 +306,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   value={"Save"}
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
-                  onClick={form.handleSubmit}
+                  onClick={()=>{form.handleSubmit();console.log(form.getFieldMeta("email").error)}}
                   loading={props.loading}
                   disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
