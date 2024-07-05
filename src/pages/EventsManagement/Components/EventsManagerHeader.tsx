@@ -34,7 +34,7 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
 
     return (
         <div className="flex w-full justify-between items-center ">
-            <div className="flex gap-4 bg-error">
+            <div className="flex gap-4">
                 {/* {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
                 <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>} */}
