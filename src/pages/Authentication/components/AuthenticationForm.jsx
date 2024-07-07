@@ -7,7 +7,7 @@ const AuthenticationForm = (props) => {
 
   return (
     <>
-      <div className="sm:w-1/2 min-[610px]:w-2/3 md:w-1/3 max-w-[500px] h-full mx-auto ">
+      <div className=" md:w-2/3  max-w-[500px] h-full mx-auto ">
         <form>
           <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primaryViolet">
             <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">

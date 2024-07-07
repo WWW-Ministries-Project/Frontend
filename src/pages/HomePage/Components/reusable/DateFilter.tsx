@@ -1,6 +1,6 @@
+//@ts-nocheck
 import React, { forwardRef } from 'react';
 import DatePicker from 'react-datepicker';
-import InputDiv from './InputDiv';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface DateFilterProps {
@@ -30,11 +30,14 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
     // date &&console.log(monthYear(date));
     date &&props.onChange(monthYear(date));
   };
-  const ExampleCustomInput = forwardRef<HTMLDivElement, { value?: string, onClick?: () => void }>(
-    ({ value, onClick }, ref) => (
-      <InputDiv value={value} onClick={onClick} ref={ref} id="date" onChange={() => null} />
-    )
-  );
+  // const ExampleCustomInput = forwardRef<HTMLDivElement, { value?: string, onClick?: () => void }>(
+  //   ({ value, onClick }, ref) => (
+  //     <InputDiv value={value} onClick={onClick} ref={ref} id="date" onChange={() => null} />
+  //   )
+  // );
+  const ExampleCustomInput = forwardRef(({ value, onClick }, ref) => (
+    <input className="input" onClick={onClick} ref={ref} value={value} placeholder='filter by date' />
+  ));
 
   return (
     <DatePicker

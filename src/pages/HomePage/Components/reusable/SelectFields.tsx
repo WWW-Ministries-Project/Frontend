@@ -39,7 +39,7 @@ function SelectField(props: SelectFieldProps) {
           value={props.value}
           disabled={props.disabled}
         >
-          <option value="">{props.placeholder}</option>
+          <option  value="">{props.placeholder}</option>
           {props.options.map((option, index) => (
             <option key={index} value={option.value}>
               {option.name}

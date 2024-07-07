@@ -12,7 +12,7 @@ const RadioInput: React.FC<RadioInputProps> = (props) => {
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-12">
       <label>
         <input 
           type="radio" 

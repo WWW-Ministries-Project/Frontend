@@ -22,17 +22,17 @@ function Header() {
   }
   return (
     <>
-      <header className="flex justify-between header items-center bg-[#dcdde7] p w-full rounded-t-md ">
+      <header className="flex justify-between header items-center  w-full rounded-t-md ">
         {/* <ChurchLogo /> */}
         <div className="w-[40.9%]">
         </div>
 
         <div className="w-[246px] flex justify-end gap-x-2 items-center">
-          <img src={bell} alt="" />
+          {/* <img src={bell} alt="" /> */}
           {/* <div> */}
-          <div className="flex border border-[#6539C3] rounded-xl  gap-x-6">
-            <ProfilePicture src={decodeToken().profile_img} className={"w-8 h-8 outline-transparent  "} name={decodeToken().name} alt="profile picture" />
-            {/* <span>{decodeToken().name}</span> */}
+          <div className="flex items-center rounded-xl  gap-x-3">
+            <ProfilePicture src={decodeToken().profile_img} className={"w-6 h-6 outline outline-1  "} name={decodeToken().name} alt="profile picture" />
+            <span>{decodeToken().name}</span>
             <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           </div>
           {showLogOut ? (

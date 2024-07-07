@@ -8,6 +8,7 @@ import edit from "/src/assets/edit.svg";
 import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
 import Button from '/src/components/Button';
+import { compareDates } from '@/utils/helperFunctions';
 
 
 const EventsCard = (props) => {
@@ -27,14 +28,14 @@ const EventsCard = (props) => {
                 <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlack w-1/4 text-center ${props.event.status=== "ASSIGNED"? "bg-green "
             : "bg-neutralGray text-lighterBlack"}`}>{props.event.status=== "ASSIGNED" ? "Confirmed" : "Tentative"}</div>
             
-                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.photo || defaultImage1} alt="lk" />
+                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.poster || defaultImage1} alt="poster for event" />
                 
                 
             </div>
             {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
         <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
             <div className="flex gap-1 items-center font-bold cursor-pointer" onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
-                <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/>
+                <div className={`w-2 h-2 ${compareDates(props.event.start_date)?'bg-[#FF5765]':"bg-green"} rounded rounded-full ${props.indicatorClass}`}/>
                 <p>{props.event.name}</p>
             </div>
             {/* <div className="flex gap-1 text-sm">
@@ -71,6 +72,7 @@ const EventsCard = (props) => {
 
 EventsCard.propTypes = {
     className: PropTypes.string,
+    indicatorClass: PropTypes.string,
     event: PropTypes.shape({
         name: PropTypes.string,
         start_date: PropTypes.string,

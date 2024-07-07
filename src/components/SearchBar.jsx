@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 function SearchBar(props) {
   return (
     <>
-      <div className={"flex items-center bg-white rounded-md py-1 opacity-50 border border-[#f2f2f2] "+props.className}>
+      <div className={"flex items-center bg-white rounded-md py-1  border border-[#f2f2f2] "+props.className}>
         <form className="w-full text-dark900 flex items-center  px-2 text-sma font-normal leading-6">
           <img
             role="submit button"
@@ -17,7 +17,7 @@ function SearchBar(props) {
             type="text"
             placeholder= {props.placeholder}
             name="search"
-            className="bg-inherit border-0 focus:outline-none focus:border-2 w-full px-2 h-7"
+            className="bg-inherit border-0 focus:outline-none focus:border-1 w-full px-2 h-7"
             value={props.value}
             onChange={props.onChange}
             autoComplete="off"

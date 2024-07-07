@@ -6,7 +6,7 @@ const EmptyState = (props) => {
         <div>
             {/* <h1>EmptyState</h1> */}
             <img src={empty} alt="" />
-            <p className="text-center my-5 H400">{props.msg}</p>
+            <p className="text-center text-mainGray my-5 H400">{props.msg}</p>
         </div>
     );
 }
