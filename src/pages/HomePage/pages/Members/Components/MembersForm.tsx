@@ -13,6 +13,7 @@ import useSettingsStore from "../../Settings/utils/settingsStore";
 import { userFormValidator, titleOptions, maritalOptions } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 
 interface MembersFormProps {
   edit: boolean;
@@ -31,6 +32,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   // }
   const departmentsOptions = useSettingsStore().departmentsOptions;
   const positionOptions = useSettingsStore().positionsOptions;
+  const countryOptions = useCountryStore().countryOptions;
 
   return (
     <Formik
@@ -170,10 +172,11 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 disabled={!props.edit}
               />
               <Field
-                component={FormikInputDiv}
+                component={FormikSelectField}
                 label="Country"
                 id="country"
                 name="country"
+                options={countryOptions || []}
                 disabled={!props.edit}
               />
             </div>

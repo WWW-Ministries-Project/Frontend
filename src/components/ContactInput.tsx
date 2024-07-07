@@ -22,7 +22,7 @@ interface ContactInputProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
-  onChange: (name: string, value: string|number|boolean) => void;
+  onChange: (name: string, value: string | number | boolean) => void;
 }
 
 const ContactInput: React.FC<ContactInputProps> = (props) => {
@@ -30,18 +30,24 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [error,setErrors] =useState<{[key:string]:string}>({code:"",phone:""})
+  const [error, setErrors] = useState<{ [key: string]: string }>({
+    code: "",
+    phone: "",
+  });
   const countryStore = useCountryStore();
 
   useEffect(() => {
-    fetchCountries().then((data) => {
-      setCountries(data)
-      countryStore.setCountries(data)
-    });
+    if (!countryStore.countries.length) {
+      fetchCountries().then((data) => {
+        setCountries(data);
+        countryStore.setCountries(data);
+      });
+    }else{
+      setCountries(countryStore.countries)
+    }
   }, []);
 
-
-  const handleInputChange = (name: string, val: string|number) => {
+  const handleInputChange = (name: string, val: string | number) => {
     const value = val.toString().toLowerCase();
     setSearchTerm(value);
     const filtered = countries.filter(
@@ -53,7 +59,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     );
     props.onChange(name, filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
-    handleBlur(name)
+    handleBlur(name);
   };
 
   const handleCountrySelect = (country: Country) => {
@@ -63,19 +69,21 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     setFilteredCountries([]);
   };
 
-  const handleBlur = (name:string) => {
-    if (name=="country_code"){
+  const handleBlur = (name: string) => {
+    if (name == "country_code") {
       if (!searchTerm.match(/^\+\d+$/)) {
-      setErrors(prev=>({...prev,[name]:"Invalid"}))
-    }else setErrors((prev)=>({...prev,[name]:""}))
+        setErrors((prev) => ({ ...prev, [name]: "Invalid" }));
+      } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    if (name=="phone"){
+    if (name == "phone") {
       if (!searchTerm.match(/^\+\d+$/)) {
-      setErrors(prev=>({...prev,[name]:"Please enter a valid phone number"}))
-    }else setErrors((prev)=>({...prev,[name]:""}))
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "Please enter a valid phone number",
+        }));
+      } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    
-  }
+  };
   return (
     <div className="flex gap-2 ">
       <div className="relative">
@@ -84,7 +92,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           placeholder={"code"}
           id={"country_code"}
           error={error.country_code}
-          onBlur={()=>{handleBlur("country_code")}}
+          onBlur={() => {
+            handleBlur("country_code");
+          }}
           disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
@@ -114,7 +124,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         placeholder={props.placeholder}
         id={props.id}
         onChange={props.onChange}
-        onBlur={()=>{handleBlur("phone")}}
+        onBlur={() => {
+          handleBlur("phone");
+        }}
         value={props.contactValue}
         error={error.phone}
         disabled={props.disabled}
