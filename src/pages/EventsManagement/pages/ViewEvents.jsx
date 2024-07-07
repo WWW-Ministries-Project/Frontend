@@ -2,7 +2,7 @@ import SkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers";
-import defaultImage1 from "/src/assets/images/default.png";
+import defaultImage1 from "/src/assets/image.svg";
 import axios from "/src/axiosInstance";
 import Button from "/src/components/Button";
 import EmptyState from "/src/components/EmptyState";
@@ -89,15 +89,16 @@ const ViewEvents = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="hidden lg:flex">
-                            <img className="rounded-xl w-[50vh]" src={eventdetails.poster || defaultImage1} alt="banner for event" />
+                        <div className={`hidden lg:flex rounded-xl outline outline-1 outline-lightGray w-[40vw] h-[20vh] `}>
+                            {/* <img className="rounded-xl w-[50vh]" src={eventdetails.poster || defaultImage1} alt="banner for event" /> */}
+                            <img className='rounded-xl w-[40vw] h-[20vh]' src={eventdetails.poster || defaultImage1} alt="poster for event" />
                         </div>
                     </section>
                     <section className="w-full rounded px-4">
                         <div className="w-full border-b border-lightGray py-5 mb-2">
                             <h2 className="H400 text-mainGray">Event Attendees</h2>
                         </div>
-                        <div>
+                        <div className="flex justify-center">
                             {queryLoading ? <SkeletonLoader /> : (!eventdetails.event_attendance?.length ?
                                 <EmptyState msg="😞 Sorry, No attendees yet" /> :
                                 <TableComponent headClass={" !font-thin"} columns={attendanceColumn} data={eventdetails.event_attendance || []} />)
