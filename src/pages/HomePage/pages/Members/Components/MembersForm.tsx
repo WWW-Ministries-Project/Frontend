@@ -270,15 +270,15 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 id="emergency_contact_relation"
                 name="emergency_contact_relation"
                 options={[
-                  { name: "brother", value: "brother" },
-                  { name: "sister", value: "sister" },
-                  { name: "father", value: "father" },
-                  { name: "mother", value: "mother" },
-                  { name: "husband", value: "husband" },
-                  { name: "wife", value: "wife" },
-                  { name: "son", value: "son" },
-                  { name: "daughter", value: "daughter" },
-                  { name: "other", value: "other" },
+                  { name: "Brother", value: "brother" },
+                  { name: "Sister", value: "sister" },
+                  { name: "Father", value: "father" },
+                  { name: "Mother", value: "mother" },
+                  { name: "Husband", value: "husband" },
+                  { name: "Wife", value: "wife" },
+                  { name: "Son", value: "son" },
+                  { name: "Daughter", value: "daughter" },
+                  { name: "Other", value: "other" },
                 ]}
               />
               <Field

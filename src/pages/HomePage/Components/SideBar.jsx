@@ -11,11 +11,15 @@ import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
 import SettingsIcon from '@/assets/sidebar/SettingIcon';
 import LogoutIcon from '@/assets/sidebar/Logout';
 import LoginIcon from '@/assets/sidebar/LoginIcon';
+import AttendanceIcon from '@/assets/sidebar/AttendanceIcon';
+import FinanceIcon from '@/assets/sidebar/FinanceIcon';
 
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
+    Attendance: AttendanceIcon,
     Events: ManagementIcon,
+    Finance: FinanceIcon,
     Assets: InstrumentIcon,
     Settings: SettingsIcon
 };
@@ -55,15 +59,17 @@ const SideBar = ({ show, ...props }) => {
                             return null;
                         }
 
-                        return permissions["view_" + item["key"]] && (
+                        // return permissions["view_" + item["key"]] && (
+                            return (
                             <NavLink
                                 to={item["key"]}
                                 className={({ isActive }) =>
-                                    `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-xl transition" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full`}
+                                    `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl  transition h-10 z-10 flex items-center py-7 lg:my-3 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-xl transition" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full`}
                                 key={index}
                             >
                                 <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />
                                 {show && <div className='xs:hidden lg:block'>{item["name"]}</div>}
+                                
                             </NavLink>
                         );
                     })}
