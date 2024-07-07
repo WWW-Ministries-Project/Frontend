@@ -25,9 +25,9 @@ export const userFormValidator = Yup.object({
 //     industry: Yup.string(),
 //     position: Yup.string(),
 //   }),
-emergency_contact_name: Yup.string().required('Required'),
-  emergency_contact_relation: Yup.string().required('Required'),
-  emergency_contact_phone_number: Yup.string().required('Required'),
+// emergency_contact_name: Yup.string().required('Required'),
+//   emergency_contact_relation: Yup.string().required('Required'),
+//   emergency_contact_phone_number: Yup.string().required('Required'),
 });
 
 export const initialUser = {
@@ -63,4 +63,12 @@ export const initialUser = {
     { name: "Doc", value: "Doc" },
     { name: "Prof", value: "Prof" },
     { name: "Pastor", value: "Pastor" },
+  ]
+
+  export const maritalOptions = [
+    { name: "Single", value: "Single" },
+    { name: "Married", value: "Married" },
+    { name: "Divorced", value: "Divorced" },
+    { name: "Widow", value: "Widow" },
+    { name: "Widower", value: "Widower" },
   ]

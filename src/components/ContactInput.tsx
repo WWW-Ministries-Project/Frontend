@@ -78,7 +78,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
   const handleBlur = (name:string) => {
     if (name=="code"){
       if (!searchTerm.match(/^\+\d+$/)) {
-      setErrors(prev=>({...prev,[name]:"Please enter a valid country code"}))
+      setErrors(prev=>({...prev,[name]:"Invalid"}))
     }else setErrors((prev)=>({...prev,[name]:""}))
     }
     if (name=="phone"){

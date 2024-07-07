@@ -10,7 +10,7 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { userFormValidator, titleOptions } from "../utils/membersHelpers";
+import { userFormValidator, titleOptions, maritalOptions } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
 
@@ -125,11 +125,14 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 placeholder={"select gender"}
               />
               <Field
-                component={FormikInputDiv}
+                component={FormikSelectField}
                 label="Marital Status"
+                // value={props.user?.marital_status}
+                options={maritalOptions}
                 disabled={!props.edit}
                 id="maritalstatus"
                 name="maritalstatus"
+                placeholder={"select marital status"}
               />
             </div>
           </section>
