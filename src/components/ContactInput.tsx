@@ -1,4 +1,7 @@
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
+import { fetchCountries } from "@/pages/HomePage/utils/apiCalls";
+import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import React, { useEffect, useState } from "react";
 
 interface Country {
@@ -23,36 +26,20 @@ interface ContactInputProps {
 }
 
 const ContactInput: React.FC<ContactInputProps> = (props) => {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
+  const [countries, setCountries] = useState<countryType[]>([]);
+  const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [error,setErrors] =useState<{[key:string]:string}>({code:"",phone:""})
+  const countryStore = useCountryStore();
 
   useEffect(() => {
-    fetchCountries();
+    fetchCountries().then((data) => {
+      setCountries(data)
+      countryStore.setCountries(data)
+    });
   }, []);
 
-  const fetchCountries = async () => {
-    try {
-      const response = await fetch("https://restcountries.com/v3.1/all");
-      if (!response.ok) {
-        throw new Error("Network response was not ok " + response.statusText);
-      }
-      const data = await response.json();
-      const filteredData: Country[] = data.map((country: any) => ({
-        name: country.name?.common || "Unknown",
-        countryCode: country.cca2 || "Unknown",
-        dialCode:
-          country.idd?.root + (country.idd?.suffixes?.[0] || "") || "Unknown",
-        initials: country.altSpellings?.[0] || "Unknown",
-        flag: country.flags?.png || "No flag available",
-      }));
-      setCountries(filteredData);
-    } catch (error) {
-      console.error("Failed to retrieve data", error);
-    }
-  };
 
   const handleInputChange = (name: string, val: string|number) => {
     const value = val.toString().toLowerCase();
@@ -66,6 +53,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     );
     props.onChange(name, filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
+    handleBlur(name)
   };
 
   const handleCountrySelect = (country: Country) => {
@@ -76,7 +64,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
   };
 
   const handleBlur = (name:string) => {
-    if (name=="code"){
+    if (name=="country_code"){
       if (!searchTerm.match(/^\+\d+$/)) {
       setErrors(prev=>({...prev,[name]:"Invalid"}))
     }else setErrors((prev)=>({...prev,[name]:""}))
@@ -95,8 +83,8 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           label={"code"}
           placeholder={"code"}
           id={"country_code"}
-          error={error.code}
-          onBlur={()=>{handleBlur("code")}}
+          error={error.country_code}
+          onBlur={()=>{handleBlur("country_code")}}
           disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
