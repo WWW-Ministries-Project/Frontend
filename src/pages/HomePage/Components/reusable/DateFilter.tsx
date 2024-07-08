@@ -36,7 +36,7 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
   //   )
   // );
   const ExampleCustomInput = forwardRef(({ value, onClick }, ref) => (
-    <input className="input" onClick={onClick} ref={ref} value={value} placeholder='filter by date' />
+    <input className="input cursor-pointer" onClick={onClick} ref={ref} defaultValue={value} placeholder='filter by date' />
   ));
 
   return (
