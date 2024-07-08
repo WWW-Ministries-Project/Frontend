@@ -12,6 +12,8 @@ import { eventColumns } from "./utils/eventHelpers";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
 
+
+//TODO: work on delete ui
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
