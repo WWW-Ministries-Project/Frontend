@@ -87,7 +87,6 @@ const EventsManagement = () => {
         })
     }
     const handleDeleteModal = (val) => {
-        console.log(modal)
         if (val) {
             setModal(prev => {
                 return { data: val, show: true }
@@ -136,7 +135,7 @@ const EventsManagement = () => {
                 />
 
                 :
-                <Calendar events={events} />}
+                <Calendar events={events} onDelete={handleDeleteModal} />}
             {queryLoading && <LoaderComponent />}
 
             <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
