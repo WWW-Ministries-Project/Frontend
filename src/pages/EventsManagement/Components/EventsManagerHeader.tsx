@@ -35,7 +35,7 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
                 {/* {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
                 <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>} */}
-                <DateFilter onChange={handleChange} value={props.filterByDate} />
+                {props.viewfilter && <DateFilter onChange={handleChange} value={props.filterByDate} />}
 
                 {props.viewfilter && <SearchBar
               className="max-w-[40.9%] min-w-[100px] h-10"
