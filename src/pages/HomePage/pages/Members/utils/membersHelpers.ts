@@ -66,9 +66,9 @@ export const initialUser = {
   ]
 
   export const maritalOptions = [
-    { name: "Single", value: "Single" },
-    { name: "Married", value: "Married" },
-    { name: "Divorced", value: "Divorced" },
-    { name: "Widow", value: "Widow" },
-    { name: "Widower", value: "Widower" },
+    { name: "Single", value: "SINGLE" },
+    { name: "Married", value: "MARRIED" },
+    { name: "Divorced", value: "DIVORCED" },
+    { name: "Widow", value: "WIDOW" },
+    { name: "Widower", value: "WIDOWER" },
   ]
