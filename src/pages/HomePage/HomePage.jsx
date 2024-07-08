@@ -19,6 +19,7 @@ function HomePage() {
   const [displayForm, setDisplayForm] = useState(false);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [queryLoading, setQueryLoading] = useState(false);
   const settingsStore = useSettingsStore();
   const store = useStore();
@@ -53,7 +54,10 @@ function HomePage() {
     });
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
+    });
+    axios.get("event/list-events").then((res) => {
       setQueryLoading(false);
+      setUpcomingEvents(res.data.data);
     });
 
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
@@ -124,6 +128,7 @@ function HomePage() {
                   departmentData,
                   setDepartmentData,
                   userStats,
+                  upcomingEvents,
                 }}
               />
               </div>
