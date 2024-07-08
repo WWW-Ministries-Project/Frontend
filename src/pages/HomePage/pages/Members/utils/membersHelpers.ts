@@ -2,20 +2,20 @@ import * as Yup from 'yup';
 import { maxMinValueForDate } from '@/pages/HomePage/utils/helperFunctions';
 
 export const userFormValidator = Yup.object({
-  // title: Yup.string().required('Required'),
+  title: Yup.string().required('Required'),
   membership_type: Yup.string().required('Required'),
   first_name: Yup.string().required('Required'),
-  other_name: Yup.string(),
+  // other_name: Yup.string(),
   last_name: Yup.string().required('Required'),
-  date_of_birth: Yup.date().max(maxMinValueForDate().minDate,"date can't be after today").required("Required"),
+  date_of_birth: Yup.date().required("Required").max(maxMinValueForDate().minDate,"date can't be after today"),
   gender: Yup.string().required('Required'),
-  marital_status: Yup.string(),
+  // marital_status: Yup.string(),
   primary_number: Yup.string().required('Required').matches(/^[\d\s\-()]+$/, 'Invalid'),
   country_code: Yup.string().required('Required').matches(/^\+\d+$/, 'Invalid'),
   email: Yup.string().email('Invalid email address').required('Required'),
-  address: Yup.string(),
-  country: Yup.string().required('Required'),
-  is_user: Yup.boolean(),
+  // address: Yup.string(),
+  // country: Yup.string().required('Required'),
+  // is_user: Yup.boolean(),
 //   department: Yup.object({
 //     id: Yup.string(),
 //     name: Yup.string(),

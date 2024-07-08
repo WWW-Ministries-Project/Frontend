@@ -2,7 +2,8 @@ import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { fetchCountries } from "@/pages/HomePage/utils/apiCalls";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
-import React, { useEffect, useState } from "react";
+import useState from "react-usestateref";
+import React, { useEffect } from "react";
 
 interface Country {
   name: string;
@@ -28,7 +29,7 @@ interface ContactInputProps {
 const ContactInput: React.FC<ContactInputProps> = (props) => {
   const [countries, setCountries] = useState<countryType[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm,searchTermRef] = useState(props.zipCode || "");
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [error, setErrors] = useState<{ [key: string]: string }>({
     code: "",
@@ -67,11 +68,12 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     props.onChange("country_code", country.dialCode);
     setSearchTerm(() => country.dialCode);
     setFilteredCountries([]);
+    handleBlur("country_code");
   };
 
   const handleBlur = (name: string) => {
     if (name == "country_code") {
-      if (!searchTerm.match(/^\+\d+$/)) {
+      if (!searchTermRef.current.match(/^\+\d+$/)) {
         setErrors((prev) => ({ ...prev, [name]: "Invalid" }));
       } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }

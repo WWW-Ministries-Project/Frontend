@@ -92,7 +92,6 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 id="first_name"
                 name="first_name"
               />
-              {/* <ErrorMessage name="first_name" component="div" /> */}
               <Field
                 component={FormikInputDiv}
                 label="Other Name"
@@ -132,8 +131,8 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 // value={props.user?.marital_status}
                 options={maritalOptions}
                 disabled={!props.edit}
-                id="maritalstatus"
-                name="maritalstatus"
+                id="marital_status"
+                name="marital_status"
                 placeholder={"select marital status"}
               />
             </div>
@@ -146,11 +145,13 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
               <ContactInput
                 label="Phone Number"
                 contactValue={form.values.primary_number}
-                zipCode={props.user?.country_code}
+                zipCode={form.values.country_code}
                 id="primary_number"
                 disabled={!props.edit}
                 onChange={(name, val) => {
                   form.setFieldValue(name, val);
+                  form.setFieldTouched(name, true);
+                  console.log("name", name, "value", val);
                 }}
                 placeholder="enter phone number"
               />
@@ -174,8 +175,8 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
               <Field
                 component={FormikSelectField}
                 label="Country"
-                id="country"
-                name="country"
+                id="nationality"
+                name="nationality"
                 options={countryOptions || []}
                 disabled={!props.edit}
               />
