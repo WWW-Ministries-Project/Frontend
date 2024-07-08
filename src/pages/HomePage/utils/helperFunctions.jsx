@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import ProfilePicture from "/src/components/ProfilePicture";
+import { deleteMember } from "../pages/Members/utils/apiCalls";
 
 export const sideTabs = [
   { name: 'Dashboard', key: 'Dashboard' },
@@ -27,7 +28,7 @@ export const membersColumns = [
         src={row.original.photo}
         name={row.original.name}
         alt="profile pic"
-        className="h-[38px] w-[38px] rounded-full border"
+        className={`h-[38px] w-[38px] rounded-full border ${row.original.is_active ? "border-green" : "border-error"}`}
         textClass="font-great-vibes overflow-hidden opacity-60"
       />{" "}
       {row.original.name}
@@ -54,16 +55,26 @@ export const membersColumns = [
     // cell: (info) => info.getValue() ? info.getValue() + " visits" : "N/A",
   },
   {
-    header: "Status",
-    accessorKey: "is_active",
-    cell: (info) => (
-      <div
-        className={
-          info.getValue()
-            ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-            : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-        }>
-        {info.getValue() ? "Active" : "Inactive"}
+    header: "Actions",
+    // cell: (info) => (
+    //   <div
+    //     className={
+    //       info.getValue()
+    //         ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
+    //         : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+    //     }>
+    //     {info.getValue() ? "Active" : "Inactive"}
+    //   </div>
+    // ),
+    cell: ({row}) => (
+      <div>
+        <button
+          onClick={() => {
+            deleteMember(row.original.id);
+          }}
+          className="text-sm h-6 flex items-center justify-center rounded-lg text-center text-error ">
+          Delete
+        </button>
       </div>
     ),
   },

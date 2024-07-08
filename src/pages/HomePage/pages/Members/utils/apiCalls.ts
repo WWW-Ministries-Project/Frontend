@@ -47,3 +47,15 @@ export const fetchAllMembers = () => {
       console.log(error);
     });
 }
+
+export const deleteMember = (id:string|number) => {
+  // return axios
+  //   .delete(`/user/delete-user?user_id=${id}`)
+  //   .then((response: AxiosResponse<{data:UserType}>) => {
+  //     return {data:response.data,status:response.status};
+  //   })
+  //   .catch((error: any) => {
+  //     console.log(error);
+  //   });
+  console.log("id",id);
+}
