@@ -16,6 +16,12 @@ export interface InputDivProps {
   error?: string;
   min?: string;
   max?: string;
+  autocomplete?: string;
+  ariaLabel?: string;
+  required?: boolean;
+  pattern?: string;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
 }
 
 const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
@@ -54,6 +60,12 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
           disabled={props.disabled}
           min={props.min}
           max={props.max}
+          autoComplete={props.autocomplete || "off"}
+          aria-label={props.ariaLabel}
+          required={props.required}
+          pattern={props.pattern}
+          aria-labelledby={props.ariaLabelledBy}
+          aria-describedby={props.ariaDescribedBy}
         />
       )}
       {props.error && <div className="text-error text-sma">{props.error}</div>}

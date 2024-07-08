@@ -312,7 +312,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   value={"Save"}
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
-                  onClick={()=>{form.handleSubmit();console.log(form.getFieldMeta("email").error)}}
+                  onClick={()=>{form.handleSubmit()}}
                   loading={props.loading}
                   disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "

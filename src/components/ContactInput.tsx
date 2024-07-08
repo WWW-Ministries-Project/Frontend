@@ -76,7 +76,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
       } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     if (name == "phone") {
-      if (!searchTerm.match(/^\+\d+$/)) {
+      if (!props.contactValue?.match(/^[\d\s\-()]+$/)) {
         setErrors((prev) => ({
           ...prev,
           [name]: "Please enter a valid phone number",
@@ -99,6 +99,8 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           onChange={handleInputChange}
           value={searchTerm}
           className={" w-16 " + props.zipClass}
+          aria-describedby="country-code-description" aria-label="Country Calling Code"
+          autocomplete="tel-country-code"
         />
         {searchTerm && (
           <div className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow w-20 max-h-60 overflow-y-auto text-sma codes">
