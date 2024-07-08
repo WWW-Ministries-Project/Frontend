@@ -17,6 +17,7 @@ import FinanceIcon from '@/assets/sidebar/FinanceIcon';
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
+    Users: MembersIcon, // TODO: replace this
     Attendance: AttendanceIcon,
     Events: ManagementIcon,
     Finance: FinanceIcon,
