@@ -10,9 +10,10 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { userFormValidator, titleOptions } from "../utils/membersHelpers";
+import { userFormValidator, titleOptions, maritalOptions } from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 
 interface MembersFormProps {
   edit: boolean;
@@ -31,6 +32,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
   // }
   const departmentsOptions = useSettingsStore().departmentsOptions;
   const positionOptions = useSettingsStore().positionsOptions;
+  const countryOptions = useCountryStore().countryOptions;
 
   return (
     <Formik
@@ -90,7 +92,6 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 id="first_name"
                 name="first_name"
               />
-              {/* <ErrorMessage name="first_name" component="div" /> */}
               <Field
                 component={FormikInputDiv}
                 label="Other Name"
@@ -125,11 +126,14 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 placeholder={"select gender"}
               />
               <Field
-                component={FormikInputDiv}
+                component={FormikSelectField}
                 label="Marital Status"
+                // value={props.user?.marital_status}
+                options={maritalOptions}
                 disabled={!props.edit}
-                id="maritalstatus"
-                name="maritalstatus"
+                id="marital_status"
+                name="marital_status"
+                placeholder={"select marital status"}
               />
             </div>
           </section>
@@ -141,11 +145,13 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
               <ContactInput
                 label="Phone Number"
                 contactValue={form.values.primary_number}
-                zipCode={props.user?.country_code}
+                zipCode={form.values.country_code}
                 id="primary_number"
                 disabled={!props.edit}
                 onChange={(name, val) => {
                   form.setFieldValue(name, val);
+                  form.setFieldTouched(name, true);
+                  console.log("name", name, "value", val);
                 }}
                 placeholder="enter phone number"
               />
@@ -167,10 +173,11 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 disabled={!props.edit}
               />
               <Field
-                component={FormikInputDiv}
+                component={FormikSelectField}
                 label="Country"
-                id="country"
-                name="country"
+                id="nationality"
+                name="nationality"
+                options={countryOptions || []}
                 disabled={!props.edit}
               />
             </div>
@@ -306,7 +313,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                   value={"Save"}
                   // onClick={()=>{console.log("clicked")}}
                   type="submit"
-                  onClick={()=>{form.handleSubmit();console.log(form.getFieldMeta("email").error)}}
+                  onClick={()=>{form.handleSubmit()}}
                   loading={props.loading}
                   disabled={props.disabled || form.isSubmitting}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "

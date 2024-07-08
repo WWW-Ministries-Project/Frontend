@@ -10,9 +10,10 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { dashboardColumns } from "./utils/dashboardFunctions";
 import SearchBar from "/src/components/SearchBar";
 import LineChart from "../../Components/LineChart";
+import { eventColumns } from "@/pages/EventsManagement/utils/eventHelpers";
 
 function DashBoard() {
-  const { members, userStats } = useOutletContext();
+  const { members, userStats,upcomingEvents } = useOutletContext();
   const [welcomeMsg, setWelcomeMsg] = useState(
     JSON.parse(localStorage.getItem("welcomeMsg")) !== false
   );
@@ -38,6 +39,7 @@ function DashBoard() {
 
   const columns = dashboardColumns;
   const [filter, setFilter] = useState("");
+  const [eventsFilter, setEventsFilter] = useState("");
 
   const navigate = useNavigate();
 
@@ -54,6 +56,9 @@ function DashBoard() {
 
   const handleSearchChange = (e) => {
     setFilter(e.target.value);
+  };
+  const handleEventsSearchChange = (e) => {
+    setEventsFilter(e.target.value);
   };
 
   const handleToggleView = () => {
@@ -122,8 +127,8 @@ function DashBoard() {
                 <SearchBar
                   className="w-[40.9%] h-10"
                   placeholder="Search events here..."
-                  value={filter}
-                  onChange={handleSearchChange}
+                  value={eventsFilter}
+                  onChange={handleEventsSearchChange}
                 />
               </div>
               <div>
@@ -136,9 +141,9 @@ function DashBoard() {
             </div>
             <div className="">
               <TableComponent
-                columns={columns}
-                data={members}
-                filter={filter}
+                columns={eventColumns}
+                data={upcomingEvents}
+                filter={eventsFilter}
                 setFilter={setFilter}
                 displayedCount={4}
                 rowClass={"h-10"}

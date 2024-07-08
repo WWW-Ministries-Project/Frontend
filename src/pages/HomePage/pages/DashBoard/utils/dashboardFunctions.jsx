@@ -7,10 +7,11 @@ export const dashboardColumns = [
       accessorKey:"name",
       cell: ({row}) => <div className="flex items-center gap-2">
           <ProfilePicture
-            src={row.original.user_info?.photo}
+            src={row.original.photo}
             name={row.original.name}
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
+            textClass={" font-great-vibes border border-primaryViolet overflow-hidden"}
           />{" "}
           {row.original.name}
         </div>,

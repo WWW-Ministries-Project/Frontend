@@ -1,9 +1,7 @@
 import Button from "@/components/Button";
-import Filter from "@/pages/HomePage/Components/reusable/Filter";
-import { months, years } from "../utils/eventHelpers";
 import SearchBar from "@/components/SearchBar";
-import React from "react";
 import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
+import React from "react";
 
 interface EventsManagerHeaderProps {
     onNavigate: (path: string) => void
@@ -17,8 +15,6 @@ interface EventsManagerHeaderProps {
 
 
 const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
-    const monthsOptions = months;
-    const yearOptions = years;
 
     function handleChange(val: { year: number, month: number }) {
         props.onChange(val);
@@ -39,7 +35,7 @@ const EventsManagerHeader:React.FC<EventsManagerHeaderProps> = (props) => {
                 {/* {props.viewfilter && <><Filter options={monthsOptions} name="month" onChange={handleChange} />
                 <Filter options={yearOptions} name="year" onChange={handleChange} />
                 <Button value="Filter" onClick={handleFilter} className={" h-10 p-2 "} /></>} */}
-                <DateFilter onChange={handleChange} value={props.filterByDate} />
+                {props.viewfilter && <DateFilter onChange={handleChange} value={props.filterByDate} />}
 
                 {props.viewfilter && <SearchBar
               className="max-w-[40.9%] min-w-[100px] h-10"

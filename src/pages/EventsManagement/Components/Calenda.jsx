@@ -3,7 +3,7 @@ import EventsCard from './EventsCard';
 import { useNavigate } from 'react-router-dom';
 import "../../../index.css"
 
-const Calendar = ({ events }) => {
+const Calendar = ({ events,...props }) => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -310,7 +310,7 @@ const Calendar = ({ events }) => {
                 <div className='text-center'>&times;</div>
               </button>
               <div className='w-[25vw]'>
-                <EventsCard event={selectedEvent} key={Math.random()} onNavigate={handleNavigation} calendarView={true} />
+                <EventsCard event={selectedEvent} key={Math.random()} onNavigate={handleNavigation} calendarView={true} onDelete={props.onDelete} />
               </div>
             </div>
           </div>

@@ -1,5 +1,9 @@
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
-import React, { useEffect, useState } from "react";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
+import { fetchCountries } from "@/pages/HomePage/utils/apiCalls";
+import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
+import useState from "react-usestateref";
+import React, { useEffect } from "react";
 
 interface Country {
   name: string;
@@ -19,42 +23,32 @@ interface ContactInputProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
-  onChange: (name: string, value: string|number|boolean) => void;
+  onChange: (name: string, value: string | number | boolean) => void;
 }
 
 const ContactInput: React.FC<ContactInputProps> = (props) => {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [countries, setCountries] = useState<countryType[]>([]);
+  const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
+  const [searchTerm, setSearchTerm,searchTermRef] = useState(props.zipCode || "");
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
-  const [error,setErrors] =useState<{[key:string]:string}>({code:"",phone:""})
+  const [error, setErrors] = useState<{ [key: string]: string }>({
+    code: "",
+    phone: "",
+  });
+  const countryStore = useCountryStore();
 
   useEffect(() => {
-    fetchCountries();
+    if (!countryStore.countries.length) {
+      fetchCountries().then((data) => {
+        setCountries(data);
+        countryStore.setCountries(data);
+      });
+    }else{
+      setCountries(countryStore.countries)
+    }
   }, []);
 
-  const fetchCountries = async () => {
-    try {
-      const response = await fetch("https://restcountries.com/v3.1/all");
-      if (!response.ok) {
-        throw new Error("Network response was not ok " + response.statusText);
-      }
-      const data = await response.json();
-      const filteredData: Country[] = data.map((country: any) => ({
-        name: country.name?.common || "Unknown",
-        countryCode: country.cca2 || "Unknown",
-        dialCode:
-          country.idd?.root + (country.idd?.suffixes?.[0] || "") || "Unknown",
-        initials: country.altSpellings?.[0] || "Unknown",
-        flag: country.flags?.png || "No flag available",
-      }));
-      setCountries(filteredData);
-    } catch (error) {
-      console.error("Failed to retrieve data", error);
-    }
-  };
-
-  const handleInputChange = (name: string, val: string|number) => {
+  const handleInputChange = (name: string, val: string | number) => {
     const value = val.toString().toLowerCase();
     setSearchTerm(value);
     const filtered = countries.filter(
@@ -66,6 +60,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     );
     props.onChange(name, filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
+    handleBlur(name);
   };
 
   const handleCountrySelect = (country: Country) => {
@@ -73,21 +68,24 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     props.onChange("country_code", country.dialCode);
     setSearchTerm(() => country.dialCode);
     setFilteredCountries([]);
+    handleBlur("country_code");
   };
 
-  const handleBlur = (name:string) => {
-    if (name=="code"){
-      if (!searchTerm.match(/^\+\d+$/)) {
-      setErrors(prev=>({...prev,[name]:"Please enter a valid country code"}))
-    }else setErrors((prev)=>({...prev,[name]:""}))
+  const handleBlur = (name: string) => {
+    if (name == "country_code") {
+      if (!searchTermRef.current.match(/^\+\d+$/)) {
+        setErrors((prev) => ({ ...prev, [name]: "Invalid" }));
+      } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    if (name=="phone"){
-      if (!searchTerm.match(/^\+\d+$/)) {
-      setErrors(prev=>({...prev,[name]:"Please enter a valid phone number"}))
-    }else setErrors((prev)=>({...prev,[name]:""}))
+    if (name == "phone") {
+      if (!props.contactValue?.match(/^[\d\s\-()]+$/)) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "Please enter a valid phone number",
+        }));
+      } else setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-    
-  }
+  };
   return (
     <div className="flex gap-2 ">
       <div className="relative">
@@ -95,12 +93,16 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           label={"code"}
           placeholder={"code"}
           id={"country_code"}
-          error={error.code}
-          onBlur={()=>{handleBlur("code")}}
+          error={error.country_code}
+          onBlur={() => {
+            handleBlur("country_code");
+          }}
           disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm}
           className={" w-16 " + props.zipClass}
+          aria-describedby="country-code-description" aria-label="Country Calling Code"
+          autocomplete="tel-country-code"
         />
         {searchTerm && (
           <div className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow w-20 max-h-60 overflow-y-auto text-sma codes">
@@ -126,7 +128,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
         placeholder={props.placeholder}
         id={props.id}
         onChange={props.onChange}
-        onBlur={()=>{handleBlur("phone")}}
+        onBlur={() => {
+          handleBlur("phone");
+        }}
         value={props.contactValue}
         error={error.phone}
         disabled={props.disabled}

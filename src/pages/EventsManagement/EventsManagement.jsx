@@ -1,3 +1,4 @@
+import Dialog from "@/components/Dialog";
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -7,15 +8,18 @@ import LoaderComponent from "../HomePage/Components/reusable/LoaderComponent";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
+import { eventColumns } from "./utils/eventHelpers";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
-import { eventColumns } from "./utils/eventHelpers";
 
+
+//TODO: work on delete ui
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
-    const [filterByDate, setFilterByDate] = useState({});
+    const [filterByDate, setFilterByDate] = useState({ date: new Date(),month: new Date().getMonth(), year: new Date().getFullYear() });
     const [filterEvents, setFilterEvents] = useState("");
+    const [modal, setModal] = useState({ show: false });
     const [queryLoading, setQueryLoading] = useState(false);
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
@@ -32,7 +36,7 @@ const EventsManagement = () => {
     }, [screenWidth])
     useEffect(() => {
         handleFilter();
-    },[filterByDate])
+    }, [filterByDate])
     const handleNavigation = (path) => {
         navigate(path);
     }
@@ -40,49 +44,61 @@ const EventsManagement = () => {
     const handleChange = (val) => {
         // setFilterByDate((prev) => ({ ...prev, [name]: value }))
         setFilterByDate(val);
-        console.log(val);
+        // console.log(val);
     }
     const handleSearchChange = (val) => {
         setFilterEvents(val);
-      };
+    };
 
-      const handleFilter = () => {
+    const handleFilter = () => {
         setQueryLoading(true);
-      
+
         // Construct the query string based on available filters
         const queryParams = [];
         if (filterByDate.month) {
-          queryParams.push(`month=${filterByDate.month}`);
+            queryParams.push(`month=${filterByDate.month}`);
         }
         if (filterByDate.year) {
-          queryParams.push(`year=${filterByDate.year}`);
+            queryParams.push(`year=${filterByDate.year}`);
         }
         const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
-      
+
         // Fetch the events
         axios.get(`/event/list-events${queryString}`)
-          .then((res) => {
-            setQueryLoading(false);
-            setEvents(res.data.data);
-          })
-          .catch((error) => {
-            setQueryLoading(false);
-            console.error('Error fetching events:', error);
-          });
-      };
+            .then((res) => {
+                setQueryLoading(false);
+                setEvents(res.data.data);
+            })
+            .catch((error) => {
+                setQueryLoading(false);
+                console.error('Error fetching events:', error);
+            });
+    };
 
     const handleToggleView = (view) => {
         setTableView(view);
         localStorage.setItem('tableView', JSON.stringify(view));
     }
-
-    useEffect(() => {
+    const handleDelete = () => {
+        const id = modal.data.id
+        setModal({ data: {}, show: false });
         setQueryLoading(true);
-        axios.get("/event/list-events").then((res) => {
+        axios.delete(`/event/delete-event/?id=${id}`).then((res) => {
+            setEvents(events.filter((event) => event.id !== id));
             setQueryLoading(false);
-            setEvents(res.data.data);
         })
-    }, [])
+    }
+    const handleDeleteModal = (val) => {
+        if (val) {
+            setModal(prev => {
+                return { data: val, show: true }
+            });
+        } else {
+            setModal(prev => {
+                return { data: {}, show: !prev.show }
+            });
+        }
+    }
 
     return (
         <div className="">
@@ -97,9 +113,9 @@ const EventsManagement = () => {
                 </div>
                 <div className="w-full">
                     <EventsManagerHeader onNavigate={handleNavigation} onChange={handleChange} onFilter={handleFilter} viewfilter={!tableView}
-                    filterEvents={filterEvents}
-                    filterByDate={filterByDate.date}
-                    onSearch={handleSearchChange} />
+                        filterEvents={filterEvents}
+                        filterByDate={filterByDate.date}
+                        onSearch={handleSearchChange} />
                 </div>
             </div>
             {!tableView ?
@@ -107,14 +123,16 @@ const EventsManagement = () => {
                     columns={eventColumns}
                     data={events}
                     displayedCount={24}
-                    renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} />}
+                    renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} onDelete={handleDeleteModal} />}
                     filter={filterEvents}
                     setFilter={setFilterEvents}
                 />
 
                 :
-                <Calendar events={events} />}
+                <Calendar events={events} onDelete={handleDeleteModal} />}
             {queryLoading && <LoaderComponent />}
+
+            <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
         </div>
     );
 }
