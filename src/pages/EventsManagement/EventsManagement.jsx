@@ -17,7 +17,7 @@ import axios from "/src/axiosInstance";
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
-    const [filterByDate, setFilterByDate] = useState({ date: new Date(),month: new Date().getMonth(), year: new Date().getFullYear() });
+    const [filterByDate, setFilterByDate] = useState({ date: new Date(),month: new Date().getMonth()+1, year: new Date().getFullYear() });
     const [filterEvents, setFilterEvents] = useState("");
     const [modal, setModal] = useState({ show: false });
     const [queryLoading, setQueryLoading] = useState(false);
