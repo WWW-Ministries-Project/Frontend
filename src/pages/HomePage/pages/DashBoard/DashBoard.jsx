@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { eventColumns } from "@/pages/HomePage/pages/EventsManagement/utils/eventHelpers";
+import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import * as XLSX from "xlsx";
 import Button from "../../../../components/Button";
 import { decodeToken } from "../../../../utils/helperFunctions";
 import BarChart from "../../Components/BarChart";
+import LineChart from "../../Components/LineChart";
 import NotificationFlag from "../../Components/reusable/NotificationFlag";
 import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { dashboardColumns } from "./utils/dashboardFunctions";
 import SearchBar from "/src/components/SearchBar";
-import LineChart from "../../Components/LineChart";
-import { eventColumns } from "@/pages/EventsManagement/utils/eventHelpers";
 
 function DashBoard() {
-  const { members, userStats,upcomingEvents } = useOutletContext();
+  const { members, userStats, upcomingEvents } = useOutletContext();
   const [welcomeMsg, setWelcomeMsg] = useState(
     JSON.parse(localStorage.getItem("welcomeMsg")) !== false
   );
@@ -23,7 +23,7 @@ function DashBoard() {
     const handleResize = () => {
       setIsTabletOrAbove(window.innerWidth >= 640);
     };
-    
+
     handleResize();
     window.addEventListener("resize", handleResize);
 
@@ -69,7 +69,7 @@ function DashBoard() {
   return (
     <main className={``}>
       {welcomeMsg && isTabletOrAbove && (
-          <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView}/>
+        <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView} />
       )}
       <div className='grid gap-y-4'>
         <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2 ">
@@ -85,12 +85,12 @@ function DashBoard() {
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-dark900 H600">Event Attendance</div>
             {/* <BarChart value={userStats.stats} /> */}
-            <LineChart value={userStats.stats}/>
+            <LineChart value={userStats.stats} />
           </section>
         </div>
         <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
           <section className="bg-white p-7 w-full rounded-xl">
-          <div className="text-dark900 H600">First Timers</div>
+            <div className="text-dark900 H600">First Timers</div>
             <div className="flex justify-between items-center ">
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
@@ -122,7 +122,7 @@ function DashBoard() {
           <section className="bg-white p-7 w-full rounded-xl">
             <div className="text-dark900 H600">Upcoming Event</div>
             <div className="flex justify-between items-center ">
-              
+
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
                   className="w-[40.9%] h-10"
@@ -151,7 +151,7 @@ function DashBoard() {
             </div>
           </section>
         </div>
-        
+
       </div>
     </main>
   );

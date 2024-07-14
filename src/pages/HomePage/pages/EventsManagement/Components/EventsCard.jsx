@@ -17,6 +17,10 @@ const EventsCard = (props) => {
         e.stopPropagation()
         props.onDelete(props.event)
     }
+    const handleShowOptions = (e) => {
+        e.stopPropagation()
+        props.onShowOptions()
+    }
 
     return (
         // <div className="authForm  rounded-xl shadow-lg mx-auto ">
@@ -27,7 +31,17 @@ const EventsCard = (props) => {
         <div className="authForm bg-white  rounded-xl shadow-lg md:mx-auto border-[#6539C3] border-b-4">
             <div className='relative top cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
                 <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
-                <div className={`text-xs absolute right-0 m-4 rounded-md text-error w-1/4 text-center`} onClick={handleDelete}>Delete</div>
+                <div className={`absolute right-0 m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
+                    {"!props.showOptions" && <span>Click ME</span>}
+                    {props.showOptions && <div className='bg-white w-24 p-2 shadow-md rounded-md'>
+                        <ul className="divide-y divide-gray-300 flex flex-col gap-y-2">
+                            <li onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >Edit</li>
+                            <li onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>view</li>
+                            <li onClick={handleDelete}>Delete</li>
+                        </ul>
+
+                    </div>}
+                </div>
 
                 <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.poster || defaultImage1} alt="poster for event" />
 
@@ -52,7 +66,7 @@ const EventsCard = (props) => {
                     <img src={location} alt="location" />
                     <p>{props.event.location}</p>
                 </div>
-                <hr className='text-[lightGray]' />
+                {/* <hr className='text-[lightGray]' />
                 <div className="flex gap-x-2 items-center justify-between  border-1 border-lightGray ">
 
                     <div className='flex  gap-x-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
@@ -63,7 +77,7 @@ const EventsCard = (props) => {
 
                         <Button value="View" className=" px-2  text-primaryViolet text-xs   bg-primaryVioletk " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} />
                     </div>
-                </div>
+                </div> */}
 
             </CardWrapper>
             {/* </div> */}
@@ -86,6 +100,10 @@ EventsCard.propTypes = {
     }),
     onNavigate: PropTypes.func,
     calendarView: PropTypes.bool,
+    showOptions: PropTypes.bool,
+    onShowOptions: PropTypes.func,
+    // onNavigate: PropTypes.func,
+    // onDelete: PropTypes.func
 
 }
 

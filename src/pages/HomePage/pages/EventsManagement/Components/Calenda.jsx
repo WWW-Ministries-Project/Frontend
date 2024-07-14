@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EventsCard from './EventsCard';
 import { useNavigate } from 'react-router-dom';
-import "../../../index.css"
 
 const Calendar = ({ events,...props }) => {
   const navigate = useNavigate();

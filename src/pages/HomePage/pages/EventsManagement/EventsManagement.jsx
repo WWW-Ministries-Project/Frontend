@@ -1,10 +1,10 @@
 import Dialog from "@/components/Dialog";
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import useWindowSize from "../../CustomHooks/useWindowSize";
-import CalendarAssets from "../../assets/CalendarAsset";
-import GridComponent from "../HomePage/Components/reusable/GridComponent";
-import LoaderComponent from "../HomePage/Components/reusable/LoaderComponent";
+import useWindowSize from "../../../../CustomHooks/useWindowSize";
+import CalendarAssets from "../../../../assets/CalendarAsset";
+import GridComponent from "../../Components/reusable/GridComponent";
+import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
@@ -17,9 +17,10 @@ import axios from "/src/axiosInstance";
 const EventsManagement = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
-    const [filterByDate, setFilterByDate] = useState({ date: new Date(),month: new Date().getMonth()+1, year: new Date().getFullYear() });
+    const [filterByDate, setFilterByDate] = useState({ date: new Date(), month: new Date().getMonth() + 1, year: new Date().getFullYear() });
     const [filterEvents, setFilterEvents] = useState("");
     const [modal, setModal] = useState({ show: false });
+    const [showOptions, setShowOptions] = useState(false);
     const [queryLoading, setQueryLoading] = useState(false);
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
@@ -79,6 +80,10 @@ const EventsManagement = () => {
         setTableView(view);
         localStorage.setItem('tableView', JSON.stringify(view));
     }
+
+    const handleShowOptions = (eventId) => {
+        setShowOptions((prevId) => (prevId === eventId ? null : eventId));
+    }
     const handleDelete = () => {
         const id = modal.data.id
         setModal({ data: {}, show: false });
@@ -123,7 +128,7 @@ const EventsManagement = () => {
                     columns={eventColumns}
                     data={events}
                     displayedCount={24}
-                    renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} onDelete={handleDeleteModal} />}
+                    renderRow={(row) => <EventsCard event={row.original} key={row.id} onNavigate={handleNavigation} onDelete={handleDeleteModal} showOptions={showOptions === row.original.id} onShowOptions={() => handleShowOptions(row.original.id)} />}
                     filter={filterEvents}
                     setFilter={setFilterEvents}
                 />

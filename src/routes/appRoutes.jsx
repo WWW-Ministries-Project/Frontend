@@ -11,10 +11,10 @@ import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import EventsManagement from "/src/pages/EventsManagement/EventsManagement.jsx";
-import CreateEvent from "/src/pages/EventsManagement/pages/CreateEvent.jsx";
-import EventRegister from "/src/pages/EventsManagement/pages/EventRegister.jsx";
-import ViewEvent from "/src/pages/EventsManagement/pages/ViewEvents.jsx";
+import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
+import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
+import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
+import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 

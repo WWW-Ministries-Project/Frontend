@@ -31,8 +31,8 @@ function Header() {
           {/* <img src={bell} alt="" /> */}
           {/* <div> */}
           <div className="flex items-center rounded-xl  gap-x-3">
-            <ProfilePicture src={decodeToken().profile_img} className={"w-6 h-6 outline outline-1  "} name={decodeToken().name} alt="profile picture" />
-            <span>{decodeToken().name}</span>
+            <ProfilePicture src={decodeToken()?.profile_img} className={"w-6 h-6 outline outline-1  "} name={decodeToken()?.name} alt="profile picture" />
+            <span>{decodeToken()?.name}</span>
             <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           </div>
           {showLogOut ? (

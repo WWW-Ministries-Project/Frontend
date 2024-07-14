@@ -6,7 +6,10 @@ import React from "react";
 // import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import FormikSelectField from "@/components/FormikSelect";
 // import { formatInputDate, getChangedValues } from "@/utils/helperFunctions";
-import { formatInputDate, getChangedValues } from "../../../utils/helperFunctions";
+import {
+  formatInputDate,
+  getChangedValues,
+} from "../../../../../utils/helperFunctions";
 import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
 
 interface EventsFormProps {
