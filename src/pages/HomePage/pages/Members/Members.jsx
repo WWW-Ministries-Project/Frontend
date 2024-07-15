@@ -13,8 +13,10 @@ import MemberCard from "./Components/MemberCard";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
 import axios from "/src/axiosInstance";
+import LoaderComponent from "../../Components/reusable/LoaderComponent";
 function Members() {
   const members = useStore().members;
+  const  removeMember = useStore().removeMember;
 
   const navigate = useNavigate();
   const { screenWidth } = useWindowSize();
@@ -46,6 +48,7 @@ function Members() {
     setModal({ data: {}, show: false });
     setQueryLoading(true);
     axios.delete(`/user/delete-user?id=${id}`).then((res) => {
+        removeMember(id);
         // setEvents(events.filter((event) => event.id !== id));
         setQueryLoading(false);
     })
