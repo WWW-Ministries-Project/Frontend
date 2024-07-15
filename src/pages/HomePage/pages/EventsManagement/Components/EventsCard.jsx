@@ -5,6 +5,7 @@ import calendar from "/src/assets/calendar.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
 import Button from '/src/components/Button';
+import Elipse from '/src/assets/Ellipse.svg';
 import { formatTime } from '/src/utils/helperFunctions';
 
 
@@ -31,8 +32,8 @@ const EventsCard = (props) => {
         <div className="authForm bg-white  rounded-xl shadow-lg md:mx-auto border-[#6539C3] border-b-4">
             <div className='relative top cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
                 <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
-                <div className={`absolute right-0 m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
-                    {"!props.showOptions" && <span>Click ME</span>}
+                <div className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
+                    <img src={Elipse} alt="options" className='cursor-pointer' />
                     {props.showOptions && <div className='bg-white w-24 p-2 shadow-md rounded-md'>
                         <ul className="divide-y divide-gray-300 flex flex-col gap-y-2">
                             <li onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >Edit</li>
