@@ -1,11 +1,11 @@
+import Action from '@/components/Action';
 import { compareDates } from '@/utils/helperFunctions';
 import PropTypes from 'prop-types';
 import CardWrapper from '/src/Wrappers/CardWrapper';
+import Elipse from '/src/assets/Ellipse.svg';
 import calendar from "/src/assets/calendar.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
-import Button from '/src/components/Button';
-import Elipse from '/src/assets/Ellipse.svg';
 import { formatTime } from '/src/utils/helperFunctions';
 
 
@@ -34,14 +34,7 @@ const EventsCard = (props) => {
                 <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
                 <div className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
                     <img src={Elipse} alt="options" className='cursor-pointer' />
-                    {props.showOptions && <div className='bg-white w-24 p-2 shadow-md rounded-md'>
-                        <ul className="divide-y divide-gray-300 flex flex-col gap-y-2">
-                            <li onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >Edit</li>
-                            <li onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>view</li>
-                            <li onClick={handleDelete}>Delete</li>
-                        </ul>
-
-                    </div>}
+                    {props.showOptions && <Action onDelete={handleDelete} onView={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} onEdit={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />}
                 </div>
 
                 <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.poster || defaultImage1} alt="poster for event" />
