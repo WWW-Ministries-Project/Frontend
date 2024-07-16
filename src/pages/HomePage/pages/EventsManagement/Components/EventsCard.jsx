@@ -2,7 +2,7 @@ import Action from '@/components/Action';
 import { compareDates } from '@/utils/helperFunctions';
 import PropTypes from 'prop-types';
 import CardWrapper from '/src/Wrappers/CardWrapper';
-import Elipse from '/src/assets/Ellipse.svg';
+import Elipse from '/src/assets/ellipse.svg';
 import calendar from "/src/assets/calendar.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
