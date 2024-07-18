@@ -113,3 +113,10 @@ export const maxMinValueForDate = () => {
   const minDate = today.toISOString().split("T")[0];
   return { minDate, maxDate };
 };
+
+export const eventTypeColors ={
+  "ACTIVITY": "[#FF5765]",
+  "PROGRAM": "[#FF5765]",
+  "SERVICE": "[#8A6FDF]",
+  "other": "[#A8E10C",
+}
