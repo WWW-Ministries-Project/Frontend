@@ -91,8 +91,8 @@ const ProfileDetails = () => {
         src={profilePic.src}
         onPicChange={changePic}
         name={details.name}
-        department={details.department?.name || "no department"}
-        position={details.position?.name || "no position"}
+        department={details.department?.name || ""}
+        position={details.position?.name || ""}
         email={details.email}
         primary_number={details.primary_number}
       />

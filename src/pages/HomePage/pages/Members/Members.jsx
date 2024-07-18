@@ -1,3 +1,4 @@
+import Dialog from "@/components/Dialog";
 import { useStore } from "@/store/useStore";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,13 +12,19 @@ import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
+import axios from "/src/axiosInstance";
+import LoaderComponent from "../../Components/reusable/LoaderComponent";
 function Members() {
   const members = useStore().members;
+  const  removeMember = useStore().removeMember;
 
   const navigate = useNavigate();
   const { screenWidth } = useWindowSize();
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [modal, setModal] = useState({ show: false });
+  const [queryLoading, setQueryLoading] = useState(false);
 
   const columns = membersColumns;
 
@@ -36,6 +43,28 @@ function Members() {
   const handleNavigation = () => {
     navigate('add-member')
   }
+  const handleDelete = () => {
+    const id = modal.data.id
+    setModal({ data: {}, show: false });
+    setQueryLoading(true);
+    axios.delete(`/user/delete-user?id=${id}`).then((res) => {
+        removeMember(id);
+        // setEvents(events.filter((event) => event.id !== id));
+        setQueryLoading(false);
+    })
+}
+
+const handleDeleteModal = (val) => {
+  if (val) {
+      setModal(prev => {
+          return { data: val, show: true }
+      });
+  } else {
+      setModal(prev => {
+          return { data: {}, show: !prev.show }
+      });
+  }
+}
 
   return (
 
@@ -83,10 +112,12 @@ function Members() {
                 filter={filterMembers}
                 setFilter={setFilterMembers}
                 tableView={tableView}
-                renderRow={(row) => (<MemberCard member={row.original} key={row.id} />)}
+                renderRow={(row) => (<MemberCard member={row.original} key={row.id} showOptions={showOptions === row.original.id} onShowOptions={() => setShowOptions(row.original.id)} onDelete={handleDeleteModal} />)}
               />)}
         </div>
       </section>
+      <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
+      {queryLoading && <LoaderComponent />}
     </main>
   );
 }

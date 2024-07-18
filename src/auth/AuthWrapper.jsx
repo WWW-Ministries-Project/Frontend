@@ -8,7 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthWrapper = ({ children }) => {
     const storedUser = JSON.parse(sessionStorage.getItem("user"));
-    const [user, setUser] = useState(storedUser ||{ name: "", email: "", permissions: {}, id: "" });
+    const [user, setUser] = useState(storedUser ||{ name: "name", email: "email", permissions: {}, id: "" });
 
     const login = ({name,email, id, permissions={}}) => {
         sessionStorage.setItem("user", JSON.stringify({name,permissions,email, id}));

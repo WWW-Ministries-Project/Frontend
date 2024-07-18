@@ -29,7 +29,7 @@ const Banner:React.FC<BannerProps> = (props) => {
                     <ProfilePic className="w-32 h-32 shadow" src={props.src} alt="cover Image" name={props.name} editable={props.edit} id="coverPic" onChange={props.onPicChange} />
                     <article className='xs:hidden md:inline'>
                         <div>{props.name || "No Name"}</div>
-                        <div>{(props.department || "No Department") + " | " + (props.position || "No Position")}</div>
+                        <div>{`${props.department} ${props.department && props.position ? "|" : ""} ${props.position} `}</div>
                         <div>{(props.email || "No Email") + " | " + (props.primary_number || "No Phone")}</div>
                     </article>
                 </div>

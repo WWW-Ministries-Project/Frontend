@@ -150,8 +150,7 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 disabled={!props.edit}
                 onChange={(name, val) => {
                   form.setFieldValue(name, val);
-                  form.setFieldTouched(name, true);
-                  console.log("name", name, "value", val);
+                  form.setFieldTouched(name, true)
                 }}
                 placeholder="enter phone number"
               />
