@@ -48,6 +48,9 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     }
   }, []);
 
+  useEffect(() => {
+    if(!searchTerm) setSearchTerm(props.zipCode || "");
+  }, [props.zipCode]);
   const handleInputChange = (name: string, val: string | number) => {
     const value = val.toString().toLowerCase();
     setSearchTerm(value);
@@ -99,7 +102,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           }}
           disabled={props.disabled}
           onChange={handleInputChange}
-          value={searchTerm}
+          value={searchTerm }
           className={" w-16 " + props.zipClass}
           aria-describedby="country-code-description" aria-label="Country Calling Code"
           autocomplete="tel-country-code"
