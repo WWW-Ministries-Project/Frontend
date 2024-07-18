@@ -2,8 +2,8 @@ import Action from '@/components/Action';
 import { compareDates } from '@/utils/helperFunctions';
 import PropTypes from 'prop-types';
 import CardWrapper from '/src/Wrappers/CardWrapper';
-import Elipse from '/src/assets/ellipse.svg';
 import calendar from "/src/assets/calendar.svg";
+import Elipse from '/src/assets/ellipse.svg';
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
 import { formatTime } from '/src/utils/helperFunctions';
@@ -23,60 +23,34 @@ const EventsCard = (props) => {
         props.onShowOptions()
     }
 
+
     return (
-        // <div className="authForm  rounded-xl shadow-lg mx-auto ">
-        //     <div className='relative top-2'>
-        //         <img className='rounded-xl' src={props.event.poster||defaultImage1} alt="" />
-        //     </div>
-        //     <div className='pb-1 rounded-xl bg-primaryViolet'>
-        <div className="authForm bg-white  rounded-xl shadow-lg md:mx-auto border-[#6539C3] border-b-4">
-            <div className='relative top cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
-                <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl shadow-sm'></div>
-                <div className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
-                    <img src={Elipse} alt="options" className='cursor-pointer' />
-                    {props.showOptions && <Action onDelete={handleDelete} onView={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} onEdit={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />}
+        <div className='bg-error rounded-xl pb-1 '>
+            <CardWrapper className={"text-gray gap-2 pb-2 flex flex-col rounded-xl relative"}>
+                <div className="rounded-xl bg-[#00000050] border-[#6539C3] border-b-4">
+                    <img className='max-w-[70vw] rounded-xl w-full h-32' src={props.event.poster || defaultImage1} alt="poster for event" />
                 </div>
-
-                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.event.poster || defaultImage1} alt="poster for event" />
-
-
-            </div>
-            {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
-            <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
-                <div className="flex gap-1 items-center font-bold cursor-pointer" onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
+                <div className="flex px-3 gap-1 items-center font-bold cursor-pointer" onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}>
                     <div className={`w-2 h-2 ${compareDates(props.event.start_date) ? 'bg-[#FF5765]' : "bg-green"} rounded rounded-full ${props.indicatorClass}`} />
                     <p>{props.event.name}</p>
                 </div>
-                {/* <div className="flex gap-1 text-sm">
-                <img src={time} alt="clock icon" />
-                <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p>
-            </div> */}
-                <div className="flex gap-1 items-center text-sm">
+                <div className="flex px-3 gap-1 items-center text-sm">
                     <img src={calendar} alt="clock icon" />
                     <p>{formatTime(props.event.start_date) || "TBD"} |
                         <span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} </span></p>
                 </div>
-                <div className="flex gap-1 text-sm">
+                <div className="flex px-3 gap-1 text-sm">
                     <img src={location} alt="location" />
                     <p>{props.event.location}</p>
                 </div>
-                {/* <hr className='text-[lightGray]' />
-                <div className="flex gap-x-2 items-center justify-between  border-1 border-lightGray ">
-
-                    <div className='flex  gap-x-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
-
-                        <Button value="Edit" className=" px-2 border-0 border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />
-                    </div>
-                    <div className='flex  text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} >
-
-                        <Button value="View" className=" px-2  text-primaryViolet text-xs   bg-primaryVioletk " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} />
-                    </div>
-                </div> */}
-
+                <div className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
+                <img src={Elipse} alt="options" className='cursor-pointer' />
+                {props.showOptions && <Action onDelete={handleDelete} onView={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} onEdit={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />}
+            </div>
             </CardWrapper>
-            {/* </div> */}
         </div>
-    );
+    )
+
 }
 
 EventsCard.propTypes = {
