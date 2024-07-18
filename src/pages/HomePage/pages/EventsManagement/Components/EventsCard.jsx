@@ -20,7 +20,7 @@ const EventsCard = (props) => {
     }
     const handleShowOptions = (e) => {
         e.stopPropagation()
-        props.onShowOptions()
+        props.onShowOptions(props.event.id)
     }
 
 
@@ -44,9 +44,9 @@ const EventsCard = (props) => {
                     <p>{props.event.location}</p>
                 </div>
                 <div className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`} onClick={handleShowOptions}>
-                <img src={Elipse} alt="options" className='cursor-pointer' />
-                {props.showOptions && <Action onDelete={handleDelete} onView={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} onEdit={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />}
-            </div>
+                    <img src={Elipse} alt="options" className='cursor-pointer' />
+                    {props.showOptions && <Action onDelete={handleDelete} onView={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} onEdit={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} />}
+                </div>
             </CardWrapper>
         </div>
     )
@@ -68,7 +68,10 @@ EventsCard.propTypes = {
     }),
     onNavigate: PropTypes.func,
     calendarView: PropTypes.bool,
-    showOptions: PropTypes.bool,
+    showOptions: PropTypes.oneOfType([
+        PropTypes.bool,
+        PropTypes.number
+    ]),
     onShowOptions: PropTypes.func,
     // onNavigate: PropTypes.func,
     // onDelete: PropTypes.func

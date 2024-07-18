@@ -134,7 +134,7 @@ const EventsManagement = () => {
                 />
 
                 :
-                <Calendar events={events} onDelete={handleDeleteModal} />}
+                <Calendar events={events} onDelete={handleDeleteModal} onShowOptions={handleShowOptions} showOptions={showOptions} />}
             {queryLoading && <LoaderComponent />}
 
             <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />

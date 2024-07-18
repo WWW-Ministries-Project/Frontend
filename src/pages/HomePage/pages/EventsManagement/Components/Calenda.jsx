@@ -302,14 +302,14 @@ const Calendar = ({ events,...props }) => {
               style={{ position: 'absolute', top: modalPosition.top, left: modalPosition.left, transform: 'scale(0.7)' }}
               ref={eventModalRef}
             >
-              <button
+              {/* <button
                 className="flex items-center justify-center border-2 border-white text-white w-6 h-6 rounded-full absolute right-0 m-5 z-10"
                 onClick={() => handleCloseEventModal(false)}
               >
                 <div className='text-center'>&times;</div>
-              </button>
+              </button> */}
               <div className='w-[25vw]'>
-                <EventsCard event={selectedEvent} key={Math.random()} onNavigate={handleNavigation} calendarView={true} onDelete={props.onDelete} />
+                <EventsCard event={selectedEvent} key={Math.random()} onNavigate={handleNavigation} calendarView={true} onDelete={props.onDelete} onShowOptions={(val) => props.onShowOptions(val)} showOptions={props.showOptions} />
               </div>
             </div>
           </div>
