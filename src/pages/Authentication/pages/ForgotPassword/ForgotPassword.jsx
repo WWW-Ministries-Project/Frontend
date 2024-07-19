@@ -13,12 +13,11 @@ const ForgotPassword = () => {
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
   function handleSubmit(e) {
-    e.preventDefault();
+    // e.preventDefault();
     (async () => {
       try {
         const endpoint = baseUrl + "/user/forgot-password";
         const response = await axios.post(endpoint, emailValue);
-        console.log(response, "res");
         setResponse(response);
       } catch (error) {
         console.log(error, "error");
@@ -36,6 +35,7 @@ const ForgotPassword = () => {
   function handleInputChange(e) {
     setResponse({});
     const name = e.target.name;
+    console.log(name);
     setEmailValue((prev) => ({ ...prev, [name]: e.target.value }));
     // to remove error msg
     if (error[name]) {
@@ -64,7 +64,8 @@ const ForgotPassword = () => {
             response={response}
             header={"Forgot Password"}
             text={"Enter your email, we'll send you a password reset link."}
-            handleSubmit={handleSubmit}>
+            handleSubmit={handleSubmit}
+          >
             <Input
               label="Email"
               type="email "
