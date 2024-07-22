@@ -21,6 +21,7 @@ import GridWrapper from "/src/Wrappers/GridWrapper";
 import AssetCard from "./AssetCard";
 import TableAssets from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
+import useSettingsStore from "../Settings/utils/settingsStore";
 
 const AssetManagement = () => {
   // const columns = assetsColumns;
@@ -36,6 +37,7 @@ const AssetManagement = () => {
   // const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});
   const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
   const [profilePic, setProfilePic] = useState({});
+  const { departmentsOptions } = useSettingsStore();
   function changePic(pic) {
     setProfilePic(() => pic);
   }
@@ -360,6 +362,14 @@ const AssetManagement = () => {
                 value={inputValue.status}
                 onChange={handleChange}
                 placeholder={"Select status"}
+              />
+              <SelectField
+                label={"Assigned to"}
+                options={departmentsOptions}
+                id="assigned_to"
+                value={inputValue.assigned_to}
+                onChange={handleChange}
+                placeholder={"Select custodian"}
               />
             </div>
           </div>
