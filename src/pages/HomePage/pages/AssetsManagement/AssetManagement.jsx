@@ -22,10 +22,12 @@ import AssetCard from "./AssetCard";
 import TableAssets from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
 import useSettingsStore from "../Settings/utils/settingsStore";
+import { useNavigate } from "react-router-dom";
 
 const AssetManagement = () => {
   // const columns = assetsColumns;
   // const { members } = useOutletContext();
+  const navigate = useNavigate();
   const [displayForm, setDisplayForm] = useState(false);
   const [assertsData, setAssertsData, assertsDataRef] = useState([]);
   const [filter, setFilter] = useState("");
@@ -253,11 +255,18 @@ const AssetManagement = () => {
           </div>
           <div>
             <Button
-              value="Add asset"
+              value="Old Add asset"
               className={
                 " text-white h-10 p-2 gradientBtn"
               }
               onClick={handleClick}
+            />
+            <Button
+              value="Add asset"
+              className={
+                " text-white h-10 p-2 bg-primaryViolet hover:gradientBtn"
+              }
+              onClick={()=>navigate('add-asset')}
             />
           </div>
         </div>

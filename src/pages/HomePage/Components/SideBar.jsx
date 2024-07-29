@@ -60,8 +60,8 @@ const SideBar = ({ show, ...props }) => {
                             return null;
                         }
 
-                        return permissions["view_" + item["key"]] && (
-                            // return (
+                        // return permissions["view_" + item["key"]] && (
+                            return (
                             <NavLink
                                 to={item["key"]}
                                 className={({ isActive }) =>
