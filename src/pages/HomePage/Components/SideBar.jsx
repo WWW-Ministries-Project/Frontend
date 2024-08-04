@@ -13,11 +13,12 @@ import LogoutIcon from '@/assets/sidebar/Logout';
 import LoginIcon from '@/assets/sidebar/LoginIcon';
 import AttendanceIcon from '@/assets/sidebar/AttendanceIcon';
 import FinanceIcon from '@/assets/sidebar/FinanceIcon';
+import UsersIcon from '@/assets/sidebar/UsersIcon';
 
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
-    Users: MembersIcon, // TODO: replace this
+    Users: UsersIcon, // TODO: replace this
     Attendance: AttendanceIcon,
     Events: ManagementIcon,
     Finance: FinanceIcon,
