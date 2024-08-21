@@ -114,9 +114,10 @@ export const maxMinValueForDate = () => {
   return { minDate, maxDate };
 };
 
-export const eventTypeColors ={
-  "ACTIVITY": "[#FF5765]",
-  "PROGRAM": "[#FF5765]",
-  "SERVICE": "[#8A6FDF]",
-  "other": "[#A8E10C",
-}
+export const eventTypeColors = {
+  "ACTIVITY": "#FF5765",
+  "PROGRAM": "#FF5765",  // This is already correct
+  "SERVICE": "#8A6FDF",
+  "other": "#A8E10C",
+};
+
