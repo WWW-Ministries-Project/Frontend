@@ -10,3 +10,4 @@ declare module '*.svg' {
     export default content;
   }
   
+  declare module '@heroicons/react/solid';

@@ -11,6 +11,7 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
+import NotificationCard from "@/components/NotificationCard";
 
 
 //TODO: work on delete ui
@@ -22,6 +23,8 @@ const EventsManagement = () => {
     const [modal, setModal] = useState({ show: false });
     const [showOptions, setShowOptions] = useState(false);
     const [queryLoading, setQueryLoading] = useState(false);
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationData, setNotificationData] = useState({});
     const [tableView, setTableView] = useState(
         JSON.parse(localStorage.getItem('tableView')) || false
     );
@@ -41,6 +44,10 @@ const EventsManagement = () => {
     const handleNavigation = (path) => {
         navigate(path);
     }
+    const handleClose = () => {
+        setShowNotification(false);
+        setNotificationData({});
+      };
 
     const handleChange = (val) => {
         // setFilterByDate((prev) => ({ ...prev, [name]: value }))
@@ -90,8 +97,13 @@ const EventsManagement = () => {
         setQueryLoading(true);
         axios.delete(`/event/delete-event/?id=${id}`).then((res) => {
             setEvents(events.filter((event) => event.id !== id));
+            setShowNotification(true);
             setQueryLoading(false);
-        })
+        }).catch((error) => {
+            setQueryLoading(false);
+            setShowNotification(true);
+            setNotificationData({type:"error"})
+        });
     }
     const handleDeleteModal = (val) => {
         if (val) {
@@ -138,6 +150,7 @@ const EventsManagement = () => {
             {queryLoading && <LoaderComponent />}
 
             <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
+            {showNotification &&<NotificationCard title="Deleted Successfully" onClose={handleClose} description="Event has been deleted successfully" type={notificationData.type}  />}
         </div>
     );
 }
