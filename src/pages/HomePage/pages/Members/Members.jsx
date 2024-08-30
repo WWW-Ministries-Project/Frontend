@@ -25,7 +25,7 @@ function Members() {
   const navigate = useNavigate();
   const { screenWidth } = useWindowSize();
   const [filterMembers, setFilterMembers] = useState("");
-  const [tableView, setTableView] = useState(false);
+  const [tableView, setTableView] = useState(localStorage.getItem('membersTableView') === 'false' ? false : true);
   const [showOptions, setShowOptions] = useState(false);
   const [modal, setModal] = useState({ show: false });
   const [notification, setNotification] = useState({ type: '', message: '', show: false });
@@ -83,6 +83,11 @@ function Members() {
     }
   }
 
+  const handleViewMode = (bol) => {
+    localStorage.setItem('membersTableView', bol)
+    setTableView(bol)
+  }
+
   return (
 
     <main className={``}>
@@ -93,7 +98,7 @@ function Members() {
         <div className="flex justify-between items-center mb-5">
           <div className="flex justify-start gap-2 items-center  w-2/3">
             <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
-              <div onClick={() => setTableView(true)}><TableAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} /></div>
+              <div onClick={() => handleViewMode(true)}><TableAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} /></div><div onClick={() => handleViewMode(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} /></div>
             </div>
             <SearchBar
               className="w-[40.9%] h-10"
