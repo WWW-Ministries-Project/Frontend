@@ -65,6 +65,7 @@ const ForgotPassword = () => {
             header={"Forgot Password"}
             text={"Enter your email, we'll send you a password reset link."}
             handleSubmit={handleSubmit}
+            errorText={"email not found"}
           >
             <Input
               label="Email"

@@ -14,6 +14,7 @@ import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
 import axios from "/src/axiosInstance";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
+import NotificationCard from "@/components/NotificationCard";
 function Members() {
   const members = useStore().members;
   const  removeMember = useStore().removeMember;
@@ -24,6 +25,7 @@ function Members() {
   const [tableView, setTableView] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [modal, setModal] = useState({ show: false });
+  const [notification,setNotification] = useState({type:'',message:'',show:false});
   const [queryLoading, setQueryLoading] = useState(false);
 
   const columns = membersColumns;
@@ -49,7 +51,7 @@ function Members() {
     setQueryLoading(true);
     axios.delete(`/user/delete-user?id=${id}`).then((res) => {
         removeMember(id);
-        // setEvents(events.filter((event) => event.id !== id));
+        setNotification({type:'success',message:'Member Deleted Successfully',show:true})
         setQueryLoading(false);
     })
 }
@@ -118,6 +120,7 @@ const handleDeleteModal = (val) => {
       </section>
       <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
       {queryLoading && <LoaderComponent />}
+      {notification.show && <NotificationCard type={notification.type} title={"Success"} description={notification.message} onClose={() => setNotification({type:'',message:'',show:false})}/>}
     </main>
   );
 }

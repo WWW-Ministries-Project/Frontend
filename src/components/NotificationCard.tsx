@@ -4,10 +4,11 @@ import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/solid'; //
 interface NotificationCardProps {
   title: string;
   description: string;
+  type?: 'success' | 'error';
   onClose: () => void;
 }
 
-const NotificationCard: React.FC<NotificationCardProps> = ({ title, description, onClose, type = 'info' }) => {
+const NotificationCard: React.FC<NotificationCardProps> = ({ title, description, onClose, type = 'success' }) => {
   const [visible, setVisible] = useState(false); // Start with visibility set to false
 
   useEffect(() => {
