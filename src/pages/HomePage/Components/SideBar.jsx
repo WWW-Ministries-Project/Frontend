@@ -18,10 +18,10 @@ import UsersIcon from '@/assets/sidebar/UsersIcon';
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
-    Users: UsersIcon, // TODO: replace this
-    Attendance: AttendanceIcon,
+    // Users: UsersIcon, // TODO: replace this
+    // Attendance: AttendanceIcon,
     Events: ManagementIcon,
-    Finance: FinanceIcon,
+    // Finance: FinanceIcon,
     Assets: InstrumentIcon,
     Settings: SettingsIcon
 };
