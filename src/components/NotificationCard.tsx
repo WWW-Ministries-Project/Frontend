@@ -32,7 +32,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ title, description,
   return (
     <div 
       className={`flex items-start p-4 border rounded-lg shadow-lg ${backgroundColor} ${borderColor} 
-      transform transition-opacity duration-300 ease-in-out 
+      transform transition-opacity duration-400 ease-in-out 
       ${visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'} fixed top-5 right-5`}
     >
       {/* Icon */}

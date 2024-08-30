@@ -1,23 +1,26 @@
 import Dialog from "@/components/Dialog";
+import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import GridSkeleton from "../../Components/GridSkeleton";
 import GridComponent from "../../Components/reusable/GridComponent";
+import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
 import axios from "/src/axiosInstance";
-import LoaderComponent from "../../Components/reusable/LoaderComponent";
-import NotificationCard from "@/components/NotificationCard";
 function Members() {
   const members = useStore().members;
-  const  removeMember = useStore().removeMember;
+  const removeMember = useStore().removeMember;
+
+  const location = useLocation();
+  const isNew = location.state?.new;
 
   const navigate = useNavigate();
   const { screenWidth } = useWindowSize();
@@ -25,7 +28,7 @@ function Members() {
   const [tableView, setTableView] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [modal, setModal] = useState({ show: false });
-  const [notification,setNotification] = useState({type:'',message:'',show:false});
+  const [notification, setNotification] = useState({ type: '', message: '', show: false });
   const [queryLoading, setQueryLoading] = useState(false);
 
   const columns = membersColumns;
@@ -38,6 +41,18 @@ function Members() {
       document.getElementById("switch").classList.remove("hidden")
     }
   }, [screenWidth])
+
+
+  //HANDLE ROUTIING AFTER SUCCESFULLY ADDING MEMBER
+  useEffect(() => {
+    if (isNew) {
+      setNotification({ type: 'success', message: 'Member Added Successfully', show: true })
+      // Clear the 'new' state after showing the notification
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [isNew, location.pathname, navigate])
+
+
   const handleSearchChange = (e) => {
     setFilterMembers(e.target.value);
   };
@@ -50,23 +65,23 @@ function Members() {
     setModal({ data: {}, show: false });
     setQueryLoading(true);
     axios.delete(`/user/delete-user?id=${id}`).then((res) => {
-        removeMember(id);
-        setNotification({type:'success',message:'Member Deleted Successfully',show:true})
-        setQueryLoading(false);
+      removeMember(id);
+      setNotification({ type: 'success', message: 'Member Deleted Successfully', show: true })
+      setQueryLoading(false);
     })
-}
-
-const handleDeleteModal = (val) => {
-  if (val) {
-      setModal(prev => {
-          return { data: val, show: true }
-      });
-  } else {
-      setModal(prev => {
-          return { data: {}, show: !prev.show }
-      });
   }
-}
+
+  const handleDeleteModal = (val) => {
+    if (val) {
+      setModal(prev => {
+        return { data: val, show: true }
+      });
+    } else {
+      setModal(prev => {
+        return { data: {}, show: !prev.show }
+      });
+    }
+  }
 
   return (
 
@@ -120,7 +135,7 @@ const handleDeleteModal = (val) => {
       </section>
       <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
       {queryLoading && <LoaderComponent />}
-      {notification.show && <NotificationCard type={notification.type} title={"Success"} description={notification.message} onClose={() => setNotification({type:'',message:'',show:false})}/>}
+      {notification.show && <NotificationCard type={notification.type} title={"Success"} description={notification.message} onClose={() => setNotification({ type: '', message: '', show: false })} />}
     </main>
   );
 }
