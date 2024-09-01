@@ -55,7 +55,7 @@ function HomePage() {
     axios.get(`${baseUrl}/user/stats-users`).then((res) => {
       setUserStats(res.data);
     });
-    axios.get("event/list-events").then((res) => {
+    axios.get("event/upcoming-events").then((res) => {
       setQueryLoading(false);
       setUpcomingEvents(res.data.data);
     });

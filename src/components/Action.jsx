@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 const Action = (props) => {
     return (
         <div className="bg-white w-24 p-2 shadow-md rounded-md">
-            <ul className="divide-y !divide-lightGray flex flex-col gap-y-2">
-                <li onClick={props.onEdit} className="cursor-pointer">
+            <ul className=" !divide-lightGray flex flex-col gap-y-2">
+                <li onClick={props.onEdit} className="cursor-pointer  hover:bg-lightGray hover:rounded">
                     Edit
                 </li>
-                <li onClick={props.onView} className="cursor-pointer">
+                <li onClick={props.onView} className="cursor-pointer hover:bg-lightGray hover:rounded">
                     View
                 </li>
-                <li onClick={props.onDelete} className="cursor-pointer">
+                <li onClick={props.onDelete} className="cursor-pointer hover:bg-lightGray hover:rounded">
                     Delete
                 </li>
             </ul>

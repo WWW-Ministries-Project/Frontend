@@ -17,6 +17,9 @@ import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventR
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
+import { Children } from "react";
+import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
+import UserManagement from "@/pages/HomePage/pages/Users/UserManagement.jsx";
 
 
 
@@ -108,6 +111,12 @@ export const routes = [
         permissionNeeded: "view_Assets",
       },
       {
+        path: "Assets/add-asset",
+        element: <AddAsset />,
+        isPrivate: true,
+        permissionNeeded: "view_Assets",
+      },
+      {
         path: "events",
         element: <EventsManagement />,
         isPrivate: true,
@@ -122,6 +131,12 @@ export const routes = [
       {
         path: "events/view-event",
         element: <ViewEvent />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+      },
+      {
+        path: "users",
+        element: <UserManagement />,
         isPrivate: true,
         permissionNeeded: "view_Events",
       },

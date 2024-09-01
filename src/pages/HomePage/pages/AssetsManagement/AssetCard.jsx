@@ -27,7 +27,7 @@ const AssetCard = (props) => {
                 
             </div>
             {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
-        <CardWrapper className={"flex-col text-gray rounded-b-xl "}>
+        <CardWrapper className={"flex-col text-gray rounded-b-xl p-3 flex "}>
             <div className="flex  gap-y-2 gap-x-1 items-center ">
                 {/* <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/> */}
                 <p className='font-bold'>Name:</p><p>{props.assets.name}</p>

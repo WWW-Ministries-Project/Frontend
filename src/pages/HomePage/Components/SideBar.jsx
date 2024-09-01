@@ -13,14 +13,15 @@ import LogoutIcon from '@/assets/sidebar/Logout';
 import LoginIcon from '@/assets/sidebar/LoginIcon';
 import AttendanceIcon from '@/assets/sidebar/AttendanceIcon';
 import FinanceIcon from '@/assets/sidebar/FinanceIcon';
+import UsersIcon from '@/assets/sidebar/UsersIcon';
 
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
-    Users: MembersIcon, // TODO: replace this
-    Attendance: AttendanceIcon,
+    // Users: UsersIcon, // TODO: replace this
+    // Attendance: AttendanceIcon,
     Events: ManagementIcon,
-    Finance: FinanceIcon,
+    // Finance: FinanceIcon,
     Assets: InstrumentIcon,
     Settings: SettingsIcon
 };
@@ -60,8 +61,8 @@ const SideBar = ({ show, ...props }) => {
                             return null;
                         }
 
-                        return permissions["view_" + item["key"]] && (
-                            // return (
+                        // return permissions["view_" + item["key"]] && (
+                            return (
                             <NavLink
                                 to={item["key"]}
                                 className={({ isActive }) =>

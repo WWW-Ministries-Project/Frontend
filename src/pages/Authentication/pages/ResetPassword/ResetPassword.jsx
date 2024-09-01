@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { Link, useLocation} from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Button from "../../../../components/Button";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
@@ -18,14 +18,12 @@ function ResetPassword() {
   const token = searchParams.get("token");
   const id = searchParams.get("id");
   function handleSubmit(e) {
-    e.preventDefault();
+    // e.preventDefault();
     if (passwordValues.password2 && samePassword) {
-      const body = { newpassword: passwordValues.password1, token, id };
-      console.log(token, "token");
-      console.log(id, "id");
+      const body = { newpassword: passwordValues.password1 };
       (async () => {
         try {
-          const endpoint = baseUrl + "/user/reset-password";
+          const endpoint = `${baseUrl}/user/reset-password?id=${id}&token=${token}`;
           const response = await axios.post(endpoint, body);
           setResponse(response);
         } catch (error) {
@@ -87,7 +85,8 @@ function ResetPassword() {
             response={response}
             header={"Set new password!"}
             text={"Enter a new password for your account."}
-            buttonValue={"Login"}>
+            buttonValue={"Login"}
+          >
             {/* <div className="gap-4"> */}
 
             {/* <Input

@@ -5,12 +5,12 @@ import { deleteMember } from "../pages/Members/utils/apiCalls";
 export const sideTabs = [
   { name: 'Dashboard', key: 'Dashboard' },
   { name: 'Members', key: 'Members' },
-  { name: 'Attendance', key: 'Attendance' },
+  // { name: 'Attendance', key: 'Attendance' },
   { name: "Events ", key: "Events" },
-  { name: "Finance", key: "Finance" }, 
+  // { name: "Finance", key: "Finance" }, 
   // { name: 'Reports', key: 'Reports' }, 
   { name: "Assets ", key: "Assets" },
-  { name: "Users", key: "Users" }, 
+  // { name: "Users", key: "Users" }, 
   { name: "Settings", key: "Settings" }];
 
 // const formatTableData = (data) => {

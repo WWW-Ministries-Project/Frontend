@@ -21,10 +21,13 @@ import GridWrapper from "/src/Wrappers/GridWrapper";
 import AssetCard from "./AssetCard";
 import TableAssets from "/src/assets/TableAssets";
 import GridAsset from "/src/assets/GridAsset";
+import useSettingsStore from "../Settings/utils/settingsStore";
+import { useNavigate } from "react-router-dom";
 
 const AssetManagement = () => {
   // const columns = assetsColumns;
   // const { members } = useOutletContext();
+  const navigate = useNavigate();
   const [displayForm, setDisplayForm] = useState(false);
   const [assertsData, setAssertsData, assertsDataRef] = useState([]);
   const [filter, setFilter] = useState("");
@@ -36,6 +39,7 @@ const AssetManagement = () => {
   // const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});
   const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
   const [profilePic, setProfilePic] = useState({});
+  const { departmentsOptions } = useSettingsStore();
   function changePic(pic) {
     setProfilePic(() => pic);
   }
@@ -251,11 +255,18 @@ const AssetManagement = () => {
           </div>
           <div>
             <Button
-              value="Add asset"
+              value="Old Add asset"
               className={
                 " text-white h-10 p-2 gradientBtn"
               }
               onClick={handleClick}
+            />
+            <Button
+              value="Add asset"
+              className={
+                " text-white h-10 p-2 bg-primaryViolet hover:gradientBtn"
+              }
+              onClick={()=>navigate('add-asset')}
             />
           </div>
         </div>
@@ -360,6 +371,14 @@ const AssetManagement = () => {
                 value={inputValue.status}
                 onChange={handleChange}
                 placeholder={"Select status"}
+              />
+              <SelectField
+                label={"Assigned to"}
+                options={departmentsOptions}
+                id="assigned_to"
+                value={inputValue.assigned_to}
+                onChange={handleChange}
+                placeholder={"Select custodian"}
               />
             </div>
           </div>
