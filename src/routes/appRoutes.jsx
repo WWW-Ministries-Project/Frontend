@@ -18,7 +18,7 @@ import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import UserManagement from "@/pages/HomePage/pages/Users/UserManagement.jsx";
+import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import { useUserStore } from "../store/userStore";
 
 
