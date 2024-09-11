@@ -1,25 +1,29 @@
-// import { baseUrl } from "@/pages/Authentication/utils/helpers";
-import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { AxiosResponse } from "axios";
 import axios from "../axiosInstance";
+import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 
 // Define the ApiCallOptions interface
 interface ApiCallOptions {
   baseUrl?: string; // Optional baseUrl
   executor: (baseUrl: string, path: string) => Promise<any>; // Executor function
 }
+interface ApiResponse<T> {
+  status: number;
+  data: T;
+}
 
 // Define the fetchData function
-export const fetchData = (baseUrl: string, path: string) => {
-  return axios
-    .get(`${baseUrl}${path}`)
-    .then((response: AxiosResponse<{ data: UserType[] }>) => {
-      return { data: response.data, status: response.status };
-    })
-    .catch((error: any) => {
-      console.error(error);
-      throw error; // Rethrow error to ensure it is handled properly
-    });
+export const fetchData = async <T>(
+  baseUrl: string,
+  path: string
+): Promise<ApiResponse<T>> => {
+  try {
+    const response: AxiosResponse<T> = await axios.get(`${baseUrl}${path}`);
+    return { data: response.data, status: response.status };
+  } catch (error) {
+    console.error(`Error fetching data from ${baseUrl}${path}:`, error);
+    throw error; 
+  }
 };
 
 // Define the ApiExecution class
@@ -51,11 +55,11 @@ class ApiCalls {
     });
   }
 
-  private fetchFromApi(endpoint: string): Promise<any> {
+  private fetchFromApi<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.functionToExecute.fetchData(endpoint);
   }
 
-  fetchAllMembers(): Promise<any> {
+  fetchAllMembers(): Promise<ApiResponse<UserType>> {
     return this.fetchFromApi("user/list-users");
   }
 
