@@ -42,8 +42,6 @@ class ApiExecution {
   }
 }
 
-
-
 class ApiCalls {
   functionToExecute: ApiExecution;
 
@@ -52,24 +50,31 @@ class ApiCalls {
       executor: fetchData,
     });
   }
+
+  private fetchFromApi(endpoint: string): Promise<any> {
+    return this.functionToExecute.fetchData(endpoint);
+  }
+
   fetchAllMembers(): Promise<any> {
-    return this.functionToExecute.fetchData("user/list-users");
+    return this.fetchFromApi("user/list-users");
   }
+
   fetchUserStats(): Promise<any> {
-    return this.functionToExecute.fetchData("user/stats-users");
+    return this.fetchFromApi("user/stats-users");
   }
+
   fetchUpcomingEvents(): Promise<any> {
-    return this.functionToExecute.fetchData("event/upcoming-events");
+    return this.fetchFromApi("event/upcoming-events");
   }
+
   fetchPositions(): Promise<any> {
-    return this.functionToExecute.fetchData("position/list-positions");
+    return this.fetchFromApi("position/list-positions");
   }
+
   fetchDepartments(): Promise<any> {
-    return this.functionToExecute.fetchData("position/list-positions");
+    return this.fetchFromApi("department/list-departments");
   }
 }
-
-
 
 // Create an instance of ApiCalls and fetch data
 export const apiCallInstance = new ApiCalls();
