@@ -8,12 +8,11 @@ interface Props {
     goLast: () => void;
     goToPage: (page: number) => void;
     totalPages: number;
-    pageIndex: number;
 }
 
 const PaginationComponent = ({goBack, goForward, canGoBack, canGoForward,goFirst,goLast, goToPage,...rest}: Props): JSX.Element => {
     return (
-        <div className={`flex justify-end gap-1 text-gray my-2`} {...rest}>
+        <div className={`flex justify-end gap-1 text-gray my-2`}>
           <button
             onClick={goFirst}
             className={

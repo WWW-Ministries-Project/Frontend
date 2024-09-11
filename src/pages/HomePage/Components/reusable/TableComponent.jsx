@@ -82,7 +82,7 @@ function TableComponent({ data, columns, filter, setFilter, displayedCount, ...p
           </div>}
       </div>
       {data.length > displayedCount ?
-        <PaginationComponent canGoBack={table.getCanPreviousPage()} goBack={table.previousPage} canGoForward={table.getCanNextPage()} goForward={table.nextPage} goToPage={table.setPageIndex} goFirst={() => table.setPageIndex(0)} pageIndex={table.getState().pagination.pageIndex - 1} totalPages={table.getPageCount()} />
+        <PaginationComponent canGoBack={table.getCanPreviousPage()} goBack={table.previousPage} canGoForward={table.getCanNextPage()} goForward={table.nextPage} goToPage={table.setPageIndex} goFirst={() => table.setPageIndex(0)} totalPages={table.getPageCount()} />
         : null}
 
     </div>
