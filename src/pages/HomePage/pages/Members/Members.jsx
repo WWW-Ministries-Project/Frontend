@@ -1,6 +1,7 @@
 import Dialog from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
+import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
@@ -14,7 +15,6 @@ import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
-import axios from "/src/axiosInstance";
 function Members() {
   const members = useStore().members;
   const removeMember = useStore().removeMember;
@@ -64,7 +64,7 @@ function Members() {
     const id = modal.data.id
     setModal({ data: {}, show: false });
     setQueryLoading(true);
-    axios.delete(`/user/delete-user?id=${id}`).then((res) => {
+    api.delete.deleteMember(id).then((res) => {
       removeMember(id);
       setNotification({ type: 'success', message: 'Member Deleted Successfully', show: true })
       setQueryLoading(false);

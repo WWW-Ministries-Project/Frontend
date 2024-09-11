@@ -1,5 +1,5 @@
 import { useStore } from "@/store/useStore";
-import { apiCallInstance } from "@/utils/apiCalls";
+import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -48,25 +48,25 @@ function HomePage() {
   useEffect(() => {
     changeAuth(token);
     setQueryLoading(true);
-    apiCallInstance.fetchAllMembers().then((res) => {
+    api.fetch.fetchAllMembers().then((res) => {
       store.setMembers(res.data.data);
     });
 
-    apiCallInstance.fetchUserStats().then((res) => {
+    api.fetch.fetchUserStats().then((res) => {
       setUserStats(res.data);
     });
-    apiCallInstance.fetchUpcomingEvents().then((res) => {
+    api.fetch.fetchUpcomingEvents().then((res) => {
       setQueryLoading(false);
       setUpcomingEvents(res.data.data);
     });
 
-    apiCallInstance.fetchPositions().then((res) => {
+    api.fetch.fetchPositions().then((res) => {
       settingsStore.setPositions(res.data.data);
     });
   }, [user]);
 
   useEffect(() => {
-    apiCallInstance.fetchDepartments().then((res) => {
+    api.fetch.fetchDepartments().then((res) => {
       setDepartmentData(res.data.data);
       settingsStore.setDepartments(res.data.data);
     });
