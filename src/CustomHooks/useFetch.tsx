@@ -25,5 +25,5 @@ export const useFetch = (
     fetchData();
   }, [fetchData]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch:fetchData };
 };
