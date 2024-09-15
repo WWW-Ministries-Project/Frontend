@@ -10,6 +10,7 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import { useFetch } from "@/CustomHooks/useFetch";
 
 function HomePage() {
   const [userStats, setUserStats] = useState({
@@ -19,6 +20,10 @@ function HomePage() {
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const { data: membersData, loading: membersLoading, error: membersError } = useFetch(api.fetch.fetchAllMembers);
+  const { data: userStatsData, loading: userStatsLoading, error: userStatsError } = useFetch(api.fetch.fetchUserStats);
+  const { data: upcomingEventsData, loading: upcomingEventsLoading, error: upcomingEventsError } = useFetch(api.fetch.fetchUpcomingEvents);
+  const { data: positionsData, loading: positionsLoading, error: positionsError } = useFetch(api.fetch.fetchPositions); 
   const [queryLoading, setQueryLoading] = useState(false);
   const settingsStore = useSettingsStore();
   const store = useStore();
@@ -45,25 +50,46 @@ function HomePage() {
   }, [screenWidth]);
 
   //initial data fetching
+  // useEffect(() => {
+  //   changeAuth(token);
+  //   setQueryLoading(true);
+  //   api.fetch.fetchAllMembers().then((res) => {
+  //     store.setMembers(res.data.data);
+  //   });
+
+  //   api.fetch.fetchUserStats().then((res) => {
+  //     setUserStats(res.data);
+  //   });
+  //   api.fetch.fetchUpcomingEvents().then((res) => {
+  //     setQueryLoading(false);
+  //     setUpcomingEvents(res.data.data);
+  //   });
+
+  //   api.fetch.fetchPositions().then((res) => {
+  //     settingsStore.setPositions(res.data.data);
+  //   });
+  // }, [user]);
+
   useEffect(() => {
     changeAuth(token);
-    setQueryLoading(true);
-    api.fetch.fetchAllMembers().then((res) => {
-      store.setMembers(res.data.data);
-    });
+    
+    if (membersData) {
+      store.setMembers(membersData.data.data);
+    }
 
-    api.fetch.fetchUserStats().then((res) => {
-      setUserStats(res.data);
-    });
-    api.fetch.fetchUpcomingEvents().then((res) => {
-      setQueryLoading(false);
-      setUpcomingEvents(res.data.data);
-    });
+    if (userStatsData) {
+      setUserStats(userStatsData.data);
+    }
 
-    api.fetch.fetchPositions().then((res) => {
-      settingsStore.setPositions(res.data.data);
-    });
-  }, [user]);
+    if (upcomingEventsData) {
+      setUpcomingEvents(()=>upcomingEventsData.data.data);
+    }
+
+    if (positionsData) {
+      settingsStore.setPositions(positionsData.data.data);
+    }
+    
+  }, [user,userStatsData,positionsData,upcomingEventsData,membersData]);
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
@@ -132,7 +158,7 @@ function HomePage() {
                 }}
               />
             </div>
-            {queryLoading && <LoaderComponent />}
+            {queryLoading||membersLoading||upcomingEventsLoading && <LoaderComponent />}
           </div>
         </main>
       ) : (
