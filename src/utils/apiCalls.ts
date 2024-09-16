@@ -83,9 +83,9 @@ class ApiDeletionCalls {
     return this.apiExecution.deleteData(path, query);
   }
 
-  deleteMember(id: string): Promise<ApiResponse<void>> {
+  deleteMember = (id: string): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("user/delete-user", { id });
-  }
+  };
 }
 
 class UnifiedApi {
