@@ -53,6 +53,11 @@ const useFileUpload = (onFileChange?: (file: File) => void) => {
     reader.readAsDataURL(file);
   };
 
+  const clearFile = () => {
+    setFile(null);
+    setPreview(null);
+  };
+
   return {
     isDragActive,
     file,
@@ -61,7 +66,8 @@ const useFileUpload = (onFileChange?: (file: File) => void) => {
     handleDragLeave,
     handleDragOver,
     handleDrop,
-    handleFileChange
+    handleFileChange,
+    clearFile
   };
 };
 

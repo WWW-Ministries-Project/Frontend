@@ -1,12 +1,9 @@
 // src/components/ImageUpload.js
-import React, { useState } from 'react';
 import cloud_upload from '../assets/cloud_upload.svg'
 import useFileUpload from '@/hooks/useFileUpload';
 
 const ImageUpload = ({ onFileChange }) => {
-  // const [isDragActive, setIsDragActive] = useState(false);
-  // const [file, setFile] = useState(null);
-  // const [preview, setPreview] = useState(null);
+
 
   const {
     isDragActive,
