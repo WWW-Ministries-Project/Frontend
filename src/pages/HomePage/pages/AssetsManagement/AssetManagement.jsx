@@ -253,7 +253,7 @@ const AssetManagement = () => {
                 <option value="Date">Date created</option>
              </select> */}
           </div>
-          <div>
+          <div className="flex gap-3">
             <Button
               value="Old Add asset"
               className={

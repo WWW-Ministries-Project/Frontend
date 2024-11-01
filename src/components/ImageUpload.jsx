@@ -1,56 +1,24 @@
 // src/components/ImageUpload.js
 import React, { useState } from 'react';
 import cloud_upload from '../assets/cloud_upload.svg'
+import useFileUpload from '@/hooks/useFileUpload';
 
 const ImageUpload = ({ onFileChange }) => {
-  const [isDragActive, setIsDragActive] = useState(false);
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  // const [isDragActive, setIsDragActive] = useState(false);
+  // const [file, setFile] = useState(null);
+  // const [preview, setPreview] = useState(null);
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragActive(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragActive(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragActive(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFile(files[0]);
-    }
-  };
-
-  const handleFile = (file) => {
-    setFile(file);
-    onFileChange(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
+  const {
+    isDragActive,
+    file,
+    preview,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    handleFileChange
+  } = useFileUpload(onFileChange)
+  
 
   return (
     <div

@@ -69,7 +69,7 @@ function DashBoard() {
   return (
     <main className={``}>
       {welcomeMsg && isTabletOrAbove && (
-        <NotificationFlag name={decodeToken().name} className={" "} onClose={handleToggleView} />
+        <NotificationFlag name={decodeToken()?.name} className={" "} onClose={handleToggleView} />
       )}
       <div className='grid gap-y-4'>
         <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2 ">
