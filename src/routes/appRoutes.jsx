@@ -132,6 +132,30 @@ export const routes = [
         sideTab:true,
       },
       {
+        path: "requests",
+        name: "Requests",
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+        sideTab:true,
+        children: [
+          {
+            path: "my_requests",
+            name: "My Requests",
+            element: <UserManagement />,
+          },
+          {
+            path: "staff_requests",
+            name: "Staff Requests",
+            element: <UserManagement />,
+          },
+          {
+            path: "suppliers",
+            name: "Suppliers",
+            element: <UserManagement />,
+          },
+        ]
+      },
+      {
         path: "settings",
         name: "Settings",
         element: <Settings />,
