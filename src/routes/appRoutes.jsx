@@ -4,6 +4,12 @@ import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
+import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
+import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
+import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
+import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
+import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
+import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage.jsx";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard.jsx";
@@ -11,15 +17,9 @@ import Members from "../pages/HomePage/pages/Members/Members.jsx";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
-import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
-import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
-import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
-import { useUserStore } from "../store/userStore";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 
 
 
@@ -58,7 +58,7 @@ export const routes = [
         path: "",
         element: <DashBoard />,
         isPrivate: true,
-        permissionNeeded: "view_Dashboard",       
+        permissionNeeded: "view_Dashboard",
       },
       {
         path: "dashboard",
@@ -66,7 +66,7 @@ export const routes = [
         element: <DashBoard />,
         isPrivate: true,
         permissionNeeded: "view_Dashboard",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "members",
@@ -74,7 +74,7 @@ export const routes = [
         element: <Members />,
         isPrivate: true,
         permissionNeeded: "view_Members",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "members/add-member",
@@ -109,7 +109,7 @@ export const routes = [
         element: <EventsManagement />,
         isPrivate: true,
         permissionNeeded: "view_Events",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "manage-event",
@@ -129,7 +129,7 @@ export const routes = [
         element: <UserManagement />,
         isPrivate: true,
         permissionNeeded: "view_Events",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "settings",
@@ -137,7 +137,7 @@ export const routes = [
         element: <Settings />,
         isPrivate: true,
         permissionNeeded: "view_Settings",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "Assets",
@@ -145,13 +145,18 @@ export const routes = [
         element: <AssetManagement />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
-        sideTab:true,
+        sideTab: true,
       },
       {
         path: "Assets/add-asset",
         element: <AddAsset />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
+      },
+      {
+        path: "requisition",
+        element: <Requisitions />,
+        isPrivate: false,
       },
       {
         path: "*",
@@ -170,4 +175,4 @@ export const routes = [
 // const permissions = useUserStore((state) => state.permissions);
 const homePageRoute = routes?.find(route => route.path === "/home");
 const homePageChildren = homePageRoute?.children || [];
-export const sideTabs = homePageChildren.filter(childRoute =>childRoute.sideTab && ({ name: childRoute.name, path: childRoute.path }));
+export const sideTabs = homePageChildren.filter(childRoute => childRoute.sideTab && ({ name: childRoute.name, path: childRoute.path }));

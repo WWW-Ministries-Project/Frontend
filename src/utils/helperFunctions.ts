@@ -103,16 +103,53 @@ export const fetchData = async <T>(
   }
 };
 
-export const deleteData = async <T>(baseUrl: string, path: string, query?: Record<string, any>): Promise<ApiResponse<T>> => {
-    try {
-      // Construct query string if query parameters are provided
-      const queryString = query ? `?${new URLSearchParams(query).toString()}` : '';
-      const url = `${baseUrl}${path}${queryString}`;
+export const deleteData = async <T>(
+  baseUrl: string,
+  path: string,
+  query?: Record<string, any>
+): Promise<ApiResponse<T>> => {
+  try {
+    // Construct query string if query parameters are provided
+    const queryString = query
+      ? `?${new URLSearchParams(query).toString()}`
+      : "";
+    const url = `${baseUrl}${path}${queryString}`;
 
-      const response: AxiosResponse<T> = await axios.delete(url);
-      return { data: response.data, status: response.status };
-    } catch (error) {
-      console.error(`Error deleting data from ${baseUrl}${path}:`, error);
-      throw error; // Rethrow error to ensure it is handled properly
-    }
-  };
+    const response: AxiosResponse<T> = await axios.delete(url);
+    return { data: response.data, status: response.status };
+  } catch (error) {
+    console.error(`Error deleting data from ${baseUrl}${path}:`, error);
+    throw error; // Rethrow error to ensure it is handled properly
+  }
+};
+
+export const postData = async <T>(
+  baseUrl: string,
+  path: string,
+  payload: Record<string, any>
+): Promise<ApiResponse<T>> => {
+  try {
+    const url = `${baseUrl}${path}`;
+    const response: AxiosResponse<T> = await axios.post(url, payload);
+    return { data: response.data, status: response.status };
+  } catch (error) {
+    console.error(`Error posting data to ${baseUrl}${path}:`, error);
+    throw error;
+  }
+};
+
+export const putData = async <T>(
+  baseUrl: string,
+  path: string,
+  payload: Record<string, any>
+): Promise<ApiResponse<T>> => {
+  try {
+    const url = `${baseUrl}${path}`;
+    const response: AxiosResponse<T> = await axios.put(url, payload);
+    return { data: response.data, status: response.status };
+  } catch (error) {
+    console.error(`Error posting data to ${baseUrl}${path}:`, error);
+    throw error;
+  }
+};
+

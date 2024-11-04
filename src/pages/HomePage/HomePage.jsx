@@ -128,7 +128,7 @@ function HomePage() {
 
   return (
     <>
-      {"token" ? (
+      {token ? (
         <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
           <div className={` ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
             <SideBar
