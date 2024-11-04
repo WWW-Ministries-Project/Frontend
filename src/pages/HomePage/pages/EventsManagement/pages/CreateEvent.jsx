@@ -69,7 +69,7 @@ const CreateEvent = () => {
 
   return (
     <section className="p-8 lg:container  bg-white mx-auto">
-      <div className="hiddedn">
+      <div className="hidden">
         {/* TODO  remove this from here*/}
         {/* button to open the signature upload modal */}
         <button
