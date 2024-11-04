@@ -1,6 +1,7 @@
 import Dialog from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
+import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
@@ -14,7 +15,7 @@ import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import GridAsset from "/src/assets/GridAsset";
 import TableAsset from "/src/assets/TableAssets";
-import axios from "/src/axiosInstance";
+import { useDelete } from "@/CustomHooks/useDelete";
 function Members() {
   const members = useStore().members;
   const removeMember = useStore().removeMember;
@@ -27,9 +28,10 @@ function Members() {
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(localStorage.getItem('membersTableView') === 'false' ? false : true);
   const [showOptions, setShowOptions] = useState(false);
-  const [modal, setModal] = useState({ show: false });
+  const [modal, setModal] = useState({ show: false,data:{} });
   const [notification, setNotification] = useState({ type: '', message: '', show: false });
   const [queryLoading, setQueryLoading] = useState(false);
+  const {executeDelete,loading,error,success} = useDelete(api.delete.deleteMember);
 
   const columns = membersColumns;
 
@@ -63,8 +65,7 @@ function Members() {
   const handleDelete = () => {
     const id = modal.data.id
     setModal({ data: {}, show: false });
-    setQueryLoading(true);
-    axios.delete(`/user/delete-user?id=${id}`).then((res) => {
+    executeDelete(id).then(() => {
       removeMember(id);
       setNotification({ type: 'success', message: 'Member Deleted Successfully', show: true })
       setQueryLoading(false);
@@ -139,7 +140,7 @@ function Members() {
         </div>
       </section>
       <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
-      {queryLoading && <LoaderComponent />}
+      {loading && <LoaderComponent />}
       {notification.show && <NotificationCard type={notification.type} title={"Success"} description={notification.message} onClose={() => setNotification({ type: '', message: '', show: false })} />}
     </main>
   );

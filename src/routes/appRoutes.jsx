@@ -17,9 +17,9 @@ import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventR
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-import { Children } from "react";
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import UserManagement from "@/pages/HomePage/pages/Users/UserManagement.jsx";
+import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
+import { useUserStore } from "../store/userStore";
 
 
 
@@ -58,19 +58,23 @@ export const routes = [
         path: "",
         element: <DashBoard />,
         isPrivate: true,
-        permissionNeeded: "view_Dashboard",
+        permissionNeeded: "view_Dashboard",       
       },
       {
         path: "dashboard",
+        name: "Dashboard",
         element: <DashBoard />,
         isPrivate: true,
         permissionNeeded: "view_Dashboard",
+        sideTab:true,
       },
       {
         path: "members",
+        name: "Members",
         element: <Members />,
         isPrivate: true,
         permissionNeeded: "view_Members",
+        sideTab:true,
       },
       {
         path: "members/add-member",
@@ -86,6 +90,7 @@ export const routes = [
         children: [
           {
             path: "info",
+            name: "Info",
             element: <MemberInformation />,
             isPrivate: true,
             permissionNeeded: "view_Members",
@@ -99,28 +104,12 @@ export const routes = [
         ]
       },
       {
-        path: "settings",
-        element: <Settings />,
-        isPrivate: true,
-        permissionNeeded: "view_Settings",
-      },
-      {
-        path: "Assets",
-        element: <AssetManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_Assets",
-      },
-      {
-        path: "Assets/add-asset",
-        element: <AddAsset />,
-        isPrivate: true,
-        permissionNeeded: "view_Assets",
-      },
-      {
         path: "events",
+        name: "Events",
         element: <EventsManagement />,
         isPrivate: true,
         permissionNeeded: "view_Events",
+        sideTab:true,
       },
       {
         path: "manage-event",
@@ -136,9 +125,33 @@ export const routes = [
       },
       {
         path: "users",
+        name: "Manage User",
         element: <UserManagement />,
         isPrivate: true,
         permissionNeeded: "view_Events",
+        sideTab:true,
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        element: <Settings />,
+        isPrivate: true,
+        permissionNeeded: "view_Settings",
+        sideTab:true,
+      },
+      {
+        path: "Assets",
+        name: "Assets",
+        element: <AssetManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Assets",
+        sideTab:true,
+      },
+      {
+        path: "Assets/add-asset",
+        element: <AddAsset />,
+        isPrivate: true,
+        permissionNeeded: "view_Assets",
       },
       {
         path: "*",
@@ -153,3 +166,8 @@ export const routes = [
     isPrivate: false
   },
 ];
+
+// const permissions = useUserStore((state) => state.permissions);
+const homePageRoute = routes?.find(route => route.path === "/home");
+const homePageChildren = homePageRoute?.children || [];
+export const sideTabs = homePageChildren.filter(childRoute =>childRoute.sideTab && ({ name: childRoute.name, path: childRoute.path }));

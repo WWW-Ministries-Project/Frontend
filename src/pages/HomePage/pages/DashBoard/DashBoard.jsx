@@ -88,7 +88,7 @@ function DashBoard() {
             <LineChart value={userStats.stats} />
           </section>
         </div>
-        <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
+        <div className="flex flex-col  justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
           <section className="bg-white p-7 w-full rounded-xl">
             <div className="text-dark900 H600">First Timers</div>
             <div className="flex justify-between items-center ">

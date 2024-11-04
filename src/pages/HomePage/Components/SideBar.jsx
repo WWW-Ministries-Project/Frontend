@@ -1,24 +1,21 @@
+import DashboardIcon from '@/assets/sidebar/DashboardIcon';
+import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
+import LoginIcon from '@/assets/sidebar/LoginIcon';
+import LogoutIcon from '@/assets/sidebar/Logout';
+import ManagementIcon from '@/assets/sidebar/ManagementIcon';
+import MembersIcon from '@/assets/sidebar/MembersIcon';
+import SettingsIcon from '@/assets/sidebar/SettingIcon';
+import ChurchLogo from '@/components/ChurchLogo';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
-import { sideTabs } from "../utils/helperFunctions";
-import ChurchLogo from '@/components/ChurchLogo';
-import DashboardIcon from '@/assets/sidebar/DashboardIcon';
-import MembersIcon from '@/assets/sidebar/MembersIcon';
-import ManagementIcon from '@/assets/sidebar/ManagementIcon';
-import InstrumentIcon from '@/assets/sidebar/InstrumentIcon';
-import SettingsIcon from '@/assets/sidebar/SettingIcon';
-import LogoutIcon from '@/assets/sidebar/Logout';
-import LoginIcon from '@/assets/sidebar/LoginIcon';
-import AttendanceIcon from '@/assets/sidebar/AttendanceIcon';
-import FinanceIcon from '@/assets/sidebar/FinanceIcon';
-import UsersIcon from '@/assets/sidebar/UsersIcon';
-
+// import { sideTabs } from "../utils/helperFunctions";
+import { sideTabs } from "/src/routes/appRoutes";
 const icons = {
     Dashboard: DashboardIcon,
     Members: MembersIcon,
-    // Users: UsersIcon, // TODO: replace this
+    "Manage User": MembersIcon, // TODO: replace this
     // Attendance: AttendanceIcon,
     Events: ManagementIcon,
     // Finance: FinanceIcon,
@@ -54,22 +51,23 @@ const SideBar = ({ show, ...props }) => {
                 </div>
                 <div className="xs:flex lg:flex-col  justify-around xs:w-full ">
                     {items.map((item, index) => {
-                        const IconComponent = icons[item.key];
+                        const IconComponent = icons[item.name];
 
                         if (!IconComponent) {
-                            console.error(`Icon component for ${item.key} not found`);
+                            console.error(`Icon component for ${item.name} not found`);
                             return null;
                         }
 
                         // return permissions["view_" + item["key"]] && (
                             return (
                             <NavLink
-                                to={item["key"]}
+                                to={item["path"]}
                                 className={({ isActive }) =>
                                     `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl  transition h-10 z-10 flex items-center py-7 lg:my-3 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-xl transition" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full`}
                                 key={index}
                             >
-                                <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />
+                                {IconComponent &&<IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`} />}
+                                {/* {item.key} */}
                                 {show && <div className='xs:hidden lg:block'>{item["name"]}</div>}
                                 
                             </NavLink>

@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import PropTypes from 'prop-types';
 import { useState } from "react";
+import PaginationComponent from "./PaginationComponent";
 
 function TableComponent({ data, columns, filter, setFilter, displayedCount, ...props }) {
   const [sorting, setSorting] = useState([]);
@@ -81,47 +82,9 @@ function TableComponent({ data, columns, filter, setFilter, displayedCount, ...p
           </div>}
       </div>
       {data.length > displayedCount ?
-        <div className={`flex justify-end gap-1 text-gray my-2`}>
-          <button
-            onClick={() => table.setPageIndex(0)}
-            className={
-              table.getCanPreviousPage()
-                ? "border border-primaryViolet p-1 sm rounded-md text-primaryViolet"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }>
-            <span className="hidden sm:inline">First page</span><span className="inline sm:hidden text-xs">First</span>
-          </button>
-          <button
-            className={
-              table.getCanPreviousPage()
-                ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}>
-            <span className="hidden sm:inline">Previous page</span><span className="inline sm:hidden text-xs">Previous</span>
-          </button>
-          <button
-            className={
-              table.getCanNextPage()
-                ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            disabled={!table.getCanNextPage()}
-            onClick={() => table.nextPage()}>
-            <span className="hidden sm:inline">Next page</span><span className="inline sm:hidden text-xs">Next</span>
-          </button>
-          <button
-            className={
-              table.getCanNextPage()
-                ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
-            <span className="hidden sm:inline">Last page</span><span className="inline sm:hidden text-xs">Last</span>
-          </button>
-        </div>
+        <PaginationComponent canGoBack={table.getCanPreviousPage()} goBack={table.previousPage} canGoForward={table.getCanNextPage()} goForward={table.nextPage} goToPage={table.setPageIndex} goFirst={() => table.setPageIndex(0)} totalPages={table.getPageCount()} />
         : null}
+
     </div>
   );
 }
