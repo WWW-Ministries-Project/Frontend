@@ -7,6 +7,7 @@ export const sideTabs = [
   { name: 'Members', key: 'Members' },
   // { name: 'Attendance', key: 'Attendance' },
   { name: "Events ", key: "Events" },
+  { name: "Requests ", key: "Requests", children: [{name:"My requests", key:"my_requests"}, {name:"Staff request", key:"staff_request"}, {name:"Suppliers", key:"suppliers"}] },
   // { name: "Finance", key: "Finance" }, 
   // { name: 'Reports', key: 'Reports' }, 
   { name: "Assets ", key: "Assets" },
