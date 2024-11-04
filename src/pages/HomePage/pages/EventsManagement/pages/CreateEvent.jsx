@@ -65,7 +65,7 @@ const CreateEvent = () => {
       setLoading(false);
     }
   };
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <section className="p-8 lg:container  bg-white mx-auto">
