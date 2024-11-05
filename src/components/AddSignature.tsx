@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "./Button";
-import useFileUpload from "@/hooks/useFileUpload";
+import useFileUpload from "@/CustomHooks/useFileUpload";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
   return <div className={`text-[#101828] ${className}`}>{text}</div>;
