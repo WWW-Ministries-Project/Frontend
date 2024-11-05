@@ -3,6 +3,7 @@ import FormikInput from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import FormWrapperNew from "@/Wrappers/FormWrapperNew";
 import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
@@ -13,9 +14,7 @@ const Request = () => {
   const programs = useSettingsStore().positions;
   return (
     <PageOutline>
-      <PageHeader
-        title="Raise request"
-      />
+      <PageHeader title="Raise request" />
       <Formik
         initialValues={{}}
         onSubmit={(val) => {
@@ -55,7 +54,7 @@ const Request = () => {
             label="Comment"
             id="requester"
             type="textarea"
-            col = {50}
+            col={50}
           />
           <Field
             component={FormikInput}
@@ -66,11 +65,17 @@ const Request = () => {
           />
         </FormWrapperNew>
       </Formik>
-      <div className="w-full h-[1px] bg-lightGray my-4"></div>
+      <HorizontalLine />
       <EditableTable />
-      <div className="w-full h-[1px] bg-lightGray"></div>
+      <HorizontalLine />
       <div className="w-full flex justify-end gap-x-4 mt-4">
-        <Button value="Cancel" className="tertiary" onClick={() => {window.history.back()}} />
+        <Button
+          value="Cancel"
+          className="tertiary"
+          onClick={() => {
+            window.history.back();
+          }}
+        />
         <Button value="Save as Draft" className="secondary" />
         <Button value="Send request" className="default" />
       </div>

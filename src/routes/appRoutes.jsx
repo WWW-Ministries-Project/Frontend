@@ -11,6 +11,7 @@ import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsMana
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
+import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage.jsx";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
@@ -21,7 +22,6 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-
 
 
 export const routes = [
@@ -146,6 +146,12 @@ export const routes = [
             isPrivate: false,
           },
           {
+            path: "my_requests/:id",
+            name: "Requests Details",
+            element: <RequestDetails />,
+            isPrivate: false,
+          },
+          {
             path: "my_requests/request",
             name: "Request",
             element: <Request />,
@@ -154,7 +160,7 @@ export const routes = [
           {
             path: "staff_requests",
             name: "Staff Requests",
-            element: <UserManagement />,
+            element: <Requisitions />,
           },
           {
             path: "suppliers",

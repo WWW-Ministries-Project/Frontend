@@ -10,7 +10,7 @@ export const tableColumns: ColumnDef<User>[] = [
     {
       header: "Name",
       accessorKey: "name",
-      cell: ({ row }) => <div className="flex items-center gap-2 cursor-pointer" onClick={() => { window.location.href = `/home/members/${row.original.id}/info` }}>
+      cell: ({ row }) => <div className="flex items-center gap-2 cursor-pointer" onClick={() => { window.location.href = `/home/requests/my_requests/${row.original.id}` }}>
         <ProfilePicture
           src={row.original.photo}
           name={row.original.name}
@@ -20,6 +20,20 @@ export const tableColumns: ColumnDef<User>[] = [
         />{" "}
         {row.original.name}
       </div>,
+    },
+    {
+      header: "Acount Status",
+      accessorKey: "status",
+      cell: ({row}) => (
+        <div
+          className={
+           row.original.name![0]==="A"
+              ? "bg-[#FFEFD2] text-sm w-fit p-2 flex items-center justify-center rounded-lg text-center text-[#996A13] "
+              : "bg-neutralGray text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+          }> <span className="bg-error h-2 w-2 rounded-full"></span>
+          {row.original.name![0]==="A"?"Awaiting Approval":"Pending"}
+        </div>
+      ),
     },
     {
       header: "Email",
@@ -32,18 +46,5 @@ export const tableColumns: ColumnDef<User>[] = [
     {
       header: "Permission",
       accessorKey: "permission",
-    },
-    {
-      header: "Acount Status",
-      cell: (info) => (
-        <div
-          className={
-            info.getValue()
-              ? "bg-green text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg text-center text-white "
-              : "bg-neutralGray text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-          }>
-          {info.getValue() ? "Active" : "Inactive"}
-        </div>
-      ),
     },
   ];
