@@ -7,7 +7,10 @@ interface TableRow {
   total: number;
 }
 
-const EditableTable: React.FC = () => {
+interface EditableTableProps {
+  isEditable?: boolean;
+}
+const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
   const [rows, setRows] = useState<TableRow[]>([
     { name: "Item 1", days: 1, amount: 100, total: 100 },
     { name: "Item 2", days: 2, amount: 200, total: 400 },
@@ -46,13 +49,13 @@ const EditableTable: React.FC = () => {
 
   return (
     <div className="p-4">
-      <div
+     { isEditable && <div
         className="mb-4 font-bold text-primaryViolet cursor-pointer float-right"
         onClick={addRow}
       >
         {" "}
         + Add item
-      </div>
+      </div>}
       <table className="min-w-full border-collapse border border-[#D9D9D9]">
         <thead>
           <tr className="bg-[#F2F4F7]">
@@ -68,9 +71,9 @@ const EditableTable: React.FC = () => {
             <th className="border border-[#D9D9D9] px-2 py-1 text-left">
               Total
             </th>
-            <th className="border border-[#D9D9D9] px-2 py-1 text-left">
+           {isEditable && <th className="border border-[#D9D9D9] px-2 py-1 text-left">
               Remove
-            </th>
+            </th>}
           </tr>
         </thead>
         <tbody>
@@ -84,6 +87,7 @@ const EditableTable: React.FC = () => {
                   onChange={(e) =>
                     handleInputChange(index, "name", e.target.value)
                   }
+                  disabled={!isEditable}
                 />
               </td>
               <td className="border border-[#D9D9D9] px-2 py-1">
@@ -94,6 +98,7 @@ const EditableTable: React.FC = () => {
                   onChange={(e) =>
                     handleInputChange(index, "days", e.target.value)
                   }
+                  disabled={!isEditable}
                 />
               </td>
               <td className="border border-[#D9D9D9] px-2 py-1">
@@ -104,17 +109,19 @@ const EditableTable: React.FC = () => {
                   onChange={(e) =>
                     handleInputChange(index, "amount", e.target.value)
                   }
+                  disabled={!isEditable}
                 />
               </td>
               <td className="border border-[#D9D9D9] px-2 py-1">{row.total}</td>
-              <td className="border border-[#D9D9D9] px-2 py-1">
+              {isEditable && <td className="border border-[#D9D9D9] px-2 py-1">
                 <button
                   className="text-red-500 hover:text-red-700"
                   onClick={() => deleteRow(index)}
+                  disabled={!isEditable}
                 >
                   Delete
                 </button>
-              </td>
+              </td>}
             </tr>
           ))}
         </tbody>
