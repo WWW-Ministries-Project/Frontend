@@ -39,13 +39,14 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
       <label htmlFor={props.id}>{props.label}</label>
       {props.type === "textarea" ? (
         <textarea
-          className={`input rounded-xl h-[150px] ${props.inputClass}`}
+          className={`input rounded-xl !h-[150px] ${props.inputClass}`}
           id={props.id}
           name={props.id}
           value={props.value}
           onChange={handleChange}
           placeholder={props.placeholder}
           disabled={props.disabled}
+
         />
       ) : (
         <input

@@ -9,6 +9,8 @@ import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventR
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
+import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage.jsx";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
@@ -19,7 +21,6 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 
 
 
@@ -136,12 +137,19 @@ export const routes = [
         name: "Requests",
         isPrivate: true,
         permissionNeeded: "view_Events",
-        sideTab:true,
+        sideTab: true,
         children: [
           {
             path: "my_requests",
             name: "My Requests",
-            element: <UserManagement />,
+            element: <Requisitions />,
+            isPrivate: false,
+          },
+          {
+            path: "my_requests/request",
+            name: "Request",
+            element: <Request />,
+            isPrivate: false,
           },
           {
             path: "staff_requests",
@@ -176,11 +184,6 @@ export const routes = [
         element: <AddAsset />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
-      },
-      {
-        path: "requisition",
-        element: <Requisitions />,
-        isPrivate: false,
       },
       {
         path: "*",

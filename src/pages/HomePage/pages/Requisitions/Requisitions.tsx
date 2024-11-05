@@ -10,7 +10,7 @@ const Requisitions = () => {
     const navigate = useNavigate()
   return (
     <PageOutline>
-      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('/home/request')} />
+      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('request')} />
       {/* @ts-ignore */}
       <TableComponent columns={tableColumns} data={users}  />
     </PageOutline>
