@@ -45,13 +45,6 @@ const SideBar = ({ show, ...props }) => {
     props.onClick();
   }
 
-  const returnChild = (child, parentPath) => {
-    return {
-      path: `${parentPath}/${child.path}`,
-      name: child.name,
-    };
-  };
-
   return (
     <div
       className="mx-auto"
@@ -110,8 +103,7 @@ const SideBar = ({ show, ...props }) => {
               <>
                 {
                   item.children ? (
-                    console.log(item, "item"),
-                      <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
+                    <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
                       }`} /> </SideBarSubMenu>
                   ) : (<NavigationLink item={item} index={index} show={show}>
                     <IconComponent
@@ -123,9 +115,6 @@ const SideBar = ({ show, ...props }) => {
             );
           })}
         </div>
-        {/* <div className='flex pb-2 hover:border-[#6539C3] hover:border-l-2  transition h-10 z-10 flex items-center py-7 lg:my-5 ${!show ? " justify-center" : "px-2 py-7 mx-2"} my-2 rounded-xl ${isActive ? "bg-[#6539C3] text-white shadow-lg" : "hover:text-primaryViolet"} xs:my-0 xs:flex- xs:p-2 xs:h-full'>
-                <LogoutIcon />{show && <div className='xs:hidden lg:block'>{'Logout'}</div>}
-                </div> */}
       </div>
     </div>
   );
@@ -139,45 +128,3 @@ SideBar.propTypes = {
 };
 
 export default SideBar;
-// {item.children?.length ? (
-//   <>
-//     {!show && (
-//       <>
-//         {item?.children?.map((child, idx) => {
-//           if (!IconComponent) {
-//             return null;
-//           }
-//           return (
-//             <NavigationLink item={returnChild(child,item["path"])} index={idx} show={show}>
-//             {IconComponent && (
-//               <IconComponent
-//                 className={`${
-//                   show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
-//                 }`}
-//               />
-//             )}
-//             {/* {item.key} */}
-//             {show && (
-//               <div className="xs:hidden lg:block">{item["name"]}</div>
-//             )}
-//           </NavigationLink>
-//           );
-//         })}
-//       </>
-//     ) }
-//   </>
-// ) : (
-//   <NavigationLink item={item} index={index} show={show}>
-//     {IconComponent && (
-//       <IconComponent
-//         className={`${
-//           show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
-//         }`}
-//       />
-//     )}
-//     {/* {item.key} */}
-//     {show && (
-//       <div className="xs:hidden lg:block">{item["name"]}</div>
-//     )}
-//   </NavigationLink>
-// )}

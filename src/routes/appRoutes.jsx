@@ -140,7 +140,7 @@ export const routes = [
         sideTab: true,
         children: [
           {
-            path: "my_requests",
+            path: "",
             name: "My Requests",
             element: <Requisitions />,
             isPrivate: false,
@@ -158,7 +158,7 @@ export const routes = [
             name: "Request",
             element: <Request />,
             isPrivate: false,
-            sideTab: true
+            sideTab: false
           },
           {
             path: "staff_requests",
