@@ -144,28 +144,33 @@ export const routes = [
             name: "My Requests",
             element: <Requisitions />,
             isPrivate: false,
+            sideTab: true
           },
           {
             path: "my_requests/:id",
             name: "Requests Details",
             element: <RequestDetails />,
             isPrivate: false,
+            sideTab: false,
           },
           {
             path: "my_requests/request",
             name: "Request",
             element: <Request />,
             isPrivate: false,
+            sideTab: true
           },
           {
             path: "staff_requests",
             name: "Staff Requests",
             element: <Requisitions />,
+            sideTab: true
           },
           {
             path: "suppliers",
             name: "Suppliers",
             element: <UserManagement />,
+            sideTab: true
           },
         ]
       },

@@ -1,11 +1,13 @@
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
-import { useState } from "react";
-import NavigationLink from "./NavigationLink";
+import { Children, ReactNode, useState } from "react";
+// import NavigationLink from "./NavigationLink";
+import { NavLink } from "react-router-dom";
 
 interface ChildItem {
   key: string;
   name: string;
   path: string;
+  sideTab?: boolean;
 }
 
 interface SideBarSubMenuProps {
@@ -15,6 +17,8 @@ interface SideBarSubMenuProps {
     show: boolean;
   };
   parentPath: string;
+  children: ReactNode;
+  show: boolean;
 }
 
 const icons = {
@@ -23,7 +27,12 @@ const icons = {
   Suppliers: ManagementIcon, // TODO: replace this
 };
 
-const SideBarSubMenu = ({ item, parentPath }: SideBarSubMenuProps) => {
+const SideBarSubMenu = ({
+  item,
+  parentPath,
+  children,
+  show,
+}: SideBarSubMenuProps) => {
   const [showChildren, setShowChildren] = useState(false);
   const returnChild = (child: ChildItem) => {
     return {
@@ -33,11 +42,15 @@ const SideBarSubMenu = ({ item, parentPath }: SideBarSubMenuProps) => {
   };
   return (
     <div className="flex flex-col transition z-10 p-2 ml-3 whitespace-nowrap ">
-      <div
+      <NavLink
+        to={`${parentPath}/${item.children[0].path}`}
         onClick={() => setShowChildren(!showChildren)}
-        className="flex gap-3 items-center "
+        className={({ isActive }) =>`hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl  transition h-10 z-10 flex items-center py-7 lg:my-3 my-2 rounded-xl ${isActive || showChildren
+              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-xl transition"
+              : "hover:text-primaryViolet"}`}
       >
-        <p className="cursor-pointer">{item.name}</p>
+        {children}
+        <p className="cursor-pointer">{show && item.name}</p>
         <p className={`${showChildren ? "rotate-[270deg]" : "rotate-90"}`}>
           <svg
             width="18"
@@ -54,23 +67,19 @@ const SideBarSubMenu = ({ item, parentPath }: SideBarSubMenuProps) => {
             />
           </svg>
         </p>
-      </div>
+      </NavLink>
 
       <div className={`${showChildren ? "" : "hidden"}`}>
         {item.children.map((child, index) => {
-          console.log(child);
-          const IconComponent = icons[child.name as keyof typeof icons];
-
           return (
+            child.sideTab ?
+
+              
             <NavigationLink
               item={returnChild(child)}
-              index={index}
-              show={item.show}
-              justifyCenter={false}
+              show={show}
             >
-              {IconComponent && <IconComponent />}
-              <div>{child.name}</div>
-            </NavigationLink>
+            </NavigationLink> :<></>
           );
         })}
       </div>
@@ -79,3 +88,22 @@ const SideBarSubMenu = ({ item, parentPath }: SideBarSubMenuProps) => {
 };
 
 export default SideBarSubMenu;
+
+const NavigationLink = ({
+  item,show
+}: {
+  item: { path: string; name: string };
+  show: boolean;
+}) => {
+  return (
+    <div key={item.path}>
+      <NavLink to={item.path}className={({ isActive }) =>
+          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl hover:bg-primaryViolet  transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1 rounded-xl ${
+            isActive
+              ? "bg-primaryViolet text-white border border-1 shadow-inner drop-shadow shadow-xl transition"
+              : "hover:text-white"
+          } `
+        }>{item.name}</NavLink>
+    </div>
+  );
+};
