@@ -11,7 +11,7 @@ const Button = (props) => {
   let className;
   switch (props.className) {
     case "primary":
-      className = " text-white bg-gradient-to-r from-violet-500 to-fuchsia-500";
+      className = " text-white bg-primary ";
       break;
     case "secondary":
       className = "border border-primaryViolet text-primaryViolet";
@@ -31,7 +31,7 @@ const Button = (props) => {
     <>
       <button
         className={
-          "leading-5 rounded-lg  text-center text-black disabled:bg-lightGray p-2  " +
+          "leading-5 rounded-lg  text-center text-black disabled:bg-lightGray   " +
           className
         }
         disabled={props.disabled || false}

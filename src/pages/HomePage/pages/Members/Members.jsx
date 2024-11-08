@@ -91,7 +91,7 @@ function Members() {
 
   return (
 
-    <main className={``}>
+    <main className={`bg-white p-8`}>
 
       {/* Members Table Section */}
       <section className={``}>
@@ -112,13 +112,13 @@ function Members() {
           <div>
             <Button
               value="Add member"
-              className={" text-white min-h-12 max-h-14 p-2 gradientBtn"}
+              className={" text-white text-sm px-5 min-h-12 max-h-14 p-2 bg-primaryViolet"}
               onClick={handleNavigation}
             />
           </div>
         </div>
         {/* <TableComponent /> */}
-        <div className={`w-full mx-auto  ${tableView ? "bg-white p-2" : "bg-transparent "} rounded-xl`}>
+        <div className={`w-full mx-auto bg-white  ${tableView ? "bg-white p-2" : "bg-transparent "} rounded-xl`}>
           {!true ? <GridSkeleton />
             : (tableView ? <TableComponent
               columns={columns}

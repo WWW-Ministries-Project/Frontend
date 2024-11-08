@@ -140,7 +140,7 @@ function HomePage() {
           </div>
 
           {/* <div className={`h-lvh w-5/6 overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%]"}`}> */}
-          <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#d9d9d9] `}>
+          <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#E5E5EA] `}>
             <Header />
             <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
               <Outlet

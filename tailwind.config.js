@@ -12,7 +12,7 @@ export default {
         errorBG: "#FBEAE6",
         error: "#E97760",
         wwwGrey2: "#6B7B8A",
-        dark900: "#14092C",
+        dark900: "#474D66",
         gray: "#786D8F",
         bgWhite: "#F9F9F9",
         lightGray: "#C7C2D3",
