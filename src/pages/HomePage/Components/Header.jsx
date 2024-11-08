@@ -1,5 +1,5 @@
 
-import bell from "/src/assets/bell.svg";
+import hamburger from "/src/assets/hamburger.svg";
 import arrowDown from "/src/assets/down.svg";
 // import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
+import ChurchLogo from "@/components/ChurchLogo";
 
 function Header() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ function Header() {
   return (
     <>
       <header className="flex justify-between header items-center  w-full rounded-t-md ">
-        {/* <ChurchLogo /> */}
+       <img src={hamburger} alt="" />
         <div className="w-[40.9%]">
         </div>
 

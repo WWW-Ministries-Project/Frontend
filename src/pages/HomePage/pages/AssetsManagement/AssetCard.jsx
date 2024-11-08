@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import CardWrapper from '/src/Wrappers/CardWrapper';
 import calendar from "/src/assets/calendar.svg";
-import time from "/src/assets/clock.svg";
+import assign from "/src/assets/assign.svg";
 import defaultImage from "/src/assets/images/image.png"
 import defaultImage1 from "/src/assets/image.svg"
 import edit from "/src/assets/edit.svg";
@@ -16,32 +16,33 @@ const AssetCard = (props) => {
     }
 
     return (
-        <div className="authForm bg-white  rounded-xl shadow-lg mx-auto border-[#6539C3] border-b-4">
+        <div className="authForm bg-white cursor-pointer rounded-xl border border-[#D8DAE5] hover:shadow-lg mx-auto border-b-[#6539C3] border-b-4">
             <div className='relative top'>
-            <div className='absolute bg-[#00000050] w-full h-[20vh] rounded-xl'></div>
+            <div className={`absolute ${props.assets.photo ? "" : "bg-[#00000050]"} border-b border-[#D8DAE5] w-full h-[23vh] rounded-xl`}></div>
                 <div className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlac w-1/4 text-center ${props.assets.status=== "ASSIGNED"? "bg-green "
             : "bg-neutralGray text-lighterBlack"}`}>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</div>
             
-                <img className='rounded-xl w-[70vw] h-[20vh]' src={props.assets.photo || defaultImage1} alt="lk" />
+                <img className='rounded-xl w-[70vw] h-[23vh]' src={props.assets.photo || defaultImage1} alt="lk" />
                 
                 
             </div>
             {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
         <CardWrapper className={"flex-col text-gray rounded-b-xl p-3 flex "}>
             <div className="flex  gap-y-2 gap-x-1 items-center ">
-                {/* <div className={'w-2 h-2 bg-[#FF5765] rounded rounded-full' + props.className}/> */}
-                <p className='font-bold'>Name:</p><p>{props.assets.name}</p>
+            
+                <p className='font-bold'>{props.assets.name}</p>
             </div>
             <div className="flex  gap-y-2 gap-x-1 items-center ">
                 {/* <p className='font-bold'>Status:</p><p>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</p> */}
             </div>
             <div className="flex  gap-y-2 gap-x-1 items-center ">
-                {<div className='flex gap-x-1'> <p className='font-bold'>Assigned to:</p><p>-</p> </div>}
+            <img src={assign} alt="clock icon" />
+                {<div className='flex gap-x-1'> <p className=''><span className="text-sm">{props.assets.department_assigned}</span></p> </div>}
             </div>
             
             <div className="flex gap-1 text-sm">
-                {/* <img src={time} alt="clock icon" /> */}
-                {/* <p><span className="text-sm">{props.event.start_time}</span><span className="text-sm">- {props.event.end_time} (GMT)</span></p> */}
+                <img src={calendar} alt="clock icon" />
+                <p><span className="text-sm">{props.assets.date_purchased}</span><span className="text-sm">- {props.assets.end_time} (GMT)</span></p>
             </div>
             <div className="flex gap-1 items-center text-sm">
                 {/* <img src={calendar} alt="clock icon" /> */}

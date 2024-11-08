@@ -29,12 +29,12 @@ function SelectField(props: SelectFieldProps) {
 
   return (
     <div>
-      <div className={"flex flex-col gap-1 " + props.className}>
-        <label htmlFor={props.id}>{props.label}</label>
+      <div className={"flex text-dark900  flex-col gap-1 " + props.className}>
+        <label className='font-semibold' htmlFor={props.id}>{props.label}</label>
         <select
           name={props.id}
           id={props.id}
-          className={`input rounded-xl border ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
+          className={`input rounded-xl border  ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
           onChange={handleChange}
           value={props.value}
           disabled={props.disabled}

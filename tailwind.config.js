@@ -12,7 +12,7 @@ export default {
         errorBG: "#FBEAE6",
         error: "#E97760",
         wwwGrey2: "#6B7B8A",
-        dark900: "#14092C",
+        dark900: "#474D66",
         gray: "#786D8F",
         bgWhite: "#F9F9F9",
         lightGray: "#C7C2D3",
@@ -162,8 +162,8 @@ export default {
           "@apply bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105":
             {},
         },
-        '.header': {
-          height: 'clamp(40px, 6vh, 60px)',
+        ".header": {
+          height: "clamp(40px, 6vh, 60px)",
         },
       };
       addUtilities(utilities);

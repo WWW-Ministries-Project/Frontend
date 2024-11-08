@@ -53,7 +53,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       {(form) => (
         <div className="h-full mb-4">
           <section className="">
-            <div className=" text-black font-bold my-5">Membership Status</div>
+            <div className=" text-dark900 font-bold my-5">Membership Status</div>
             <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
               <Field
                 component={FormikSelectField}
@@ -69,7 +69,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             </div>
           </section>
           <section>
-            <div className=" text-black font-bold my-5">
+            <div className=" text-dark900 font-bold my-5">
               Personal Information
             </div>
             <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
@@ -138,7 +138,7 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
             </div>
           </section>
           <section>
-            <div className=" text-black font-bold my-5">
+            <div className=" text-dark900 font-bold my-5">
               Contact Information
             </div>
             <div className="w-full grid tablet:grid-cols-2 gap-4">
@@ -182,9 +182,9 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
           </section>
           <section>
-            <div className=" text-black font-bold my-5">Church Information</div>
+            <div className=" text-dark900 font-bold my-5">Church Information</div>
             <div className="mb-5">
-              <p className="text-black leading-5 mb-2">
+              <p className="text-dark900 leading-5 mb-2">
                 Is this member a ministry worker?
               </p>
               <RadioInput
@@ -216,7 +216,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>}
           </section>
           <section>
-            <div className=" text-black font-bold my-5">Work Information</div>
+            <div className=" text-dark900 font-bold my-5">Work Information</div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
               <Field
                 component={FormikInputDiv}
@@ -252,7 +252,7 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
           </section>
           <section>
-            <div className=" text-black font-bold my-5">Emergency Contact</div>
+            <div className=" text-dark900 font-bold my-5">Emergency Contact</div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
               <Field
                 component={FormikInputDiv}

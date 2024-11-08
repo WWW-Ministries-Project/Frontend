@@ -35,17 +35,18 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   }
 
   return (
-    <div className={`flex flex-col gap-1 ${props.className}`} ref={ref} onClick={props.onClick} style={{ cursor: props.onClick ? 'pointer' : 'default' }}>
-      <label htmlFor={props.id}>{props.label}</label>
+    <div className={`flex text-dark900 flex-col gap-1 ${props.className}`} ref={ref} onClick={props.onClick} style={{ cursor: props.onClick ? 'pointer' : 'default' }}>
+      <label className='font-semibold ' htmlFor={props.id}>{props.label}</label>
       {props.type === "textarea" ? (
         <textarea
-          className={`input rounded-xl h-[150px] ${props.inputClass}`}
+          className={`input rounded-xl !h-[150px] ${props.inputClass}`}
           id={props.id}
           name={props.id}
           value={props.value}
           onChange={handleChange}
           placeholder={props.placeholder}
           disabled={props.disabled}
+
         />
       ) : (
         <input
