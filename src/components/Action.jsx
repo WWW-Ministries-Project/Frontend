@@ -2,15 +2,16 @@ import PropTypes from 'prop-types';
 
 const Action = (props) => {
     return (
-        <div className="bg-white w-24 p-1 shadow-md rounded-md">
-            <ul className=" !divide-lightGray flex flex-col items-start gap-y-2">
-                <li onClick={props.onEdit} className="cursor-pointer p-1 w-full hover:bg-lightGray hover:rounded">
+        <div className="z-10 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5]">
+            <ul className=" !divide-lightGray py-2 text-sm text-dark900 flex flex-col  gap-y-2">
+                <li onClick={props.onEdit} className="cursor-pointer block px-4 py-2 w-full hover:bg-lightGray hover:rounded">
                     Edit
                 </li>
-                <li onClick={props.onView} className="cursor-pointer hover:bg-lightGray hover:rounded">
+                <li onClick={props.onView} className="cursor-pointer block px-4 py-2 w-full hover:bg-lightGray hover:rounded">
                     View
                 </li>
-                <li onClick={props.onDelete} className="cursor-pointer hover:bg-lightGray hover:rounded">
+                <hr className='border-[#D8DAE5]'/>
+                <li onClick={props.onDelete} className="cursor-pointer block px-4 py-2 w-full hover:bg-lightGray hover:rounded">
                     Delete
                 </li>
             </ul>

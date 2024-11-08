@@ -37,7 +37,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
       <ProfilePic
         className="w-[7rem] h-[7rem]  border border-[#D8DAE5] "
         textClass={
-          " font-bold bg-[#C1C4D6] overflow-hidden opacity-60"
+          " font-bold bg-lightGray overflow-hidden opacity-70"
         }
         src={props.member?.photo}
         alt="profile pic"
@@ -48,7 +48,8 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
         <div>
         <div className="">
         <div
-          className={`absolute right-0 top-0 flex flex-col items-end rounded-md w-1/4 text-center`}
+          className={`absolute right-0 top-0 flex flex-col items-end  rounded-md w-1/4 `} 
+        
           onClick={props.onShowOptions}
         >
           <img src={ellipse} alt="options" className="cursor-pointer" />

@@ -71,11 +71,11 @@ body::-webkit-scrollbar-track {
 
 
 .input {
-  height: 35px;
+  height: 40px;
   background:white;
-  border-radius: 5px;
+  border-radius: 8px;
   padding:8px;
-  opacity:50%;
+  /* opacity:50%; */
   border:solid 0.5px #6539C350;
 }
 input.input::placeholder {

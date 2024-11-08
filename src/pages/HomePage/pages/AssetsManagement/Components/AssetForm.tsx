@@ -12,25 +12,25 @@ import {
 } from "../../../../../utils/helperFunctions";
 // import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
 
-interface EventsFormProps {
-  inputValue: any;
-  handleMultiSelectChange: any;
-  onSubmit: (val: any) => void;
-  loading?: boolean;
-  updating?: boolean;
-}
+// interface EventsFormProps {
+//   inputValue: any;
+//   handleMultiSelectChange: any;
+//   onSubmit: (val: any) => void;
+//   loading?: boolean;
+//   updating?: boolean;
+// }
 
-const AssetForm: React.FC<EventsFormProps> = (props) => {
-  const handleMultiSelectChange = (name: string, value: Array<string>) => {
-    const values = value;
-    const index = values.indexOf(name);
-    if (index === -1) {
-      values.push(name);
-    } else {
-      values.splice(index, 1);
-    }
-    return values;
-  };
+const AssetForm = () => {
+  // const handleMultiSelectChange = (name: string, value: Array<string>) => {
+  //   const values = value;
+  //   const index = values.indexOf(name);
+  //   if (index === -1) {
+  //     values.push(name);
+  //   } else {
+  //     values.splice(index, 1);
+  //   }
+  //   return values;
+  // };
 
   return (
     <Formik
@@ -39,27 +39,95 @@ const AssetForm: React.FC<EventsFormProps> = (props) => {
       //   // console.log(val);
       // }}
       onSubmit={(val) => {
-        const changedValues = props.updating
-          ? getChangedValues(props.inputValue, val)
-          : val;
-        // console.log("Changed values:", changedValues);
-        props.onSubmit(changedValues);
+        // const changedValues = props.updating
+        //   ? getChangedValues(props.inputValue, val)
+        //   : val;
+        // // console.log("Changed values:", changedValues);
+        // props.onSubmit(changedValues);
       }}
-      initialValues={props.inputValue}
+      // initialValues={props.inputValue}
+      initialValues={[]}
       // validationSchema={eventFormValidator}
     >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
-          <h2 className="H400">Event Information</h2>
+          <h2 className="H400 text-dark900 font-bold">Asset Information</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
-              label="Event Name"
+              label="Asset name"
               id="name"
               name="name"
-              value={form.values.name || props.inputValue.name}
+              // value={form.values.name || props.inputValue.name}
             />
             {/* <ErrorMessage name="name" component={"div"} /> */}
+            <Field
+              component={FormikInputDiv}
+              label="Asset ID"
+              id="name"
+              name="name"
+              // value={form.values.name || props.inputValue.name}
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+          <Field
+              component={FormikInputDiv}
+              label="Date purchased"
+              type="date"
+              id="start_date"
+              name="start_date"
+              // value={
+              //   form.values.start_date ||
+              //   formatInputDate(props.inputValue.start_date)
+              // }
+            />
+            {/* <ErrorMessage name="name" component={"div"} /> */}
+            <Field
+              component={FormikInputDiv}
+              label="Purchased from (Supplier)"
+              id="name"
+              name="name"
+              // value={form.values.name || props.inputValue.name}
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Amount"
+              id="name"
+              name="name"
+              // value={form.values.name || props.inputValue.name}
+            />
+            {/* <ErrorMessage name="name" component={"div"} /> */}
+            <Field
+              component={FormikSelectField}
+              options={[
+                { name: "Assigned", value: "ASSIGNED" },
+                { name: "Unassigned", value: "UNASSIGNED" },
+                { name: "Not fixable", value: "NOT FIXABLE" },
+                { name: "Out of repairs", value: "OUT OF REPAIRS" },
+                { name: "Lost/Stolen", value: "LOST/STOLEN" },
+              ]}
+              label="Status"
+              id="statuse"
+              name="status"
+              // value={form.values.event_type || props.inputValue.event_type}
+            />
+          </div>
+  
+          <div className="grid md:grid-cols- gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Description"
+              id="description"
+              name="description"
+              type="textarea"
+              inputClass=" !h-48 resize-none"
+              // value={form.values.description || props.inputValue.description}
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+         
             <Field
               component={FormikSelectField}
               options={[
@@ -68,194 +136,23 @@ const AssetForm: React.FC<EventsFormProps> = (props) => {
                 { name: "Service", value: "SERVICE" },
                 { name: "Other", value: "other" },
               ]}
-              label="Event Type"
+              label="Assigned to"
               id="event_type"
               name="event_type"
-              value={form.values.event_type || props.inputValue.event_type}
+              // value={form.values.event_type || props.inputValue.event_type}
             />
-          </div>
-          <h2 className="H400 my-4">Date & Time Information</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
+             <Field
               component={FormikInputDiv}
-              label="Start Date"
+              label="Date of assignment"
               type="date"
               id="start_date"
               name="start_date"
-              value={
-                form.values.start_date ||
-                formatInputDate(props.inputValue.start_date)
-              }
+              // value={
+              //   form.values.start_date ||
+              //   formatInputDate(props.inputValue.start_date)
+              // }
             />
-            <Field
-              component={FormikInputDiv}
-              label="Start Time"
-              type="time"
-              id="start_time"
-              name="start_time"
-              value={form.values.start_time || props.inputValue.start_time}
-            />
-            <Field
-              component={FormikInputDiv}
-              label="End Time"
-              type="time"
-              id="end_time"
-              name="end_time"
-              value={form.values.end_time || props.inputValue.end_time}
-            />
-          </div>
-          {!props.updating && (
-            <>
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
-                  Is this a one-day or multi-day event?
-                </p>
-                <div className="mt-2 flex gap-4">
-                  <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="day_event" value={"one"} />
-                    One-day
-                  </label>
-                  <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="day_event" value="multi" />
-                    Multi-day
-                  </label>
-                </div>
-                {form.values.day_event == "multi" && (
-                  <div className="mt-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <Field
-                        component={FormikInputDiv}
-                        label="Number of days"
-                        type="number"
-                        id="recurring.daysOfWeek"
-                        name="recurring.daysOfWeek"
-                        min={2}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <h2 className="H400 my-3">Repetition</h2>
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
-                  Is this event a repetitive event?
-                </p>
-                <div className="mt-2 flex gap-4">
-                  <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="repetitive" value="yes" />
-                    Yes
-                  </label>
-                  <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="repetitive" value="no" />
-                    No
-                  </label>
-                </div>
-                {form.values.repetitive == "yes" && (
-                  <div className="mt-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <Field
-                        component={FormikInputDiv}
-                        label="Repeat Every"
-                        type="number"
-                        id="recurring.interval"
-                        name="recurring.interval"
-                        min={1}
-                      />
-                      <Field
-                        component={FormikSelectField}
-                        label="Repeat Unit"
-                        id="recurring.frequency"
-                        name="recurring.frequency"
-                        options={[
-                          { name: "Days", value: "daily" },
-                          { name: "Weeks", value: "weekly" },
-                          { name: "Months", value: "monthly" },
-                        ]}
-                      />
-                      <Field
-                        component={FormikInputDiv}
-                        label="End Date"
-                        type="date"
-                        id="end_date"
-                        name="end_date"
-                        min={form.values.start_date}
-                        // max={maxMinValueForDate().maxDate}
-                      />
-                    </div>
-                    {/* {form.values.recurring.frequency == "weeks" && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600">Repeat on:</p>
-                    <div className="flex gap-5">
-                      {["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                        (day, index) => (
-                          <label
-                            key={index}
-                            className="flex items-center gap-x-1"
-                          >
-                            <input
-                              type="checkbox"
-                              value={day}
-                              checked={form.values.repeatDays.includes(day)}
-                              onChange={() => {
-                                console.log("changed");
-                                const temp = handleMultiSelectChange(
-                                  day,
-                                  form.values.repeatDays
-                                );
-                                form.setFieldValue("repeatDays", temp);
-                              }}
-                              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                            />
-                            {day}
-                          </label>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )} */}
-                    {form.values.recurring?.frequency == "months" && (
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-600">Ends:</p>
-                        <div className="flex gap-4">
-                          <Field
-                            component={FormikInputDiv}
-                            label=""
-                            type="date"
-                            id="end_date"
-                            name="end_date"
-                            // min={maxMinValueForDate().minDate}
-                            // max={maxMinValueForDate().maxDate}
-                            className="ml-2"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-          <h2 className="H400 my-3">Other Information</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Location"
-              type="text"
-              id="location"
-              name="location"
-              value={form.values.location || props.inputValue.location}
-            />
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Event Description"
-              id="description"
-              name="description"
-              type="textarea"
-              inputClass=" !h-48 resize-none"
-              value={form.values.description || props.inputValue.description}
-            />
+            {/* <ErrorMessage name="name" component={"div"} /> */}
           </div>
           <div className="flex gap-4 justify-end mt-4">
             <Button
@@ -264,13 +161,13 @@ const AssetForm: React.FC<EventsFormProps> = (props) => {
               onClick={() => window.history.back()}
             />
             <Button
-              value={props.updating ? "Update" : "Save"}
+              value={ "Save"}
               type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
-              loading={props.loading}
-              onClick={() => {
-                form.handleSubmit();
-              }}
+              // loading={props.loading}
+              // onClick={() => {
+              //   form.handleSubmit();
+              // }}
             />
           </div>
         </div>
