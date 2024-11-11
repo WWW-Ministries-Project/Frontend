@@ -112,7 +112,7 @@ function Members() {
           <div>
             <Button
               value="Add member"
-              className={" text-white text-sm px-5 min-h-12 max-h-14 p-2 bg-primaryViolet"}
+              className={" text-white px-5 min-h-12 max-h-14 p-3 bg-primaryViolet"}
               onClick={handleNavigation}
             />
           </div>

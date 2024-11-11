@@ -84,7 +84,7 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-4/6 rounded-xl bg-white ">
+    <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-4/6 rounded-xl bg-white shadow">
       <Banner
         onClick={handleEdit}
         edit={edit}

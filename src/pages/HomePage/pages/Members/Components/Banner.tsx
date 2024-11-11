@@ -35,7 +35,7 @@ const Banner:React.FC<BannerProps> = (props) => {
                 </div>
                 {!props.edit && (
                     <div>
-                        <Button value="Edit Profile" onClick={handleClick} className="w-full mt-2 p-2 bg-transparent min-h-8 border md:border-primaryViolet md:bg-white md:text-primaryViolet" />
+                        <Button value="Edit Profile" onClick={handleClick} className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primaryViolet" />
                     </div>
                 )}
             </div>

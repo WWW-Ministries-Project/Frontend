@@ -80,7 +80,7 @@ export default {
       },
     },
     fontFamily: {
-      fontRoboto: ['"Roboto"', "sans-serif"],
+      fontRoboto: ["Work Sans", "sans-serif"],
       manrope: ["Manrope", "sans-serif"],
       "great-vibes": ["Great Vibes", "cursive"],
     },
@@ -95,7 +95,7 @@ export default {
       desktop: "1280px", // Desktops
       xl: "1280px", // Extra large devices
       "2xl": "1536px", // Extra extra large devices
-      "3xl": "1920px", // Ultra large devices (e.g., 4K screens)
+      "3xl": "1900px", // Ultra large devices (e.g., 4K screens)
     },
   },
   plugins: [
@@ -110,49 +110,49 @@ export default {
           "line-height": "16px",
         },
         ".H600": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "19.2px",
           "font-style": "normal",
           "font-weight": "700",
           "line-height": "24px",
         },
         ".H700": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "23.04px",
           "font-style": "normal",
           "font-weight": "700",
           "line-height": "28px",
         },
         ".H400": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "18px",
           "font-style": "bold",
           "font-weight": "600",
           "line-height": "28px",
         },
         ".P100": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "13.33x",
           "font-style": "normal",
           "font-weight": "400",
           "line-height": "16px" /* 150% */,
         },
         ".P200": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "16px",
           "font-style": "normal",
           "font-weight": "400",
           "line-height": "24px" /* 150% */,
         },
         ".P250": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "16px",
           "font-style": "normal",
           "font-weight": "600",
           "line-height": "24px" /* 150% */,
         },
         ".P900": {
-          "font-family": "Rubik",
+          "font-family": "Work Sans",
           "font-size": "40px",
           "font-style": "normal",
           "font-weight": "400",

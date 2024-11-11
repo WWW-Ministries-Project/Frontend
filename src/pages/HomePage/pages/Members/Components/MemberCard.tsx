@@ -33,9 +33,9 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
     props.onDelete(props.member);
   };
   return (
-    <CardWrapper className=" flex p-3 rounded-xl border border-[#D8DAE5] ">
+    <CardWrapper className=" flex grid grid-cols-3 p-3 rounded-xl border border-[#D8DAE5] ">
       <ProfilePic
-        className="w-[7rem] h-[7rem]  border border-[#D8DAE5] "
+        className="w-[6rem] h-[6rem]  border border-[#D8DAE5] "
         textClass={
           " font-bold bg-lightGray overflow-hidden opacity-70"
         }
@@ -43,8 +43,8 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
         alt="profile pic"
         name={props.member?.name}
       />
-      <div className="relative w-full break-all text-xs flex flex-col gap-1 p-1">
-        <div className="space-y-2">
+      <div className="col-span-2 relative w-full break-all text-xs flex flex-col gap-1 p-1">
+        <div className="space-y-5">
         <div>
         <div className="">
         <div
@@ -62,7 +62,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
           )}
         </div>
         <div className="flex  w-4/5">
-          <p className="font-bold text-[0.8rem] truncate text-dark900">{props.member?.name}</p>
+          <p className="font-bold text-[1rem] truncate text-dark900">{props.member?.name}</p>
           
         </div>
         </div>
@@ -73,16 +73,16 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
                 </div> */}
         </div>
 
-        <div className="space-y-1">
-          <div className="flex gap-1.5 text-xs text-dark900 ">
+        <div className="space-y-3">
+          <div className="flex gap-1.5 text-sm text-dark900 ">
           <img src={email} alt="options" className="" />
-            <p className="text truncate ">{props.member?.email || "email"}</p>
+            <p className="text truncate ">{props.member?.email || "No email"}</p>
           </div>
-          <div className="flex gap-1.5 text-xs text-dark900">
+          <div className="flex gap-1.5 text-sm text-dark900">
           <img src={phone} alt="options" className="" />
             <p className="text truncate ">
             {`${props.member?.country_code ? props.member?.country_code : ""} ${
-              props.member?.primary_number
+              props.member?.primary_number? props.member?.primary_number:'No phone number'
             }`}
             </p>
           </div>
@@ -91,9 +91,9 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
         </div>
         
         <Button
-          value={"View Profile"}
+          value={"View "}
           onClick={handleClick}
-          className="w-full mt-2 bg-transparent h-8 border border-[#D8DAE5] text-dark900"
+          className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-dark900"
         />
       </div>
     </CardWrapper>
