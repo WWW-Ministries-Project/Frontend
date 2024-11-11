@@ -11,6 +11,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 import { useFetch } from "@/CustomHooks/useFetch";
+import SideBarMobile from "./Components/SideBarMobile";
 
 function HomePage() {
   const [userStats, setUserStats] = useState({
@@ -35,6 +36,7 @@ function HomePage() {
   const [show, setShow] = useState(true);
   const { screenWidth } = useWindowSize();
   const handleShowNav = () => {
+    console.log("clicked");
     setShow((prev) => !prev);
   };
 
@@ -130,7 +132,7 @@ function HomePage() {
     <>
       {token ? (
         <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
-          <div className={` ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
+          <div className={` hidden sm:hidden md:hidden lg:inline ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`} >
             <SideBar
               className=""
               style={{ marginTop: "", backgroundImage: "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }}
@@ -138,10 +140,13 @@ function HomePage() {
               show={show}
             />
           </div>
+          <div className="inline sm:inline md:inline lg:hidden">
+            <SideBarMobile show={show} onClick={handleShowNav} />
+          </div>
 
           {/* <div className={`h-lvh w-5/6 overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%]"}`}> */}
           <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#d9d9d9] `}>
-            <Header />
+            <Header show={show} onClick={handleShowNav} />
             <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
               <Outlet
                 context={{

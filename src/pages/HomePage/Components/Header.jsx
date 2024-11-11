@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
+import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 
-function Header() {
+function Header({show, onClick}) {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
   const { logout } = useAuth();
@@ -23,7 +24,8 @@ function Header() {
   return (
     <>
       <header className="flex justify-between header items-center  w-full rounded-t-md ">
-        {/* <ChurchLogo /> */}
+        <DashboardIcon className={`inline sm:inline md:inline lg:hidden cursor-pointer`} onClick={onClick} />
+        
         <div className="w-[40.9%]">
         </div>
 
