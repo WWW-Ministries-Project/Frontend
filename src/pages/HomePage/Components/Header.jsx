@@ -9,7 +9,7 @@ import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
 import ChurchLogo from "@/components/ChurchLogo";
 
-function Header() {
+function Header({handleShowNav}) {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
   const { logout } = useAuth();
@@ -24,7 +24,7 @@ function Header() {
   return (
     <>
       <header className="flex justify-between header items-center  w-full rounded-t-md ">
-       <img src={hamburger} alt="" />
+       <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline lg:hidden" />
         <div className="w-[40.9%]">
         </div>
 
