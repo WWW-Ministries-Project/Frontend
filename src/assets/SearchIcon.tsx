@@ -1,5 +1,5 @@
-
-export default function SearchIcon(props) {
+interface SearchIconProps {}
+export default function SearchIcon({ ...props }: Readonly<SearchIconProps>) {
   return (
     <div {...props}>
       <svg

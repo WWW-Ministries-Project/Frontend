@@ -179,7 +179,7 @@ function Members() {
           />
         </div>
         {/* <TableComponent /> */}
-        <div className="flex gap-2 sm:flex-col md:flex-col lg:flex-row xl:flex-row w-full">
+        <div className="flex gap-8 sm:flex-col md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
           <MembersCount items={membersCount} />
         </div>

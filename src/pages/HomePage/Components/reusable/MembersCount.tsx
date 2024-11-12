@@ -1,6 +1,7 @@
-export default function MembersCount(
-  props: Readonly<{ items: { count: number; label: string }[] }>
-) {
+interface MembersCountProps {
+  items: { count: number; label: string }[];
+}
+export default function MembersCount(props: Readonly<MembersCountProps>) {
   return (
     <div className="flex gap-1 border p-3 items-center justify-between border-lightGray rounded-lg w-full divide-x-2 divide-lightGray shadow-sm">
       {props.items.map((item, index) => (
