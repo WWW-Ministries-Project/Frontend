@@ -9,12 +9,10 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import TextField from "../../Components/reusable/TextField";
 import FormsComponent from "../Settings/Components/FormsComponent";
 import Dialog from "/src/components/Dialog";
-// import { assetsColumns } from "./utils/utils";
 import { DateTime } from "luxon";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
 import axios, { pictureInstance as axiosFile } from "/src/axiosInstance.js";
-// import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
 import useSettingsStore from "../Settings/utils/settingsStore";
@@ -26,8 +24,6 @@ import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunct
 import GridWrapper from "/src/Wrappers/GridWrapper";
 
 const AssetManagement = () => {
-  // const columns = assetsColumns;
-  // const { members } = useOutletContext();
   const navigate = useNavigate();
   const [displayForm, setDisplayForm] = useState(false);
   const [assertsData, setAssertsData, assertsDataRef] = useState([]);
@@ -37,7 +33,6 @@ const AssetManagement = () => {
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
   const selectOptions = [{ name: "department", value: "department" }];
   const [tableView, setTableView] = useState(false);
-  // const [inputValue, setInputValue] = useState({userId:decodeToken().id,name:""});
   const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
   const [profilePic, setProfilePic] = useState({});
   const { departmentsOptions } = useSettingsStore();
@@ -61,15 +56,6 @@ const AssetManagement = () => {
         </div>
       ),
     },
-    // {
-    //   header: "Name",
-    //   accessorKey: "name",
-    // },
-    // {
-    //   header: "Category",
-    //   accessorKey: "department",
-    //   cell: (info) => info.getValue()?.name ?? "N/A",
-    // },
     {
       header: "Description",
       accessorKey: "description",
@@ -236,24 +222,6 @@ const AssetManagement = () => {
                 value={filter}
                 onChange={handleSearchChange}
               />
-              {/* <select
-                            name="filter"
-                            id="filter"
-                            placeholder="Filter"
-                            className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
-                            <option value="">Filter by</option>
-                            <option value="Name">Name</option>
-                            <option value="Department">Department</option>
-                            <option value="Date">Date created</option>
-                        </select>
-                        <Filter /> */}
-              {/* <Filter /> */}
-              {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
-                <option value="">Filter by</option>
-                <option value="Name">Name</option>
-                <option value="Department">Department</option>
-                <option value="Date">Date created</option>
-             </select> */}
             </div>
             <div>
               <Button
@@ -284,8 +252,6 @@ const AssetManagement = () => {
             <div>
               <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
                 {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
-                {console.log("Props", assertsData)}
-                {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
               </GridWrapper>
             </div>}
         </section>
@@ -294,7 +260,6 @@ const AssetManagement = () => {
             }`}
           selectOptions={selectOptions}
           selectId={"selectedId"}
-          // inputValue={inputValue}
           inputId={"name"}
           inputLabel={"Asset"}
           onChange={handleChange}
@@ -306,11 +271,6 @@ const AssetManagement = () => {
             <div className=" border-2 border-[#F5F5F5] rounded-md p-2 py-10">
               <div className="flex flex-col gap-5">
                 <div className="grid grid-cols-3 gap-1 items-center pb-5 border-b border-[#F5F5F5]">
-                  {/* <ProfilePicture
-                  className="w-20 h-20 col-span-1"
-                  alt="picture of asset"
-                  editable={true}
-                /> */}
                   <ProfilePicture
                     src={profilePic.src || inputValue.photo}
 
@@ -333,11 +293,9 @@ const AssetManagement = () => {
                       inputClass="!border-2"
                       value={inputValue.name}
                     />
-                    {/* <InputDiv id={"asset_code"} placeholder={"Enter asset code"} onChange={handleChange} inputClass="!border-2" /> */}
                   </div>
                 </div>
                 <div className="w-3/4 gap-4 flex flex-col ">
-                  {/* <InputDiv id={"category"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  /> */}
                   <InputDiv
                     id={"date_purchased"}
                     label={"Date Purchased"}

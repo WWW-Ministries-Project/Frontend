@@ -59,25 +59,10 @@ const AssetCard = (props: any) => {
           </p>
         </div>
         <div className="flex gap-1 items-center text-sm">
-          {/* <img src={calendar} alt="clock icon" /> */}
-          {/* <p>{formatTime(props.event.start_date) || "TBD"}</p> */}
         </div>
         <div className="flex gap-1 text-sm">
-          {/* <img src={location} alt="location" /> */}
-          {/* <p>{props.event.location}</p> */}
         </div>
-        {/* <div className="flex gap-3 items-center  border-1 border-lightGray border-t pt-3 text-xxs">
-                <div className='flex gap-1 text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)} >
-
-                    <Button value="Edit" className=" p-2 border border-primaryViolet text-primaryViolet text-xs   " onClick={() => handleNavigation(`/home/manage-event?event_id=${props.event.id}`)}/>
-                </div>
-                <div className='flex  text-dark900  cursor-pointer' onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)} >
-                
-                    <Button value="View" className=" p-2  text-white text-xs  bg-primaryViolet " onClick={() => handleNavigation(`/home/events/view-event?event_id=${props.event.id}`)}/>
-                </div>
-            </div> */}
       </CardWrapper>
-      {/* </div> */}
     </div>
   );
 };
@@ -92,8 +77,6 @@ AssetCard.propTypes = {
     id: PropTypes.number,
     status: PropTypes.string,
   }),
-  // onNavigate: PropTypes.func,
-  // calendarView: PropTypes.bool,
 };
 
 export default AssetCard;
