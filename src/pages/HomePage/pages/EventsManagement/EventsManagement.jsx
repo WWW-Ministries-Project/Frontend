@@ -12,6 +12,7 @@ import { eventColumns } from "./utils/eventHelpers";
 import GridAsset from "/src/assets/GridAsset";
 import axios from "/src/axiosInstance";
 import NotificationCard from "@/components/NotificationCard";
+import PageOutline from "../../Components/PageOutline";
 
 
 //TODO: work on delete ui
@@ -118,7 +119,7 @@ const EventsManagement = () => {
     }
 
     return (
-        <div className="">
+        <PageOutline className="">
             <div className={`flex gap-4 mb-4 ${!tableView ? " my-" : ' mt-'}`}>
                 <div className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer" id="switch">
                     <div onClick={() => handleToggleView(true)}>
@@ -151,7 +152,7 @@ const EventsManagement = () => {
 
             <Dialog showModal={modal.show} data={modal.data} onClick={handleDeleteModal} onDelete={handleDelete} />
             {showNotification &&<NotificationCard title="Deleted Successfully" onClose={handleClose} description="Event has been deleted successfully" type={notificationData.type}  />}
-        </div>
+        </PageOutline>
     );
 }
 
