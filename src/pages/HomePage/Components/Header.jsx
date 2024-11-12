@@ -24,7 +24,7 @@ function Header({handleShowNav}) {
   return (
     <>
       <header className="flex justify-between header items-center  w-full rounded-t-md ">
-       <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline lg:hidden" />
+       <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
         <div className="w-[40.9%]">
         </div>
 
@@ -37,7 +37,7 @@ function Header({handleShowNav}) {
             <img src={arrowDown} alt="arrow down" onClick={handleClick} />
           </div>
           {showLogOut ? (
-            <div onClick={handleLogOut} className="absolute top-16 right-0 h-16 w-32 bg-white flex justify-center items-center hover:bg-neutralGray cursor-pointer ">
+            <div onClick={handleLogOut} className="absolute top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl  items-center hover:bg-neutralGray cursor-pointer ">
               LogOut
             </div>
           ) : null}

@@ -95,7 +95,7 @@ export default {
       desktop: "1280px", // Desktops
       xl: "1280px", // Extra large devices
       "2xl": "1536px", // Extra extra large devices
-      "3xl": "1900px", // Ultra large devices (e.g., 4K screens)
+      "3xl": "1800px", // Ultra large devices (e.g., 4K screens)
     },
   },
   plugins: [
