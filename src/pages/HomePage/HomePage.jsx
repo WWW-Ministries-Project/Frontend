@@ -131,7 +131,7 @@ function HomePage() {
     <>
       {token ? (
         <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
-          <div className={` hidden sm:hidden md:hidden lg:inline ${!show ? "lg:w-[4vw]" : "lg:w-[15vw]"}`}>
+          <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
               style={{ marginTop: "", backgroundImage: "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }}
@@ -144,10 +144,10 @@ function HomePage() {
          <SideBarMobile show={show} onClick={handleShowNav} />
          </div>
 
-          {/* <div className={`h-lvh w-5/6 overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#dcdde7] ${!show ? "lg:ml-16" : "lg:ml-[15.55%]"}`}> */}
-          <div className={`h-lvh lg:m-2 xs:w-full ${!show ? "lg:w-[95vw]" : "lg:w-[84vw]"} overflow-auto mx-auto rounded-xl h-dhv px-5 bg-[#E5E5EA] `}>
+          {/* <div className={`m-5`}> */}
+          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-3 bg-[#E5E5EA] `}>
             <Header handleShowNav={handleShowNav} />
-            <div className="hideScrollbar h-[90vh] mb-4  overflow-y-auto rounded-xl">
+            <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
               <Outlet
                 context={{
                   setDisplayForm,
@@ -165,6 +165,7 @@ function HomePage() {
             </div>
             {queryLoading||membersLoading||upcomingEventsLoading && <LoaderComponent />}
           </div>
+          {/* </div> */}
         </main>
       ) : (
         <Navigate to="/login" />

@@ -62,7 +62,7 @@ const SideBarMobile = ({ show, ...props }) => {
   return (
     <div
       ref={sidebarRef}
-      className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform ${
+      className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform shadow-xl ${
         show ? "translate-x-0" : "-translate-x-full"
       } z-50`}
       onMouseEnter={handleMouseEnter}

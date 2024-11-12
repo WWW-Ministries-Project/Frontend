@@ -7,6 +7,7 @@ interface ChildItem {
   name: string;
   path: string;
   sideTab?: boolean;
+  
 }
 
 interface SideBarSubMenuProps {
@@ -18,6 +19,7 @@ interface SideBarSubMenuProps {
   parentPath: string;
   children: ReactNode;
   show: boolean;
+  justifyCenter:boolean
 }
 
 const icons = {
@@ -31,6 +33,7 @@ const SideBarSubMenu = ({
   parentPath,
   children,
   show,
+  justifyCenter=true
 }: SideBarSubMenuProps) => {
   const [showChildren, setShowChildren] = useState(false);
   const returnChild = (child: ChildItem) => {
@@ -40,15 +43,32 @@ const SideBarSubMenu = ({
     };
   };
   return (
-    <div className="flex flex-col transition z-10  whitespace-nowrap mx-2 ">
+    <div className="">
+      {/* <NavLink
+        to={item["path"]}
+        className={({ isActive }) =>
+          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition h-10 z-10 flex items-center py-7 lg:my-3 ${
+            !show ? ( justifyCenter ? "justify-center" :'') : "px-2 py-7 mx-2"
+          } my-2 rounded-xl ${
+            isActive
+              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
+              : "hover:text-primaryViolet "
+          } `
+        }
+        key={index}
+      >
+        {children}
+      </NavLink> */}
       <NavLink
         to={`${parentPath}`}
         onClick={() => setShowChildren(!showChildren)}
         className={({ isActive }) =>
-          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl  transition h-10 z-10 flex items-center items-center py-7 lg:my-3 my-2 rounded-xl ${
+          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition h-10 z-10 flex items-center py-7 lg:my-3 ${
+            !show ? ( justifyCenter ? "justify-center" :'') : "px-2 py-7 mx-2"
+          } my-2 rounded-xl ${
             isActive
-              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-xl transition"
-              : "hover:text-primaryViolet"
+              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
+              : "hover:text-primaryViolet "
           } `
         }
       >

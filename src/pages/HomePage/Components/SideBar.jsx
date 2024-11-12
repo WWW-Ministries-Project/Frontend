@@ -53,26 +53,26 @@ const SideBar = ({ show, ...props }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`borde mx-auto px-1 lg:h-full xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 fixed bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : "lg:w-[15%] lg:min-w-[200px]"
+        className={`borde space-y-8 mx-auto px-2 lg:h-[100vh] xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
           } transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `}
         style={props.style}
       >
         <div
-          className={`xs:hidden lg:inline mb-10 mt-4 ${!show ? "mx-auto " : ""
+          className={`xs:hidden lg:inline  mt-4 ${!show ? "mx-auto " : ""
             } xs:pb-0 xs:flex xs:items-center`}
         >
-          {show ? (
+          {/* {show ? ( */}
             <div className="flex gap-x-4 ">
-              <ChurchLogo show={show} />
-              <div
+              <ChurchLogo show={show} className={''}/>
+              {/* <div
                 className="flex my-auto cursor-pointer"
                 onClick={handleClick}
               >
                 <LogoutIcon />
-              </div>
+              </div> */}
             </div>
-          ) : (
-            <div onClick={handleClick}>
+          {/* ) : ( */}
+            {/* <div onClick={handleClick}>
               <div>
                 {isHovered ? (
                   <div className="flex justify-center rounded-xl  p-2 shadow-xl shadow-inner cursor-pointer bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-2xl">
@@ -85,8 +85,8 @@ const SideBar = ({ show, ...props }) => {
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            </div> */}
+          {/* )} */}
         </div>
 
 
