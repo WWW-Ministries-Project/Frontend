@@ -2,14 +2,9 @@ import FormikInputDiv from "@/components/FormikInput";
 import { Field, Formik } from "formik";
 // import { formatInputDate } from "@/utils/helperFunctions";
 import Button from "@/components/Button";
-import React from "react";
 // import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import FormikSelectField from "@/components/FormikSelect";
 // import { formatInputDate, getChangedValues } from "@/utils/helperFunctions";
-import {
-  formatInputDate,
-  getChangedValues,
-} from "../../../../../utils/helperFunctions";
 // import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
 
 // interface EventsFormProps {
@@ -70,7 +65,7 @@ const AssetForm = () => {
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-          <Field
+            <Field
               component={FormikInputDiv}
               label="Date purchased"
               type="date"
@@ -114,7 +109,7 @@ const AssetForm = () => {
               // value={form.values.event_type || props.inputValue.event_type}
             />
           </div>
-  
+
           <div className="grid md:grid-cols- gap-4">
             <Field
               component={FormikInputDiv}
@@ -127,7 +122,6 @@ const AssetForm = () => {
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-         
             <Field
               component={FormikSelectField}
               options={[
@@ -141,7 +135,7 @@ const AssetForm = () => {
               name="event_type"
               // value={form.values.event_type || props.inputValue.event_type}
             />
-             <Field
+            <Field
               component={FormikInputDiv}
               label="Date of assignment"
               type="date"
@@ -161,7 +155,7 @@ const AssetForm = () => {
               onClick={() => window.history.back()}
             />
             <Button
-              value={ "Save"}
+              value={"Save"}
               type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
               // loading={props.loading}

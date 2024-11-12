@@ -15,14 +15,15 @@ import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
 import axios, { pictureInstance as axiosFile } from "/src/axiosInstance.js";
 // import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import PageOutline from "../../Components/PageOutline";
+import useSettingsStore from "../Settings/utils/settingsStore";
+import AssetCard from "./Components/AssetCard";
+import GridAsset from "/src/assets/GridAsset";
+import TableAssets from "/src/assets/TableAssets";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
 import GridWrapper from "/src/Wrappers/GridWrapper";
-import AssetCard from "./AssetCard";
-import TableAssets from "/src/assets/TableAssets";
-import GridAsset from "/src/assets/GridAsset";
-import useSettingsStore from "../Settings/utils/settingsStore";
-import { useNavigate } from "react-router-dom";
 
 const AssetManagement = () => {
   // const columns = assetsColumns;
@@ -221,20 +222,21 @@ const AssetManagement = () => {
   };
 
   return (
-    <div className="bg-white p-8">
-      <section className="mt-   ">
-        <div className="flex justify-between items-center mb-5">
-          <div className="flex justify-start gap-2 items-center  w-2/3">
-          <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
+    <PageOutline>
+      <div className="bg-white p-8">
+        <section className="mt-   ">
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-start gap-2 items-center  w-2/3">
+              <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
                 <div onClick={() => setTableView(true)}><TableAssets stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-white rounded-md' : ''} /></div><div onClick={() => setTableView(false)}><GridAsset stroke={tableView ? "#8F95B2" : "#8F95B2"} className={tableView ? 'bg-lightGray rounded-md' : 'bg-white  rounded-md'} /></div>
               </div>
-            <SearchBar
-              className="w-[40.9%] h-10"
-              placeholder="Search asserts here..."
-              value={filter}
-              onChange={handleSearchChange}
-            />
-            {/* <select
+              <SearchBar
+                className="w-[40.9%] h-10"
+                placeholder="Search asserts here..."
+                value={filter}
+                onChange={handleSearchChange}
+              />
+              {/* <select
                             name="filter"
                             id="filter"
                             placeholder="Filter"
@@ -245,166 +247,167 @@ const AssetManagement = () => {
                             <option value="Date">Date created</option>
                         </select>
                         <Filter /> */}
-            {/* <Filter /> */}
-            {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
+              {/* <Filter /> */}
+              {/* <select name="filter" id="filter" placeholder="Filter" className="h-10 bg-white rounded-md p-1 opacity-50 border border-[#f2f2f2]">
                 <option value="">Filter by</option>
                 <option value="Name">Name</option>
                 <option value="Department">Department</option>
                 <option value="Date">Date created</option>
              </select> */}
+            </div>
+            <div>
+              <Button
+                value="Old Add asset"
+                className={
+                  " text-white h-10 p-2 gradientBtn"
+                }
+                onClick={handleClick}
+              />
+              <Button
+                value="Add asset"
+                className={
+                  " text-white h-10 p-2 bg-primaryViolet hover:gradientBtn"
+                }
+                onClick={() => navigate('add-asset')}
+              />
+            </div>
           </div>
-          <div>
-            <Button
-              value="Old Add asset"
-              className={
-                " text-white h-10 p-2 gradientBtn"
-              }
-              onClick={handleClick}
+          {/* <TableComponent /> */}
+          {tableView ? <div className="bg-white">
+            <TableComponent
+              columns={columns}
+              data={assertsData}
+              filter={filter}
+              setFilter={setFilter}
             />
-            <Button
-              value="Add asset"
-              className={
-                " text-white h-10 p-2 bg-primaryViolet hover:gradientBtn"
-              }
-              onClick={()=>navigate('add-asset')}
-            />
-          </div>
-        </div>
-        {/* <TableComponent /> */}
-        {tableView?<div className="bg-white">
-          <TableComponent
-            columns={columns}
-            data={assertsData}
-            filter={filter}
-            setFilter={setFilter}
-          />
-        </div>:
-        <div>
-        <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
-          {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
-          {console.log("Props", assertsData)}
-          {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
-        </GridWrapper>
-        </div>}
-      </section>
-      <FormsComponent
-        className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"
-          }`}
-        selectOptions={selectOptions}
-        selectId={"selectedId"}
-        // inputValue={inputValue}
-        inputId={"name"}
-        inputLabel={"Asset"}
-        onChange={handleChange}
-        CloseForm={handleCloseForm}
-        onSubmit={handleFormSubmit}
-        loading={loading}
-      >
-        <form className="mt-5">
-          <div className=" border-2 border-[#F5F5F5] rounded-md p-2 py-10">
-            <div className="flex flex-col gap-5">
-              <div className="grid grid-cols-3 gap-1 items-center pb-5 border-b border-[#F5F5F5]">
-                {/* <ProfilePicture
+          </div> :
+            <div>
+              <GridWrapper className="2xl:h-[85vh] lg:h-[80vh] md:h-[78vh]  xs:h-[72vh]">
+                {assertsData.map((assets) => <AssetCard assets={assets} key={Math.random()} />)}
+                {console.log("Props", assertsData)}
+                {/* {events.map((event) => <EventsCard event={event} key={Math.random()} onNavigate={handleNavigation} />)} */}
+              </GridWrapper>
+            </div>}
+        </section>
+        <FormsComponent
+          className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-2000 ${displayForm ? "translate-x-0" : "translate-x-full"
+            }`}
+          selectOptions={selectOptions}
+          selectId={"selectedId"}
+          // inputValue={inputValue}
+          inputId={"name"}
+          inputLabel={"Asset"}
+          onChange={handleChange}
+          CloseForm={handleCloseForm}
+          onSubmit={handleFormSubmit}
+          loading={loading}
+        >
+          <form className="mt-5">
+            <div className=" border-2 border-[#F5F5F5] rounded-md p-2 py-10">
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-3 gap-1 items-center pb-5 border-b border-[#F5F5F5]">
+                  {/* <ProfilePicture
                   className="w-20 h-20 col-span-1"
                   alt="picture of asset"
                   editable={true}
                 /> */}
-                <ProfilePicture
-                  src={profilePic.src || inputValue.photo}
+                  <ProfilePicture
+                    src={profilePic.src || inputValue.photo}
 
-                  editable={true}
-                  text={""}
-                  alt="profile pic"
+                    editable={true}
+                    text={""}
+                    alt="profile pic"
 
-                  name={"firstname"}
-                  alternative="edit button"
-                  className="w-20 h-20 profilePic transition-all duration-1000 mx-auto"
-                  textClass={"text-[32px] leading-[36px] mx-8 "}
-                  onChange={changePic}
-                  id={"pic"}
-                />
-                <div className="col-span-2 flex flex-col gap-2">
+                    name={"firstname"}
+                    alternative="edit button"
+                    className="w-20 h-20 profilePic transition-all duration-1000 mx-auto"
+                    textClass={"text-[32px] leading-[36px] mx-8 "}
+                    onChange={changePic}
+                    id={"pic"}
+                  />
+                  <div className="col-span-2 flex flex-col gap-2">
+                    <InputDiv
+                      id={"name"}
+                      placeholder={"Enter asset name"}
+                      onChange={handleChange}
+                      inputClass="!border-2"
+                      value={inputValue.name}
+                    />
+                    {/* <InputDiv id={"asset_code"} placeholder={"Enter asset code"} onChange={handleChange} inputClass="!border-2" /> */}
+                  </div>
+                </div>
+                <div className="w-3/4 gap-4 flex flex-col ">
+                  {/* <InputDiv id={"category"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  /> */}
                   <InputDiv
-                    id={"name"}
-                    placeholder={"Enter asset name"}
+                    id={"date_purchased"}
+                    label={"Date Purchased"}
+                    placeholder={"Enter date purchased"}
+                    onChange={handleChange}
+                    type={"date"}
+                    inputClass="!border-2"
+                    value={inputValue.date_purchased}
+                  />
+                  <InputDiv
+                    id={"price"}
+                    label={"Price"}
+                    placeholder={"Enter amount here"}
                     onChange={handleChange}
                     inputClass="!border-2"
-                    value={inputValue.name}
+                    type="number"
+                    value={inputValue.price}
                   />
-                  {/* <InputDiv id={"asset_code"} placeholder={"Enter asset code"} onChange={handleChange} inputClass="!border-2" /> */}
                 </div>
-              </div>
-              <div className="w-3/4 gap-4 flex flex-col ">
-                {/* <InputDiv id={"category"} label={"Categories"} placeholder={"Enter categories"} onChange={handleChange} inputClass="!border-2"  /> */}
-                <InputDiv
-                  id={"date_purchased"}
-                  label={"Date Purchased"}
-                  placeholder={"Enter date purchased"}
+                <TextField
+                  label={"Description/Specification"}
+                  placeholder={"Enter asset’s description or specifications..."}
                   onChange={handleChange}
-                  type={"date"}
-                  inputClass="!border-2"
-                  value={inputValue.date_purchased}
+                  value={inputValue.description}
                 />
-                <InputDiv
-                  id={"price"}
-                  label={"Price"}
-                  placeholder={"Enter amount here"}
+                <SelectField
+                  label={"Status"}
+                  options={[
+                    { name: "Assigned", value: "ASSIGNED" },
+                    { name: "Unassigned", value: "UNASSIGNED" },
+                  ]}
+                  id="status"
+                  value={inputValue.status}
                   onChange={handleChange}
-                  inputClass="!border-2"
-                  type="number"
-                  value={inputValue.price}
+                  placeholder={"Select status"}
+                />
+                <SelectField
+                  label={"Assigned to"}
+                  options={departmentsOptions}
+                  id="assigned_to"
+                  value={inputValue.assigned_to}
+                  onChange={handleChange}
+                  placeholder={"Select custodian"}
                 />
               </div>
-              <TextField
-                label={"Description/Specification"}
-                placeholder={"Enter asset’s description or specifications..."}
-                onChange={handleChange}
-                value={inputValue.description}
+            </div>
+            <div className="flex gap-2 justify-end mt-10">
+              <Button
+                value="Close"
+                className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
+                onClick={handleCloseForm}
               />
-              <SelectField
-                label={"Status"}
-                options={[
-                  { name: "Assigned", value: "ASSIGNED" },
-                  { name: "Unassigned", value: "UNASSIGNED" },
-                ]}
-                id="status"
-                value={inputValue.status}
-                onChange={handleChange}
-                placeholder={"Select status"}
-              />
-              <SelectField
-                label={"Assigned to"}
-                options={departmentsOptions}
-                id="assigned_to"
-                value={inputValue.assigned_to}
-                onChange={handleChange}
-                placeholder={"Select custodian"}
+              <Button
+                value={"Submit"}
+                className={" p-3 text-white"}
+                onClick={handleFormSubmit}
+                loading={loading}
+                disabled={!inputValue.name}
               />
             </div>
-          </div>
-          <div className="flex gap-2 justify-end mt-10">
-            <Button
-              value="Close"
-              className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
-              onClick={handleCloseForm}
-            />
-            <Button
-              value={"Submit"}
-              className={" p-3 text-white"}
-              onClick={handleFormSubmit}
-              loading={loading}
-              disabled={!inputValue.name}
-            />
-          </div>
-        </form>
-      </FormsComponent>
-      <Dialog
-        showModal={showModal}
-        onClick={handleShowModal}
-        data={itemToDelete}
-        onDelete={handleDelete}
-      />
-    </div>
+          </form>
+        </FormsComponent>
+        <Dialog
+          showModal={showModal}
+          onClick={handleShowModal}
+          data={itemToDelete}
+          onDelete={handleDelete}
+        />
+      </div>
+    </PageOutline>
   );
 };
 
