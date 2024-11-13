@@ -19,6 +19,7 @@ const RadioInput: React.FC<RadioInputProps> = (props) => {
           value="true" 
           checked={props.value === true}
           onChange={handleChange} 
+          className="mr-2"
         />
         Yes
       </label>
@@ -28,6 +29,7 @@ const RadioInput: React.FC<RadioInputProps> = (props) => {
           value="false" 
           checked={props.value === false} 
           onChange={handleChange} 
+          className="mr-2"
         />
         No
       </label>

@@ -27,7 +27,7 @@ const EventsCard = (props) => {
 
     return (
         <div className={`rounded-xl pb-1 ` } style={{ backgroundColor: props.event.event_type ? eventTypeColors[props.event.event_type] : '#00000050' }}>
-            <CardWrapper className={"text-gray gap-2 pb-2 flex flex-col rounded-xl relative"}>
+            <CardWrapper className={"text-gray gap-2 pb-2 flex flex-col rounded-xl relative border border-lightGray"}>
                 <div className={`rounded-xl bg-[#00000050] border-b `} style={{ borderColor: props.event.event_type ? eventTypeColors[props.event.event_type] : '#00000050' }}>
                     <img className='max-w-[70vw] rounded-xl w-full h-32' src={props.event.poster || defaultImage1} alt="poster for event" />
                 </div>

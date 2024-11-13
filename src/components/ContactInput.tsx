@@ -90,7 +90,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
     }
   };
   return (
-    <div className="flex gap-2 ">
+    <div className="flex gap-1 ">
       <div className="relative">
         <InputDiv
           label={"code"}
@@ -103,7 +103,7 @@ const ContactInput: React.FC<ContactInputProps> = (props) => {
           disabled={props.disabled}
           onChange={handleInputChange}
           value={searchTerm }
-          className={" w-16 " + props.zipClass}
+          className={" w-16 rounded-2xl" + props.zipClass}
           aria-describedby="country-code-description" aria-label="Country Calling Code"
           autocomplete="tel-country-code"
         />

@@ -68,7 +68,7 @@ const CreateEvent = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="p-8 lg:container  bg-white mx-auto">
+    <section className="mx-auto py-8 px-16 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg">
       <div className="hidden">
         {/* TODO  remove this from here*/}
         {/* button to open the signature upload modal */}
@@ -90,8 +90,8 @@ const CreateEvent = () => {
           <AddSignature cancel={() => setOpen(false)} />
         </Modal>
       </div>
-      <h1 className="H700">Create Event</h1>
-      <p className="text-sma text-lightGray py-2">
+      <h1 className="H700 text-dark900">Create Event</h1>
+      <p className="text-sma text-dark900 py-2">
         Fill in the form below with the event details
       </p>
       <div className="hideScrollbar overflow-y-auto">

@@ -3,16 +3,18 @@ import PropTypes from 'prop-types';
 
 const EmptyState = (props) => {
     return (
-        <div>
+        <div className={`${props.className}`}>
             {/* <h1>EmptyState</h1> */}
             <img src={empty} alt="" />
-            <p className="text-center text-mainGray my-5 H400">{props.msg}</p>
+            <div className={`text-center text-dark900 my-5 H400`}>{props.msg}</div>
         </div>
     );
 }
 
 EmptyState.propTypes = {
     msg: PropTypes.string,
+    className: PropTypes.string,
+
 
 }
 

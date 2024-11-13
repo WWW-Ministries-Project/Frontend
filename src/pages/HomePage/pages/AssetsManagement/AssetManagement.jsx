@@ -209,7 +209,7 @@ const AssetManagement = () => {
 
   return (
     <PageOutline>
-      <div className="bg-white p-8">
+      <div className="">
         <section className="mt-   ">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
