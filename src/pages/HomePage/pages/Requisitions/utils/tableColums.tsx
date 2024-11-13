@@ -47,7 +47,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
       const [showActions, setShowActions] = useState(false);
       const navigate = useNavigate()
       return (
-        <div className="relative">
+        <div className="absolute">
           <button
             onClick={() => setShowActions(!showActions)}
             className="p-1 hover:bg-gray-100 rounded-full"
