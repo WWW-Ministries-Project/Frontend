@@ -63,17 +63,30 @@ const SideBarSubMenu = ({
         to={`${parentPath}`}
         onClick={() => setShowChildren(!showChildren)}
         className={({ isActive }) =>
-          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition h-10 z-10 flex items-center py-7 lg:my-3 ${
-            !show ? ( justifyCenter ? "justify-center" :'') : "px-2 py-7 mx-2"
+          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition  z-10 flex items-center py- lg:my-3 ${
+            !show ? ( justifyCenter ? "justify-center" :'') : " py- mx-2"
           } my-2 rounded-xl ${
             isActive
-              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
-              : "hover:text-primaryViolet "
+              ? " border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
+              : ""
           } `
         }
       >
-        {children}
+        <div className="grid w-full ">
+          <NavLink to={`${parentPath}`} 
+          // className="flex justify-between px-2"
+          className={({ isActive }) =>
+            `  text-dark900  transition flex items-center py-4 justify-between px-2 rounded-xl     ${
+              isActive
+                ? "bg-[#6539C320]  text-[#6539C3] transition"
+                : "hover:text-primaryViolet "
+            } `
+          }
+          >
+            <div className={`${show ?"flex ":"mx-auto"}`}>
+          {children}
         <p className="cursor-pointer">{show && item.name}</p>
+        </div>
         {show &&<p className={`${showChildren ? "rotate-[270deg]" : "rotate-90"}`}>
           <svg
             width="18"
@@ -90,9 +103,9 @@ const SideBarSubMenu = ({
             />
           </svg>
         </p>}
-      </NavLink>
-
-      {show && <div className={`${showChildren ? "" : "hidden"}`}>
+          </NavLink >
+          <div>
+          {show && <div className={`${showChildren ? "" : "hidden"}`}>
         {item.children.map((child) => {
           return child.sideTab ? (
             <NavigationLink
@@ -104,6 +117,22 @@ const SideBarSubMenu = ({
           );
         })}
       </div>}
+          </div>
+        </div>
+      </NavLink>
+
+      {/* {show && <div className={`${showChildren ? "" : "hidden"}`}>
+        {item.children.map((child) => {
+          return child.sideTab ? (
+            <NavigationLink
+              item={returnChild(child)}
+              show={show}
+            ></NavigationLink>
+          ) : (
+            <></>
+          );
+        })}
+      </div>} */}
     </div>
   );
 };
@@ -123,10 +152,10 @@ const NavigationLink = ({
         end
         to={item.path}
         className={({ isActive }) =>
-          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl hover:bg-primaryViolet  transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1 rounded-xl ${
+          `hover:border-[#6539C310] hover:border  hover:shadow-inner hover:shadow-xl hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1  ${
             isActive
-              ? "bg-primaryViolet text-white border border-1 shadow-inner drop-shadow shadow-xl transition"
-              : "hover:text-white"
+              ? "bg-[#6539C310] text-primaryViolet     transition"
+              : "hover:text-primaryViolet"
           } `
         }
       >
