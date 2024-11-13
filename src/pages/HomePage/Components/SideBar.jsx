@@ -101,7 +101,7 @@ const SideBar = ({ show, ...props }) => {
             }
             // return permissions["view_" + item["key"]] && (
             return (
-              <>
+              <div key={item.name}>
                 {
                   item.children ? (
                     <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
@@ -112,7 +112,7 @@ const SideBar = ({ show, ...props }) => {
                         }`}
                     /> {show && item.name}</NavigationLink>)
                 }
-              </>
+              </div>
             );
           })}
         </div>

@@ -1,50 +1,67 @@
-import ProfilePicture from "@/components/ProfilePicture";
 import { ColumnDef } from "@tanstack/react-table";
 import { UserType } from "../../Members/utils/membersInterfaces";
+import { Requisition } from "../types/requestInterface";
+import Action from "@/components/Action";
+import { useState } from "react";
+import Elipsis from "@/assets/ellipse.svg";
+import { DateTime } from "luxon";
+import { getStatusColor } from "@/pages/HomePage/utils/stringOperations";
+import { useNavigate } from "react-router-dom";
+export const tableColumns: ColumnDef<Requisition>[] = [
+  {
+    header: "Requisition ID",
+    accessorKey: "request_id",
+  },
+  {
+    header: "Item name",
+    accessorKey: "comment",
+  },
+  {
+    header: "Date created",
+    accessorKey: "requisition_date",
+    cell: (info) =>
+      DateTime.fromISO(info.getValue() as string).toFormat("yyyy-MM-dd"),
+  },
+  {
+    header: "Status",
+    accessorKey: "request_approval_status",
+    cell: (info) => (
+      <div className={getStatusColor(info.getValue() as string) + " flex items-center gap-2"}>
+        <svg
+          width="6"
+          height="7"
+          viewBox="0 0 6 7"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="3" cy="3.64453" r="3" fill="#474D66" />
+        </svg>
+        {info.getValue() as string}
+      </div>
+    ),
+  },
+  {
+    header: "Action",
+    accessorKey: "action",
+    cell: ({ row }) => {
+      const [showActions, setShowActions] = useState(false);
+      const navigate = useNavigate()
+      return (
+        <div className="relative">
+          <button
+            onClick={() => setShowActions(!showActions)}
+            className="p-1 hover:bg-gray-100 rounded-full"
+          >
+            <img src={Elipsis} alt="elipsis" />
+          </button>
 
-interface User extends UserType {
-  is_active: boolean;
-}
-
-export const tableColumns: ColumnDef<User>[] = [
-    {
-      header: "Name",
-      accessorKey: "name",
-      cell: ({ row }) => <div className="flex items-center gap-2 cursor-pointer" onClick={() => { window.location.href = `/home/requests/my_requests/${row.original.id}` }}>
-        <ProfilePicture
-          src={row.original.photo}
-          name={row.original.name}
-          alt="profile pic"
-          className={`h-[38px] w-[38px] rounded-full border ${row.original.is_active ? "border-green" : "border-error"}`}
-          textClass="font-great-vibes overflow-hidden opacity-60"
-        />{" "}
-        {row.original.name}
-      </div>,
-    },
-    {
-      header: "Acount Status",
-      accessorKey: "status",
-      cell: ({row}) => (
-        <div
-          className={
-           row.original.name![0]==="A"
-              ? "bg-[#FFEFD2] text-sm w-fit p-2 flex items-center justify-center rounded-lg text-center text-[#996A13] "
-              : "bg-neutralGray text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-          }> <span className="bg-error h-2 w-2 rounded-full"></span>
-          {row.original.name![0]==="A"?"Awaiting Approval":"Pending"}
+          {showActions && (
+            <div className="absolute right-0 z-10 ">
+              <Action onView={() => {navigate(`/home/requests/my_requests/${row.original.request_id}`); setShowActions(false)}} onEdit={() => {console.log("edit"); setShowActions(false)}} onDelete={() => {console.log("delete"); setShowActions(false)}} />
+            </div>
+          )}
         </div>
-      ),
+      );
     },
-    {
-      header: "Email",
-      accessorKey: "email",
-    },
-    {
-      header: "Phone number",
-      cell: ({row})=>(`${row.original.country_code?row.original.country_code:""} ${row.original.primary_number}`),
-    },
-    {
-      header: "Permission",
-      accessorKey: "permission",
-    },
-  ];
+  },
+];

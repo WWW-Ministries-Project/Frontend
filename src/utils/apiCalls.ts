@@ -68,6 +68,9 @@ class ApiCalls {
   fetchDepartments = (): Promise<any> => {
     return this.fetchFromApi("department/list-departments");
   };
+  fetchRequisitions = (): Promise<any> => {
+    return this.fetchFromApi("requisitions/list-requisition");
+  };
 }
 
 class ApiDeletionCalls {

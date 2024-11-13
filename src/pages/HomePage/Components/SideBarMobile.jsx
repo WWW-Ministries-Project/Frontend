@@ -62,7 +62,7 @@ const SideBarMobile = ({ show, ...props }) => {
   return (
     <div
       ref={sidebarRef}
-      className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform shadow-xl ${
+      className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform ${
         show ? "translate-x-0" : "-translate-x-full"
       } z-50`}
       onMouseEnter={handleMouseEnter}
@@ -80,7 +80,7 @@ const SideBarMobile = ({ show, ...props }) => {
             }
             // return permissions["view_" + item["key"]] && (
             return (
-              <>
+              <div key={item.name}>
                 {item.children ? (
                   <SideBarSubMenu
                     item={item}
@@ -104,7 +104,7 @@ const SideBarMobile = ({ show, ...props }) => {
                     {show && item.name}
                   </NavigationLink>
                 )}
-              </>
+              </div>
             );
           })}
         </div>
