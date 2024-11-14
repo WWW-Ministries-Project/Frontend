@@ -14,16 +14,17 @@ import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
+import RequestIcon from "@/assets/sidebar/RequestIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
-  "Manage User": UsersIcon, // TODO: replace this
+  "Users": UsersIcon, // TODO: replace this
   // Attendance: AttendanceIcon,
   Events: ManagementIcon,
   // Finance: FinanceIcon,
   Assets: InstrumentIcon,
   Settings: SettingsIcon,
-  Requests: ManagementIcon,
+  Requests: RequestIcon,
 };
 
 const SideBar = ({ show, ...props }) => {
@@ -64,29 +65,9 @@ const SideBar = ({ show, ...props }) => {
           {/* {show ? ( */}
             <div className="flex gap-x-4 ">
               <ChurchLogo show={show} className={''}/>
-              {/* <div
-                className="flex my-auto cursor-pointer"
-                onClick={handleClick}
-              >
-                <LogoutIcon />
-              </div> */}
+              
             </div>
-          {/* ) : ( */}
-            {/* <div onClick={handleClick}>
-              <div>
-                {isHovered ? (
-                  <div className="flex justify-center rounded-xl  p-2 shadow-xl shadow-inner cursor-pointer bg-[#6539C310] border-[#6539C3] text-[#6539C3] border border-1 shadow-inner drop-shadow shadow-2xl">
-                    {" "}
-                    <LoginIcon />{" "}
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <ChurchLogo />
-                  </div>
-                )}
-              </div>
-            </div> */}
-          {/* )} */}
+          
         </div>
 
 

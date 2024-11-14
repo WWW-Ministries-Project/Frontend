@@ -13,16 +13,17 @@ import { useAuth } from "../../../auth/AuthWrapper";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
+import RequestIcon from "@/assets/sidebar/RequestIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
-  "Manage User": MembersIcon, // TODO: replace this
+  "Users": MembersIcon, // TODO: replace this
   // Attendance: AttendanceIcon,
   Events: ManagementIcon,
   // Finance: FinanceIcon,
   Assets: InstrumentIcon,
   Settings: SettingsIcon,
-  Requests: ManagementIcon,
+  Requests: RequestIcon,
 };
 
 const SideBarMobile = ({ show, ...props }) => {
