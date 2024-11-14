@@ -124,14 +124,7 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_Events",
       },
-      {
-        path: "users",
-        name: "Manage User",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_Events",
-        sideTab: true,
-      },
+      
       {
         path: "requests",
         name: "Requests",
@@ -174,14 +167,7 @@ export const routes = [
           },
         ]
       },
-      {
-        path: "settings",
-        name: "Settings",
-        element: <Settings />,
-        isPrivate: true,
-        permissionNeeded: "view_Settings",
-        sideTab: true,
-      },
+      
       {
         path: "Assets",
         name: "Assets",
@@ -195,6 +181,22 @@ export const routes = [
         element: <AddAsset />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
+      },
+      {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
+        sideTab: true,
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        element: <Settings />,
+        isPrivate: true,
+        permissionNeeded: "view_Settings",
+        sideTab: true,
       },
       {
         path: "*",
