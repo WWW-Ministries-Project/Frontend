@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { UserType } from "../../Members/utils/membersInterfaces";
-import { Requisition } from "../types/requestInterface";
+import type { Requisition } from "../types/requestInterface";
 import Action from "@/components/Action";
 import { useState } from "react";
 import Elipsis from "@/assets/ellipse.svg";
