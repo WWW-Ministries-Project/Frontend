@@ -1,14 +1,10 @@
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
-import LoginIcon from "@/assets/sidebar/LoginIcon";
-import LogoutIcon from "@/assets/sidebar/Logout";
+
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MembersIcon from "@/assets/sidebar/MembersIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
-import ChurchLogo from "@/components/ChurchLogo";
 import PropTypes from "prop-types";
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../../auth/AuthWrapper";
 // import { sideTabs } from "../utils/helperFunctions";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
@@ -28,46 +24,14 @@ const icons = {
 
 const SideBarMobile = ({ show, ...props }) => {
   const items = sideTabs;
-  const {
-    user: { permissions },
-  } = useAuth();
-
-  const [isHovered, setIsHovered] = useState(false);
-  const sidebarRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        props.onClick(); // Close the sidebar
-      }
-    }
-
-    // Only add the event listener if the sidebar is shown
-    if (show) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [show, props]);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
+ 
 
   return (
     <div
-      ref={sidebarRef}
       className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform ${
         show ? "translate-x-0" : "-translate-x-full"
       } z-50`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+
     >
       <div className="h-full w-[250px] p-4">
         {/* navigation links */}
