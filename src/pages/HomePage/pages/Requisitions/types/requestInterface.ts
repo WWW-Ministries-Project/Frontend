@@ -4,8 +4,9 @@ export interface Requisition {
     department_id: number
     event_id: number
     id: number
-    request_approval_status: string
-    request_id: string
-    requisition_date: string
+    approval_status: string
+    requisition_id: string
+    date_created: string
     user_id: number
+    product_names: string[]
 }

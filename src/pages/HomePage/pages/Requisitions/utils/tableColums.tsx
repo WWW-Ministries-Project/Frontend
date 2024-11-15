@@ -9,23 +9,58 @@ import { useNavigate } from "react-router-dom";
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
-    accessorKey: "request_id",
+    accessorKey: "requisition_id",
   },
   {
     header: "Item name",
-    accessorKey: "comment",
+    accessorKey: "product_names",
+    cell: (info) => {
+      const [showPopover, setShowPopover] = useState(false);
+      const items = info.getValue() as string[];
+      const remainingItems = items.length > 1 ? items.slice(1) : [];
+
+      return (
+        <div className="flex gap-2 items-center relative">
+          <p>{items[0]}</p>
+          {remainingItems.length > 0 && (
+            <div
+              onMouseOver={() => setShowPopover(true)}
+              onMouseLeave={() => setShowPopover(false)}
+              className="cursor-pointer bg-[#EDEFF5] py-1 px-1.5 text-xs font-medium
+               rounded-3xl whitespace-nowrap"
+            >
+              + {remainingItems.length}
+            </div>
+          )}
+          {showPopover && (
+            <div className="absolute bg-white rounded shadow-lg mt-1 z-10 top-8">
+              {remainingItems.map((item, index) => (
+                <div key={index} className="p-2 ">
+                  {item}
+                </div>
+              ))}
+
+            </div>
+          )}
+        </div>
+      );
+    },
   },
   {
     header: "Date created",
-    accessorKey: "requisition_date",
+    accessorKey: "date_created",
     cell: (info) =>
       DateTime.fromISO(info.getValue() as string).toFormat("yyyy-MM-dd"),
   },
   {
     header: "Status",
-    accessorKey: "request_approval_status",
+    accessorKey: "approval_status",
     cell: (info) => (
-      <div className={getStatusColor(info.getValue() as string) + " flex items-center gap-2"}>
+      <div
+        className={
+          getStatusColor(info.getValue() as string) + " flex items-center gap-2"
+        }
+      >
         <svg
           width="6"
           height="7"
@@ -44,9 +79,9 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     accessorKey: "action",
     cell: ({ row }) => {
       const [showActions, setShowActions] = useState(false);
-      const navigate = useNavigate()
+      const navigate = useNavigate();
       return (
-        <div className="absolute -mt-3">
+        <div className="relative -mt-3">
           <button
             onClick={() => setShowActions(!showActions)}
             className="p-1 hover:bg-gray-100 rounded-full"
@@ -56,7 +91,21 @@ export const tableColumns: ColumnDef<Requisition>[] = [
 
           {showActions && (
             <div className="absolute right-0 z-10 ">
-              <Action onView={() => {navigate(`/home/requests/my_requests/${row.original.request_id}`); setShowActions(false)}} onEdit={() => {console.log("edit"); setShowActions(false)}} onDelete={() => {console.log("delete"); setShowActions(false)}} />
+              <Action
+                onView={() => {
+                  navigate(
+                    `/home/requests/my_requests/${row.original.requisition_id}`
+                  );
+                }}
+                onEdit={() => {
+                  console.log("edit");
+                  setShowActions(false);
+                }}
+                onDelete={() => {
+                  console.log("delete");
+                  setShowActions(false);
+                }}
+              />
             </div>
           )}
         </div>
