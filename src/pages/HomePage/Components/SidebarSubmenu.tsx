@@ -1,4 +1,3 @@
-import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import { ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
 
@@ -22,11 +21,6 @@ interface SideBarSubMenuProps {
   justifyCenter:boolean
 }
 
-const icons = {
-  "My Requests": ManagementIcon, // TODO: replace this
-  "Staff Requests": ManagementIcon, // TODO: replace this
-  Suppliers: ManagementIcon, // TODO: replace this
-};
 
 const SideBarSubMenu = ({
   item,
@@ -44,21 +38,7 @@ const SideBarSubMenu = ({
   };
   return (
     <div className="">
-      {/* <NavLink
-        to={item["path"]}
-        className={({ isActive }) =>
-          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition h-10 z-10 flex items-center py-7 lg:my-3 ${
-            !show ? ( justifyCenter ? "justify-center" :'') : "px-2 py-7 mx-2"
-          } my-2 rounded-xl ${
-            isActive
-              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
-              : "hover:text-primaryViolet "
-          } `
-        }
-        key={index}
-      >
-        {children}
-      </NavLink> */}
+     
       <NavLink
         to={`${parentPath}`}
         onClick={() => setShowChildren(!showChildren)}
@@ -76,11 +56,11 @@ const SideBarSubMenu = ({
           <NavLink to={`${parentPath}`} 
           // className="flex justify-between px-2"
           className={({ isActive }) =>
-            `  text-dark900  transition flex items-center py-4 justify-between px-2 rounded-xl     ${
+            `  text-dark900  transition flex items-center py-4 justify-between  rounded-xl     ${
               isActive
                 ? "bg-[#6539C320]  text-[#6539C3] transition"
                 : "hover:text-primaryViolet "
-            } `
+            } ${show ? 'px-2' :''}`
           }
           >
             <div className={`${show ?"flex ":"mx-auto"}`}>
@@ -122,18 +102,6 @@ const SideBarSubMenu = ({
         </div>
       </NavLink>
 
-      {/* {show && <div className={`${showChildren ? "" : "hidden"}`}>
-        {item.children.map((child) => {
-          return child.sideTab ? (
-            <NavigationLink
-              item={returnChild(child)}
-              show={show}
-            ></NavigationLink>
-          ) : (
-            <></>
-          );
-        })}
-      </div>} */}
     </div>
   );
 };
