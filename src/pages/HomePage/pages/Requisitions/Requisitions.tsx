@@ -18,7 +18,7 @@ const Requisitions = () => {
       {error && <ErrorPage />}
       {loading && <LoaderComponent />}
       {/* @ts-ignore */}
-      {!loading && <TableComponent columns={tableColumns} data={data?.data?.data ??[]}  />}
+      {!loading && ! error && <TableComponent columns={tableColumns} data={data?.data?.data ??[]}  />}
     </PageOutline>
   );
 };
