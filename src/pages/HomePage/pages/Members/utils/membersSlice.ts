@@ -1,7 +1,6 @@
 import { StateCreator } from 'zustand';
 import { StoreState, UserType, MemberSlice } from './membersInterfaces';
 
-// const createMemberSlice: StateCreator<StoreState, [], [], MemberSlice> = (set) => ({
     const createMemberSlice = (set: any, get: any): MemberSlice => ({
   members: [],
   addMember: (member) => {

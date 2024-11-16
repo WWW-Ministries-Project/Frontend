@@ -12,9 +12,10 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import type { UserStats, UserType } from "../Members/utils/membersInterfaces";
 import { dashboardColumns } from "./utils/dashboardFunctions";
+import { useStore } from "@/store/useStore";
 
 function DashBoard() {
-  const { members, userStats, upcomingEvents } = useOutletContext<{
+  const { members, userStats} = useOutletContext<{
     members: UserType[];
     userStats: UserStats;
     upcomingEvents: any;
@@ -25,6 +26,7 @@ function DashBoard() {
   const [isTabletOrAbove, setIsTabletOrAbove] = useState(false);
   const { screenWidth } = useWindowSize();
 
+  const upcomingEvents = useStore().upcomingEvents;
   // for hiding or showing welcome msg based on size
   useEffect(() => {
     const handleResize = () => {

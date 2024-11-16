@@ -25,8 +25,6 @@ function HomePage() {
     },
   });
   const [departmentData, setDepartmentData] = useState([]);
-  const [updatedDepartment, setUpdatedDepartment] = useState(false);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const { data: membersData, loading: membersLoading } = useFetch(
     api.fetch.fetchAllMembers
   );
@@ -67,7 +65,7 @@ function HomePage() {
     }
 
     if (upcomingEventsData) {
-      setUpcomingEvents(() => upcomingEventsData.data.data);
+      store.setEvents(upcomingEventsData.data.data);
     }
 
     if (positionsData) {
@@ -80,7 +78,7 @@ function HomePage() {
       setDepartmentData(res.data.data);
       settingsStore.setDepartments(res.data.data);
     });
-  }, [updatedDepartment]);
+  }, []);
 
   //table manipulation
   const [filter, setFilter] = useState("");
@@ -145,7 +143,6 @@ function HomePage() {
                   departmentData,
                   setDepartmentData,
                   userStats,
-                  upcomingEvents,
                 }}
               />
             </div>
