@@ -3,7 +3,6 @@ import useWindowSize from "@/CustomHooks/useWindowSize";
 import { eventColumns } from "@/pages/HomePage/pages/EventsManagement/utils/eventHelpers";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import * as XLSX from "xlsx";
 import Button from "../../../../components/Button";
 import { decodeToken } from "../../../../utils/helperFunctions";
 import BarChart from "../../Components/BarChart";
@@ -21,7 +20,7 @@ function DashBoard() {
     upcomingEvents: any;
   }>();
   const [welcomeMsg, setWelcomeMsg] = useState(
-    JSON.parse(localStorage.getItem("welcomeMsg") ?? "false")
+    JSON.parse(localStorage.getItem("welcomeMsg") ?? "true")
   );
   const [isTabletOrAbove, setIsTabletOrAbove] = useState(false);
   const { screenWidth } = useWindowSize();
@@ -63,16 +62,6 @@ function DashBoard() {
 
   const navigate = useNavigate();
 
-  const exportToExcel = () => {
-    if (stats.length === 0) return;
-
-    const worksheet = XLSX.utils.json_to_sheet(members);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet);
-
-    const excelFileName = "Members.xlsx";
-    XLSX.writeFile(workbook, excelFileName);
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
