@@ -1,6 +1,7 @@
 import SearchBar from "@/components/SearchBar";
 import useWindowSize from "@/CustomHooks/useWindowSize";
 import { eventColumns } from "@/pages/HomePage/pages/EventsManagement/utils/eventHelpers";
+import { useStore } from "@/store/useStore";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "../../../../components/Button";
@@ -12,10 +13,9 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import type { UserStats, UserType } from "../Members/utils/membersInterfaces";
 import { dashboardColumns } from "./utils/dashboardFunctions";
-import { useStore } from "@/store/useStore";
 
 function DashBoard() {
-  const { members, userStats} = useOutletContext<{
+  const { members, userStats } = useOutletContext<{
     members: UserType[];
     userStats: UserStats;
     upcomingEvents: any;
@@ -39,22 +39,18 @@ function DashBoard() {
     {
       name: "Total Members",
       value: userStats.total_members,
-      additionalInfo: "I wonder how it should appear",
     },
     {
       name: "Males",
       value: userStats.total_males,
-      additionalInfo: "As a tooltip or info card",
     },
     {
       name: "Female",
       value: userStats.total_females,
-      additionalInfo: "Number of female adults",
     },
     {
       name: "Children",
       value: userStats.stats?.children?.Total,
-      additionalInfo: "Number of all children",
     },
   ];
 
@@ -63,7 +59,6 @@ function DashBoard() {
   const [eventsFilter, setEventsFilter] = useState("");
 
   const navigate = useNavigate();
-
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
