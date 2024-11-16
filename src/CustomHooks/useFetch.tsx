@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-export const useFetch = (
-  fetchFunction: () => Promise<any>,
-  params: string | number
+export const useFetch =<T,> (
+  fetchFunction: () => Promise<T>,
+  params?: string | number
 ) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

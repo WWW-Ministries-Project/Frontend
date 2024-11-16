@@ -1,3 +1,4 @@
+import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
@@ -8,24 +9,21 @@ import { changeAuth } from "../../axiosInstance.js";
 import { getToken } from "../../utils/helperFunctions";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
+import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
-import { useFetch } from "@/CustomHooks/useFetch";
-import SideBarMobile from "./Components/SideBarMobile";
 
 function HomePage() {
   const [userStats, setUserStats] = useState({
     stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } },
   });
-  const [displayForm, setDisplayForm] = useState(false);
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const { data: membersData, loading: membersLoading, error: membersError } = useFetch(api.fetch.fetchAllMembers);
-  const { data: userStatsData, loading: userStatsLoading, error: userStatsError } = useFetch(api.fetch.fetchUserStats);
-  const { data: upcomingEventsData, loading: upcomingEventsLoading, error: upcomingEventsError } = useFetch(api.fetch.fetchUpcomingEvents);
-  const { data: positionsData, loading: positionsLoading, error: positionsError } = useFetch(api.fetch.fetchPositions); 
-  const [queryLoading, setQueryLoading] = useState(false);
+  const { data: membersData, loading: membersLoading} = useFetch(api.fetch.fetchAllMembers);
+  const { data: userStatsData,} = useFetch(api.fetch.fetchUserStats);
+  const { data: upcomingEventsData, loading: upcomingEventsLoading} = useFetch(api.fetch.fetchUpcomingEvents);
+  const { data: positionsData} = useFetch(api.fetch.fetchPositions);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -39,9 +37,6 @@ function HomePage() {
     setShow((prev) => !prev);
   };
 
-  const CloseForm = () => {
-    setDisplayForm(false);
-  };
 
   //minimize side nav based on screen width
   useEffect(() => {
@@ -50,30 +45,9 @@ function HomePage() {
     }
   }, [screenWidth]);
 
-  //initial data fetching
-  // useEffect(() => {
-  //   changeAuth(token);
-  //   setQueryLoading(true);
-  //   api.fetch.fetchAllMembers().then((res) => {
-  //     store.setMembers(res.data.data);
-  //   });
-
-  //   api.fetch.fetchUserStats().then((res) => {
-  //     setUserStats(res.data);
-  //   });
-  //   api.fetch.fetchUpcomingEvents().then((res) => {
-  //     setQueryLoading(false);
-  //     setUpcomingEvents(res.data.data);
-  //   });
-
-  //   api.fetch.fetchPositions().then((res) => {
-  //     settingsStore.setPositions(res.data.data);
-  //   });
-  // }, [user]);
-
   useEffect(() => {
     changeAuth(token);
-    
+
     if (membersData) {
       store.setMembers(membersData.data.data);
     }
@@ -83,14 +57,14 @@ function HomePage() {
     }
 
     if (upcomingEventsData) {
-      setUpcomingEvents(()=>upcomingEventsData.data.data);
+      setUpcomingEvents(() => upcomingEventsData.data.data);
     }
 
     if (positionsData) {
       settingsStore.setPositions(positionsData.data.data);
     }
-    
-  }, [user,userStatsData,positionsData,upcomingEventsData,membersData]);
+
+  }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
@@ -102,7 +76,7 @@ function HomePage() {
   //table manipulation
   const [filter, setFilter] = useState("");
 
-  const handleSearchChange = (val) => {
+  const handleSearchChange = (val: string) => {
     setFilter(val);
   };
 
@@ -130,7 +104,7 @@ function HomePage() {
   return (
     <>
       {token ? (
-        <main onClick={CloseForm} className="bg-white   flex  overflow-auto ">
+        <main className="bg-white   flex  overflow-auto ">
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
@@ -141,17 +115,14 @@ function HomePage() {
           </div>
 
           <div className="inline lg:hidden">
-         <SideBarMobile show={show} onClick={handleShowNav} />
-         </div>
+            <SideBarMobile show={show} onClick={handleShowNav} />
+          </div>
 
-          {/* <div className={`m-5`}> */}
           <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-3 bg-[#E5E5EA] `}>
             <Header handleShowNav={handleShowNav} />
             <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
               <Outlet
                 context={{
-                  setDisplayForm,
-                  CloseForm,
                   members,
                   filter,
                   setFilter,
@@ -163,9 +134,8 @@ function HomePage() {
                 }}
               />
             </div>
-            {queryLoading||membersLoading||upcomingEventsLoading && <LoaderComponent />}
+            {membersLoading || upcomingEventsLoading && <LoaderComponent />}
           </div>
-          {/* </div> */}
         </main>
       ) : (
         <Navigate to="/login" />

@@ -49,7 +49,7 @@ class ApiCalls {
     return this.apiExecution.fetchData(endpoint);
   }
 
-  fetchAllMembers = (): Promise<ApiResponse<UserType>> => {
+  fetchAllMembers = (): Promise<ApiResponse<{data:UserType[]}>> => {
     return this.fetchFromApi("user/list-users");
   };
 
