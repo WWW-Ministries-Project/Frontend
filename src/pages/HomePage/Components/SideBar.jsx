@@ -54,7 +54,7 @@ const SideBar = ({ show, ...props }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`borde space-y-8 mx-auto px-2 lg:h-[100vh] xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
+        className={`space-y-8 mx-auto px-2 lg:h-[100vh] xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
           } transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `}
         style={props.style}
       >
@@ -82,7 +82,7 @@ const SideBar = ({ show, ...props }) => {
             }
             // return permissions["view_" + item["key"]] && (
             return (
-              <>
+              <div key={item.name}>
                 {
                   item.children ? (
                     <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
@@ -93,7 +93,7 @@ const SideBar = ({ show, ...props }) => {
                         }`}
                     /> {show && item.name}</NavigationLink>)
                 }
-              </>
+              </div>
             );
           })}
         </div>

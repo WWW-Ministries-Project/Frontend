@@ -33,7 +33,7 @@ function HomePage() {
   const { user } = useAuth();
 
   //side nav
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const { screenWidth } = useWindowSize();
   const handleShowNav = () => {
     setShow((prev) => !prev);
