@@ -1,6 +1,14 @@
 import search from "/src/assets/search.svg";
 import PropTypes from "prop-types";
-function SearchBar(props) {
+
+interface ISearchBar {
+  id?:string,
+  placeholder?:string,
+  value?:string,
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  className?:string
+}
+function SearchBar(props: ISearchBar): JSX.Element {
   return (
     <>
       <div className={"flex items-center bg-white rounded-md py-1  border border-[#f2f2f2] "+props.className}>

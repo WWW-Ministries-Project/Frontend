@@ -11,19 +11,30 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
+import type { UserStats } from "./pages/Members/utils/membersInterfaces";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 
 function HomePage() {
-  const [userStats, setUserStats] = useState({
-    stats: { adults: { male: 0, female: 0, total: 0 }, children: { male: 0, female: 0, total: 0 } },
+  const [userStats, setUserStats] = useState<UserStats>({
+    total_members: 0,
+    total_males: 0,
+    total_females: 0,
+    stats: {
+      adults: { male: 0, female: 0, total: 0 },
+      children: { male: 0, female: 0, Total: 0 },
+    },
   });
   const [departmentData, setDepartmentData] = useState([]);
   const [updatedDepartment, setUpdatedDepartment] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const { data: membersData, loading: membersLoading} = useFetch(api.fetch.fetchAllMembers);
-  const { data: userStatsData,} = useFetch(api.fetch.fetchUserStats);
-  const { data: upcomingEventsData, loading: upcomingEventsLoading} = useFetch(api.fetch.fetchUpcomingEvents);
-  const { data: positionsData} = useFetch(api.fetch.fetchPositions);
+  const { data: membersData, loading: membersLoading } = useFetch(
+    api.fetch.fetchAllMembers
+  );
+  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
+  const { data: upcomingEventsData, loading: upcomingEventsLoading } = useFetch(
+    api.fetch.fetchUpcomingEvents
+  );
+  const { data: positionsData } = useFetch(api.fetch.fetchPositions);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -36,7 +47,6 @@ function HomePage() {
   const handleShowNav = () => {
     setShow((prev) => !prev);
   };
-
 
   //minimize side nav based on screen width
   useEffect(() => {
@@ -63,7 +73,6 @@ function HomePage() {
     if (positionsData) {
       settingsStore.setPositions(positionsData.data.data);
     }
-
   }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
 
   useEffect(() => {
@@ -108,7 +117,11 @@ function HomePage() {
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
-              style={{ marginTop: "", backgroundImage: "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')" }}
+              style={{
+                marginTop: "",
+                backgroundImage:
+                  "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')",
+              }}
               onClick={handleShowNav}
               show={show}
             />
@@ -118,7 +131,9 @@ function HomePage() {
             <SideBarMobile show={show} onClick={handleShowNav} />
           </div>
 
-          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-3 bg-[#E5E5EA] `}>
+          <div
+            className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-3 bg-[#E5E5EA] `}
+          >
             <Header handleShowNav={handleShowNav} />
             <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
               <Outlet
@@ -134,7 +149,7 @@ function HomePage() {
                 }}
               />
             </div>
-            {membersLoading || upcomingEventsLoading && <LoaderComponent />}
+            {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
           </div>
         </main>
       ) : (
