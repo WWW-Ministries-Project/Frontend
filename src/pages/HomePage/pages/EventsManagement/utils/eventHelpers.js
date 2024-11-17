@@ -46,7 +46,12 @@ export const registeredEventAttendance = [
 
 export const eventColumns = [
   { header: "Name", accessorKey: "name", id: "title" },
-  { header: "Location", accessorKey: "location", id: "location" },
+  {
+    header: "Date",
+    cell: (props) => formatTime(props.getValue()),
+    accessorKey: "start_date",
+    id: "date",
+  },
 ];
 export const eventInput = {
   // name: "",
@@ -115,9 +120,8 @@ export const maxMinValueForDate = () => {
 };
 
 export const eventTypeColors = {
-  "ACTIVITY": "#FF5765",
-  "PROGRAM": "#FF5765",  // This is already correct
-  "SERVICE": "#8A6FDF",
-  "other": "#A8E10C",
+  ACTIVITY: "#FF5765",
+  PROGRAM: "#FF5765", // This is already correct
+  SERVICE: "#8A6FDF",
+  other: "#A8E10C",
 };
-

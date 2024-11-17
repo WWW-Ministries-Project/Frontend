@@ -17,7 +17,7 @@ export const removeToken = () => {
   return Cookies.remove("token");
 };
 
-export const decodeToken = (value: string): any => {
+export const decodeToken = (value?: string): any => {
   const token = value ? value : getToken();
   return token && jwtDecode(token);
 };

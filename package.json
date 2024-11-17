@@ -24,7 +24,6 @@
     "react-datepicker": "^7.2.0",
     "react-dom": "^18.2.0",
     "react-usestateref": "^1.0.8",
-    "xlsx": "^0.18.5",
     "yup": "^1.4.0",
     "zustand": "^4.5.2"
   },

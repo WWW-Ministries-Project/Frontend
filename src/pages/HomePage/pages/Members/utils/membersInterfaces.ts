@@ -37,6 +37,15 @@ export interface UserType {
     phone_number: string;
   };
 }
+export type UserStats = {
+  total_members: number;
+  total_males: number;
+  total_females: number;
+  stats: {
+    adults: { male: number; female: number; total: number };
+    children: { male: number; female: number; Total: number };
+  };
+};
 export interface OptionsType {
   name: string;
   value: string;
@@ -50,4 +59,4 @@ export interface MemberSlice {
   setMembers: (members: UserType[]) => void;
 }
 
-export type StoreState =  MemberSlice;
+export type StoreState = MemberSlice;
