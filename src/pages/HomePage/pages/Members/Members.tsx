@@ -5,7 +5,6 @@ import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import Dialog from "@/components/Dialog";
-import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
@@ -20,6 +19,7 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import { UserType } from "./utils/membersInterfaces";
+import { useNotificationStore } from "../../store/globalComponentsStore";
 
 function Members() {
   const location = useLocation();
@@ -35,15 +35,8 @@ function Members() {
     show: false,
     data: {},
   });
-  const [notification, setNotification] = useState<{
-    type?: "error" | "success";
-    message: string;
-    show: boolean;
-  }>({
-    type: undefined,
-    message: "",
-    show: false,
-  });
+
+  const {setNotification} = useNotificationStore();
   const [showSearch, setShowSearch] = useState(false);
 
   const { screenWidth } = useWindowSize();
@@ -77,7 +70,8 @@ function Members() {
       setNotification({
         type: "success",
         message: "Member Added Successfully",
-        show: true,
+        onClose: () => {},
+        show: true
       });
       // Clear the 'new' state after showing the notification
       navigate(location.pathname, { replace: true, state: {} });
@@ -100,7 +94,8 @@ function Members() {
     setNotification({
       type: "success",
       message: "Member Deleted Successfully",
-      show: true,
+      onClose: () => {},
+      show: true
     });
     const userStatsData = await refetchUserStats();
     userStatsData && store.setUserStats(userStatsData.data);
@@ -239,16 +234,6 @@ function Members() {
         onDelete={handleDelete}
       />
       {loading && <LoaderComponent />}
-      {notification.show && (
-        <NotificationCard
-          type={notification?.type}
-          title={"Success"}
-          description={notification.message}
-          onClose={() =>
-            setNotification({ type: undefined, message: "", show: false })
-          }
-        />
-      )}
     </main>
   );
 }

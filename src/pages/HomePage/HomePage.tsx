@@ -12,6 +12,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import NotificationCard from "@/components/NotificationCard";
 
 function HomePage() {
   const [departmentData, setDepartmentData] = useState([]);
@@ -139,6 +140,7 @@ function HomePage() {
             </div>
             {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
           </div>
+          <NotificationCard />
         </main>
       ) : (
         <Navigate to="/login" />
