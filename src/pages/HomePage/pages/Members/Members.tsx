@@ -1,4 +1,5 @@
 import { useDelete } from "@/CustomHooks/useDelete";
+import { useFetch } from "@/CustomHooks/useFetch";
 import FilterIcon from "@/assets/FilterIcon";
 import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
@@ -12,7 +13,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import GridSkeleton from "../../Components/GridSkeleton";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
@@ -31,7 +31,10 @@ function Members() {
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [modal, setModal] = useState<{ show: boolean; data: UserType|{} }>({ show: false, data: { } });
+  const [modal, setModal] = useState<{ show: boolean; data: UserType | {} }>({
+    show: false,
+    data: {},
+  });
   const [notification, setNotification] = useState<{
     type?: "error" | "success";
     message: string;
@@ -44,9 +47,18 @@ function Members() {
   const [showSearch, setShowSearch] = useState(false);
 
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading } = useDelete(api.delete.deleteMember);
-  const members = useStore().members;
-  const removeMember = useStore().removeMember;
+  const { executeDelete, loading, success } = useDelete(
+    api.delete.deleteMember
+  );
+  const { refetch: refetchUserStats } = useFetch(
+    api.fetch.fetchUserStats,
+    undefined,
+    true
+  );
+  const store = useStore();
+  const members = store.members;
+  const userStats = store.userStats;
+  const removeMember = store.removeMember;
   const columns = membersColumns;
 
   useEffect(() => {
@@ -79,18 +91,19 @@ function Members() {
   const handleNavigation = () => {
     navigate("add-member");
   };
-  const handleDelete = () => {
-    if (!("id"in modal.data)) return;
+  const handleDelete = async () => {
+    if (!("id" in modal.data)) return;
     const id = modal.data.id;
     setModal({ data: { id: "" }, show: false });
-    executeDelete(id!).then(() => {
-      removeMember(id!);
-      setNotification({
-        type: "success",
-        message: "Member Deleted Successfully",
-        show: true,
-      });
+    await executeDelete(id!);
+    removeMember(id!);
+    setNotification({
+      type: "success",
+      message: "Member Deleted Successfully",
+      show: true,
     });
+    const userStatsData = await refetchUserStats();
+    userStatsData && store.setUserStats(userStatsData.data);
   };
 
   const handleDeleteModal = (val?: UserType) => {
@@ -106,16 +119,16 @@ function Members() {
   };
 
   const handleViewMode = (bol: boolean) => {
-    localStorage.setItem("membersTableView", bol+"");
+    localStorage.setItem("membersTableView", bol + "");
     setTableView(bol);
   };
 
   const membersCount = [
-    { count: members?.length, label: "Members" },
-    { count: members?.length, label: "Adult male" },
-    { count: members?.length, label: "Adult female" },
-    { count: members?.length, label: "Children male" },
-    { count: members?.length, label: "Children female" },
+    { count: userStats.total_members, label: "Members" },
+    { count: userStats.stats.adults.Male, label: "Adult male" },
+    { count: userStats.stats.adults.Female, label: "Adult female" },
+    { count: userStats.stats.children.Male, label: "Children male" },
+    { count: userStats.stats.children.Female, label: "Children female" },
   ];
 
   return (
@@ -125,7 +138,7 @@ function Members() {
         {/* search component and add member */}
         <div className="flex justify-between items-center">
           <p className="text-dark900 text-2xl font-semibold">
-            Church Members ({members?.length})
+            Church Members ({userStats.total_members})
           </p>
           <div className="flex justify-between items-center ">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -180,7 +193,6 @@ function Members() {
             id="searchMembers"
           />
         </div>
-        {/* <TableComponent /> */}
         <div className="flex gap-8 sm:flex-col md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
           <MembersCount items={membersCount} />
@@ -190,9 +202,7 @@ function Members() {
             tableView ? "bg-white p-2" : "bg-transparent "
           } rounded-xl`}
         >
-          {!true ? (
-            <GridSkeleton />
-          ) : tableView ? (
+          {tableView ? (
             <TableComponent
               columns={columns}
               data={members}

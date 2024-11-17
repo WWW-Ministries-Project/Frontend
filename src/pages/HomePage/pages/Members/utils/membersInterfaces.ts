@@ -42,8 +42,8 @@ export type UserStats = {
   total_males: number;
   total_females: number;
   stats: {
-    adults: { male: number; female: number; total: number };
-    children: { male: number; female: number; Total: number };
+    adults: { Male: number; Female: number; Total: number };
+    children: { Male: number; Female: number; Total: number };
   };
 };
 export interface OptionsType {
@@ -53,10 +53,12 @@ export interface OptionsType {
 
 export interface MemberSlice {
   members: UserType[];
+  userStats: UserStats;
   addMember: (member: UserType) => void;
   removeMember: (memberId: number|string) => void;
   updateMember: (updatedMember: UserType) => void;
   setMembers: (members: UserType[]) => void;
+  setUserStats: (userStats: UserStats) => void;
 }
 
 export type StoreState = MemberSlice;
