@@ -1,11 +1,12 @@
 import { ApiResponse } from "@/utils/interfaces";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import useState from "react-usestateref";
 
 export const useDelete = (
-  deleteFunction: (id: string | number) => Promise<ApiResponse<void>>, // Expecting a Promise-returning function
+  deleteFunction: (id: string | number) => Promise<ApiResponse<void>>
 ) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [, setError, errorRef] = useState<Error | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
   const executeDelete = useCallback(
@@ -25,5 +26,5 @@ export const useDelete = (
     [deleteFunction]
   );
 
-  return { executeDelete, loading, error, success };
+  return { executeDelete, loading, error: errorRef.current, success };
 };

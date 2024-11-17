@@ -1,33 +1,25 @@
+import { useDialogStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useEffect, useRef } from "react";
 import Button from "./Button";
 
-interface IDialog<T extends { name?: string }> {
-  showModal: boolean;
-  onClick: () => void;
-  onDelete: () => {};
-  data: T;
-}
-
-const Dialog = <T extends { name?: string }>({
-  showModal,
-  ...props
-}: IDialog<T>) => {
+const Dialog = () => {
   const dialog = useRef<HTMLDialogElement>(null);
+  const { dialogData } = useDialogStore();
   useEffect(() => {
-    showModal ? dialog.current?.showModal() : dialog.current?.close();
-  }, [showModal]);
+    dialogData.showModal ? dialog.current?.showModal() : dialog.current?.close();
+  }, [dialogData.showModal]);
   function handleShowModal() {
-    props.onClick();
+    dialogData.onCancel();
   }
   function handleDelete() {
-    props.onDelete();
+    dialogData.onConfirm();
   }
   return (
     <div>
       <dialog ref={dialog} className="rounded p-5 shadow-lg">
-        <h1 className="H600">Delete {props.data?.name}</h1>
+        <h1 className="H600">Delete {dialogData.name}</h1>
         <div className="mt-3">
-          Are you sure you want to delete {props.data?.name}. <br /> This action
+          Are you sure you want to delete {dialogData.name}. <br /> This action
           cannot be undone.
         </div>
         <div className="mt-3 flex justify-between p-2">

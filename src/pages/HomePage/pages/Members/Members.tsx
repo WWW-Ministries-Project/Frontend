@@ -4,11 +4,11 @@ import FilterIcon from "@/assets/FilterIcon";
 import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
-import Dialog from "@/components/Dialog";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
@@ -16,10 +16,13 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
+import {
+  useDialogStore,
+  useNotificationStore,
+} from "../../store/globalComponentsStore";
 import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import { UserType } from "./utils/membersInterfaces";
-import { useNotificationStore } from "../../store/globalComponentsStore";
 
 function Members() {
   const location = useLocation();
@@ -31,16 +34,14 @@ function Members() {
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [modal, setModal] = useState<{ show: boolean; data: UserType | {} }>({
-    show: false,
-    data: {},
-  });
+  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
 
-  const {setNotification} = useNotificationStore();
+  const { setNotification } = useNotificationStore();
+  const { setDialog, dialogDataReset } = useDialogStore();
   const [showSearch, setShowSearch] = useState(false);
 
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading, success } = useDelete(
+  const { executeDelete, loading, success, error } = useDelete(
     api.delete.deleteMember
   );
   const { refetch: refetchUserStats } = useFetch(
@@ -64,6 +65,32 @@ function Members() {
     }
   }, [screenWidth]);
 
+  //showing notification and sideEffects on delete
+  useEffect(() => {
+    const handleEffect = async () => {
+      if (success) {
+        setNotification({
+          type: "success",
+          message: "Member Deleted Successfully",
+          onClose: () => {},
+          show: true,
+        });
+        const userStatsData = await refetchUserStats();
+        userStatsData && store.setUserStats(userStatsData.data);
+        dialogDataReset();
+      }
+      if (error) {
+        setNotification({
+          type: "error",
+          message: error.message,
+          onClose: () => {},
+          show: true,
+        });
+      }
+    };
+    handleEffect();
+  }, [success, error]);
+
   //HANDLE ROUTIING AFTER SUCCESFULLY ADDING MEMBER
   useEffect(() => {
     if (isNew) {
@@ -71,7 +98,7 @@ function Members() {
         type: "success",
         message: "Member Added Successfully",
         onClose: () => {},
-        show: true
+        show: true,
       });
       // Clear the 'new' state after showing the notification
       navigate(location.pathname, { replace: true, state: {} });
@@ -86,29 +113,20 @@ function Members() {
     navigate("add-member");
   };
   const handleDelete = async () => {
-    if (!("id" in modal.data)) return;
-    const id = modal.data.id;
-    setModal({ data: { id: "" }, show: false });
+    if (!("id" in dataToDeleteRef.current)) return;
+    const id = dataToDeleteRef.current.id;
     await executeDelete(id!);
     removeMember(id!);
-    setNotification({
-      type: "success",
-      message: "Member Deleted Successfully",
-      onClose: () => {},
-      show: true
-    });
-    const userStatsData = await refetchUserStats();
-    userStatsData && store.setUserStats(userStatsData.data);
   };
 
   const handleDeleteModal = (val?: UserType) => {
     if (val) {
-      setModal(() => {
-        return { data: val, show: true };
-      });
-    } else {
-      setModal((prev) => {
-        return { data: {}, show: !prev.show };
+      setDataToDelete(val);
+      setDialog({
+        name: val.name,
+        showModal: true,
+        onConfirm: handleDelete,
+        onCancel: () => {},
       });
     }
   };
@@ -227,12 +245,6 @@ function Members() {
           )}
         </div>
       </section>
-      <Dialog
-        showModal={modal.show}
-        data={modal.data as UserType}
-        onClick={handleDeleteModal}
-        onDelete={handleDelete}
-      />
       {loading && <LoaderComponent />}
     </main>
   );

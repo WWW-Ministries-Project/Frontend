@@ -14,6 +14,18 @@ interface NotificationSlice {
   setNotification: (notification: NotificationType) => void;
 }
 
+interface DialogType {
+  name?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  showModal: boolean;
+}
+interface DialogSlice {
+  dialogData: DialogType;
+  setDialog: (dialog: DialogType) => void;
+  dialogDataReset: () => void;
+}
+
 export const useNotificationStore = create<NotificationSlice>((set, get) => ({
   notification: {
     title: "",
@@ -32,22 +44,17 @@ export const useNotificationStore = create<NotificationSlice>((set, get) => ({
   },
 }));
 
-
-
-export const useDialogStore = create<NotificationSlice>((set, get) => ({
-  notification: {
-    title: "",
-    message: "",
-    type: undefined,
-    onClose: () => {},
-    show: false,
+export const useDialogStore = create<DialogSlice>((set, get) => ({
+  dialogData: {
+    name: "",
+    onCancel: () => {},
+    onConfirm: () => {},
+    showModal: false,
   },
-  visible: false,
-  setVisible: (visible) => {
-    set({ visible });
+  setDialog: (dialogData) => {
+    set({ dialogData });
   },
-  setNotification: (notification) => {
-    set({ notification });
-    get().setVisible(notification.show);
+  dialogDataReset: () => {
+    set({ dialogData: { ...get().dialogData, showModal: false } });
   },
 }));
