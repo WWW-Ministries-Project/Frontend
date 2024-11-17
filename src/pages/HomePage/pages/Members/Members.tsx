@@ -229,7 +229,7 @@ function Members() {
       </section>
       <Dialog
         showModal={modal.show}
-        data={modal.data}
+        data={modal.data as UserType}
         onClick={handleDeleteModal}
         onDelete={handleDelete}
       />

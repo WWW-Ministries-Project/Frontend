@@ -1,5 +1,5 @@
 import { create } from "zustand";
-interface NotificationCardProps {
+interface NotificationType {
   title?: string;
   message: string;
   type?: "success" | "error";
@@ -10,11 +10,31 @@ interface NotificationCardProps {
 interface NotificationSlice {
   visible: boolean;
   setVisible: (visible: boolean) => void;
-  notification: NotificationCardProps;
-  setNotification: (notification: NotificationCardProps) => void;
+  notification: NotificationType;
+  setNotification: (notification: NotificationType) => void;
 }
 
 export const useNotificationStore = create<NotificationSlice>((set, get) => ({
+  notification: {
+    title: "",
+    message: "",
+    type: undefined,
+    onClose: () => {},
+    show: false,
+  },
+  visible: false,
+  setVisible: (visible) => {
+    set({ visible });
+  },
+  setNotification: (notification) => {
+    set({ notification });
+    get().setVisible(notification.show);
+  },
+}));
+
+
+
+export const useDialogStore = create<NotificationSlice>((set, get) => ({
   notification: {
     title: "",
     message: "",
