@@ -54,7 +54,7 @@ export interface OptionsType {
 export interface MemberSlice {
   members: UserType[];
   addMember: (member: UserType) => void;
-  removeMember: (memberId: number) => void;
+  removeMember: (memberId: number|string) => void;
   updateMember: (updatedMember: UserType) => void;
   setMembers: (members: UserType[]) => void;
 }

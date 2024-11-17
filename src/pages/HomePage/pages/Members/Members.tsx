@@ -1,3 +1,8 @@
+import { useDelete } from "@/CustomHooks/useDelete";
+import FilterIcon from "@/assets/FilterIcon";
+import GridAsset from "@/assets/GridAsset";
+import SearchIcon from "@/assets/SearchIcon";
+import TableAsset from "@/assets/TableAssets";
 import Dialog from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
@@ -10,50 +15,47 @@ import SearchBar from "../../../../components/SearchBar";
 import GridSkeleton from "../../Components/GridSkeleton";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
+import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
-import GridAsset from "/src/assets/GridAsset";
-import TableAsset from "/src/assets/TableAssets";
-import { useDelete } from "@/CustomHooks/useDelete";
-import SearchIcon from "@/assets/SearchIcon";
-import FilterIcon from "@/assets/FilterIcon";
-import MembersCount from "../../Components/reusable/MembersCount";
+import { UserType } from "./utils/membersInterfaces";
 
 function Members() {
-  const members = useStore().members;
-  const removeMember = useStore().removeMember;
-
   const location = useLocation();
   const isNew = location.state?.new;
-
   const navigate = useNavigate();
-  const { screenWidth } = useWindowSize();
+
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [modal, setModal] = useState({ show: false, data: {} });
-  const [notification, setNotification] = useState({
-    type: "",
+  const [modal, setModal] = useState<{ show: boolean; data: UserType|{} }>({ show: false, data: { } });
+  const [notification, setNotification] = useState<{
+    type?: "error" | "success";
+    message: string;
+    show: boolean;
+  }>({
+    type: undefined,
     message: "",
     show: false,
   });
-  const [queryLoading, setQueryLoading] = useState(false);
-  const { executeDelete, loading, error, success } = useDelete(
-    api.delete.deleteMember
-  );
   const [showSearch, setShowSearch] = useState(false);
 
+  const { screenWidth } = useWindowSize();
+  const { executeDelete, loading } = useDelete(api.delete.deleteMember);
+  const members = useStore().members;
+  const removeMember = useStore().removeMember;
   const columns = membersColumns;
 
   useEffect(() => {
+    const switchElement = document.getElementById("switch");
     if (screenWidth <= 540) {
       setTableView(false);
-      document.getElementById("switch").classList.add("hidden");
+      switchElement?.classList.add("hidden");
     } else {
-      document.getElementById("switch").classList.remove("hidden");
+      switchElement?.classList.remove("hidden");
     }
   }, [screenWidth]);
 
@@ -70,7 +72,7 @@ function Members() {
     }
   }, [isNew, location.pathname, navigate]);
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterMembers(e.target.value);
   };
 
@@ -78,22 +80,22 @@ function Members() {
     navigate("add-member");
   };
   const handleDelete = () => {
+    if (!("id"in modal.data)) return;
     const id = modal.data.id;
-    setModal({ data: {}, show: false });
-    executeDelete(id).then(() => {
-      removeMember(id);
+    setModal({ data: { id: "" }, show: false });
+    executeDelete(id!).then(() => {
+      removeMember(id!);
       setNotification({
         type: "success",
         message: "Member Deleted Successfully",
         show: true,
       });
-      setQueryLoading(false);
     });
   };
 
-  const handleDeleteModal = (val) => {
+  const handleDeleteModal = (val?: UserType) => {
     if (val) {
-      setModal((prev) => {
+      setModal(() => {
         return { data: val, show: true };
       });
     } else {
@@ -103,8 +105,8 @@ function Members() {
     }
   };
 
-  const handleViewMode = (bol) => {
-    localStorage.setItem("membersTableView", bol);
+  const handleViewMode = (bol: boolean) => {
+    localStorage.setItem("membersTableView", bol+"");
     setTableView(bol);
   };
 
@@ -229,11 +231,11 @@ function Members() {
       {loading && <LoaderComponent />}
       {notification.show && (
         <NotificationCard
-          type={notification.type}
+          type={notification?.type}
           title={"Success"}
           description={notification.message}
           onClose={() =>
-            setNotification({ type: "", message: "", show: false })
+            setNotification({ type: undefined, message: "", show: false })
           }
         />
       )}

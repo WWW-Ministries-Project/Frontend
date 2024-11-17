@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 
 export const useDelete = (
   deleteFunction: (id: string | number) => void,
-  id: string | number
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
