@@ -1,4 +1,7 @@
-interface SearchIconProps {}
+interface SearchIconProps {
+  className?: string
+  onClick?: () => void
+}
 export default function SearchIcon({ ...props }: Readonly<SearchIconProps>) {
   return (
     <div {...props}>

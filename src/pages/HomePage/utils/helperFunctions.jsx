@@ -2,23 +2,6 @@ import { DateTime } from "luxon";
 import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteMember } from "../pages/Members/utils/apiCalls";
 
-// export const sideTabs = [
-//   { name: 'Dashboard', key: 'Dashboard' },
-//   { name: 'Members', key: 'Members' },
-//   // { name: 'Attendance', key: 'Attendance' },
-//   { name: "Events ", key: "Events" },
-//   // { name: "Finance", key: "Finance" }, 
-//   // { name: 'Reports', key: 'Reports' }, 
-//   { name: "Assets ", key: "Assets" },
-//   // { name: "Users", key: "Users" }, 
-//   { name: "Settings", key: "Settings" }];
-
-// const formatTableData = (data) => {
-//     switch (data) {
-//         case 'last_visited': 
-//     }
-// }
-
 export const membersColumns = [
   {
     header: "Name",
@@ -56,16 +39,6 @@ export const membersColumns = [
   },
   {
     header: "Actions",
-    // cell: (info) => (
-    //   <div
-    //     className={
-    //       info.getValue()
-    //         ? "bg-green text-sm h-6 flex items-center justify-center rounded-lg text-center text-white "
-    //         : "bg-neutralGray text-sm h-6 flex items-center justify-center rounded-lg text-center text-lighterBlack"
-    //     }>
-    //     {info.getValue() ? "Active" : "Inactive"}
-    //   </div>
-    // ),
     cell: ({row}) => (
       <div>
         <button

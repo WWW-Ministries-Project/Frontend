@@ -1,5 +1,8 @@
 
-interface FilterIconProps {}
+interface FilterIconProps {
+  className?: string
+  onClick?: () => void
+}
 export default function FilterIcon({ ...props }: Readonly<FilterIconProps>) {
   return (
     <div {...props}>

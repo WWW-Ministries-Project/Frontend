@@ -11,10 +11,11 @@ import { useNavigate } from "react-router-dom";
 import { UserType } from "../utils/membersInterfaces";
 
 interface MemberCardProps {
-  userInfo: UserType;
+  // userInfo: UserType;
   member: UserType;
   showOptions: boolean;
-  onDelete: () => void;
+  onShowOptions: () => void;
+  onDelete: (val?: UserType) => void;
 }
 
 const MemberCard: React.FC<MemberCardProps> = (props) => {
@@ -23,7 +24,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
 
   const handleClick = () => {
     const temp = {
-      ...props.userInfo,
+      ...props.member,
     };
     userStore.setSelectedMember(temp);
     navigate(`/home/members/${props.member.id}/info`);
