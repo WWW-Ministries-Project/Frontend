@@ -49,7 +49,7 @@ class ApiCalls {
     return this.apiExecution.fetchData(endpoint);
   }
 
-  fetchAllMembers = (): Promise<ApiResponse<{data:UserType[]}>> => {
+  fetchAllMembers = (): Promise<ApiResponse<{ data: UserType[] }>> => {
     return this.fetchFromApi("user/list-users");
   };
 
@@ -86,7 +86,7 @@ class ApiDeletionCalls {
     return this.apiExecution.deleteData(path, query);
   }
 
-  deleteMember = (id: string): Promise<ApiResponse<void>> => {
+  deleteMember = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("user/delete-user", { id });
   };
 }
