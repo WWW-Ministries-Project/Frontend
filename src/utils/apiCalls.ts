@@ -5,7 +5,11 @@ import type { ApiCallOptions, ApiResponse } from "./interfaces";
 // Define the ApiExecution class
 class ApiExecution {
   baseUrl: string;
-  fetchExecutor?: (baseUrl: string, path: string) => Promise<ApiResponse<any>>;
+  fetchExecutor?: (
+    baseUrl: string,
+    path: string,
+    query?: Record<string, any>
+  ) => Promise<ApiResponse<any>>;
   deleteExecutor?: (
     baseUrl: string,
     path: string,
@@ -29,9 +33,12 @@ class ApiExecution {
     this.postExecutor = postExecutor;
   }
 
-  fetchData<T>(path: string): Promise<ApiResponse<T>> {
+  fetchData<T>(
+    path: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<T>> {
     if (!this.fetchExecutor) throw new Error("Fetch executor not defined");
-    return this.fetchExecutor(this.baseUrl, path);
+    return this.fetchExecutor(this.baseUrl, path, query);
   }
 
   deleteData<T>(
@@ -60,12 +67,17 @@ class ApiCalls {
     });
   }
 
-  private fetchFromApi<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.apiExecution.fetchData(endpoint);
+  private fetchFromApi<T>(
+    endpoint: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<T>> {
+    return this.apiExecution.fetchData(endpoint, query);
   }
 
-  fetchAllMembers = (): Promise<ApiResponse<{ data: UserType[] }>> => {
-    return this.fetchFromApi("user/list-users");
+  fetchAllMembers = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: UserType[] }>> => {
+    return this.fetchFromApi("user/list-users", query);
   };
 
   fetchUserStats = (): Promise<any> => {
@@ -83,8 +95,10 @@ class ApiCalls {
   fetchDepartments = (): Promise<any> => {
     return this.fetchFromApi("department/list-departments");
   };
-  fetchRequisitions = (): Promise<any> => {
-    return this.fetchFromApi("requisitions/list-requisition");
+  fetchRequisitions = (
+    query?: Record<string, string | number>
+  ): Promise<any> => {
+    return this.fetchFromApi("requisitions/list-requisition", query);
   };
 }
 

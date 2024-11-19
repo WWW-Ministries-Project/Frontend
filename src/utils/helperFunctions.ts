@@ -92,10 +92,15 @@ export const getChangedValues = (initialValues: any, currentValues: any) => {
 // Define the fetchData function
 export const fetchData = async <T>(
   baseUrl: string,
-  path: string
+  path: string,
+  query?: Record<string, any>
 ): Promise<ApiResponse<any>> => {
   try {
-    const response: AxiosResponse<T> = await axios.get(`${baseUrl}${path}`);
+    const queryString = query
+    ? `?${new URLSearchParams(query).toString()}`
+    : "";
+  const url = `${baseUrl}${path}${queryString}`;
+    const response: AxiosResponse<T> = await axios.get(url);
     return { data: response.data, status: response.status };
   } catch (error) {
     console.error(`Error fetching data from ${baseUrl}${path}:`, error);
@@ -119,7 +124,7 @@ export const deleteData = async <T>(
     return { data: response.data, status: response.status };
   } catch (error) {
     console.error(`Error deleting data from ${baseUrl}${path}:`, error);
-    throw error; // Rethrow error to ensure it is handled properly
+    throw error; 
   }
 };
 
@@ -152,4 +157,3 @@ export const putData = async <T>(
     throw error;
   }
 };
-
