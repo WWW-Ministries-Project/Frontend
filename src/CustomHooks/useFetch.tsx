@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 export const useFetch = <T,>(
-  fetchFunction: () => Promise<T>,
-  params?: string | number,
+  fetchFunction: (params?: Record<string, string|number>) => Promise<T>,
+  params?: Record<string, string|number>,
   lazy?: boolean
 ) => {
   const [data, setData] = useState<T | null>(null);
@@ -13,7 +13,7 @@ export const useFetch = <T,>(
     setLoading(true);
 
     try {
-      const response = await fetchFunction();
+      const response = await fetchFunction(params);
       setData(response);
       return response;
     } catch (err) {
@@ -21,7 +21,7 @@ export const useFetch = <T,>(
     } finally {
       setLoading(false);
     }
-  }, [params, fetchFunction]);
+  }, [fetchFunction]);
 
   useEffect(() => {
     !lazy && fetchData();

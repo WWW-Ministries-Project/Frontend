@@ -1,6 +1,8 @@
 import { DateTime } from "luxon";
-import ProfilePicture from "/src/components/ProfilePicture";
 import { deleteMember } from "../pages/Members/utils/apiCalls";
+import { useDialogStore } from "../store/globalComponentsStore";
+import ProfilePicture from "/src/components/ProfilePicture";
+
 
 export const membersColumns = [
   {
@@ -19,7 +21,7 @@ export const membersColumns = [
   },
   {
     header: "Phone number",
-    cell: ({row})=>(`${row.original.country_code?row.original.country_code:""} ${row.original.primary_number}`),
+    cell: ({ row }) => (`${row.original.country_code ? row.original.country_code : ""} ${row.original.primary_number}`),
   },
   {
     header: "last visited",
@@ -39,11 +41,18 @@ export const membersColumns = [
   },
   {
     header: "Actions",
-    cell: ({row}) => (
+    cell: ({ row }) => (
       <div>
         <button
           onClick={() => {
-            deleteMember(row.original.id);
+            useDialogStore.setState({
+              dialogData: {
+                name: row.original.name,
+                showModal: true,
+                onConfirm: () => { deleteMember(row.original.id); useDialogStore.getState().dialogDataReset(); },
+                onCancel: () => useDialogStore.getState().dialogDataReset(),
+              },
+            });
           }}
           className="text-sm h-6 flex items-center justify-center rounded-lg text-center text-error ">
           Delete
@@ -59,3 +68,5 @@ export const maxMinValueForDate = () => {
   const minDate = today.toISOString().split("T")[0];
   return { minDate, maxDate };
 };
+
+

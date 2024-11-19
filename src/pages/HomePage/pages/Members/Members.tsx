@@ -126,7 +126,7 @@ function Members() {
         name: val.name,
         showModal: true,
         onConfirm: handleDelete,
-        onCancel: () => {},
+        onCancel: dialogDataReset,
       });
     }
   };

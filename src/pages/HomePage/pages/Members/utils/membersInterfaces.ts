@@ -1,4 +1,5 @@
 export interface UserType {
+  user_info?: any; //todo : get correct type
   id?: number;
   is_user?: boolean;
   title?: string;
