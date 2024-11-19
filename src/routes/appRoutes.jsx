@@ -16,7 +16,7 @@ import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
-import Members from "../pages/HomePage/pages/Members/Members.jsx";
+import Members from "../pages/HomePage/pages/Members/Members";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";

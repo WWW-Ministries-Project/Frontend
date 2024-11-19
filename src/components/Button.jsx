@@ -1,6 +1,4 @@
-// import { Link } from "react-router-dom";
-import PropTypes from "prop-types";
-// import Loader from "/src/assets/loader.svg";
+import PropTypes from "prop-types"
 
 const Button = (props) => {
   const handleClick = (e) => {
@@ -11,7 +9,7 @@ const Button = (props) => {
   let className;
   switch (props.className) {
     case "primary":
-      className = " text-white bg-primary ";
+      className = "border p-2 text-white bg-primaryViolet ";
       break;
     case "secondary":
       className = "border border-primaryViolet text-primaryViolet";

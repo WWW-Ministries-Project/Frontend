@@ -1,61 +1,95 @@
-import Dialog from "@/components/Dialog";
-import NotificationCard from "@/components/NotificationCard";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { useFetch } from "@/CustomHooks/useFetch";
+import FilterIcon from "@/assets/FilterIcon";
+import GridAsset from "@/assets/GridAsset";
+import SearchIcon from "@/assets/SearchIcon";
+import TableAsset from "@/assets/TableAssets";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import GridSkeleton from "../../Components/GridSkeleton";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
+import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
+import {
+  useDialogStore,
+  useNotificationStore,
+} from "../../store/globalComponentsStore";
 import { membersColumns } from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
-import GridAsset from "/src/assets/GridAsset";
-import TableAsset from "/src/assets/TableAssets";
-import { useDelete } from "@/CustomHooks/useDelete";
-import SearchIcon from "@/assets/SearchIcon";
-import FilterIcon from "@/assets/FilterIcon";
-import MembersCount from "../../Components/reusable/MembersCount";
+import { UserType } from "./utils/membersInterfaces";
 
 function Members() {
-  const members = useStore().members;
-  const removeMember = useStore().removeMember;
-
   const location = useLocation();
   const isNew = location.state?.new;
-
   const navigate = useNavigate();
-  const { screenWidth } = useWindowSize();
+
   const [filterMembers, setFilterMembers] = useState("");
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [modal, setModal] = useState({ show: false, data: {} });
-  const [notification, setNotification] = useState({
-    type: "",
-    message: "",
-    show: false,
-  });
-  const [queryLoading, setQueryLoading] = useState(false);
-  const { executeDelete, loading, error, success } = useDelete(
-    api.delete.deleteMember
-  );
+  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
+
+  const { setNotification } = useNotificationStore();
+  const { setDialog, dialogDataReset } = useDialogStore();
   const [showSearch, setShowSearch] = useState(false);
 
+  const { screenWidth } = useWindowSize();
+  const { executeDelete, loading, success, error } = useDelete(
+    api.delete.deleteMember
+  );
+  const { refetch: refetchUserStats } = useFetch(
+    api.fetch.fetchUserStats,
+    undefined,
+    true
+  );
+  const store = useStore();
+  const members = store.members;
+  const userStats = store.userStats;
+  const removeMember = store.removeMember;
   const columns = membersColumns;
 
   useEffect(() => {
+    const switchElement = document.getElementById("switch");
     if (screenWidth <= 540) {
       setTableView(false);
-      document.getElementById("switch").classList.add("hidden");
+      switchElement?.classList.add("hidden");
     } else {
-      document.getElementById("switch").classList.remove("hidden");
+      switchElement?.classList.remove("hidden");
     }
   }, [screenWidth]);
+
+  //showing notification and sideEffects on delete
+  useEffect(() => {
+    const handleEffect = async () => {
+      if (success) {
+        setNotification({
+          type: "success",
+          message: "Member Deleted Successfully",
+          onClose: () => {},
+          show: true,
+        });
+        const userStatsData = await refetchUserStats();
+        userStatsData && store.setUserStats(userStatsData.data);
+        dialogDataReset();
+      }
+      if (error) {
+        setNotification({
+          type: "error",
+          message: error.message,
+          onClose: () => {},
+          show: true,
+        });
+      }
+    };
+    handleEffect();
+  }, [success, error]);
 
   //HANDLE ROUTIING AFTER SUCCESFULLY ADDING MEMBER
   useEffect(() => {
@@ -63,6 +97,7 @@ function Members() {
       setNotification({
         type: "success",
         message: "Member Added Successfully",
+        onClose: () => {},
         show: true,
       });
       // Clear the 'new' state after showing the notification
@@ -70,50 +105,43 @@ function Members() {
     }
   }, [isNew, location.pathname, navigate]);
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterMembers(e.target.value);
   };
 
   const handleNavigation = () => {
     navigate("add-member");
   };
-  const handleDelete = () => {
-    const id = modal.data.id;
-    setModal({ data: {}, show: false });
-    executeDelete(id).then(() => {
-      removeMember(id);
-      setNotification({
-        type: "success",
-        message: "Member Deleted Successfully",
-        show: true,
-      });
-      setQueryLoading(false);
-    });
+  const handleDelete = async () => {
+    if (!("id" in dataToDeleteRef.current)) return;
+    const id = dataToDeleteRef.current.id;
+    await executeDelete(id!);
+    removeMember(id!);
   };
 
-  const handleDeleteModal = (val) => {
+  const handleDeleteModal = (val?: UserType) => {
     if (val) {
-      setModal((prev) => {
-        return { data: val, show: true };
-      });
-    } else {
-      setModal((prev) => {
-        return { data: {}, show: !prev.show };
+      setDataToDelete(val);
+      setDialog({
+        name: val.name,
+        showModal: true,
+        onConfirm: handleDelete,
+        onCancel: () => {},
       });
     }
   };
 
-  const handleViewMode = (bol) => {
-    localStorage.setItem("membersTableView", bol);
+  const handleViewMode = (bol: boolean) => {
+    localStorage.setItem("membersTableView", bol + "");
     setTableView(bol);
   };
 
   const membersCount = [
-    { count: members?.length, label: "Members" },
-    { count: members?.length, label: "Adult male" },
-    { count: members?.length, label: "Adult female" },
-    { count: members?.length, label: "Children male" },
-    { count: members?.length, label: "Children female" },
+    { count: userStats.total_members, label: "Members" },
+    { count: userStats.stats.adults.Male, label: "Adult male" },
+    { count: userStats.stats.adults.Female, label: "Adult female" },
+    { count: userStats.stats.children.Male, label: "Children male" },
+    { count: userStats.stats.children.Female, label: "Children female" },
   ];
 
   return (
@@ -123,7 +151,7 @@ function Members() {
         {/* search component and add member */}
         <div className="flex justify-between items-center">
           <p className="text-dark900 text-2xl font-semibold">
-            Church Members ({members?.length})
+            Church Members ({userStats.total_members})
           </p>
           <div className="flex justify-between items-center ">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -188,9 +216,7 @@ function Members() {
             tableView ? "bg-white p-2" : "bg-transparent "
           } rounded-xl`}
         >
-          {!true ? (
-            <GridSkeleton />
-          ) : tableView ? (
+          {tableView ? (
             <TableComponent
               columns={columns}
               data={members}
@@ -220,23 +246,7 @@ function Members() {
           )}
         </div>
       </section>
-      <Dialog
-        showModal={modal.show}
-        data={modal.data}
-        onClick={handleDeleteModal}
-        onDelete={handleDelete}
-      />
       {loading && <LoaderComponent />}
-      {notification.show && (
-        <NotificationCard
-          type={notification.type}
-          title={"Success"}
-          description={notification.message}
-          onClose={() =>
-            setNotification({ type: "", message: "", show: false })
-          }
-        />
-      )}
     </main>
   );
 }

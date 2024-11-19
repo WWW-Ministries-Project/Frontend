@@ -11,19 +11,11 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
-import type { UserStats } from "./pages/Members/utils/membersInterfaces";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import NotificationCard from "@/components/NotificationCard";
+import Dialog from "@/components/Dialog";
 
 function HomePage() {
-  const [userStats, setUserStats] = useState<UserStats>({
-    total_members: 0,
-    total_males: 0,
-    total_females: 0,
-    stats: {
-      adults: { male: 0, female: 0, total: 0 },
-      children: { male: 0, female: 0, Total: 0 },
-    },
-  });
   const [departmentData, setDepartmentData] = useState([]);
   const { data: membersData, loading: membersLoading } = useFetch(
     api.fetch.fetchAllMembers
@@ -36,6 +28,7 @@ function HomePage() {
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
+  const userStats = store.userStats;
   const token = getToken();
   const { user } = useAuth();
 
@@ -61,7 +54,7 @@ function HomePage() {
     }
 
     if (userStatsData) {
-      setUserStats(userStatsData.data);
+      store.setUserStats(userStatsData.data);
     }
 
     if (upcomingEventsData) {
@@ -148,6 +141,8 @@ function HomePage() {
             </div>
             {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
           </div>
+          <NotificationCard />
+          <Dialog />
         </main>
       ) : (
         <Navigate to="/login" />

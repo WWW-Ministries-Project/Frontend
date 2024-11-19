@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-export const useFetch =<T,> (
+export const useFetch = <T,>(
   fetchFunction: () => Promise<T>,
-  params?: string | number
+  params?: string | number,
+  lazy?: boolean
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,16 +15,17 @@ export const useFetch =<T,> (
     try {
       const response = await fetchFunction();
       setData(response);
+      return response;
     } catch (err) {
-      setError(err as Error);
+      setError(err instanceof Error ? err : new Error("Unknown error"));
     } finally {
       setLoading(false);
     }
   }, [params, fetchFunction]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    !lazy && fetchData();
+  }, [fetchData, lazy]);
 
-  return { data, loading, error, refetch:fetchData };
+  return { data, loading, error, refetch: fetchData };
 };
