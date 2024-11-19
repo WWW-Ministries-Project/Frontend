@@ -1,32 +1,45 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import NotificationCard from "@/components/NotificationCard";
+import UsePost from "@/CustomHooks/usePost";
 import { useStore } from "@/store/useStore";
-import { pictureType } from "@/utils/interfaces";
+import api from "@/utils/apiCalls";
+import { ApiResponse, pictureType } from "@/utils/interfaces";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import ProfilePicture from "../../../../../components/ProfilePicture";
 import { memberValues } from "../../../../../utils/helperFunctions";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import MembersForm from "../Components/MembersForm";
-import { addNewMember } from "../utils/apiCalls";
 import { UserType } from "../utils/membersInterfaces";
 import editIcon from "/assets/home/edit.svg";
 
 const AddMember = () => {
-  const store = useStore();
   const navigate = useNavigate();
-
-  const [notification, setNotification] = useState<{
-    type: "error" | "success";
-    message: string;
-    show: boolean;
-  }>({ type: "error", message: "", show: false });
   const [profilePic, setProfilePic] = useState<pictureType>({
     picture: "",
     src: "",
   });
-  const [loading, setLoading] = useState(false);
   const [userValue, setUserValue, userValueRef] = useState(memberValues);
+
+  const store = useStore();
+  const { postData, loading, error, data } = UsePost<
+    ApiResponse<{ data: UserType }>
+  >(api.post.createMember);
+
+  useEffect(() => {
+    if (data) {
+      const temp = {
+        ...data.data.data,
+        ...data.data.data.user_info,
+      };
+      store.addMember(temp);
+      navigate("/home/members", { state: { new: true } });
+    }
+    if (error) {
+      console.log(error);
+    }
+    
+  }, [data]);
   function changePic(pic: pictureType) {
     setProfilePic(() => pic);
   }
@@ -39,40 +52,19 @@ const AddMember = () => {
     navigate("/home/members");
   };
   async function handleSubmit(val: UserType) {
-    setLoading(true);
     const data = new FormData();
     data.append("file", profilePic.picture);
     const endpoint = "/upload";
     const path = `${baseUrl}${endpoint}`;
-    try {
-      const response: any =
-        profilePic.picture && (await axiosPic.post(path, data));
-      if (profilePic.picture && response.status === 200) {
-        const link = response.data.result.link;
-        setUserValue((prev) => ({ ...prev, val, photo: link }));
-      }
-      setProfilePic({ picture: "", src: "" });
-      setUserValue((prev) => ({ ...prev, ...val }));
-      const res = await addNewMember(userValueRef.current);
-      if (res && res.status === 200) {
-        const temp = {
-          ...res.data.data,
-          ...res.data.data.user_info,
-          name: res.data.data.name,
-          email: res.data.data.email,
-        };
-        store.addMember(temp);
-        navigate("/home/members", { state: { new: true } });
-      }
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-      setNotification({
-        type: "error",
-        message: "Something went wrong",
-        show: true,
-      });
+    const response: any =
+      profilePic.picture && (await axiosPic.post(path, data));
+    if (profilePic.picture && response.status === 200) {
+      const link = response.data.result.link;
+      setUserValue((prev) => ({ ...prev, val, photo: link }));
     }
+    setProfilePic({ picture: "", src: "" });
+    setUserValue((prev) => ({ ...prev, ...val }));
+    await postData(userValueRef.current);
   }
   return (
     <>
@@ -110,16 +102,6 @@ const AddMember = () => {
           loading={loading}
         />
       </section>
-      {notification.show && (
-        <NotificationCard
-          type={notification.type}
-          title={"Success"}
-          description={notification.message}
-          onClose={() =>
-            setNotification({ type: "error", message: "", show: false })
-          }
-        />
-      )}
     </>
   );
 };
