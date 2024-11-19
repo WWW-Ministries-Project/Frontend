@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
-    accessorKey: "requisition_id",
+    accessorKey: "generated_id",
   },
   {
     header: "Item name",
@@ -46,11 +46,16 @@ export const tableColumns: ColumnDef<Requisition>[] = [
       );
     },
   },
+  
   {
     header: "Date created",
     accessorKey: "date_created",
     cell: (info) =>
       DateTime.fromISO(info.getValue() as string).toFormat("yyyy-MM-dd"),
+  },
+  {
+    header: "Total Amount (GHS)",
+    accessorKey: "total_amount",
   },
   {
     header: "Status",
@@ -80,6 +85,15 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     cell: ({ row }) => {
       const [showActions, setShowActions] = useState(false);
       const navigate = useNavigate();
+const encodeId =  ()=> {
+  if (row.original.requisition_id) {
+    try {
+      return window.btoa(String(row.original.requisition_id));
+    } catch (error) {
+      return null; 
+    }
+  }
+}
       return (
         <div className="relative -mt-3">
           <button
@@ -94,7 +108,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
               <Action
                 onView={() => {
                   navigate(
-                    `/home/requests/my_requests/${row.original.requisition_id}`
+                    `/home/requests/my_requests/${encodeId()}`
                   );
                 }}
                 onEdit={() => {

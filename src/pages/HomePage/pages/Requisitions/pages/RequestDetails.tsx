@@ -7,8 +7,12 @@ import RequisitionSummary from "../components/RequisitionSummary";
 import EditableTable from "../components/EditableTable";
 import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
+import { useParams } from "react-router-dom";
 
 const RequestDetails = () => {
+  const {id} = useParams()
+  console.log(id)
+  console.log(window.atob(id as string))
   return (
     <PageOutline>
       <PageHeader title="Requesition Details">
