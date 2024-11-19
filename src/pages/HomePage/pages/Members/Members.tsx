@@ -206,7 +206,8 @@ function Members() {
             id="searchMembers"
           />
         </div>
-        <div className="flex gap-8 sm:flex-col md:flex-col lg:flex-row xl:flex-row w-full">
+        {/* <TableComponent /> */}
+        <div className="hidden gap-4 sm:hidden md:flex lg:flex  md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
           <MembersCount items={membersCount} />
         </div>
