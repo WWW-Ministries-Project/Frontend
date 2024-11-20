@@ -2,6 +2,7 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useFetch } from "@/CustomHooks/useFetch";
 import UsePost from "@/CustomHooks/usePost";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import api from "@/utils/apiCalls";
 import { pictureType } from "@/utils/interfaces";
 import { useEffect } from "react";
@@ -29,9 +30,11 @@ const ProfileDetails = () => {
   const { data, loading: queryLoading } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
-  const { data: updatedData, postData } = UsePost<{ data: { data: UserType } }>(
+  const { data: updatedData, postData, error } = UsePost<{ data: { data: UserType } }>(
     api.post.updateMember
   );
+
+  const NotificationStore = useNotificationStore();
 
   useEffect(() => {
     if (id) {
@@ -40,9 +43,26 @@ const ProfileDetails = () => {
     }
   }, [data, id]);
   useEffect(() => {
-    setDetails((prev) =>
-      updatedData?.data?.data ? {...updatedData?.data?.data,...updatedData?.data?.data.user_info} : prev
-    );
+    if (updatedData) {
+      setDetails((prev) =>
+        updatedData?.data?.data
+          ? { ...updatedData?.data?.data, ...updatedData?.data?.data.user_info }
+          : prev
+      );
+      NotificationStore.setNotification({
+        type: "success",
+        message: "Member updated successfully",
+        onClose: () => {},
+        show: true,
+      });
+    } if (error) {
+      NotificationStore.setNotification({
+        type: "error",
+        message: error.message,
+        onClose: () => {},
+        show: true,
+      });
+    }
   }, [updatedData]);
 
   function changePic(pic: pictureType) {
