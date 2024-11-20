@@ -22,34 +22,31 @@ const ProfileDetails = () => {
     src: "",
   });
   const [details, setDetails] = useState<UserType>(initialUser);
-  const [userValue, setUserValue, userValueRef] = useState<UserType | object>(
-    {}
-  );
+  const [, setUserValue, userValueRef] = useState<UserType | object>({});
   const [loading, setLoading] = useState(false);
   const { id } = useParams();
 
   const { data, loading: queryLoading } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
-  const {
-    data: updatedData,
-    loading: updateLoading,
-    postData,
-  } = UsePost<{ data: { data: UserType } }>(api.post.updateMember);
+  const { data: updatedData, postData } = UsePost<{ data: { data: UserType } }>(
+    api.post.updateMember
+  );
 
   useEffect(() => {
     if (id) {
       setDetails(data?.data?.data ?? initialUser);
       setProfilePic({ picture: "", src: data?.data?.data?.photo || "" });
     }
-  }, [data, loading, id]);
+  }, [data, id]);
   useEffect(() => {
     setDetails((prev) =>
-      updatedData?.data?.data ? updatedData?.data?.data : prev
+      updatedData?.data?.data ? {...updatedData?.data?.data,...updatedData?.data?.data.user_info} : prev
     );
   }, [updatedData]);
 
   function changePic(pic: pictureType) {
+    console.log(pic);
     setProfilePic(() => pic);
   }
   const handleEdit = (bool: boolean) => {
@@ -61,26 +58,35 @@ const ProfileDetails = () => {
   };
   async function handleSubmit(val: UserType) {
     setLoading(true);
-    const data = new FormData();
-    data.append("file", profilePic.picture);
-    const endpoint = "/upload";
-    const path = `${endpoint}`;
+
     try {
-      const response: any =
-        profilePic.picture && (await axiosPic.post(path, data));
-      if (profilePic.picture && response.status === 200) {
-        const link = response.data.result.link;
-        setUserValue((prev) => ({ ...val, photo: link }));
+      let photoLink = profilePic.picture ? "" : val.photo!;
+
+      // Step 1: Handle Profile Picture Upload
+      if (profilePic.picture) {
+        const formData = new FormData();
+        formData.append("file", profilePic.picture);
+
+        const response = await axiosPic.post("/upload", formData);
+        if (response.status === 200) {
+          photoLink = response.data.result.link;
+          setProfilePic((prev) => ({ ...prev, picture: "", src: photoLink }));
+        }
       }
-      setProfilePic((prev) => ({ ...prev, picture: "" }));
-      setUserValue((prev) => ({ ...val, id: details.id }));
-      await postData(userValueRef.current);
+      const updatedUser = {
+        ...val,
+        id: details.id,
+        photo: photoLink,
+      };
+      setUserValue(updatedUser); // Update state for userValue
+      await postData(updatedUser);
     } catch (error) {
-      console.log(error);
+      console.error("Error during form submission:", error);
     } finally {
       setLoading(false);
     }
   }
+
   const handleCancel = () => {
     setEdit(false);
   };
