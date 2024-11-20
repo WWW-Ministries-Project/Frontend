@@ -66,7 +66,6 @@ const ProfileDetails = () => {
   }, [updatedData]);
 
   function changePic(pic: pictureType) {
-    console.log(pic);
     setProfilePic(() => pic);
   }
   const handleEdit = (bool: boolean) => {
