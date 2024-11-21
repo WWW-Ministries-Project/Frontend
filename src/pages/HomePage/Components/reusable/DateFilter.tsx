@@ -1,18 +1,18 @@
 //@ts-nocheck
-import React, { forwardRef } from 'react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import React, { forwardRef } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface DateFilterProps {
-    value: Date | null;
-    onChange: (val: { year: number, month: number }) => void;
+  value: Date | null;
+  onChange: (val: { year: number; month: number; date: Date }) => void;
 }
 
 const DateFilter: React.FC<DateFilterProps> = (props) => {
   const renderMonthContent = (
-    month: string, 
-    shortMonth: string, 
-    longMonth: string, 
+    month: string,
+    shortMonth: string,
+    longMonth: string,
     day: number
   ) => {
     const fullYear = new Date(day).getFullYear();
@@ -23,20 +23,21 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
   const monthYear = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    return ({ year, month,date});
+    return { year, month, date };
   };
 
   const handleChange = (date: Date | null) => {
-    // date &&console.log(monthYear(date));
-    date &&props.onChange(monthYear(date));
+    date && props.onChange(monthYear(date));
   };
-  // const ExampleCustomInput = forwardRef<HTMLDivElement, { value?: string, onClick?: () => void }>(
-  //   ({ value, onClick }, ref) => (
-  //     <InputDiv value={value} onClick={onClick} ref={ref} id="date" onChange={() => null} />
-  //   )
-  // );
-  const ExampleCustomInput = forwardRef(({ value, onClick }, ref) => (
-    <input className="input cursor-pointer" onClick={onClick} ref={ref} defaultValue={value} placeholder='filter by date' />
+
+  const CustomInput = forwardRef(({ value, onClick }, ref) => (
+    <input
+      className="input cursor-pointer"
+      onClick={onClick}
+      ref={ref}
+      defaultValue={value}
+      placeholder="filter by date"
+    />
   ));
 
   return (
@@ -47,7 +48,7 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
       onChange={handleChange}
       showMonthYearPicker
       dateFormat="MM/yyyy"
-      customInput={<ExampleCustomInput />}
+      customInput={<CustomInput />}
     />
   );
 };

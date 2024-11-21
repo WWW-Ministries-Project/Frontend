@@ -7,7 +7,7 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
+import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";

@@ -89,8 +89,8 @@ class ApiCalls {
     return this.fetchFromApi("user/stats-users");
   };
 
-  fetchUpcomingEvents = (): Promise<any> => {
-    return this.fetchFromApi("event/list-events");
+  fetchEvents = (query?: Record<string, any>): Promise<any> => {
+    return this.fetchFromApi("event/list-events", query);
   };
 
   fetchPositions = (): Promise<any> => {
@@ -105,10 +105,11 @@ class ApiCalls {
   ): Promise<any> => {
     return this.fetchFromApi("requisitions/list-requisition", query);
   };
-  fetchRequisitionDetails=(query?: Record<string, string | number>
-  ):Promise<any>=>{
-    return this.fetchFromApi("requisitions/get-requisition/", query)
-  }
+  fetchRequisitionDetails = (
+    query?: Record<string, string | number>
+  ): Promise<any> => {
+    return this.fetchFromApi("requisitions/get-requisition/", query);
+  };
 }
 
 class ApiDeletionCalls {
@@ -147,7 +148,8 @@ class ApiCreationCalls {
     return this.postToApi<T>("user/register", payload);
   };
 
-  updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => { //todo :speak to BE TO UPDATE THIS TO PUT
+  updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    //todo :speak to BE TO UPDATE THIS TO PUT
     return this.postToApi<T>("user/update-user", payload);
   };
 }
