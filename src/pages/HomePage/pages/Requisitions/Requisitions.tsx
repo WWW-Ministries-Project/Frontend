@@ -13,7 +13,7 @@ const Requisitions = () => {
 
   return (
     <PageOutline>
-      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('request')} />
+      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('my_requests/request')} />
      
       {error && <ErrorPage />}
       {loading && <LoaderComponent />}

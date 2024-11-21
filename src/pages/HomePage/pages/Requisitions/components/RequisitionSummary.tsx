@@ -33,18 +33,18 @@ function RequisitionSummary({summary, currency}:{summary:IRequestSummary | undef
     ]
   return (
     <aside className="border rounded-lg p-3 h-fit border-[#D9D9D9]">
-      <div className="font-bold"> 
+      <div className="font-semibold text-dark900"> 
         <PageHeader title="Requisition Summary"/>
       </div>
       <div className="flex flex-col gap-3"> 
         {items.map((item)=>(
             <div key={item.title} className="flex  whitespace-nowrap gap-3 text-left">
-                <span className="font-bold ">{item.title}:</span>
+                <span className="font-semibold text-dark900 ">{item.title}:</span>
                 <span className="text-left font-normal text-mainGray">{item.value}</span>
             </div>
         ))}
         <div  className="flex items-center  whitespace-nowrap gap-3 text-left">
-                <span className="font-bold ">Status</span>
+                <span className="font-semibold text-dark900 ">Status</span>
                 <StatusPill text={summary?.status as string}/>
             </div>
       </div>

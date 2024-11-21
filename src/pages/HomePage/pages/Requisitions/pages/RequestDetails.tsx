@@ -39,7 +39,7 @@ const RequestDetails = () => {
   }) ??[]
 
   return (
-    <PageOutline>
+    <PageOutline >
       <Modal open={openSignature} onClose={() => setOpenSignature(false)}>
         <AddSignature cancel={() => setOpenSignature(false)} />
       </Modal>
@@ -52,7 +52,7 @@ const RequestDetails = () => {
         </div>
       </Modal>
       <PageHeader title="Requisition Details">
-        <div className="flex gap-2">
+        <div className="flex gap-2 hidden">
           <Button value="Edit" className={"tertiary"} />
           <Button
             value="Disapprove"
@@ -66,7 +66,7 @@ const RequestDetails = () => {
           />
         </div>
       </PageHeader>
-      <section className="grid grid-cols-4 gap-4 ">
+      <section className="grid grid-cols-4 gap-4 text-dark900">
         <section className="border rounded-xl p-3 col-span-3 sm:col-span-full md:col-span-4 lg:col-span-3 xl:col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
             {/* <div className="flex justify-center items-center bg-lightGray w-[7rem] h-[7rem] rounded-full p-3">  */}
