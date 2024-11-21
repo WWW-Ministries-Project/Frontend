@@ -1,5 +1,6 @@
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { Field, Formik } from "formik";
 import React from "react";
 import Button from "../../../../../components/Button";
@@ -10,10 +11,13 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { userFormValidator, titleOptions, maritalOptions } from "../utils/membersHelpers";
+import {
+  maritalOptions,
+  titleOptions,
+  userFormValidator,
+} from "../utils/membersHelpers";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
-import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 
 interface MembersFormProps {
   edit: boolean;
@@ -53,7 +57,9 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       {(form) => (
         <div className="h-full mb-4 py-4 gap-y-5">
           <section className="">
-            <div className=" text-dark900 H600 font-extrabold my-5">Membership Status</div>
+            <div className=" text-dark900 H600 font-extrabold my-5">
+              Membership Status
+            </div>
             <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
               <Field
                 component={FormikSelectField}
@@ -83,8 +89,6 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
             <div className="w-full grid tablet:grid-cols-2 gap-4">
-              {/* <Field
-component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={!props.edit} /> */}
               <Field
                 component={FormikInputDiv}
                 label="First Name"
@@ -150,7 +154,7 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 disabled={!props.edit}
                 onChange={(name, val) => {
                   form.setFieldValue(name, val);
-                  form.setFieldTouched(name, true)
+                  form.setFieldTouched(name, true);
                 }}
                 placeholder="enter phone number"
               />
@@ -162,8 +166,6 @@ component={FormikInputDiv} label="Name" value="Saah Asiedu" id="name" disabled={
                 type={"email"}
                 disabled={!props.edit}
               />
-              {/* <Field
-component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary_number} id="secondarynumber" disabled={!props.edit} /> */}
               <Field
                 component={FormikInputDiv}
                 label="Address"
@@ -182,7 +184,9 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
           </section>
           <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">Church Information</div>
+            <div className=" text-dark900 H600 font-extrabold my-5">
+              Church Information
+            </div>
             <div className="mb-5">
               <p className="text-dark900 leading-5 mb-2">
                 Is this member a ministry worker?
@@ -194,29 +198,33 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 }}
               />
             </div>
-            {form.values.is_user && <div className="w-full  grid tablet:grid-cols-2 gap-4">
-              {/* bug from backend */}
-              <Field
-                component={FormikSelectField}
-                label="Ministry/Department"
-                id="department_id"
-                name="department_id"
-                options={departmentsOptions || []}
-                disabled={!props.edit}
-              />
-              <Field
-                component={FormikSelectField}
-                label="Position"
-                id="position_id"
-                name="position_id"
-                options={positionOptions || []}
-                disabled={!props.edit}
-                parse={(value: string) => parseInt(value, 10)}
-              />
-            </div>}
+            {form.values.is_user && (
+              <div className="w-full  grid tablet:grid-cols-2 gap-4">
+                {/* bug from backend */}
+                <Field
+                  component={FormikSelectField}
+                  label="Ministry/Department"
+                  id="department_id"
+                  name="department_id"
+                  options={departmentsOptions || []}
+                  disabled={!props.edit}
+                />
+                <Field
+                  component={FormikSelectField}
+                  label="Position"
+                  id="position_id"
+                  name="position_id"
+                  options={positionOptions || []}
+                  disabled={!props.edit}
+                  parse={(value: string) => parseInt(value, 10)}
+                />
+              </div>
+            )}
           </section>
           <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">Work Information</div>
+            <div className=" text-dark900 H600 font-extrabold my-5">
+              Work Information
+            </div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
               <Field
                 component={FormikInputDiv}
@@ -252,7 +260,9 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
             </div>
           </section>
           <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">Emergency Contact</div>
+            <div className=" text-dark900 H600 font-extrabold my-5">
+              Emergency Contact
+            </div>
             <div className="w-full  grid tablet:grid-cols-2 gap-4">
               <Field
                 component={FormikInputDiv}
@@ -310,11 +320,12 @@ component={FormikInputDiv} label="Secondary Number" value={props.user?.secondary
                 />
                 <Button
                   value={"Save"}
-                  // onClick={()=>{console.log("clicked")}}
                   type="submit"
-                  onClick={()=>{form.handleSubmit()}}
+                  onClick={() => {
+                    form.handleSubmit();
+                  }}
                   loading={props.loading}
-                  disabled={props.disabled || form.isSubmitting}
+                  disabled={props.disabled|| props.loading}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />
               </div>
