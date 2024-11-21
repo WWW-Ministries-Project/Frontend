@@ -3,7 +3,7 @@ import Button from "./Button";
 import useFileUpload from "@/CustomHooks/useFileUpload";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
-  return <div className={`text-[#101828] ${className}`}>{text}</div>;
+  return <div className={`text-dark900 ${className}`}>{text}</div>;
 };
 export default function AddSignature({
   cancel,
@@ -80,7 +80,7 @@ export default function AddSignature({
       <Text
         text='By clicking "Sign", you agreed to approving this request
 '
-        className="text-lg"
+        className="text-base"
       />
 
       <div className="flex items-center justify-end gap-2">

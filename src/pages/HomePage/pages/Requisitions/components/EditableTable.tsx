@@ -2,19 +2,23 @@ import React, { useState } from "react";
 
 interface TableRow {
   name: string;
-  days: number;
+  quantity: number;
   amount: number;
   total: number;
 }
 
 interface EditableTableProps {
   isEditable?: boolean;
+  data?:{
+name:string, quantity:number, amount:number, total:number
+  }[]
 }
-const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
-  const [rows, setRows] = useState<TableRow[]>([
-    { name: "Item 1", days: 1, amount: 100, total: 100 },
-    { name: "Item 2", days: 2, amount: 200, total: 400 },
-  ]);
+const EditableTable: React.FC<EditableTableProps> = ({isEditable=true, data}) => {
+  const products = data ?? []
+  const [rows, setRows] = useState<TableRow[]>( isEditable ? [
+    { name: "Item 1", quantity: 1, amount: 100, total: 100 },
+    { name: "Item 2", quantity: 2, amount: 200, total: 400 },
+  ] : products);
 
   const handleInputChange = (
     index: number,
@@ -23,7 +27,7 @@ const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
   ) => {
     const updatedRows = [...rows];
     const parsedValue =
-      field === "days" || field === "amount" ? parseFloat(value) || 0 : value;
+      field === "quantity" || field === "amount" ? parseFloat(value) || 0 : value;
 
     if (typeof parsedValue === "string") {
       // @ts-ignore
@@ -32,14 +36,14 @@ const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
       // @ts-ignore
       updatedRows[index][field] = parsedValue as number;
       updatedRows[index].total =
-        updatedRows[index].days * updatedRows[index].amount;
+        updatedRows[index].quantity * updatedRows[index].amount;
     }
 
     setRows(updatedRows);
   };
 
   const addRow = () => {
-    setRows([...rows, { name: "", days: 0, amount: 0, total: 0 }]);
+    setRows([...rows, { name: "", quantity: 0, amount: 0, total: 0 }]);
   };
 
   const deleteRow = (index: number) => {
@@ -63,7 +67,7 @@ const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
               Name
             </th>
             <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-              Days
+              Quanity
             </th>
             <th className="border border-[#D9D9D9] px-2 py-1 text-left">
               Amount
@@ -94,9 +98,9 @@ const EditableTable: React.FC<EditableTableProps> = ({isEditable=true}) => {
                 <input
                   type="number"
                   className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
-                  value={row.days}
+                  value={row.quantity}
                   onChange={(e) =>
-                    handleInputChange(index, "days", e.target.value)
+                    handleInputChange(index, "quantity", e.target.value)
                   }
                   disabled={!isEditable}
                 />

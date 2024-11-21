@@ -1,8 +1,7 @@
-import React from "react";
 
 export default function RequisitionSignatureSection() {
   return (
-    <section className="flex items-center justify-between px-4">
+    <section className="flex items-center justify-between px-4 text-dark900">
       <div className="flex flex-col gap-4">
         <p className="font-semibold">
           Requested By: <span className="font-normal">Tuffour Boateng</span>

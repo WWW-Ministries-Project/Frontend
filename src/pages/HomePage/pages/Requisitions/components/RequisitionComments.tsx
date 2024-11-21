@@ -21,7 +21,7 @@ function RequisitionComments() {
   }
   return (
     <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
-      <div className="font-bold flex items-center justify-between">
+      <div className="font-semibold text-dark900 flex items-center justify-between">
         <PageHeader title="Comments" />
         <Button value="+ add comment" className="font-light text-primaryViolet" onClick={addComment} />
       </div>
