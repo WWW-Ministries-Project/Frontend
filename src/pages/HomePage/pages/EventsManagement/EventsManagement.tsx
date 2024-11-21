@@ -1,8 +1,6 @@
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import GridAsset from "@/assets/GridAsset";
-import axios from "@/axiosInstance";
-import Dialog from "@/components/Dialog";
-import NotificationCard from "@/components/NotificationCard";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,10 +9,15 @@ import CalendarAssets from "../../../../assets/CalendarAsset";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
+import {
+  useDialogStore,
+  useNotificationStore,
+} from "../../store/globalComponentsStore";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
+import { eventType } from "./utils/eventInterfaces";
 
 //TODO: work on delete ui
 const EventsManagement = () => {
@@ -22,16 +25,17 @@ const EventsManagement = () => {
   const [events, setEvents] = useState([]);
   const [filterDate, setFilterDate] = useState(new Date());
   const [filterEvents, setFilterEvents] = useState("");
-  const [modal, setModal] = useState({ show: false });
   const [showOptions, setShowOptions] = useState(false);
-  const [queryLoading, setQueryLoading] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
-  const [notificationData, setNotificationData] = useState({});
   const [tableView, setTableView] = useState(
     JSON.parse(localStorage.getItem("tableView") || "false")
   );
   const { data, refetch } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
+  const dialogStore = useDialogStore();
+  const { executeDelete, loading, success, error } = useDelete(
+    api.delete.deleteEvent
+  );
+  const notification = useNotificationStore();
 
   useEffect(() => {
     if (screenWidth <= 540) {
@@ -46,12 +50,26 @@ const EventsManagement = () => {
       setEvents(data.data.data);
     }
   }, [data]);
+  useEffect(() => {
+    if (success) {
+      notification.setNotification({
+        type: "success",
+        message: "Event Successfully deleted",
+        onClose: () => {},
+        show: true,
+      });
+    }
+    if (error) {
+      notification.setNotification({
+        type: "error",
+        message: "Something went wrong",
+        onClose: () => {},
+        show: true,
+      });
+    }
+  }, [success, error]);
   const handleNavigation = (path: string) => {
     navigate(path);
-  };
-  const handleClose = () => {
-    setShowNotification(false);
-    setNotificationData({});
   };
 
   const handleFilter = (val: { year: number; month: number; date: Date }) => {
@@ -74,33 +92,19 @@ const EventsManagement = () => {
   const handleShowOptions = (eventId: any) => {
     setShowOptions((prevId) => (prevId === eventId ? null : eventId));
   };
-  const handleDelete = () => {
-    const id = modal.data.id;
-    setModal({ data: {}, show: false });
-    setQueryLoading(true);
-    axios
-      .delete(`/event/delete-event/?id=${id}`)
-      .then((res) => {
-        setEvents(events.filter((event) => event.id !== id));
-        setShowNotification(true);
-        setQueryLoading(false);
-      })
-      .catch((error) => {
-        setQueryLoading(false);
-        setShowNotification(true);
-        setNotificationData({ type: "error" });
-      });
+  const handleDelete = (id: string | number) => {
+    executeDelete(id);
+    dialogStore.dialogDataReset();
   };
-  const handleDeleteModal = (val) => {
-    if (val) {
-      setModal((prev) => {
-        return { data: val, show: true };
-      });
-    } else {
-      setModal((prev) => {
-        return { data: {}, show: !prev.show };
-      });
-    }
+  const handleDeleteModal = (val: eventType) => {
+    dialogStore.setDialog({
+      name: val.name,
+      showModal: true,
+      onConfirm: () => {
+        handleDelete(val.id);
+      },
+      onCancel: dialogStore.dialogDataReset,
+    });
   };
 
   return (
@@ -162,22 +166,7 @@ const EventsManagement = () => {
           showOptions={showOptions}
         />
       )}
-      {queryLoading && <LoaderComponent />}
-
-      <Dialog
-        showModal={modal.show}
-        data={modal.data}
-        onClick={handleDeleteModal}
-        onDelete={handleDelete}
-      />
-      {showNotification && (
-        <NotificationCard
-          title="Deleted Successfully"
-          onClose={handleClose}
-          description="Event has been deleted successfully"
-          type={notificationData.type}
-        />
-      )}
+      {loading && <LoaderComponent />}
     </PageOutline>
   );
 };

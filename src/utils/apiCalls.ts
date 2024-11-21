@@ -128,6 +128,9 @@ class ApiDeletionCalls {
   deleteMember = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("user/delete-user", { id });
   };
+  deleteEvent = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/delete-event", { id });
+  }
 }
 
 class ApiCreationCalls {

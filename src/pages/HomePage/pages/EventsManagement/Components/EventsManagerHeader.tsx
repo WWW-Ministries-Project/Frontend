@@ -41,7 +41,7 @@ const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
 
       <Button
         value="Create Event"
-        className={" text-white h-10 p-2 gradientBtn"}
+        className={"primary"}
         onClick={() => {
           props.onNavigate("/home/manage-event");
         }}
