@@ -49,7 +49,6 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
           department_id: val.department_id && parseInt(val.department_id, 10),
         };
         const changedValues = getChangedValues(props.user, transformedValues);
-        // console.log('Changed values:', changedValues);
         props.onSubmit(changedValues);
       }}
       validationSchema={userFormValidator}
@@ -132,7 +131,6 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               <Field
                 component={FormikSelectField}
                 label="Marital Status"
-                // value={props.user?.marital_status}
                 options={maritalOptions}
                 disabled={!props.edit}
                 id="marital_status"
@@ -325,7 +323,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                     form.handleSubmit();
                   }}
                   loading={props.loading}
-                  disabled={props.disabled|| props.loading}
+                  disabled={props.disabled || props.loading}
                   className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
                 />
               </div>
