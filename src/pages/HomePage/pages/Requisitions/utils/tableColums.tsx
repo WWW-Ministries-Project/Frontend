@@ -4,8 +4,8 @@ import Action from "@/components/Action";
 import { useState } from "react";
 import Elipsis from "@/assets/ellipse.svg";
 import { DateTime } from "luxon";
-import { getStatusColor } from "@/pages/HomePage/utils/stringOperations";
 import { useNavigate } from "react-router-dom";
+import StatusPill from "@/components/StatusPill";
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
@@ -56,22 +56,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     header: "Status",
     accessorKey: "approval_status",
     cell: (info) => (
-      <div
-        className={
-          getStatusColor(info.getValue() as string) + " flex items-center gap-2"
-        }
-      >
-        <svg
-          width="6"
-          height="7"
-          viewBox="0 0 6 7"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="3" cy="3.64453" r="3" fill="#474D66" />
-        </svg>
-        {info.getValue() as string}
-      </div>
+      <StatusPill text={info.getValue() as string}/>
     ),
   },
   {
@@ -80,6 +65,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     cell: ({ row }) => {
       const [showActions, setShowActions] = useState(false);
       const navigate = useNavigate();
+      const encodedId= window.btoa(row.original.requisition_id)
       return (
         <div className="relative -mt-3">
           <button
@@ -94,7 +80,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
               <Action
                 onView={() => {
                   navigate(
-                    `/home/requests/my_requests/${row.original.requisition_id}`
+                    `/home/requests/my_requests/${encodedId}`
                   );
                 }}
                 onEdit={() => {

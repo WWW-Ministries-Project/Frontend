@@ -1,32 +1,35 @@
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
+import { IRequestSummary } from "../types/requestInterface";
+import { getStatusColor } from "@/pages/HomePage/utils/stringOperations";
+import { DateTime } from "luxon";
+import StatusPill from "@/components/StatusPill";
 
-function RequisitionSummary() {
+
+function RequisitionSummary({summary, currency}:{summary:IRequestSummary | undefined, currency:string | undefined}) {
 
     const items = [
         {
             title:"Requisition id",
-            value:"SC-23-0002"
+            value:summary?.requisition_id
         },
         {
             title:"Department",
-            value:"Medium"
+            value:summary?.department
         },
         {
             title:"Program",
-            value:"IT equipments"
+            value:summary?.program
         },
         {
             title:"Request date",
-            value:"2024-01-01"
+            value:       DateTime.fromISO( summary?.request_date as string).toFormat("dd/MM/yyyy"),
+           
         },
         {
             title:"Total cost",
-            value:"$4,500.00"
+            value:`${currency} ${summary?.total_cost}`
         },
-        {
-            title:"Status",
-            value:"Awaiting payment"
-        }
+        
     ]
   return (
     <aside className="border rounded-lg p-3 h-fit border-[#D9D9D9]">
@@ -40,6 +43,10 @@ function RequisitionSummary() {
                 <span className="text-left font-normal text-mainGray">{item.value}</span>
             </div>
         ))}
+        <div  className="flex items-center  whitespace-nowrap gap-3 text-left">
+                <span className="font-bold ">Status</span>
+                <StatusPill text={summary?.status as string}/>
+            </div>
       </div>
     </aside>
   );

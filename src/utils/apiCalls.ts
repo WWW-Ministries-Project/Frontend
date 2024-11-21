@@ -100,6 +100,10 @@ class ApiCalls {
   ): Promise<any> => {
     return this.fetchFromApi("requisitions/list-requisition", query);
   };
+  fetchRequisitionDetails=(query?: Record<string, string | number>
+  ):Promise<any>=>{
+    return this.fetchFromApi("requisitions/get-requisition/", query)
+  }
 }
 
 class ApiDeletionCalls {
