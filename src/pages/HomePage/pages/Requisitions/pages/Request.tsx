@@ -18,6 +18,7 @@ import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import useEditableTableStore from "../requisitionStore/EditableTableStore";
+import MultiImageComponent from "@/components/MultiImageComponent";
 
 const Request = () => {
   const departments =
@@ -159,6 +160,7 @@ const Request = () => {
                 type="textarea"
                 col={50}
               />
+              <MultiImageComponent placeholder="Atatchments"/>
             </FormWrapperNew>
 
             <HorizontalLine />
