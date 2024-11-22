@@ -12,43 +12,77 @@ import { addRequisitionSchema } from "../utils/requisitionSchema";
 import { decodeToken } from "@/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { useAddRequisition } from "../hooks/useAddRequisition";
+import { useParams } from "react-router-dom";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { IRequisitionDetails } from "../types/requestInterface";
+import api from "@/utils/apiCalls";
+import { useEffect, useState } from "react";
+import useEditableTableStore from "../requisitionStore/EditableTableStore";
 
 const Request = () => {
-  const departments =
-    useSettingsStore().departments?.map((dept) => {
-      return {
-        name: dept?.name,
-        value: dept?.id,
-      };
-    }) ?? [];
+  const { departments = [] } = useSettingsStore();
+  const { events = [] } = useStore();
 
-  const events = useStore().events?.map((event) => {
-    return {
-      name: event.name,
-      value: event.id,
-    };
-  });
-
- 
+  const { id } = useParams();
+  const { setInitialRows } = useEditableTableStore();
+  const [requestData, setRequestData] = useState<IRequisitionDetails | undefined>(undefined);
+  const {
+    data,
+    loading: isLoading,
+    error,
+  } = useFetch<{ data: { data: IRequisitionDetails } }>(
+    api.fetch.fetchRequisitionDetails,
+    { id: id ? window.atob(String(id)) : "" }
+  );
   const { name } = decodeToken();
-  const  {currencies, handleSubmit, loading} = useAddRequisition()
+  const { currencies, handleSubmit, loading } = useAddRequisition();
+  const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
+
+  useEffect(() => {
+    if (data?.data?.data?.products) {
+      setRequestData(data.data.data);
+      const products = data.data.data.products.map((product) => ({
+        name: product?.name,
+        amount: product?.unitPrice,
+        quantity: product?.quantity,
+        total: product?.quantity * product?.unitPrice,
+      }));
+      setInitialRows(products);
+    }
+  }, [data, setInitialRows]);
+
+  useEffect(() => {
+    const fetchFormattedDate = async () => {
+      if (requestData?.summary?.request_date) {
+        const date = await getFormatedDate(requestData.summary.request_date);
+        setFormattedRequestDate(date);
+      }
+    };
+    fetchFormattedDate();
+  }, [requestData]);
+
+  const getFormatedDate = async (date: string) => {
+    const { DateTime } = await import("luxon");
+    return DateTime.fromISO(date).toFormat("yyyy-MM-dd");
+  };
 
   return (
     <PageOutline>
-      <PageHeader title="Raise request" />
+      <PageHeader title={id ? "Update request" : "Raise request"} />
 
       <Formik
         initialValues={{
           requester_name: name,
-          department_id: "",
-          event_id: "",
-          request_date: "",
-          comment: "",
-          currency: "",
-          approval_status: "Draft",
+          department_id: requestData?.summary?.department ??"",
+          event_id: requestData?.summary?.program??"",
+          request_date: formattedRequestDate ,
+          comment: requestData?.comment ?? "",
+          currency: requestData?.currency ?? "",
+          approval_status: requestData?.summary?.status ?? "Draft",
         }}
         onSubmit={handleSubmit}
         validationSchema={addRequisitionSchema}
+        enableReinitialize
       >
         {({ handleSubmit }) => (
           <>
@@ -116,7 +150,7 @@ const Request = () => {
               />
               <Button value="Save as Draft" className="secondary" />
               <Button
-                value="Send request"
+                value={id ? "Update" : "Send request"}
                 className="default"
                 onClick={() => handleSubmit()}
                 type="submit"
