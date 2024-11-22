@@ -82,7 +82,7 @@ const Request = () => {
         }}
         validationSchema={addRequisitionSchema}
       >
-        {({ handleSubmit, values }) => (
+        {({ handleSubmit }) => (
           <>
             <FormWrapperNew>
               <Field
