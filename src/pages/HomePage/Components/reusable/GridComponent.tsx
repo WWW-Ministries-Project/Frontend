@@ -13,7 +13,6 @@ interface GridComponentProps {
   columns: any;
   filter: any;
   setFilter: any;
-  tableView: boolean;
   displayedCount: number;
   renderRow: (row: any) => React.ReactNode;
 }
@@ -23,7 +22,6 @@ const GridComponent: React.FC<GridComponentProps> = ({
   columns,
   filter,
   setFilter,
-  tableView,
   displayedCount,
   renderRow,
   ...props
