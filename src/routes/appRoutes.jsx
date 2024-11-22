@@ -7,7 +7,7 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
+import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
@@ -20,7 +20,7 @@ import Members from "../pages/HomePage/pages/Members/Members";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 
 

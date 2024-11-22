@@ -1,27 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
 export const useFetch = <T,>(
-  fetchFunction: (params?: Record<string, string|number>) => Promise<T>,
-  params?: Record<string, string|number>,
+  fetchFunction: (params?: Record<string, string | number>) => Promise<T>,
+  params?: Record<string, string | number>,
   lazy?: boolean
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setError(null);
-    setLoading(true);
+  const fetchData = useCallback(
+    async (overrideParams?: Record<string, string | number>) => {
+      setError(null);
+      setLoading(true);
 
-    try {
-      const response = await fetchFunction(params);
-      setData(response);
-      return response;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchFunction]);
+      try {
+        const response = await fetchFunction(overrideParams || params);
+        setData(response);
+        return response;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Unknown error"));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchFunction]
+  );
 
   useEffect(() => {
     !lazy && fetchData();

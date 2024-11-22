@@ -232,7 +232,6 @@ function Members() {
               displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
-              tableView={tableView}
               renderRow={(row) => (
                 <MemberCard
                   member={row.original}

@@ -1,4 +1,6 @@
 import { useFetch } from "@/CustomHooks/useFetch";
+import Dialog from "@/components/Dialog";
+import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
@@ -12,8 +14,6 @@ import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
-import NotificationCard from "@/components/NotificationCard";
-import Dialog from "@/components/Dialog";
 
 function HomePage() {
   const [departmentData, setDepartmentData] = useState([]);
@@ -22,7 +22,7 @@ function HomePage() {
   );
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
   const { data: upcomingEventsData, loading: upcomingEventsLoading } = useFetch(
-    api.fetch.fetchUpcomingEvents
+    api.fetch.fetchEvents
   );
   const { data: positionsData } = useFetch(api.fetch.fetchPositions);
   const settingsStore = useSettingsStore();

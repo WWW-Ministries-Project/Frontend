@@ -1,4 +1,6 @@
 export interface eventType {
+    poster: string;
+    event_type: "ACTIVITY"|"PROGRAM"| "SERVICE"| "other";
     name: string;
     value: string;
     id: number;
