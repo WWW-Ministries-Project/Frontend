@@ -79,6 +79,11 @@ class ApiCalls {
   ): Promise<ApiResponse<{ data: UserType[] }>> => {
     return this.fetchFromApi("user/list-users", query);
   };
+  fetchAMember = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: UserType }>> => {
+    return this.fetchFromApi("user/get-user", query);
+  };
 
   fetchUserStats = (): Promise<any> => {
     return this.fetchFromApi("user/stats-users");
@@ -143,6 +148,10 @@ class ApiCreationCalls {
   };
   createRequisition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
+
+  updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => { //todo :speak to BE TO UPDATE THIS TO PUT
+    return this.postToApi<T>("user/update-user", payload);
   };
 }
 
