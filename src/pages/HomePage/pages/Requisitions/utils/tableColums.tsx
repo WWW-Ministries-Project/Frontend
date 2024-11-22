@@ -47,6 +47,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     },
   },
   {
+    header:"Total amount",
+    accessorKey:"total_amount"
+  },
+  {
     header: "Date created",
     accessorKey: "date_created",
     cell: (info) =>

@@ -150,6 +150,9 @@ class ApiCreationCalls {
   createMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
+  createRequisition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
 
   updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     //todo :speak to BE TO UPDATE THIS TO PUT
