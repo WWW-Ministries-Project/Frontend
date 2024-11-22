@@ -22,7 +22,7 @@ export const fetchCountries = async () => {
     }
   };
 
-  export async function fetchCurrencies(): Promise<Currency[]> {
+  export async function fetchCurrencies(): Promise<{data:Currency[]}> {
     try {
       const response = await fetch(
         "https://countriesnow.space/api/v0.1/countries/currency"
@@ -30,7 +30,7 @@ export const fetchCountries = async () => {
       return await response?.json();
     } catch (error) {
       console.error("Failed to retrieve data", error);
-      return [];
+      return {data:[]};
     }
   }
   

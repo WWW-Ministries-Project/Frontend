@@ -25,10 +25,6 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const products = data ?? [
     { name: "Item 1", quantity: 1, amount: 100, total: 100 },
   ];
-  // const [rows, setRows] = useState<TableRow[]>( isEditable ? [
-  //   { name: "Item 1", quantity: 1, amount: 100, total: 100 },
-  //   { name: "Item 2", quantity: 2, amount: 200, total: 400 },
-  // ] : products);
 
   useEffect(() => {
     if (products) {
@@ -43,14 +39,6 @@ const EditableTable: React.FC<EditableTableProps> = ({
     updateRow(index, field, value);
   };
 
-  // const addRow = () => {
-  //   setRows([...rows, { name: "", quantity: 0, amount: 0, total: 0 }]);
-  // };
-
-  // const deleteRow = (index: number) => {
-  //   const updatedRows = rows.filter((_, i) => i !== index);
-  //   setRows(updatedRows);
-  // };
 
   return (
     <div className="p-4">

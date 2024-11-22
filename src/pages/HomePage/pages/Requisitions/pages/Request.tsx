@@ -9,15 +9,9 @@ import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
-import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
-import { useEffect, useState } from "react";
 import { decodeToken } from "@/utils/helperFunctions";
-import useEditableTableStore from "../requisitionStore/EditableTableStore";
-import api from "@/utils/apiCalls";
-import UsePost from "@/CustomHooks/usePost";
-import { UserType } from "../../Members/utils/membersInterfaces";
-import { ApiResponse } from "@/utils/interfaces";
-
+import { useStore } from "@/store/useStore";
+import { useAddRequisition } from "../hooks/useAddRequisition";
 
 const Request = () => {
   const departments =
@@ -27,59 +21,33 @@ const Request = () => {
         value: dept?.id,
       };
     }) ?? [];
-  const programs = useSettingsStore().positions?.map((event) => {
+
+  const events = useStore().events?.map((event) => {
     return {
-      name: event?.name,
-      value: event?.id,
+      name: event.name,
+      value: event.id,
     };
-  }) ?? [];
-  const [currency, setCurrency] = useState<{ name: string; value: string }[]>(
-    []
-  );
+  });
 
-  const { postData, loading, error, data } = UsePost<
-    ApiResponse<{ data: UserType }>
-  >(api.post.createRequisition);
+ 
+  const { name } = decodeToken();
+  const  {currencies, handleSubmit, loading} = useAddRequisition()
 
-  
-  const { name,id } = decodeToken();
-  const { rows } = useEditableTableStore();
-  useEffect(() => {
-    fetchCurrencies().then((data) =>
-      setCurrency(
-        data?.data?.map((data) => {
-          return {
-            name: data?.currency,
-            value: data?.currency,
-          };
-        })
-      )
-    );
-  }, []);
   return (
     <PageOutline>
       <PageHeader title="Raise request" />
+
       <Formik
         initialValues={{
-          requester_name:name,
+          requester_name: name,
           department_id: "",
           event_id: "",
           request_date: "",
           comment: "",
           currency: "",
-          approval_status:"Draft"
+          approval_status: "Draft",
         }}
-        onSubmit={(val) => {
-          const data = rows.map((item) => {
-            return {
-              name: item.name,
-              quantity: item.quantity,
-              unitPrice: item.amount,
-            };
-          });
-          const dataToSend = { ...val, products: data, user_id:id,attachmentLists:[] };
-          postData(dataToSend)
-        }}
+        onSubmit={handleSubmit}
         validationSchema={addRequisitionSchema}
       >
         {({ handleSubmit }) => (
@@ -104,7 +72,7 @@ const Request = () => {
                 component={FormikSelectField}
                 name="event_id"
                 label="Program"
-                options={programs}
+                options={events}
                 required={true}
                 id="event_id"
                 placeholder="Select program/event"
@@ -121,7 +89,7 @@ const Request = () => {
                 name="currency"
                 label="Currency"
                 id="currency"
-                options={currency}
+                options={currencies}
                 placeholder="Select currency"
               />
               <span> &nbsp;</span>
@@ -152,6 +120,7 @@ const Request = () => {
                 className="default"
                 onClick={() => handleSubmit()}
                 type="submit"
+                loading={loading}
               />
             </div>
           </>
