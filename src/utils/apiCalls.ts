@@ -141,6 +141,9 @@ class ApiCreationCalls {
   createMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
+  createRequisition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
 }
 
 class UnifiedApi {

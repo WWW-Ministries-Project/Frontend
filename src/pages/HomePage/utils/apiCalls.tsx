@@ -1,4 +1,4 @@
-import { countryType } from "../utils/homeInterfaces";
+import { countryType, Currency } from "../utils/homeInterfaces";
 
 export const fetchCountries = async () => {
     try {
@@ -21,3 +21,16 @@ export const fetchCountries = async () => {
       return([]);
     }
   };
+
+  export async function fetchCurrencies(): Promise<Currency[]> {
+    try {
+      const response = await fetch(
+        "https://countriesnow.space/api/v0.1/countries/currency"
+      );
+      return await response?.json();
+    } catch (error) {
+      console.error("Failed to retrieve data", error);
+      return [];
+    }
+  }
+  
