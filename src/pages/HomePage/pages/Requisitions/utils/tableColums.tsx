@@ -88,8 +88,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
                   );
                 }}
                 onEdit={() => {
-                  console.log("edit");
-                  setShowActions(false);
+                 navigate(`/home/requests/my_requests/request/${encodedId}`)
                 }}
                 onDelete={() => {
                   console.log("delete");

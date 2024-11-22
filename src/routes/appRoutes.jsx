@@ -154,6 +154,13 @@ export const routes = [
             sideTab: false
           },
           {
+            path: "my_requests/request/:id",
+            name: "Request",
+            element: <Request />,
+            isPrivate: false,
+            sideTab: false
+          },
+          {
             path: "staff_requests",
             name: "Staff Requests",
             element: <Requisitions />,
