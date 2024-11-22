@@ -18,7 +18,7 @@ import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import useEditableTableStore from "../requisitionStore/EditableTableStore";
-import MultiImageComponent from "@/components/MultiImageComponent";
+import MultiImageComponent, { image } from "@/components/MultiImageComponent";
 
 const Request = () => {
   const departments =
@@ -91,6 +91,14 @@ const Request = () => {
     return DateTime.fromISO(date).toFormat("yyyy-MM-dd");
   };
 
+  const [images, setImages] = useState<image[]>([]);
+  const imageChange = (images: image[]) => {
+    console.log("images", images)
+    setImages(images);
+  };
+
+
+
   return (
     <PageOutline>
       <PageHeader title={id ? "Update request" : "Raise request"} />
@@ -160,7 +168,7 @@ const Request = () => {
                 type="textarea"
                 col={50}
               />
-              <MultiImageComponent placeholder="Atatchments"/>
+              <MultiImageComponent placeholder="Atatchments" imageChange={imageChange} />
             </FormWrapperNew>
 
             <HorizontalLine />
