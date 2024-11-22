@@ -4,7 +4,7 @@ import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
-import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
+import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
 import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";

@@ -21,4 +21,9 @@ export interface ApiCallOptions {
     path: string,
     payload: Record<string, any>
   ) => Promise<ApiResponse<any>>;
+  updateExecutor?: (
+    baseUrl: string,
+    path: string,
+    payload: Record<string, any>
+  ) => Promise<ApiResponse<any>>;
 }

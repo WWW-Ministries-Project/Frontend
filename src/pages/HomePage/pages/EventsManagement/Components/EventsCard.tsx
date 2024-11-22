@@ -70,7 +70,9 @@ const EventsCard = (props: IEventCard) => {
         >
           <div
             className={`w-2 h-2 ${
-              compareDates(props.event.start_date+"") ? "bg-[#FF5765]" : "bg-green"
+              compareDates(props.event.start_date + "")
+                ? "bg-[#FF5765]"
+                : "bg-green"
             } rounded rounded-full ${props.indicatorClass}`}
           />
           <p>{props.event.name}</p>
@@ -78,7 +80,7 @@ const EventsCard = (props: IEventCard) => {
         <div className="flex px-3 gap-1 items-center text-sm">
           <img src={calendar} alt="clock icon" />
           <p>
-            {formatTime(props.event.start_date+"") || "TBD"} |
+            {formatTime(props.event.start_date + "") || "TBD"} |
             <span className="text-sm">{props.event.start_time}</span>
             <span className="text-sm">- {props.event.end_time} </span>
           </p>

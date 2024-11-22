@@ -19,7 +19,6 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 import { eventType } from "./utils/eventInterfaces";
 
-//TODO: work on delete ui
 const EventsManagement = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);

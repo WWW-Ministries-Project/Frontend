@@ -143,7 +143,7 @@ export const postData = async <T>(
   }
 };
 
-export const putData = async <T>(
+export const updateData = async <T>(
   baseUrl: string,
   path: string,
   payload: Record<string, any>
