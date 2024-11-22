@@ -14,7 +14,7 @@ import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage";
-import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
+import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
