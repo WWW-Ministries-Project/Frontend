@@ -2,9 +2,16 @@ import Button from "@/components/Button";
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field, Formik } from "formik";
-const AssetForm = (props: any) => {
+import useSettingsStore from "../../Settings/utils/settingsStore";
+
+interface IAssetFormProps {
+  onSubmit: (val: any) => void;
+  loading?: boolean;
+}
+const AssetForm = ({loading,onSubmit}: IAssetFormProps) => {
+  const departmentsOptions = useSettingsStore((state) => state.departmentsOptions);
   return (
-    <Formik onSubmit={(val) => {}} initialValues={[]}>
+    <Formik onSubmit={(val) => {onSubmit(val)}} initialValues={{}}>
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
           <h2 className="H400 text-dark900 font-bold">Asset Information</h2>
@@ -71,13 +78,13 @@ const AssetForm = (props: any) => {
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            {/* <Field
+            <Field
               component={FormikSelectField}
-              options={props.departmentsOptions}
+              options={departmentsOptions}
               label="Assigned to"
-              id="assigned_to"
-              name="assigned_to"
-            /> */}
+              id="department_assigned"
+              name="department_assigned"
+            />
             <Field
               component={FormikInputDiv}
               label="Date of assignment"
@@ -96,6 +103,8 @@ const AssetForm = (props: any) => {
               value={"Save"}
               type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
+              loading={loading}
+              onClick={form.submitForm}
             />
           </div>
         </div>
