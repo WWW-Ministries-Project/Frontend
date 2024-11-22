@@ -1,47 +1,26 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import { baseUrl } from "../../../Authentication/utils/helpers";
-import InputDiv from "../../Components/reusable/InputDiv";
-import SelectField from "../../Components/reusable/SelectField";
-import TableComponent from "../../Components/reusable/TableComponent";
-import TextField from "../../Components/reusable/TextField";
-import FormsComponent from "../Settings/Components/FormsComponent";
-import Dialog from "/src/components/Dialog";
-import { DateTime } from "luxon";
-import deleteIcon from "/src/assets/delete.svg";
-import edit from "/src/assets/edit.svg";
-import axios, { pictureInstance as axiosFile } from "/src/axiosInstance.js";
-import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
-import useSettingsStore from "../Settings/utils/settingsStore";
+import TableComponent from "../../Components/reusable/TableComponent";
 import AssetCard from "./Components/AssetCard";
+import { assetsColumns } from "./utils/utils";
 import GridAsset from "/src/assets/GridAsset";
 import TableAssets from "/src/assets/TableAssets";
-import ProfilePicture from "/src/components/ProfilePicture";
+import axios from "/src/axiosInstance.js";
 import { deleteData } from "/src/pages/HomePage/pages/Settings/utils/helperFunctions";
 import GridWrapper from "/src/Wrappers/GridWrapper";
-import { assetsColumns } from "./utils/utils";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
-  const [displayForm, setDisplayForm] = useState(false);
   const [assertsData, setAssertsData, assertsDataRef] = useState([]);
-  const [filter, setFilter] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [filter, setFilter] = useState("");;
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
-  const selectOptions = [{ name: "department", value: "department" }];
   const [tableView, setTableView] = useState(false);
-  const [inputValue, setInputValue, inputValueRef] = useState({ name: "" });
-  const [profilePic, setProfilePic] = useState({});
-  const { departmentsOptions } = useSettingsStore();
-  function changePic(pic) {
-    setProfilePic(() => pic);
-  }
-  const [showModal, setShowModal] = useState(false);
- 
+
 
   useEffect(() => {
     axios.get(`${baseUrl}/assets/list-assets`).then((res) => {
@@ -70,13 +49,6 @@ const AssetManagement = () => {
     setProfilePic({})
     setDisplayForm(true);
     setEditMode(false);
-  };
-
-  const handleChange = (name, value) => {
-    setInputValue((prev) => ({ ...prev, [name]: value }));
-  };
-  const handleCloseForm = () => {
-    setDisplayForm(false);
   };
 
   return (
@@ -127,12 +99,6 @@ const AssetManagement = () => {
               </GridWrapper>
             </div>}
         </section>
-        <Dialog
-          showModal={showModal}
-          onClick={handleShowModal}
-          data={itemToDelete}
-          onDelete={handleDelete}
-        />
       </div>
     </PageOutline>
   );
