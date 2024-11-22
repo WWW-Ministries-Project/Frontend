@@ -93,7 +93,6 @@ const Request = () => {
 
   const [images, setImages] = useState<image[]>([]);
   const imageChange = (images: image[]) => {
-    console.log("images", images)
     setImages(images);
   };
 
