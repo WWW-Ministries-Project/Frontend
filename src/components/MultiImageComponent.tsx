@@ -1,6 +1,7 @@
-import { ChangeEvent, memo, useEffect, useState } from "react";
+import { ChangeEvent, memo, useEffect, useState, useCallback } from "react";
 import cloud_upload from "../assets/cloud_upload.svg";
 import useFileUpload from "@/CustomHooks/useFileUpload";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 
 export type image = { image: string; id: number; file: File };
 
@@ -46,36 +47,54 @@ const UploadButton = memo(
 const MultiImageComponent = ({
   placeholder,
   imageChange,
+  MAX_IMAGES = 5,
 }: {
   placeholder?: string;
   imageChange: (images: image[]) => void;
+  MAX_IMAGES?: number;
 }) => {
   const { handleFileChange } = useFileUpload();
   const [images, setImages] = useState<image[]>([]);
-  const handleFileChangeWithStore = (event: ChangeEvent<HTMLInputElement>) => {
-    handleFileChange(event);
-    const files = event.target.files;
-    if (files) {
-      Array.from(files).forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const imagePreview = reader.result as string;
-          setImages((prev) => [
-            ...prev,
-            { id: prev.length + index + 1, image: imagePreview, file },
-          ]);
-        };
-        reader.onerror = () => {
-          console.error("File reading has failed.");
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  };
+  const { setNotification } = useNotificationStore();
 
-  const removeImage = (id: number) => {
+  const handleFileChangeWithStore = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      handleFileChange(event);
+      const files = event.target.files;
+      if (files) {
+        if (files.length + images.length > MAX_IMAGES) {
+          setNotification({
+            message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
+            onClose: () => {},
+            show: true,
+            title: "Add image",
+            type: "error",
+          });
+          return;
+        }
+        Array.from(files).forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const imagePreview = reader.result as string;
+            setImages((prev) => [
+              ...prev,
+              { id: prev.length + index + 1, image: imagePreview, file },
+            ]);
+          };
+          reader.onerror = () => {
+            console.error("File reading has failed.");
+            alert("There was an error reading the file. Please try again.");
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    },
+    [images, handleFileChange]
+  );
+
+  const removeImage = useCallback((id: number) => {
     setImages((images) => images.filter((image) => image.id !== id));
-  };
+  }, []);
 
   useEffect(() => {
     imageChange(images);
