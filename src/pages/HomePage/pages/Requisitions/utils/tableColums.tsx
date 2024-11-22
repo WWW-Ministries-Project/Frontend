@@ -9,7 +9,7 @@ import StatusPill from "@/components/StatusPill";
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
-    accessorKey: "requisition_id",
+    accessorKey: "generated_id",
   },
   {
     header: "Item name",
