@@ -20,7 +20,7 @@ import Members from "../pages/HomePage/pages/Members/Members";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 
 
