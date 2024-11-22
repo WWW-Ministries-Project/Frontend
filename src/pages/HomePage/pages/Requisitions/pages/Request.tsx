@@ -20,34 +20,58 @@ import { useEffect, useState } from "react";
 import useEditableTableStore from "../requisitionStore/EditableTableStore";
 
 const Request = () => {
-  const { departments = [] } = useSettingsStore();
-  const { events = [] } = useStore();
+  const departments =
+    useSettingsStore().departments?.map((dept) => {
+      return {
+        name: dept?.name,
+        value: dept?.id,
+      };
+    }) ?? [];
 
+  const events = useStore().events?.map((event) => {
+    return {
+      name: event.name,
+      value: event.id,
+    };
+  });
   const { id } = useParams();
   const { setInitialRows } = useEditableTableStore();
-  const [requestData, setRequestData] = useState<IRequisitionDetails | undefined>(undefined);
-  const {
-    data,
-    loading: isLoading,
-    error,
-  } = useFetch<{ data: { data: IRequisitionDetails } }>(
+  const [requestData, setRequestData] = useState<
+    IRequisitionDetails | undefined
+  >(undefined);
+  const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
     api.fetch.fetchRequisitionDetails,
     { id: id ? window.atob(String(id)) : "" }
   );
   const { name } = decodeToken();
   const { currencies, handleSubmit, loading } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
+  const [departmentId, setDeartmentId] = useState(""); //TODO remove this after backend adding the ids to the response
+  const [eventId, setEventId] = useState(""); //TODO remove this after backend adding the ids to the response
 
   useEffect(() => {
-    if (data?.data?.data?.products) {
-      setRequestData(data.data.data);
+    const response = data?.data?.data;
+    if (response) {
+      setRequestData(response);
       const products = data.data.data.products.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,
         total: product?.quantity * product?.unitPrice,
       }));
-      setInitialRows(products);
+      if (products?.length) {
+        setInitialRows(products);
+      }
+      //TODO remove this after backend adding the ids to the response
+      const department = departments?.find(
+        (depart) => depart?.name === response?.summary?.department
+      );
+      if (department) setDeartmentId(String(department?.value));
+
+      const event = events?.find(
+        (depart) => depart?.name === response?.summary?.program
+      );
+      if (event) setEventId(String(event?.value));
     }
   }, [data, setInitialRows]);
 
@@ -73,9 +97,9 @@ const Request = () => {
       <Formik
         initialValues={{
           requester_name: name,
-          department_id: requestData?.summary?.department ??"",
-          event_id: requestData?.summary?.program??"",
-          request_date: formattedRequestDate ,
+          department_id: departmentId ?? "",
+          event_id: eventId ?? "",
+          request_date: formattedRequestDate,
           comment: requestData?.comment ?? "",
           currency: requestData?.currency ?? "",
           approval_status: requestData?.summary?.status ?? "Draft",
