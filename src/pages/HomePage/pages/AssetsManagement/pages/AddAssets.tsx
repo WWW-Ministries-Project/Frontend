@@ -2,15 +2,46 @@ import { pictureInstance as axiosFile } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
 import UsePost from "@/CustomHooks/usePost";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";
+import { assetType } from "../utils/assetsInterface";
 
 const AddAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
-  const { postData, loading } = UsePost(api.post.createAsset);
+  const { postData, loading, error, data } = UsePost<{ data: assetType[] }>(
+    api.post.createAsset
+  );
+  const assetsStore = useStore();
+  const notification = useNotificationStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (data) {
+      assetsStore.setAssets(data?.data);
+      setFile(null);
+      notification.setNotification({
+        message: "Asset added successfully",
+        type: "success",
+        show: true,
+        onClose: () => {
+          navigate("/home/assets");
+        },
+      });
+      if (error) {
+        notification.setNotification({
+          message: error.message,
+          type: "error",
+          show: true,
+          onClose: () => {},
+        });
+      }
+    }
+  }, [data, error]);
   const handleFormSubmit = async (val: any) => {
-    console.log(val);
     try {
       if (file) {
         const data = new FormData();
@@ -21,7 +52,6 @@ const AddAsset = () => {
         if (file && response.status === 200) {
           const link = response.data.result.link;
           val = { ...val, photo: link };
-          setFile(null);
         }
       }
       postData(val);

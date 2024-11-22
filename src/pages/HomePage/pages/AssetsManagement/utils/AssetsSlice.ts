@@ -20,8 +20,6 @@ const createAssetSlice = (set: any, get: any): AssetSlice => ({
   },
   setAssets: (assets) => {
     set({ assets });
-    get().setAssetsOptions();
-    get().setUpcomingAssets();
   },
 });
 

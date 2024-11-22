@@ -4,12 +4,13 @@ import type { MemberSlice } from '@/pages/HomePage/pages/Members/utils/membersIn
 import createEventSlice from '@/pages/HomePage/pages/EventsManagement/utils/eventsSlice';
 import { EventSlice } from '@/pages/HomePage/pages/EventsManagement/utils/eventInterfaces';
 import createAssetSlice from '@/pages/HomePage/pages/AssetsManagement/utils/AssetsSlice';
+import { AssetSlice } from '@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface';
 
-type StoreState = MemberSlice & EventSlice;
+type StoreState = MemberSlice & EventSlice & AssetSlice;
 
 export const useStore = create<StoreState>((set, get) => ({
   ...createMemberSlice(set,get),
   ...createEventSlice(set,get),
-  ...createAssetSlice
+  ...createAssetSlice(set,get)
 }));
 
