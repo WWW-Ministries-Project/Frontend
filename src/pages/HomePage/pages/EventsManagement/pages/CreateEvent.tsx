@@ -1,18 +1,21 @@
+import { useAuth } from "@/auth/AuthWrapper";
+import axios, { pictureInstance as axiosPic } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
+import UsePost from "@/CustomHooks/usePost";
+import usePut from "@/CustomHooks/usePut";
+import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";
-import { useAuth } from "@/auth/AuthWrapper";
-import axios, { pictureInstance as axiosPic } from "@/axiosInstance";
-import UsePost from "@/CustomHooks/usePost";
-import api from "@/utils/apiCalls";
+import { eventType } from "../utils/eventInterfaces";
 
 const CreateEvent = () => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState(null);
-  const {postData} = UsePost(api.post.createEvent);
+  const [file, setFile] = useState<File | null>(null);
+  const { postData } = UsePost(api.post.createEvent);
+  const { updateData } = usePut(api.put.updateEvent);
 
   const query = location.search;
   const params = new URLSearchParams(query);
@@ -29,16 +32,12 @@ const CreateEvent = () => {
     }
   }, [id, user]);
 
-  const ahandleSubmit = (val) => {
-    console.log(val, "vjv");
-  };
-  const handleSubmit = async (val) => {
+  const handleSubmit = async (val: eventType) => {
     setLoading(true);
     const data = new FormData();
     if (file) {
       data.append("file", file);
     }
-
     try {
       let posterLink = "";
       if (file) {
@@ -47,20 +46,13 @@ const CreateEvent = () => {
           posterLink = uploadResponse.data.result.link;
         }
       }
-
-      let response = "";
       if (!id) {
         const eventData = { ...val, poster: posterLink, created_by: user?.id };
         postData(eventData);
       } else {
         const eventData = { ...val, poster: posterLink, updated_by: user?.id };
-        response = await axios.put("/event/update-event", eventData);
+        updateData(eventData);
       }
-
-      // if (response.status === 200) {
-      //   // setLoading(false)
-      //   window.location.href = "/home/events";
-      // }
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -73,8 +65,7 @@ const CreateEvent = () => {
         Fill in the form below with the event details
       </p>
       <div className="hideScrollbar overflow-y-auto">
-        <ImageUpload onFileChange={(file) => setFile(file)} />
-
+        <ImageUpload onFileChange={(file: File) => setFile(file)} />
         <EventsForm
           inputValue={inputValue}
           onSubmit={handleSubmit}
