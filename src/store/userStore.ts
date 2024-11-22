@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { UserType as memberType } from '@/pages/HomePage/pages/Members/utils/membersInterfaces';
-// import { persist } from 'zustand/middleware';
 type userType = {
     name:string
     email:string

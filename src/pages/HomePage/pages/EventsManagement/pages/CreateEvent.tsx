@@ -2,16 +2,17 @@ import ImageUpload from "@/components/ImageUpload";
 import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";
-import { useAuth } from "/src/auth/AuthWrapper";
-import axios, { pictureInstance as axiosPic } from "/src/axiosInstance";
-import Modal from "@/components/Modal";
-import AddSignature from "@/components/AddSignature";
+import { useAuth } from "@/auth/AuthWrapper";
+import axios, { pictureInstance as axiosPic } from "@/axiosInstance";
+import UsePost from "@/CustomHooks/usePost";
+import api from "@/utils/apiCalls";
 
 const CreateEvent = () => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
+  const {postData} = UsePost(api.post.createEvent);
 
   const query = location.search;
   const params = new URLSearchParams(query);
@@ -50,46 +51,23 @@ const CreateEvent = () => {
       let response = "";
       if (!id) {
         const eventData = { ...val, poster: posterLink, created_by: user?.id };
-        response = await axios.post("/event/create-event", eventData);
+        postData(eventData);
       } else {
         const eventData = { ...val, poster: posterLink, updated_by: user?.id };
         response = await axios.put("/event/update-event", eventData);
       }
 
-      if (response.status === 200) {
-        // setLoading(false)
-        window.location.href = "/home/events";
-      }
+      // if (response.status === 200) {
+      //   // setLoading(false)
+      //   window.location.href = "/home/events";
+      // }
     } catch (error) {
       console.log(error);
       setLoading(false);
     }
   };
-  const [open, setOpen] = useState(false);
-
   return (
     <section className="mx-auto py-8 px-16 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg">
-      <div className="hidden">
-        {/* TODO  remove this from here*/}
-        {/* button to open the signature upload modal */}
-        <button
-          onClick={() => {
-            setOpen(true);
-          }}
-        >
-          Open upload signature
-        </button>
-
-        {/* signature upload modal */}
-        <Modal
-          open={open}
-          onClose={() => {
-            setOpen(false);
-          }}
-        >
-          <AddSignature cancel={() => setOpen(false)} />
-        </Modal>
-      </div>
       <h1 className="H700 text-dark900">Create Event</h1>
       <p className="text-sma text-dark900 py-2">
         Fill in the form below with the event details
