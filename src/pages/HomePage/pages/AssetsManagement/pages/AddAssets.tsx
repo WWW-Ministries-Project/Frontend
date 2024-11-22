@@ -4,13 +4,12 @@ import AssetForm from "../Components/AssetForm";
 
 const AddAsset = () => {
     const [loading, setLoading] = useState(false);
-    const [file, setFile] = useState(null);
+    const [file, setFile] = useState<File | null>(null);
 
-    const handleSubmit = async (e) => {
-      return console.log("hello");
+    // const handleSubmit = async (e) => {
+    //   return console.log("hello");
       
-    }
-    const id=1
+    // }
 
     
     return ( 
@@ -22,7 +21,7 @@ const AddAsset = () => {
         <div className="hideScrollbar overflow-y-auto">
         <div className="grid md:grid-cols-3 gap-4">
           
-          <ImageUpload onFileChange={(file) => setFile(file)} />
+          <ImageUpload onFileChange={(file: File) => setFile(file)} />
             </div>
   
           {/* <AssetForm inputValue={inputValue=''} onSubmit={handleSubmit} loading={loading} updating={id ? true : false} /> */}
