@@ -28,7 +28,7 @@ const EventsManagement = () => {
   const [tableView, setTableView] = useState(
     JSON.parse(localStorage.getItem("tableView") || "false")
   );
-  const { data, refetch } = useFetch(api.fetch.fetchEvents);
+  const { data, refetch, loading: eventsLoading } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
   const dialogStore = useDialogStore();
   const { executeDelete, loading, success, error } = useDelete(
@@ -165,7 +165,7 @@ const EventsManagement = () => {
           showOptions={showOptions}
         />
       )}
-      {loading && <LoaderComponent />}
+      {loading || eventsLoading && <LoaderComponent />}
     </PageOutline>
   );
 };

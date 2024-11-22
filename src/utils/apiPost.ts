@@ -22,6 +22,9 @@ export class ApiCreationCalls {
   createEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
+  createAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("assets/create-asset", payload);
+  };
   createRequisition = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
