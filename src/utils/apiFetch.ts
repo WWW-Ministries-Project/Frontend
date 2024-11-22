@@ -41,6 +41,9 @@ export class ApiCalls {
   fetchPositions = (): Promise<any> => {
     return this.fetchFromApi("position/list-positions");
   };
+  fetchAssets = (): Promise<any> => {
+    return this.fetchFromApi("assets/list-assets");
+  };
 
   fetchDepartments = (): Promise<any> => {
     return this.fetchFromApi("department/list-departments");
