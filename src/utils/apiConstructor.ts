@@ -60,4 +60,12 @@ export class ApiExecution {
     if (!this.postExecutor) throw new Error("Post executor not defined");
     return this.postExecutor(this.baseUrl, path, payload);
   }
+
+  updateData<T>(
+    path: string,
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> {
+    if(!this.updateExecutor) throw new Error("Update executor not defined");
+    return this.updateExecutor(this.baseUrl, path, payload);
+  }
 }
