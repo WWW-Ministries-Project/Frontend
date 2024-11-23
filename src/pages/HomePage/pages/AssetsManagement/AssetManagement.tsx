@@ -13,6 +13,9 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
 import AssetCard from "./Components/AssetCard";
 import { assetsColumns } from "./utils/utils";
+import { showDeleteDialog, showNotification } from "../../utils/helperFunctions";
+import { assetType } from "./utils/assetsInterface";
+import { useDelete } from "@/CustomHooks/useDelete";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
@@ -26,6 +29,7 @@ const AssetManagement = () => {
   });
   const [tableView, setTableView] = useState(false);
   const { data } = useFetch(api.fetch.fetchAssets);
+  const { executeDelete, success,error } = useDelete(api.delete.deleteAsset);
   const assetsStore = useStore();
   const assertsData = assetsStore.assets;
 
@@ -34,6 +38,12 @@ const AssetManagement = () => {
       assetsStore.setAssets(data?.data.data);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (error) {
+      showNotification(error.message);
+    }
+  }, [error]);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
   };
@@ -42,15 +52,11 @@ const AssetManagement = () => {
     setShowOptions((prevId) => (prevId == eventId ? null : eventId));
   };
 
-  const handleDelete = () => {
-    deleteData(itemToDelete.path, itemToDelete.id);
-    setShowModal(prev => !prev);
-    let tempData = assertsDataRef.current;
-    tempData.splice(itemToDelete.index, 1)
-    setAssertsData([...tempData])
-    // switch (itemToDelete.path) {
-
-    // }
+  const handleDelete = (id: string | number) => {
+    executeDelete(id);
+  }
+  const showDeleteModal =(val:assetType)=>{
+    showDeleteDialog(val, handleDelete)
   }
 
   return (
@@ -119,7 +125,7 @@ const AssetManagement = () => {
                   key={row.id}
                   onShowOptions={handleShowOptions}
                   showOptions={showOptions === row.original.id}
-                  onDelete={handleDelete}
+                  onDelete={showDeleteModal}
                 />
               )}
             />

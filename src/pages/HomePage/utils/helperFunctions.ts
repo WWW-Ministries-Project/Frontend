@@ -1,7 +1,10 @@
-import { useDialogStore } from "../store/globalComponentsStore";
+import {
+  useDialogStore,
+  useNotificationStore,
+} from "../store/globalComponentsStore";
 
 type DialogValue = {
-  id: string;
+  id: string | number;
   name: string;
 };
 
@@ -15,13 +18,18 @@ export const maxMinValueForDate = () => {
 
 export const showDeleteDialog = <T extends DialogValue>(
   val: T,
-  handleDelete: (id: string) => void
+  handleDelete: (id: string | number) => void
 ) => {
-  const dialogStore = useDialogStore();
+  const dialogStore = useDialogStore.getState();
   dialogStore.setDialog({
     name: val.name,
     showModal: true,
     onConfirm: () => handleDelete(val.id),
     onCancel: dialogStore.dialogDataReset,
   });
+};
+
+export const showNotification = (message: string, handleClose = () => {}) => {
+  const notification = useNotificationStore.getState().setNotification;
+  notification({ message, show: true, onClose: handleClose });
 };
