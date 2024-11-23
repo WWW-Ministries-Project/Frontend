@@ -39,7 +39,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
       <label className='font-semibold ' htmlFor={props.id}>{props.label}</label>
       {props.type === "textarea" ? (
         <textarea
-          className={`input rounded-xl !h-[150px] ${props.inputClass}`}
+          className={`input rounded-xl !h-[150px] ${props.inputClass} ${props.error ? "!border-error !outline-error" : ""}`}
           id={props.id}
           name={props.id}
           value={props.value}

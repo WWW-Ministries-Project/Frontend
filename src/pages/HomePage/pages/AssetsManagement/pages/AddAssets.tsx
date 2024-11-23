@@ -2,7 +2,7 @@ import { pictureInstance as axiosFile } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
 import UsePost from "@/CustomHooks/usePost";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
@@ -16,28 +16,17 @@ const AddAsset = () => {
     api.post.createAsset
   );
   const assetsStore = useStore();
-  const notification = useNotificationStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (data) {
       assetsStore.setAssets(data?.data);
       setFile(null);
-      notification.setNotification({
-        message: "Asset added successfully",
-        type: "success",
-        show: true,
-        onClose: () => {
-          navigate("/home/assets");
-        },
+      showNotification("Asset added successfully", () => {
+        navigate("/home/assets");
       });
       if (error) {
-        notification.setNotification({
-          message: error.message,
-          type: "error",
-          show: true,
-          onClose: () => {},
-        });
+        showNotification("Something went wrong");
       }
     }
   }, [data, error]);
