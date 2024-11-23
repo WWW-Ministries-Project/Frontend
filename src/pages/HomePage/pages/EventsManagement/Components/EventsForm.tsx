@@ -7,7 +7,8 @@ import {
   formatInputDate,
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
-import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
+import { eventFormValidator} from "../utils/eventHelpers";
+import { maxMinValueForDate } from "@/pages/HomePage/utils/helperFunctions";
 
 interface EventsFormProps {
   inputValue: any;
