@@ -1,4 +1,5 @@
 export interface UserType {
+  is_active: any;
   user_info?: any; //todo : get correct type
   id: number|string;
   is_user?: boolean;
