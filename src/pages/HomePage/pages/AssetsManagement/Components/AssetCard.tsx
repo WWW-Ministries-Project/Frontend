@@ -10,7 +10,6 @@ import Elipse from "/src/assets/ellipse.svg";
 import { useNavigate } from "react-router-dom";
 
 interface IAssetCard {
-  onNavigate: (path: string) => void;
   onDelete: (asset: assetType) => void;
   onShowOptions: (id: number | string) => void;
   showOptions: boolean;

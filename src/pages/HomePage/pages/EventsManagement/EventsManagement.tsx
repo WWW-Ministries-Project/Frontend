@@ -10,9 +10,9 @@ import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import {
-  useDialogStore,
-  useNotificationStore,
-} from "../../store/globalComponentsStore";
+  showDeleteDialog,
+  showNotification,
+} from "../../utils/helperFunctions";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
@@ -28,13 +28,15 @@ const EventsManagement = () => {
   const [tableView, setTableView] = useState(
     JSON.parse(localStorage.getItem("tableView") || "false")
   );
-  const { data, refetch, loading: eventsLoading } = useFetch(api.fetch.fetchEvents);
+  const {
+    data,
+    refetch,
+    loading: eventsLoading,
+  } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
-  const dialogStore = useDialogStore();
   const { executeDelete, loading, success, error } = useDelete(
     api.delete.deleteEvent
   );
-  const notification = useNotificationStore();
 
   useEffect(() => {
     if (screenWidth <= 540) {
@@ -51,20 +53,10 @@ const EventsManagement = () => {
   }, [data]);
   useEffect(() => {
     if (success) {
-      notification.setNotification({
-        type: "success",
-        message: "Event Successfully deleted",
-        onClose: () => {},
-        show: true,
-      });
+      showNotification("Event deleted successfully");
     }
     if (error) {
-      notification.setNotification({
-        type: "error",
-        message: "Something went wrong",
-        onClose: () => {},
-        show: true,
-      });
+      showNotification("Something went wrong");
     }
   }, [success, error]);
   const handleNavigation = (path: string) => {
@@ -93,17 +85,9 @@ const EventsManagement = () => {
   };
   const handleDelete = (id: string | number) => {
     executeDelete(id);
-    dialogStore.dialogDataReset();
   };
   const handleDeleteModal = (val: eventType) => {
-    dialogStore.setDialog({
-      name: val.name,
-      showModal: true,
-      onConfirm: () => {
-        handleDelete(val.id);
-      },
-      onCancel: dialogStore.dialogDataReset,
-    });
+    showDeleteDialog(val, handleDelete);
   };
 
   return (
@@ -165,7 +149,7 @@ const EventsManagement = () => {
           showOptions={showOptions}
         />
       )}
-      {loading || eventsLoading && <LoaderComponent />}
+      {loading || (eventsLoading && <LoaderComponent />)}
     </PageOutline>
   );
 };
