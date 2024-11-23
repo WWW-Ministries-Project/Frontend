@@ -17,6 +17,7 @@ import { assetsColumns } from "./utils/utils";
 const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
+  const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [itemToDelete, setItemToDelete] = useState({
     path: "",
     id: "",
@@ -37,16 +38,20 @@ const AssetManagement = () => {
     setFilter(e.target.value);
   };
 
-  // const handleDelete = () => {
-  //   deleteData(itemToDelete.path, itemToDelete.id);
-  //   setShowModal(prev => !prev);
-  //   let tempData = assertsDataRef.current;
-  //   tempData.splice(itemToDelete.index, 1)
-  //   setAssertsData([...tempData])
-  //   // switch (itemToDelete.path) {
+  const handleShowOptions = (eventId: string | number) => {
+    setShowOptions((prevId) => (prevId == eventId ? null : eventId));
+  };
 
-  //   // }
-  // }
+  const handleDelete = () => {
+    deleteData(itemToDelete.path, itemToDelete.id);
+    setShowModal(prev => !prev);
+    let tempData = assertsDataRef.current;
+    tempData.splice(itemToDelete.index, 1)
+    setAssertsData([...tempData])
+    // switch (itemToDelete.path) {
+
+    // }
+  }
 
   return (
     <PageOutline>
@@ -109,7 +114,13 @@ const AssetManagement = () => {
               setFilter={setFilter}
               displayedCount={12}
               renderRow={(row) => (
-                <AssetCard assets={row.original} key={row.id} />
+                <AssetCard
+                  assets={row.original}
+                  key={row.id}
+                  onShowOptions={handleShowOptions}
+                  showOptions={showOptions === row.original.id}
+                  onDelete={handleDelete}
+                />
               )}
             />
           )}

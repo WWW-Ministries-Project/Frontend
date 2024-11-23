@@ -20,7 +20,7 @@ import {
   useDialogStore,
   useNotificationStore,
 } from "../../store/globalComponentsStore";
-import { membersColumns } from "../../utils/helperFunctions";
+import { membersColumns } from "./utils/tableColums";
 import MemberCard from "./Components/MemberCard";
 import { UserType } from "./utils/membersInterfaces";
 
