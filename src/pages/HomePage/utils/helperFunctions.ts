@@ -24,7 +24,10 @@ export const showDeleteDialog = <T extends DialogValue>(
   dialogStore.setDialog({
     name: val.name,
     showModal: true,
-    onConfirm: () => handleDelete(val.id),
+    onConfirm: () => {
+      handleDelete(val.id);
+      dialogStore.dialogDataReset();
+    },  
     onCancel: dialogStore.dialogDataReset,
   });
 };
