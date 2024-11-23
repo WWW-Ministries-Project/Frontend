@@ -1,5 +1,5 @@
 export interface assetType {
-    poster: string;
+    photo: string;
     name: string;
     status: string;
     id: number;
