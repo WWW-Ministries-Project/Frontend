@@ -2,8 +2,10 @@ import ProfilePicture from "@/components/ProfilePicture";
 import { showDeleteDialog } from "@/pages/HomePage/utils/helperFunctions";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
+import { ColumnDef } from "@tanstack/react-table";
+import { UserType } from "./membersInterfaces";
 
-export const membersColumns = [
+export const membersColumns:ColumnDef<UserType>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -43,7 +45,7 @@ export const membersColumns = [
     header: "Created",
     accessorKey: "created_at",
     cell: (info) =>
-      DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
+      DateTime.fromISO(info.getValue() as string).toLocaleString(DateTime.DATE_FULL),
   },
   {
     header: "Visits",
