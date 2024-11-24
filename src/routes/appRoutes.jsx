@@ -4,23 +4,23 @@ import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
-import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent.jsx";
+import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
-import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets.jsx";
-import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement.jsx";
+import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets";
+import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 import HomePage from "../pages/HomePage/HomePage";
-import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement.jsx";
+import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
 import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation.jsx";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 
 
@@ -148,6 +148,13 @@ export const routes = [
           },
           {
             path: "my_requests/request",
+            name: "Request",
+            element: <Request />,
+            isPrivate: false,
+            sideTab: false
+          },
+          {
+            path: "my_requests/request/:id",
             name: "Request",
             element: <Request />,
             isPrivate: false,

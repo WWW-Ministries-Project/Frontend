@@ -9,7 +9,7 @@ import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import ErrorPage from "@/pages/ErrorPage";
 const Requisitions = () => {
     const navigate = useNavigate()
-    const {data,loading,error} = useFetch(api.fetch.fetchRequisitions,"")
+    const {data,loading,error} = useFetch(api.fetch.fetchRequisitions,)
 
   return (
     <PageOutline>
@@ -18,7 +18,7 @@ const Requisitions = () => {
       {error && <ErrorPage />}
       {loading && <LoaderComponent />}
       {/* @ts-ignore */}
-      {!loading && ! error && <TableComponent columns={tableColumns} data={data?.data?.data ??[]}  />}
+      {!loading && ! error && <TableComponent columns={tableColumns} data={data?.data?.data ??[]} displayedCount={10}  />}
     </PageOutline>
   );
 };

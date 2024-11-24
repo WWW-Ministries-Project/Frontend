@@ -1,48 +1,25 @@
-import FormikInputDiv from "@/components/FormikInput";
-import { Field, Formik } from "formik";
-// import { formatInputDate } from "@/utils/helperFunctions";
 import Button from "@/components/Button";
-// import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
+import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
-// import { formatInputDate, getChangedValues } from "@/utils/helperFunctions";
-// import { eventFormValidator, maxMinValueForDate } from "../utils/eventHelpers";
+import { Field, Formik } from "formik";
+import useSettingsStore from "../../Settings/utils/settingsStore";
+import { assetFormValidator } from "../utils/assetsHelpers";
 
-// interface EventsFormProps {
-//   inputValue: any;
-//   handleMultiSelectChange: any;
-//   onSubmit: (val: any) => void;
-//   loading?: boolean;
-//   updating?: boolean;
-// }
-
-const AssetForm = () => {
-  // const handleMultiSelectChange = (name: string, value: Array<string>) => {
-  //   const values = value;
-  //   const index = values.indexOf(name);
-  //   if (index === -1) {
-  //     values.push(name);
-  //   } else {
-  //     values.splice(index, 1);
-  //   }
-  //   return values;
-  // };
-
+interface IAssetFormProps {
+  onSubmit: (val: any) => void;
+  loading?: boolean;
+}
+const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
+  const departmentsOptions = useSettingsStore(
+    (state) => state.departmentsOptions
+  );
   return (
     <Formik
-      // onSubmit={(val) => {
-      //   props.onSubmit(val);
-      //   // console.log(val);
-      // }}
       onSubmit={(val) => {
-        // const changedValues = props.updating
-        //   ? getChangedValues(props.inputValue, val)
-        //   : val;
-        // // console.log("Changed values:", changedValues);
-        // props.onSubmit(changedValues);
+        onSubmit(val);
       }}
-      // initialValues={props.inputValue}
-      initialValues={[]}
-      // validationSchema={eventFormValidator}
+      initialValues={{}}
+      validationSchema={assetFormValidator}
     >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
@@ -53,15 +30,12 @@ const AssetForm = () => {
               label="Asset name"
               id="name"
               name="name"
-              // value={form.values.name || props.inputValue.name}
             />
-            {/* <ErrorMessage name="name" component={"div"} /> */}
             <Field
               component={FormikInputDiv}
               label="Asset ID"
-              id="name"
-              name="name"
-              // value={form.values.name || props.inputValue.name}
+              id="assets_id"
+              name="assets_id"
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -69,31 +43,24 @@ const AssetForm = () => {
               component={FormikInputDiv}
               label="Date purchased"
               type="date"
-              id="start_date"
-              name="start_date"
-              // value={
-              //   form.values.start_date ||
-              //   formatInputDate(props.inputValue.start_date)
-              // }
+              id="date_purchased"
+              name="date_purchased"
             />
-            {/* <ErrorMessage name="name" component={"div"} /> */}
             <Field
               component={FormikInputDiv}
               label="Purchased from (Supplier)"
-              id="name"
-              name="name"
-              // value={form.values.name || props.inputValue.name}
+              id="supplier"
+              name="supplier"
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
               label="Amount"
-              id="name"
-              name="name"
-              // value={form.values.name || props.inputValue.name}
+              id="price"
+              name="price"
+              type="number"
             />
-            {/* <ErrorMessage name="name" component={"div"} /> */}
             <Field
               component={FormikSelectField}
               options={[
@@ -104,9 +71,8 @@ const AssetForm = () => {
                 { name: "Lost/Stolen", value: "LOST/STOLEN" },
               ]}
               label="Status"
-              id="statuse"
+              id="status"
               name="status"
-              // value={form.values.event_type || props.inputValue.event_type}
             />
           </div>
 
@@ -118,22 +84,15 @@ const AssetForm = () => {
               name="description"
               type="textarea"
               inputClass=" !h-48 resize-none"
-              // value={form.values.description || props.inputValue.description}
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikSelectField}
-              options={[
-                { name: "Activity", value: "ACTIVITY" },
-                { name: "Program", value: "PROGRAM" },
-                { name: "Service", value: "SERVICE" },
-                { name: "Other", value: "other" },
-              ]}
+              options={departmentsOptions}
               label="Assigned to"
-              id="event_type"
-              name="event_type"
-              // value={form.values.event_type || props.inputValue.event_type}
+              id="department_assigned"
+              name="department_assigned"
             />
             <Field
               component={FormikInputDiv}
@@ -141,12 +100,7 @@ const AssetForm = () => {
               type="date"
               id="start_date"
               name="start_date"
-              // value={
-              //   form.values.start_date ||
-              //   formatInputDate(props.inputValue.start_date)
-              // }
             />
-            {/* <ErrorMessage name="name" component={"div"} /> */}
           </div>
           <div className="flex gap-4 justify-end mt-4">
             <Button
@@ -158,10 +112,8 @@ const AssetForm = () => {
               value={"Save"}
               type={"submit"}
               className="p-2 px-4 text-white bg-primaryViolet"
-              // loading={props.loading}
-              // onClick={() => {
-              //   form.handleSubmit();
-              // }}
+              loading={loading}
+              onClick={form.submitForm}
             />
           </div>
         </div>

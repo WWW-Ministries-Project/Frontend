@@ -16,13 +16,14 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
+import { useNotificationStore } from "../../store/globalComponentsStore";
 import {
-  useDialogStore,
-  useNotificationStore,
-} from "../../store/globalComponentsStore";
-import { membersColumns } from "../../utils/helperFunctions";
+  showDeleteDialog,
+  showNotification,
+} from "../../utils/helperFunctions";
 import MemberCard from "./Components/MemberCard";
 import { UserType } from "./utils/membersInterfaces";
+import { membersColumns } from "./utils/tableColums";
 
 function Members() {
   const location = useLocation();
@@ -37,7 +38,6 @@ function Members() {
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
 
   const { setNotification } = useNotificationStore();
-  const { setDialog, dialogDataReset } = useDialogStore();
   const [showSearch, setShowSearch] = useState(false);
 
   const { screenWidth } = useWindowSize();
@@ -69,23 +69,12 @@ function Members() {
   useEffect(() => {
     const handleEffect = async () => {
       if (success) {
-        setNotification({
-          type: "success",
-          message: "Member Deleted Successfully",
-          onClose: () => {},
-          show: true,
-        });
+        showNotification("Member Deleted Successfully");
         const userStatsData = await refetchUserStats();
         userStatsData && store.setUserStats(userStatsData.data);
-        dialogDataReset();
       }
       if (error) {
-        setNotification({
-          type: "error",
-          message: error.message,
-          onClose: () => {},
-          show: true,
-        });
+        showNotification("Something went wrong");
       }
     };
     handleEffect();
@@ -94,12 +83,7 @@ function Members() {
   //HANDLE ROUTIING AFTER SUCCESFULLY ADDING MEMBER
   useEffect(() => {
     if (isNew) {
-      setNotification({
-        type: "success",
-        message: "Member Added Successfully",
-        onClose: () => {},
-        show: true,
-      });
+      showNotification("Member Added Successfully");
       // Clear the 'new' state after showing the notification
       navigate(location.pathname, { replace: true, state: {} });
     }
@@ -122,12 +106,7 @@ function Members() {
   const handleDeleteModal = (val?: UserType) => {
     if (val) {
       setDataToDelete(val);
-      setDialog({
-        name: val.name,
-        showModal: true,
-        onConfirm: handleDelete,
-        onCancel: dialogDataReset,
-      });
+      showDeleteDialog(val, handleDelete);
     }
   };
 
@@ -232,7 +211,6 @@ function Members() {
               displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
-              tableView={tableView}
               renderRow={(row) => (
                 <MemberCard
                   member={row.original}

@@ -1,66 +1,95 @@
 import assign from "@/assets/assign.svg";
 import calendar from "@/assets/calendar.svg";
 import defaultImage1 from "@/assets/image.svg";
+import Action from "@/components/Action";
+import { formatInputDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
 import PropTypes from "prop-types";
+import { assetType } from "../utils/assetsInterface";
+import Elipse from "/src/assets/ellipse.svg";
+import { useNavigate } from "react-router-dom";
 
-const AssetCard = (props: any) => {
+interface IAssetCard {
+  onDelete: (asset: assetType) => void;
+  onShowOptions: (id: number | string) => void;
+  showOptions: boolean;
+  assets: assetType;
+}
+
+const AssetCard = (props: IAssetCard) => {
+  const navigate = useNavigate();
+  const handleNavigation = (path: string) => {
+    alert(path);
+    // navigate(path);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    props.onDelete(props.assets);
+  };
+  const handleShowOptions = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    props.onShowOptions(props.assets.id);
+  };
   return (
-    <div className="authForm bg-white cursor-pointer rounded-xl border border-[#D8DAE5] hover:shadow-lg mx-auto border-b-[#6539C3] border-b-4">
-      <div className="relative top">
+    <div
+      className={`rounded-xl pb-1 ${
+        props.assets.department_assigned ? "bg-primaryViolet" : "bg-mainGray"
+      } `}
+    >
+      <CardWrapper
+        className={
+          "text-gray gap-2 pb-2 flex flex-col rounded-xl relative border border-lightGray"
+        }
+      >
+        <div className={`rounded-xl bg-[#00000050] `}>
+          {/* <div
+          className={`rounded-xl bg-[#00000050] border-b border-b-4 ${props.assets.department_assigned?"border-b-primaryViolet" : "border-b-mainGray" } `}
+        > */}
+          <img
+            className="max-w-[70vw] rounded-xl w-full h-32"
+            src={props.assets.photo || defaultImage1}
+            alt="poster for assets"
+          />
+        </div>
         <div
-          className={`absolute ${
-            props.assets.photo ? "" : "bg-[#00000050]"
-          } border-b border-[#D8DAE5] w-full h-[23vh] rounded-xl`}
-        ></div>
-        <div
-          className={`text-xs absolute right-0 m-4 rounded-md text-lighterBlac w-1/4 text-center ${
-            props.assets.status === "ASSIGNED"
-              ? "bg-green "
-              : "bg-neutralGray text-lighterBlack"
-          }`}
-        >
-          {props.assets.status === "ASSIGNED" ? "Assigned" : "Unassigned"}
-        </div>
-
-        <img
-          className="rounded-xl w-[70vw] h-[23vh]"
-          src={props.assets.photo || defaultImage1}
-          alt="lk"
-        />
-      </div>
-      {/* <div className='pb-1 rounded-xl bg-primaryViolet'> */}
-      <CardWrapper className={"flex-col text-gray rounded-b-xl p-3 flex "}>
-        <div className="flex  gap-y-2 gap-x-1 items-center ">
-          <p className="font-bold">{props.assets.name}</p>
-        </div>
-        <div className="flex  gap-y-2 gap-x-1 items-center ">
-          {/* <p className='font-bold'>Status:</p><p>{props.assets.status=== "ASSIGNED" ? "Assigned" : "Unassigned"}</p> */}
-        </div>
-        <div className="flex  gap-y-2 gap-x-1 items-center ">
-          <img src={assign} alt="clock icon" />
-          {
-            <div className="flex gap-x-1">
-              {" "}
-              <p className="">
-                <span className="text-sm">
-                  {props.assets.department_assigned}
-                </span>
-              </p>{" "}
-            </div>
+          className="flex px-3 gap-1 items-center font-bold cursor-pointer"
+          onClick={() =>
+            handleNavigation(
+              `/home/events/view-assets?event_id=${props.assets.id}`
+            )
           }
+        >
+          <p>{props.assets.name}</p>
         </div>
-
-        <div className="flex gap-1 text-sm">
+        <div className="flex px-3 gap-1 items-center text-sm">
           <img src={calendar} alt="clock icon" />
-          <p>
-            <span className="text-sm">{props.assets.date_purchased}</span>
-            <span className="text-sm">- {props.assets.end_time} (GMT)</span>
-          </p>
+          <p>{formatInputDate(props.assets.date_purchased)}</p>
         </div>
-        <div className="flex gap-1 items-center text-sm">
+        <div className="flex px-3 gap-1 text-sm">
+          <img src={assign} alt="assigned to icon" />
+          <p>{props.assets.department_assigned || "Unassigned"}</p>
         </div>
-        <div className="flex gap-1 text-sm">
+        <div
+          className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`}
+          onClick={handleShowOptions}
+        >
+          <img src={Elipse} alt="options" className="cursor-pointer" />
+          {props.showOptions && (
+            <Action
+              onDelete={handleDelete}
+              onView={() =>
+                handleNavigation(
+                  `/home/events/view-assets?event_id=${props.assets.id}`
+                )
+              }
+              onEdit={() =>
+                handleNavigation(
+                  `/home/manage-assets?event_id=${props.assets.id}`
+                )
+              }
+            />
+          )}
         </div>
       </CardWrapper>
     </div>

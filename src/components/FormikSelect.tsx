@@ -1,5 +1,5 @@
-import { FieldProps, getIn } from 'formik';
-import SelectField from '@/pages/HomePage/Components/reusable/SelectFields';
+import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
+import { FieldProps, getIn } from "formik";
 
 interface Option {
   value: string | number;
@@ -16,14 +16,14 @@ interface SelectFieldProps {
   onChange: (name: string, value: string | number) => void;
   options: Option[];
   disabled?: boolean;
-  error?:string;
+  error?: string;
 }
 
-interface FormikSelectFieldProps extends FieldProps, Omit<SelectFieldProps, 'name' > {
+interface FormikSelectFieldProps
+  extends FieldProps,
+    Omit<SelectFieldProps, "name"> {
   id: string;
 }
-
-
 
 export function fieldToSelectField({
   form: { touched, errors },
@@ -35,21 +35,25 @@ export function fieldToSelectField({
 
   return {
     ...field,
-    id:props.id,
-    value: field.value,
-    onChange: props.onChange ?? ((name: string, value: string | number) => fieldOnChange({ target: { name, value } })),
+    id: props.id,
+    value: props.value || field.value,
+    onChange:
+      props.onChange ??
+      ((name: string, value: string | number) =>
+        fieldOnChange({ target: { name, value } })),
     disabled: props.disabled,
     className: props.className,
     options: props.options,
     label: props.label,
     placeholder: props.placeholder,
     type: props.type,
-    error:showError
+    error: showError,
   };
 }
 
-export default function FormikSelectField({...props}: FormikSelectFieldProps) {
-  
+export default function FormikSelectField({
+  ...props
+}: FormikSelectFieldProps) {
   return <SelectField {...fieldToSelectField(props)} />;
 }
-FormikSelectField.displayName = 'FormikSelectField';
+FormikSelectField.displayName = "FormikSelectField";

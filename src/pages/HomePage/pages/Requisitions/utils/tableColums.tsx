@@ -9,7 +9,7 @@ import StatusPill from "@/components/StatusPill";
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
-    accessorKey: "requisition_id",
+    accessorKey: "generated_id",
   },
   {
     header: "Item name",
@@ -45,6 +45,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
         </div>
       );
     },
+  },
+  {
+    header:"Total amount",
+    accessorKey:"total_amount"
   },
   {
     header: "Date created",
@@ -84,8 +88,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
                   );
                 }}
                 onEdit={() => {
-                  console.log("edit");
-                  setShowActions(false);
+                 navigate(`/home/requests/my_requests/request/${encodedId}`)
                 }}
                 onDelete={() => {
                   console.log("delete");
