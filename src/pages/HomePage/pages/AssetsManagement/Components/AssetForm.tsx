@@ -3,15 +3,24 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
+import { assetFormValidator } from "../utils/assetsHelpers";
 
 interface IAssetFormProps {
   onSubmit: (val: any) => void;
   loading?: boolean;
 }
-const AssetForm = ({loading,onSubmit}: IAssetFormProps) => {
-  const departmentsOptions = useSettingsStore((state) => state.departmentsOptions);
+const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
+  const departmentsOptions = useSettingsStore(
+    (state) => state.departmentsOptions
+  );
   return (
-    <Formik onSubmit={(val) => {onSubmit(val)}} initialValues={{}}>
+    <Formik
+      onSubmit={(val) => {
+        onSubmit(val);
+      }}
+      initialValues={{}}
+      validationSchema={assetFormValidator}
+    >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
           <h2 className="H400 text-dark900 font-bold">Asset Information</h2>

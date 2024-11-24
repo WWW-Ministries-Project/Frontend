@@ -21,4 +21,7 @@ export class ApiDeletionCalls {
   deleteEvent = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("event/delete-event", { id });
   };
+  deleteAsset = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("assets/delete-asset", { id });
+  };
 }

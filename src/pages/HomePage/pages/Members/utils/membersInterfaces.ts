@@ -1,9 +1,10 @@
 export interface UserType {
+  is_active: any;
   user_info?: any; //todo : get correct type
-  id?: number;
+  id: number|string;
   is_user?: boolean;
   title?: string;
-  name?: string;
+  name: string;
   first_name?: string;
   other_name?: string;
   last_name?: string;

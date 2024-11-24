@@ -1,37 +1,51 @@
+import ProfilePicture from "@/components/ProfilePicture";
+import { showDeleteDialog } from "@/pages/HomePage/utils/helperFunctions";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
-import { useDialogStore } from "@/pages/HomePage/store/globalComponentsStore";
-import ProfilePicture from "@/components/ProfilePicture";
+import { ColumnDef } from "@tanstack/react-table";
+import { UserType } from "./membersInterfaces";
 
-
-export const membersColumns = [
+export const membersColumns:ColumnDef<UserType>[] = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => <div className="flex items-center gap-2 cursor-pointer" onClick={() => { window.location.href = `/home/members/${row.original.id}/info` }}>
-      <ProfilePicture
-        src={row.original.photo}
-        name={row.original.name}
-        alt="profile pic"
-        className={`h-[38px] w-[38px] rounded-full border ${row.original.is_active ? "border-green" : "border-error"}`}
-        textClass="font-great-vibes overflow-hidden opacity-60"
-      />{" "}
-      {row.original.name}
-    </div>,
+    cell: ({ row }) => (
+      <div
+        className="flex items-center gap-2 cursor-pointer"
+        onClick={() => {
+          window.location.href = `/home/members/${row.original.id}/info`;
+        }}
+      >
+        <ProfilePicture
+          src={row.original.photo}
+          name={row.original.name}
+          alt="profile pic"
+          className={`h-[38px] w-[38px] rounded-full border ${
+            row.original.is_active ? "border-green" : "border-error"
+          }`}
+          textClass="font-great-vibes overflow-hidden opacity-60"
+        />{" "}
+        {row.original.name}
+      </div>
+    ),
   },
   {
     header: "Phone number",
-    cell: ({ row }) => (`${row.original.country_code ? row.original.country_code : ""} ${row.original.primary_number}`),
+    cell: ({ row }) =>
+      `${row.original.country_code ? row.original.country_code : ""} ${
+        row.original.primary_number
+      }`,
   },
   {
     header: "last visited",
     accessorKey: "last_visited",
-    cell: (info) => info.getValue() ? info.getValue() + " days ago" : "N/A",
+    cell: (info) => (info.getValue() ? info.getValue() + " days ago" : "N/A"),
   },
   {
     header: "Created",
     accessorKey: "created_at",
-    cell: (info) => DateTime.fromISO(info.getValue()).toLocaleString(DateTime.DATE_FULL),
+    cell: (info) =>
+      DateTime.fromISO(info.getValue() as string).toLocaleString(DateTime.DATE_FULL),
   },
   {
     header: "Visits",
@@ -45,16 +59,10 @@ export const membersColumns = [
       <div>
         <button
           onClick={() => {
-            useDialogStore.setState({
-              dialogData: {
-                name: row.original.name,
-                showModal: true,
-                onConfirm: () => { deleteMember(row.original.id); useDialogStore.getState().dialogDataReset(); },
-                onCancel: () => useDialogStore.getState().dialogDataReset(),
-              },
-            });
+            showDeleteDialog(row.original, deleteMember);
           }}
-          className="text-sm h-6 flex items-center justify-center rounded-lg text-center text-error ">
+          className="text-sm h-6 flex items-center justify-center rounded-lg text-center text-error "
+        >
           Delete
         </button>
       </div>
