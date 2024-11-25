@@ -99,6 +99,7 @@ const Request = () => {
 
 
   return (
+    <section className="mx-auto py-8 px-16 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg">
     <PageOutline>
       <PageHeader title={id ? "Update request" : "Raise request"} />
 
@@ -194,6 +195,7 @@ const Request = () => {
         )}
       </Formik>
     </PageOutline>
+    </section>
   );
 };
 
