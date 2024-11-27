@@ -71,8 +71,6 @@ const AddAsset = () => {
         <div className="grid md:grid-cols-3 gap-4">
           <ImageUpload onFileChange={(file: File) => setFile(file)} />
         </div>
-
-        {/* <AssetForm inputValue={inputValue=''} onSubmit={handleSubmit} loading={loading} updating={id ? true : false} /> */}
         <AssetForm loading={loading || updateLoading} onSubmit={handleFormSubmit} initialValues={assetsStore.activeAsset} />
       </div>
     </section>
