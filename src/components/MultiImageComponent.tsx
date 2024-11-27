@@ -120,7 +120,7 @@ const MultiImageComponent = ({
         <p className="font-semibold text-dark900 pb-1 ">{placeholder}</p>
       )}
       <div
-        className={`flex p-2 flex-wrap gap-2 items-center justify-center  overflow-hidden  w-full h-[9.5rem] border border-dashed rounded-xl focus:outline-none`}
+        className={`flex p-2 overflow-auto flex-wrap gap-2 items-center justify-center   w-full h-[9.5rem] border border-dashed rounded-xl focus:outline-none`}
       >
         {images?.map((image) => {
           return (
