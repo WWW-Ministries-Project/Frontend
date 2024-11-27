@@ -77,7 +77,7 @@ const AssetCard = (props: IAssetCard) => {
               onDelete={handleDelete}
               onView={() =>
                 handleAction(
-                  `/home/assets/view-assets?asset_id=${props.assets.id}`
+                  `/home/assets/view-asset/${props.assets.id}`
                 )
               }
               onEdit={() =>
