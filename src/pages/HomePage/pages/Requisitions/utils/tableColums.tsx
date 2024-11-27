@@ -18,6 +18,22 @@ export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
     accessorKey: "generated_id",
+    cell: ({ row }) => {
+      const ItemButton = () => {
+        const navigate = useNavigate();
+
+        const handleClick = () => {
+          const encodedId = window.btoa(row.original.requisition_id);
+          navigate(`/home/requests/my_requests/${encodedId}`);
+        };
+
+        return <button onClick={handleClick}>
+          {row.original.generated_id}
+        </button>;
+      };
+
+      return <ItemButton />;
+    },
   },
   {
     header: "Item name",
