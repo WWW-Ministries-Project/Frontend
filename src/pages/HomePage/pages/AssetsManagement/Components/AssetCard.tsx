@@ -24,8 +24,7 @@ const AssetCard = (props: IAssetCard) => {
     navigate(path);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = () => {
     props.onDelete(props.assets);
   };
   const handleShowOptions = (e: React.MouseEvent) => {
