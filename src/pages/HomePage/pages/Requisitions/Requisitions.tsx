@@ -6,11 +6,18 @@ import { useNavigate } from "react-router-dom";
 import api from "@/utils/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
-import ErrorPage from "@/pages/ErrorPage";
 import EmptyState from "@/components/EmptyState";
+import useRequisitions from "./requisitionStore/useRequisitionStore";
+import { useEffect } from "react";
+import { Requisition } from "./types/requestInterface";
 const Requisitions = () => {
     const navigate = useNavigate()
-    const {data,loading,error} = useFetch(api.fetch.fetchRequisitions,)
+    const {data,loading,error} = useFetch<{data:{data:Requisition[]}}>(api.fetch.fetchRequisitions,)
+const {setRequests, requests} = useRequisitions()
+
+useEffect(()=>{
+setRequests(data?.data?.data as Requisition[])
+},[data])
 
   return (
     <PageOutline>
@@ -20,7 +27,7 @@ const Requisitions = () => {
       {loading && <LoaderComponent  />}
       {!loading && !data?.data?.data?.length && <EmptyState msg="No requistions found" className="flex items-center justify-center flex-col"/>}
       {/* @ts-ignore */}
-      {!loading && ! error && <TableComponent columns={tableColumns} data={data?.data?.data ??[]} displayedCount={10}  />}
+      {!loading && ! error && <TableComponent columns={tableColumns} data={requests ??[]} displayedCount={10}  />}
     </PageOutline>
   );
 };

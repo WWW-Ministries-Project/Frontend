@@ -12,6 +12,7 @@ export interface Requisition {
   user_id: number;
   product_names: string[];
   user: UserType;
+  generated_id:string
 }
 
 export interface IRequestSummary{
