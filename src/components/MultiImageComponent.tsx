@@ -16,7 +16,7 @@ const UploadButton = memo(
     return (
       <div
         className={`rounded-xl cursor-pointer focus:outline-none ${
-          !images?.length ? "w-full h-full" : "w-24 h-24 border border-dashed "
+          !images?.length ? "w-full h-full" : "w-20 h-20 text-center text-sm border border-dashed "
         }`}
       >
         <input
@@ -30,10 +30,11 @@ const UploadButton = memo(
         <label
           htmlFor="fileUpload"
           className="flex items-center justify-center h-full cursor-pointer"
+          aria-label="Upload images"
         >
-          <div className="flex items-center justify-center flex-col">
-            <img className="mx-auto" src={cloud_upload} alt="Upload an image" />
-            <span className="text-sm">
+          <div className="flex items-center justify-center flex-col px-1">
+            <img className="mx-auto" src={cloud_upload} alt="" />
+            <span className="text-xs">
               {!images?.length
                 ? " Click here to add attachments"
                 : "Add image(s)"}
@@ -113,9 +114,8 @@ const MultiImageComponent = ({
             <div className="relative" key={image.id}>
               <img
                 src={image.image}
-                alt={`Image ${image.id}`}
-                className="w-24 h-24 shadow-sm rounded-lg"
-                onClick={() => removeImage(image.id)}
+                alt={`item ${image.id}`}
+                className="w-20 h-20 shadow-sm rounded-lg"
               />
               <button
                 className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 w-5 h-5 flex items-center justify-center"
