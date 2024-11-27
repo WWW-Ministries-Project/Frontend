@@ -161,7 +161,6 @@ const Request = () => {
           }}
           validationSchema={addRequisitionSchema}
           enableReinitialize
-          validateOnMount
         >
           {({ handleSubmit }) => (
             <>
