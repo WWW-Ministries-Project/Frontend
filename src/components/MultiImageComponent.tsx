@@ -3,7 +3,7 @@ import cloud_upload from "../assets/cloud_upload.svg";
 import useFileUpload from "@/CustomHooks/useFileUpload";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 
-export type image = { image: string; id: number; file: File };
+export type image = { image: string; id: number; file?: File };
 
 const UploadButton = memo(
   ({
@@ -16,7 +16,9 @@ const UploadButton = memo(
     return (
       <div
         className={`rounded-xl cursor-pointer focus:outline-none ${
-          !images?.length ? "w-full h-full" : "w-20 h-20 text-center text-sm border border-dashed "
+          !images?.length
+            ? "w-full h-full"
+            : "w-20 h-20 text-center text-sm border border-dashed "
         }`}
       >
         <input
@@ -49,14 +51,25 @@ const MultiImageComponent = ({
   placeholder,
   imageChange,
   MAX_IMAGES = 5,
+  initialImages,
 }: {
   placeholder?: string;
   imageChange: (images: image[]) => void;
   MAX_IMAGES?: number;
+  initialImages: image[];
 }) => {
   const { handleFileChange } = useFileUpload();
-  const [images, setImages] = useState<image[]>([]);
   const { setNotification } = useNotificationStore();
+
+  const [images, setImages] = useState<image[]>([]);
+
+  useEffect(() => {
+    if (initialImages.length > 0) {
+      setImages(initialImages);
+    } else {
+      setImages([]);
+    }
+  }, [initialImages]);
 
   const handleFileChangeWithStore = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {

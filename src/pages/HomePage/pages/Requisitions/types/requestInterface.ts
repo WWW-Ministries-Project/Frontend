@@ -41,4 +41,7 @@ export interface IRequisitionDetails {
     unitPrice: number;
     quantity: number;
   }[];
+  attachmentLists:{
+    URL:string
+  }[]
 }

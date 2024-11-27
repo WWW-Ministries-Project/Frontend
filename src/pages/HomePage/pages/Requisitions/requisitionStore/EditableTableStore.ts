@@ -6,6 +6,7 @@ interface TableRow {
   quantity: number;
   amount: number;
   total: number;
+  id:string | number
 }
 
 interface EditableTableStore {
@@ -19,7 +20,7 @@ interface EditableTableStore {
 const useEditableTableStore = create<EditableTableStore>((set) => ({
   rows: [],
   addRow: () => set((state) => ({
-    rows: [...state.rows, { name: `item ${state.rows?.length+1}`, quantity: 5, amount: 1, total: 5 }],
+    rows: [...state.rows, { name: `item ${state.rows?.length+1}`, quantity: 5, amount: 1, total: 5,id:state.rows?.length+1 }],
   })),
   deleteRow: (index) => set((state) => ({
     rows: state.rows.filter((_, i) => i !== index),

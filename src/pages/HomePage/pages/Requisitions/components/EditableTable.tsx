@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, } from "react";
 import useEditableTableStore from "../requisitionStore/EditableTableStore";
 interface TableRow {
   name: string;
@@ -14,6 +14,7 @@ interface EditableTableProps {
     quantity: number;
     amount: number;
     total: number;
+    id:string
   }[];
 }
 const EditableTable: React.FC<EditableTableProps> = ({
@@ -23,7 +24,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const { addRow, deleteRow, rows, updateRow, setInitialRows } =
     useEditableTableStore();
   const products = data ?? [
-    { name: "Item 1", quantity: 1, amount: 100, total: 100 },
+    { name: "Item 1", quantity: 1, amount: 100, total: 100,id:1 },
   ];
 
   useEffect(() => {
