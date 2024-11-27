@@ -4,12 +4,15 @@ import FormikSelectField from "@/components/FormikSelect";
 import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { assetFormValidator } from "../utils/assetsHelpers";
+import { assetType } from "../utils/assetsInterface";
+import { formatInputDate } from "@/utils/helperFunctions";
 
 interface IAssetFormProps {
   onSubmit: (val: any) => void;
   loading?: boolean;
+  initialValues: assetType | {};
 }
-const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
+const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
   const departmentsOptions = useSettingsStore(
     (state) => state.departmentsOptions
   );
@@ -18,7 +21,7 @@ const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
       onSubmit={(val) => {
         onSubmit(val);
       }}
-      initialValues={{}}
+      initialValues={initialValues}
       validationSchema={assetFormValidator}
     >
       {(form) => (
@@ -39,12 +42,13 @@ const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            <Field
+            {/* @ts-ignore */}
+            <Field value={formatInputDate(form.values?.date_purchased)}
               component={FormikInputDiv}
               label="Date purchased"
               type="date"
               id="date_purchased"
-              name="date_purchased"
+              name="date_purchased"              
             />
             <Field
               component={FormikInputDiv}
@@ -66,9 +70,9 @@ const AssetForm = ({ loading, onSubmit }: IAssetFormProps) => {
               options={[
                 { name: "Assigned", value: "ASSIGNED" },
                 { name: "Unassigned", value: "UNASSIGNED" },
-                { name: "Not fixable", value: "NOT FIXABLE" },
-                { name: "Out of repairs", value: "OUT OF REPAIRS" },
-                { name: "Lost/Stolen", value: "LOST/STOLEN" },
+                { name: "Not fixable", value: "NOT_FIXABLE" },
+                { name: "Out of repairs", value: "OUT_OF_REPAIRS" },
+                { name: "Lost/Stolen", value: "LOST_OR_STOLEN" },
               ]}
               label="Status"
               id="status"

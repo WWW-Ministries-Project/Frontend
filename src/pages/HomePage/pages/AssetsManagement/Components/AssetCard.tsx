@@ -8,6 +8,7 @@ import PropTypes from "prop-types";
 import { assetType } from "../utils/assetsInterface";
 import Elipse from "/src/assets/ellipse.svg";
 import { useNavigate } from "react-router-dom";
+import { useStore } from "@/store/useStore";
 
 interface IAssetCard {
   onDelete: (asset: assetType) => void;
@@ -18,9 +19,9 @@ interface IAssetCard {
 
 const AssetCard = (props: IAssetCard) => {
   const navigate = useNavigate();
-  const handleNavigation = (path: string) => {
-    alert(path);
-    // navigate(path);
+  const handleAction = (path: string) => {
+    useStore.getState().setActiveAsset(props.assets);
+    navigate(path);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -55,8 +56,8 @@ const AssetCard = (props: IAssetCard) => {
         <div
           className="flex px-3 gap-1 items-center font-bold cursor-pointer"
           onClick={() =>
-            handleNavigation(
-              `/home/events/view-assets?event_id=${props.assets.id}`
+            handleAction(
+              `/home/Assets/manage-asset?asset_id=${props.assets.id}`
             )
           }
         >
@@ -79,13 +80,13 @@ const AssetCard = (props: IAssetCard) => {
             <Action
               onDelete={handleDelete}
               onView={() =>
-                handleNavigation(
-                  `/home/events/view-assets?event_id=${props.assets.id}`
+                handleAction(
+                  `/home/assets/view-assets?asset_id=${props.assets.id}`
                 )
               }
               onEdit={() =>
-                handleNavigation(
-                  `/home/manage-assets?event_id=${props.assets.id}`
+                handleAction(
+                  `/home/Assets/manage-asset?asset_id=${props.assets.id}`
                 )
               }
             />

@@ -18,8 +18,10 @@ export interface AssetOptionsType {
 }
 export interface AssetSlice {
     assets: assetType[];
+    activeAsset: assetType | {};
     addAsset: (Asset: assetType) => void;
     removeAsset: (AssetId: number) => void;
     updateAsset: (updatedAsset: assetType) => void;
     setAssets: (assetTypes: assetType[]) => void;
+    setActiveAsset: (asset: assetType) => void;
   }

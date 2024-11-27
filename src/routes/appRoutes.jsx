@@ -124,7 +124,7 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_Events",
       },
-      
+
       {
         path: "requests",
         name: "Requests",
@@ -174,7 +174,7 @@ export const routes = [
           },
         ]
       },
-      
+
       {
         path: "Assets",
         name: "Assets",
@@ -184,7 +184,7 @@ export const routes = [
         sideTab: true,
       },
       {
-        path: "Assets/add-asset",
+        path: "Assets/manage-asset",
         element: <AddAsset />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
