@@ -2,12 +2,13 @@ import assign from "@/assets/assign.svg";
 import calendar from "@/assets/calendar.svg";
 import defaultImage1 from "@/assets/image.svg";
 import Action from "@/components/Action";
+import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { assetType } from "../utils/assetsInterface";
 import Elipse from "/src/assets/ellipse.svg";
-import { useNavigate } from "react-router-dom";
 
 interface IAssetCard {
   onDelete: (asset: assetType) => void;
@@ -18,13 +19,12 @@ interface IAssetCard {
 
 const AssetCard = (props: IAssetCard) => {
   const navigate = useNavigate();
-  const handleNavigation = (path: string) => {
-    alert(path);
-    // navigate(path);
+  const handleAction = (path: string) => {
+    useStore.getState().setActiveAsset(props.assets);
+    navigate(path);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = () => {
     props.onDelete(props.assets);
   };
   const handleShowOptions = (e: React.MouseEvent) => {
@@ -43,11 +43,8 @@ const AssetCard = (props: IAssetCard) => {
         }
       >
         <div className={`rounded-xl bg-[#00000050] `}>
-          {/* <div
-          className={`rounded-xl bg-[#00000050] border-b border-b-4 ${props.assets.department_assigned?"border-b-primaryViolet" : "border-b-mainGray" } `}
-        > */}
           <img
-            className="max-w-[70vw] rounded-xl w-full h-32"
+            className=" rounded-xl w-full h-48 object-cover"
             src={props.assets.photo || defaultImage1}
             alt="poster for assets"
           />
@@ -55,8 +52,8 @@ const AssetCard = (props: IAssetCard) => {
         <div
           className="flex px-3 gap-1 items-center font-bold cursor-pointer"
           onClick={() =>
-            handleNavigation(
-              `/home/events/view-assets?event_id=${props.assets.id}`
+            handleAction(
+              `/home/Assets/manage-asset?asset_id=${props.assets.id}`
             )
           }
         >
@@ -64,7 +61,7 @@ const AssetCard = (props: IAssetCard) => {
         </div>
         <div className="flex px-3 gap-1 items-center text-sm">
           <img src={calendar} alt="clock icon" />
-          <p>{formatInputDate(props.assets.date_purchased)}</p>
+          <p>{formatInputDate(props.assets.date_purchased)|| "Unknown"}</p>
         </div>
         <div className="flex px-3 gap-1 text-sm">
           <img src={assign} alt="assigned to icon" />
@@ -79,13 +76,13 @@ const AssetCard = (props: IAssetCard) => {
             <Action
               onDelete={handleDelete}
               onView={() =>
-                handleNavigation(
-                  `/home/events/view-assets?event_id=${props.assets.id}`
+                handleAction(
+                  `/home/assets/view-asset/${props.assets.id}`
                 )
               }
               onEdit={() =>
-                handleNavigation(
-                  `/home/manage-assets?event_id=${props.assets.id}`
+                handleAction(
+                  `/home/Assets/manage-asset?asset_id=${props.assets.id}`
                 )
               }
             />
