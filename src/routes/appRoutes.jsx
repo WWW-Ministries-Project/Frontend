@@ -22,6 +22,7 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
+import AssetDetails from "@/pages/HomePage/pages/AssetsManagement/pages/AssetDetails";
 
 
 export const routes = [
@@ -124,7 +125,7 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_Events",
       },
-      
+
       {
         path: "requests",
         name: "Requests",
@@ -174,9 +175,9 @@ export const routes = [
           },
         ]
       },
-      
+
       {
-        path: "Assets",
+        path: "assets",
         name: "Assets",
         element: <AssetManagement />,
         isPrivate: true,
@@ -184,8 +185,14 @@ export const routes = [
         sideTab: true,
       },
       {
-        path: "Assets/add-asset",
+        path: "assets/manage-asset",
         element: <AddAsset />,
+        isPrivate: true,
+        permissionNeeded: "view_Assets",
+      },
+      {
+        path: "assets/view-asset/:id",
+        element: <AssetDetails />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
       },

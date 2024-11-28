@@ -9,27 +9,37 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";
 import { assetType } from "../utils/assetsInterface";
+import usePut from "@/CustomHooks/usePut";
 
 const AddAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
-  const { postData, loading, error, data } = UsePost<{ data: assetType[] }>(
+  const navigate = useNavigate();
+  const { postData, loading, error, data } = UsePost<{ data: assetType}>(
     api.post.createAsset
   );
+  const { updateData, loading: updateLoading, error: updateError, data: updatedData } = usePut<{ data: assetType}>(api.put.updateAsset);
+  const query = location.search;
+  const params = new URLSearchParams(query);
+  const id = params.get("asset_id");
   const assetsStore = useStore();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (data) {
-      assetsStore.setAssets(data?.data);
-      setFile(null);
+      assetsStore.addAsset(data?.data);
       showNotification("Asset added successfully", () => {
         navigate("/home/assets");
       });
-      if (error) {
+      if(updatedData) {
+        assetsStore.updateAsset(updatedData?.data);
+        showNotification("Asset updated successfully", () => {
+          navigate("/home/assets");
+        });
+      }
+      if (error || updateError) {
         showNotification("Something went wrong");
       }
     }
-  }, [data, error]);
+  }, [data, error, updatedData, updateError]);
   const handleFormSubmit = async (val: any) => {
     try {
       if (file) {
@@ -43,49 +53,12 @@ const AddAsset = () => {
           val = { ...val, photo: link };
         }
       }
-      postData(val);
+      if (id) {
+        updateData(val);
+      }else postData(val);
     } catch (error) {
       console.log(error);
     }
-    //   if (editMode) {
-    //     axios
-    //       .put(`${baseUrl}/assets/update-asset`, inputValueRef.current)
-    //       .then((res) => {
-    //         setLoading(false);
-    //         // setData(res.data.data);
-    //         setAssertsData(prev => prev.map(data => {
-    //           if (data.id !== res.data.updatedAsset) return data
-    //           else return res.data.updatedAsset
-    //         }))
-    //         setDisplayForm(false);
-    //         setEditMode(false);
-    //         setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-    //       })
-    //       .catch((err) => {
-    //         console.log(err);
-    //         setLoading(false);
-    //       });
-    //   }
-    //   else {
-    //     axios
-    //       .post(`${baseUrl}/assets/create-asset`, inputValueRef.current)
-    //       .then((res) => {
-    //         setLoading(false);
-    //         // setData(res.data.data);
-    //         setAssertsData(prev => [res.data.asset, ...prev]);
-    //         setDisplayForm(false);
-    //         setInputValue({ name: "", description: "", date_purchased: "", status: "", price: "" });
-    //       })
-    //       .catch((err) => {
-    //         console.log(err);
-    //         setLoading(false);
-    //       });
-    //   }
-
-    // } catch (error) {
-    //   setLoading(false);
-    //   console.log(error);
-    // }
   };
 
   return (
@@ -98,9 +71,7 @@ const AddAsset = () => {
         <div className="grid md:grid-cols-3 gap-4">
           <ImageUpload onFileChange={(file: File) => setFile(file)} />
         </div>
-
-        {/* <AssetForm inputValue={inputValue=''} onSubmit={handleSubmit} loading={loading} updating={id ? true : false} /> */}
-        <AssetForm loading={loading} onSubmit={handleFormSubmit} />
+        <AssetForm loading={loading || updateLoading} onSubmit={handleFormSubmit} initialValues={assetsStore.activeAsset} />
       </div>
     </section>
   );
