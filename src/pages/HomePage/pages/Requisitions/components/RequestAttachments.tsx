@@ -10,7 +10,7 @@ function RequestAttachments({
   attachments: { URL: string }[];
 }>) {
   return (
-    <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
+    <div className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
       <div className="font-semibold text-dark900 flex items-center justify-between">
         <PageHeader title="Attachments" />
         <Button value="+ upload file" className="font-light text-primaryViolet"  />
@@ -36,7 +36,7 @@ function RequestAttachments({
 
         {!attachments?.length && <p>No attachments found</p>}
       </div>
-    </aside>
+    </div>
   );
 }
 

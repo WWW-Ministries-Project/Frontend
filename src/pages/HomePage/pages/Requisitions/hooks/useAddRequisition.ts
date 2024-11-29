@@ -1,19 +1,18 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { IRequisitionDetails } from "../types/requestInterface";
-
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import useEditableTableStore from "../requisitionStore/EditableTableStore";
 import { decodeToken } from "@/utils/helperFunctions";
 import UsePost from "@/CustomHooks/usePost";
 import { ApiResponse } from "@/utils/interfaces";
 import api from "@/utils/apiCalls";
 import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
 import { useCallback, useEffect, useState } from "react";
+import { useStore } from "@/store/useStore";
 
 interface IRequest {
   requester_name: string;
-  department_id: string;
-  event_id: string;
+  department_id: number;
+  event_id: number;
   request_date: string;
   comment: string;
   currency: string;
@@ -29,11 +28,14 @@ export const useAddRequisition = () => {
 
     return "";
   };
+
+  const requisitionId = decodedId()
   const { postData, loading, error, data } = UsePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>
   >(decodedId() ? api.put.updateRequisition : api.post.createRequisition);
   const { id } = decodeToken();
-  const { rows } = useEditableTableStore();
+  const {rows} = useStore()
+
   const navigate = useNavigate();
   const { setNotification } = useNotificationStore();
   const [currencies, setCurrencies] = useState<

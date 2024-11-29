@@ -17,8 +17,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
-import useEditableTableStore from "../requisitionStore/EditableTableStore";
-import MultiImageComponent, { image } from "@/components/MultiImageComponent";
+import MultiImageComponent, { image } from "@/pages/HomePage/Components/MultiImageComponent";
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 
 const Request = () => {
@@ -37,7 +36,8 @@ const Request = () => {
     };
   });
   const { id } = useParams();
-  const { setInitialRows } = useEditableTableStore();
+  const {setInitialRows} = useStore()
+
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
@@ -48,8 +48,6 @@ const Request = () => {
   const { name } = decodeToken();
   const { currencies, handleSubmit, loading } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
-  const [departmentId, setDepartmentId] = useState(""); //TODO remove this after backend adding the ids to the response
-  const [eventId, setEventId] = useState(""); //TODO remove this after backend adding the ids to the response
   const [addingImage, setAddingImage] = useState(false);
   const [initialImages, setInitialImages] = useState<image[]>([]);
   useEffect(() => {
@@ -66,17 +64,7 @@ const Request = () => {
       if (products?.length) {
         setInitialRows(products);
       }
-      //TODO remove this after backend adding the ids to the response
-      const department = departments?.find(
-        (depart) => depart?.name === response?.summary?.department
-      );
-      if (department) setDepartmentId(String(department?.value));
-
-      const event = events?.find(
-        (depart) => depart?.name === response?.summary?.program
-      );
-      if (event) setEventId(String(event?.value));
-
+     
       if (response.attachmentLists?.length) {
         const images = response.attachmentLists?.map((img, idx) => {
           return {
@@ -138,23 +126,23 @@ const Request = () => {
     return imgUrls;
   };
 
-
+const initialValues = {
+  requester_name: name,
+  department_id: requestData?.summary.department_id ?? "",
+  event_id: requestData?.summary?.event_id ?? "",
+  request_date: formattedRequestDate,
+  comment: requestData?.comment ?? "",
+  currency: requestData?.currency ?? "",
+  approval_status: requestData?.summary?.status ?? "Draft",
+}
 
   return (
-    <section className="mx-auto py-8 px-16 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg">
-      <PageOutline>
+    <PageOutline>
+        <div className="mx-auto py-8 lg:container lg:w-4/6">
         <PageHeader title={id ? "Update request" : "Raise request"} />
 
         <Formik
-          initialValues={{
-            requester_name: name,
-            department_id: departmentId ?? "",
-            event_id: eventId ?? "",
-            request_date: formattedRequestDate,
-            comment: requestData?.comment ?? "",
-            currency: requestData?.currency ?? "",
-            approval_status: requestData?.summary?.status ?? "Draft",
-          }}
+          initialValues={initialValues}
           onSubmit={async (e) => {
            const data =   await handleUploadImage();
             handleSubmit({...e,attachmentLists:data});
@@ -238,7 +226,7 @@ const Request = () => {
                 <Button
                   value={id ? "Update" : "Send request"}
                   className="default"
-                  onClick={() => handleSubmit()}
+                  onClick={handleSubmit}
                   type="submit"
                   loading={loading || addingImage}
                 />
@@ -246,8 +234,8 @@ const Request = () => {
             </>
           )}
         </Formik>
+    </div>
       </PageOutline>
-    </section>
   );
 };
 

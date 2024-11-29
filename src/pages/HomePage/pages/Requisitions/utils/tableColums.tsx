@@ -12,12 +12,11 @@ import {
   showNotification,
   showDeleteDialog,
 } from "@/pages/HomePage/utils/helperFunctions";
-import useRequisitions from "../requisitionStore/useRequisitionStore";
+import { useStore } from "@/store/useStore";
 
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
-    accessorKey: "generated_id",
     cell: ({ row }) => {
       const ItemButton = () => {
         const navigate = useNavigate();
@@ -101,7 +100,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
         const { executeDelete, success, error } = useDelete(
           api.delete.deleteRequest
         );
-        const { removeRequest } = useRequisitions();
+        const {removeRequest} = useStore()
         useEffect(() => {
           if (success) {
             showNotification("Request deleted successfully");

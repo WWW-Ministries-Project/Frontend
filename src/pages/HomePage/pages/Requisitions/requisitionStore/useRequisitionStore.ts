@@ -1,22 +1,21 @@
-// src/store/useEditableTableStore.ts
-import { create } from "zustand";
-import { Requisition } from "../types/requestInterface";
+import { Requisition, RequisitionStore } from "../types/requestInterface";
 
-interface RequisitionStore {
-  requests: Requisition[];
-  removeRequest: (id: string) => void;
-  setRequests: (requests: Requisition[]) => void;
-}
 
-const useRequisitions = create<RequisitionStore>((set) => ({
+const requisitionSlice = (set:any):RequisitionStore => ({
   requests: [],
-  removeRequest: (id) =>
-    set((state) => ({
+
+  removeRequest: (id: string) =>
+    set((state: { requests: Requisition[] }) => ({
       requests: state.requests.filter(
         (request) => request.requisition_id !== id
       ),
     })),
-  setRequests: (requests) => set({ requests }),
-}));
 
-export default useRequisitions;
+  setRequests: (requests: Requisition[]) =>
+    set(() => ({
+      requests,
+    })),
+});
+
+
+export default requisitionSlice;

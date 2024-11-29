@@ -1,5 +1,5 @@
 import { ChangeEvent, memo, useEffect, useState, useCallback } from "react";
-import cloud_upload from "../assets/cloud_upload.svg";
+import cloud_upload from "@/assets/cloud_upload.svg";
 import useFileUpload from "@/CustomHooks/useFileUpload";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 
@@ -35,7 +35,7 @@ const UploadButton = memo(
           aria-label="Upload images"
         >
           <div className="flex items-center justify-center flex-col px-1">
-            <img className="mx-auto" src={cloud_upload} alt="" />
+            <img className="mx-auto" src={cloud_upload} alt="Upload picture" />
             <span className="text-xs">
               {!images?.length
                 ? " Click here to add attachments"
@@ -66,9 +66,7 @@ const MultiImageComponent = ({
   useEffect(() => {
     if (initialImages.length > 0) {
       setImages(initialImages);
-    } else {
-      setImages([]);
-    }
+    } 
   }, [initialImages]);
 
   const handleFileChangeWithStore = useCallback(
