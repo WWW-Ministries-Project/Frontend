@@ -32,7 +32,7 @@ export const useAddRequisition = () => {
   const requisitionId = decodedId()
   const { postData, loading, error, data } = UsePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>
-  >(decodedId() ? api.put.updateRequisition : api.post.createRequisition);
+  >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
   const { id } = decodeToken();
   const {rows} = useStore()
 
@@ -62,7 +62,7 @@ export const useAddRequisition = () => {
         message: message,
         show: true,
         type: type,
-        title: decodedId() ? "Update requisition" : "Create requisition",
+        title: requisitionId ? "Update requisition" : "Create requisition",
         onClose: () => {},
       });
     },
@@ -89,7 +89,7 @@ export const useAddRequisition = () => {
           id:item?.id
         };
       });
-      const dataToSend = decodedId()
+      const dataToSend = requisitionId
         ? {
             ...val,
             event_id: Number(val.event_id),
@@ -97,7 +97,7 @@ export const useAddRequisition = () => {
             products,
             user_id: id,
             currency:"GHS",
-            id: Number(decodedId()),
+            id: Number(requisitionId),
           }
         : {
             ...val,
