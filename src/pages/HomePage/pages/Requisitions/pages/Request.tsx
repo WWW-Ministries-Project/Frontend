@@ -136,10 +136,11 @@ const initialValues = {
   approval_status: requestData?.summary?.status ?? "Draft",
 }
 
+const title = id ? "Update request" : "Raise request"
   return (
     <PageOutline>
         <div className="mx-auto py-8 lg:container lg:w-4/6">
-        <PageHeader title={id ? "Update request" : "Raise request"} />
+        <PageHeader title={title} />
 
         <Formik
           initialValues={initialValues}
