@@ -22,7 +22,7 @@ const AddAsset = () => {
     loading: updateLoading,
     error: updateError,
     data: updatedData,
-  } = usePut<{ data: assetType }>(api.put.updateAsset);
+  } = usePut<{ data: { updatedAsset: assetType } }>(api.put.updateAsset);
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("asset_id");
@@ -36,18 +36,18 @@ const AddAsset = () => {
       showNotification("Asset added successfully", () => {
         navigate("/home/assets");
       });
-      if (updatedData) {
-        assetsStore.updateAsset(updatedData?.data);
-        showNotification("Asset updated successfully", () => {
-          navigate("/home/assets");
-        });
-      }
-      if (error || updateError) {
-        showNotification("Something went wrong");
-      }
+    }
+    if (updatedData) {
+      assetsStore.updateAsset(updatedData?.data.updatedAsset);
+      showNotification("Asset updated successfully", () => {
+        navigate("/home/assets");
+      });
+    }
+    if (error || updateError) {
+      showNotification("Something went wrong");
     }
   }, [data, error, updatedData, updateError]);
-  const handleFormSubmit = async (val: any) => {
+  const handleFormSubmit = async (val: assetType) => {
     try {
       if (file) {
         const data = new FormData();
