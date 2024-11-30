@@ -1,8 +1,7 @@
-// src/components/ImageUpload.js
-import cloud_upload from "../assets/cloud_upload.svg";
 import useFileUpload from "@/CustomHooks/useFileUpload";
+import cloud_upload from "../assets/cloud_upload.svg";
 
-const ImageUpload = ({ onFileChange }) => {
+const ImageUpload = ({ onFileChange, src, disabled=false }) => {
   const {
     isDragActive,
     file,
@@ -13,12 +12,10 @@ const ImageUpload = ({ onFileChange }) => {
     handleDrop,
     handleFileChange,
   } = useFileUpload(onFileChange);
-
   return (
     <div
-      className={`flex justify-center items-center  overflow-hidden  w-[20rem] h-[10rem] border border-dashed rounded-xl cursor-pointer focus:outline-none ${
-        isDragActive ? "border-gray-500" : "border-gray-300"
-      }`}
+      className={`flex justify-center items-center  overflow-hidden  w-[20rem] h-[10rem] border border-dashed rounded-xl cursor-pointer focus:outline-none ${isDragActive ? "border-gray-500" : "border-gray-300"
+        }`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -30,17 +27,17 @@ const ImageUpload = ({ onFileChange }) => {
         className="hidden"
         onChange={handleFileChange}
         id="fileUpload"
+        disabled={disabled}
       />
       <label htmlFor="fileUpload" className="flex items-center">
-        {preview ? (
+        {preview || src ? (
           <img
-            src={preview}
+            src={preview || src}
             alt="Preview"
             className="object-cover p-2 rounded-xl cursor-pointer"
             style={{ transform: "scale(1)" }}
           />
         ) : (
-          //   <p className="text-gray-600 text-center">Drag 'n' drop some files here, <br/> or click to select files</p>
           <div>
             <img className="mx-auto" src={cloud_upload} alt="" srcSet="" />
             <div className="text-center">
