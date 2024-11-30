@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";
 import { assetType } from "../utils/assetsInterface";
 
-const AddAsset = () => {
+const ManageAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
   const navigate = useNavigate();
   const { postData, loading, error, data } = UsePost<{ data: assetType }>(
@@ -95,4 +95,4 @@ const AddAsset = () => {
   );
 };
 
-export default AddAsset;
+export default ManageAsset;
