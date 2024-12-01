@@ -3,10 +3,9 @@ import SearchBar from "@/components/SearchBar";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
 import { ColumnDef } from "@tanstack/react-table";
-
-
+import { useState } from "react";
+import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
 
 const modules: AccessRightOption[] = [
   { id: 1, name: "Members", accessLevel: "Can View" },
@@ -37,24 +36,32 @@ const accessColumns2: ColumnDef<AccessRightOption>[] = [
   {
     header: "Access Level Management",
     accessorKey: "accessLevel",
-    cell: ({row}) => TableData(row.original.accessLevel),
+    cell: ({ row }) => TableData(row.original.accessLevel),
   },
 ];
 
 const AccessRights = () => {
+  const [filter, setFilter] = useState("");
+  const [selectedAccessRight, setSelectedAccessRight] = useState<AccessRight | null>(null);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter(e.target.value);
+  };
   return (
     <PageOutline>
       <PageHeader title="Access Rights"></PageHeader>
       <section className="grid gap-24 grid-cols-3">
         <section>
-            <div>
-                <SearchBar placeholder="Search" className="max-w-[300px] mb-2" />
-            </div>
+          <div>
+            <SearchBar placeholder="Search" className="max-w-[300px] mb-2" onChange={handleSearchChange} value={filter} />
+          </div>
           <TableComponent
             columns={accessColumns}
             data={accessRights}
             rowClass="even:bg-white odd:bg-[#F2F4F7]"
             className={" shadow-md"}
+            filter={filter}
+            setFilter={setFilter}
           />
         </section>
 
