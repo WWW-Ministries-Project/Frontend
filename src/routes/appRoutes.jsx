@@ -23,6 +23,7 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx"
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import AssetDetails from "@/pages/HomePage/pages/AssetsManagement/pages/AssetDetails";
+import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 
 
 export const routes = [
@@ -207,10 +208,35 @@ export const routes = [
       {
         path: "settings",
         name: "Settings",
-        element: <Settings />,
         isPrivate: true,
         permissionNeeded: "view_Settings",
         sideTab: true,
+        children: [
+          {
+            path: "access-rights",
+            name: "Access Rights",
+            element: <AccessRights />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+          {
+            path: "departments",
+            name: "Departments",
+            element: <Settings />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+          {
+            path: "positions",
+            name: "Positions",
+            element: <Settings />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+        ]
       },
       {
         path: "*",
