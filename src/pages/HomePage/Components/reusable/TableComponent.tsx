@@ -10,6 +10,7 @@ import {
   Table
 } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useState } from "react";
+import PaginationComponent from "./PaginationComponent";
 
 interface TableComponentProps<TData> {
   data: TData[]; 
