@@ -1,18 +1,14 @@
+import Button from "@/components/Button";
+import SearchBar from "@/components/SearchBar";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { TableList } from "../Components/AccessTable";
+import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
+import { ColumnDef } from "@tanstack/react-table";
 
-interface AccessRight {
-  id: number;
-  name: string;
-}
-interface Module {
-  id: number;
-  name: string;
-  accessLevel: "Can View" | "Can Manage";
-}
 
-const modules: Module[] = [
+
+const modules: AccessRightOption[] = [
   { id: 1, name: "Members", accessLevel: "Can View" },
   { id: 2, name: "Events", accessLevel: "Can View" },
   { id: 3, name: "My requests", accessLevel: "Can View" },
@@ -35,72 +31,83 @@ const accessRights: AccessRight[] = [
   { id: 7, name: "Product Owner" },
   { id: 8, name: "Secretary" },
 ];
+const accessColumns = [{ header: "All Access Rights", accessorKey: "name" }];
+const accessColumns2: ColumnDef<AccessRightOption>[] = [
+  { header: "Modules / Sub-modules", accessorKey: "name" },
+  {
+    header: "Access Level Management",
+    accessorKey: "accessLevel",
+    cell: ({row}) => TableData(row.original.accessLevel),
+  },
+];
 
 const AccessRights = () => {
   return (
     <PageOutline>
       <PageHeader title="Access Rights"></PageHeader>
-      <section className="grid gap-4 grid-cols-3">
-        <TableList
-          title="All Access Rights"
-          columns={[""]}
-          data={accessRights}
-          renderRow={(item) => <td className="px-4 py-2">{item.name}</td>}
-          actions={[
-            {
-              label: "Create access right",
-              onClick: () => alert("Create Access Right Clicked"),
-              className: "bg-purple-600 text-white hover:bg-purple-700",
-            },
-          ]}
-        />
-        <TableList
-          title="Super admin"
-          columns={["Modules / Sub-modules", "Access Level Management"]}
-          data={modules}
-          renderRow={(module) => (
-            <>
-              <td className="px-4 py-2 border-b">{module.name}</td>
-              <td className="px-4 py-2 border-b">
-                <span
-                  className={`inline-flex items-center px-2 py-1 text-sm font-medium rounded-md ${
-                    module.accessLevel === "Can View"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-green-100 text-green-600"
-                  }`}
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full mr-2 ${
-                      module.accessLevel === "Can View"
-                        ? "bg-blue-500"
-                        : "bg-green-500"
-                    }`}
-                  ></span>
-                  {module.accessLevel}
-                </span>
-              </td>
-            </>
-          )}
-          actions={[
-            {
-              label: "Close",
-              onClick: () => alert("Close clicked"),
-              className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
-            },
-            {
-              label: "Edit",
-              onClick: () => alert("Edit clicked"),
-              className: "bg-blue-600 text-white hover:bg-blue-700",
-            },
-          ]}
-        />
+      <section className="grid gap-24 grid-cols-3">
+        <section>
+            <div>
+                <SearchBar placeholder="Search" className="max-w-[300px] mb-2" />
+            </div>
+          <TableComponent
+            columns={accessColumns}
+            data={accessRights}
+            rowClass="even:bg-white odd:bg-[#F2F4F7]"
+            className={" shadow-md"}
+          />
+        </section>
+
+        <section className="col-span-2">
+          <div className="flex justify-between">
+            <h2 className="text-lg font-semibold mb-4">Super admin</h2>
+            <div className="space-x-2">
+              <Button
+                type="button"
+                value="Close"
+                onClick={() => alert("Close clicked")}
+                className="tertiary"
+              />
+              <Button
+                type="button"
+                value="Edit"
+                onClick={() => alert("Edit clicked")}
+                className="secondary"
+              />
+            </div>
+          </div>
+          <TableComponent
+            columns={accessColumns2}
+            data={modules}
+            rowClass="even:bg-white odd:bg-[#F2F4F7]"
+            className={" shadow-md"}
+          />
+        </section>
       </section>
     </PageOutline>
   );
 };
-
-const TableData = (name: string) => {
-  return <td>{name}</td>;
+const TableData = (accessLevel: "Can View" | "Can Manage" | "Super Admin") => {
+  return (
+    <td className="px-4 py-2">
+      <span
+        className={`inline-flex items-center px-2 py-1 text-sm font-medium rounded-md ${
+          accessLevel === "Can Manage" && "bg-yellow-100 text-yellow-600"
+        } ${accessLevel === "Can View" && "bg-blue-100 text-blue-600"} ${
+          accessLevel === "Super Admin" && "bg-primaryViolet text-primaryViolet"
+        }`}
+      >
+        <span
+          className={`w-2 h-2 rounded-full mr-2 ${
+            accessLevel === "Can Manage" && "bg-yellow-600"
+          } ${accessLevel === "Can View" && "bg-blue-600"} ${
+            accessLevel === "Super Admin" && "bg-primaryViolet"
+          }`}
+        ></span>
+        {accessLevel}
+      </span>
+    </td>
+  );
 };
 
 export default AccessRights;

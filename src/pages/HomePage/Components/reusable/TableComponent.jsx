@@ -34,7 +34,7 @@ function TableComponent({ data, columns, filter, setFilter, displayedCount, ...p
   });
 
   return (
-    <div className="overflow-x-auto">
+    <div className={"overflow-x-auto " + props.className} >
       <div className="rounded-xl">
         {
           <div className="hideScrollbar rounded-xl  overflow-y-scroll">
