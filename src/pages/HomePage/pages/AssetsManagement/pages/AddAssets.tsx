@@ -26,17 +26,17 @@ const AddAsset = () => {
   useEffect(() => {
     if (data) {
       assetsStore.addAsset(data?.data);
-      showNotification("Asset added successfully", () => {
+      showNotification("Asset added successfully","success", () => {
         navigate("/home/assets");
       });
       if(updatedData) {
         assetsStore.updateAsset(updatedData?.data);
-        showNotification("Asset updated successfully", () => {
+        showNotification("Asset updated successfully","success", () => {
           navigate("/home/assets");
         });
       }
       if (error || updateError) {
-        showNotification("Something went wrong");
+        showNotification("Something went wrong", "error");
       }
     }
   }, [data, error, updatedData, updateError]);

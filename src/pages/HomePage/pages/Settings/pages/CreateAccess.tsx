@@ -4,8 +4,9 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import api from "@/utils/apiCalls";
-import React from "react";
+import React, { useEffect } from "react";
 import useState from "react-usestateref";
 
 const CreateAccess = () => {
@@ -21,7 +22,7 @@ const CreateAccess = () => {
     Departments: "Can_View",
     "Access rights": "Super_Admin",
   });
-  const { postData } = UsePost(api.post.createAccessRight);
+  const { postData, loading, error, data: response } = UsePost(api.post.createAccessRight);
 
   const displayedData = Object.entries(data).map(([name, accessLevel]) => ({
     name,
@@ -46,6 +47,15 @@ const CreateAccess = () => {
       ),
     },
   ];
+
+  useEffect(() => {
+    if (response) {
+      showNotification("Access Right created successfully");
+    }
+    if (error) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [response, error]);
   const handleAccessLevelChange = (module: string, newAccessLevel: string) => {
     setData((prevData) => ({ ...prevData, [module]: newAccessLevel }));
     console.log(module, newAccessLevel);
@@ -56,7 +66,7 @@ const CreateAccess = () => {
       setData((prevData) => {
         const updatedData = { ...prevData, name: nameRef.current };
         postData(updatedData); 
-        return updatedData; 
+        return prevData; 
       });
     }
   };

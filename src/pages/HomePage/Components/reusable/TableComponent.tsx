@@ -7,7 +7,6 @@ import {
   useReactTable,
   ColumnDef,
   SortingState,
-  Table
 } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useState } from "react";
 import PaginationComponent from "./PaginationComponent";
