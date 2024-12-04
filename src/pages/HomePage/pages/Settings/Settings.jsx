@@ -7,7 +7,6 @@ import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import { baseUrl } from "../../../Authentication/utils/helpers";
 import TableComponent from "../../Components/reusable/TableComponent";
-import AccessForm from "./Components/AccessForm.jsx";
 import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
@@ -17,22 +16,19 @@ import Dialog from "/src/components/Dialog";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
-  const tabs = ["Department", "Position", "Access Rights"];
+  const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData, dataRef] = useState([]);
   const [positionData, setPositionData] = useState([]);
-  const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue, inputValueRef] = useState({ created_by: decodeToken().id, name: "", description: "" });
+  const [inputValue, setInputValue] = useState({ created_by: decodeToken().id, name: "", description: "" });
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
-  const [selectedUsers, setSelectedUsers] = useState([]); //for access levels
 
   //dialog logic
   const handleShowModal = () => {
@@ -143,56 +139,6 @@ function Settings() {
     },
   ]
 
-  const accessColumns = [
-    {
-      header: "Acess Name",
-      accessorKey: "name",
-    },
-    // {
-    //   header: "Department",
-
-    // },
-    {
-      header: "Description",
-      accessorKey: "description",
-    },
-    {
-      header: "Edit",
-      accessorKey: "status",
-      cell: ({ row }) => (
-        <div
-          className={
-            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
-          }>
-          <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description }))
-            setPermissionsValues(() => (row.original?.permissions))
-            setEditMode(true)
-            setDisplayForm(true)
-          }} />
-          <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
-
-        </div>
-      )
-    },
-  ]
-  // }, [data,selectedTab,columns])
-
-  //AccessLevels
-  function selectUser(itemId) {
-    const index = members.findIndex(item => item.id === itemId);
-    if (index !== -1) {
-      const selectedItem = members.slice(index)[0];
-      setSelectedUsers(prev => {
-        if (prev.some(user => user.id == itemId)) {
-          return prev.filter(users => users.id != itemId)
-        } else {
-          return [...prev, selectedItem]
-        }
-      });
-    }
-  }
-
   // const departmentData = departmentDataRef.current;
 
 
@@ -210,30 +156,11 @@ function Settings() {
           return { name: department.name, value: department.id };
         })
       }
-      case "Access Rights": {
-        return ["view", "edit", "create"];
-      }
     }
   }, [members, selectedTab])
 
   const handleChange = (name, value) => {
     setInputValue((prev) => ({ ...prev, [name]: value }));
-  }
-  const handleAccessChange = (name, value) => {
-    if (
-      !permissionsValuesRef.current['view_Positions'] &&
-      !permissionsValuesRef.current['view_Departments'] &&
-      !permissionsValuesRef.current['view_Access']
-    ) {
-      setPermissionsValues((prev) => ({ ...prev, "view_Settings": false }));
-    } else if (
-      permissionsValuesRef.current['view_Positions'] ||
-      permissionsValuesRef.current['view_Departments'] ||
-      permissionsValuesRef.current['view_Access']
-    ) {
-      setPermissionsValues((prev) => ({ ...prev, "view_Settings": true }));
-    }
-    setPermissionsValues((prev) => ({ ...prev, [name]: value }));
   }
 
   const handleCloseForm = () => {
@@ -282,34 +209,8 @@ function Settings() {
         });
         break;
       }
-      case "Access Rights": {
-        const permissions = permissionsValuesRef.current;
-        setInputValue(prev => ({
-          permissions: permissions,
-          assigned_users: selectedUsers.map(user => user.id), ...prev
-        }))
-        if (editMode) {
-          const res = await updateData("access/update-access-level", inputValueRef.current)
-          res && window.location.reload();
-          break;
-        }
-        axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then(() => {
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
-        break;
-      }
       default: break
     }
-    // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-    //   console.log(res);
-    // })
 
   }
 
@@ -328,11 +229,6 @@ function Settings() {
         setData(positionData);
         break;
       }
-      case "Access Rights": {
-        setColumns(accessColumns);
-        setData(accessData);
-        break;
-      }
       default: break
     }
 
@@ -341,9 +237,6 @@ function Settings() {
   useEffect(() => {
     axios.get(`${baseUrl}/position/list-positions`).then((res) => {
       setPositionData(res.data.data);
-    });
-    axios.get(`${baseUrl}/access/list-access-levels`).then((res) => {
-      setAccessData(res.data.data);
     });
     // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
     // setData(departmentDataRef.current);
@@ -375,9 +268,6 @@ function Settings() {
         setSelectLabel("Department");
         break;
       }
-      case "Access Rights": {
-        break;
-      }
       default: break
     }
     setInputValue({ created_by: decodeToken().id, name: "" });
@@ -389,7 +279,7 @@ function Settings() {
 
         <div className="H600 text-dark900">Settings</div>
         <p className="P200 text-gray">
-          Manage your departments, positions and access rights here...
+          Manage your departments and positions here...
         </p>
         <div className="flex mt-2 mb-6">
           {
@@ -428,13 +318,7 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-
-        {selectedTab !== "Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
-
-        ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} editMode={editMode}  >
-          <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ? 'Update' : 'Create'} members={members} selectedUsers={selectedUsers} onMembersSelect={selectUser} />
-        </FormsComponent>}
+        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
       </section>
 
       <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
