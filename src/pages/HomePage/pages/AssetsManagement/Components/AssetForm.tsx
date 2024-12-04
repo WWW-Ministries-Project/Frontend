@@ -11,8 +11,9 @@ interface IAssetFormProps {
   onSubmit: (val: any) => void;
   loading?: boolean;
   initialValues: assetType | {};
+  disabled?: boolean
 }
-const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
+const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormProps) => {
   const departmentsOptions = useSettingsStore(
     (state) => state.departmentsOptions
   );
@@ -33,12 +34,14 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               label="Asset name"
               id="name"
               name="name"
+              disabled={disabled}
             />
             <Field
               component={FormikInputDiv}
               label="Asset ID"
               id="assets_id"
               name="assets_id"
+              disabled={disabled}
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -48,13 +51,15 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               label="Date purchased"
               type="date"
               id="date_purchased"
-              name="date_purchased"              
+              name="date_purchased"   
+              disabled={disabled}           
             />
             <Field
               component={FormikInputDiv}
               label="Purchased from (Supplier)"
               id="supplier"
               name="supplier"
+              disabled={disabled}
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -64,6 +69,7 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               id="price"
               name="price"
               type="number"
+              disabled={disabled}
             />
             <Field
               component={FormikSelectField}
@@ -77,6 +83,7 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               label="Status"
               id="status"
               name="status"
+              disabled={disabled}
             />
           </div>
 
@@ -88,6 +95,7 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               name="description"
               type="textarea"
               inputClass=" !h-48 resize-none"
+              disabled={disabled}
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -97,6 +105,7 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               label="Assigned to"
               id="department_assigned"
               name="department_assigned"
+              disabled={disabled}
             />
             <Field
               component={FormikInputDiv}
@@ -104,9 +113,10 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               type="date"
               id="start_date"
               name="start_date"
+              disabled={disabled}
             />
           </div>
-          <div className="flex gap-4 justify-end mt-4">
+          {!disabled && <div className="flex gap-4 justify-end mt-4">
             <Button
               value="Cancel"
               className="p-2 px-4 text-primaryViolet bg-transparent border"
@@ -119,7 +129,7 @@ const AssetForm = ({ loading, onSubmit, initialValues }: IAssetFormProps) => {
               loading={loading}
               onClick={form.submitForm}
             />
-          </div>
+          </div>}
         </div>
       )}
     </Formik>
