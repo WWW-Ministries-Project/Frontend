@@ -7,9 +7,11 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import api from "@/utils/apiCalls";
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 
 const CreateAccess = () => {
+  const navigate = useNavigate();
   const [, setName, nameRef] = useState<string>("");
   const [data, setData] = useState<Record<string, string>>({
     Dashboard: "Super_Admin",
@@ -22,7 +24,12 @@ const CreateAccess = () => {
     Departments: "Can_View",
     "Access rights": "Super_Admin",
   });
-  const { postData, loading, error, data: response } = UsePost(api.post.createAccessRight);
+  const {
+    postData,
+    loading,
+    error,
+    data: response,
+  } = UsePost(api.post.createAccessRight);
 
   const displayedData = Object.entries(data).map(([name, accessLevel]) => ({
     name,
@@ -57,16 +64,22 @@ const CreateAccess = () => {
     }
   }, [response, error]);
   const handleAccessLevelChange = (module: string, newAccessLevel: string) => {
-    setData((prevData) => ({ ...prevData, [module]: newAccessLevel }));
-    console.log(module, newAccessLevel);
+    setData((prevData) => {
+      const currentAccessLevel = prevData[module];
+      console.log(currentAccessLevel, newAccessLevel);
+      return {
+        ...prevData,
+        [module]: currentAccessLevel === newAccessLevel ? "" : newAccessLevel,
+      };
+    });
   };
 
   const handleSubmit = () => {
     if (nameRef.current) {
       setData((prevData) => {
         const updatedData = { ...prevData, name: nameRef.current };
-        postData(updatedData); 
-        return prevData; 
+        postData(updatedData);
+        return prevData;
       });
     }
   };
@@ -83,7 +96,8 @@ const CreateAccess = () => {
           type="text"
           id="name"
           placeholder="Enter name of access"
-          className="max-w-[450px] mt-4"
+          required={true}
+          className="max-w-[450px] my-4"
           onChange={(_, val) => {
             setName(val + "");
           }}
@@ -95,8 +109,8 @@ const CreateAccess = () => {
           className={"shadow-md"}
         />
         <div className="flex justify-end gap-x-2 mt-4">
-          <Button value="Cancel" className="secondary" onClick={() => {}} />
-          <Button value="Save" className="primary" onClick={handleSubmit} />
+          <Button value="Cancel" className="secondary" onClick={() => {navigate(-1)}} />
+          <Button value="Save" className="primary" disabled={loading || !nameRef.current} onClick={handleSubmit} />
         </div>
       </section>
     </PageOutline>
@@ -141,7 +155,8 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
             name={moduleName}
             value={selectedValue}
             checked={selectedValue === option.value}
-            onChange={() => handleChange(option.value)}
+            onClick={() => handleChange(option.value)}
+            onChange={()=>{}}
             className="hidden peer"
           />
           <div className="w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center peer-checked:border-red-500 peer-checked:before:bg-red-500 peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:block"></div>
