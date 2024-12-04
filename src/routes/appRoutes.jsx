@@ -24,6 +24,7 @@ import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInf
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import AssetDetails from "@/pages/HomePage/pages/AssetsManagement/pages/AssetDetails";
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
+import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 
 
 export const routes = [
@@ -213,6 +214,15 @@ export const routes = [
         sideTab: true,
         children: [
           {
+            path: "",
+            alias: "departments",
+            name: "Departments",
+            element: <Settings />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+          {
             path: "access-rights",
             name: "Access Rights",
             element: <AccessRights />,
@@ -221,13 +231,14 @@ export const routes = [
             sideTab: true,
           },
           {
-            path: "departments",
-            name: "Departments",
-            element: <Settings />,
+            path: "create-access",
+            name: "Create Access",
+            element: <CreateAccess />,
             isPrivate: true,
             permissionNeeded: "view_Settings",
-            sideTab: true,
+            sideTab: false,
           },
+          
           {
             path: "positions",
             name: "Positions",

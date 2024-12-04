@@ -6,6 +6,7 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
+import { useNavigate } from "react-router-dom";
 
 const modules: AccessRightOption[] = [
   { id: 1, name: "Members", accessLevel: "Can View" },
@@ -43,13 +44,14 @@ const accessColumns2: ColumnDef<AccessRightOption>[] = [
 const AccessRights = () => {
   const [filter, setFilter] = useState("");
   const [selectedAccessRight, setSelectedAccessRight] = useState<AccessRight | null>(null);
+  const navigate = useNavigate();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
   };
   return (
     <PageOutline>
-      <PageHeader title="Access Rights"></PageHeader>
+      <PageHeader title="Access Rights" buttonValue="Create Access" onClick={() => navigate("/home/settings/create-access")}></PageHeader>
       <section className="grid gap-24 grid-cols-3">
         <section>
           <div>

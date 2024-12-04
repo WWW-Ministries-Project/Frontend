@@ -16,10 +16,11 @@ interface TableComponentProps<TData> {
   data: TData[]; 
   columns: ColumnDef<TData, any>[]; 
   filter?: string; 
-  setFilter: Dispatch<SetStateAction<string>>; 
+  setFilter?: Dispatch<SetStateAction<string>>; 
   displayedCount?: number;
   rowClass?: string;
   headClass?: string;
+  className?: string
 }
 
 function TableComponent<TData>({
@@ -55,7 +56,7 @@ function TableComponent<TData>({
   });
 
   return (
-    <div className="overflow-x-auto">
+    <div className={"overflow-x-auto "+props.className}>
       <div className="rounded-xl">
         <div className="hideScrollbar rounded-xl overflow-y-scroll">
           <table className="w-full rounded-xl">
