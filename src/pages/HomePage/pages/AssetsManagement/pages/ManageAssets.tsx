@@ -33,18 +33,18 @@ const ManageAsset = () => {
   useEffect(() => {
     if (data) {
       assetsStore.addAsset(data?.data);
-      showNotification("Asset added successfully", () => {
+      showNotification("Asset added successfully","success", () => {
         navigate("/home/assets");
       });
-    }
-    if (updatedData) {
-      assetsStore.updateAsset(updatedData?.data.updatedAsset);
-      showNotification("Asset updated successfully", () => {
-        navigate("/home/assets");
-      });
-    }
-    if (error || updateError) {
-      showNotification("Something went wrong");
+      if(updatedData) {
+        assetsStore.updateAsset(updatedData?.data.updatedAsset);
+        showNotification("Asset updated successfully","success", () => {
+          navigate("/home/assets");
+        });
+      }
+      if (error || updateError) {
+        showNotification("Something went wrong", "error");
+      }
     }
   }, [data, error, updatedData, updateError]);
   const handleFormSubmit = async (val: assetType) => {

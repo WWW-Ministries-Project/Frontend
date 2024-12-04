@@ -22,6 +22,8 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
+import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
+import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 
 
 export const routes = [
@@ -200,10 +202,36 @@ export const routes = [
       {
         path: "settings",
         name: "Settings",
-        element: <Settings />,
         isPrivate: true,
         permissionNeeded: "view_Settings",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            alias: "departments",
+            name: "Departments",
+            element: <Settings />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+          {
+            path: "access-rights",
+            name: "Access Rights",
+            element: <AccessRights />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: true,
+          },
+          {
+            path: "create-access",
+            name: "Create Access",
+            element: <CreateAccess />,
+            isPrivate: true,
+            permissionNeeded: "view_Settings",
+            sideTab: false,
+          },
+        ]
       },
       {
         path: "*",
