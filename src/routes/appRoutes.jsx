@@ -6,7 +6,7 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
-import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets";
+import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
@@ -22,7 +22,6 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-import AssetDetails from "@/pages/HomePage/pages/AssetsManagement/pages/AssetDetails";
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 
@@ -188,13 +187,7 @@ export const routes = [
       },
       {
         path: "assets/manage-asset",
-        element: <AddAsset />,
-        isPrivate: true,
-        permissionNeeded: "view_Assets",
-      },
-      {
-        path: "assets/view-asset/:id",
-        element: <AssetDetails />,
+        element: <ManageAsset />,
         isPrivate: true,
         permissionNeeded: "view_Assets",
       },
@@ -237,15 +230,6 @@ export const routes = [
             isPrivate: true,
             permissionNeeded: "view_Settings",
             sideTab: false,
-          },
-          
-          {
-            path: "positions",
-            name: "Positions",
-            element: <Settings />,
-            isPrivate: true,
-            permissionNeeded: "view_Settings",
-            sideTab: true,
           },
         ]
       },

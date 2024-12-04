@@ -18,7 +18,6 @@ const usePut = <T,>(putFunction: (payload: any) => Promise<T>) => {
       setLoading(false);
     }
   }, [putFunction]);
-
   return { data, loading, error, updateData };
 };
 

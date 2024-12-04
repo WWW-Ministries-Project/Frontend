@@ -19,9 +19,9 @@ interface IAssetCard {
 
 const AssetCard = (props: IAssetCard) => {
   const navigate = useNavigate();
-  const handleAction = (path: string) => {
+  const handleAction = (path: string,mode="edit") => {
     useStore.getState().setActiveAsset(props.assets);
-    navigate(path);
+    navigate(path,{state:{mode}});
   };
 
   const handleDelete = () => {
@@ -77,7 +77,7 @@ const AssetCard = (props: IAssetCard) => {
               onDelete={handleDelete}
               onView={() =>
                 handleAction(
-                  `/home/assets/view-asset/${props.assets.id}`
+                  `/home/Assets/manage-asset?asset_id=${props.assets.id}`,"view"
                 )
               }
               onEdit={() =>
