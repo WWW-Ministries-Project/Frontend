@@ -14,6 +14,8 @@ import edit from "../../../../assets/edit.svg";
 import { deleteData, updateData } from "./utils/helperFunctions";
 import Dialog from "/src/components/Dialog";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
+import PageOutline from "../../Components/PageOutline";
+import PageHeader from "../../Components/PageHeader";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
   const tabs = ["Department", "Position"];
@@ -275,9 +277,9 @@ function Settings() {
 
   return (
     <>
-      <section className={" h-full flex flex-col  "}>
+      <PageOutline>
 
-        <div className="H600 text-dark900">Settings</div>
+        <PageHeader title="Settings" buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
         <p className="P200 text-gray">
           Manage your departments and positions here...
         </p>
@@ -307,9 +309,6 @@ function Settings() {
               {/* <Filter /> */}
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
-            <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 gradientBtn"} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
-            </div>
           </div>
           <TableComponent
             columns={columns}
@@ -319,7 +318,7 @@ function Settings() {
           />
         </section>
         <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
-      </section>
+      </PageOutline>
 
       <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
     </>
