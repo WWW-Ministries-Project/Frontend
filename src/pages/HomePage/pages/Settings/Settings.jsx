@@ -2,35 +2,75 @@
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
-import axios from "../../../../axiosInstance.js";
-import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
-import { baseUrl } from "../../../Authentication/utils/helpers";
 import TableComponent from "../../Components/reusable/TableComponent";
 import FormsComponent from "./Components/FormsComponent";
 // import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import { deleteData, updateData } from "./utils/helperFunctions";
-import Dialog from "/src/components/Dialog";
-import { decodeToken } from "/src/utils/helperFunctions.ts";
-import PageOutline from "../../Components/PageOutline";
 import PageHeader from "../../Components/PageHeader";
+import PageOutline from "../../Components/PageOutline";
+import { showNotification } from "../../utils/helperFunctions.ts";
+import { deleteData } from "./utils/helperFunctions";
+import useSettingsStore from "./utils/settingsStore.ts";
+import Dialog from "/src/components/Dialog";
+import UsePost from "/src/CustomHooks/usePost.tsx";
+import usePut from "/src/CustomHooks/usePut.tsx";
+import api from "/src/utils/apiCalls.ts";
+import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
   const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData, dataRef] = useState([]);
-  const [positionData, setPositionData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({ created_by: decodeToken().id, name: "", description: "" });
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
-  const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
+  const settingsStore = useSettingsStore();
+  const departmentData = settingsStore.departments || [];
+  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = UsePost(api.post.createDepartment);
+  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = UsePost(api.post.createPosition);
+  const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
+  const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
+  const positionData = settingsStore.positions || [];
+
+
+  useEffect(() => {
+    if (department) {
+      showNotification(department.data.message, "success");
+      settingsStore.setDepartments(department.data.data);
+      handleCloseForm();
+    }
+    if (position) {
+      showNotification(position.data.message, "success");
+      settingsStore.setPositions(position.data.data);
+      handleCloseForm();
+    }
+    if (departmentError || positionError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [department, position, positionError, departmentError]);
+
+  useEffect(() => {
+    if (departmentUpdate) {
+      showNotification(departmentUpdate.data.message, "success");
+      settingsStore.updateDepartment(departmentUpdate.data.data);
+      handleCloseForm();
+    }
+    if (positionUpdate) {
+      showNotification(positionUpdate.data.message, "success");
+      settingsStore.updatePosition(positionUpdate.data.data);
+      handleCloseForm();
+    }
+    if (departmentUpdateError || positionUpdateError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);
 
   //dialog logic
   const handleShowModal = () => {
@@ -43,9 +83,6 @@ function Settings() {
     let tempData = dataRef.current;
     tempData.splice(itemToDelete.index, 1)
     setData([...tempData])
-    // switch (itemToDelete.path) {
-
-    // }
   }
 
 
@@ -124,14 +161,6 @@ function Settings() {
             setEditMode(true)
             setDisplayForm(true)
           }} />
-
-          {/* <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
-              deleteData("position/delete-position",row.original.id)
-              let tempData = dataRef.current;
-              tempData.splice(row.index, 1)
-              setData([...tempData])
-              setPositionData([...tempData])
-             }} /> */}
           <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
             handleShowModal()
             setItemToDelete({ path: "position/delete-position", id: row.original?.id, name: row.original?.name, index: row.index })
@@ -140,8 +169,6 @@ function Settings() {
         </div>)
     },
   ]
-
-  // const departmentData = departmentDataRef.current;
 
 
 
@@ -171,44 +198,21 @@ function Settings() {
   }
 
   const handleFormSubmit = async () => {
-    setLoading(true);
     switch (selectedTab) {
       case "Department": {
         if (editMode) {
-          const res = await updateData("department/update-department", inputValue)
-          res && window.location.reload();
+          updateDepartment(inputValue)
           break;
         }
-        axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-          setLoading(false);
-          setData(res.data.data);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
+        postDepartment(inputValue)
         break;
       }
       case "Position": {
         if (editMode) {
-          const res = await updateData("position/update-position", inputValue)
-          res && window.location.reload();
+          updatePosition(inputValue)
           break;
         }
-        axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
-          setData(res.data.data);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
+        postPosition(inputValue)
         break;
       }
       default: break
@@ -237,20 +241,8 @@ function Settings() {
   }
 
   useEffect(() => {
-    axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-      setPositionData(res.data.data);
-    });
-    // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-    // setData(departmentDataRef.current);
-    // console.log(departmentData);
-    //   setDepartmentData(res.data.data);
-
-    // })
-  }, [])
-
-  useEffect(() => {
     handleDataFetching();
-  }, [selectedTab, departmentData]);
+  }, [selectedTab, departmentData, positionData]);
 
 
   const handleSearch = (e) => {
@@ -317,7 +309,7 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
+        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={positionLoading || departmentLoading} selectLabel={selectLabel} editMode={editMode} />
       </PageOutline>
 
       <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
