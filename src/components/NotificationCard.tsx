@@ -3,7 +3,6 @@ import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/solid"; //
 import { useEffect } from "react";
 
 const NotificationCard = () => {
-  // const [visible, setVisible] = useState(false);
 
   const { notification, visible, setVisible } = useNotificationStore();
 
@@ -13,7 +12,7 @@ const NotificationCard = () => {
       setTimeout(notification.onClose, 300); // Delay removal to allow animation to finish
     }, 5000); // 5 seconds delay for auto-close
 
-    return () => clearTimeout(timer); // Clean up the timer if the component is unmounted
+    return () => clearTimeout(timer);
   }, [notification.onClose]);
 
   const backgroundColor =

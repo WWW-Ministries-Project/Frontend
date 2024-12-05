@@ -18,7 +18,7 @@ const PageHeader: React.FC<IPageHeader> = ({
       {buttonValue && (
         <Button
           value={buttonValue}
-          className="p-2 text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 "
+          className="primary"
           onClick={onClick}
         />
       )}

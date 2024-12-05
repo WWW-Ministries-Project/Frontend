@@ -27,12 +27,16 @@ export const showDeleteDialog = <T extends DialogValue>(
     onConfirm: () => {
       handleDelete(val.id);
       dialogStore.dialogDataReset();
-    },  
+    },
     onCancel: dialogStore.dialogDataReset,
   });
 };
 
-export const showNotification = (message: string, handleClose = () => {}) => {
+export const showNotification = (
+  message: string,
+  type: "success" | "error" = "success",
+  handleClose = () => {}
+) => {
   const notification = useNotificationStore.getState().setNotification;
-  notification({ message, show: true, onClose: handleClose });
+  notification({ message, show: true, onClose: handleClose, type });
 };
