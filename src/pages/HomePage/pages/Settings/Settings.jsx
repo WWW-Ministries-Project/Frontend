@@ -1,19 +1,19 @@
 
+import { useStore } from "/src/store/useStore.ts";
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
-import SearchBar from "../../../../components/SearchBar";
-import TableComponent from "../../Components/reusable/TableComponent";
-import FormsComponent from "./Components/FormsComponent";
-// import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
+import SearchBar from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
-import { showNotification } from "../../utils/helperFunctions.ts";
-import { deleteData } from "./utils/helperFunctions";
+import LoaderComponent from "../../Components/reusable/LoaderComponent.tsx";
+import TableComponent from "../../Components/reusable/TableComponent";
+import { showDeleteDialog, showNotification } from "../../utils/helperFunctions.ts";
+import FormsComponent from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
-import Dialog from "/src/components/Dialog";
+import { useDelete } from "/src/CustomHooks/useDelete.tsx";
 import UsePost from "/src/CustomHooks/usePost.tsx";
 import usePut from "/src/CustomHooks/usePut.tsx";
 import api from "/src/utils/apiCalls.ts";
@@ -29,17 +29,20 @@ function Settings() {
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [editMode, setEditMode] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
+  const membersOptions = useStore((state) => state.membersOptions);
   const settingsStore = useSettingsStore();
+  const positionData = settingsStore.positions || [];
   const departmentData = settingsStore.departments || [];
   const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = UsePost(api.post.createDepartment);
   const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = UsePost(api.post.createPosition);
   const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
-  const positionData = settingsStore.positions || [];
+  const { executeDelete: deleteDepartment, loading: deleteDepartmentLoading, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
+  const { executeDelete: deletePosition, loading: deletePositionLoading, data: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
 
 
+  // new data
   useEffect(() => {
     if (department) {
       showNotification(department.data.message, "success");
@@ -56,6 +59,7 @@ function Settings() {
     }
   }, [department, position, positionError, departmentError]);
 
+  // updated data
   useEffect(() => {
     if (departmentUpdate) {
       showNotification(departmentUpdate.data.message, "success");
@@ -71,18 +75,27 @@ function Settings() {
       showNotification("Something went wrong", "error");
     }
   }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);
-
-  //dialog logic
-  const handleShowModal = () => {
-    setShowModal(prev => !prev)
-  }
-
+  // deleted data
+  useEffect(() => {
+    if (departmentDelete) {
+      showNotification(departmentDelete.data.message, "success");
+      settingsStore.removeDepartment(departmentDelete.data.data);
+    }
+    if (positionDelete) {
+      showNotification(positionDelete.data.message, "success");
+      settingsStore.removePosition(positionDelete.data.data);
+    }
+    if (departmentDeleteError || positionDeleteError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [departmentDelete, positionDelete]);
   const handleDelete = () => {
-    deleteData(itemToDelete.path, itemToDelete.id);
-    setShowModal(prev => !prev);
-    let tempData = dataRef.current;
-    tempData.splice(itemToDelete.index, 1)
-    setData([...tempData])
+    if (selectedTab === "Department") {
+      deleteDepartment(itemToDelete.id)
+    }
+    if (selectedTab === "Position") {
+      deletePosition(itemToDelete.id)
+    }
   }
 
 
@@ -118,17 +131,9 @@ function Settings() {
             }} />
 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              handleShowModal()
-              setItemToDelete({ path: "department/delete-department", id: row.original?.id, name: row.original?.name, index: row.index })
+              showDeleteDialog(row.original, handleDelete);
+              setItemToDelete({ id: row.original?.id })
             }} />
-            {/* 
-            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
-              deleteData("department/delete-department",row.original.id)
-              let tempData = dataRef.current;
-              tempData.splice(row.index, 1)
-              setData([...tempData])
-             }} /> */}
-
           </div>
         )
       },
@@ -149,12 +154,11 @@ function Settings() {
       accessorKey: "description",
     },
     {
-      header: "Status",
-      accessorKey: "status",
+      header: "Actions",
       cell: ({ row }) => (
         <div
           className={
-            "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white  "
           }>
           <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
             setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_id: row.original?.department?.id }))
@@ -162,8 +166,8 @@ function Settings() {
             setDisplayForm(true)
           }} />
           <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-            handleShowModal()
-            setItemToDelete({ path: "position/delete-position", id: row.original?.id, name: row.original?.name, index: row.index })
+            showDeleteDialog(row.original, handleDelete);
+            setItemToDelete({ id: row.original?.id })
           }} />
 
         </div>)
@@ -176,14 +180,10 @@ function Settings() {
   const selectOptions = useMemo(() => {
     switch (selectedTab) {
       case "Department": {
-        return members.map((member) => {
-          return { name: member.name, value: member.id }
-        })
+        return membersOptions
       }
       case "Position": {
-        return departmentData.map((department) => {
-          return { name: department.name, value: department.id };
-        })
+        return settingsStore.departmentsOptions
       }
     }
   }, [members, selectedTab])
@@ -298,7 +298,6 @@ function Settings() {
         <section className="mt-6 bg-white p-7">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              {/* <Filter /> */}
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
           </div>
@@ -309,10 +308,9 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={positionLoading || departmentLoading} selectLabel={selectLabel} editMode={editMode} />
+        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />
       </PageOutline>
-
-      <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
+      {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
     </>
   );
 }
