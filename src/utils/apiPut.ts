@@ -16,4 +16,9 @@ export class ApiUpdateCalls {
   updateAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);
   };
+  updateRequisition = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData<T>("requisitions/update-requisition", payload);
+  };
 }

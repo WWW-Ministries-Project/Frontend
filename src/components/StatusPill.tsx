@@ -1,6 +1,6 @@
 import { getStatusColor,getFillColor } from "@/pages/HomePage/utils/stringOperations";
 
-export default function StatusPill({ text }: { text: string }) {
+export default function StatusPill({ text }: Readonly<{ text: string }>) {
   return (
     <div className={getStatusColor(text) + " flex items-center gap-2"}>
       <svg

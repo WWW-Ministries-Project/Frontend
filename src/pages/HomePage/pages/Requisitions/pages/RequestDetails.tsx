@@ -9,7 +9,7 @@ import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import api from "@/utils/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import type { IRequisitionDetails } from "../types/requestInterface";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
@@ -17,10 +17,12 @@ import AddSignature from "@/components/AddSignature";
 import Modal from "@/components/Modal";
 
 import TextField from "@/pages/HomePage/Components/reusable/TextField";
+import RequestAttachments from "../components/RequestAttachments";
 const RequestDetails = () => {
   const { id } = useParams();
   const [openSignature, setOpenSignature] = useState(false);
   const [openComent, setOpenComent] = useState(false);
+  const navigate = useNavigate()
   const { data, loading, error } = useFetch<{ data: { data: IRequisitionDetails } }>(
     api.fetch.fetchRequisitionDetails,
     { id: window.atob(String(id)) }
@@ -34,7 +36,8 @@ const RequestDetails = () => {
     name: data?.name,
     amount: data?.unitPrice,
     quantity: data?.quantity,
-    total: data?.quantity * data?.unitPrice
+    total: data?.quantity * data?.unitPrice,
+    id:String(data?.id)
     }
   }) ??[]
 
@@ -52,8 +55,8 @@ const RequestDetails = () => {
         </div>
       </Modal>
       <PageHeader title="Requisition Details">
+          <Button value="Edit" className={"tertiary"} onClick={()=>navigate("/home/requests/my_requests/request/"+id)} />
         <div className="flex gap-2 hidden">
-          <Button value="Edit" className={"tertiary"} />
           <Button
             value="Disapprove"
             className={"secondary"}
@@ -93,6 +96,7 @@ const RequestDetails = () => {
         <section className="flex flex-col sm:flex-col md:flex-row lg:flex-col xl:flex-col gap-4 col-span-1 sm:col-span-full md:col-span-4 lg:col-span-1 xl:col-span-1">
           <RequisitionSummary summary={requestData?.summary} currency={requestData?.currency} />
           <RequisitionComments />
+          <RequestAttachments attachments={requestData?.attachmentLists ??[]}/>
         </section>
       </section>
     </PageOutline>
