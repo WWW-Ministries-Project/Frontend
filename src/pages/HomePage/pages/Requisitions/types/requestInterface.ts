@@ -45,6 +45,7 @@ export interface IRequisitionDetails {
   }[];
   attachmentLists:{
     URL:string
+    id:number
   }[]
 }
 

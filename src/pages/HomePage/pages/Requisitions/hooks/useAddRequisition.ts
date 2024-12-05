@@ -17,24 +17,17 @@ interface IRequest {
   comment: string;
   currency: string;
   approval_status: string;
-  attachmentLists:{URL:string}[]
+  attachmentLists: { URL: string }[];
 }
 export const useAddRequisition = () => {
   const { id: requestId } = useParams();
-  const decodedId = () => {
-    if (requestId) {
-      return window.atob(String(requestId));
-    }
 
-    return "";
-  };
-
-  const requisitionId = decodedId()
+  const requisitionId = requestId ? window.atob(String(requestId)) : "";
   const { postData, loading, error, data } = UsePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>
   >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
   const { id } = decodeToken();
-  const {rows} = useStore()
+  const { rows } = useStore();
 
   const navigate = useNavigate();
   const { setNotification } = useNotificationStore();
@@ -86,26 +79,22 @@ export const useAddRequisition = () => {
           name: item.name,
           quantity: item.quantity,
           unitPrice: item.amount,
-          id:item?.id
+          id: item?.id,
         };
       });
+      const data = {
+        ...val,
+        event_id: Number(val.event_id),
+        department_id: Number(val.department_id),
+        products,
+        user_id: id,
+      };
       const dataToSend = requisitionId
         ? {
-            ...val,
-            event_id: Number(val.event_id),
-            department_id: Number(val.department_id),
-            products,
-            user_id: id,
-            currency:"GHS",
+            ...data,
             id: Number(requisitionId),
           }
-        : {
-            ...val,
-            event_id: Number(val.event_id),
-            department_id: Number(val.department_id),
-            products,
-            user_id: id,
-          };
+        : data;
 
       await postData(dataToSend);
     },

@@ -68,7 +68,7 @@ const Request = () => {
       if (response.attachmentLists?.length) {
         const images = response.attachmentLists?.map((img, idx) => {
           return {
-            id: idx,
+            id: img.id,
             image: img.URL,
           };
         });
