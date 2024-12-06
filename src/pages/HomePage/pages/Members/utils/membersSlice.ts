@@ -2,6 +2,7 @@ import { MemberSlice, UserType } from "./membersInterfaces";
 
 const createMemberSlice = (set: any, get: any): MemberSlice => ({
   members: [],
+  membersOptions: [],
   userStats: {
     total_members: 0,
     total_males: 0,
@@ -15,11 +16,13 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
     set((state: any) => ({
       members: [...state.members, member],
     }));
+    get().setMemberOptions();
   },
   removeMember: (memberId) => {
     set((state: any) => ({
       members: state.members.filter((pos: UserType) => pos.id !== memberId),
     }));
+    get().setMemberOptions();
   },
   updateMember: (updatedMember) => {
     set((state: any) => ({
@@ -27,12 +30,22 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
         pos.id === updatedMember.id ? updatedMember : pos
       ),
     }));
+    get().setMemberOptions();
   },
   setMembers: (members) => {
     set({ members });
+    get().setMemberOptions();
   },
   setUserStats: (userStats) => {
     set({ userStats });
+  },
+  setMemberOptions: () => {
+    set((state: any) => ({
+      membersOptions: state.members.map((member: UserType) => ({
+        name: member.name,
+        value: member.id,
+      })),
+    }));
   },
 });
 
