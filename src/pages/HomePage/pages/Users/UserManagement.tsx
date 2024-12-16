@@ -4,6 +4,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import ActionButton from "../../Components/reusable/ActionButton";
@@ -16,8 +17,8 @@ interface User extends UserType {
 }
 const UserManagement = () => {
   const { data } = useFetch(api.fetch.fetchAllMembers, { is_user: "true" });
-
   const [selectedId, setSelectedId] = useState<number | string>("");
+  const navigate = useNavigate();
 
   const handleShowOptions = (id: number | string) => {
     setSelectedId((prevSelectedId) => (prevSelectedId === id ? "" : id));
@@ -35,7 +36,7 @@ const UserManagement = () => {
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => {
-            window.location.href = `/home/members/${row.original.id}/info`;
+            navigate(`${row.original.id}/info`);
           }}
         >
           <ProfilePicture
@@ -84,7 +85,7 @@ const UserManagement = () => {
       accessorKey: "actions",
       cell: ({ row }) => (
         <div onClick={() => handleShowOptions(row.original.id)}>
-          <ActionButton 
+          <ActionButton
             showOptions={row.original.id == selectedId}
             onView={() => {}}
             onEdit={() => {}}
@@ -95,7 +96,7 @@ const UserManagement = () => {
     },
   ];
 
-//   const users = data?.data?.data || [];
+  //   const users = data?.data?.data || [];
   const users: User[] = [
     {
       id: "1",
@@ -134,8 +135,6 @@ const UserManagement = () => {
       photo: "https://via.placeholder.com/150",
     },
   ];
-  ;
-
   return (
     <PageOutline>
       <PageHeader title={`Users(${users.length})`} />

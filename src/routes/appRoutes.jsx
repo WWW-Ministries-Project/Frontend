@@ -24,6 +24,7 @@ import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInf
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
+import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 
 
 export const routes = [
@@ -198,6 +199,13 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_Events",
         sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
+        isPrivate: true,
+        permissionNeeded: "view_Events",
       },
       {
         path: "settings",

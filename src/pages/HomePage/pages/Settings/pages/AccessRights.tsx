@@ -7,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
 import { useNavigate } from "react-router-dom";
+import ActiveAccess from "../Components/ActiveAccess";
 
 const modules: AccessRightOption[] = [
   { id: 1, name: "Members", accessLevel: "Can View" },
@@ -67,31 +68,7 @@ const AccessRights = () => {
           />
         </section>
 
-        <section className="col-span-2">
-          <div className="flex justify-between">
-            <h2 className="text-lg font-semibold mb-4">Super admin</h2>
-            <div className="space-x-2">
-              <Button
-                type="button"
-                value="Close"
-                onClick={() => alert("Close clicked")}
-                className="tertiary"
-              />
-              <Button
-                type="button"
-                value="Edit"
-                onClick={() => alert("Edit clicked")}
-                className="secondary"
-              />
-            </div>
-          </div>
-          <TableComponent
-            columns={accessColumns2}
-            data={modules}
-            rowClass="even:bg-white odd:bg-[#F2F4F7]"
-            className={" shadow-md"}
-          />
-        </section>
+        <ActiveAccess/>
       </section>
     </PageOutline>
   );
