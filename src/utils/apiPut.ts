@@ -21,4 +21,10 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData<T>("requisitions/update-requisition", payload);
   };
+  updatePosition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("position/update-position", payload);
+  };
+  updateDepartment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("department/update-department", payload);
+  };
 }
