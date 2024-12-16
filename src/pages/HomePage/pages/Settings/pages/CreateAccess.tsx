@@ -66,7 +66,6 @@ const CreateAccess = () => {
   const handleAccessLevelChange = (module: string, newAccessLevel: string) => {
     setData((prevData) => {
       const currentAccessLevel = prevData[module];
-      console.log(currentAccessLevel, newAccessLevel);
       return {
         ...prevData,
         [module]: currentAccessLevel === newAccessLevel ? "" : newAccessLevel,
@@ -134,9 +133,9 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   moduleName,
 }) => {
   const options: RadioOption[] = [
-    { value: "view", label: "Can View" },
-    { value: "manage", label: "Can Manage" },
-    { value: "superAdmin", label: "Super Admin" },
+    { value: "Can_View", label: "Can View" },
+    { value: "Can_Manage", label: "Can Manage" },
+    { value: "Super_Admin", label: "Super Admin" },
   ];
 
   const handleChange = (value: string) => {

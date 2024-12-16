@@ -4,8 +4,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AccessRightOption } from "../utils/settingsInterfaces";
 import TableData from "./TableData";
 
-const ActiveAccess = () => {
-  const accessColumns2: ColumnDef<AccessRightOption>[] = [
+interface IProps {
+  name:string,
+  accessLevel:string
+}
+const ActiveAccess = (props:IProps) => {
+
+  console.log(props)
+  const accessColumns: ColumnDef<AccessRightOption>[] = [
     { header: "Modules / Sub-modules", accessorKey: "name" },
     {
       header: "Access Level Management",
@@ -13,7 +19,6 @@ const ActiveAccess = () => {
       cell: ({ row }) => TableData(row.original.accessLevel),
     },
   ];
-
   const modules: AccessRightOption[] = [
     { id: 1, name: "Members", accessLevel: "Can View" },
     { id: 2, name: "Events", accessLevel: "Can View" },
@@ -30,7 +35,7 @@ const ActiveAccess = () => {
   return (
     <section className="col-span-2">
       <div className="flex justify-between">
-        <h2 className="text-lg font-semibold mb-4">Super admin</h2>
+        <h2 className="text-lg font-semibold mb-4">{props.name}</h2>
         <div className="space-x-2">
           <Button
             type="button"
@@ -47,7 +52,7 @@ const ActiveAccess = () => {
         </div>
       </div>
       <TableComponent
-        columns={accessColumns2}
+        columns={accessColumns}
         data={modules}
         rowClass="even:bg-white odd:bg-[#F2F4F7]"
         className={" shadow-md"}

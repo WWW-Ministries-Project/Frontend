@@ -58,4 +58,9 @@ export class ApiCalls {
   ): Promise<any> => {
     return this.fetchFromApi("requisitions/get-requisition/", query);
   };
+  fetchAccessLevels = (
+    query?: Record<string, string | number>
+  ): Promise<any> => {
+    return this.fetchFromApi("access/list-access-levels", query);
+  }
 }

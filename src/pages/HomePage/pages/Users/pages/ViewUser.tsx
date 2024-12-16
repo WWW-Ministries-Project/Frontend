@@ -1,12 +1,23 @@
 import Button from "@/components/Button";
 import ProfilePic from "@/components/ProfilePicture";
 import ToggleSwitch from "@/components/ToggleInput";
+import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { useState } from "react";
+import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
+import api from "@/utils/apiCalls";
+import { useMemo, useState } from "react";
+import ActiveAccess from "../../Settings/Components/ActiveAccess";
+import { AccessRight } from "../../Settings/utils/settingsInterfaces";
 
 const ViewUser = () => {
   const [isActive, setIsActive] = useState(true);
+  const { data: role } = useFetch(api.fetch.fetchAccessLevels);
+  const roleNames = useMemo(
+    () =>
+      role?.data.data.map((role: AccessRight) => ({ name: role.name, value: role.id })) || [],
+    [role]
+  );
   const props = {
     name: "Jojo Abbiw",
     email: "abbiwjojo22@gmail.com",
@@ -14,7 +25,7 @@ const ViewUser = () => {
     position: "System admin",
     department: "IT department",
     photo: "https://via.placeholder.com/150",
-}
+  };
 
   const toggleAccountStatus = () => {
     setIsActive((prev) => !prev);
@@ -49,19 +60,39 @@ const ViewUser = () => {
               <span className="font-semibold">{props.department}</span>
 
               <span className="">Account status</span>
-              <ToggleSwitch name="activate" label={`${isActive ? "Deactivate" : "Activate"}`} isChecked={isActive} onChange={toggleAccountStatus} />
+              <ToggleSwitch
+                name="activate"
+                label={`${isActive ? "Deactivate" : "Activate"}`}
+                isChecked={isActive}
+                onChange={toggleAccountStatus}
+              />
 
               <span className="">Reset password?</span>
-              <Button className={"primary"} value="Reset" onClick={resetPassword} />
+              <Button
+                className={"primary"}
+                value="Reset"
+                onClick={resetPassword}
+              />
 
-              <span className="">
-                Last password reset
-              </span>
+              <span className="">Last password reset</span>
               <span className="font-semibold">{new Date().toDateString()}</span>
             </div>
           </div>
         </div>
         <HorizontalLine />
+        <section>
+          <div className="max-w-[300px]">
+            <SelectField
+              placeholder={"Select Role"}
+              className="w-full"
+              label={"Change Role"}
+              options={roleNames}
+              onChange={(name, value) => console.log(name, value)}
+              id={"role"}
+            />
+          </div>
+        </section>
+        <ActiveAccess data={role?.data.data} name={props.name} />
       </div>
     </PageOutline>
   );
