@@ -35,7 +35,7 @@ const UploadButton = memo(
           aria-label="Upload images"
         >
           <div className="flex items-center justify-center flex-col px-1">
-            <img className="mx-auto" src={cloud_upload} alt="Upload picture" />
+            <img className="mx-auto" src={cloud_upload} alt="Upload a file" />
             <span className="text-xs">
               {!images?.length
                 ? " Click here to add attachments"
