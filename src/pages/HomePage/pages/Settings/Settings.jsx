@@ -1,53 +1,101 @@
 
+import { useStore } from "/src/store/useStore.ts";
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
-import axios from "../../../../axiosInstance.js";
-import Button from "../../../../components/Button";
-import SearchBar from "../../../../components/SearchBar";
-import { baseUrl } from "../../../Authentication/utils/helpers";
-import TableComponent from "../../Components/reusable/TableComponent";
-import AccessForm from "./Components/AccessForm.jsx";
-import FormsComponent from "./Components/FormsComponent";
-// import { accessColumns, departmentColumns, positionsColumns, deleteData } from "./utils/helperFunctions";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import { deleteData, updateData } from "./utils/helperFunctions";
-import Dialog from "/src/components/Dialog";
+import SearchBar from "../../../../components/SearchBar";
+import PageHeader from "../../Components/PageHeader";
+import PageOutline from "../../Components/PageOutline";
+import LoaderComponent from "../../Components/reusable/LoaderComponent.tsx";
+import TableComponent from "../../Components/reusable/TableComponent";
+import { showDeleteDialog, showNotification } from "../../utils/helperFunctions.ts";
+import FormsComponent from "./Components/FormsComponent";
+import useSettingsStore from "./utils/settingsStore.ts";
+import { useDelete } from "/src/CustomHooks/useDelete.tsx";
+import UsePost from "/src/CustomHooks/usePost.tsx";
+import usePut from "/src/CustomHooks/usePut.tsx";
+import api from "/src/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, departmentData, } = useOutletContext();
-  const tabs = ["Department", "Position", "Access Rights"];
+  const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
+  const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData, dataRef] = useState([]);
-  const [positionData, setPositionData] = useState([]);
-  const [accessData, setAccessData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue, inputValueRef] = useState({ created_by: decodeToken().id, name: "", description: "" });
+  const [inputValue, setInputValue] = useState({ created_by: decodeToken().id, name: "", description: "" });
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
-  const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [permissionsValues, setPermissionsValues, permissionsValuesRef] = useState({});
-  const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
-  const [selectedUsers, setSelectedUsers] = useState([]); //for access levels
+  const membersOptions = useStore((state) => state.membersOptions);
+  const settingsStore = useSettingsStore();
+  const positionData = settingsStore.positions || [];
+  const departmentData = settingsStore.departments || [];
+  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = UsePost(api.post.createDepartment);
+  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = UsePost(api.post.createPosition);
+  const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
+  const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
+  const { executeDelete: deleteDepartment, loading: deleteDepartmentLoading, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
+  const { executeDelete: deletePosition, loading: deletePositionLoading, data: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
 
-  //dialog logic
-  const handleShowModal = () => {
-    setShowModal(prev => !prev)
-  }
 
+  // new data
+  useEffect(() => {
+    if (department) {
+      showNotification(department.data.message, "success");
+      settingsStore.setDepartments(department.data.data);
+      handleCloseForm();
+    }
+    if (position) {
+      showNotification(position.data.message, "success");
+      settingsStore.setPositions(position.data.data);
+      handleCloseForm();
+    }
+    if (departmentError || positionError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [department, position, positionError, departmentError]);
+
+  // updated data
+  useEffect(() => {
+    if (departmentUpdate) {
+      showNotification(departmentUpdate.data.message, "success");
+      settingsStore.updateDepartment(departmentUpdate.data.data);
+      handleCloseForm();
+    }
+    if (positionUpdate) {
+      showNotification(positionUpdate.data.message, "success");
+      settingsStore.updatePosition(positionUpdate.data.data);
+      handleCloseForm();
+    }
+    if (departmentUpdateError || positionUpdateError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);
+  // deleted data
+  useEffect(() => {
+    if (departmentDelete) {
+      showNotification(departmentDelete.data.message, "success");
+      settingsStore.removeDepartment(departmentDelete.data.data);
+    }
+    if (positionDelete) {
+      showNotification(positionDelete.data.message, "success");
+      settingsStore.removePosition(positionDelete.data.data);
+    }
+    if (departmentDeleteError || positionDeleteError) {
+      showNotification("Something went wrong", "error");
+    }
+  }, [departmentDelete, positionDelete]);
   const handleDelete = () => {
-    deleteData(itemToDelete.path, itemToDelete.id);
-    setShowModal(prev => !prev);
-    let tempData = dataRef.current;
-    tempData.splice(itemToDelete.index, 1)
-    setData([...tempData])
-    // switch (itemToDelete.path) {
-
-    // }
+    if (selectedTab === "Department") {
+      deleteDepartment(itemToDelete.id)
+    }
+    if (selectedTab === "Position") {
+      deletePosition(itemToDelete.id)
+    }
   }
 
 
@@ -83,17 +131,9 @@ function Settings() {
             }} />
 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              handleShowModal()
-              setItemToDelete({ path: "department/delete-department", id: row.original?.id, name: row.original?.name, index: row.index })
+              showDeleteDialog(row.original, handleDelete);
+              setItemToDelete({ id: row.original?.id })
             }} />
-            {/* 
-            <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
-              deleteData("department/delete-department",row.original.id)
-              let tempData = dataRef.current;
-              tempData.splice(row.index, 1)
-              setData([...tempData])
-             }} /> */}
-
           </div>
         )
       },
@@ -114,86 +154,25 @@ function Settings() {
       accessorKey: "description",
     },
     {
-      header: "Status",
-      accessorKey: "status",
+      header: "Actions",
       cell: ({ row }) => (
         <div
           className={
-            "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white  "
           }>
           <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
             setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_id: row.original?.department?.id }))
             setEditMode(true)
             setDisplayForm(true)
           }} />
-
-          {/* <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => { 
-              deleteData("position/delete-position",row.original.id)
-              let tempData = dataRef.current;
-              tempData.splice(row.index, 1)
-              setData([...tempData])
-              setPositionData([...tempData])
-             }} /> */}
           <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-            handleShowModal()
-            setItemToDelete({ path: "position/delete-position", id: row.original?.id, name: row.original?.name, index: row.index })
+            showDeleteDialog(row.original, handleDelete);
+            setItemToDelete({ id: row.original?.id })
           }} />
 
         </div>)
     },
   ]
-
-  const accessColumns = [
-    {
-      header: "Acess Name",
-      accessorKey: "name",
-    },
-    // {
-    //   header: "Department",
-
-    // },
-    {
-      header: "Description",
-      accessorKey: "description",
-    },
-    {
-      header: "Edit",
-      accessorKey: "status",
-      cell: ({ row }) => (
-        <div
-          className={
-            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white "
-          }>
-          <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-            setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description }))
-            setPermissionsValues(() => (row.original?.permissions))
-            setEditMode(true)
-            setDisplayForm(true)
-          }} />
-          <img src={deleteIcon} alt="delete icon" className="cursor-pointer" />
-
-        </div>
-      )
-    },
-  ]
-  // }, [data,selectedTab,columns])
-
-  //AccessLevels
-  function selectUser(itemId) {
-    const index = members.findIndex(item => item.id === itemId);
-    if (index !== -1) {
-      const selectedItem = members.slice(index)[0];
-      setSelectedUsers(prev => {
-        if (prev.some(user => user.id == itemId)) {
-          return prev.filter(users => users.id != itemId)
-        } else {
-          return [...prev, selectedItem]
-        }
-      });
-    }
-  }
-
-  // const departmentData = departmentDataRef.current;
 
 
 
@@ -201,39 +180,16 @@ function Settings() {
   const selectOptions = useMemo(() => {
     switch (selectedTab) {
       case "Department": {
-        return members.map((member) => {
-          return { name: member.name, value: member.id }
-        })
+        return membersOptions
       }
       case "Position": {
-        return departmentData.map((department) => {
-          return { name: department.name, value: department.id };
-        })
-      }
-      case "Access Rights": {
-        return ["view", "edit", "create"];
+        return settingsStore.departmentsOptions
       }
     }
   }, [members, selectedTab])
 
   const handleChange = (name, value) => {
     setInputValue((prev) => ({ ...prev, [name]: value }));
-  }
-  const handleAccessChange = (name, value) => {
-    if (
-      !permissionsValuesRef.current['view_Positions'] &&
-      !permissionsValuesRef.current['view_Departments'] &&
-      !permissionsValuesRef.current['view_Access']
-    ) {
-      setPermissionsValues((prev) => ({ ...prev, "view_Settings": false }));
-    } else if (
-      permissionsValuesRef.current['view_Positions'] ||
-      permissionsValuesRef.current['view_Departments'] ||
-      permissionsValuesRef.current['view_Access']
-    ) {
-      setPermissionsValues((prev) => ({ ...prev, "view_Settings": true }));
-    }
-    setPermissionsValues((prev) => ({ ...prev, [name]: value }));
   }
 
   const handleCloseForm = () => {
@@ -242,74 +198,25 @@ function Settings() {
   }
 
   const handleFormSubmit = async () => {
-    setLoading(true);
     switch (selectedTab) {
       case "Department": {
         if (editMode) {
-          const res = await updateData("department/update-department", inputValue)
-          res && window.location.reload();
+          updateDepartment(inputValue)
           break;
         }
-        axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-          setLoading(false);
-          setData(res.data.data);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
+        postDepartment(inputValue)
         break;
       }
       case "Position": {
         if (editMode) {
-          const res = await updateData("position/update-position", inputValue)
-          res && window.location.reload();
+          updatePosition(inputValue)
           break;
         }
-        axios.post(`${baseUrl}/position/create-position`, inputValue).then((res) => {
-          setData(res.data.data);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
-        break;
-      }
-      case "Access Rights": {
-        const permissions = permissionsValuesRef.current;
-        setInputValue(prev => ({
-          permissions: permissions,
-          assigned_users: selectedUsers.map(user => user.id), ...prev
-        }))
-        if (editMode) {
-          const res = await updateData("access/update-access-level", inputValueRef.current)
-          res && window.location.reload();
-          break;
-        }
-        axios.post(`${baseUrl}/access/create-access-level`, inputValueRef.current).then(() => {
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        }).catch((err) => {
-          console.log(err);
-          setLoading(false);
-          setDisplayForm(false);
-          setInputValue({});
-        });
+        postPosition(inputValue)
         break;
       }
       default: break
     }
-    // axios.post(`${baseUrl}/department/create-department`, inputValue).then((res) => {
-    //   console.log(res);
-    // })
 
   }
 
@@ -328,34 +235,14 @@ function Settings() {
         setData(positionData);
         break;
       }
-      case "Access Rights": {
-        setColumns(accessColumns);
-        setData(accessData);
-        break;
-      }
       default: break
     }
 
   }
 
   useEffect(() => {
-    axios.get(`${baseUrl}/position/list-positions`).then((res) => {
-      setPositionData(res.data.data);
-    });
-    axios.get(`${baseUrl}/access/list-access-levels`).then((res) => {
-      setAccessData(res.data.data);
-    });
-    // axios.get(`${baseUrl}/department/list-departments`).then((res) => {
-    // setData(departmentDataRef.current);
-    // console.log(departmentData);
-    //   setDepartmentData(res.data.data);
-
-    // })
-  }, [])
-
-  useEffect(() => {
     handleDataFetching();
-  }, [selectedTab, departmentData]);
+  }, [selectedTab, departmentData, positionData]);
 
 
   const handleSearch = (e) => {
@@ -375,9 +262,6 @@ function Settings() {
         setSelectLabel("Department");
         break;
       }
-      case "Access Rights": {
-        break;
-      }
       default: break
     }
     setInputValue({ created_by: decodeToken().id, name: "" });
@@ -385,11 +269,11 @@ function Settings() {
 
   return (
     <>
-      <section className={" h-full flex flex-col  "}>
+      <PageOutline>
 
-        <div className="H600 text-dark900">Settings</div>
+        <PageHeader title="Settings" buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
         <p className="P200 text-gray">
-          Manage your departments, positions and access rights here...
+          Manage your departments and positions here...
         </p>
         <div className="flex mt-2 mb-6">
           {
@@ -414,11 +298,7 @@ function Settings() {
         <section className="mt-6 bg-white p-7">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              {/* <Filter /> */}
               <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
-            </div>
-            <div>
-              <Button value={"Create " + selectedTab} className={"  text-white h-10 p-2 gradientBtn"} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
             </div>
           </div>
           <TableComponent
@@ -428,16 +308,9 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-
-        {selectedTab !== "Access Rights" ? (
-          <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} selectLabel={selectLabel} editMode={editMode} />
-
-        ) : <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} inputLabel={selectedTab} editMode={editMode}  >
-          <AccessForm selectedTab={selectedTab} inputValue={inputValue} permissionsValues={permissionsValues} handleChange={handleAccessChange} handleNameChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={loading} buttonText={editMode ? 'Update' : 'Create'} members={members} selectedUsers={selectedUsers} onMembersSelect={selectUser} />
-        </FormsComponent>}
-      </section>
-
-      <Dialog showModal={showModal} onClick={handleShowModal} data={itemToDelete} onDelete={handleDelete} />
+        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />
+      </PageOutline>
+      {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
     </>
   );
 }

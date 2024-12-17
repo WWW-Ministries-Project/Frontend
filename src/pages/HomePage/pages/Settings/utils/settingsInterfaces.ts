@@ -41,3 +41,14 @@ export interface PositionSlice {
 }
 
 export type StoreState = DepartmentSlice & PositionSlice;
+
+ //access right
+export interface AccessRight {
+  id: number;
+  name: string;
+}
+export interface AccessRightOption {
+  id: number;
+  name: string;
+  accessLevel: "Can View" | "Can Manage" | "Super Admin";
+}

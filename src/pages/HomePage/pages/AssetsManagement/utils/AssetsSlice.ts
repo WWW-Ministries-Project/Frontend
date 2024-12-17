@@ -1,6 +1,7 @@
 import { AssetSlice, assetType } from "./assetsInterface";
 const createAssetSlice = (set: any, get: any): AssetSlice => ({
   assets: [],
+  activeAsset: {},
   addAsset: (asset) => {
     set((state: any) => ({
       assets: [...state.assets, asset],
@@ -21,6 +22,9 @@ const createAssetSlice = (set: any, get: any): AssetSlice => ({
   setAssets: (assets) => {
     set({ assets });
   },
+  setActiveAsset: (asset) => {
+    set({ activeAsset: asset });
+  }
 });
 
 export default createAssetSlice;

@@ -68,7 +68,6 @@ function HomePage() {
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
-      setDepartmentData(res.data.data);
       settingsStore.setDepartments(res.data.data);
     });
   }, []);
@@ -133,8 +132,6 @@ function HomePage() {
                   filter,
                   setFilter,
                   handleSearchChange,
-                  departmentData,
-                  setDepartmentData,
                   userStats,
                 }}
               />
