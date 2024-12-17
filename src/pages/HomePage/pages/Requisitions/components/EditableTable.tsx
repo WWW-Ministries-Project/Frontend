@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import useEditableTableStore from "../requisitionStore/EditableTableStore";
+import React, { useEffect } from "react";
+import { useStore } from "@/store/useStore";
 interface TableRow {
   name: string;
   quantity: number;
@@ -14,17 +14,16 @@ interface EditableTableProps {
     quantity: number;
     amount: number;
     total: number;
+    id: string;
   }[];
 }
 const EditableTable: React.FC<EditableTableProps> = ({
   isEditable = true,
   data,
 }) => {
-  const { addRow, deleteRow, rows, updateRow, setInitialRows } =
-    useEditableTableStore();
-  const products = data ?? [
-    { name: "Item 1", quantity: 1, amount: 100, total: 100 },
-  ];
+  const { addRow, deleteRow, rows, updateRow, setInitialRows } = useStore();
+
+  const products = data ?? [];
 
   useEffect(() => {
     if (products) {
@@ -38,7 +37,6 @@ const EditableTable: React.FC<EditableTableProps> = ({
   ) => {
     updateRow(index, field, value);
   };
-
 
   return (
     <div className="p-4">
