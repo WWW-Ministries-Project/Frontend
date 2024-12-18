@@ -22,7 +22,7 @@ const CreateAccess = () => {
     Users: "Can_View",
     Positions: "Can_View",
     Departments: "Can_View",
-    "Access rights": "Super_Admin",
+    Access_rights: "Super_Admin",
   });
   const {
     postData,
@@ -75,11 +75,8 @@ const CreateAccess = () => {
 
   const handleSubmit = () => {
     if (nameRef.current) {
-      setData((prevData) => {
-        const updatedData = { ...prevData, name: nameRef.current };
-        postData(updatedData);
-        return prevData;
-      });
+      const body = { permissions:data, name: nameRef.current };
+      postData(body);
     }
   };
 
