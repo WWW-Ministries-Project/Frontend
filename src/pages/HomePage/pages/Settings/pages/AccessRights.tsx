@@ -8,7 +8,7 @@ import api from "@/utils/apiCalls";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActiveAccess from "../Components/ActiveAccess";
-import { AccessRight, AccessRightOption } from "../utils/settingsInterfaces";
+import { AccessRight } from "../utils/settingsInterfaces";
 
 const AccessRights = () => {
   const { data } = useFetch<{ data: { data: AccessRight[] } }>(
@@ -69,25 +69,15 @@ const AccessRights = () => {
               className="secondary"
             />
           </div>
-          <ActiveAccess name={selectedAccessRight?.name || ""} permissions={selectedAccessRight?.permissions || {}} />
+          {selectedAccessRight &&<ActiveAccess
+            name={selectedAccessRight?.name || ""}
+            permissions={selectedAccessRight?.permissions || {}}
+          />}
         </section>
       </section>
     </PageOutline>
   );
 };
-
-const modules: AccessRightOption[] = [
-  { id: 1, name: "Members", accessLevel: "Can View" },
-  { id: 2, name: "Events", accessLevel: "Can View" },
-  { id: 3, name: "My requests", accessLevel: "Can View" },
-  { id: 4, name: "Staff request", accessLevel: "Can Manage" },
-  { id: 5, name: "Suppliers", accessLevel: "Can Manage" },
-  { id: 6, name: "Asset", accessLevel: "Can Manage" },
-  { id: 7, name: "Users", accessLevel: "Can Manage" },
-  { id: 8, name: "Department", accessLevel: "Can Manage" },
-  { id: 9, name: "Positions", accessLevel: "Can Manage" },
-  { id: 10, name: "Access rights", accessLevel: "Can Manage" },
-];
 
 const accessColumns = [{ header: "All Access Rights", accessorKey: "name" }];
 
