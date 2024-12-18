@@ -22,4 +22,7 @@ export class ApiUpdateCalls {
   updateDepartment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("department/update-department", payload);
   };
+  updateAccessRight = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("access/update-access-level", payload);
+  };
 }
