@@ -46,6 +46,7 @@ export type StoreState = DepartmentSlice & PositionSlice;
 export interface AccessRight {
   id: number;
   name: string;
+  permissions?: Record<string, string>;
 }
 export interface AccessRightOption {
   id: number;

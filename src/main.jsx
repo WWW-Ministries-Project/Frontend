@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import { BrowserRouter } from "react-router-dom";
-import { AuthWrapper } from "./auth/AuthWrapper.jsx";
+import { AuthWrapper } from "./auth/AuthWrapper";
 import "./index.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
 

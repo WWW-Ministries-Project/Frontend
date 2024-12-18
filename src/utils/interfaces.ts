@@ -27,3 +27,10 @@ export interface ApiCallOptions {
     payload: Record<string, any>
   ) => Promise<ApiResponse<any>>;
 }
+
+export interface userType {
+  id: string;
+  email: string;
+  name: string;
+  permissions: Record<string, boolean>;
+}

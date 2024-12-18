@@ -31,7 +31,7 @@ const Action = (props) => {
   const handleDelete = () => props.onDelete();
 
   return (
-    <div className="z-10 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5]">
+    <div className={"z-10 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5] "+ props.className}>
       <ul className="!divide-lightGray py-2 text-sm text-dark900 flex flex-col gap-y-2">
         <ActionButton onClick={handleEdit} text="Edit" />
         <ActionButton onClick={handleView} text="View" />
@@ -46,6 +46,7 @@ Action.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onView: PropTypes.func.isRequired,
+  className: PropTypes.string
 };
 
 export default Action;
