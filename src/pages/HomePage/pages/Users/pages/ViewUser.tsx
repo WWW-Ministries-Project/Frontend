@@ -92,7 +92,7 @@ const ViewUser = () => {
             />
           </div>
         </section>
-        <ActiveAccess data={role?.data.data} name={props.name} />
+        {<ActiveAccess data={role?.data.data.permissions} name={props.name} />}
       </div>
     </PageOutline>
   );

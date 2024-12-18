@@ -3,7 +3,7 @@ import ProfilePicture from "@/components/ProfilePicture";
 import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
@@ -16,7 +16,10 @@ interface User extends UserType {
   permission: string;
 }
 const UserManagement = () => {
-  const { data } = useFetch(api.fetch.fetchAllMembers, { is_user: "true" });
+  const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
+    is_user: "true",
+  });
+  console.log(registeredMembers);
   const [selectedId, setSelectedId] = useState<number | string>("");
   const navigate = useNavigate();
 
@@ -63,7 +66,7 @@ const UserManagement = () => {
     },
     {
       header: "Role",
-      accessorKey: "permission",
+      accessorKey: "access.name",
     },
     {
       header: "Acount Status",
@@ -87,8 +90,8 @@ const UserManagement = () => {
         <div onClick={() => handleShowOptions(row.original.id)}>
           <ActionButton
             showOptions={row.original.id == selectedId}
-            onView={() => {}}
-            onEdit={() => {}}
+            onView={() => {navigate(`${row.original.id}/info`);}}
+            onEdit={() => {navigate(`${row.original.id}/info`)}}
             onDelete={() => {}}
           />
         </div>
@@ -96,45 +99,10 @@ const UserManagement = () => {
     },
   ];
 
-  //   const users = data?.data?.data || [];
-  const users: User[] = [
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      department: { name: "Engineering", id: "1" },
-      permission: "Admin",
-      is_active: true,
-      photo: "https://via.placeholder.com/150",
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      department: { name: "Marketing" },
-      permission: "Editor",
-      is_active: false,
-      photo: "https://via.placeholder.com/150",
-    },
-    {
-      id: "3",
-      name: "Alice Johnson",
-      email: "alice.johnson@example.com",
-      department: { name: "Finance" },
-      permission: "Viewer",
-      is_active: true,
-      photo: "https://via.placeholder.com/150",
-    },
-    {
-      id: "4",
-      name: "Bob Brown",
-      email: "bob.brown@example.com",
-      department: { name: "Human Resources" },
-      permission: "Admin",
-      is_active: false,
-      photo: "https://via.placeholder.com/150",
-    },
-  ];
+  const users = useMemo(
+    () => registeredMembers?.data.data || [],
+    [registeredMembers]
+  );
   return (
     <PageOutline>
       <PageHeader title={`Users(${users.length})`} />
