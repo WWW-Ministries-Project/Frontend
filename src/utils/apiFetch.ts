@@ -1,8 +1,9 @@
+import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
 import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
+import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./helperFunctions";
 import type { ApiResponse } from "./interfaces";
-import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -42,9 +43,14 @@ export class ApiCalls {
   fetchPositions = (): Promise<any> => {
     return this.fetchFromApi("position/list-positions");
   };
+
   fetchAssets = (): Promise<any> => {
     return this.fetchFromApi("assets/list-assets");
   };
+  fetchAnAsset = (query?: Record<string, any>): Promise<{data: assetType}> => {
+    return this.fetchFromApi("assets/get-asset",query);
+  };
+
 
   fetchDepartments = (): Promise<any> => {
     return this.fetchFromApi("department/list-departments");
@@ -61,12 +67,12 @@ export class ApiCalls {
   };
   fetchAccessLevels = (
     query?: Record<string, string | number>
-  ): Promise<ApiResponse<{data: AccessRight[]}>> => {
+  ): Promise<ApiResponse<{ data: AccessRight[] }>> => {
     return this.fetchFromApi("access/list-access-levels", query);
-  }
+  };
   fetchAnAccess = (
     query?: Record<string, string | number>
-  ): Promise<ApiResponse<{data: AccessRight}>> => {
+  ): Promise<ApiResponse<{ data: AccessRight }>> => {
     return this.fetchFromApi("access/get-access-level", query);
-  }
+  };
 }

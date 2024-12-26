@@ -20,7 +20,6 @@ interface IAssetCard {
 const AssetCard = (props: IAssetCard) => {
   const navigate = useNavigate();
   const handleAction = (path: string,mode="edit") => {
-    useStore.getState().setActiveAsset(props.assets);
     navigate(path,{state:{mode}});
   };
 

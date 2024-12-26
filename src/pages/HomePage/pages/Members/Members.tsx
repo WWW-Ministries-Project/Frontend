@@ -16,7 +16,6 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
-import { useNotificationStore } from "../../store/globalComponentsStore";
 import {
   showDeleteDialog,
   showNotification,
@@ -37,7 +36,6 @@ function Members() {
   const [showOptions, setShowOptions] = useState(false);
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
 
-  const { setNotification } = useNotificationStore();
   const [showSearch, setShowSearch] = useState(false);
 
   const { screenWidth } = useWindowSize();
@@ -202,7 +200,6 @@ function Members() {
               displayedCount={12}
               filter={filterMembers}
               setFilter={setFilterMembers}
-              tableView={tableView}
             />
           ) : (
             <GridComponent
