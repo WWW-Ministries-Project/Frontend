@@ -12,6 +12,7 @@ export interface Requisition {
   user_id: number;
   product_names: string[];
   user: UserType;
+  generated_id:string
 }
 
 export interface IRequestSummary{
@@ -21,6 +22,8 @@ export interface IRequestSummary{
     request_date: string;
     total_cost: number;
     status: string;
+    event_id:number,
+    department_id:number
 }
 export interface IRequisitionDetails {
   comment: string;
@@ -40,4 +43,30 @@ export interface IRequisitionDetails {
     unitPrice: number;
     quantity: number;
   }[];
+  attachmentLists:{
+    URL:string
+    id:number
+  }[]
+}
+
+export interface TableRow {
+  name: string;
+  quantity: number;
+  amount: number;
+  total: number;
+  id: string | number;
+}
+
+export interface EditableTableStore {
+  rows: TableRow[];
+  addRow: () => void;
+  deleteRow: (index: number) => void;
+  updateRow: (index: number, field: keyof TableRow, value: string) => void;
+  setInitialRows: (data: TableRow[]) => void;
+}
+
+export interface RequisitionStore {
+  requests: Requisition[];
+  removeRequest: (id: string) => void;
+  setRequests: (requests: Requisition[]) => void;
 }

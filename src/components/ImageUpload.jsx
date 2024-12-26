@@ -39,7 +39,7 @@ const ImageUpload = ({ onFileChange, src, disabled=false }) => {
           />
         ) : (
           <div>
-            <img className="mx-auto" src={cloud_upload} alt="" srcSet="" />
+            <img className="mx-auto" src={cloud_upload} alt="Upload a file" srcSet="" />
             <div className="text-center">
               Click here to upload the event banner
             </div>

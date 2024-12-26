@@ -24,6 +24,9 @@ export class ApiDeletionCalls {
   deleteAsset = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("assets/delete-asset", { id });
   };
+  deleteRequest = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("requisitions/delete-requisition", { id });
+  };
   deletePosition = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("position/delete-position", { id });
   };
