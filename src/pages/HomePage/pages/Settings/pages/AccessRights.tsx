@@ -9,9 +9,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActiveAccess from "../Components/ActiveAccess";
 import { AccessRight } from "../utils/settingsInterfaces";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 
 const AccessRights = () => {
-  const { data } = useFetch<{ data: { data: AccessRight[] } }>(
+  const { data, loading } = useFetch<{ data: { data: AccessRight[] } }>(
     api.fetch.fetchAccessLevels
   );
   const accessRights = useMemo(() => data?.data.data || [], [data]);
@@ -75,6 +76,7 @@ const AccessRights = () => {
           />}
         </section>
       </section>
+      {loading && <LoaderComponent />}
     </PageOutline>
   );
 };
