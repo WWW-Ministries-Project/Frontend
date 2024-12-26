@@ -4,28 +4,60 @@ import ToggleSwitch from "@/components/ToggleInput";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import api from "@/utils/apiCalls";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { initialUser } from "../../Members/utils/membersHelpers";
+import { UserType } from "../../Members/utils/membersInterfaces";
 import ActiveAccess from "../../Settings/Components/ActiveAccess";
-import { AccessRight } from "../../Settings/utils/settingsInterfaces";
 
 const ViewUser = () => {
-  const [isActive, setIsActive] = useState(true);
-  const { data: role } = useFetch(api.fetch.fetchAccessLevels);
+  const { id } = useParams();
+  const {
+    refetch: refetchRole,
+    data: fetchedRole,
+    loading: roleLoading,
+  } = useFetch(api.fetch.fetchAnAccess, {}, true);
+  const { data: allRoles, loading: allRolesLoading } = useFetch(
+    api.fetch.fetchAccessLevels
+  );
+  const { data: responseData, loading: loadingMember } = useFetch(
+    api.fetch.fetchAMember,
+    {
+      user_id: id!,
+    }
+  );
+  // @ts-ignore
+  const user: Omit<UserType, "position", "department"> & {
+    position: string;
+    department: string;
+  } = responseData?.data.data || initialUser;
+  const [isActive, setIsActive] = useState<boolean>(user?.is_active || false);
+  const role = fetchedRole?.data.data;
   const roleNames = useMemo(
     () =>
-      role?.data.data.map((role: AccessRight) => ({ name: role.name, value: role.id })) || [],
+      allRoles?.data.data.map((role) => ({
+        name: role.name,
+        value: role.id,
+      })) || [],
     [role]
   );
   const props = {
     name: "Jojo Abbiw",
     email: "abbiwjojo22@gmail.com",
-    phone: "+233-248-651-322",
+    primary_number: "+233-248-651-322",
     position: "System admin",
     department: "IT department",
     photo: "https://via.placeholder.com/150",
   };
+
+  useEffect(() => {
+    if (user.access_level_id) {
+      refetchRole({ id: user.access_level_id });
+    }
+  }, [responseData]);
 
   const toggleAccountStatus = () => {
     setIsActive((prev) => !prev);
@@ -45,19 +77,19 @@ const ViewUser = () => {
           <div className="">
             <div className="grid grid-cols-2 gap-y-4 gap-x-12">
               <span className="">Full name</span>
-              <span className="font-semibold">{props.name}</span>
+              <span className="font-semibold">{user?.name}</span>
 
               <span className="">Email</span>
-              <span className="font-semibold">{props.email}</span>
+              <span className="font-semibold">{user?.email}</span>
 
               <span className="">Phone number</span>
-              <span className="font-semibold">{props.phone}</span>
+              <span className="font-semibold">{user.primary_number}</span>
 
               <span className="">Position</span>
-              <span className="font-semibold">{props.position}</span>
+              <span className="font-semibold">{user.position}</span>
 
               <span className="">Department</span>
-              <span className="font-semibold">{props.department}</span>
+              <span className="font-semibold">{user.department?.name}</span>
 
               <span className="">Account status</span>
               <ToggleSwitch
@@ -87,13 +119,20 @@ const ViewUser = () => {
               className="w-full"
               label={"Change Role"}
               options={roleNames}
-              onChange={(name, value) => console.log(name, value)}
+              onChange={(name, value) => console.log(name, value, role?.name)}
               id={"role"}
+              value={role?.id}
             />
           </div>
         </section>
-        {<ActiveAccess data={role?.data.data.permissions} name={props.name} />}
+        {
+          <ActiveAccess
+            permissions={role?.permissions || {}}
+            name={role?.name || ""}
+          />
+        }
       </div>
+      {(loadingMember || allRolesLoading || roleLoading) && <LoaderComponent />}
     </PageOutline>
   );
 };
