@@ -16,13 +16,28 @@ export class ApiUpdateCalls {
   updateAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);
   };
-  updatePosition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updatePosition = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("position/update-position", payload);
   };
-  updateDepartment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("department/update-department", payload);
+  updateDepartment = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(
+      "department/update-department",
+      payload
+    );
   };
-  updateAccessRight = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateAccessRight = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("access/update-access-level", payload);
+  };
+  assignAccessRight = <T>(payload: {
+    user_id: string | number;
+    access_level_id: string | number;
+  }): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("access/assign-access-level", payload);
   };
 }

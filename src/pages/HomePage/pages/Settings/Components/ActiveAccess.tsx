@@ -40,6 +40,7 @@ const ActiveAccess = (props: IProps) => {
         <h2 className="text-lg font-semibold mb-4">{props.name}</h2>
       </div>
       <TableComponent
+      // @ts-ignore
         columns={accessColumns}
         data={modules || []}
         rowClass="even:bg-white odd:bg-[#F2F4F7]"
