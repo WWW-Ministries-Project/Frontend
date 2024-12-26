@@ -13,6 +13,7 @@ import { useParams } from "react-router-dom";
 import { initialUser } from "../../Members/utils/membersHelpers";
 import { UserType } from "../../Members/utils/membersInterfaces";
 import ActiveAccess from "../../Settings/Components/ActiveAccess";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 const ViewUser = () => {
   const { id } = useParams();
 
@@ -30,12 +31,14 @@ const ViewUser = () => {
       user_id: id!,
     }
   );
-  const { updateData: updateAccess, loading, error: accessError } = usePut(api.put.assignAccessRight);
+  const { updateData: updateAccess, loading: accessLoading, data: accessData, error: accessError } = usePut(api.put.assignAccessRight);
   // @ts-ignore
   const user: Omit<UserType, "position", "department"> & {
     position: string;
     department: string;
   } = responseData?.data.data || initialUser;
+
+  const setNotification = useNotificationStore((state) => state.setNotification);
 
   const [isActive, setIsActive] = useState<boolean>(user?.is_active || false);
   const [activeRole, setActiveRole] = useState<string | number>("");
@@ -55,6 +58,27 @@ const ViewUser = () => {
       refetchRole({ id: user.access_level_id });
     }
   }, [responseData]);
+
+  useEffect(() => {
+    if (accessError) {
+      setNotification({
+        title: "Error",
+        message: accessError.message,
+        type: "error",
+        onClose: () => {},
+        show: true,
+      })
+    }
+    if (accessData) {
+      setNotification({
+        title: "Success",
+        message: "Access level updated successfully",
+        type: "success",
+        onClose: () => {},
+        show: true,
+      })
+    }
+  }, [accessError,accessData]);
 
   const changeAccess = (access_level_id: number | string) => {
     setActiveRole(access_level_id);
@@ -103,6 +127,7 @@ const ViewUser = () => {
                 label={`${isActive ? "Deactivate" : "Activate"}`}
                 isChecked={isActive}
                 onChange={toggleAccountStatus}
+                disabled={accessLoading}
               />
 
               <span className="">Reset password?</span>
@@ -138,7 +163,7 @@ const ViewUser = () => {
           />
         }
       </div>
-      {(loadingMember || allRolesLoading || roleLoading) && <LoaderComponent />}
+      {(loadingMember || allRolesLoading || roleLoading || accessLoading) && <LoaderComponent />}
     </PageOutline>
   );
 };

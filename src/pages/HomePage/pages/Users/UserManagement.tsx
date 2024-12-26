@@ -19,7 +19,6 @@ const UserManagement = () => {
   const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
     is_user: "true",
   });
-  console.log(registeredMembers);
   const [selectedId, setSelectedId] = useState<number | string>("");
   const navigate = useNavigate();
 
