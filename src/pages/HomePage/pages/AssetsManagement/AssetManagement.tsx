@@ -2,7 +2,6 @@ import GridAsset from "@/assets/GridAsset";
 import TableAssets from "@/assets/TableAssets";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,29 +25,17 @@ const AssetManagement = () => {
   const [filter, setFilter] = useState("");
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [tableView, setTableView] = useState(false);
-  const [itemToDeleteId, setItemToDeleteId] = useState<string | number | null>(
-    null
-  );
-  const { data, loading } = useFetch(api.fetch.fetchAssets);
+  const { data: assertsData, loading } = useFetch(api.fetch.fetchAssets);
   const {
     executeDelete,
     success,
     error,
     loading: deleteLoading,
   } = useDelete(api.delete.deleteAsset);
-  const assetsStore = useStore();
-  const assertsData = assetsStore.assets;
-
-  useEffect(() => {
-    if (data) {
-      assetsStore.setAssets(data?.data.data);
-    }
-  }, [data]);
 
   useEffect(() => {
     if (success) {
       showNotification("Asset deleted successfully");
-      assetsStore.removeAsset(itemToDeleteId!);
     }
     if (error) {
       showNotification(error.message);
@@ -63,7 +50,6 @@ const AssetManagement = () => {
   };
 
   const handleDelete = (id: string | number) => {
-    setItemToDeleteId(id);
     executeDelete(id);
   };
   const showDeleteModal = (val: assetType) => {
