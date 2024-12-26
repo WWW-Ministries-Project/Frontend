@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import { maxMinValueForDate } from '@/pages/HomePage/utils/helperFunctions';
+import { UserType } from './membersInterfaces';
 
 export const userFormValidator = Yup.object({
   title: Yup.string().required('Required'),
@@ -30,7 +31,7 @@ export const userFormValidator = Yup.object({
 //   emergency_contact_phone_number: Yup.string().required('Required'),
 });
 
-export const initialUser = {
+export const initialUser: UserType = {
     membership_type: "",
     first_name: "", 
     other_name: "", 
@@ -55,6 +56,9 @@ export const initialUser = {
       relation: "", 
       phone_number: "", 
     },
+    is_active: true,
+    id: 0,
+    name: "",
   };
   export const titleOptions = [
     { name: "Mr", value: "Mr" },

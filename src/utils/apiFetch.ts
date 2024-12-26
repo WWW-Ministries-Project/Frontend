@@ -2,6 +2,7 @@ import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./helperFunctions";
 import type { ApiResponse } from "./interfaces";
+import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -58,4 +59,14 @@ export class ApiCalls {
   ): Promise<any> => {
     return this.fetchFromApi("requisitions/get-requisition/", query);
   };
+  fetchAccessLevels = (
+    query?: Record<string, string | number>
+  ): Promise<ApiResponse<{data: AccessRight[]}>> => {
+    return this.fetchFromApi("access/list-access-levels", query);
+  }
+  fetchAnAccess = (
+    query?: Record<string, string | number>
+  ): Promise<ApiResponse<{data: AccessRight}>> => {
+    return this.fetchFromApi("access/get-access-level", query);
+  }
 }

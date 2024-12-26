@@ -19,7 +19,8 @@ interface TableComponentProps<TData> {
   displayedCount?: number;
   rowClass?: string;
   headClass?: string;
-  className?: string
+  className?: string,
+  onRowClick?: (data: any) => void
 }
 
 function TableComponent<TData>({
@@ -30,6 +31,7 @@ function TableComponent<TData>({
   displayedCount = 12,
   rowClass = "",
   headClass = "",
+  onRowClick = () => {},
   ...props
 }: TableComponentProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -53,6 +55,10 @@ function TableComponent<TData>({
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
   });
+
+  const handleRowClick = (data: any) => {
+    onRowClick(data.original);
+  };
 
   return (
     <div className={"overflow-x-auto "+props.className}>
@@ -85,6 +91,7 @@ function TableComponent<TData>({
                 <tr
                   key={row.id}
                   className={`border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999] ${rowClass}`}
+                  onClick={() => handleRowClick(row)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-1">
