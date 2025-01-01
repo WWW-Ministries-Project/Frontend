@@ -2,12 +2,11 @@ import assign from "@/assets/assign.svg";
 import calendar from "@/assets/calendar.svg";
 import defaultImage1 from "@/assets/image.svg";
 import Action from "@/components/Action";
-import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
 import { assetType } from "../utils/assetsInterface";
+import { handleAction } from "../utils/utils";
 import Elipse from "/src/assets/ellipse.svg";
 
 interface IAssetCard {
@@ -18,11 +17,6 @@ interface IAssetCard {
 }
 
 const AssetCard = (props: IAssetCard) => {
-  const navigate = useNavigate();
-  const handleAction = (path: string,mode="edit") => {
-    navigate(path,{state:{mode}});
-  };
-
   const handleDelete = () => {
     props.onDelete(props.assets);
   };
@@ -60,7 +54,7 @@ const AssetCard = (props: IAssetCard) => {
         </div>
         <div className="flex px-3 gap-1 items-center text-sm">
           <img src={calendar} alt="clock icon" />
-          <p>{formatInputDate(props.assets.date_purchased)|| "Unknown"}</p>
+          <p>{formatInputDate(props.assets.date_purchased) || "Unknown"}</p>
         </div>
         <div className="flex px-3 gap-1 text-sm">
           <img src={assign} alt="assigned to icon" />
@@ -76,7 +70,8 @@ const AssetCard = (props: IAssetCard) => {
               onDelete={handleDelete}
               onView={() =>
                 handleAction(
-                  `/home/Assets/manage-asset?asset_id=${props.assets.id}`,"view"
+                  `/home/Assets/manage-asset?asset_id=${props.assets.id}`,
+                  "view"
                 )
               }
               onEdit={() =>

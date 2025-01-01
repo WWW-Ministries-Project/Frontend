@@ -1,14 +1,13 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { useStore } from "@/store/useStore";
+import { navigateRef } from "@/pages/HomePage/HomePage";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { assetType } from "./assetsInterface";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
 
-export const handleAction = (path: string, asset: assetType, mode = "edit") => {
-  // navigate(path,{state:{mode}});
-  window.location.href = path;
+export const handleAction = (path: string, mode = "edit") => {
+  navigateRef.current && navigateRef.current(path, { state: { mode } });
 };
 
 export const assetsColumns: ColumnDef<assetType>[] = [
@@ -21,7 +20,7 @@ export const assetsColumns: ColumnDef<assetType>[] = [
         onClick={() =>
           handleAction(
             `/home/Assets/manage-asset?asset_id/${row.original.id}`,
-            row.original
+            "view"
           )
         }
       >
@@ -64,7 +63,6 @@ export const assetsColumns: ColumnDef<assetType>[] = [
   },
   {
     header: "Actions",
-    // accessorKey: "status",
     cell: ({ row }) => (
       <div
         className={
@@ -75,7 +73,12 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           src={edit}
           alt="edit icon"
           className="cursor-pointer"
-          // onClick={}
+          onClick={() =>
+            handleAction(
+              `/home/Assets/manage-asset?asset_id=${row.original.id}`,
+              "view"
+            )
+          }
         />
         <img
           src={deleteIcon}

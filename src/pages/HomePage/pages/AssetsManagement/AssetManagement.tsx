@@ -3,7 +3,7 @@ import TableAssets from "@/assets/TableAssets";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import Button from "../../../../components/Button";
@@ -24,14 +24,21 @@ const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
-  const [tableView, setTableView] = useState(false);
-  const { data: assertsData, loading } = useFetch(api.fetch.fetchAssets);
+  const [tableView, setTableView] = useState(sessionStorage.getItem("assetsTableView") === "false" ? false : true);
+  const { data, loading } = useFetch(api.fetch.fetchAssets);
   const {
     executeDelete,
     success,
     error,
     loading: deleteLoading,
   } = useDelete(api.delete.deleteAsset);
+
+  const assertsData = useMemo(() => data?.data?.data || [], [data]);
+
+  const handleViewMode = (bol: boolean) => {
+    sessionStorage.setItem("assetsTableView", bol + "");
+    setTableView(bol);
+  };
 
   useEffect(() => {
     if (success) {
@@ -66,13 +73,13 @@ const AssetManagement = () => {
                 className="flex gap-1 bg-lightGray p-1 rounded-md"
                 id="switch"
               >
-                <div onClick={() => setTableView(true)}>
+                <div onClick={() => handleViewMode(true)}>
                   <TableAssets
                     stroke={tableView ? "#8F95B2" : "#8F95B2"}
                     className={tableView ? "bg-white rounded-md" : ""}
                   />
                 </div>
-                <div onClick={() => setTableView(false)}>
+                <div onClick={() => handleViewMode(false)}>
                   <GridAsset
                     stroke={tableView ? "#8F95B2" : "#8F95B2"}
                     className={

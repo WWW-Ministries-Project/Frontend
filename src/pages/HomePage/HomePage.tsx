@@ -4,7 +4,7 @@ import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { useAuth } from "../../auth/AuthWrapper";
 import { changeAuth } from "../../axiosInstance.js";
@@ -14,6 +14,12 @@ import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+
+export const navigateRef = {
+  current: null as
+    | ((path: string, options?: { state: { mode: string } }) => void)
+    | null,
+};
 
 function HomePage() {
   const [departmentData, setDepartmentData] = useState([]);
@@ -99,6 +105,10 @@ function HomePage() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  //custom navigation
+  const navigate = useNavigate();
+  navigateRef.current = navigate;
 
   return (
     <>
