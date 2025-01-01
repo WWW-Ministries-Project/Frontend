@@ -1,20 +1,18 @@
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
-import LoginIcon from "@/assets/sidebar/LoginIcon";
-import LogoutIcon from "@/assets/sidebar/Logout";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MembersIcon from "@/assets/sidebar/MembersIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import ChurchLogo from "@/components/ChurchLogo";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useAuth } from "../../../auth/AuthWrapper";
+import { useAuth } from "../../../context/AuthWrapper";
 // import { sideTabs } from "../utils/helperFunctions";
+import RequestIcon from "@/assets/sidebar/RequestIcon";
+import UsersIcon from "@/assets/sidebar/UsersIcon";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
-import UsersIcon from "@/assets/sidebar/UsersIcon";
-import RequestIcon from "@/assets/sidebar/RequestIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
@@ -63,11 +61,11 @@ const SideBar = ({ show, ...props }) => {
             } xs:pb-0 xs:flex xs:items-center`}
         >
           {/* {show ? ( */}
-            <div className="flex gap-x-4 ">
-              <ChurchLogo show={show} className={''}/>
-              
-            </div>
-          
+          <div className="flex gap-x-4 ">
+            <ChurchLogo show={show} className={''} />
+
+          </div>
+
         </div>
 
 
