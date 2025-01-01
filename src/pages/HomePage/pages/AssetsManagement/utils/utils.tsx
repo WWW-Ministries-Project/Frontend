@@ -5,10 +5,15 @@ import { DateTime } from "luxon";
 import { assetType } from "./assetsInterface";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
+import { useAuth } from "@/auth/AuthWrapper";
 
-export const handleAction = (path: string, asset: assetType, mode = "edit") => {
+export const handleAction = (path: string, mode = "edit") => {
   // navigate(path,{state:{mode}});
-  window.location.href = path;
+  // window.location.href = path;
+  window.history.pushState({ mode }, '', path);
+  const { user } = useAuth()
+  console.log(user,"user");
+
 };
 
 export const assetsColumns: ColumnDef<assetType>[] = [
@@ -21,7 +26,6 @@ export const assetsColumns: ColumnDef<assetType>[] = [
         onClick={() =>
           handleAction(
             `/home/Assets/manage-asset?asset_id/${row.original.id}`,
-            row.original
           )
         }
       >
@@ -64,7 +68,6 @@ export const assetsColumns: ColumnDef<assetType>[] = [
   },
   {
     header: "Actions",
-    // accessorKey: "status",
     cell: ({ row }) => (
       <div
         className={
@@ -75,7 +78,10 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           src={edit}
           alt="edit icon"
           className="cursor-pointer"
-          // onClick={}
+          onClick={() =>
+            handleAction(
+              `/home/Assets/manage-asset?asset_id=${row.original.id}`,"view"
+            )}
         />
         <img
           src={deleteIcon}

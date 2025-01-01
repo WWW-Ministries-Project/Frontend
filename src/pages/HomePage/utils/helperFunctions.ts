@@ -40,3 +40,7 @@ export const showNotification = (
   const notification = useNotificationStore.getState().setNotification;
   notification({ message, show: true, onClose: handleClose, type });
 };
+
+export const isArray = function(data: any) {
+  return Array.isArray(data);
+}

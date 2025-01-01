@@ -1,4 +1,5 @@
-import { eventType, EventSlice } from "./eventInterfaces";
+import { isArray } from "@/pages/HomePage/utils/helperFunctions";
+import { EventSlice, eventType } from "./eventInterfaces";
 const createEventSlice = (set: any, get: any): EventSlice => ({
   events: [],
   eventsOptions: [],
@@ -12,9 +13,7 @@ const createEventSlice = (set: any, get: any): EventSlice => ({
   },
   removeEvent: (eventId) => {
     set((state: any) => ({
-      events: state.events.filter(
-        (event: eventType) => event.id !== eventId
-      ),
+      events: state.events.filter((event: eventType) => event.id !== eventId),
     }));
     get().setEventsOptions();
     get().setUpcomingEvents();
@@ -35,19 +34,23 @@ const createEventSlice = (set: any, get: any): EventSlice => ({
   },
   setEventsOptions: () => {
     set((state: any) => ({
-      eventsOptions: state.events.map((event: eventType) => ({
-        name: event.name,
-        value: event.id,
-      })),
+      eventsOptions: isArray(state.events)
+        ? state.events.map((event: eventType) => ({
+            name: event.name,
+            value: event.id,
+          }))
+        : [],
     }));
   },
   setUpcomingEvents: () => {
     set((state: any) => ({
-      upcomingEvents: state.events.filter(
-        (event: eventType) => new Date(event.start_date) > new Date()
-      ),
-    }))
-  }
+      upcomingEvents: isArray(state.events)
+        ? state.events.filter(
+            (event: eventType) => new Date(event.start_date) > new Date()
+          )
+        : [],
+    }));
+  },
 });
 
 export default createEventSlice;

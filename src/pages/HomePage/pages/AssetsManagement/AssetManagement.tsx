@@ -3,7 +3,7 @@ import TableAssets from "@/assets/TableAssets";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import Button from "../../../../components/Button";
@@ -25,13 +25,15 @@ const AssetManagement = () => {
   const [filter, setFilter] = useState("");
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [tableView, setTableView] = useState(false);
-  const { data: assertsData, loading } = useFetch(api.fetch.fetchAssets);
+  const { data, loading } = useFetch(api.fetch.fetchAssets);
   const {
     executeDelete,
     success,
     error,
     loading: deleteLoading,
   } = useDelete(api.delete.deleteAsset);
+
+  const assertsData = useMemo(() => data?.data?.data || [], [data]);
 
   useEffect(() => {
     if (success) {

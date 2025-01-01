@@ -27,7 +27,7 @@ const ManageAsset = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("asset_id");
-  const isDisabled = location.state?.mode === "view";
+  const isDisabled = window.history.state?.mode === "view";
   const title = id ? (isDisabled ? "View Asset" : "Update Asset") : "Add Asset";
   const {
     data: asset,
