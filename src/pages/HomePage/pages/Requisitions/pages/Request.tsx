@@ -17,26 +17,31 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
-import MultiImageComponent, { image } from "@/pages/HomePage/Components/MultiImageComponent";
-import { pictureInstance as axiosPic } from "@/axiosInstance";
+import MultiImageComponent, {
+  image,
+} from "@/pages/HomePage/Components/MultiImageComponent";
+import AddSignature from "@/components/AddSignature";
+import Modal from "@/components/Modal";
 
 const Request = () => {
-  const departments =
-    useSettingsStore().departments?.map((dept) => {
-      return {
+  const { setInitialRows, events: allEvents } = useStore();
+  const { departments: allDepartments } = useSettingsStore();
+
+  const departments = Array.isArray(allDepartments)
+    ? allDepartments.map((dept) => ({
         name: dept?.name,
         value: dept?.id,
-      };
-    }) ?? [];
+      }))
+    : [];
 
-  const events = useStore().events?.map((event) => {
-    return {
-      name: event.name,
-      value: event.id,
-    };
-  });
+  const events = Array.isArray(allEvents)
+    ? allEvents.map((event) => ({
+        name: event?.name,
+        value: event?.id,
+      }))
+    : [];
+
   const { id } = useParams();
-  const {setInitialRows} = useStore()
 
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
@@ -46,10 +51,23 @@ const Request = () => {
     { id: id ? window.atob(String(id)) : "" }
   );
   const { name } = decodeToken();
-  const { currencies, handleSubmit, loading } = useAddRequisition();
+  const {
+    currencies,
+    handleSubmit,
+    loading,
+    handleAddSignature,
+    closeModal,
+    openSignature,
+    handleUploadImage,
+    imageChange,
+    addingImage,
+    handleSignature,
+    signature,
+    handleUpload,
+  } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
-  const [addingImage, setAddingImage] = useState(false);
   const [initialImages, setInitialImages] = useState<image[]>([]);
+
   useEffect(() => {
     const response = data?.data?.data;
     if (response) {
@@ -59,12 +77,12 @@ const Request = () => {
         amount: product?.unitPrice,
         quantity: product?.quantity,
         total: product?.quantity * product?.unitPrice,
-        id:product?.id
+        id: product?.id,
       }));
       if (products?.length) {
         setInitialRows(products);
       }
-     
+
       if (response.attachmentLists?.length) {
         const images = response.attachmentLists?.map((img, idx) => {
           return {
@@ -92,67 +110,71 @@ const Request = () => {
     return DateTime.fromISO(date).toFormat("yyyy-MM-dd");
   };
 
-  const [images, setImages] = useState<image[]>([]);
-  const imageChange = (images: image[]) => {
-    setImages(images);
+  const initialValues = {
+    requester_name: name,
+    department_id: requestData?.summary.department_id ?? "",
+    event_id: requestData?.summary?.event_id ?? "",
+    request_date: formattedRequestDate,
+    comment: requestData?.comment ?? "",
+    currency: requestData?.currency ?? "",
+    approval_status: requestData?.summary?.status ?? "Draft",
+    signature: "",
   };
 
-  const handleUpload = async (formData: FormData) => {
-    try {
-      setAddingImage(true);
-      const response = await axiosPic.post("/upload", formData);
-      if (response.status === 200) {
-        return { URL: response.data.result.link as string }
-      }
-      setAddingImage(false);
-    } catch (error) {
-      setAddingImage(false);
-    }
-  };
-
-  const handleUploadImage = async () => {
-    let imgUrls: { URL: string, id?: string | number }[] = [];
-    if (images?.length) {
-      for (const image of images) {
-        const formData = new FormData();
-        if (image.file) {
-          formData.append(`file`, image?.file);
-          imgUrls = [...imgUrls, await handleUpload(formData) as {URL:string}];
-        } else {
-          imgUrls = [...imgUrls, { URL: image.image, id: image.id }];
-        }
-      }
-    }
-    return imgUrls;
-  };
-
-const initialValues = {
-  requester_name: name,
-  department_id: requestData?.summary.department_id ?? "",
-  event_id: requestData?.summary?.event_id ?? "",
-  request_date: formattedRequestDate,
-  comment: requestData?.comment ?? "",
-  currency: requestData?.currency ?? "",
-  approval_status: requestData?.summary?.status ?? "Draft",
-}
-
-const title = id ? "Update request" : "Raise request"
+  const title = id ? "Update request" : "Raise request";
   return (
     <PageOutline>
-        <div className="mx-auto py-8 lg:container lg:w-4/6">
+      <div className="mx-auto py-8 lg:container lg:w-4/6">
         <PageHeader title={title} />
 
         <Formik
           initialValues={initialValues}
-          onSubmit={async (e) => {
-           const data =   await handleUploadImage();
-            handleSubmit({...e,attachmentLists:data});
+          onSubmit={async (values) => {
+            const data = await handleUploadImage();
+            handleSubmit({ ...values, attachmentLists: data });
           }}
           validationSchema={addRequisitionSchema}
           enableReinitialize
         >
-          {({ handleSubmit }) => (
+          {({ handleSubmit, setValues, values, validateForm, setTouched }) => (
             <>
+              <Modal open={openSignature} onClose={closeModal}>
+                <AddSignature
+                  cancel={closeModal}
+                  text="Submit"
+                  header="Request Signing"
+                  handleSignature={handleSignature}
+                  loading={loading || addingImage}
+                  onSubmit={async () => {
+                    try {
+                      let updatedSignature = signature.signature;
+
+                      if (signature.isImage && signature.signature) {
+                        const formData = new FormData();
+                        formData.append("file", signature.signature);
+
+                        const response = await handleUpload(formData);
+
+                        if (response?.URL) {
+                          updatedSignature = response.URL;
+                        }
+                      }
+
+                      setValues({
+                        ...values,
+                        approval_status: "Awaiting_HOD_Approval",
+                        signature: updatedSignature,
+                      });
+
+                      // Delay calling handleSubmit to ensure values are updated
+                      await new Promise((resolve) => setTimeout(resolve, 0));
+                      handleSubmit();
+                    } catch (error) {
+                      console.error("Error in AddSignature submission:", error);
+                    }
+                  }}
+                />
+              </Modal>
               <FormWrapperNew>
                 <Field
                   component={FormikInput}
@@ -205,7 +227,7 @@ const title = id ? "Update request" : "Raise request"
                 <MultiImageComponent
                   placeholder="Atatchments"
                   imageChange={imageChange}
-                  initialImages={initialImages ??[]}
+                  initialImages={initialImages ?? []}
                 />
               </FormWrapperNew>
 
@@ -223,20 +245,28 @@ const title = id ? "Update request" : "Raise request"
                 <Button
                   value="Save as Draft"
                   className="secondary"
+                  onClick={() => {
+                    setValues({
+                      ...values,
+                      approval_status: "Draft",
+                      signature: "",
+                    });
+                    handleSubmit();
+                  }}
+                  type="submit"
+                  loading={loading || addingImage}
                 />
                 <Button
                   value={id ? "Update" : "Send request"}
                   className="default"
-                  onClick={handleSubmit}
-                  type="submit"
-                  loading={loading || addingImage}
+                  onClick={() => handleAddSignature(validateForm, setTouched)}
                 />
               </div>
             </>
           )}
         </Formik>
-    </div>
-      </PageOutline>
+      </div>
+    </PageOutline>
   );
 };
 

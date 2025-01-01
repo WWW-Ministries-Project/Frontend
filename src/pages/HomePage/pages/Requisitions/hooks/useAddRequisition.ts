@@ -8,6 +8,9 @@ import api from "@/utils/apiCalls";
 import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
 import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@/store/useStore";
+import { FormikErrors, FormikTouched, FormikValues } from "formik";
+import { image } from "@/pages/HomePage/Components/MultiImageComponent";
+import { pictureInstance as axiosPic } from "@/axiosInstance";
 
 interface IRequest {
   requester_name: string;
@@ -28,6 +31,13 @@ export const useAddRequisition = () => {
   >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
   const { id } = decodeToken();
   const { rows } = useStore();
+  const [openSignature, setOpenSignature] = useState(false);
+  const [images, setImages] = useState<image[]>([]);
+  const [addingImage, setAddingImage] = useState(false);
+  const [signature, setSignature] = useState<{
+    signature: File |null |string;
+    isImage: boolean;
+  }>({ signature: null, isImage: false });
 
   const navigate = useNavigate();
   const { setNotification } = useNotificationStore();
@@ -101,5 +111,90 @@ export const useAddRequisition = () => {
     [rows, id, postData]
   );
 
-  return { currencies, handleSubmit, loading, error, data };
+  const handleAddSignature = async (
+    validateForm: () => Promise<FormikErrors<FormikValues>>,
+    setTouched: (fields: FormikTouched<FormikValues>) => void
+  ) => {
+    const errors = await validateForm(); // Validate the form
+
+    if (Object.keys(errors).length) {
+      setTouched(
+        Object.keys(errors).reduce(
+          (acc, field) => ({
+            ...acc,
+            [field as keyof FormikValues]: true,
+          }),
+          {} as FormikTouched<FormikValues>
+        )
+      );
+      return;
+    }
+
+    setOpenSignature(true); // Open the modal if no errors
+  };
+
+  const closeModal = () => {
+    setOpenSignature(false);
+  };
+
+  const imageChange = (images: image[]) => {
+    setImages(images);
+  };
+
+  const handleUpload = async (formData: FormData) => {
+    try {
+      setAddingImage(true);
+      const response = await axiosPic.post("/upload", formData);
+      if (response.status === 200) {
+        return { URL: response.data.result.link as string };
+      }
+      setAddingImage(false);
+    } catch (error) {
+      handleOpenNotification(error.message, "error")
+      
+    }finally{
+      setAddingImage(false)
+    }
+  };
+
+  const handleUploadImage = async () => {
+    let imgUrls: { URL: string; id?: string | number }[] = [];
+    if (images?.length) {
+      for (const image of images) {
+        const formData = new FormData();
+        if (image.file) {
+          formData.append(`file`, image?.file);
+          imgUrls = [
+            ...imgUrls,
+            (await handleUpload(formData)) as { URL: string },
+          ];
+        } else {
+          imgUrls = [...imgUrls, { URL: image.image, id: image.id }];
+        }
+      }
+    }
+    return imgUrls;
+  };
+
+  const handleSignature = (signature: File |string, isImage: boolean) => {
+    setSignature({ signature, isImage });
+    console.log(signature)
+  };
+
+  return {
+    currencies,
+    handleSubmit,
+    loading,
+    error,
+    data,
+    handleAddSignature,
+    closeModal,
+    openSignature,
+    handleUploadImage,
+    imageChange,
+    addingImage,
+    handleSignature,
+    signature,
+    handleUpload
+  };
 };
