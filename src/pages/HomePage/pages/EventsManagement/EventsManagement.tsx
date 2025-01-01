@@ -12,7 +12,7 @@ import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import {
   showDeleteDialog,
   showNotification,
-} from "../../utils/helperFunctions";
+} from "../../utils";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";

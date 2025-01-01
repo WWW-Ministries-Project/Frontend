@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { maxMinValueForDate } from '@/pages/HomePage/utils/helperFunctions';
+import { maxMinValueForDate } from '@/pages/HomePage/utils';
 import { UserType } from './membersInterfaces';
 
 export const userFormValidator = Yup.object({

@@ -10,7 +10,7 @@ import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import LoaderComponent from "../../Components/reusable/LoaderComponent.tsx";
 import TableComponent from "../../Components/reusable/TableComponent";
-import { showDeleteDialog, showNotification } from "../../utils/helperFunctions.ts";
+import { showDeleteDialog, showNotification } from "../../utils";
 import FormsComponent from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
 import { useDelete } from "/src/CustomHooks/useDelete.tsx";

@@ -1,6 +1,6 @@
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
-import { fetchCountries } from "@/pages/HomePage/utils/apiCalls";
+import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import useState from "react-usestateref";
 import React, { useEffect } from "react";

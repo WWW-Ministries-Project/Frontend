@@ -22,7 +22,6 @@ export const navigateRef = {
 };
 
 function HomePage() {
-  const [departmentData, setDepartmentData] = useState([]);
   const { data: membersData, loading: membersLoading } = useFetch(
     api.fetch.fetchAllMembers
   );

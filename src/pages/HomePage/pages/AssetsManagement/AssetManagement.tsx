@@ -15,7 +15,7 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import {
   showDeleteDialog,
   showNotification,
-} from "../../utils/helperFunctions";
+} from "../../utils";
 import AssetCard from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";

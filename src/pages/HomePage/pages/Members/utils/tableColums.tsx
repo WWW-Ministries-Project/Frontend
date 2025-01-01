@@ -1,5 +1,5 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { showDeleteDialog } from "@/pages/HomePage/utils/helperFunctions";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
 import { ColumnDef } from "@tanstack/react-table";

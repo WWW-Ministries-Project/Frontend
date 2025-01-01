@@ -11,7 +11,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import {
   showNotification,
   showDeleteDialog,
-} from "@/pages/HomePage/utils/helperFunctions";
+} from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 
 export const tableColumns: ColumnDef<Requisition>[] = [

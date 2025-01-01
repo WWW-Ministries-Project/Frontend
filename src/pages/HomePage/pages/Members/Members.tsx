@@ -19,7 +19,7 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import {
   showDeleteDialog,
   showNotification,
-} from "../../utils/helperFunctions";
+} from "../../utils";
 import MemberCard from "./Components/MemberCard";
 import { UserType } from "./utils/membersInterfaces";
 import { membersColumns } from "./utils/tableColums";

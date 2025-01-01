@@ -1,4 +1,4 @@
-import { isArray } from "@/pages/HomePage/utils/helperFunctions";
+import { isArray } from "@/pages/HomePage/utils";
 import { EventSlice, eventType } from "./eventInterfaces";
 const createEventSlice = (set: any, get: any): EventSlice => ({
   events: [],
