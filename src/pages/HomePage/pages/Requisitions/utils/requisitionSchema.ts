@@ -3,6 +3,7 @@ import * as Yup from "yup";
 export const addRequisitionSchema = Yup.object({
   requester_name: Yup.string(),
   department_id: Yup.string().required("department is a required field"),
+  // TODO add .required("program is a required field") when events issue has been fixed
   event_id: Yup.string(),
   request_date: Yup.string().required("date is a required field"),
   currency: Yup.string().required(),
