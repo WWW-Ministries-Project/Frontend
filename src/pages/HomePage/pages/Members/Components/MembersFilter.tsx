@@ -1,6 +1,8 @@
 import Filter from "@/pages/HomePage/Components/reusable/Filter";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 
+//TODO: get BE to return columns needed for filtering
+
 const MembersFilter = ({onChange}:{onChange:(name: string, value: string) => void}) => {
     const departments = useSettingsStore((state) => state.departments);
     const departmentOptions = departments.map((department) => ({

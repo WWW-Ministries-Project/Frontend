@@ -117,7 +117,10 @@ function Members() {
   };
 
   const handleFilterChange = (val: string, id: string) => {
-    setColumnFilters((prev) => [{ id, value: val }]);
+    setColumnFilters((prev) => {
+      const temp =!val ? prev.filter((obj) => obj.id !== id) : prev;
+      return[...temp, { id, value: val }];
+    });
   };
 
   const membersCount = [
