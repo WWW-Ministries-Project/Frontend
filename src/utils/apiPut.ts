@@ -46,6 +46,6 @@ export class ApiUpdateCalls {
     user_id: string | number;
     access_level_id: string | number;
   }): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("access/assign-access-level", payload);
+    return this.apiExecution.updateData("access/assign_access_to_user", payload);
   };
 }

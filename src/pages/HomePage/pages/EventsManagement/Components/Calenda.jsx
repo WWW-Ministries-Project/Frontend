@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EventsCard from './EventsCard';
 import { useNavigate } from 'react-router-dom';
+import { isArray } from '@/pages/HomePage/utils';
 
 const Calendar = ({ events,...props }) => {
   const navigate = useNavigate();
@@ -151,7 +152,7 @@ const Calendar = ({ events,...props }) => {
     for (let i = prevMonthDays - 1; i >= 0; i--) {
       const day = daysInPrevMonth - i;
       const date = new Date(prevMonthYear, prevMonth, day).toISOString().split('T')[0];
-      const dayEvents = events?.filter(event => event.start_date.startsWith(date));
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
       days.push(
         <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '15vh', cursor: 'pointer' }}>
           {day}
@@ -174,7 +175,7 @@ const Calendar = ({ events,...props }) => {
     // Current month's days
     for (let day = 1; day <= daysInCurrentMonth; day++) {
       const date = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
-      const dayEvents = events?.filter(event => event.start_date.startsWith(date));
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
       const isToday = date === todayString;
 
       days.push(
@@ -213,7 +214,7 @@ const Calendar = ({ events,...props }) => {
 
     for (let day = 1; day <= nextMonthDays; day++) {
       const date = new Date(nextMonthYear, nextMonth, day).toISOString().split('T')[0];
-      const dayEvents = events?.filter(event => event.start_date.startsWith(date));
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
       days.push(
         <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '15vh',  cursor: 'pointer' }}>
           {day}

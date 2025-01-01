@@ -180,7 +180,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   const options: RadioOption[] = [
     { value: "Can_View", label: "Can View" },
     { value: "Can_Manage", label: "Can Manage" },
-    { value: "Super_Admin", label: "Super Admin" },
+    { value: "Super_Admin", label: "Admin" },
   ];
 
   const handleChange = (value: string) => {

@@ -61,11 +61,12 @@ const UserManagement = () => {
     {
       header: "Department",
       accessorKey: "department",
-      accessorFn: (row) => row.department?.name || "N/A",
+      accessorFn: (row) => row.department?.name || "-",
     },
     {
       header: "Role",
       accessorKey: "access.name",
+      accessorFn: (row) => row.access?.name || "-",
     },
     {
       header: "Acount Status",

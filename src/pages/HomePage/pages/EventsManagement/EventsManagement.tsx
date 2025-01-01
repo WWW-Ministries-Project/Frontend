@@ -18,6 +18,7 @@ import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 import { eventType } from "./utils/eventInterfaces";
+import EmptyState from "@/components/EmptyState";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -124,6 +125,7 @@ const EventsManagement = () => {
         </div>
       </div>
       {!tableView ? (
+        events.length ?
         <GridComponent
           columns={eventColumns}
           data={events}
@@ -140,7 +142,7 @@ const EventsManagement = () => {
           )}
           filter={filterEvents}
           setFilter={setFilterEvents}
-        />
+        /> : <EmptyState className='w-[20rem] ' msg="😞 Sorry, No events yet" />
       ) : (
         <Calendar
           events={events}
