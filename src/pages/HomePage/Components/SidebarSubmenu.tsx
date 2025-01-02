@@ -41,7 +41,7 @@ const SideBarSubMenu = ({
      
       <NavLink
         to={`${parentPath}`}
-        onClick={() => setShowChildren(!showChildren)}
+        
         className={({ isActive }) =>
           `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900  transition  z-10 flex items-center py- lg:my-3 ${
             !show ? ( justifyCenter ? "justify-center" :'') : " py- mx-2"
@@ -54,7 +54,6 @@ const SideBarSubMenu = ({
       >
         <div className="grid w-full ">
           <NavLink to={`${parentPath}`} 
-          // className="flex justify-between px-2"
           className={({ isActive }) =>
             `  text-dark900  transition flex items-center py-4 justify-between  rounded-xl     ${
               isActive
@@ -67,7 +66,10 @@ const SideBarSubMenu = ({
           {children}
         <p className="cursor-pointer">{show && item.name}</p>
         </div>
-        {show &&<p className={`${showChildren ? "rotate-[270deg]" : "rotate-90"}`}>
+        {show &&<p className={`${showChildren ? "rotate-[270deg]" : "rotate-90"}`} onClick={(e) => {
+          e.preventDefault()
+          setShowChildren(!showChildren)
+        }}>
           <svg
             width="18"
             height="18"
