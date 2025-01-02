@@ -40,6 +40,7 @@ function Members() {
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
 
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   const { screenWidth } = useWindowSize();
   const { executeDelete, loading, success, error } = useDelete(
@@ -166,7 +167,7 @@ function Members() {
                 </div>
                 <FilterIcon
                   className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                  onClick={() => setShowSearch(!showSearch)}
+                  onClick={() => setShowFilter(!showFilter)}
                 />
                 <SearchIcon
                   className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
@@ -193,7 +194,7 @@ function Members() {
             id="searchMembers"
           />
         </div>
-        <div className={`${showSearch ? "block" : "hidden"} w-full flex gap-2`}>
+        <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
           <MembersFilter onChange={handleFilterChange} />
         </div>
         {/* <TableComponent /> */}
