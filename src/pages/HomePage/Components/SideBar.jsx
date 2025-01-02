@@ -71,7 +71,7 @@ const SideBar = ({ show, ...props }) => {
 
         {/* navigation links */}
         <div className="xs:flex lg:flex-col  justify-around xs:w-full overflow-y-auto">
-          {items.map((item, index) => {
+          {items.map((item) => {
             const IconComponent = icons[item.name];
 
             if (!IconComponent) {
@@ -85,7 +85,7 @@ const SideBar = ({ show, ...props }) => {
                   item.children ? (
                     <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
                       }`} /> </SideBarSubMenu>
-                  ) : (<NavigationLink item={item} index={index} show={show}>
+                  ) : (<NavigationLink item={item} show={show}>
                     <IconComponent
                       className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
                         }`}
