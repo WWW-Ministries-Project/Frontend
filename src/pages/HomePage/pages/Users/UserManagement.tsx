@@ -1,4 +1,3 @@
-//@ts-nocheck
 import ProfilePicture from "@/components/ProfilePicture";
 import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
@@ -13,7 +12,7 @@ import { UserType } from "../Members/utils/membersInterfaces";
 
 interface User extends UserType {
   is_active: boolean;
-  permission: string;
+  access?: { name: string };
 }
 const UserManagement = () => {
   const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
@@ -90,6 +89,7 @@ const UserManagement = () => {
         <div onClick={() => handleShowOptions(row.original.id)}>
           <ActionButton
             showOptions={row.original.id == selectedId}
+            hideDelete={true}
             onView={() => {navigate(`${row.original.id}/info`);}}
             onEdit={() => {navigate(`${row.original.id}/info`)}}
             onDelete={() => {}}
@@ -99,7 +99,7 @@ const UserManagement = () => {
     },
   ];
 
-  const users = useMemo(
+  const users: User[] = useMemo(
     () => registeredMembers?.data.data || [],
     [registeredMembers]
   );
