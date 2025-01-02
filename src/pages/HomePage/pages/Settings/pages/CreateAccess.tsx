@@ -92,7 +92,11 @@ const CreateAccess = () => {
       setName(accessLevel?.data.data.name!);
     }
   }, [accessLevel, id]);
-  const handleAccessLevelChange = (module: string, newAccessLevel: string) => {
+  const handleAccessLevelChange = (
+    moduleName: string,
+    newAccessLevel: string
+  ) => {
+    const module = moduleName.split(" ").join("_");
     setData((prevData) => {
       const currentAccessLevel = prevData[module];
       return {
