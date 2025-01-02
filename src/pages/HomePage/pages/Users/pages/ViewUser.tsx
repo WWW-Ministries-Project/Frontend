@@ -77,6 +77,7 @@ const ViewUser = () => {
       });
     }
     if (accessData) {
+      setActiveRole(accessData.data.id);
       setNotification({
         title: "Success",
         message: "Access level updated successfully",
@@ -88,7 +89,6 @@ const ViewUser = () => {
   }, [accessError, accessData]);
 
   const changeAccess = (access_level_id: number | string) => {
-    setActiveRole(access_level_id);
     updateAccess({
       user_id: id,
       access_level_id: access_level_id,
@@ -127,10 +127,10 @@ const ViewUser = () => {
               <span className="font-semibold">{user.primary_number}</span>
 
               <span className="">Position</span>
-              <span className="font-semibold">{user.position}</span>
+              <span className="font-semibold">{user.position?.name || "-"}</span>
 
               <span className="">Department</span>
-              <span className="font-semibold">{user.department?.name}</span>
+              <span className="font-semibold">{user.department?.name || "-"}</span>
 
               <span className="">Account status</span>
               <ToggleSwitch
