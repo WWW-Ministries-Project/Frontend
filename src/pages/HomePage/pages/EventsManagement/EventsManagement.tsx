@@ -130,6 +130,8 @@ const EventsManagement = () => {
           columns={eventColumns}
           data={events}
           displayedCount={24}
+          columnFilters={[]}
+          setColumnFilters={() => {}}
           renderRow={(row) => (
             <EventsCard
               event={row.original}

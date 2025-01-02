@@ -12,10 +12,7 @@ import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
-import {
-  showDeleteDialog,
-  showNotification,
-} from "../../utils";
+import { showDeleteDialog, showNotification } from "../../utils";
 import AssetCard from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
@@ -24,7 +21,9 @@ const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
-  const [tableView, setTableView] = useState(sessionStorage.getItem("assetsTableView") === "false" ? false : true);
+  const [tableView, setTableView] = useState(
+    sessionStorage.getItem("assetsTableView") === "false" ? false : true
+  );
   const { data, loading } = useFetch(api.fetch.fetchAssets);
   const {
     executeDelete,
@@ -114,6 +113,8 @@ const AssetManagement = () => {
                 filter={filter}
                 setFilter={setFilter}
                 displayedCount={12}
+                columnFilters={[]}
+                setColumnFilters={() => {}}
               />
             </div>
           ) : (

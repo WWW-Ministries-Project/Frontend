@@ -30,7 +30,7 @@ function Members() {
 
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
-  const [columnVisibility, setColumnVisibility] = useState({
+  const [columnVisibility] = useState({
     // name: false, // Hide the column from rendering
   });
   const [tableView, setTableView] = useState(
