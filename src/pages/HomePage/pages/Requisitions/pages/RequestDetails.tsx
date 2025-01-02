@@ -44,7 +44,7 @@ const RequestDetails = () => {
     // TODO remove this
   const signatures = {
     receivedBy: { name: "John Doe", signature: "J.D" },
-    authorizedBy: { name: "Tuffour Boateng", signature: "" },
+    authorizedBy: { name: "Tuffour Boateng", signature: "https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-completeness.png.webp" },
     approvedBy: { name: "Pastor James", signature: "" },
   };
 

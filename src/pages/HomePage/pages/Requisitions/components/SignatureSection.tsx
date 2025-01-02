@@ -33,7 +33,7 @@ export default React.memo(function SignatureSection({
             <>
               {isValidURL(signature.signature) ? (
                 <img
-                  src="https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp"
+                  src={signature.signature}
                   className="w-12 h-12"
                   alt=""
                 />
