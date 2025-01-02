@@ -25,7 +25,7 @@ export default React.memo(function SignatureSection({
     <section className="text-dark900">
       <div className="flex flex-col gap-4">
         <p className="font-semibold">
-          {signature.label}: <span className="font-normal">{signature.name}</span>
+          {signature.label}: <span className="font-normal">{signature.name || "N/A"}</span>
         </p>
         <p className="font-semibold flex items-center gap-1">
           Signature:
@@ -35,8 +35,8 @@ export default React.memo(function SignatureSection({
                 <img
                   src={signature.signature}
                   className="w-12 h-12"
-                  alt=""
-                />
+                  alt={`${signature.name}'s signature`}
+                  />
               ) : (
                 <span className="font-normal italic">{signature.signature}</span>
               )}
