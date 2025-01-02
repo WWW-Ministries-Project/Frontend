@@ -2,15 +2,15 @@ import StatusPill from "@/components/StatusPill";
 import React from "react";
 
 type SignatureProps = {
-  label: string;
-  name: string;
-  signature: string;
+ signature:{
+    label: string;
+    name: string;
+    signature: string;
+ }
 };
 
 export default React.memo(function SignatureSection({
-  label,
-  name,
-  signature,
+  signature
 }: Readonly<SignatureProps>) {
   // TODO make this util
   function isValidURL(url: string): boolean {
@@ -25,20 +25,20 @@ export default React.memo(function SignatureSection({
     <section className="text-dark900">
       <div className="flex flex-col gap-4">
         <p className="font-semibold">
-          {label}: <span className="font-normal">{name}</span>
+          {signature.label}: <span className="font-normal">{signature.name}</span>
         </p>
         <p className="font-semibold flex items-center gap-1">
           Signature:
-          {signature ? (
+          {signature.signature ? (
             <>
-              {isValidURL(signature) ? (
+              {isValidURL(signature.signature) ? (
                 <img
                   src="https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp"
                   className="w-12 h-12"
                   alt=""
                 />
               ) : (
-                <span className="font-normal italic">{signature}</span>
+                <span className="font-normal italic">{signature.signature}</span>
               )}
             </>
           ) : (

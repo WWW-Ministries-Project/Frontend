@@ -1,35 +1,44 @@
-import React from "react";
+import React, { memo } from "react";
 import type { IRequester } from "../types/requestInterface";
 import SignatureSection from "./SignatureSection";
 
 interface RequisitionSignatureSectionProps {
   requester?: IRequester;
+  signatures: {
+    receivedBy: { name: string; signature: string };
+    authorizedBy: { name: string; signature: string };
+    approvedBy: { name: string; signature: string };
+  };
 }
 
-const RequisitionSignatureSection: React.FC<
-  RequisitionSignatureSectionProps
-> = ({ requester }) => {
-  return (
-    <section className="flex items-center justify-between px-4 text-dark900">
-      <div className="flex flex-col gap-4">
-        {/* TODO remove the hardcoded signature */}
-        <SignatureSection
-          label="Requested by"
-          name={requester?.name}
-          signature="https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp"
-        />
-        <SignatureSection
-          label="Received by"
-          name="Saah Asiedu"
-          signature="S.A"
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <SignatureSection label="Authorized by" name="Tuffour" signature="" />
-        <SignatureSection label="Approved by" name="Tuffour" signature="" />
-      </div>
-    </section>
-  );
-};
+const RequisitionSignatureSection: React.FC<RequisitionSignatureSectionProps> =
+  memo(({ requester, signatures }) => {
+    return (
+      <section className="flex items-center justify-between px-4 text-dark900">
+        <div className="flex flex-col gap-4">
+          {/* TODO remove the hardcoded signature */}
+          <SignatureSection
+            signature={{
+              name: requester?.name as string,
+              label: "Requested by",
+              signature:
+                "https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp",
+            }}
+          />
+          <SignatureSection
+            signature={{ ...signatures?.receivedBy, label: "Received by" }}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <SignatureSection
+            signature={{ ...signatures?.authorizedBy, label: "Authorized by" }}
+          />
+          <SignatureSection
+            signature={{ ...signatures?.approvedBy, label: "Approved by" }}
+          />
+        </div>
+      </section>
+    );
+  });
 
 export default RequisitionSignatureSection;

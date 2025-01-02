@@ -41,6 +41,13 @@ const RequestDetails = () => {
       };
     }) ?? [];
 
+    // TODO remove this
+  const signatures = {
+    receivedBy: { name: "John Doe", signature: "J.D" },
+    authorizedBy: { name: "Tuffour Boateng", signature: "" },
+    approvedBy: { name: "Pastor James", signature: "" },
+  };
+
   return (
     <PageOutline>
       <Modal open={openSignature} onClose={() => setOpenSignature(false)}>
@@ -99,7 +106,10 @@ const RequestDetails = () => {
           </div>
           <EditableTable isEditable={false} data={products} />
           <HorizontalLine />
-          <RequisitionSignatureSection requester = {requestData?.requester} />
+          <RequisitionSignatureSection
+            requester={requestData?.requester}
+            signatures={signatures}
+          />
         </section>
         <section className="flex flex-col sm:flex-col md:flex-row lg:flex-col xl:flex-col gap-4 col-span-1 sm:col-span-full md:col-span-4 lg:col-span-1 xl:col-span-1">
           <RequisitionSummary
