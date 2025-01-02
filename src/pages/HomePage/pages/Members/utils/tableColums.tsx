@@ -1,19 +1,21 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { showDeleteDialog } from "@/pages/HomePage/utils/helperFunctions";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { UserType } from "./membersInterfaces";
+import { navigateRef } from "@/pages/HomePage/HomePage";
 
 export const membersColumns:ColumnDef<UserType>[] = [
   {
     header: "Name",
     accessorKey: "name",
+    filterFn: "includesString",
     cell: ({ row }) => (
       <div
         className="flex items-center gap-2 cursor-pointer"
         onClick={() => {
-          window.location.href = `/home/members/${row.original.id}/info`;
+          navigateRef.current && navigateRef.current(`/home/members/${row.original.id}/info`);
         }}
       >
         <ProfilePicture
@@ -51,7 +53,6 @@ export const membersColumns:ColumnDef<UserType>[] = [
     header: "Visits",
     accessorKey: "visits",
     cell: (info) => info.getValue() ?? "0" + " visits",
-    // cell: (info) => info.getValue() ? info.getValue() + " visits" : "N/A",
   },
   {
     header: "Actions",

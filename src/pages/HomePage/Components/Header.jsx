@@ -1,15 +1,14 @@
 
-import hamburger from "/src/assets/hamburger.svg";
 import arrowDown from "/src/assets/down.svg";
+import hamburger from "/src/assets/hamburger.svg";
 // import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../auth/AuthWrapper";
+import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import ProfilePicture from "/src/components/ProfilePicture";
-import ChurchLogo from "@/components/ChurchLogo";
 
-function Header({handleShowNav}) {
+function Header({ handleShowNav }) {
   const navigate = useNavigate();
   const [showLogOut, setShowLogOut] = useState(false);
   const { logout } = useAuth();
@@ -24,7 +23,7 @@ function Header({handleShowNav}) {
   return (
     <div className="pb-4">
       <header className="flex justify-between  items-center  w-full  ">
-       <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
+        <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
         <div className="w-[40.9%]">
         </div>
 

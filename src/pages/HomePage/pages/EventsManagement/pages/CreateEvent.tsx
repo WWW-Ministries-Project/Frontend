@@ -1,8 +1,8 @@
-import { useAuth } from "@/auth/AuthWrapper";
 import axios, { pictureInstance as axiosPic } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
+import { useAuth } from "@/context/AuthWrapper";
 import UsePost from "@/CustomHooks/usePost";
-import usePut from "@/CustomHooks/usePut";
+import {usePut} from "@/CustomHooks/usePut";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";

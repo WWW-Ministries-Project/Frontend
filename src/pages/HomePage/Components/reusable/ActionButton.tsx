@@ -6,6 +6,7 @@ interface ActionButtonProps {
   onDelete: () => void;
   onView: () => void;
   onEdit: () => void;
+  hideDelete?: boolean;
 }
 
 const ActionButton = (props: ActionButtonProps) => {
@@ -17,6 +18,7 @@ const ActionButton = (props: ActionButtonProps) => {
           onDelete={props.onDelete}
           onView={props.onView}
           onEdit={props.onEdit}
+          hideDelete={props.hideDelete}
         />
       )}
     </>

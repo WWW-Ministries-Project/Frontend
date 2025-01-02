@@ -11,11 +11,7 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import {
-  maritalOptions,
-  titleOptions,
-  userFormValidator,
-} from "../utils/membersHelpers";
+import { maritalOptions, titleOptions, userFormValidator } from "../utils";
 import { OptionsType, UserType } from "../utils/membersInterfaces";
 import RadioInput from "./RadioInput";
 

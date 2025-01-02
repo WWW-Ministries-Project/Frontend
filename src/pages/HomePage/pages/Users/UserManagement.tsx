@@ -1,5 +1,5 @@
-//@ts-nocheck
 import ProfilePicture from "@/components/ProfilePicture";
+import SearchBar from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
 import api from "@/utils/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
@@ -13,19 +13,25 @@ import { UserType } from "../Members/utils/membersInterfaces";
 
 interface User extends UserType {
   is_active: boolean;
-  permission: string;
+  access?: { name: string };
 }
 const UserManagement = () => {
   const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
     is_user: "true",
   });
   const [selectedId, setSelectedId] = useState<number | string>("");
+  const [searchedUser, setSearchedUser] = useState("");
   const navigate = useNavigate();
 
   const handleShowOptions = (id: number | string) => {
     setSelectedId((prevSelectedId) => (prevSelectedId === id ? "" : id));
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchedUser(e.target.value);
+  };
+
+  //displayed headers for table
   const usersColumns: ColumnDef<User>[] = [
     {
       header: "Member ID",
@@ -61,11 +67,12 @@ const UserManagement = () => {
     {
       header: "Department",
       accessorKey: "department",
-      accessorFn: (row) => row.department?.name || "N/A",
+      accessorFn: (row) => row.department?.name || "-",
     },
     {
       header: "Role",
       accessorKey: "access.name",
+      accessorFn: (row) => row.access?.name || "-",
     },
     {
       header: "Acount Status",
@@ -89,8 +96,13 @@ const UserManagement = () => {
         <div onClick={() => handleShowOptions(row.original.id)}>
           <ActionButton
             showOptions={row.original.id == selectedId}
-            onView={() => {navigate(`${row.original.id}/info`);}}
-            onEdit={() => {navigate(`${row.original.id}/info`)}}
+            hideDelete={true}
+            onView={() => {
+              navigate(`${row.original.id}/info`);
+            }}
+            onEdit={() => {
+              navigate(`${row.original.id}/info`);
+            }}
             onDelete={() => {}}
           />
         </div>
@@ -98,14 +110,28 @@ const UserManagement = () => {
     },
   ];
 
-  const users = useMemo(
+  const users: User[] = useMemo(
     () => registeredMembers?.data.data || [],
     [registeredMembers]
   );
   return (
     <PageOutline>
       <PageHeader title={`Users(${users.length})`} />
-      <TableComponent columns={usersColumns} data={users} />
+      <SearchBar
+        placeholder="Search for a user"
+        className="max-w-[300px] mb-2"
+        id="searchUsers"
+        value={searchedUser}
+        onChange={handleSearchChange}
+      />
+      <TableComponent
+        columns={usersColumns}
+        data={users}
+        filter={searchedUser}
+        setFilter={setSearchedUser}
+        columnFilters={[]}
+        setColumnFilters={() => {}}
+      />
     </PageOutline>
   );
 };

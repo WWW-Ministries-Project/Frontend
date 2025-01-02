@@ -1,4 +1,4 @@
-import { MemberSlice, UserType } from "./membersInterfaces";
+import { MemberSlice, UserType } from "../utils/membersInterfaces";
 
 const createMemberSlice = (set: any, get: any): MemberSlice => ({
   members: [],

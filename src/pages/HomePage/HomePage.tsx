@@ -6,8 +6,8 @@ import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
-import { useAuth } from "../../auth/AuthWrapper";
 import { changeAuth } from "../../axiosInstance.js";
+import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
@@ -22,7 +22,6 @@ export const navigateRef = {
 };
 
 function HomePage() {
-  const [departmentData, setDepartmentData] = useState([]);
   const { data: membersData, loading: membersLoading } = useFetch(
     api.fetch.fetchAllMembers
   );
@@ -36,6 +35,7 @@ function HomePage() {
   const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
+  //@ts-ignore
   const { user } = useAuth();
 
   //side nav

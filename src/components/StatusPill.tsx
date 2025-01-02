@@ -1,4 +1,4 @@
-import { getStatusColor,getFillColor } from "@/pages/HomePage/utils/stringOperations";
+import { getStatusColor,getFillColor } from "@/pages/HomePage/utils";
 
 export default function StatusPill({ text }: Readonly<{ text: string }>) {
   return (

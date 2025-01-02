@@ -1,3 +1,4 @@
+import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./helperFunctions";
 import { ApiResponse } from "./interfaces";
@@ -45,7 +46,7 @@ export class ApiUpdateCalls {
   assignAccessRight = <T>(payload: {
     user_id: string | number;
     access_level_id: string | number;
-  }): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("access/assign-access-level", payload);
+  }): Promise<ApiResponse<AccessRight>> => {
+    return this.apiExecution.updateData("access/assign_access_to_user", payload);
   };
 }

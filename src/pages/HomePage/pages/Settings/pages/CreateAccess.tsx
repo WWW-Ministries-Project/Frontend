@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import { useFetch } from "@/CustomHooks/useFetch";
 import UsePost from "@/CustomHooks/usePost";
-import usePut from "@/CustomHooks/usePut";
+import { usePut } from "@/CustomHooks/usePut";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
@@ -56,7 +56,7 @@ const CreateAccess = () => {
       })),
     [data]
   );
-  
+
   const columns = [
     {
       accessorKey: "name",
@@ -92,7 +92,11 @@ const CreateAccess = () => {
       setName(accessLevel?.data.data.name!);
     }
   }, [accessLevel, id]);
-  const handleAccessLevelChange = (module: string, newAccessLevel: string) => {
+  const handleAccessLevelChange = (
+    moduleName: string,
+    newAccessLevel: string
+  ) => {
+    const module = moduleName.split(" ").join("_");
     setData((prevData) => {
       const currentAccessLevel = prevData[module];
       return {
@@ -180,7 +184,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   const options: RadioOption[] = [
     { value: "Can_View", label: "Can View" },
     { value: "Can_Manage", label: "Can Manage" },
-    { value: "Super_Admin", label: "Super Admin" },
+    { value: "Super_Admin", label: "Admin" },
   ];
 
   const handleChange = (value: string) => {

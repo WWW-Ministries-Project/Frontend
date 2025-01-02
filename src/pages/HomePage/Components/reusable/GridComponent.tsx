@@ -1,18 +1,22 @@
 import GridWrapper from "@/Wrappers/GridWrapper";
 import {
+  ColumnFilter,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 
 interface GridComponentProps {
   data: any;
   columns: any;
   filter: any;
   setFilter: any;
+  columnFilters?: ColumnFilter[];
+  columnVisibility?: Record<string, boolean>;
+  setColumnFilters?: Dispatch<SetStateAction<ColumnFilter[]>>;
   displayedCount: number;
   renderRow: (row: any) => React.ReactNode;
 }
@@ -37,6 +41,8 @@ const GridComponent: React.FC<GridComponentProps> = ({
     state: {
       sorting: sorting,
       globalFilter: filter,
+      columnFilters: props.columnFilters,
+      columnVisibility: props.columnVisibility
     },
     initialState: {
       pagination: {
@@ -47,6 +53,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
     //@ts-expect-error
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
+    onColumnFiltersChange: props.setColumnFilters,
   });
 
   return (

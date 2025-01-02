@@ -6,6 +6,7 @@ import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
+import { ColumnFilter } from "@tanstack/react-table";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
@@ -16,13 +17,11 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
-import {
-  showDeleteDialog,
-  showNotification,
-} from "../../utils/helperFunctions";
+import { showDeleteDialog, showNotification } from "../../utils";
 import MemberCard from "./Components/MemberCard";
+import MembersFilter from "./Components/MembersFilter";
 import { UserType } from "./utils/membersInterfaces";
-import { membersColumns } from "./utils/tableColums";
+import { membersColumns } from "./utils";
 
 function Members() {
   const location = useLocation();
@@ -30,6 +29,10 @@ function Members() {
   const navigate = useNavigate();
 
   const [filterMembers, setFilterMembers] = useState("");
+  const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
+  const [columnVisibility] = useState({
+    // name: false, // Hide the column from rendering
+  });
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
@@ -37,6 +40,7 @@ function Members() {
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
 
   const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   const { screenWidth } = useWindowSize();
   const { executeDelete, loading, success, error } = useDelete(
@@ -113,6 +117,13 @@ function Members() {
     setTableView(bol);
   };
 
+  const handleFilterChange = (val: string, id: string) => {
+    setColumnFilters((prev) => {
+      const temp =!val ? prev.filter((obj) => obj.id !== id) : prev;
+      return[...temp, { id, value: val }];
+    });
+  };
+
   const membersCount = [
     { count: userStats.total_members, label: "Members" },
     { count: userStats.stats.adults.Male, label: "Adult male" },
@@ -156,7 +167,7 @@ function Members() {
                 </div>
                 <FilterIcon
                   className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                  onClick={() => setShowSearch(!showSearch)}
+                  onClick={() => setShowFilter(!showFilter)}
                 />
                 <SearchIcon
                   className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
@@ -183,6 +194,9 @@ function Members() {
             id="searchMembers"
           />
         </div>
+        <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
+          <MembersFilter onChange={handleFilterChange} />
+        </div>
         {/* <TableComponent /> */}
         <div className="hidden gap-4 sm:hidden md:flex lg:flex  md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
@@ -200,6 +214,9 @@ function Members() {
               displayedCount={12}
               filter={filterMembers}
               setFilter={setFilterMembers}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              columnVisibility={columnVisibility}
             />
           ) : (
             <GridComponent
@@ -208,6 +225,9 @@ function Members() {
               displayedCount={24}
               filter={filterMembers}
               setFilter={setFilterMembers}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              columnVisibility={columnVisibility}
               renderRow={(row) => (
                 <MemberCard
                   member={row.original}

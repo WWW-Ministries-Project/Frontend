@@ -173,7 +173,7 @@ export const routes = [
             path: "suppliers",
             name: "Suppliers",
             element: <UserManagement />,
-            sideTab: true
+            sideTab: false
           },
         ]
       },

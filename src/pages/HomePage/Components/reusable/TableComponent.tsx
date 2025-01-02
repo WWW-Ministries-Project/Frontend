@@ -7,6 +7,7 @@ import {
   useReactTable,
   ColumnDef,
   SortingState,
+  ColumnFilter,
 } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useState } from "react";
 import PaginationComponent from "./PaginationComponent";
@@ -15,6 +16,9 @@ interface TableComponentProps<TData> {
   data: TData[]; 
   columns: ColumnDef<TData, any>[]; 
   filter?: string; 
+  columnFilters?: ColumnFilter[];
+  columnVisibility?: Record<string, boolean>;
+  setColumnFilters?: Dispatch<SetStateAction<ColumnFilter[]>>;
   setFilter?: Dispatch<SetStateAction<string>>; 
   displayedCount?: number;
   rowClass?: string;
@@ -27,7 +31,10 @@ function TableComponent<TData>({
   data,
   columns,
   filter = "", 
+  columnFilters,
+  setColumnFilters,
   setFilter,
+  columnVisibility,
   displayedCount = 12,
   rowClass = "",
   headClass = "",
@@ -45,6 +52,8 @@ function TableComponent<TData>({
     state: {
       sorting,
       globalFilter: filter,
+      columnFilters,
+      columnVisibility
     },
     initialState: {
       pagination: {
@@ -54,6 +63,7 @@ function TableComponent<TData>({
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
+    onColumnFiltersChange: setColumnFilters
   });
 
   const handleRowClick = (data: any) => {

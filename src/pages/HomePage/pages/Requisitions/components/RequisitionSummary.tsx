@@ -1,8 +1,7 @@
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
-import { IRequestSummary } from "../types/requestInterface";
-import { getStatusColor } from "@/pages/HomePage/utils/stringOperations";
-import { DateTime } from "luxon";
 import StatusPill from "@/components/StatusPill";
+import PageHeader from "@/pages/HomePage/Components/PageHeader";
+import { DateTime } from "luxon";
+import { IRequestSummary } from "../types/requestInterface";
 
 function RequisitionSummary({
   summary,

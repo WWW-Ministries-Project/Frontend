@@ -2,7 +2,7 @@ import { pictureInstance as axiosFile } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
 import { useFetch } from "@/CustomHooks/useFetch";
 import UsePost from "@/CustomHooks/usePost";
-import usePut from "@/CustomHooks/usePut";
+import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
