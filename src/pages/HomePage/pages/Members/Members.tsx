@@ -21,7 +21,7 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { UserType } from "./utils/membersInterfaces";
-import { membersColumns } from "./utils/tableColums";
+import { membersColumns } from "./utils";
 
 function Members() {
   const location = useLocation();
