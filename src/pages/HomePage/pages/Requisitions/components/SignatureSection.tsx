@@ -12,14 +12,13 @@ export default React.memo(function SignatureSection({
   name,
   signature,
 }: Readonly<SignatureProps>) {
-
-    // TODO make this util
+  // TODO make this util
   function isValidURL(url: string): boolean {
     try {
-      new URL(url); 
+      new URL(url);
       return true;
     } catch (error) {
-      return false; 
+      return false;
     }
   }
   return (

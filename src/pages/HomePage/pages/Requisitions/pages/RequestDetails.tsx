@@ -22,41 +22,47 @@ const RequestDetails = () => {
   const { id } = useParams();
   const [openSignature, setOpenSignature] = useState(false);
   const [openComent, setOpenComent] = useState(false);
-  const navigate = useNavigate()
-  const { data, loading, error } = useFetch<{ data: { data: IRequisitionDetails } }>(
-    api.fetch.fetchRequisitionDetails,
-    { id: window.atob(String(id)) }
-  );
+  const navigate = useNavigate();
+  const { data, loading, error } = useFetch<{
+    data: { data: IRequisitionDetails };
+  }>(api.fetch.fetchRequisitionDetails, { id: window.atob(String(id)) });
   const requestData = useMemo(() => data?.data?.data, [data]);
   if (loading) {
     return <LoaderComponent />;
   }
-  const products = requestData?.products?.map(data=>{
-    return{
-    name: data?.name,
-    amount: data?.unitPrice,
-    quantity: data?.quantity,
-    total: data?.quantity * data?.unitPrice,
-    id:String(data?.id)
-    }
-  }) ??[]
+  const products =
+    requestData?.products?.map((data) => {
+      return {
+        name: data?.name,
+        amount: data?.unitPrice,
+        quantity: data?.quantity,
+        total: data?.quantity * data?.unitPrice,
+        id: String(data?.id),
+      };
+    }) ?? [];
 
   return (
-    <PageOutline >
+    <PageOutline>
       <Modal open={openSignature} onClose={() => setOpenSignature(false)}>
-        <AddSignature cancel={() => setOpenSignature(false)} handleSignature={()=>{}} onSubmit={()=>{}} />
+        <AddSignature
+          cancel={() => setOpenSignature(false)}
+          handleSignature={() => {}}
+          onSubmit={() => {}}
+        />
       </Modal>
 
       <Modal open={openComent} onClose={() => setOpenComent(false)}>
         <div className="p-10">
-          <TextField
-            label="Comment"
-          />
+          <TextField label="Comment" />
         </div>
       </Modal>
       <PageHeader title="Requisition Details">
         <div className="flex gap-2">
-          <Button value="Edit" className={"tertiary"} onClick={()=>navigate("/home/requests/my_requests/request/"+id)} />
+          <Button
+            value="Edit"
+            className={"tertiary"}
+            onClick={() => navigate("/home/requests/my_requests/request/" + id)}
+          />
           <Button
             value="Disapprove"
             className={"secondary"}
@@ -79,8 +85,12 @@ const RequestDetails = () => {
             />
             <div>
               <div className="font-bold"> {requestData?.requester?.name}</div>
-              <div className="text-mainGray">{requestData?.requester?.position ?? "N/A"}</div>
-              <div className="text-mainGray">{requestData?.requester?.email}</div>
+              <div className="text-mainGray">
+                {requestData?.requester?.position ?? "N/A"}
+              </div>
+              <div className="text-mainGray">
+                {requestData?.requester?.email}
+              </div>
             </div>
           </div>
           <HorizontalLine />
@@ -92,9 +102,14 @@ const RequestDetails = () => {
           <RequisitionSignatureSection />
         </section>
         <section className="flex flex-col sm:flex-col md:flex-row lg:flex-col xl:flex-col gap-4 col-span-1 sm:col-span-full md:col-span-4 lg:col-span-1 xl:col-span-1">
-          <RequisitionSummary summary={requestData?.summary} currency={requestData?.currency} />
+          <RequisitionSummary
+            summary={requestData?.summary}
+            currency={requestData?.currency}
+          />
           <RequisitionComments />
-          <RequestAttachments attachments={requestData?.attachmentLists ??[]}/>
+          <RequestAttachments
+            attachments={requestData?.attachmentLists ?? []}
+          />
         </section>
       </section>
     </PageOutline>
