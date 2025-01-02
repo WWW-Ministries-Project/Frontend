@@ -17,7 +17,7 @@ type Signature = {
 export default function AddSignature({
   cancel,
   text = "Sign",
-  handleSignature = (val) => console.log("hello", val),
+  handleSignature,
   onSubmit,
   loading,
   header = "Request Approval Signing",

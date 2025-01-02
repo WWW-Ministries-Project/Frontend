@@ -1,14 +1,21 @@
-import SignatureSection from "./SignatureSection";
 import React from "react";
+import type { IRequester } from "../types/requestInterface";
+import SignatureSection from "./SignatureSection";
 
-export default React.memo(function RequisitionSignatureSection() {
+interface RequisitionSignatureSectionProps {
+  requester?: IRequester;
+}
+
+const RequisitionSignatureSection: React.FC<
+  RequisitionSignatureSectionProps
+> = ({ requester }) => {
   return (
     <section className="flex items-center justify-between px-4 text-dark900">
       <div className="flex flex-col gap-4">
         {/* TODO remove the hardcoded signature */}
         <SignatureSection
           label="Requested by"
-          name="Tuffour Boateng"
+          name={requester?.name}
           signature="https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp"
         />
         <SignatureSection
@@ -23,4 +30,6 @@ export default React.memo(function RequisitionSignatureSection() {
       </div>
     </section>
   );
-});
+};
+
+export default RequisitionSignatureSection;
