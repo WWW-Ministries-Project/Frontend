@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "./Button";
 import useFileUpload from "@/CustomHooks/useFileUpload";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
   return <div className={`text-dark900 ${className}`}>{text}</div>;
 };
+
+type Signature = {
+  cancel: () => void;
+  text?: string;
+  handleSignature: (signature: File | string, isImage: boolean) => void;
+  onSubmit: () => void;
+  loading?: boolean;
+  header?:string
+};
 export default function AddSignature({
   cancel,
-}: Readonly<{ cancel: () => void }>) {
-  const { preview, handleFileChange, clearFile } = useFileUpload();
+  text = "Sign",
+  handleSignature,
+  onSubmit,
+  loading,
+  header="Request Approval Signing"
+}: Readonly<Signature>) {
+  const { preview, handleFileChange, clearFile, file } = useFileUpload();
   const [signature, setSignature] = useState<string>("");
+
+  useEffect(() => {
+    if (file) {
+      handleSignature(file, true);
+      setSignature("");
+    }
+  }, [file]);
   return (
     <div className="p-8 flex  justify-center flex-col  w-[50vw]  gap-4 rounded-lg">
       <Text
-        text="Request Approval Signing"
+        text={header}
         className="text-center font-semibold text-2xl"
       />
       <div className="flex items-center justify-between gap-2 w-full flex-col md:flex-row lg:flex-row">
@@ -54,17 +75,25 @@ export default function AddSignature({
 
       <div className="w-full h-44 flex items-center justify-center border border-[#D8DAE5] rounded-lg">
         {preview ? (
-          <div className="mt-4 max-w-full flex items-start justify-between h-full gap-2">
+          <div >
+            <div className="mt-2 max-w-full flex items-start justify-center h-full gap-2">
             <img
               src={preview}
               alt="Preview"
-              className="mt-4 max-w-full h-full"
+              className=" max-w-full w-52 h-36 rounded-lg"
             />
-            <Button
-              value="X"
-              className="w-fit text-red-500 p-2.5  "
+
+            <div
               onClick={clearFile}
-            />
+              className=" w-5 h-5 flex
+               justify-center 
+               items-center cursor-pointer
+                text-red-500 rounded-full
+                 bg-slate-100 hover:shadow-md "
+            >
+              x
+            </div>
+          </div>
           </div>
         ) : (
           <Text text={signature} />
@@ -75,11 +104,16 @@ export default function AddSignature({
         className="w-full border border-[#D8DAE5] rounded-lg p-2 outline-none"
         placeholder="Type signature here"
         value={signature}
-        onChange={(e) => setSignature(e.target.value)}
+        onChange={(e) => {
+          clearFile();
+          setSignature(e.target.value);
+          if(e.target.value.trim()){
+            handleSignature(e.target.value.trim(), false);
+          }
+        }}
       />
       <Text
-        text='By clicking "Sign", you agreed to approving this request
-'
+        text={`By clicking "${text}", you agreed to approving this request`}
         className="text-base"
       />
 
@@ -92,9 +126,11 @@ export default function AddSignature({
           }}
         />
         <Button
-          value="Sign"
+          value={text}
           className="w-fit text-white bg-primaryViolet p-3"
-          onClick={() => cancel()}
+          onClick={onSubmit}
+          disabled={!(preview || signature.trim())}
+          loading={loading}
         />
       </div>
     </div>
