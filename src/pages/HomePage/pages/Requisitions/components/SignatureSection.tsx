@@ -23,7 +23,7 @@ export default React.memo(function SignatureSection({
   }
   return (
     <section className="text-dark900">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
         <p className="font-semibold">
           {signature.label}: <span className="font-normal">{signature.name || "N/A"}</span>
         </p>

@@ -26,15 +26,15 @@ const RequisitionSignatureSection: React.FC<RequisitionSignatureSectionProps> =
             }}
           />
           <SignatureSection
-            signature={{ ...signatures?.receivedBy, label: "Received by" }}
+            signature={{ ...signatures?.receivedBy, label: "H.O.D" }}
           />
         </div>
         <div className="flex flex-col gap-2">
           <SignatureSection
-            signature={{ ...signatures?.authorizedBy, label: "Authorized by" }}
+            signature={{ ...signatures?.authorizedBy, label: "Executive Pastor" }}
           />
           <SignatureSection
-            signature={{ ...signatures?.approvedBy, label: "Approved by" }}
+            signature={{ ...signatures?.approvedBy, label: "Finance" }}
           />
         </div>
       </section>
