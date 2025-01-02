@@ -15,7 +15,7 @@ import FormsComponent from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
 import { useDelete } from "/src/CustomHooks/useDelete.tsx";
 import UsePost from "/src/CustomHooks/usePost.tsx";
-import usePut from "/src/CustomHooks/usePut.tsx";
+import {usePut} from "/src/CustomHooks/usePut.tsx";
 import api from "/src/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
