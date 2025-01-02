@@ -44,7 +44,7 @@ const RequestDetails = () => {
   return (
     <PageOutline >
       <Modal open={openSignature} onClose={() => setOpenSignature(false)}>
-        <AddSignature cancel={() => setOpenSignature(false)} />
+        <AddSignature cancel={() => setOpenSignature(false)} handleSignature={()=>{}} onSubmit={()=>{}} />
       </Modal>
 
       <Modal open={openComent} onClose={() => setOpenComent(false)}>
@@ -55,8 +55,8 @@ const RequestDetails = () => {
         </div>
       </Modal>
       <PageHeader title="Requisition Details">
+        <div className="flex gap-2">
           <Button value="Edit" className={"tertiary"} onClick={()=>navigate("/home/requests/my_requests/request/"+id)} />
-        <div className="flex gap-2 hidden">
           <Button
             value="Disapprove"
             className={"secondary"}
@@ -72,13 +72,11 @@ const RequestDetails = () => {
       <section className="grid grid-cols-4 gap-4 text-dark900">
         <section className="border rounded-xl p-3 col-span-3 sm:col-span-full md:col-span-4 lg:col-span-3 xl:col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
-            {/* <div className="flex justify-center items-center bg-lightGray w-[7rem] h-[7rem] rounded-full p-3">  */}
             <ProfilePic
               alt="profile pic"
               className="w-[7rem] h-[7rem] border shadow-md"
               name={requestData?.requester?.name}
             />
-            {/* </div> */}
             <div>
               <div className="font-bold"> {requestData?.requester?.name}</div>
               <div className="text-mainGray">{requestData?.requester?.position ?? "N/A"}</div>
