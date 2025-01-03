@@ -7,7 +7,8 @@ type BreadcrumbProps = {
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = "/" }) => {
   const location = useLocation();
-  const pathnames = location.pathname.split("/").filter((x) => x);
+  const pathnames = location.pathname.split("/").filter((x) => x && !Number(x));
+  console.log(pathnames);
 
   return (
     <>
