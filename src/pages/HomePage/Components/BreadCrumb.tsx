@@ -26,12 +26,12 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = "/" }) => {
                   {index > 0 && <li className="text-gray-500">{separator}</li>}
                   {isLast ? (
                     <li className="text-gray-700" aria-current="page">
-                      {value.replace(/-/g, " ").toUpperCase()}
+                      {value.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
                     </li>
                   ) : (
                     <li className="text-blue-500 hover:underline">
                       <Link to={routeTo}>
-                        {value.replace(/-/g, " ").toUpperCase()}
+                        {value.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
                       </Link>
                     </li>
                   )}
