@@ -19,7 +19,7 @@ export const assetsColumns: ColumnDef<assetType>[] = [
         className="flex items-center gap-2 cursor-pointer"
         onClick={() =>
           handleAction(
-            `/home/Assets/manage-asset?asset_id/${row.original.id}`,
+            `/home/Assets/manage-asset?asset_id=${row.original.id}`,
             "view"
           )
         }
