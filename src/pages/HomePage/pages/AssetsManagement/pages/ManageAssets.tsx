@@ -1,7 +1,7 @@
 import { pictureInstance as axiosFile } from "@/axiosInstance";
 import ImageUpload from "@/components/ImageUpload";
 import { useFetch } from "@/CustomHooks/useFetch";
-import UsePost from "@/CustomHooks/usePost";
+import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
@@ -15,7 +15,7 @@ import { assetType } from "../utils/assetsInterface";
 const ManageAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
   const navigate = useNavigate();
-  const { postData, loading, error, data } = UsePost<{ data: assetType }>(
+  const { postData, loading, error, data } = usePost<{ data: assetType }>(
     api.post.createAsset
   );
   const {
@@ -41,14 +41,17 @@ const ManageAsset = () => {
       showNotification("Asset added successfully", "success", () => {
         navigate("/home/assets");
       });
-      if (updatedData) {
-        showNotification("Asset updated successfully", "success", () => {
-          navigate("/home/assets");
-        });
-      }
-      if (error || updateError) {
-        showNotification("Something went wrong", "error");
-      }
+    }
+    if (updatedData) {
+      showNotification("Asset updated successfully", "success", () => {
+        navigate("/home/assets");
+      });
+    }
+    if (error || updateError) {
+      showNotification(
+        error?.message || updateError?.message || "Something went wrong",
+        "error"
+      );
     }
   }, [data, error, updatedData, updateError]);
   const handleFormSubmit = async (val: assetType) => {
