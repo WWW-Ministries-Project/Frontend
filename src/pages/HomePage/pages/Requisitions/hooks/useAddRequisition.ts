@@ -150,7 +150,7 @@ export const useAddRequisition = () => {
       }
       setAddingImage(false);
     } catch (error) {
-      handleOpenNotification(error.message, "error")
+      handleOpenNotification(error instanceof Error ? error.message : "Unknown error", "error")
       
     }finally{
       setAddingImage(false)

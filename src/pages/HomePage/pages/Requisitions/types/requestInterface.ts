@@ -25,16 +25,18 @@ export interface IRequestSummary{
     event_id:number,
     department_id:number
 }
+
+export interface IRequester{
+  name: string;
+  email: string;
+  position: null;
+}
 export interface IRequisitionDetails {
   comment: string;
   currency: string;
 
   summary: IRequestSummary;
-  requester: {
-    name: string;
-    email: string;
-    position: null;
-  };
+  requester: IRequester;
   request_approvals: null;
   products: {
     id: number;

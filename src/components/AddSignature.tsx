@@ -12,7 +12,7 @@ type Signature = {
   handleSignature: (signature: File | string, isImage: boolean) => void;
   onSubmit: () => void;
   loading?: boolean;
-  header?:string
+  header?: string;
 };
 export default function AddSignature({
   cancel,
@@ -20,7 +20,7 @@ export default function AddSignature({
   handleSignature,
   onSubmit,
   loading,
-  header="Request Approval Signing"
+  header = "Request Approval Signing",
 }: Readonly<Signature>) {
   const { preview, handleFileChange, clearFile, file } = useFileUpload();
   const [signature, setSignature] = useState<string>("");
@@ -33,10 +33,7 @@ export default function AddSignature({
   }, [file]);
   return (
     <div className="p-8 flex  justify-center flex-col  w-[50vw]  gap-4 rounded-lg">
-      <Text
-        text={header}
-        className="text-center font-semibold text-2xl"
-      />
+      <Text text={header} className="text-center font-semibold text-2xl" />
       <div className="flex items-center justify-between gap-2 w-full flex-col md:flex-row lg:flex-row">
         <Text text="Signature" className="font-semibold text-2xl" />
         <div className="flex items-center gap-2 flex-col md:flex-row lg:flex-row">
@@ -75,25 +72,25 @@ export default function AddSignature({
 
       <div className="w-full h-44 flex items-center justify-center border border-[#D8DAE5] rounded-lg">
         {preview ? (
-          <div >
+          <div>
             <div className="mt-2 max-w-full flex items-start justify-center h-full gap-2">
-            <img
-              src={preview}
-              alt="Preview"
-              className=" max-w-full w-52 h-36 rounded-lg"
-            />
+              <img
+                src={preview}
+                alt="Preview"
+                className=" max-w-full w-52 h-36 rounded-lg"
+              />
 
-            <div
-              onClick={clearFile}
-              className=" w-5 h-5 flex
+              <div
+                onClick={clearFile}
+                className=" w-5 h-5 flex
                justify-center 
                items-center cursor-pointer
                 text-red-500 rounded-full
                  bg-slate-100 hover:shadow-md "
-            >
-              x
+              >
+                x
+              </div>
             </div>
-          </div>
           </div>
         ) : (
           <Text text={signature} />
@@ -107,7 +104,7 @@ export default function AddSignature({
         onChange={(e) => {
           clearFile();
           setSignature(e.target.value);
-          if(e.target.value.trim()){
+          if (e.target.value.trim()) {
             handleSignature(e.target.value.trim(), false);
           }
         }}
