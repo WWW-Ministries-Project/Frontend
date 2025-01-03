@@ -27,7 +27,7 @@ export default React.memo(function SignatureSection({
         <p className="font-semibold">
           {signature.label}: <span className="font-normal">{signature.name || "N/A"}</span>
         </p>
-        <p className="font-semibold flex items-center gap-1">
+        <div className="font-semibold flex items-center gap-1">
           Signature:
           {signature.signature ? (
             <>
@@ -44,7 +44,7 @@ export default React.memo(function SignatureSection({
           ) : (
             <StatusPill text="Pending signature" />
           )}
-        </p>
+        </div>
       </div>
     </section>
   );
