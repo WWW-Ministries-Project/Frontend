@@ -23,7 +23,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
 
         const handleClick = () => {
           const encodedId = window.btoa(row.original.requisition_id);
-          navigate(`/home/requests/my_requests/${encodedId}`);
+          navigate(`/home/requests/${encodedId}`);
         };
 
         return <button onClick={handleClick}>
@@ -128,10 +128,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
               <div className="absolute right-0 z-10 ">
                 <Action
                   onView={() => {
-                    navigate(`/home/requests/my_requests/${encodedId}`);
+                    navigate(`/home/requests/${encodedId}`);
                   }}
                   onEdit={() => {
-                    navigate(`/home/requests/my_requests/request/${encodedId}`);
+                    navigate(`/home/requests/request/${encodedId}`);
                   }}
                   onDelete={async () => {
                     showDeleteDialog(

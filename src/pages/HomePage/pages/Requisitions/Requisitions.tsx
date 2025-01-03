@@ -19,7 +19,7 @@ setRequests(data?.data?.data)
 
   return (
     <PageOutline>
-      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('my_requests/request')} />
+      <PageHeader title="Requisition" buttonValue="Request item" onClick={()=>navigate('/home/requests/request')} />
      
       {loading && <LoaderComponent  />}
       {!(loading || error) && <TableComponent columns={tableColumns} data={requests ??[]} displayedCount={10}  />}
