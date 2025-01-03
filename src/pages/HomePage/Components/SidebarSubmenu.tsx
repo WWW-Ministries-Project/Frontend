@@ -53,7 +53,7 @@ const SideBarSubMenu = ({
                 className={`text-dark900  transition flex items-center py-4 justify-between  rounded-xl `}
               >
                 {children}
-                <p className="cursor-pointer">{show && item.name}</p>
+                <p className="cursor-pointer">{item.name}</p>
               </div>
               {/*  dirxn icon */}
               <p
@@ -75,7 +75,7 @@ const SideBarSubMenu = ({
                 </svg>
               </p>
             </div>
-            <div className={`${showChildren ? "" : "hidden"}`}>
+            <div className={`${showChildren ? "" : "hidden"}`} onClick={(e) => {e.stopPropagation()}}>
               {item.children.map((child) => {
                 return child.sideTab ? (
                   <NavigationLinks
