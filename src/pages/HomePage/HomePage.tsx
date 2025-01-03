@@ -14,6 +14,7 @@ import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import Breadcrumb from "./Components/BreadCrumb";
 
 export const navigateRef = {
   current: null as
@@ -136,6 +137,7 @@ function HomePage() {
           >
             <Header handleShowNav={handleShowNav} />
             <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
+            <Breadcrumb />
               <Outlet
                 context={{
                   members,
