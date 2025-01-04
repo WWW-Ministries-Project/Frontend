@@ -2,6 +2,7 @@ import Filter from "@/pages/HomePage/Components/reusable/Filter";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 
 //TODO: get BE to return columns needed for filtering
+//NOTE: name of filters should be == accessor key of column
 
 const MembersFilter = ({onChange}:{onChange:(name: string, value: string) => void}) => {
     const departments = useSettingsStore((state) => state.departments);
@@ -18,11 +19,11 @@ const MembersFilter = ({onChange}:{onChange:(name: string, value: string) => voi
         <div className={` w-full flex flex-col gap-2`}>
             <span className="text-sm">Membership</span>
         <Filter
-          name="name"
+          name="membership_type"
           className="w-52"
           options={[
             { label: "All", value: "" },
-            { label: "Member", value: "amena" },
+            { label: "Member", value: "Member" },
             { label: "Visitor", value: "Visitor" },
           ]}
           onChange={handleChange}
@@ -34,7 +35,7 @@ const MembersFilter = ({onChange}:{onChange:(name: string, value: string) => voi
           name="UserType"
           className="w-52"
           options={[
-            { label: "All", value: "Amena" },
+            { label: "All", value: "" },
             { label: "Worker", value: "worker" },
             { label: "Member", value: "member" },
           ]}

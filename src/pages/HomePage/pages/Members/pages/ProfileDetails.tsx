@@ -1,6 +1,6 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useFetch } from "@/CustomHooks/useFetch";
-import UsePost from "@/CustomHooks/usePost";
+import { usePost } from "@/CustomHooks/usePost";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import api from "@/utils/apiCalls";
@@ -30,9 +30,11 @@ const ProfileDetails = () => {
   const { data, loading: queryLoading } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
-  const { data: updatedData, postData, error } = UsePost<{ data: { data: UserType } }>(
-    api.post.updateMember
-  );
+  const {
+    data: updatedData,
+    postData,
+    error,
+  } = usePost<{ data: { data: UserType } }>(api.post.updateMember);
 
   const NotificationStore = useNotificationStore();
 
@@ -55,7 +57,8 @@ const ProfileDetails = () => {
         onClose: () => {},
         show: true,
       });
-    } if (error) {
+    }
+    if (error) {
       NotificationStore.setNotification({
         type: "error",
         message: error.message,

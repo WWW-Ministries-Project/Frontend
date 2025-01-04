@@ -1,6 +1,7 @@
+import { showNotification } from "@/pages/HomePage/utils";
 import React from "react";
 
-const UsePost = <T,>(postFunction: (payload: any) => Promise<T>) => {
+export const usePost = <T,>(postFunction: (payload: any) => Promise<T>) => {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -13,7 +14,8 @@ const UsePost = <T,>(postFunction: (payload: any) => Promise<T>) => {
       const response = await postFunction(payload);
       setData(response);
     } catch (error) {
-      setError(error instanceof Error ? error : new Error("Unknown error"));
+      if(!navigator.onLine) showNotification("You are offline. Please check your internet connection.","error")
+      else setError(error instanceof Error ? error : new Error("Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -21,5 +23,3 @@ const UsePost = <T,>(postFunction: (payload: any) => Promise<T>) => {
 
   return { data, loading, error, postData };
 };
-
-export default UsePost;

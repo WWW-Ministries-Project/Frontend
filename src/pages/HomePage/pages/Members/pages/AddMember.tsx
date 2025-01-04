@@ -1,5 +1,5 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import UsePost from "@/CustomHooks/usePost";
+import { usePost } from "@/CustomHooks/usePost";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { ApiResponse, pictureType } from "@/utils/interfaces";
@@ -19,10 +19,11 @@ const AddMember = () => {
     picture: "",
     src: "",
   });
-  const [userValue, setUserValue, userValueRef] = useState(memberValues);
+  //@ts-expect-error
+  const [userValue, setUserValue, userValueRef] = useState<UserType>(memberValues);
 
   const store = useStore();
-  const { postData, loading, error, data } = UsePost<
+  const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: UserType }>
   >(api.post.createMember);
 
@@ -38,7 +39,6 @@ const AddMember = () => {
     if (error) {
       console.log(error);
     }
-    
   }, [data]);
   function changePic(pic: pictureType) {
     setProfilePic(() => pic);
@@ -47,6 +47,7 @@ const AddMember = () => {
     setUserValue((prev) => ({ ...prev, [name]: value }));
   };
   const handleCancel = () => {
+    //@ts-expect-error
     setUserValue(memberValues);
     setProfilePic({ picture: "", src: "" });
     navigate("/home/members");

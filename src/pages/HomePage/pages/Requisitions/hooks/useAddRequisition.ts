@@ -1,16 +1,16 @@
+import { pictureInstance as axiosPic } from "@/axiosInstance";
+import { usePost } from "@/CustomHooks/usePost";
+import { image } from "@/pages/HomePage/Components/MultiImageComponent";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
+import { useStore } from "@/store/useStore";
+import api from "@/utils/apiCalls";
+import { decodeToken } from "@/utils/helperFunctions";
+import { ApiResponse } from "@/utils/interfaces";
+import { FormikErrors, FormikTouched, FormikValues } from "formik";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IRequisitionDetails } from "../types/requestInterface";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import { decodeToken } from "@/utils/helperFunctions";
-import UsePost from "@/CustomHooks/usePost";
-import { ApiResponse } from "@/utils/interfaces";
-import api from "@/utils/apiCalls";
-import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
-import { useCallback, useEffect, useState } from "react";
-import { useStore } from "@/store/useStore";
-import { FormikErrors, FormikTouched, FormikValues } from "formik";
-import { image } from "@/pages/HomePage/Components/MultiImageComponent";
-import { pictureInstance as axiosPic } from "@/axiosInstance";
 
 interface IRequest {
   requester_name: string;
@@ -26,7 +26,7 @@ export const useAddRequisition = () => {
   const { id: requestId } = useParams();
 
   const requisitionId = requestId ? window.atob(String(requestId)) : "";
-  const { postData, loading, error, data } = UsePost<
+  const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>
   >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
   const { id } = decodeToken();
@@ -35,7 +35,7 @@ export const useAddRequisition = () => {
   const [images, setImages] = useState<image[]>([]);
   const [addingImage, setAddingImage] = useState(false);
   const [signature, setSignature] = useState<{
-    signature: File |null |string;
+    signature: File | null | string;
     isImage: boolean;
   }>({ signature: null, isImage: false });
 
@@ -150,10 +150,12 @@ export const useAddRequisition = () => {
       }
       setAddingImage(false);
     } catch (error) {
-      handleOpenNotification(error instanceof Error ? error.message : "Unknown error", "error")
-      
-    }finally{
-      setAddingImage(false)
+      handleOpenNotification(
+        error instanceof Error ? error.message : "Unknown error",
+        "error"
+      );
+    } finally {
+      setAddingImage(false);
     }
   };
 
@@ -176,9 +178,9 @@ export const useAddRequisition = () => {
     return imgUrls;
   };
 
-  const handleSignature = (signature: File |string, isImage: boolean) => {
+  const handleSignature = (signature: File | string, isImage: boolean) => {
     setSignature({ signature, isImage });
-    console.log(signature)
+    console.log(signature);
   };
 
   return {
@@ -195,6 +197,6 @@ export const useAddRequisition = () => {
     addingImage,
     handleSignature,
     signature,
-    handleUpload
+    handleUpload,
   };
 };

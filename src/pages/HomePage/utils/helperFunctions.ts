@@ -37,6 +37,7 @@ export const showNotification = (
   type: "success" | "error" = "success",
   handleClose = () => {}
 ) => {
+  console.log("hello")
   const notification = useNotificationStore.getState().setNotification;
   notification({ message, show: true, onClose: handleClose, type });
 };

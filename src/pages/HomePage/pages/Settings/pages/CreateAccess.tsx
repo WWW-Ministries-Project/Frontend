@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 import { useFetch } from "@/CustomHooks/useFetch";
-import UsePost from "@/CustomHooks/usePost";
+import {usePost} from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
@@ -41,7 +41,7 @@ const CreateAccess = () => {
     loading,
     error,
     data: response,
-  } = UsePost(api.post.createAccessRight);
+  } = usePost(api.post.createAccessRight);
   const {
     loading: updateLoading,
     error: updateError,

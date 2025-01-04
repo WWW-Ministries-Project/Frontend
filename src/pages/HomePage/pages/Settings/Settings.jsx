@@ -1,5 +1,4 @@
 
-import { useStore } from "/src/store/useStore.ts";
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
@@ -14,8 +13,9 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import FormsComponent from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
 import { useDelete } from "/src/CustomHooks/useDelete.tsx";
-import UsePost from "/src/CustomHooks/usePost.tsx";
-import {usePut} from "/src/CustomHooks/usePut.tsx";
+import { usePost } from "/src/CustomHooks/usePost.tsx";
+import { usePut } from "/src/CustomHooks/usePut.tsx";
+import { useStore } from "/src/store/useStore.ts";
 import api from "/src/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
@@ -34,8 +34,8 @@ function Settings() {
   const settingsStore = useSettingsStore();
   const positionData = settingsStore.positions || [];
   const departmentData = settingsStore.departments || [];
-  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = UsePost(api.post.createDepartment);
-  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = UsePost(api.post.createPosition);
+  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = usePost(api.post.createDepartment);
+  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = usePost(api.post.createPosition);
   const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
   const { executeDelete: deleteDepartment, loading: deleteDepartmentLoading, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
