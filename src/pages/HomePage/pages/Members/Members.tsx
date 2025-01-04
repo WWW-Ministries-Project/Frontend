@@ -31,7 +31,7 @@ function Members() {
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility] = useState({
-    // name: false, // Hide the column from rendering
+    membership_type: false, // Hide the column from rendering use accessor key
   });
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true

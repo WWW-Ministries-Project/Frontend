@@ -28,11 +28,8 @@ const Filter: React.FC<FilterProps> = (props) => {
         aria-label={props.placeholder || "Filter options"}
       >
         <option value="">{props.placeholder || "Select an option"}</option>
-        {props.options.map((option) => (
-          <option
-            key={props.name + option.value + option.label}
-            value={option.value}
-          >
+        {props.options.map((option, index) => (
+          <option key={props.name + option.value + index} value={option.value}>
             {option.label}
           </option>
         ))}

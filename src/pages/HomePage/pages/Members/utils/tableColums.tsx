@@ -10,7 +10,6 @@ export const membersColumns:ColumnDef<UserType>[] = [
   {
     header: "Name",
     accessorKey: "name",
-    filterFn: "includesString",
     cell: ({ row }) => (
       <div
         className="flex items-center gap-2 cursor-pointer"
@@ -69,4 +68,9 @@ export const membersColumns:ColumnDef<UserType>[] = [
       </div>
     ),
   },
+  {
+    header: "Membership type",
+    accessorKey: "membership_type",
+    filterFn: "includesString",
+  }
 ];
