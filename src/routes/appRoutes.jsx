@@ -9,7 +9,7 @@ import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventR
 import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
@@ -25,6 +25,7 @@ import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
+import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
 
 
 export const routes = [
@@ -138,7 +139,7 @@ export const routes = [
           {
             path: "",
             name: "My Requests",
-            element: <Requisitions />,
+            element: <MyRequisitions />,
             isPrivate: false,
             sideTab: true
           },
