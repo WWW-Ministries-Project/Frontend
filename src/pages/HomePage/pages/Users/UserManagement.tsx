@@ -34,10 +34,6 @@ const UserManagement = () => {
   //displayed headers for table
   const usersColumns: ColumnDef<User>[] = [
     {
-      header: "Member ID",
-      cell: ({ row }) => <span>SC-24</span>,
-    },
-    {
       header: "Name",
       accessorKey: "name",
       cell: ({ row }) => (
@@ -59,6 +55,10 @@ const UserManagement = () => {
           {row.original.name}
         </div>
       ),
+    },
+    {
+      header: "Member ID",
+      cell: ({ row }) => <span>SC-24</span>,
     },
     {
       header: "Email",

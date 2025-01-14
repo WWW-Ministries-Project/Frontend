@@ -156,6 +156,7 @@ function HomePage() {
       ) : (
         <Navigate to="/login" />
       )}
+      {membersLoading && <LoaderComponent/>}
     </>
   );
 }

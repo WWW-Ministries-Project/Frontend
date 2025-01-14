@@ -87,7 +87,7 @@ const EventsCard = (props: IEventCard) => {
         </div>
         <div className="flex px-3 gap-1 text-sm">
           <img src={location} alt="location" />
-          <p>{props.event.location}</p>
+          <p>{props.event.location || "-"}</p>
         </div>
         <div
           className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`}

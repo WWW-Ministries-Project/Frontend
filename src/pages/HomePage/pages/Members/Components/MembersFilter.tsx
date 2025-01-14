@@ -32,12 +32,12 @@ const MembersFilter = ({onChange}:{onChange:(name: string, value: string) => voi
         <div className={` flex flex-col gap-2`}>
         <div className="text-sm">Ministry workers</div>
         <Filter
-          name="UserType"
+          name="is_user"
           className="w-52"
           options={[
             { label: "All", value: "" },
-            { label: "Worker", value: "worker" },
-            { label: "Member", value: "member" },
+            { label: "Worker", value: "true" },
+            { label: "Member", value: "false" },
           ]}
           onChange={handleChange}
         />
