@@ -53,8 +53,8 @@ export const compareDates = (date1: string, date2 = "") => {
   // }
 };
 export const genderOptions = [
-  { name: "Male", value: "male" },
-  { name: "Female", value: "female" },
+  { name: "Male", value: "Male" },
+  { name: "Female", value: "Female" },
 ];
 export const memberValues = {
   password: "123456",

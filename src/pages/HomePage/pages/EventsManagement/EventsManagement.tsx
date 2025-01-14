@@ -144,7 +144,7 @@ const EventsManagement = () => {
           )}
           filter={filterEvents}
           setFilter={setFilterEvents}
-        /> : <EmptyState className='w-[20rem] ' msg="😞 Sorry, No events yet" />
+        /> : <EmptyState className='w-[20rem]  mx-auto' msg="😞 Sorry, No events yet" />
       ) : (
         <Calendar
           events={events}
