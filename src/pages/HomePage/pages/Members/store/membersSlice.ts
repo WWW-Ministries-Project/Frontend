@@ -4,6 +4,7 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
   members: [],
   membersOptions: [],
   userStats: {
+    members:{
     total_members: 0,
     total_males: 0,
     total_females: 0,
@@ -12,6 +13,16 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
       children: { Male: 0, Female: 0, Total: 0 },
     },
   },
+   visitors: {
+    total_members: 0,
+    total_males: 0,
+    total_females: 0,
+    stats: {
+      adults: { Male: 0, Female: 0, Total: 0 },
+      children: { Male: 0, Female: 0, Total: 0 },
+    },
+  },
+},
   addMember: (member) => {
     set((state: any) => ({
       members: [...state.members, member],

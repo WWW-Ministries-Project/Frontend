@@ -38,19 +38,19 @@ function DashBoard() {
   const stats = [
     {
       name: "Total Members",
-      value: userStats.total_members,
+      value: userStats.members?.total_members || 0,
     },
     {
       name: "Males",
-      value: userStats.total_males,
+      value: userStats.members?.total_males || 0,
     },
     {
       name: "Female",
-      value: userStats.total_females,
+      value: userStats.members?.total_females || 0,
     },
     {
       name: "Children",
-      value: userStats.stats?.children?.Total,
+      value: userStats.members?.stats?.children?.Total || 0,
     },
   ];
 
@@ -72,6 +72,8 @@ function DashBoard() {
     localStorage.setItem("welcomeMsg", "false");
   };
 
+  console.log(userStats.members, "stats");
+
   return (
     <main className={``}>
       {welcomeMsg && isTabletOrAbove && (
@@ -91,12 +93,12 @@ function DashBoard() {
         <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 ">
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-dark900 H600">Members Breakdown</div>
-            <BarChart value={userStats.stats} />
+            <BarChart value={userStats.members?.stats} />
           </section>
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-dark900 H600">Event Attendance</div>
             {/* <BarChart value={userStats.stats} /> */}
-            <LineChart value={userStats.stats} />
+            <LineChart value={userStats.members?.stats} />
           </section>
         </div>
         <div className="flex flex-col  justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">

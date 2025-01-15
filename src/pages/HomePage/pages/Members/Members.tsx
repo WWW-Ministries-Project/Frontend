@@ -20,8 +20,8 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
-import { UserType } from "./utils/membersInterfaces";
 import { membersColumns } from "./utils";
+import { UserType } from "./utils/membersInterfaces";
 
 function Members() {
   const location = useLocation();
@@ -32,6 +32,7 @@ function Members() {
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility] = useState({
     membership_type: false, // Hide the column from rendering use accessor key
+    is_user: false,
   });
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
@@ -118,18 +119,34 @@ function Members() {
   };
 
   const handleFilterChange = (val: string, id: string) => {
+    console.log(val, typeof val, id);
     setColumnFilters((prev) => {
-      const temp =!val ? prev.filter((obj) => obj.id !== id) : prev;
-      return[...temp, { id, value: val }];
+      const temp = !val ? prev.filter((obj) => obj.id !== id) : prev;
+      console.log(temp, "added value");
+      return [...temp, { id, value: val }];
     });
+    console.log(columnFilters);
   };
 
   const membersCount = [
-    { count: userStats.total_members, label: "Members" },
-    { count: userStats.stats?.adults?.Male, label: "Adult male" },
-    { count: userStats.stats?.adults?.Female, label: "Adult female" },
-    { count: userStats.stats?.children.Male, label: "Children male" },
-    { count: userStats.stats?.children.Female, label: "Children female" },
+    { count: userStats.members?.total_members, label: "Members" },
+    { count: userStats.members?.stats.adults.Male, label: "Adult male" },
+    { count: userStats.members?.stats.adults.Female, label: "Adult female" },
+    { count: userStats.members?.stats.children.Male, label: "Children male" },
+    {
+      count: userStats.members?.stats.children.Female,
+      label: "Children female",
+    },
+  ];
+  const visitorsCount = [
+    { count: userStats.visitors?.total_members, label: "Visitors" },
+    { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
+    { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
+    { count: userStats.visitors?.stats.children.Male, label: "Children male" },
+    {
+      count: userStats.visitors?.stats.children.Female,
+      label: "Children female",
+    },
   ];
 
   return (
@@ -139,7 +156,10 @@ function Members() {
         {/* search component and add member */}
         <div className="flex justify-between items-center">
           <p className="text-dark900 text-2xl font-semibold">
-            Church Members ({userStats.total_members})
+            Church Members 
+            {userStats.members?.total_members +
+              userStats.visitors?.total_members || "-"}
+            )
           </p>
           <div className="flex justify-between items-center ">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -200,7 +220,7 @@ function Members() {
         {/* <TableComponent /> */}
         <div className="hidden gap-4 sm:hidden md:flex lg:flex  md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
-          <MembersCount items={membersCount} />
+          <MembersCount items={visitorsCount} />
         </div>
         <div
           className={`w-full mx-auto bg-white  ${

@@ -24,6 +24,7 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
       }}
       initialValues={initialValues}
       validationSchema={assetFormValidator}
+      enableReinitialize
     >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
@@ -41,7 +42,7 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
               label="Asset ID"
               id="assets_id"
               name="assets_id"
-              disabled={disabled}
+              disabled={true}
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
