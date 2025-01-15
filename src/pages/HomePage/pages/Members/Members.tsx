@@ -126,10 +126,10 @@ function Members() {
 
   const membersCount = [
     { count: userStats.total_members, label: "Members" },
-    { count: userStats.stats.adults.Male, label: "Adult male" },
-    { count: userStats.stats.adults.Female, label: "Adult female" },
-    { count: userStats.stats.children.Male, label: "Children male" },
-    { count: userStats.stats.children.Female, label: "Children female" },
+    { count: userStats.stats?.adults?.Male, label: "Adult male" },
+    { count: userStats.stats?.adults?.Female, label: "Adult female" },
+    { count: userStats.stats?.children.Male, label: "Children male" },
+    { count: userStats.stats?.children.Female, label: "Children female" },
   ];
 
   return (

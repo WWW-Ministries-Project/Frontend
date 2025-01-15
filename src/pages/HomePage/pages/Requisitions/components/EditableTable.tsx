@@ -49,80 +49,80 @@ const EditableTable: React.FC<EditableTableProps> = ({
           + Add item
         </div>
       )}
-      <table className="min-w-full border-collapse border border-[#D9D9D9]">
-        <thead>
-          <tr className="bg-[#F2F4F7]">
-            <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-              Name
-            </th>
-            <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-              Quanity
-            </th>
-            <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-              Amount
-            </th>
-            <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-              Total
-            </th>
-            {isEditable && (
+      {rows?.length>0 &&  <table className="min-w-full border-collapse border border-[#D9D9D9]">
+          <thead>
+            <tr className="bg-[#F2F4F7]">
               <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                Remove
+                Name
               </th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={index} className="odd:bg-white even:bg-[#F2F4F7]">
-              <td className="border border-[#D9D9D9] px-2 py-1">
-                <input
-                  type="text"
-                  className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
-                  value={row.name}
-                  onChange={(e) =>
-                    handleInputChange(index, "name", e.target.value)
-                  }
-                  disabled={!isEditable}
-                />
-              </td>
-              <td className="border border-[#D9D9D9] px-2 py-1">
-                <input
-                  type="number"
-                  className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
-                  value={row.quantity}
-                  onChange={(e) =>
-                    handleInputChange(index, "quantity", e.target.value)
-                  }
-                  disabled={!isEditable}
-                />
-              </td>
-              <td className="border border-[#D9D9D9] px-2 py-1">
-                <input
-                  type="number"
-                  className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
-                  value={row.amount}
-                  onChange={(e) =>
-                    handleInputChange(index, "amount", e.target.value)
-                  }
-                  disabled={!isEditable}
-                />
-              </td>
-              <td className="border border-[#D9D9D9] px-2 py-1">{row.total}</td>
+              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
+                Quanity
+              </th>
+              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
+                Amount
+              </th>
+              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
+                Total
+              </th>
               {isEditable && (
-                <td className="border border-[#D9D9D9] px-2 py-1">
-                  <button
-                    className="text-red-500 hover:text-red-700"
-                    onClick={() => deleteRow(index)}
-                    disabled={!isEditable}
-                  >
-                    Delete
-                  </button>
-                </td>
+                <th className="border border-[#D9D9D9] px-2 py-1 text-left">
+                  Remove
+                </th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={index} className="odd:bg-white even:bg-[#F2F4F7]">
+                <td className="border border-[#D9D9D9] px-2 py-1">
+                  <input
+                    type="text"
+                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
+                    value={row.name}
+                    onChange={(e) =>
+                      handleInputChange(index, "name", e.target.value)
+                    }
+                    disabled={!isEditable}
+                  />
+                </td>
+                <td className="border border-[#D9D9D9] px-2 py-1">
+                  <input
+                    type="number"
+                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
+                    value={row.quantity}
+                    onChange={(e) =>
+                      handleInputChange(index, "quantity", e.target.value)
+                    }
+                    disabled={!isEditable}
+                  />
+                </td>
+                <td className="border border-[#D9D9D9] px-2 py-1">
+                  <input
+                    type="number"
+                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
+                    value={row.amount}
+                    onChange={(e) =>
+                      handleInputChange(index, "amount", e.target.value)
+                    }
+                    disabled={!isEditable}
+                  />
+                </td>
+                <td className="border border-[#D9D9D9] px-2 py-1">{row.total}</td>
+                {isEditable && (
+                  <td className="border border-[#D9D9D9] px-2 py-1">
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => deleteRow(index)}
+                      disabled={!isEditable}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>}
     </div>
   );
 };

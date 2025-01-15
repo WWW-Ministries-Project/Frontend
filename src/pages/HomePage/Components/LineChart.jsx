@@ -21,7 +21,7 @@ const LineChart = ({ value }) => {
         "December"
       ],
     datasets: [{
-      data: [value.adults.Male, value.adults.Female, value.adults.other, value.children.Male, value.children.Female, value.children.other],
+      data: [value?.adults.Male, value?.adults.Female, value?.adults.other, value?.children.Male, value?.children.Female, value?.children.other],
       label: 'Demographic',
       borderColor: '#6539C3',
       backgroundColor: '#6539C4',

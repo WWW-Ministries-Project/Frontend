@@ -115,6 +115,8 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           setShowActions(false);
           await executeDelete(row.original.requisition_id);
         }, [executeDelete, row]);
+
+        const isEditable = row.original.approval_status==="Awaiting_HOD_Approval" || row.original.approval_status==="Draft"
         return (
           <div className="relative -mt-3">
             <button
@@ -143,6 +145,8 @@ export const tableColumns: ColumnDef<Requisition>[] = [
                       handleDelete
                     );
                   }}
+
+                  isEditable={isEditable}
                 />
               </div>
             )}

@@ -21,8 +21,7 @@ const RequisitionSignatureSection: React.FC<RequisitionSignatureSectionProps> =
             signature={{
               name: requester?.name as string,
               label: "Requested by",
-              signature:
-                "https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-angle.png.webp",
+              signature: requester?.user_sign ?? "",
             }}
           />
           <SignatureSection
@@ -31,7 +30,10 @@ const RequisitionSignatureSection: React.FC<RequisitionSignatureSectionProps> =
         </div>
         <div className="flex flex-col gap-2">
           <SignatureSection
-            signature={{ ...signatures?.authorizedBy, label: "Executive Pastor" }}
+            signature={{
+              ...signatures?.authorizedBy,
+              label: "Executive Pastor",
+            }}
           />
           <SignatureSection
             signature={{ ...signatures?.approvedBy, label: "Finance" }}
