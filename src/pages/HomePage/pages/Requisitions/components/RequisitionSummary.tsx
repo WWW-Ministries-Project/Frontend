@@ -53,7 +53,7 @@ const RequisitionSummary = React.memo(
               </span>
             </div>
           ))}
-          <div className="flex items-center  whitespace-nowrap gap-3 text-left">
+          <div className="flex items-center   gap-3 text-left">
             <span className="font-semibold text-dark900 ">Status</span>
             <StatusPill text={summary?.status as string} />
           </div>

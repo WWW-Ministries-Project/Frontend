@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Button from "./Button";
 import useFileUpload from "@/CustomHooks/useFileUpload";
+import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
   return <div className={`text-dark900 ${className}`}>{text}</div>;
@@ -13,6 +14,7 @@ type Signature = {
   onSubmit: () => void;
   loading?: boolean;
   header?: string;
+  defaultSignature?: string;
 };
 export default function AddSignature({
   cancel,
@@ -21,9 +23,10 @@ export default function AddSignature({
   onSubmit,
   loading,
   header = "Request Approval Signing",
+  defaultSignature,
 }: Readonly<Signature>) {
   const { preview, handleFileChange, clearFile, file } = useFileUpload();
-  const [signature, setSignature] = useState<string>("");
+  const [signature, setSignature] = useState<string>(defaultSignature ?? "");
 
   useEffect(() => {
     if (file) {
@@ -47,6 +50,7 @@ export default function AddSignature({
               onChange={handleFileChange}
               id="file-input"
               className="hidden"
+              accept="image/png,image/jpeg"
             />
             <label
               htmlFor="file-input"
@@ -93,7 +97,17 @@ export default function AddSignature({
             </div>
           </div>
         ) : (
-          <Text text={signature} />
+          <>
+            {isValidURL(signature) ? (
+              <img
+                src={signature}
+                alt="Preview"
+                className=" max-w-full w-52 h-36 rounded-lg"
+              />
+            ) : (
+              <Text text={signature} />
+            )}
+          </>
         )}
       </div>
       {/* use other reusable input component */}

@@ -45,3 +45,45 @@ export const showNotification = (
 export const isArray = function(data: any) {
   return Array.isArray(data);
 }
+
+
+export function isValidURL(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function handleDownload(imageSrc: string) {
+  try {
+    // Fetch the image from the source URL
+    const response = await fetch(imageSrc);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+
+    const imageBlob = await response.blob();
+    const imageURL = URL.createObjectURL(imageBlob);
+
+    // Create a download link
+    const link = document.createElement("a");
+    link.href = imageURL;
+
+    // Extract filename or use a default name
+    const filename = imageSrc.split("/").pop() || "downloaded-file";
+    link.download = filename;
+
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoke the object URL to free memory
+    URL.revokeObjectURL(imageURL);
+  } catch (error) {
+    console.error("Error downloading the image:", error);
+  }
+}

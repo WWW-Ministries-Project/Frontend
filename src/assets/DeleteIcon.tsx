@@ -1,6 +1,9 @@
-export default function DeleteIcon({fill="#575570"}:{fill?:string}) {
+export default function DeleteIcon({
+  fill = "#575570",
+  onClick,
+}: Readonly<{ fill?: string; onClick: () => void }>) {
   return (
-    <div>
+    <div onClick={onClick} className="cursor-pointer">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"

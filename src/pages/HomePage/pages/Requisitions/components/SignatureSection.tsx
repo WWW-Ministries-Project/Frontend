@@ -1,4 +1,5 @@
 import StatusPill from "@/components/StatusPill";
+import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
 import React from "react";
 
 type SignatureProps = {
@@ -13,14 +14,7 @@ export default React.memo(function SignatureSection({
   signature
 }: Readonly<SignatureProps>) {
   // TODO make this util
-  function isValidURL(url: string): boolean {
-    try {
-      new URL(url);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
+  
   return (
     <section className="text-dark900">
       <div className="flex flex-col gap-1">
@@ -38,7 +32,7 @@ export default React.memo(function SignatureSection({
                   alt={`${signature.name}'s signature`}
                   />
               ) : (
-                <span className="font-normal italic">{signature.signature}</span>
+                <span className="font-normal ">{signature.signature}</span>
               )}
             </>
           ) : (

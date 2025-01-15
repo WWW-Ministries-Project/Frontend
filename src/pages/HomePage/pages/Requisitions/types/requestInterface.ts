@@ -1,35 +1,38 @@
 import { UserType } from "../../Members/utils/membersInterfaces";
 
+export type RequisitionStatusType = "Draft" | "Awaiting_HOD_Approval" | "Awaiting_Pastor_Approval";
 export interface Requisition {
   comment: string;
   currency: string;
   department_id: number;
   event_id: number;
   id: number;
-  approval_status: string;
+  approval_status: RequisitionStatusType;
   requisition_id: string;
   date_created: string;
   user_id: number;
   product_names: string[];
   user: UserType;
-  generated_id:string
+  generated_id: string;
 }
 
-export interface IRequestSummary{
-    requisition_id: string;
-    department: string;
-    program: string;
-    request_date: string;
-    total_cost: number;
-    status: string;
-    event_id:number,
-    department_id:number
+
+export interface IRequestSummary {
+  requisition_id: string;
+  department: string;
+  program: string;
+  request_date: string;
+  total_cost: number;
+  status: RequisitionStatusType;
+  event_id: number;
+  department_id: number;
 }
 
-export interface IRequester{
+export interface IRequester {
   name: string;
   email: string;
   position: null;
+  user_sign: string | null;
 }
 export interface IRequisitionDetails {
   comment: string;
@@ -45,10 +48,10 @@ export interface IRequisitionDetails {
     unitPrice: number;
     quantity: number;
   }[];
-  attachmentLists:{
-    URL:string
-    id:number
-  }[]
+  attachmentLists: {
+    URL: string;
+    id: number;
+  }[];
 }
 
 export interface TableRow {

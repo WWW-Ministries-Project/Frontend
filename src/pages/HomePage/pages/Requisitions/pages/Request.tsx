@@ -11,7 +11,7 @@ import EditableTable from "../components/EditableTable";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
 import { decodeToken } from "@/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
-import { useAddRequisition } from "../hooks/useAddRequisition";
+import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
@@ -24,7 +24,7 @@ import AddSignature from "@/components/AddSignature";
 import Modal from "@/components/Modal";
 
 const Request = () => {
-  const { setInitialRows, events: allEvents } = useStore();
+  const { setInitialRows, events: allEvents, } = useStore();
   const { departments: allDepartments } = useSettingsStore();
 
   const departments = Array.isArray(allDepartments)
@@ -58,12 +58,12 @@ const Request = () => {
     handleAddSignature,
     closeModal,
     openSignature,
-    handleUploadImage,
     imageChange,
     addingImage,
     handleSignature,
     signature,
     handleUpload,
+    handleUploadImage
   } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
   const [initialImages, setInitialImages] = useState<image[]>([]);
@@ -110,7 +110,7 @@ const Request = () => {
     return DateTime.fromISO(date).toFormat("yyyy-MM-dd");
   };
 
-  const initialValues = {
+  const initialValues: IRequest = {
     requester_name: name,
     department_id: requestData?.summary.department_id ?? "",
     event_id: requestData?.summary?.event_id ?? "",
@@ -118,10 +118,13 @@ const Request = () => {
     comment: requestData?.comment ?? "",
     currency: requestData?.currency ?? "",
     approval_status: requestData?.summary?.status ?? "Draft",
-    signature: "",
+    user_sign: requestData?.requester?.user_sign ?? "",
+    attachmentLists: requestData?.attachmentLists ?? []
   };
 
   const title = id ? "Update request" : "Raise request";
+  const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
+  const isNoSignature = id && !requestData?.requester.user_sign;
   return (
     <PageOutline>
       <div className="mx-auto py-8 lg:container lg:w-4/6">
@@ -130,8 +133,8 @@ const Request = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={async (values) => {
-            const data = await handleUploadImage();
-            handleSubmit({ ...values, attachmentLists: data });
+            const data = await handleUploadImage()
+            handleSubmit({...values, attachmentLists:data});
           }}
           validationSchema={addRequisitionSchema}
           enableReinitialize
@@ -145,9 +148,10 @@ const Request = () => {
                   header="Request Signing"
                   handleSignature={handleSignature}
                   loading={loading || addingImage}
+                  defaultSignature={defaultSignature}
                   onSubmit={async () => {
                     try {
-                      let updatedSignature = signature.signature;
+                      let updatedSignature = signature.signature as string;
 
                       if (signature.isImage && signature.signature) {
                         const formData = new FormData();
@@ -163,7 +167,7 @@ const Request = () => {
                       setValues({
                         ...values,
                         approval_status: "Awaiting_HOD_Approval",
-                        signature: updatedSignature,
+                        user_sign: updatedSignature,
                       });
 
                       // Delay calling handleSubmit to ensure values are updated
@@ -242,24 +246,40 @@ const Request = () => {
                     window.history.back();
                   }}
                 />
-                <Button
-                  value="Save as Draft"
-                  className="secondary"
-                  onClick={() => {
-                    setValues({
-                      ...values,
-                      approval_status: "Draft",
-                      signature: "",
-                    });
-                    handleSubmit();
-                  }}
-                  type="submit"
-                  loading={loading || addingImage}
-                />
+                {!id && (
+                  <Button
+                    value="Save as Draft"
+                    className="secondary"
+                    onClick={() => {
+                      setValues({
+                        ...values,
+                        approval_status: "Draft",
+                        user_sign: "",
+                      });
+                      handleSubmit();
+                    }}
+                    type="submit"
+                    loading={loading || addingImage}
+                  />
+                )}
+                {isNoSignature && (
+                  <Button
+                    value="Add signature"
+                    className="secondary"
+                    onClick={() => handleAddSignature(validateForm, setTouched)}
+                  />
+                )}
                 <Button
                   value={id ? "Update" : "Send request"}
                   className="default"
-                  onClick={() => handleAddSignature(validateForm, setTouched)}
+                  loading={!!id && !openSignature && (loading || addingImage)}
+                  onClick={() => {
+                    if (!id) {
+                      handleAddSignature(validateForm, setTouched);
+                    } else {
+                      handleSubmit();
+                    }
+                  }}
                 />
               </div>
             </>

@@ -10,17 +10,21 @@ import { ApiResponse } from "@/utils/interfaces";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { IRequisitionDetails } from "../types/requestInterface";
+import {
+  IRequisitionDetails,
+  RequisitionStatusType,
+} from "../types/requestInterface";
 
-interface IRequest {
+export interface IRequest {
   requester_name: string;
-  department_id: number;
-  event_id: number;
+  department_id: number | string;
+  event_id: number | string;
   request_date: string;
   comment: string;
   currency: string;
-  approval_status: string;
+  approval_status: RequisitionStatusType;
   attachmentLists: { URL: string }[];
+  user_sign: string;
 }
 export const useAddRequisition = () => {
   const { id: requestId } = useParams();
@@ -75,41 +79,12 @@ export const useAddRequisition = () => {
   useEffect(() => {
     if (data) {
       handleOpenNotification(data.data.message, "success");
-      navigate("/home/requests");
+      navigate(-1);
     }
     if (error) {
       handleOpenNotification(error.message, "error");
     }
   }, [data, error]);
-
-  const handleSubmit = useCallback(
-    async (val: IRequest) => {
-      const products = rows.map((item) => {
-        return {
-          name: item.name,
-          quantity: item.quantity,
-          unitPrice: item.amount,
-          id: item?.id,
-        };
-      });
-      const data = {
-        ...val,
-        event_id: Number(val.event_id),
-        department_id: Number(val.department_id),
-        products,
-        user_id: id,
-      };
-      const dataToSend = requisitionId
-        ? {
-            ...data,
-            id: Number(requisitionId),
-          }
-        : data;
-
-      await postData(dataToSend);
-    },
-    [rows, id, postData]
-  );
 
   const handleAddSignature = async (
     validateForm: () => Promise<FormikErrors<FormikValues>>,
@@ -139,6 +114,7 @@ export const useAddRequisition = () => {
 
   const imageChange = (images: image[]) => {
     setImages(images);
+    console.log(images)
   };
 
   const handleUpload = async (formData: FormData) => {
@@ -182,6 +158,36 @@ export const useAddRequisition = () => {
     setSignature({ signature, isImage });
     console.log(signature);
   };
+
+  const handleSubmit = useCallback(
+    async (val: IRequest) => {
+      const products = rows.map((item) => {
+        return {
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.amount,
+          id: item?.id,
+        };
+      });
+
+      const data = {
+        ...val,
+        event_id: Number(val.event_id),
+        department_id: Number(val.department_id),
+        products,
+        user_id: id,
+      };
+      const dataToSend = requisitionId
+        ? {
+            ...data,
+            id: Number(requisitionId),
+          }
+        : data;
+
+      await postData(dataToSend);
+    },
+    [rows, id, postData]
+  );
 
   return {
     currencies,
