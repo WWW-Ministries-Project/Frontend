@@ -72,7 +72,6 @@ function DashBoard() {
     localStorage.setItem("welcomeMsg", "false");
   };
 
-  console.log(userStats.members, "stats");
 
   return (
     <main className={``}>
