@@ -53,8 +53,8 @@ export const compareDates = (date1: string, date2 = "") => {
   // }
 };
 export const genderOptions = [
-  { name: "Male", value: "male" },
-  { name: "Female", value: "female" },
+  { name: "Male", value: "Male" },
+  { name: "Female", value: "Female" },
 ];
 export const memberValues = {
   password: "123456",
@@ -157,3 +157,39 @@ export const updateData = async <T>(
     throw error;
   }
 };
+
+
+export function convertPermissions(permissions: Record<string, string>) {
+  const result: Record<string, boolean> = {};
+
+  const permMapping: Record<string, string> = {
+    "Can_View": "view",
+    "Can_Manage": "manage",
+    "Super_Admin": "admin"
+  };
+
+  for (const [key, value] of Object.entries(permissions)) {
+    if (!value) continue;
+
+    const permKey = permMapping[value];
+    if (permKey) {
+      const formattedKey = `${permKey}_${key.toLowerCase().replace(/ /g, "_")}`;
+      result[formattedKey] = true;
+
+      if (value === "Can_Manage") {
+        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
+        result[viewKey] = true;
+      }
+
+      if (value === "Super_Admin") {
+        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
+        const manageKey = `manage_${key.toLowerCase().replace(/ /g, "_")}`;
+        result[viewKey] = true;
+        result[manageKey] = true;
+      }
+    }
+  }
+
+  return result;
+}
+

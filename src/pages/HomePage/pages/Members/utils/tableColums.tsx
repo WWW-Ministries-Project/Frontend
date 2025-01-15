@@ -1,11 +1,19 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { showDeleteDialog } from "@/pages/HomePage/utils/helperFunctions";
+import { navigateRef } from "@/pages/HomePage/HomePage";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
-import { ColumnDef } from "@tanstack/react-table";
 import { UserType } from "./membersInterfaces";
 
-export const membersColumns:ColumnDef<UserType>[] = [
+const booleanFilter = (row: any, columnId: string, filterValue: boolean) => {
+  // Access the row's column value
+  // console.log( row.getValue(columnId),"row",filterValue,"filter")
+  const rowValue = row.getValue(columnId);  // This gets the value of the row for the given columnId
+  return Boolean(rowValue) === Boolean(filterValue);
+};
+
+export const membersColumns: ColumnDef<UserType>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -13,7 +21,8 @@ export const membersColumns:ColumnDef<UserType>[] = [
       <div
         className="flex items-center gap-2 cursor-pointer"
         onClick={() => {
-          window.location.href = `/home/members/${row.original.id}/info`;
+          navigateRef.current &&
+            navigateRef.current(`/home/members/${row.original.id}/info`);
         }}
       >
         <ProfilePicture
@@ -29,6 +38,7 @@ export const membersColumns:ColumnDef<UserType>[] = [
       </div>
     ),
   },
+  {header: "User",  accessorKey: "is_user", filterFn: booleanFilter },
   {
     header: "Phone number",
     cell: ({ row }) =>
@@ -36,23 +46,24 @@ export const membersColumns:ColumnDef<UserType>[] = [
         row.original.primary_number
       }`,
   },
-  {
-    header: "last visited",
-    accessorKey: "last_visited",
-    cell: (info) => (info.getValue() ? info.getValue() + " days ago" : "N/A"),
-  },
+  // {
+  //   header: "last visited",
+  //   accessorKey: "last_visited",
+  //   cell: (info) => (info.getValue() ? info.getValue() + " days ago" : "N/A"),
+  // },
   {
     header: "Created",
     accessorKey: "created_at",
     cell: (info) =>
-      DateTime.fromISO(info.getValue() as string).toLocaleString(DateTime.DATE_FULL),
+      DateTime.fromISO(info.getValue() as string).toLocaleString(
+        DateTime.DATE_FULL
+      ),
   },
-  {
-    header: "Visits",
-    accessorKey: "visits",
-    cell: (info) => info.getValue() ?? "0" + " visits",
-    // cell: (info) => info.getValue() ? info.getValue() + " visits" : "N/A",
-  },
+  // {
+  //   header: "Visits",
+  //   accessorKey: "visits",
+  //   cell: (info) => info.getValue() ?? "0" + " visits",
+  // },
   {
     header: "Actions",
     cell: ({ row }) => (
@@ -67,5 +78,10 @@ export const membersColumns:ColumnDef<UserType>[] = [
         </button>
       </div>
     ),
+  },
+  {
+    header: "Membership type",
+    accessorKey: "membership_type",
+    filterFn: "includesString",
   },
 ];

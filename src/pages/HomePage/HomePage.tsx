@@ -4,19 +4,25 @@ import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
-import { useAuth } from "../../auth/AuthWrapper";
 import { changeAuth } from "../../axiosInstance.js";
+import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import Breadcrumb from "./Components/BreadCrumb";
+
+export const navigateRef = {
+  current: null as
+    | ((path: string, options?: { state: { mode: string } }) => void)
+    | null,
+};
 
 function HomePage() {
-  const [departmentData, setDepartmentData] = useState([]);
   const { data: membersData, loading: membersLoading } = useFetch(
     api.fetch.fetchAllMembers
   );
@@ -30,6 +36,7 @@ function HomePage() {
   const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
+  //@ts-ignore
   const { user } = useAuth();
 
   //side nav
@@ -68,7 +75,6 @@ function HomePage() {
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
-      setDepartmentData(res.data.data);
       settingsStore.setDepartments(res.data.data);
     });
   }, []);
@@ -101,6 +107,10 @@ function HomePage() {
     };
   }, []);
 
+  //custom navigation
+  const navigate = useNavigate();
+  navigateRef.current = navigate;
+
   return (
     <>
       {token ? (
@@ -127,14 +137,13 @@ function HomePage() {
           >
             <Header handleShowNav={handleShowNav} />
             <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
+            <Breadcrumb />
               <Outlet
                 context={{
                   members,
                   filter,
                   setFilter,
                   handleSearchChange,
-                  departmentData,
-                  setDepartmentData,
                   userStats,
                 }}
               />
@@ -147,6 +156,7 @@ function HomePage() {
       ) : (
         <Navigate to="/login" />
       )}
+      {membersLoading && <LoaderComponent/>}
     </>
   );
 }

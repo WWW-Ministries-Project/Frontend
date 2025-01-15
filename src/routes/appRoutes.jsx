@@ -6,10 +6,10 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
-import AddAsset from "@/pages/HomePage/pages/AssetsManagement/pages/AddAssets";
+import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/Requisitions.tsx";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
@@ -22,6 +22,10 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
+import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
+import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
+import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
+import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
 
 
 export const routes = [
@@ -58,49 +62,49 @@ export const routes = [
       {
         path: "",
         element: <DashBoard />,
-        isPrivate: true,
-        permissionNeeded: "view_Dashboard",
+        isPrivate: false,
+        permissionNeeded: "view_dashboard",
       },
       {
         path: "dashboard",
         name: "Dashboard",
         element: <DashBoard />,
-        isPrivate: true,
-        permissionNeeded: "view_Dashboard",
+        isPrivate: false,
+        permissionNeeded: "view_dashboard",
         sideTab: true,
       },
       {
         path: "members",
         name: "Members",
         element: <Members />,
-        isPrivate: true,
-        permissionNeeded: "view_Members",
+        isPrivate: false,
+        permissionNeeded: "view_members",
         sideTab: true,
       },
       {
         path: "members/add-member",
         element: <AddMember />,
-        isPrivate: true,
-        permissionNeeded: "view_Members",
+        isPrivate: false,
+        permissionNeeded: "view_members",
       },
       {
         path: "members/:id",
         element: <ProfileDetails />,
-        isPrivate: true,
-        permissionNeeded: "view_Members",
+        isPrivate: false,
+        permissionNeeded: "view_members",
         children: [
           {
             path: "info",
             name: "Info",
             element: <MemberInformation />,
-            isPrivate: true,
-            permissionNeeded: "view_Members",
+            isPrivate: false,
+            permissionNeeded: "view_members",
           },
           {
             path: "assets",
             element: <MembersAssets />,
-            isPrivate: true,
-            permissionNeeded: "view_Members",
+            isPrivate: false,
+            permissionNeeded: "view_members",
           },
         ]
       },
@@ -108,53 +112,53 @@ export const routes = [
         path: "events",
         name: "Events",
         element: <EventsManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_Events",
+        isPrivate: false,
+        permissionNeeded: "view_events",
         sideTab: true,
       },
       {
         path: "manage-event",
         element: <CreateEvent />,
-        isPrivate: true,
-        permissionNeeded: "view_Events",
+        isPrivate: false,
+        permissionNeeded: "view_events",
       },
       {
         path: "events/view-event",
         element: <ViewEvent />,
-        isPrivate: true,
-        permissionNeeded: "view_Events",
+        isPrivate: false,
+        permissionNeeded: "view_events",
       },
-      
+
       {
         path: "requests",
         name: "Requests",
-        isPrivate: true,
-        permissionNeeded: "view_Events",
+        isPrivate: false,
+        permissionNeeded: "view_events",
         sideTab: true,
         children: [
           {
             path: "",
             name: "My Requests",
-            element: <Requisitions />,
+            element: <MyRequisitions />,
             isPrivate: false,
             sideTab: true
           },
           {
-            path: "my_requests/:id",
+            path: ":id",
             name: "Requests Details",
             element: <RequestDetails />,
             isPrivate: false,
             sideTab: false,
           },
           {
-            path: "my_requests/request",
+            path: "request",
             name: "Request",
             element: <Request />,
             isPrivate: false,
             sideTab: false
           },
           {
-            path: "my_requests/request/:id",
+            path: "request/:id",
             name: "Request",
             element: <Request />,
             isPrivate: false,
@@ -170,40 +174,73 @@ export const routes = [
             path: "suppliers",
             name: "Suppliers",
             element: <UserManagement />,
-            sideTab: true
+            sideTab: false
           },
         ]
       },
-      
+
       {
-        path: "Assets",
+        path: "assets",
         name: "Assets",
         element: <AssetManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_Assets",
+        isPrivate: false,
+        permissionNeeded: "view_assets",
         sideTab: true,
       },
       {
-        path: "Assets/add-asset",
-        element: <AddAsset />,
-        isPrivate: true,
-        permissionNeeded: "view_Assets",
+        path: "assets/manage-asset",
+        element: <ManageAsset />,
+        isPrivate: false,
+        permissionNeeded: "view_assets",
       },
       {
         path: "users",
         name: "Users",
         element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_Events",
+        isPrivate: false,
+        permissionNeeded: "view_events",
         sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
       },
       {
         path: "settings",
         name: "Settings",
-        element: <Settings />,
-        isPrivate: true,
-        permissionNeeded: "view_Settings",
+        isPrivate: false,
+        permissionNeeded: "view_departments",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            alias: "departments",
+            name: "Departments",
+            element: <Settings />,
+            isPrivate: false,
+            permissionNeeded: "view_departments",
+            sideTab: true,
+          },
+          {
+            path: "access-rights",
+            name: "Access Rights",
+            element: <AccessRights />,
+            isPrivate: false,
+            permissionNeeded: "view_access_rights",
+            sideTab: true,
+          },
+          {
+            path: "create-access",
+            name: "Create Access",
+            element: <CreateAccess />,
+            isPrivate: false,
+            permissionNeeded: "view_access_rights",
+            sideTab: false,
+          },
+        ]
       },
       {
         path: "*",

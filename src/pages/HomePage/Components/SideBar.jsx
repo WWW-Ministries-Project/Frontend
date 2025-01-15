@@ -1,20 +1,18 @@
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
-import LoginIcon from "@/assets/sidebar/LoginIcon";
-import LogoutIcon from "@/assets/sidebar/Logout";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MembersIcon from "@/assets/sidebar/MembersIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import ChurchLogo from "@/components/ChurchLogo";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { useAuth } from "../../../auth/AuthWrapper";
+import { useAuth } from "../../../context/AuthWrapper";
 // import { sideTabs } from "../utils/helperFunctions";
+import RequestIcon from "@/assets/sidebar/RequestIcon";
+import UsersIcon from "@/assets/sidebar/UsersIcon";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
-import UsersIcon from "@/assets/sidebar/UsersIcon";
-import RequestIcon from "@/assets/sidebar/RequestIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
@@ -63,17 +61,17 @@ const SideBar = ({ show, ...props }) => {
             } xs:pb-0 xs:flex xs:items-center`}
         >
           {/* {show ? ( */}
-            <div className="flex gap-x-4 ">
-              <ChurchLogo show={show} className={''}/>
-              
-            </div>
-          
+          <div className="flex gap-x-4 ">
+            <ChurchLogo show={show} className={''} />
+
+          </div>
+
         </div>
 
 
         {/* navigation links */}
         <div className="xs:flex lg:flex-col  justify-around xs:w-full overflow-y-auto">
-          {items.map((item, index) => {
+          {items.map((item) => {
             const IconComponent = icons[item.name];
 
             if (!IconComponent) {
@@ -87,7 +85,7 @@ const SideBar = ({ show, ...props }) => {
                   item.children ? (
                     <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
                       }`} /> </SideBarSubMenu>
-                  ) : (<NavigationLink item={item} index={index} show={show}>
+                  ) : (<NavigationLink item={item} show={show}>
                     <IconComponent
                       className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
                         }`}

@@ -3,7 +3,7 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import Button from "@/components/Button";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 
-function RequisitionComments() {
+function RequisitionComments({isEditable}:Readonly<{isEditable:boolean}>) {
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -23,7 +23,7 @@ function RequisitionComments() {
     <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
       <div className="font-semibold text-dark900 flex items-center justify-between">
         <PageHeader title="Comments" />
-        <Button value="+ add comment" className="font-light text-primaryViolet" onClick={addComment} />
+      { isEditable && <Button value="+ add comment" className="font-light text-primaryViolet" onClick={addComment} />}
       </div>
       <div className="flex flex-col gap-2 max-h-[12.5rem] overflow-y-auto">
       {comments.map((comment, index)=>(

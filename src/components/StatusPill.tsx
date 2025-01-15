@@ -1,8 +1,8 @@
-import { getStatusColor,getFillColor } from "@/pages/HomePage/utils/stringOperations";
+import { getStatusColor,getFillColor } from "@/pages/HomePage/utils";
 
-export default function StatusPill({ text }: { text: string }) {
+export default function StatusPill({ text }: Readonly<{ text: string }>) {
   return (
-    <div className={getStatusColor(text) + " flex items-center gap-2"}>
+    <div className={getStatusColor(text) + " flex items-center gap-2 h-fit"}>
       <svg
         width="6"
         height="7"
@@ -12,7 +12,7 @@ export default function StatusPill({ text }: { text: string }) {
       >
         <circle cx="3" cy="3.64453" r="3" fill={getFillColor(text)} />
       </svg>
-      {text?.replace("_"," ")}
+      {text?.replace(/_/g, " ")}
     </div>
   );
 }

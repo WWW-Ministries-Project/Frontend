@@ -1,6 +1,6 @@
 import React from "react";
 
-const usePut = <T,>(putFunction: (payload: any) => Promise<T>) => {
+export const usePut = <T,>(putFunction: (payload: any) => Promise<T>) => {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
@@ -18,8 +18,5 @@ const usePut = <T,>(putFunction: (payload: any) => Promise<T>) => {
       setLoading(false);
     }
   }, [putFunction]);
-
   return { data, loading, error, updateData };
 };
-
-export default usePut;

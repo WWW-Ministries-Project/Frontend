@@ -1,3 +1,4 @@
+import { showNotification } from "@/pages/HomePage/utils";
 import { useCallback, useEffect, useState } from "react";
 export const useFetch = <T,>(
   fetchFunction: (params?: Record<string, string | number>) => Promise<T>,
@@ -18,6 +19,13 @@ export const useFetch = <T,>(
         setData(response);
         return response;
       } catch (err) {
+        if (!navigator.onLine)
+          showNotification(
+            "You are offline. Please check your internet connection.",
+            "error"
+          );
+        else
+          setError(error instanceof Error ? error : new Error("Unknown error"));
         setError(err instanceof Error ? err : new Error("Unknown error"));
       } finally {
         setLoading(false);

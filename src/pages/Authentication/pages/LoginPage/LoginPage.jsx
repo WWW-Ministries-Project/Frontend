@@ -1,27 +1,26 @@
 // import axios from "axios";
-import axios, { pictureInstance } from "../../../../axiosInstance";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../../auth/AuthWrapper";
+import axios, { pictureInstance } from "../../../../axiosInstance";
 import Button from "../../../../components/Button";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
+import { useAuth } from "../../../../context/AuthWrapper";
 import { decodeToken, setToken } from "../../../../utils/helperFunctions";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
-import waves from '../../../../assets/waves.svg'
 
 function LoginPage() {
-  const [loginValues, setLoginValues] = useState({  });
+  const [loginValues, setLoginValues] = useState({});
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   function handleSubmit() {
 
     // console.log("login");

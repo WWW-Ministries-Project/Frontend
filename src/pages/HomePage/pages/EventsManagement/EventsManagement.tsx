@@ -12,12 +12,13 @@ import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import {
   showDeleteDialog,
   showNotification,
-} from "../../utils/helperFunctions";
+} from "../../utils";
 import Calendar from "./Components/Calenda";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 import { eventType } from "./utils/eventInterfaces";
+import EmptyState from "@/components/EmptyState";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -124,10 +125,13 @@ const EventsManagement = () => {
         </div>
       </div>
       {!tableView ? (
+        events.length ?
         <GridComponent
           columns={eventColumns}
           data={events}
           displayedCount={24}
+          columnFilters={[]}
+          setColumnFilters={() => {}}
           renderRow={(row) => (
             <EventsCard
               event={row.original}
@@ -140,7 +144,7 @@ const EventsManagement = () => {
           )}
           filter={filterEvents}
           setFilter={setFilterEvents}
-        />
+        /> : <EmptyState className='w-[20rem]  mx-auto' msg="😞 Sorry, No events yet" />
       ) : (
         <Calendar
           events={events}

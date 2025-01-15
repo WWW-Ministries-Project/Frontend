@@ -1,49 +1,52 @@
 import GridAsset from "@/assets/GridAsset";
 import TableAssets from "@/assets/TableAssets";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
+import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
+import { showDeleteDialog, showNotification } from "../../utils";
 import AssetCard from "./Components/AssetCard";
-import { assetsColumns } from "./utils/utils";
-import { showDeleteDialog, showNotification } from "../../utils/helperFunctions";
 import { assetType } from "./utils/assetsInterface";
-import { useDelete } from "@/CustomHooks/useDelete";
+import { assetsColumns } from "./utils/utils";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
-  const [itemToDelete, setItemToDelete] = useState({
-    path: "",
-    id: "",
-    name: "",
-    index: "",
-  });
-  const [tableView, setTableView] = useState(false);
-  const { data } = useFetch(api.fetch.fetchAssets);
-  const { executeDelete, success,error } = useDelete(api.delete.deleteAsset);
-  const assetsStore = useStore();
-  const assertsData = assetsStore.assets;
+  const [tableView, setTableView] = useState(
+    sessionStorage.getItem("assetsTableView") === "false" ? false : true
+  );
+  const { data, loading } = useFetch(api.fetch.fetchAssets);
+  const {
+    executeDelete,
+    success,
+    error,
+    loading: deleteLoading,
+  } = useDelete(api.delete.deleteAsset);
+
+  const assertsData = useMemo(() => data?.data?.data || [], [data]);
+
+  const handleViewMode = (bol: boolean) => {
+    sessionStorage.setItem("assetsTableView", bol + "");
+    setTableView(bol);
+  };
 
   useEffect(() => {
-    if (data) {
-      assetsStore.setAssets(data?.data.data);
+    if (success) {
+      showNotification("Asset deleted successfully");
     }
-  }, [data]);
-
-  useEffect(() => {
     if (error) {
       showNotification(error.message);
     }
-  }, [error]);
+  }, [error, success]);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
   };
@@ -54,10 +57,10 @@ const AssetManagement = () => {
 
   const handleDelete = (id: string | number) => {
     executeDelete(id);
-  }
-  const showDeleteModal =(val:assetType)=>{
-    showDeleteDialog(val, handleDelete)
-  }
+  };
+  const showDeleteModal = (val: assetType) => {
+    showDeleteDialog(val, handleDelete);
+  };
 
   return (
     <PageOutline>
@@ -69,13 +72,13 @@ const AssetManagement = () => {
                 className="flex gap-1 bg-lightGray p-1 rounded-md"
                 id="switch"
               >
-                <div onClick={() => setTableView(true)}>
+                <div onClick={() => handleViewMode(true)}>
                   <TableAssets
                     stroke={tableView ? "#8F95B2" : "#8F95B2"}
                     className={tableView ? "bg-white rounded-md" : ""}
                   />
                 </div>
-                <div onClick={() => setTableView(false)}>
+                <div onClick={() => handleViewMode(false)}>
                   <GridAsset
                     stroke={tableView ? "#8F95B2" : "#8F95B2"}
                     className={
@@ -97,7 +100,7 @@ const AssetManagement = () => {
               <Button
                 value="Add asset"
                 className={" text-white h-10 p-2 bg-primaryViolet"}
-                onClick={() => navigate("add-asset")}
+                onClick={() => navigate("manage-asset")}
               />
             </div>
           </div>
@@ -110,6 +113,8 @@ const AssetManagement = () => {
                 filter={filter}
                 setFilter={setFilter}
                 displayedCount={12}
+                columnFilters={[]}
+                setColumnFilters={() => {}}
               />
             </div>
           ) : (
@@ -131,6 +136,7 @@ const AssetManagement = () => {
             />
           )}
         </section>
+        {(loading || deleteLoading) && <LoaderComponent />}
       </div>
     </PageOutline>
   );

@@ -2,7 +2,7 @@ export interface assetType {
     photo: string;
     name: string;
     status: string;
-    id: number;
+    id: number | string;
     start_date: Date;
     end_date: string;
     start_time: string;
@@ -18,8 +18,10 @@ export interface AssetOptionsType {
 }
 export interface AssetSlice {
     assets: assetType[];
+    activeAsset: assetType | {};
     addAsset: (Asset: assetType) => void;
-    removeAsset: (AssetId: number) => void;
+    removeAsset: (AssetId: number | string) => void;
     updateAsset: (updatedAsset: assetType) => void;
     setAssets: (assetTypes: assetType[]) => void;
+    setActiveAsset: (asset: assetType) => void;
   }

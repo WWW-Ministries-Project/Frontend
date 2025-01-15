@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useAuth } from "../auth/AuthWrapper";
+import { useAuth } from "../context/AuthWrapper";
 import { routes } from "./appRoutes";
 
 export const RenderRoutes = () => {
     const { user: { permissions } } = useAuth();
-    
+
     return (
         <Routes>
             {routes.map((route, i) => (

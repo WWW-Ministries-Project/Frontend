@@ -1,7 +1,7 @@
 export interface UserType {
   is_active: any;
   user_info?: any; //todo : get correct type
-  id: number|string;
+  id: number | string;
   is_user?: boolean;
   title?: string;
   name: string;
@@ -39,7 +39,7 @@ export interface UserType {
     phone_number: string;
   };
 }
-export type UserStats = {
+type statsType = {
   total_members: number;
   total_males: number;
   total_females: number;
@@ -48,6 +48,10 @@ export type UserStats = {
     children: { Male: number; Female: number; Total: number };
   };
 };
+export type UserStats = {
+  members: statsType;
+  visitors: statsType;
+};
 export interface OptionsType {
   name: string;
   value: string;
@@ -55,11 +59,13 @@ export interface OptionsType {
 
 export interface MemberSlice {
   members: UserType[];
+  membersOptions: OptionsType[];
   userStats: UserStats;
   addMember: (member: UserType) => void;
-  removeMember: (memberId: number|string) => void;
+  removeMember: (memberId: number | string) => void;
   updateMember: (updatedMember: UserType) => void;
   setMembers: (members: UserType[]) => void;
+  setMemberOptions: (memberOptions: OptionsType[]) => void;
   setUserStats: (userStats: UserStats) => void;
 }
 

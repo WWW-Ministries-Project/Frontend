@@ -4,15 +4,13 @@ import { NavLink } from "react-router-dom";
 interface INavigationLinkProps {
   item: { path: string; name: string };
   show: boolean;
-  index: number;
   children: React.ReactNode;
-  justifyCenter:boolean
+  justifyCenter?:boolean
 }
 
 export default function NavigationLink({
   item,
   show,
-  index,
   children,
   justifyCenter=true
 }: INavigationLinkProps) {
@@ -29,7 +27,7 @@ export default function NavigationLink({
               : "hover:text-primaryViolet "
           } `
         }
-        key={index}
+        key={item.path + item.name}
       >
         {children}
       </NavLink>

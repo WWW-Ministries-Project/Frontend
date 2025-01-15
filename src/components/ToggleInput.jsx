@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 const ToggleSwitch = (props) => {
-    const toggleSwitch = ({target:{checked}}) => {
+    const toggleSwitch = ({ target: { checked } }) => {
         props.onChange(props.name, checked);
 
     };
@@ -18,7 +18,8 @@ const ToggleSwitch = (props) => {
                     type="checkbox"
                     className="hidden"
                     checked={props.isChecked}
-                    onChange={toggleSwitch}	    
+                    onChange={toggleSwitch}
+                    disabled={props.disabled}
                 />
                 <div>
                     <div className={`toggle-switch-toggle-waiting absolute bottom-0 w-12 h-6 p-1 rounded-full shadow-md transition-transform !transition duration-1000 ease-in-out ${props.isChecked ? 'bg-primaryViolet' : 'bg-[#E6E8F0]'}`}>
@@ -34,10 +35,11 @@ const ToggleSwitch = (props) => {
 };
 
 ToggleSwitch.propTypes = {
-    name:PropTypes.string,
-    label:PropTypes.string,
+    name: PropTypes.string,
+    label: PropTypes.string,
     isChecked: PropTypes.bool,
     onChange: PropTypes.func,
+    disabled: PropTypes.bool
 }
 
 export default ToggleSwitch;
