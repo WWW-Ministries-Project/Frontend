@@ -98,7 +98,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const textPosition = isEditable ? "text-left" : "text-center";
 
   return (
-    <div className="p-4">
+    <div className="py-4">
       {isEditable && (
         <Button
           value="+ Add item"
@@ -110,7 +110,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
         <table className="min-w-full border-collapse border border-[#D9D9D9]">
           <thead>
             <tr className="bg-[#F2F4F7]">
-              <TableHeader header="Name" />
+              <TableHeader header="Name" className="text-left pl-4" />
               <TableHeader header="Quantity" className={textPosition} />
               <TableHeader header="Amount" className={textPosition} />
               <TableHeader header="Total" className="text-center" />
