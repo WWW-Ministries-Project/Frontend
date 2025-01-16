@@ -79,8 +79,8 @@ export const eventInput = {
   // },
 };
 export const eventFormValidator = Yup.object({
-  // name: Yup.string().required("Required"),
-  // type: Yup.string().required("Required"),
+  name: Yup.string().required("Required"),
+  type: Yup.string().required("Required"),
   // start_date: Yup.date().required("Required"),
   // start_date: Yup.date().required("Required"),
   // start_time: Yup.string().required("Required"),

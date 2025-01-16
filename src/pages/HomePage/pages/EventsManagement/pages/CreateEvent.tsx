@@ -10,6 +10,7 @@ import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
 
 const CreateEvent = () => {
+  //@ts-ignore
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
   const [loading, setLoading] = useState(false);
