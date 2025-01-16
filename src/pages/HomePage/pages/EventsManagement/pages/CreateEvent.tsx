@@ -8,14 +8,16 @@ import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
+import { showNotification } from "@/pages/HomePage/utils";
 
 const CreateEvent = () => {
   //@ts-ignore
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const { postData } = usePost(api.post.createEvent);
+  const { postData,loading:postLoading, error:postError, data:postedData } = usePost(api.post.createEvent);
   const { updateData } = usePut(api.put.updateEvent);
 
   const query = location.search;
@@ -33,8 +35,17 @@ const CreateEvent = () => {
     }
   }, [id, user]);
 
+  useEffect(() => {
+    if(postedData){
+      showNotification("Event created successfully", "success");
+    }
+    if(postError){
+      showNotification("Something went wrong", "error");
+    }
+  })
+
   const handleSubmit = async (val: eventType) => {
-    setLoading(true);
+    // setLoading(true);
     const data = new FormData();
     if (file) {
       data.append("file", file);
@@ -56,7 +67,7 @@ const CreateEvent = () => {
       }
     } catch (error) {
       console.log(error);
-      setLoading(false);
+      // setLoading(false);
     }
   };
   return (
@@ -70,10 +81,11 @@ const CreateEvent = () => {
         <EventsForm
           inputValue={inputValue}
           onSubmit={handleSubmit}
-          loading={loading}
+          loading={postLoading}
           updating={id ? true : false}
         />
       </div>
+      {postLoading && <LoaderComponent />}
     </section>
   );
 };

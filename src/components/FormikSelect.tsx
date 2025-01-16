@@ -35,6 +35,7 @@ export function fieldToSelectField({
 
   return {
     ...field,
+    ...props,
     id: props.id,
     value: props.value || field.value,
     onChange:

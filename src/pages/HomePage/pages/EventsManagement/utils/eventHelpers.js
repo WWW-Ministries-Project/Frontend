@@ -54,38 +54,49 @@ export const eventColumns = [
   },
 ];
 export const eventInput = {
-  // name: "",
-  // type: "",
-  // start_date: "",
+  name: "",
+  event_type: "",
+  start_date: "",
   // end_date: "",
   // start_time: "",
   // end_time: "",
   // location: "",
   // description: "",
-  // repetitive: "no",
+  repetitive: "no",
   // repeatUnit: "months",
   // repeatDays: [],
   // onDays: [],
   // ends: "end_of_year",
   // endsOn: "",
-  // day_event: "one",
+  day_event: "one",
   // poster: "",
-  // recurring: {
-  //   frequency: "",
-  //   interval: 0,
-  //   daysOfWeek: null,
-  //   dayOfMonth: null,
-  //   monthOfYear: null,
-  // },
+  recurring: {
+    //   frequency: "",
+    //   interval: 0,
+    daysOfWeek: 0,
+    //   dayOfMonth: null,
+    //   monthOfYear: null,
+  },
 };
-export const eventFormValidator = Yup.object({
+export const eventFormValidator = Yup.object().shape({
   name: Yup.string().required("Required"),
-  type: Yup.string().required("Required"),
-  // start_date: Yup.date().required("Required"),
-  // start_date: Yup.date().required("Required"),
-  // start_time: Yup.string().required("Required"),
-  // // end_time: Yup.string().required("Required"),
-  // location: Yup.string().required("Required"),
+  event_type: Yup.string().required("Required"),
+  start_date: Yup.date("invalid date").required("Required"),
+  start_time: Yup.string().required("Required"),
+  day_event: Yup.string()
+    .oneOf(["one", "multi"], "Invalid value")
+    .required("Required"),
+
+  // recurring: Yup.object().shape({
+  //   daysOfWeek: Yup.number().nullable()
+  //     .when("day_event", {
+  //       is: (day_event) => day_event === "multi",
+  //       then: Yup.number()
+  //         .min(2, "Minimum is 2")
+  //         .required("Required"),
+  //     }),
+  // }),
+
   // number_days:Yup.number().min(2,"should have a minimum of 2"),
   // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
   // repetitive: Yup.boolean().required("Required")

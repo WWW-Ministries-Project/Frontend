@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
-import { maxMinValueForDate } from "@/pages/HomePage/utils";
+import { markTouchedFields, maxMinValueForDate } from "@/pages/HomePage/utils";
 import { Field, Form, Formik } from "formik";
 import React from "react";
 import {
@@ -116,6 +116,11 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     Multi-day
                   </label>
                 </div>
+                {form.errors.day_event && (
+                  <div className="text-error text-sma">
+                    {form.errors.day_event as string}
+                  </div>
+                )}
                 {form.values.day_event == "multi" && (
                   <div className="mt-4">
                     <div className="grid md:grid-cols-2 gap-4">
@@ -125,7 +130,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                         type="number"
                         id="recurring.daysOfWeek"
                         name="recurring.daysOfWeek"
-                        min={2}
+                        min={"2"}
                       />
                     </div>
                   </div>
@@ -236,15 +241,16 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               className="p-2 px-4 text-white bg-primaryViolet"
               loading={props.loading}
               onClick={async () => {
-                const errors = await form.validateForm(); 
+                const errors = await form.validateForm();
+                // console.log(errors,"values",form.values);
                 const touchedFields = Object.keys(errors).reduce(
                   (acc, field) => {
-                    acc[field] = true; 
+                    acc[field] = true;
                     return acc;
                   },
                   {} as Record<string, boolean>
                 );
-
+                // const touchedFields = markTouchedFields(errors);
                 form.setTouched(touchedFields);
                 if (!Object.keys(errors).length) {
                   form.handleSubmit();
