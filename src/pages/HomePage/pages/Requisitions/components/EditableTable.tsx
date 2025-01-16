@@ -1,50 +1,58 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useStore } from "@/store/useStore";
 import DeleteIcon from "@/assets/DeleteIcon";
 import Button from "@/components/Button";
 
-const TableHeader = ({ header }: { header: string }) => {
-  return (
-    <th className="border border-[#D9D9D9] px-2 py-1 text-left">{header}</th>
-  );
-};
+const TableHeader = ({
+  header,
+  className = "",
+}: {
+  header: string;
+  className?: string;
+}) => (
+  <th className={`border border-[#D9D9D9] px-2 py-1 ${className}`}>
+    {header}
+  </th>
+);
 
 const TableData = ({
   children,
-  className,
+  className = "",
   colSpan,
 }: {
   children: React.ReactNode;
   className?: string;
   colSpan?: number;
-}) => {
-  return (
-    <td
-      className={`border border-[#D9D9D9] px-2 py-1 ${className}`}
-      colSpan={colSpan}
-    >
-      {children}
-    </td>
-  );
-};
+}) => (
+  <td
+    className={`border border-[#D9D9D9] px-2 py-1 ${className}`}
+    colSpan={colSpan}
+  >
+    {children}
+  </td>
+);
 
-interface InputProps {
+const TableInput = ({
+  type,
+  value,
+  onChange,
+  disabled,
+  className = "",
+}: {
   type: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled: boolean;
-}
-const TableInput = ({ type, value, onChange, disabled }: InputProps) => {
-  return (
-    <input
-      type={type}
-      className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-    />
-  );
-};
+  className?: string;
+}) => (
+  <input
+    type={type}
+    className={`w-full bg-inherit border-none outline-none rounded px-2 py-1 ${className}`}
+    value={value}
+    onChange={onChange}
+    disabled={disabled}
+  />
+);
 
 interface TableRow {
   name: string;
@@ -63,19 +71,17 @@ interface EditableTableProps {
     id: string;
   }[];
 }
+
 const EditableTable: React.FC<EditableTableProps> = ({
   isEditable = true,
-  data,
+  data = [],
 }) => {
   const { addRow, deleteRow, rows, updateRow, setInitialRows } = useStore();
 
-  const products = data ?? [];
-
   useEffect(() => {
-    if (products) {
-      setInitialRows(products);
-    }
-  }, [setInitialRows]);
+    if (data.length) setInitialRows(data);
+  }, [data, setInitialRows]);
+
   const handleInputChange = (
     index: number,
     field: keyof TableRow,
@@ -84,7 +90,12 @@ const EditableTable: React.FC<EditableTableProps> = ({
     updateRow(index, field, value);
   };
 
-  const totalSum = rows.reduce((sum, row) => sum + row.total, 0);
+  const totalSum = useMemo(
+    () => rows.reduce((sum, row) => sum + row.total, 0),
+    [rows]
+  );
+
+  const textPosition = isEditable ? "text-left" : "text-center";
 
   return (
     <div className="p-4">
@@ -95,16 +106,17 @@ const EditableTable: React.FC<EditableTableProps> = ({
           onClick={addRow}
         />
       )}
-      {rows?.length > 0 && (
+      {rows.length > 0 && (
         <table className="min-w-full border-collapse border border-[#D9D9D9]">
           <thead>
             <tr className="bg-[#F2F4F7]">
               <TableHeader header="Name" />
-              <TableHeader header="Quantity" />
-              <TableHeader header="Amount" />
-              <TableHeader header="Total" />
-
-              {isEditable && <TableHeader header="Remove" />}
+              <TableHeader header="Quantity" className={textPosition} />
+              <TableHeader header="Amount" className={textPosition} />
+              <TableHeader header="Total" className="text-center" />
+              {isEditable && (
+                <TableHeader header="Remove" className="text-center" />
+              )}
             </tr>
           </thead>
           <tbody>
@@ -128,6 +140,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                       handleInputChange(index, "quantity", e.target.value)
                     }
                     disabled={!isEditable}
+                    className={textPosition}
                   />
                 </TableData>
                 <TableData>
@@ -138,19 +151,20 @@ const EditableTable: React.FC<EditableTableProps> = ({
                       handleInputChange(index, "amount", e.target.value)
                     }
                     disabled={!isEditable}
+                    className={textPosition}
                   />
                 </TableData>
-                <TableData>{row.total}</TableData>
+                <TableData className="text-center">{row.total}</TableData>
                 {isEditable && (
-                  <TableData className="mt-2 flex items-center justify-center border-none">
+                  <TableData className="hover:bg-slate-100 flex items-center justify-center border-x-0 border-t-0 border-b-[1px] py-3">
                     <DeleteIcon onClick={() => deleteRow(index)} />
                   </TableData>
                 )}
               </tr>
             ))}
-            <tr >
-              <TableData colSpan={3}>Total</TableData>
-              <TableData>{totalSum.toFixed(2)}</TableData>
+            <tr className="font-semibold">
+              <TableData colSpan={3} className="pl-3.5">Total</TableData>
+              <TableData className="text-center">{totalSum.toFixed(2)}</TableData>
             </tr>
           </tbody>
         </table>
