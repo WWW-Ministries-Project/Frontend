@@ -35,15 +35,25 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
-  createDepartment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createDepartment = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("department/create-department", payload);
   };
-  createPosition = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createPosition = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("position/create-position", payload);
   };
 
   //todo :speak to BE TO UPDATE THIS TO PUT
   updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/update-user", payload);
+  };
+
+  forgotPassword = <T>(
+    payload: Record<string, string>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/forgot-password", payload);
   };
 }

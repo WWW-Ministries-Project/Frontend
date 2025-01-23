@@ -4,14 +4,15 @@ import { Link, useLocation } from "react-router-dom";
 import Button from "../../../../components/Button";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
+import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
-import NotificationCard from "../../components/NotificationCard";
 
 function ResetPassword() {
   const [passwordValues, setPasswordValues] = useState({});
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
   const [samePassword, setSamePassword] = useState(true);
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -20,6 +21,7 @@ function ResetPassword() {
   function handleSubmit(e) {
     // e.preventDefault();
     if (passwordValues.password2 && samePassword) {
+      setLoading(true);
       const body = { newpassword: passwordValues.password1 };
       (async () => {
         try {
@@ -28,6 +30,8 @@ function ResetPassword() {
           setResponse(response);
         } catch (error) {
           console.log(error, "error");
+        } finally {
+          setLoading(false);
         }
       })();
     }
@@ -142,6 +146,8 @@ function ResetPassword() {
             <Button
               value={"Set New Password"}
               onClick={handleSubmit}
+              loading={loading}
+              disabled={!samePassword || loading}
               className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
             />
             <div>

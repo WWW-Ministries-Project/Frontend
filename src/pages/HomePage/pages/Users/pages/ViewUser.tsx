@@ -2,12 +2,14 @@ import Button from "@/components/Button";
 import ProfilePic from "@/components/ProfilePicture";
 import ToggleSwitch from "@/components/ToggleInput";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { showNotification } from "@/pages/HomePage/utils";
 import api from "@/utils/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -42,6 +44,13 @@ const ViewUser = () => {
     position: string;
     department: string;
   } = responseData?.data.data || initialUser;
+
+  const {
+    postData,
+    loading: resetLoading,
+    data: resetData,
+    error: resetError,
+  } = usePost(api.post.forgotPassword);
 
   const setNotification = useNotificationStore(
     (state) => state.setNotification
@@ -87,6 +96,14 @@ const ViewUser = () => {
       });
     }
   }, [accessError, accessData]);
+  useEffect(() => {
+    if (resetData) {
+      showNotification("email sent to user", "success");
+    }
+    if (resetError) {
+      showNotification("something went wrong try again", "error");
+    }
+  }, [resetData, resetError]);
 
   const changeAccess = (access_level_id: number | string) => {
     updateAccess({
@@ -101,7 +118,8 @@ const ViewUser = () => {
   };
 
   const resetPassword = () => {
-    alert("Password reset initiated!");
+    // alert("Password reset initiated!");
+    postData(user.email);
   };
 
   return (
@@ -127,10 +145,14 @@ const ViewUser = () => {
               <span className="font-semibold">{user.primary_number}</span>
 
               <span className="">Position</span>
-              <span className="font-semibold">{user.position?.name || "-"}</span>
+              <span className="font-semibold">
+                {user.position?.name || "-"}
+              </span>
 
               <span className="">Department</span>
-              <span className="font-semibold">{user.department?.name || "-"}</span>
+              <span className="font-semibold">
+                {user.department?.name || "-"}
+              </span>
 
               <span className="">Account status</span>
               <ToggleSwitch
@@ -174,9 +196,11 @@ const ViewUser = () => {
           />
         }
       </div>
-      {(loadingMember || allRolesLoading || roleLoading || accessLoading) && (
-        <LoaderComponent />
-      )}
+      {(loadingMember ||
+        allRolesLoading ||
+        roleLoading ||
+        accessLoading ||
+        resetLoading) && <LoaderComponent />}
     </PageOutline>
   );
 };

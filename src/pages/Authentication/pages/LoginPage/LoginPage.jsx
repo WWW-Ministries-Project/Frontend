@@ -115,6 +115,7 @@ function LoginPage() {
           <Button
             value={"Login"}
             loading={loading}
+            disabled={loading}
             onClick={handleSubmit}
             className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
           />

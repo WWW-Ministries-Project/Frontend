@@ -12,8 +12,10 @@ const ForgotPassword = () => {
   const [emailValue, setEmailValue] = useState({});
   const [response, setResponse] = useState({});
   const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
   function handleSubmit(e) {
     // e.preventDefault();
+    setLoading(true);
     (async () => {
       try {
         const endpoint = baseUrl + "/user/forgot-password";
@@ -21,6 +23,8 @@ const ForgotPassword = () => {
         setResponse(response);
       } catch (error) {
         console.log(error, "error");
+      } finally {
+        setLoading(false);
       }
     })();
   }
@@ -35,7 +39,6 @@ const ForgotPassword = () => {
   function handleInputChange(e) {
     setResponse({});
     const name = e.target.name;
-    console.log(name);
     setEmailValue((prev) => ({ ...prev, [name]: e.target.value }));
     // to remove error msg
     if (error[name]) {
@@ -87,6 +90,8 @@ const ForgotPassword = () => {
             <Button
               value={"Send password reset email"}
               onClick={handleSubmit}
+              loading = {loading}
+              disabled = {loading || error.email}
               className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
             />
             <div className=" mx-auto">

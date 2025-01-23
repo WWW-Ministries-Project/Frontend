@@ -156,7 +156,7 @@ function Members() {
         {/* search component and add member */}
         <div className="flex justify-between items-center">
           <p className="text-dark900 text-2xl font-semibold">
-            Church Members 
+            Church Members (
             {userStats.members?.total_members +
               userStats.visitors?.total_members || "-"}
             )
