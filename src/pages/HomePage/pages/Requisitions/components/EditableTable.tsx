@@ -1,5 +1,59 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useStore } from "@/store/useStore";
+import DeleteIcon from "@/assets/DeleteIcon";
+import Button from "@/components/Button";
+
+const TableHeader = ({
+  header,
+  className = "",
+}: {
+  header: string;
+  className?: string;
+}) => (
+  <th className={`border border-[#D9D9D9] px-2 py-1 ${className}`}>
+    {header}
+  </th>
+);
+
+const TableData = ({
+  children,
+  className = "",
+  colSpan,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  colSpan?: number;
+}) => (
+  <td
+    className={`border border-[#D9D9D9] px-2 py-1 ${className}`}
+    colSpan={colSpan}
+  >
+    {children}
+  </td>
+);
+
+const TableInput = ({
+  type,
+  value,
+  onChange,
+  disabled,
+  className = "",
+}: {
+  type: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled: boolean;
+  className?: string;
+}) => (
+  <input
+    type={type}
+    className={`w-full bg-inherit border-none outline-none rounded px-2 py-1 ${className}`}
+    value={value}
+    onChange={onChange}
+    disabled={disabled}
+  />
+);
+
 interface TableRow {
   name: string;
   quantity: number;
@@ -17,19 +71,17 @@ interface EditableTableProps {
     id: string;
   }[];
 }
+
 const EditableTable: React.FC<EditableTableProps> = ({
   isEditable = true,
-  data,
+  data = [],
 }) => {
   const { addRow, deleteRow, rows, updateRow, setInitialRows } = useStore();
 
-  const products = data ?? [];
-
   useEffect(() => {
-    if (products) {
-      setInitialRows(products);
-    }
-  }, [setInitialRows]);
+    if (data.length) setInitialRows(data);
+  }, [data, setInitialRows]);
+
   const handleInputChange = (
     index: number,
     field: keyof TableRow,
@@ -38,91 +90,85 @@ const EditableTable: React.FC<EditableTableProps> = ({
     updateRow(index, field, value);
   };
 
+  const totalSum = useMemo(
+    () => rows.reduce((sum, row) => sum + row.total, 0),
+    [rows]
+  );
+
+  const textPosition = isEditable ? "text-left" : "text-center";
+
   return (
-    <div className="p-4">
+    <div className="py-4">
       {isEditable && (
-        <div
-          className="mb-4 font-bold text-primaryViolet cursor-pointer float-right"
+        <Button
+          value="+ Add item"
+          className="font-bold text-primaryViolet cursor-pointer float-right"
           onClick={addRow}
-        >
-          {" "}
-          + Add item
-        </div>
+        />
       )}
-      {rows?.length>0 &&  <table className="min-w-full border-collapse border border-[#D9D9D9]">
+      {rows.length > 0 && (
+        <table className="min-w-full border-collapse border border-[#D9D9D9]">
           <thead>
             <tr className="bg-[#F2F4F7]">
-              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                Name
-              </th>
-              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                Quanity
-              </th>
-              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                Amount
-              </th>
-              <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                Total
-              </th>
+              <TableHeader header="Name" className="text-left pl-4" />
+              <TableHeader header="Quantity" className={textPosition} />
+              <TableHeader header="Amount" className={textPosition} />
+              <TableHeader header="Total" className="text-center" />
               {isEditable && (
-                <th className="border border-[#D9D9D9] px-2 py-1 text-left">
-                  Remove
-                </th>
+                <TableHeader header="Remove" className="text-center" />
               )}
             </tr>
           </thead>
           <tbody>
             {rows.map((row, index) => (
-              <tr key={index} className="odd:bg-white even:bg-[#F2F4F7]">
-                <td className="border border-[#D9D9D9] px-2 py-1">
-                  <input
+              <tr key={row.id} className="odd:bg-white even:bg-[#F2F4F7]">
+                <TableData>
+                  <TableInput
                     type="text"
-                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
                     value={row.name}
                     onChange={(e) =>
                       handleInputChange(index, "name", e.target.value)
                     }
                     disabled={!isEditable}
                   />
-                </td>
-                <td className="border border-[#D9D9D9] px-2 py-1">
-                  <input
+                </TableData>
+                <TableData>
+                  <TableInput
                     type="number"
-                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
                     value={row.quantity}
                     onChange={(e) =>
                       handleInputChange(index, "quantity", e.target.value)
                     }
                     disabled={!isEditable}
+                    className={textPosition}
                   />
-                </td>
-                <td className="border border-[#D9D9D9] px-2 py-1">
-                  <input
+                </TableData>
+                <TableData>
+                  <TableInput
                     type="number"
-                    className="w-full bg-inherit border-none outline-none rounded px-2 py-1"
                     value={row.amount}
                     onChange={(e) =>
                       handleInputChange(index, "amount", e.target.value)
                     }
                     disabled={!isEditable}
+                    className={textPosition}
                   />
-                </td>
-                <td className="border border-[#D9D9D9] px-2 py-1">{row.total}</td>
+                </TableData>
+                <TableData className="text-center">{row.total}</TableData>
                 {isEditable && (
-                  <td className="border border-[#D9D9D9] px-2 py-1">
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => deleteRow(index)}
-                      disabled={!isEditable}
-                    >
-                      Delete
-                    </button>
-                  </td>
+                  <TableData className="hover:bg-slate-100 flex items-center justify-center border-x-0 border-t-0 border-b-[1px] py-3">
+                    <DeleteIcon onClick={() => deleteRow(index)} />
+                  </TableData>
                 )}
               </tr>
             ))}
+            <tr className="font-semibold">
+              <TableData colSpan={3} className="pl-3.5">Total</TableData>
+              <TableData className="text-center">{totalSum.toFixed(2)}</TableData>
+            </tr>
           </tbody>
-        </table>}
+        </table>
+      )}
     </div>
   );
 };

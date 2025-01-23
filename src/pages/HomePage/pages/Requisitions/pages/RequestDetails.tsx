@@ -192,11 +192,11 @@ const RequestDetails = () => {
           <RequisitionSignatureSection
             requester={requestData?.requester}
             signatures={{
-              receivedBy: { name: "John Doe", signature: "J.D" },
+              receivedBy: { name: "", signature: "" },
               authorizedBy: {
-                name: "Tuffour Boateng",
+                name: "",
                 signature:
-                  "https://www.jsign.com/wp-content/uploads/2022/06/graphic-signature-completeness.png.webp",
+                  "",
               },
               approvedBy: { name: "", signature: "" },
             }}

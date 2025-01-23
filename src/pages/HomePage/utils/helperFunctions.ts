@@ -37,15 +37,13 @@ export const showNotification = (
   type: "success" | "error" = "success",
   handleClose = () => {}
 ) => {
-  console.log("hello")
   const notification = useNotificationStore.getState().setNotification;
   notification({ message, show: true, onClose: handleClose, type });
 };
 
-export const isArray = function(data: any) {
+export const isArray = function (data: any) {
   return Array.isArray(data);
-}
-
+};
 
 export function isValidURL(url: string): boolean {
   try {
@@ -87,3 +85,18 @@ export async function handleDownload(imageSrc: string) {
     console.error("Error downloading the image:", error);
   }
 }
+
+export const markTouchedFields = (
+  errors: Record<string, any>,
+  touched: Record<string, boolean> = {}
+) => {
+  Object.keys(errors).forEach((field) => {
+    if (typeof errors[field] === "object" && errors[field] !== null) {
+      markTouchedFields(errors[field], touched); 
+    } else {
+      touched[field] = true;
+    }
+  });
+
+  return touched;
+};
