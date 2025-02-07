@@ -1,6 +1,8 @@
-export const getStatusColor = (status: string) => {
+import { RequisitionStatusType } from "../pages/Requisitions/types/requestInterface"
+
+export const getStatusColor = (status:RequisitionStatusType) => {
     if(status==="Draft") return "bg-[#EDEFF5] text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg  text-lighterBlack"
-    if(status === "Awaiting_HOD_Approval" || status === "Pending signature") return "bg-[#FFEFD2] text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg  text-[#996A13]"
+    if(status === "Awaiting_HOD_Approval" || status === "Pending signature"|| status === "Awaiting_Executive_Pastor_Approval") return "bg-[#FFEFD2] text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg  text-[#996A13]"
     if(status === "APPROVED") return "bg-[#D2F4EA] text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg  text-[#039855]"
     if(status === "REJECTED") return "bg-[#F9DADA] text-sm h-6 w-fit p-2 flex items-center justify-center rounded-lg  text-[#D14343]"
 }

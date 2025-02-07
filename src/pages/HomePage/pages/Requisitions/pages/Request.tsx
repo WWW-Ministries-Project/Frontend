@@ -42,14 +42,13 @@ const Request = () => {
     : [];
 
   const { id } = useParams();
+  const decodedId = id ? window.atob(String(id)) : "";
 
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
   const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
-    api.fetch.fetchRequisitionDetails,
-    { id: id ? window.atob(String(id)) : "" }
-  );
+    api.fetch.fetchRequisitionDetails, {id:decodedId} );
   const { name } = decodeToken();
   const {
     currencies,
@@ -72,7 +71,7 @@ const Request = () => {
     const response = data?.data?.data;
     if (response) {
       setRequestData(response);
-      const products = data.data.data.products.map((product) => ({
+      const products = data?.data?.data?.products?.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,
@@ -112,7 +111,7 @@ const Request = () => {
 
   const initialValues: IRequest = {
     requester_name: name,
-    department_id: requestData?.summary.department_id ?? "",
+    department_id: requestData?.summary?.department_id ?? "",
     event_id: requestData?.summary?.event_id ?? "",
     request_date: formattedRequestDate,
     comment: requestData?.comment ?? "",
@@ -254,7 +253,7 @@ const Request = () => {
                       setValues({
                         ...values,
                         approval_status: "Draft",
-                        user_sign: "",
+                        user_sign: null,
                       });
                       handleSubmit();
                     }}

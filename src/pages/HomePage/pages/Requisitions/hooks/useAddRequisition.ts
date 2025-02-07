@@ -24,7 +24,7 @@ export interface IRequest {
   currency: string;
   approval_status: RequisitionStatusType;
   attachmentLists: { URL: string }[];
-  user_sign: string;
+  user_sign: string |null;
 }
 export const useAddRequisition = () => {
   const { id: requestId } = useParams();
