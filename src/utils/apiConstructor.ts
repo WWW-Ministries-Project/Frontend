@@ -1,5 +1,5 @@
 import { ApiCallOptions, ApiResponse } from "./interfaces";
-
+import { baseUrl as url } from "@/pages/Authentication/utils/helpers";
 export class ApiExecution {
   baseUrl: string;
   fetchExecutor?: (
@@ -24,13 +24,13 @@ export class ApiExecution {
   ) => Promise<ApiResponse<any>>;
 
   constructor({
-    baseUrl = "https://wwm-bk.greatsohis.online/",
+    baseUrl=url ,
     fetchExecutor,
     deleteExecutor,
     postExecutor,
     updateExecutor,
   }: ApiCallOptions) {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl!;
     this.fetchExecutor = fetchExecutor;
     this.deleteExecutor = deleteExecutor;
     this.postExecutor = postExecutor;
