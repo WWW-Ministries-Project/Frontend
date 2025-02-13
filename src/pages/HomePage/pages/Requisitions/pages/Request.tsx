@@ -9,7 +9,6 @@ import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
-import { decodeToken } from "@/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { useParams } from "react-router-dom";
@@ -22,6 +21,7 @@ import MultiImageComponent, {
 } from "@/pages/HomePage/Components/MultiImageComponent";
 import AddSignature from "@/components/AddSignature";
 import Modal from "@/components/Modal";
+import { useAuth } from "@/context/AuthWrapper";
 
 const Request = () => {
   const { setInitialRows, events: allEvents, } = useStore();
@@ -48,8 +48,12 @@ const Request = () => {
     IRequisitionDetails | undefined
   >(undefined);
   const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
-    api.fetch.fetchRequisitionDetails, {id:decodedId} );
-  const { name } = decodeToken();
+    api.fetch.fetchRequisitionDetails,
+    { id: decodedId }
+  );
+  const {
+    user: { name },
+  } = useAuth();
   const {
     currencies,
     handleSubmit,
