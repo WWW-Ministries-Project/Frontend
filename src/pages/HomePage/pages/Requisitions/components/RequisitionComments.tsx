@@ -1,39 +1,46 @@
-import React, { useState } from "react";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import Button from "@/components/Button";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import { RequestComments } from "../types/requestInterface";
+import { useMemo } from "react";
+import { ActionType } from "../hooks/useRequisitionDetail";
 
-function RequisitionComments({isEditable}:Readonly<{isEditable:boolean}>) {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      comment: "Designing with Figma components that can be easily translated to the utility classes of Tailwind CSS is a huge timesaver!",
-      by: "John Doe",
-    },
-  ]);
 
-  const addComment = () => {
-    setComments([...comments, {
-      id: comments.length + 1,
-      comment: "Designing with Figma components that can be easily translated to the utility classes of Tailwind CSS is a huge timesaver!",
-      by: "John Doe",
-    }]);
-  }
+type RequisitionCommentsProps = {
+  isEditable: boolean;
+  comments: RequestComments[];
+  openCommentModal: (type:ActionType) => void;
+};
+function RequisitionComments({
+  isEditable,
+  openCommentModal,
+  comments
+}: Readonly<RequisitionCommentsProps>) {
+  
+  const sortedComments = useMemo(() => {
+    return [...comments].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [comments]);
+ 
   return (
     <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
       <div className="font-semibold text-dark900 flex items-center justify-between">
         <PageHeader title="Comments" />
-      { isEditable && <Button value="+ add comment" className="font-light text-primaryViolet" onClick={addComment} />}
+        <Button
+          value="+ add comment"
+          className="font-light text-primaryViolet cursor-pointer"
+          onClick={() => openCommentModal("comment")}
+        />
       </div>
       <div className="flex flex-col gap-2 max-h-[12.5rem] overflow-y-auto">
-      {comments.map((comment, index)=>(
-        <div key={comment.id} className="flex flex-col">
-          <div className="text-sm text-mainGray">{comment.comment}</div>
-          <div className="">{comment.by}</div>
-          {index !== comments.length - 1 && <HorizontalLine />}
-        </div>
-        
-      ))}
+        {sortedComments.map((comment, index) => (
+          <div key={comment.id} className="flex flex-col">
+            <div className="text-sm text-mainGray">{comment.comment}</div>
+            <div className="">{comment.request_comment_user.name}</div>
+            {index !== comments.length - 1 && <HorizontalLine />}
+          </div>
+        ))}
       </div>
     </aside>
   );

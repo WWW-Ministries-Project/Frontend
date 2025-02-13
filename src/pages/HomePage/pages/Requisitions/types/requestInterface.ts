@@ -1,6 +1,50 @@
 import { UserType } from "../../Members/utils/membersInterfaces";
 
-export type RequisitionStatusType = "Draft" | "Awaiting_HOD_Approval" | "Awaiting_Pastor_Approval";
+export type RequisitionStatusType =
+  | "Draft"
+  | "Awaiting_HOD_Approval"
+  | "Awaiting_Pastor_Approval"
+  | "APPROVED"
+  | "REJECTED"
+  | "Awaiting_Executive_Pastor_Approval"
+  | "Pending signature";
+
+export type RequesterApprover = {
+  name: string;
+  position: {
+    name: string;
+  };
+};
+
+export interface RequestApproval {
+  id: number;
+  request_id: number;
+  hod_user_id: number;
+  hod_approved: boolean;
+  hod_approval_date: string;
+  hod_sign: string;
+  ps_user_id: number | null;
+  ps_approved: boolean;
+  ps_approval_date: string | null;
+  ps_sign: string | null;
+  hod_user: RequesterApprover | null;
+  ps_user: RequesterApprover | null;
+  finance_user_id: number | null;
+  finance_approved: boolean;
+  finance_approval_date: string | null;
+  finance_sign: string | null;
+  finance_user: RequesterApprover | null;
+  
+}
+
+export type RequestComments = {
+  comment: string;
+  created_at: string;
+  id: number;
+  request_comment_user: RequesterApprover;
+  request_id: number;
+  user_id: number;
+};
 export interface Requisition {
   comment: string;
   currency: string;
@@ -16,7 +60,6 @@ export interface Requisition {
   generated_id: string;
 }
 
-
 export interface IRequestSummary {
   requisition_id: string;
   department: string;
@@ -26,6 +69,7 @@ export interface IRequestSummary {
   status: RequisitionStatusType;
   event_id: number;
   department_id: number;
+  user_sign: string;
 }
 
 export interface IRequester {
@@ -40,7 +84,7 @@ export interface IRequisitionDetails {
 
   summary: IRequestSummary;
   requester: IRequester;
-  request_approvals: null;
+  request_approvals: RequestApproval;
   products: {
     id: number;
     request_id: number;
@@ -52,6 +96,7 @@ export interface IRequisitionDetails {
     URL: string;
     id: number;
   }[];
+  request_comments: RequestComments[];
 }
 
 export interface TableRow {

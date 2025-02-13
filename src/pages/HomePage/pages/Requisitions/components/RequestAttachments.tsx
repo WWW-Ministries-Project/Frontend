@@ -3,11 +3,11 @@ import DownloadIcon from "@/assets/DownloadIcon";
 import FileIcon from "@/assets/FileIcon";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import { handleDownload } from "@/pages/HomePage/utils";
-import { pictureInstance as axiosPic } from "@/axiosInstance";
-import { useState } from "react";
 import UploadButton from "@/components/UploadButton";
 import LoaderIcon from "@/assets/LoaderIcon";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import { useImageUpload } from "@/pages/HomePage/utils/useImageUpload";
+import { ActionType } from "../hooks/useRequisitionDetail";
 
 function RequestAttachments({
   attachments,
@@ -23,25 +23,12 @@ function RequestAttachments({
   addAttachement: (attachment: string) => void;
   removAttachment: (id: number) => void;
   isLoading: boolean;
-  action: string;
+  action: ActionType;
   fileId: string;
 }>) {
-  const [addingImage, setAddingImage] = useState(false);
 
-  // Handle file upload
-  const handleUpload = async (formData: FormData) => {
-    setAddingImage(true);
-    try {
-      const response = await axiosPic.post("/upload", formData);
-      if (response.status === 200) {
-        return { URL: response.data.result.link as string };
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setAddingImage(false);
-    }
-  };
+
+  const { handleUpload,addingImage } = useImageUpload();
 
   // Handle file change
   const onFileChange = async (file: File | null) => {
@@ -70,7 +57,7 @@ function RequestAttachments({
               fill="#D92D20"
               onClick={() => removAttachment(attachment.id)}
             />
-            {action === "delete" && isLoading && Number(fileId) === attachment.id && (
+            {action === "removeAttachment" && isLoading && Number(fileId) === attachment.id && (
               <LoaderIcon />
             )}
           </div>
@@ -84,13 +71,13 @@ function RequestAttachments({
     <div className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
       <div className="font-semibold text-dark900 flex items-center justify-between">
         <PageHeader title="Attachments" />
-        {isEditable && (
+        {!isEditable && (
           <UploadButton
-            className="font-normal text-primaryViolet flex gap-3"
+            className="font-light text-primaryViolet cursor-pointer"
             onFileChange={onFileChange}
           >
             <span>+ Upload file</span>
-            {(addingImage || (action === "add" && isLoading)) && <LoaderIcon />}
+            {(addingImage || (action === "addAttachment" && isLoading)) && <LoaderIcon />}
           </UploadButton>
         )}
       </div>

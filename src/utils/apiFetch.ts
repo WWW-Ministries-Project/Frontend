@@ -58,7 +58,7 @@ export class ApiCalls {
   fetchRequisitions = (
     query?: Record<string, string | number>
   ): Promise<any> => {
-    return this.fetchFromApi("requisitions/list-requisition", query);
+    return this.fetchFromApi("requisitions/staff-requisition", query);
   };
   fetchRequisitionDetails = (
     query?: Record<string, string | number>
