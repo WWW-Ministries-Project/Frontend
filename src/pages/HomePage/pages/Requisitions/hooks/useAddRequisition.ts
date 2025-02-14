@@ -5,7 +5,6 @@ import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsSto
 import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { decodeToken } from "@/utils/helperFunctions";
 import { ApiResponse } from "@/utils/interfaces";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useEffect, useState } from "react";
@@ -14,6 +13,7 @@ import {
   IRequisitionDetails,
   RequisitionStatusType,
 } from "../types/requestInterface";
+import { useAuth } from "@/context/AuthWrapper";
 
 export interface IRequest {
   requester_name: string;
@@ -24,7 +24,7 @@ export interface IRequest {
   currency: string;
   approval_status: RequisitionStatusType;
   attachmentLists: { URL: string }[];
-  user_sign: string;
+  user_sign: string |null;
 }
 export const useAddRequisition = () => {
   const { id: requestId } = useParams();
@@ -33,7 +33,7 @@ export const useAddRequisition = () => {
   const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>
   >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
-  const { id } = decodeToken();
+  const {user:{id}} = useAuth()
   const { rows } = useStore();
   const [openSignature, setOpenSignature] = useState(false);
   const [images, setImages] = useState<image[]>([]);
@@ -114,7 +114,6 @@ export const useAddRequisition = () => {
 
   const imageChange = (images: image[]) => {
     setImages(images);
-    console.log(images)
   };
 
   const handleUpload = async (formData: FormData) => {

@@ -6,5 +6,5 @@ export const addRequisitionSchema = Yup.object({
   event_id: Yup.string().required("program is a required field"),
   request_date: Yup.string().required("date is a required field"),
   currency: Yup.string().required(),
-  comment: Yup.string().required(),
+  comment: Yup.string(),
 });

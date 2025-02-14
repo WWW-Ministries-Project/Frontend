@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import type { Requisition } from "../types/requestInterface";
+import type { Requisition, RequisitionStatusType } from "../types/requestInterface";
 import Action from "@/components/Action";
 import { useCallback, useEffect, useState } from "react";
 import Elipsis from "@/assets/ellipse.svg";
@@ -41,12 +41,12 @@ export const tableColumns: ColumnDef<Requisition>[] = [
       const ItemCell = () => {
         const [showPopover, setShowPopover] = useState(false);
         const items = info.getValue() as string[];
-        const remainingItems = items.length > 1 ? items.slice(1) : [];
+        const remainingItems = items?.length > 1 ? items?.slice(1) : [];
 
         return (
           <div className="flex gap-2 items-center relative">
-            <p>{items[0]}</p>
-            {remainingItems.length > 0 && (
+            <p>{items?.[0]}</p>
+            {remainingItems?.length > 0 && (
               <button
                 onMouseOver={() => setShowPopover(true)}
                 onFocus={() => setShowPopover(true)}
@@ -87,7 +87,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Status",
     accessorKey: "approval_status",
-    cell: (info) => <StatusPill text={info.getValue() as string} />,
+    cell: (info) => <StatusPill text={info.getValue() as RequisitionStatusType} />,
   },
   {
     header: "Action",

@@ -30,7 +30,7 @@ function LoginPage() {
     // }
     (async () => {
       try {
-        const endpoint = baseUrl + "/user/login";
+        const endpoint = baseUrl + "user/login";
         const response = await axios.post(endpoint, loginValues);
         setLoading(false);
         const token = response.data.token;

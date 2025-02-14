@@ -1,6 +1,7 @@
+import { RequisitionStatusType } from "@/pages/HomePage/pages/Requisitions/types/requestInterface";
 import { getStatusColor,getFillColor } from "@/pages/HomePage/utils";
 
-export default function StatusPill({ text }: Readonly<{ text: string }>) {
+export default function StatusPill({ text }: Readonly<{ text: RequisitionStatusType }>) {
   return (
     <div className={getStatusColor(text) + " flex items-center gap-2 h-fit"}>
       <svg

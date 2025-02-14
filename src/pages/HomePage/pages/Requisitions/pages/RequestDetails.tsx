@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/Button";
 import ProfilePic from "@/components/ProfilePicture";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
@@ -9,135 +7,91 @@ import RequisitionSummary from "../components/RequisitionSummary";
 import EditableTable from "../components/EditableTable";
 import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
-import api from "@/utils/apiCalls";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
 import Modal from "@/components/Modal";
-import TextField from "@/pages/HomePage/Components/reusable/TextField";
 import RequestAttachments from "../components/RequestAttachments";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import AddSignature from "@/components/AddSignature";
-import type { IRequisitionDetails } from "../types/requestInterface";
-import { ApiResponse } from "@/utils/interfaces";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
+import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
+import { useNavigate } from "react-router-dom";
 
 const RequestDetails = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const requisitionId = window.atob(String(id));
-  const [attachments, setAttachments] = useState<
-    { URL: string; id?: number }[]
-  >([]);
-  const [openSignature, setOpenSignature] = useState(false);
-  const [openComment, setOpenComment] = useState(false);
-
-  const { data, loading } = useFetch<{
-    data: { data: IRequisitionDetails };
-  }>(api.fetch.fetchRequisitionDetails, { id: requisitionId });
+    const navigate = useNavigate();
+  
 
   const {
-    postData,
-    data: updateData,
-    loading: isUpdating,
-  } = usePost<ApiResponse<{ data: IRequisitionDetails; message: string }>>(
-    api.put.updateRequisition
-  );
+    loading,
+    requestData,
+    actionType,
+    openComment,
+    openSignature,
+    openCommentModal,
+    closeComment,
+    comment,
+    setComment,
+    commentHeader,
+    isUpdating,
+    handleComment,
+    attachments,
+    handleAddAttachment,
+    handleRemoveAttachment,
+    attachmentId,
+    isEditable,
+    products,
+    isApprovedOrRejected,
+    handleOpenSignature,
+    addingImage,
+    handleSignature,
+    handleAddSignature,
+    requisitionId:id
+  } = useRequisitionDetail();
 
-  const requestData = useMemo(() => data?.data?.data, [data]);
-  const [action,setAction] = useState("")
-  const [fileId, setFileId] = useState("");
-  const { setNotification } = useNotificationStore();
-
-
-  const isEditable = useMemo(() => {
-    const status = requestData?.summary?.status;
-    return status === "Awaiting_HOD_Approval" || status === "Draft";
-  }, [requestData]);
-
-  const products = useMemo(
-    () =>
-      requestData?.products?.map((item) => ({
-        name: item.name,
-        amount: item.unitPrice,
-        quantity: item.quantity,
-        total: item.quantity * item.unitPrice,
-        id: String(item.id),
-      })) ?? [],
-    [requestData]
-  );
-
-  useEffect(() => {
-    if (requestData?.attachmentLists) {
-      setAttachments(requestData.attachmentLists);
-    }
-  }, [requestData]);
-
-
-  const handleAddAttachment = async (attachment: string) => {
-  setAction("add")
-    const updatedAttachments = [...attachments, { URL: attachment }];
-    setFileId("");
-    await postData({
-      id: Number(requisitionId),
-      attachmentLists: updatedAttachments,
-    });
-  };
-
-  const handleRemoveAttachment = async (id: number) => {
-    setAction("delete")
-    const updatedAttachments = attachments.filter((att) => att.id !== id);
-    setFileId(String(id));
-    await postData({
-      id: Number(requisitionId),
-      attachmentLists: updatedAttachments,
-    });
-  };
-
-  const handleOpenNotification = useCallback(
-    (action: string, type: "error" | "success", title:string) => {
-      setNotification({
-        message: `Attachment ${action} successfuly`,
-        show: true,
-        type: type,
-        title: `${title} attachment`,
-        onClose: () => {},
-      });
-    },
-    [setNotification]
-  );
-
-  useEffect(() => {
-    if (updateData?.status === 201) {
-      if (fileId) {
-        setAttachments((prev) =>
-          prev.filter((file) => String(file.id) !== fileId)
-        );
-
-        handleOpenNotification("deleted","success","Delete")
-      } else {
-        setAttachments(updateData.data.data.attachmentLists);
-        handleOpenNotification("added","success","Add")
-
-      }
-    }
-  }, [updateData]); // Runs when updateData change
+  const requester = requestData?.requester;
 
   if (loading) return <LoaderComponent />;
 
   return (
     <PageOutline>
       {/* Modals */}
-      <Modal open={openSignature} onClose={() => setOpenSignature(false)}>
+      <Modal open={openSignature} onClose={handleOpenSignature}>
         <AddSignature
-          cancel={() => setOpenSignature(false)}
-          handleSignature={() => {}}
-          onSubmit={() => {}}
+          cancel={handleOpenSignature}
+          handleSignature={handleSignature}
+          onSubmit={handleAddSignature}
+          loading={addingImage || isUpdating}
         />
       </Modal>
 
-      <Modal open={openComment} onClose={() => setOpenComment(false)}>
-        <div className="p-10">
-          <TextField label="Comment" />
+      <Modal open={openComment} onClose={closeComment}>
+        <div className="p-10 flex flex-col gap-8">
+          <p className="text-center text-dark900 font-bold text-xl ">
+            {commentHeader}
+          </p>
+          <Textarea
+            label="Comment"
+            value={comment}
+            onChange={setComment}
+            placeholder="Enter comment..."
+          />
+          {actionType === "reject" && (
+            <p className="text-dark900 text-sm">
+              By clicking "Submit", you agreed to disapproving this request
+            </p>
+          )}
+          <div className="flex gap-4 justify-end">
+            <Button
+              value="Cancel"
+              className="tertiary"
+              onClick={closeComment}
+            />
+            <Button
+              value="Submit"
+              className="primary"
+              onClick={handleComment}
+              disabled={!comment}
+              loading={isUpdating}
+            />
+          </div>
         </div>
       </Modal>
 
@@ -151,16 +105,20 @@ const RequestDetails = () => {
               onClick={() => navigate(`/home/requests/request/${id}`)}
             />
           )}
-          <Button
-            value="Disapprove"
-            className="secondary"
-            onClick={() => setOpenComment(true)}
-          />
-          <Button
-            value="Approve"
-            className="primary"
-            onClick={() => setOpenSignature(true)}
-          />
+          {!isApprovedOrRejected && (
+            <>
+              <Button
+                value="Disapprove"
+                className="secondary"
+                onClick={() => openCommentModal("reject")}
+              />
+              <Button
+                value="Approve"
+                className="primary"
+                onClick={handleOpenSignature}
+              />
+            </>
+          )}
         </div>
       </PageHeader>
 
@@ -190,16 +148,8 @@ const RequestDetails = () => {
           <EditableTable isEditable={false} data={products} />
           <HorizontalLine />
           <RequisitionSignatureSection
-            requester={requestData?.requester}
-            signatures={{
-              receivedBy: { name: "", signature: "" },
-              authorizedBy: {
-                name: "",
-                signature:
-                  "",
-              },
-              approvedBy: { name: "", signature: "" },
-            }}
+            requester={{...requester,user_sign:requestData?.summary?.user_sign ?? null}}
+            requuest_approvals={requestData?.request_approvals}
           />
         </section>
 
@@ -209,15 +159,19 @@ const RequestDetails = () => {
             summary={requestData?.summary}
             currency={requestData?.currency}
           />
-          <RequisitionComments isEditable={isEditable} />
+          <RequisitionComments
+            isEditable={isEditable}
+            openCommentModal={openCommentModal}
+            comments={requestData?.request_comments ?? []}
+          />
           <RequestAttachments
             attachments={attachments}
             isEditable={isEditable}
             addAttachement={handleAddAttachment}
             removAttachment={handleRemoveAttachment}
-            isLoading = {isUpdating}
-            action={action}
-            fileId={fileId}
+            isLoading={isUpdating}
+            action={actionType}
+            fileId={attachmentId}
           />
         </section>
       </section>

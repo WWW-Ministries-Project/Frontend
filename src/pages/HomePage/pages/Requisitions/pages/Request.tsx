@@ -9,48 +9,55 @@ import { Field, Formik } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
-import { decodeToken } from "@/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MultiImageComponent, {
   image,
 } from "@/pages/HomePage/Components/MultiImageComponent";
 import AddSignature from "@/components/AddSignature";
 import Modal from "@/components/Modal";
+import { useAuth } from "@/context/AuthWrapper";
 
 const Request = () => {
-  const { setInitialRows, events: allEvents, } = useStore();
-  const { departments: allDepartments } = useSettingsStore();
+  const { setInitialRows, events: allEvents, addEvent } = useStore();
+  const { departments: allDepartments, addDepartment } = useSettingsStore();
 
-  const departments = Array.isArray(allDepartments)
-    ? allDepartments.map((dept) => ({
-        name: dept?.name,
-        value: dept?.id,
-      }))
-    : [];
+  const departments = useMemo(() => {
+    return Array.isArray(allDepartments)
+      ? allDepartments.map((dept) => ({
+          name: dept?.name,
+          value: dept?.id,
+        }))
+      : [];
+  }, [allDepartments]);
 
-  const events = Array.isArray(allEvents)
-    ? allEvents.map((event) => ({
-        name: event?.name,
-        value: event?.id,
-      }))
-    : [];
+  const events = useMemo(() => {
+    return Array.isArray(allEvents)
+      ? allEvents.map((event) => ({
+          name: event?.name,
+          value: event?.id,
+        }))
+      : [];
+  }, [allEvents]);
 
   const { id } = useParams();
+  const decodedId = id ? window.atob(String(id)) : "";
 
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
   const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
     api.fetch.fetchRequisitionDetails,
-    { id: id ? window.atob(String(id)) : "" }
+    { id: decodedId }
   );
-  const { name } = decodeToken();
+  const {
+    user: { name },
+  } = useAuth();
   const {
     currencies,
     handleSubmit,
@@ -63,7 +70,7 @@ const Request = () => {
     handleSignature,
     signature,
     handleUpload,
-    handleUploadImage
+    handleUploadImage,
   } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
   const [initialImages, setInitialImages] = useState<image[]>([]);
@@ -72,7 +79,7 @@ const Request = () => {
     const response = data?.data?.data;
     if (response) {
       setRequestData(response);
-      const products = data.data.data.products.map((product) => ({
+      const products = data?.data?.data?.products?.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,
@@ -112,19 +119,39 @@ const Request = () => {
 
   const initialValues: IRequest = {
     requester_name: name,
-    department_id: requestData?.summary.department_id ?? "",
-    event_id: requestData?.summary?.event_id ?? "",
+    department_id: requestData?.summary?.department_id ?? "",
+    event_id: requestData?.summary?.program_id ?? "",
     request_date: formattedRequestDate,
     comment: requestData?.comment ?? "",
     currency: requestData?.currency ?? "",
     approval_status: requestData?.summary?.status ?? "Draft",
     user_sign: requestData?.requester?.user_sign ?? "",
-    attachmentLists: requestData?.attachmentLists ?? []
+    attachmentLists: requestData?.attachmentLists ?? [],
   };
 
   const title = id ? "Update request" : "Raise request";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
   const isNoSignature = id && !requestData?.requester.user_sign;
+
+  useEffect(() => {
+    const { summary } = requestData || {};
+    const { program_id, department_id, program } = summary || {};
+    if (
+      !(
+        id &&
+        (program_id || department_id)
+      )
+    ) {
+      return;
+    } else {
+      const event = allEvents?.find(
+        (event) => Number(event?.id) === Number(program_id)
+      );
+
+      if (!event) addEvent({ id: program_id, name: program });
+      
+    }
+  }, [requestData,allEvents]);
   return (
     <PageOutline>
       <div className="mx-auto py-8 lg:container lg:w-4/6">
@@ -133,8 +160,8 @@ const Request = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={async (values) => {
-            const data = await handleUploadImage()
-            handleSubmit({...values, attachmentLists:data});
+            const data = await handleUploadImage();
+            handleSubmit({ ...values, attachmentLists: data });
           }}
           validationSchema={addRequisitionSchema}
           enableReinitialize
@@ -254,7 +281,7 @@ const Request = () => {
                       setValues({
                         ...values,
                         approval_status: "Draft",
-                        user_sign: "",
+                        user_sign: null,
                       });
                       handleSubmit();
                     }}
