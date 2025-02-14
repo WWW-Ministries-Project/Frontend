@@ -15,7 +15,7 @@ import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
 import api from "@/utils/apiCalls";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MultiImageComponent, {
   image,
 } from "@/pages/HomePage/Components/MultiImageComponent";
@@ -24,22 +24,26 @@ import Modal from "@/components/Modal";
 import { useAuth } from "@/context/AuthWrapper";
 
 const Request = () => {
-  const { setInitialRows, events: allEvents, } = useStore();
-  const { departments: allDepartments } = useSettingsStore();
+  const { setInitialRows, events: allEvents, addEvent } = useStore();
+  const { departments: allDepartments, addDepartment } = useSettingsStore();
 
-  const departments = Array.isArray(allDepartments)
-    ? allDepartments.map((dept) => ({
-        name: dept?.name,
-        value: dept?.id,
-      }))
-    : [];
+  const departments = useMemo(() => {
+    return Array.isArray(allDepartments)
+      ? allDepartments.map((dept) => ({
+          name: dept?.name,
+          value: dept?.id,
+        }))
+      : [];
+  }, [allDepartments]);
 
-  const events = Array.isArray(allEvents)
-    ? allEvents.map((event) => ({
-        name: event?.name,
-        value: event?.id,
-      }))
-    : [];
+  const events = useMemo(() => {
+    return Array.isArray(allEvents)
+      ? allEvents.map((event) => ({
+          name: event?.name,
+          value: event?.id,
+        }))
+      : [];
+  }, [allEvents]);
 
   const { id } = useParams();
   const decodedId = id ? window.atob(String(id)) : "";
@@ -66,7 +70,7 @@ const Request = () => {
     handleSignature,
     signature,
     handleUpload,
-    handleUploadImage
+    handleUploadImage,
   } = useAddRequisition();
   const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
   const [initialImages, setInitialImages] = useState<image[]>([]);
@@ -116,18 +120,38 @@ const Request = () => {
   const initialValues: IRequest = {
     requester_name: name,
     department_id: requestData?.summary?.department_id ?? "",
-    event_id: requestData?.summary?.event_id ?? "",
+    event_id: requestData?.summary?.program_id ?? "",
     request_date: formattedRequestDate,
     comment: requestData?.comment ?? "",
     currency: requestData?.currency ?? "",
     approval_status: requestData?.summary?.status ?? "Draft",
     user_sign: requestData?.requester?.user_sign ?? "",
-    attachmentLists: requestData?.attachmentLists ?? []
+    attachmentLists: requestData?.attachmentLists ?? [],
   };
 
   const title = id ? "Update request" : "Raise request";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
   const isNoSignature = id && !requestData?.requester.user_sign;
+
+  useEffect(() => {
+    const { summary } = requestData || {};
+    const { program_id, department_id, program } = summary || {};
+    if (
+      !(
+        id &&
+        (program_id || department_id)
+      )
+    ) {
+      return;
+    } else {
+      const event = allEvents?.find(
+        (event) => Number(event?.id) === Number(program_id)
+      );
+
+      if (!event) addEvent({ id: program_id, name: program });
+      
+    }
+  }, [requestData,allEvents]);
   return (
     <PageOutline>
       <div className="mx-auto py-8 lg:container lg:w-4/6">
@@ -136,8 +160,8 @@ const Request = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={async (values) => {
-            const data = await handleUploadImage()
-            handleSubmit({...values, attachmentLists:data});
+            const data = await handleUploadImage();
+            handleSubmit({ ...values, attachmentLists: data });
           }}
           validationSchema={addRequisitionSchema}
           enableReinitialize

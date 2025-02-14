@@ -70,6 +70,7 @@ export interface IRequestSummary {
   event_id: number;
   department_id: number;
   user_sign: string;
+  program_id:string
 }
 
 export interface IRequester {
