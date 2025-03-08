@@ -112,9 +112,9 @@ function HomePage() {
   navigateRef.current = navigate;
 
   return (
-    <>
+    <div className="">
       {token ? (
-        <main className="bg-white   flex  overflow-auto ">
+        <main className="  flex ">
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
@@ -131,13 +131,14 @@ function HomePage() {
           <div className="inline lg:hidden">
             <SideBarMobile show={show} onClick={handleShowNav} />
           </div>
-
-          <div
-            className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-3 bg-[#E5E5EA] `}
-          >
-            <Header handleShowNav={handleShowNav} />
-            <div className="hideScrollbar lg:h-[90vh]  overflow-y-auto rounded-xl">
-            <Breadcrumb />
+             <div className="w-full p-3 space-y-3">
+             <div className="">
+             <Header handleShowNav={handleShowNav} />
+              </div>
+          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-4 bg-[#E5E5EA] `}>
+            
+            <div className="hideScrollbar lg:h-[88.5vh] 2xl:h-[90.5vh] overflow-y-auto rounded-xl">
+            {/* <Breadcrumb /> */}
               <Outlet
                 context={{
                   members,
@@ -150,6 +151,7 @@ function HomePage() {
             </div>
             {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
           </div>
+             </div>
           <NotificationCard />
           <Dialog />
         </main>
@@ -157,7 +159,7 @@ function HomePage() {
         <Navigate to="/login" />
       )}
       {membersLoading && <LoaderComponent/>}
-    </>
+    </div>
   );
 }
 

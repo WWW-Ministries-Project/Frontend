@@ -70,7 +70,8 @@ function LoginPage() {
     }
   }
   return (
-    <div className="bg-[url('src/assets/waves.svg')] bg-no-repeat bg-right bg-cover">
+    <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
+    <div className="relative h-screen bg-purple-900/60 overflow-hidden">
       <OuterDiv>
         <AuthenticationForm
           response={response}
@@ -135,7 +136,7 @@ function LoginPage() {
           {/* </div> */}
         </AuthenticationForm>
       </OuterDiv>
-
+      </div>
     </div>
   );
 }

@@ -21,7 +21,7 @@ function Header({ handleShowNav }) {
     navigate("/login");
   }
   return (
-    <div className="pb-4">
+    <div className="">
       <header className="flex justify-between  items-center  w-full  ">
         <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
         <div className="w-[40.9%]">
