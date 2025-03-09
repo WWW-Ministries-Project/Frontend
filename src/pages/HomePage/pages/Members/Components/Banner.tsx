@@ -21,19 +21,20 @@ const Banner: React.FC<BannerProps> = (props) => {
     props.onClick(true);
   };
   return (
-    <div className="w-full h-48 w-full relative">
+    <div className="w-full h-32 relative">
       {/* <img src={props.coverImage1} alt="cover Image" className="w-full rounded-xl" /> */}
       <div
-        className="absolute bottom-0 rounded-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
+        className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
         style={{
           backgroundImage: `url(${coverImage1})`,
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="flex gap-4 items-center  ">
+        <div className="flex justify-between items-center lg:w-4/6 container mx-auto">
+        <div className="flex gap-4 items-center   ">
           <ProfilePic
-            className="w-32 h-32 outline outline-white"
+            className="w-24 h-24 outline outline-white"
             src={props.src}
             alt="cover Image"
             name={props.name}
@@ -41,7 +42,7 @@ const Banner: React.FC<BannerProps> = (props) => {
             id="coverPic"
             onChange={props.onPicChange}
           />
-          <article className="xs:hidden md:inline space-y-2">
+          <article className="xs:hidden md:inline space-y-1">
             <div className="font-extrabold text-2xl text-dark900">
               {props.name || "No Name"}
             </div>
@@ -64,6 +65,7 @@ const Banner: React.FC<BannerProps> = (props) => {
             />
           </div>
         )}
+        </div>
       </div>
     </div>
   );

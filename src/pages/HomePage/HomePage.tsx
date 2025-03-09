@@ -135,9 +135,9 @@ function HomePage() {
              <div className="">
              <Header handleShowNav={handleShowNav} />
               </div>
-          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl  p-4 bg-[#E5E5EA] `}>
+          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl   bg-[#E5E5EA] inset-shadow-sm`}>
             
-            <div className="hideScrollbar lg:h-[88.5vh] 2xl:h-[90.5vh] overflow-y-auto rounded-xl">
+            <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl">
             {/* <Breadcrumb /> */}
               <Outlet
                 context={{

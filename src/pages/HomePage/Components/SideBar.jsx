@@ -52,12 +52,12 @@ const SideBar = ({ show, ...props }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`space-y-8 mx-auto px-2 lg:h-[100vh] xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
+        className={`space-y-8  mx-auto px-2 lg:h-full xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
           } transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `}
         style={props.style}
       >
         <div
-          className={`xs:hidden lg:inline  mt-4 ${!show ? "mx-auto " : ""
+          className={`xs:hidden lg:inline   ${!show ? "mx-auto " : ""
             } xs:pb-0 xs:flex xs:items-center`}
         >
           {/* {show ? ( */}

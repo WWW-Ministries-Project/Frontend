@@ -53,65 +53,102 @@ const ViewEvents = () => {
     };
 
     return (
-        <div className="container mx-auto hideScrollbar h-[90vh] p-8 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg  overflow-y-auto ">
-            <div className="flex justify-between mb-2">
-            <h1 className="text-2xl font-bold p-0 m-0 text-dark900">{eventdetails.name}</h1>
-                <Button value="Edit" className="px-4 py-2 border border-lightGray rounded-lg" onClick={() => { navigate(`/home/manage-event?event_id=${id}`) }} />
+        <div>
+  {/* Banner Section */}
+  <div
+    className="h-48 sticky top-0 z-50 bg-no-repeat bg-right bg-cover"
+    style={{
+      backgroundImage: `url(${eventdetails.poster || defaultImage1})`,
+    }}
+  >
+    <div className=" relative flex justify-center items-center h-48 text-white bg-black/60 overflow-hidden">
+      <div className="lg:container lg:w-4/6 flex justify-between items-center w-full p-4">
+        <div>
+            <h1 className="text-3xl font-semibold text-white">{eventdetails.name}</h1>
+            <p className="text-lg font-light text-white">{formatTime(eventdetails.start_date)} | {eventdetails.start_time} - {eventdetails.end_time}</p>
+            <p className="text-lg font-light text-white"></p>
+            <p className="text-lg font-light text-white ">
+                  <a
+                    href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    event registration link
+                  </a>
+                </p>
+            <p className="text-lg font-light text-white">{eventdetails.description}</p>
+        </div>
+        <div className="gap-x-4 flex">
+            <div>
+            <Button
+        value="Generate QR code"
+        className="px-4 py-2 border text-white border-lightGray rounded-lg"
+        onClick={() => {
+          navigate(`/home/manage-event?event_id=${id}`);
+        }}
+      />
             </div>
-
-
-            {/* <div className="lg:hidden ">
-                            <img className="rounded-xl w-[50vh]" src={eventdetails.poster || defaultImage1} alt="banner for event" />
-                        </div> */}
-            <div className="w-full min-h-[95%] gap-x-5 flex justify-between ">
-                <div className="w-full lg:w-3/4 bg-white gap-3 border border-1 border-lightGray  lg:p-4 rounded-xl">
-                    <section className="flex w-full rounded gap-4">
-                        <div className="w-full relative  lg:w-2/3 flex flex-col xs:gap-2 md:gap-0 lg:gap-2 text-dark900">
-                            <div className="lg:hidden ">
-                                <img className="rounded-xl " src={eventdetails.poster || defaultImage1} alt="banner for event" />
-                            </div>
-                            <div className="md:bg-white lg:bg-transparent px-4 lg:mx-0 lg:p-0 md:p-6 md:mx-8 rounded-xl md:shadow-lg lg:shadow-none md:-translate-y-16 lg:translate-y-0 ">
-                                
-                                <div className="flex gap-1 text">
-                                    <p>{formatTime(eventdetails.start_date)}</p> | <p>{eventdetails.start_time} - {eventdetails.end_time}</p>
-                                </div>
-                                <div>
-                                    <p className="text text-primaryViolet">
-                                        <a href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`} target="_blank" rel="noreferrer">
-                                            event registration link
-                                        </a>
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text text-justify">{eventdetails.description}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={`hidden lg:flex rounded-xl outline outline-1 outline-lightGray w-[20rem] h-[10rem] `}>
-                            {/* <img className="rounded-xl w-[50vh]" src={eventdetails.poster || defaultImage1} alt="banner for event" /> */}
-                            <img className='rounded-xl w-[40%] h-[20%]' src={eventdetails.poster || defaultImage1} alt="poster for event" />
-                        </div>
-                    </section>
-                    <section className="w-full rounded px-4">
-                        <div className="w-full border-b border-lightGray py-5 mb-2">
-                            <h2 className="H400 text-dark900">Event Attendees</h2>
-                        </div>
-                        <div className="flex justify-center ">
-                            {queryLoading ? <SkeletonLoader /> : (!eventdetails.event_attendance?.length ?
-                                <EmptyState className='w-[20rem] ' msg="😞 Sorry, No attendees yet" /> :
-                                <TableComponent headClass={" !font-thin"} columns={attendanceColumn} data={eventdetails.event_attendance || []} />)
-                            }
-                        </div>
-                    </section>
-                </div>
-                <aside className="hidden lg:flex w-[320px] h-[320px] bg-white flex-col justify-center items-center rounded-xl border border-lightGray">
-                    <div className="w-40 mx-auto">
-                        <img src={eventdetails.qr_code} alt="Qr code" className="w-full" />
-                    </div>
-                    <Button value="Download QR Code" className="px-4 mt-8 text-white text-xs h-8 bg-primaryViolet" loading={loading} disabled={loading} onClick={() => { handleQrDownload(eventdetails.qr_code) }} />
-                </aside>
+            <div>
+            <Button
+        value="Edit"
+        className="px-8 py-2  text-white border border-primaryViolet bg-primaryViolet rounded-lg"
+        onClick={() => {
+          navigate(`/home/manage-event?event_id=${id}`);
+        }}
+      />
             </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Main Content Section */}
+  <div className="container mx-auto hideScrollbar min-h-[80vh] p-4 lg:container lg:w-4/6 bg-white rounded-b-xl  overflow-y-auto">
+  
+
+    {/* Event Details Section */}
+    <div className="w-full min-h-[90%] gap-x-5 flex justify-between">
+      <div className="w-full  bg-white gap-3   rounded-xl">
+        
+        {/* Event Attendees Section */}
+        <section className="w-full ">
+          <div className="w-full   mb-2">
+            <h2 className="H400 text-dark900">Event Attendees</h2>
+          </div>
+          <div className="">
+            {queryLoading ? (
+              <SkeletonLoader />
+            ) : !eventdetails.event_attendance?.length ? (
+              <EmptyState className="w-[20rem] mx-auto" msg="😞 Sorry, No attendees yet" />
+            ) : (
+              <TableComponent
+                headClass={"font-bold"}
+                columns={attendanceColumn}
+                data={eventdetails.event_attendance || []}
+              />
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* QR Code Section */}
+      {/* <aside className="hidden lg:flex w-[320px] h-[320px] bg-white flex-col justify-center items-center rounded-xl border border-lightGray">
+        <div className="w-40 mx-auto">
+          <img src={eventdetails.qr_code} alt="Qr code" className="w-full" />
+        </div>
+        <Button
+          value="Download QR Code"
+          className="px-4 mt-8 text-white text-xs h-8 bg-primaryViolet"
+          loading={loading}
+          disabled={loading}
+          onClick={() => {
+            handleQrDownload(eventdetails.qr_code);
+          }}
+        />
+      </aside> */}
+    </div>
+  </div>
+</div>
     );
 }
 

@@ -3,7 +3,7 @@ interface IPageOutline {
 }
 const PageOutline = ({ children }: IPageOutline): JSX.Element => {
   return (
-    <section className="bg-white rounded-xl min-h-[90vh] p-8">
+    <section className="bg-white rounded-xl p-4 min-h-screen">
       {children}
     </section>
   );

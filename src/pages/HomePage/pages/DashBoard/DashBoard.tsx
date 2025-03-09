@@ -74,7 +74,7 @@ function DashBoard() {
 
 
   return (
-    <main className={``}>
+    <main className={`p-4`}>
       {welcomeMsg && isTabletOrAbove && (
         <NotificationFlag
           name={decodeToken().name}

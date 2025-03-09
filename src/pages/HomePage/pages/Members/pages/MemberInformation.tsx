@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { useOutletContext } from "react-router-dom";
 import MembersForm from "../Components/MembersForm";
+import MemberInformationViewMode from "../Components/MembersInformationViewMode";
 const MemberInformation = () => {
   const { edit, handleCancel, details, handleChange, handleSubmit, loading } =
     useOutletContext<{
@@ -12,7 +13,8 @@ const MemberInformation = () => {
       loading: boolean;
     }>();
   return (
-    <MembersForm
+    <div>
+      {edit?<MembersForm
       edit={edit}
       user={details}
       department={[]}
@@ -20,7 +22,13 @@ const MemberInformation = () => {
       onSubmit={handleSubmit}
       onCancel={handleCancel}
       loading={loading}
-    />
+    />:
+    <div>
+      <MemberInformationViewMode 
+      user={details}
+      />
+    </div>}
+    </div>
   );
 };
 MemberInformation.propTypes = {

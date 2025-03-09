@@ -50,7 +50,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       validationSchema={userFormValidator}
     >
       {(form) => (
-        <div className="h-full mb-4 py-4 gap-y-5">
+        <div className="h-full  py-4 gap-y-5">
           <section className="">
             <div className=" text-dark900 H600 font-extrabold my-5">
               Membership Status
@@ -305,8 +305,8 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
             </div>
           </section>
           {props.edit && (
-            <section className="w-full pt-5">
-              <div className="flex justify-end gap-4">
+            <section className="w-full pt-5 ">
+              <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
                 <Button
                   value={"Cancel"}
                   onClick={props.onCancel}
