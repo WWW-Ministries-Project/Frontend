@@ -77,7 +77,8 @@ const ManageAsset = () => {
   };
 
   return (
-    <section className="py-8 px-16 lg:container lg:w-4/6 bg-white mx-auto rounded-xl shadow">
+    <div className="p-4">
+      <section className="p-8 lg:container lg:w-4/6 bg-white mx-auto rounded-xl ">
       <h1 className="H700 font-bold text-dark900">{title}</h1>
       {!isDisabled && (
         <p className="text-sma text-lightGray py-2">
@@ -101,6 +102,7 @@ const ManageAsset = () => {
       </div>
       {fetchLoading && <LoaderComponent />}
     </section>
+    </div>
   );
 };
 

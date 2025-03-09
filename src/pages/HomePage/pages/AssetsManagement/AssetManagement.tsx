@@ -63,7 +63,8 @@ const AssetManagement = () => {
   };
 
   return (
-    <PageOutline>
+    <div className="p-4">
+      <PageOutline>
       <div className="">
         <section className="mt-   ">
           <div className="flex justify-between items-center mb-5">
@@ -139,6 +140,7 @@ const AssetManagement = () => {
         {(loading || deleteLoading) && <LoaderComponent />}
       </div>
     </PageOutline>
+    </div>
   );
 };
 

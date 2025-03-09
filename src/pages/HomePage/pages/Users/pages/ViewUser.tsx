@@ -123,8 +123,9 @@ const ViewUser = () => {
   };
 
   return (
-    <PageOutline>
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6 space-y-4">
+    <div className="p-4">
+      <PageOutline>
+      <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
         <h2 className="text-2xl font-semibold ">User Account</h2>
         <div className="flex items-start justify-center space-x-24">
           <ProfilePic
@@ -202,6 +203,7 @@ const ViewUser = () => {
         accessLoading ||
         resetLoading) && <LoaderComponent />}
     </PageOutline>
+    </div>
   );
 };
 

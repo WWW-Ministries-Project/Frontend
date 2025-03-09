@@ -51,6 +51,7 @@ const RequestDetails = () => {
   if (loading) return <LoaderComponent />;
 
   return (
+    <div className="p-4">
     <PageOutline>
       {/* Modals */}
       <Modal open={openSignature} onClose={handleOpenSignature}>
@@ -176,6 +177,7 @@ const RequestDetails = () => {
         </section>
       </section>
     </PageOutline>
+    </div>
   );
 };
 
