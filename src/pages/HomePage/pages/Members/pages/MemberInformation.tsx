@@ -13,7 +13,8 @@ const MemberInformation = () => {
       loading: boolean;
     }>();
   return (
-    <div>
+    <div className="grid grid-cols-4 gap-4">
+      <div className="col-span-3 bg-white p-4 rounded-b-xl">
       {edit?<MembersForm
       edit={edit}
       user={details}
@@ -28,6 +29,27 @@ const MemberInformation = () => {
       user={details}
       />
     </div>}
+      </div>
+
+    <div className="space-y-4">
+      <div className="bg-white p-4 h-[20rem] rounded-b-xl space-y-4">
+        <div className="flex justify-between ">
+        <div className="font-semibold">
+        Membership school
+        </div>
+        <div>
+          icon
+        </div>
+        </div>
+        {/* List of programs */}
+        <div>
+          
+        </div>
+      </div>
+      <div className="bg-white p-4 h-[20rem] rounded-xl">
+        Children
+      </div>
+    </div>
     </div>
   );
 };

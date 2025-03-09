@@ -31,7 +31,7 @@ const Banner: React.FC<BannerProps> = (props) => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="flex justify-between items-center lg:w-4/6 container mx-auto">
+        <div className="flex justify-between items-center lg:w-5/6 container mx-auto">
         <div className="flex gap-4 items-center   ">
           <ProfilePic
             className="w-24 h-24 outline outline-white"
