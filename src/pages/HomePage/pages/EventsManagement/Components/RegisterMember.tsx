@@ -40,8 +40,8 @@ const RegisterMember:React.FC<RegisterMemberProps> = ({memberDetails, name, load
                 <SelectField options={[{name:'Male',value:"Male"},{name:'Female',value:"Female"}]} id='gender' label='Gender' placeholder="Select Gender" onChange={handleChange} />
                 {/* <SelectField options={[{name:'Male',value:"male"},{name:'females',value:"female"}]} label='Memebership status' placeholder="Select Membership status" /> */}
                 <div className="flex justify-between my-4">
-                    <Button value="Cancel" className="text-primaryViolet bg-transparent w-40 py-1 border rounded-sm"onClick={handleCancel} />
-                    <Button value="Save" className="text-white w-40 py-1 bg-primaryViolet border rounded-sm" loading={loading} onClick={handleSubmit}  disabled={!memberDetails.first_name || !memberDetails.phone_number || loading} />
+                    <Button value="Cancel" className="text-primaryViolet bg-transparent w-40 p-1 border rounded-lg"onClick={handleCancel} />
+                    <Button value="Save" className="text-white w-40 p-2 bg-primaryViolet border rounded-lg" loading={loading} onClick={handleSubmit}  disabled={!memberDetails.first_name || !memberDetails.phone_number || loading} />
                 </div>
             </div>
         </div>

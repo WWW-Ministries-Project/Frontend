@@ -50,7 +50,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
         />
       ) : (
         <input
-          className={`input  border ${props.inputClass} rounded-xl ${props.error ? "!border-error !outline-error" : ""}`}
+          className={`   ${props.inputClass? props.inputClass : "rounded-lg p-2 border border-dark900"}  ${props.error ? "!border-error !outline-error" : ""}`}
           id={props.id}
           name={props.id}
           type={props.type || "text"}

@@ -36,131 +36,141 @@ interface ViewModeProps {
 
 const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
   return (
-    <div className="bg-white rounded-lg  w-full mx-auto">
+    <div className="bg-white rounded-lg  w-full mx-auto text-dark900 space-y-6">
       {/* Membership Status */}
-      <section className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Membership Status</h2>
+      <section className="">
+        <h2 className="text-xl font-bold ">Membership Status</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className="text-sm text-gray-600">Membership ID</p>
+            <p className=" text-gray-600">Membership ID</p>
             <p className="font-medium">{user.membership_Id || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Membership Type</p>
+            <p className=" text-gray-600">Membership Type</p>
             <p className="font-medium">{user.membership_type || "-"}</p>
           </div>
         </div>
       </section>
 
+      <hr className="border-t border-neutralGray " />
+
       {/* Personal Information */}
-      <section className="mb-6">
+      <section className="">
         <h2 className="text-xl font-bold text-gray-800">Personal Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className="text-sm text-gray-600">Title</p>
-            <p className="font-medium">{user.title}</p>
+            <p className=" text-gray-600">Title</p>
+            <p className="font-medium">{user.title || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">First Name</p>
-            <p className="font-medium">{user.first_name}</p>
+            <p className=" text-gray-600">First Name</p>
+            <p className="font-medium">{user.first_name || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Other Name</p>
-            <p className="font-medium">{user.other_name || "N/A"}</p>
+            <p className=" text-gray-600">Other Name</p>
+            <p className="font-medium">{user.other_name || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Last Name</p>
-            <p className="font-medium">{user.last_name}</p>
+            <p className=" text-gray-600">Last Name</p>
+            <p className="font-medium">{user.last_name || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Date of Birth</p>
-            <p className="font-medium">{formatInputDate(user.date_of_birth)}</p>
+            <p className=" text-gray-600">Date of Birth</p>
+            <p className="font-medium">{formatInputDate(user.date_of_birth) || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Nationality</p>
-            <p className="font-medium">{user.nationality}</p>
+            <p className=" text-gray-600">Nationality</p>
+            <p className="font-medium">{user.nationality || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Gender</p>
-            <p className="font-medium">{user.gender}</p>
+            <p className=" text-gray-600">Gender</p>
+            <p className="font-medium">{user.gender || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Marital Status</p>
-            <p className="font-medium capitalize">{user.marital_status}</p>
+            <p className=" text-gray-600">Marital Status</p>
+            <p className="font-medium capitalize">{user.marital_status || "-"}</p>
           </div>
         </div>
       </section>
 
+      <hr className="border-t border-neutralGray " />
+
       {/* Contact Information */}
-      <section className="mb-6">
+      <section className="">
         <h2 className="text-xl font-bold text-gray-800">Contact Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className="text-sm text-gray-600">Contact Number</p>
-            <p className="font-medium">{user.country_code} {user.primary_number}</p>
+            <p className=" text-gray-600">Contact Number</p>
+            <p className="font-medium">{`${user.country_code} ${user.primary_number}` || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">E-mail</p>
-            <p className="font-medium">{user.email}</p>
+            <p className=" text-gray-600">E-mail</p>
+            <p className="font-medium">{user.email || "-"}</p>
           </div>
         </div>
       </section>
 
+      <hr className="border-t border-neutralGray " />
+
       {/* Church Information */}
-      <section className="mb-6">
+      <section className="">
         <h2 className="text-xl font-bold text-gray-800">Church Information</h2>
         <div className="mt-2">
-          <p className="text-sm text-gray-600">Is this member a ministry worker?</p>
+          <p className=" text-gray-600">Is this member a ministry worker?</p>
           <p className="font-medium">{user.isMinistryWorker ? "Yes" : "No"}</p>
         </div>
         {user.isMinistryWorker && (
           <div className="grid grid-cols-2 gap-4 mt-2">
             <div>
-              <p className="text-sm text-gray-600">Ministry/Department</p>
-              <p className="font-medium">{user.ministryDepartment}</p>
+              <p className=" text-gray-600">Ministry/Department</p>
+              <p className="font-medium">{user.ministryDepartment || "-"}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Position</p>
-              <p className="font-medium">{user.position}</p>
+              <p className=" text-gray-600">Position</p>
+              <p className="font-medium">{user.position || "-"}</p>
             </div>
           </div>
         )}
       </section>
 
+      <hr className="border-t border-neutralGray " />
+
       {/* Work Information */}
-      <section className="mb-6">
+      <section className="">
         <h2 className="text-xl font-bold text-gray-800">Work Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className="text-sm text-gray-600">Institution</p>
-            <p className="font-medium">{user.work_info?.name_of_institution}</p>
+            <p className=" text-gray-600">Institution</p>
+            <p className="font-medium">{user.work_info?.name_of_institution || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Industry</p>
+            <p className=" text-gray-600">Industry</p>
             <p className="font-medium">{user?.work_info?.industry|| "-" }</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Position</p>
-            <p className="font-medium">{user?.work_info?.position}</p>
+            <p className=" text-gray-600">Position</p>
+            <p className="font-medium">{user?.work_info?.position || "-"}</p>
           </div>
         </div>
       </section>
 
+      <hr className="border-t border-neutralGray " />
+
       {/* Emergency Contact */}
-      <section className="mb-6">
+      <section className="">
         <h2 className="text-xl font-bold text-gray-800">Emergency Contact</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className="text-sm text-gray-600">Name</p>
-            <p className="font-medium">{user?.emergency_contact?.name}</p>
+            <p className=" text-gray-600">Name</p>
+            <p className="font-medium">{user?.emergency_contact?.name|| "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Relation</p>
-            <p className="font-medium">{user?.emergency_contact?.relation}</p>
+            <p className=" text-gray-600">Relation</p>
+            <p className="font-medium">{user?.emergency_contact?.relation|| "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Contact Number</p>
-            <p className="font-medium">{user?.emergency_contact?.phone_number}</p>
+            <p className=" text-gray-600">Contact Number</p>
+            <p className="font-medium">{user?.emergency_contact?.phone_number || "-"}</p>
           </div>
         </div>
       </section>

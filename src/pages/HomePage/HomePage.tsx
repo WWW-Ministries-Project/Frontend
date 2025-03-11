@@ -112,9 +112,11 @@ function HomePage() {
   navigateRef.current = navigate;
 
   return (
-    <div className="">
+    <div className=" ">
       {token ? (
-        <main className="  flex ">
+        <main className="h-screen p-3">
+          <Header handleShowNav={handleShowNav} />
+          <div className="flex">
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
@@ -131,9 +133,9 @@ function HomePage() {
           <div className="inline lg:hidden">
             <SideBarMobile show={show} onClick={handleShowNav} />
           </div>
-             <div className="w-full p-3 space-y-3">
+             <div className="w-full ">
              <div className="">
-             <Header handleShowNav={handleShowNav} />
+             {/* <Header handleShowNav={handleShowNav} /> */}
               </div>
           <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl   bg-[#E5E5EA] inset-shadow-sm`}>
             
@@ -152,6 +154,7 @@ function HomePage() {
             {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
           </div>
              </div>
+          </div>
           <NotificationCard />
           <Dialog />
         </main>

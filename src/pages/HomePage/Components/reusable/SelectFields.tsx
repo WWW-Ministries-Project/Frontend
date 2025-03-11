@@ -34,7 +34,7 @@ function SelectField(props: SelectFieldProps) {
         <select
           name={props.id}
           id={props.id}
-          className={`input rounded-xl border  ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
+          className={`p-2.5 rounded-lg border border-dark900  ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
           onChange={handleChange}
           value={props.value}
           disabled={props.disabled}

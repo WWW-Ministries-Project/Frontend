@@ -11,6 +11,7 @@ import { formatTime } from "/src/utils/helperFunctions";
 
 const ViewEvents = () => {
     const [eventdetails, setEventdetails] = useState({});
+    const [QRCodeModal, setQRCodeModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [queryLoading, setQueryLoading] = useState(false);
     const query = location.search;
@@ -25,6 +26,10 @@ const ViewEvents = () => {
             setQueryLoading(false);
         })
     }, []);
+
+    const handleQRCodeModal = () => {
+      setQRCodeModal( !QRCodeModal);
+    }
 
     const handleQrDownload = async (qr_code) => {
         setLoading(true);
@@ -84,7 +89,7 @@ const ViewEvents = () => {
         value="Generate QR code"
         className="px-4 py-2 border text-white border-lightGray rounded-lg"
         onClick={() => {
-          navigate(`/home/manage-event?event_id=${id}`);
+          handleQRCodeModal()
         }}
       />
             </div>
@@ -103,7 +108,7 @@ const ViewEvents = () => {
   </div>
 
   {/* Main Content Section */}
-  <div className="container mx-auto hideScrollbar min-h-[80vh] p-4 lg:container lg:w-4/6 bg-white rounded-b-xl  overflow-y-auto">
+  <div className="container mx-auto hideScrollbar  p-4 lg:container lg:w-4/6 bg-white rounded-b-xl  overflow-y-auto">
   
 
     {/* Event Details Section */}
@@ -130,24 +135,36 @@ const ViewEvents = () => {
           </div>
         </section>
       </div>
-
-      {/* QR Code Section */}
-      {/* <aside className="hidden lg:flex w-[320px] h-[320px] bg-white flex-col justify-center items-center rounded-xl border border-lightGray">
-        <div className="w-40 mx-auto">
+    </div>
+  </div>
+  {/* QR code dialog */}
+  {QRCodeModal&&<div className="fixed inset-0 z-50 bg-black/60 flex justify-center items-center">
+  <div  className="rounded p-5 shadow-lg w-1/3 bg-white">
+  <div className="w-2/3 mx-auto">
           <img src={eventdetails.qr_code} alt="Qr code" className="w-full" />
         </div>
+        <div className="flex justify-center gap-x-4">
         <Button
-          value="Download QR Code"
-          className="px-4 mt-8 text-white text-xs h-8 bg-primaryViolet"
+          value="Download "
+          className="px-4  text-white   bg-primaryViolet"
           loading={loading}
           disabled={loading}
           onClick={() => {
             handleQrDownload(eventdetails.qr_code);
           }}
         />
-      </aside> */}
-    </div>
+        <Button
+          value="Cancel"
+          className="px-4  text-primaryViolet  border border-primaryViolet"
+          loading={loading}
+          disabled={loading}
+          onClick={() => {
+            handleQRCodeModal()
+          }}
+        />
+        </div>
   </div>
+  </div>}
 </div>
     );
 }
