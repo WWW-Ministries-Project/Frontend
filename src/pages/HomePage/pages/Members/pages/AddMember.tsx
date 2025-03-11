@@ -68,8 +68,8 @@ const AddMember = () => {
     await postData(userValueRef.current);
   }
   return (
-    <>
-      <section className="mx-auto py-8 px-16 lg:container lg:w-4/6 bg-white rounded-xl shadow-lg">
+    <div className="p-4">
+      <section className="mx-auto p-8 lg:container lg:w-4/6 bg-white rounded-xl">
         <div className="flex flex-col gap-4 items-center tablet:items-start">
           <div className="font-bold text-xl">Member Information</div>
           <div className="text text-[#8F95B2] mt-">
@@ -103,7 +103,7 @@ const AddMember = () => {
           loading={loading}
         />
       </section>
-    </>
+    </div>
   );
 };
 

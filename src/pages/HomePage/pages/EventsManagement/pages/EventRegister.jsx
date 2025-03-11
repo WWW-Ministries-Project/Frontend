@@ -55,6 +55,8 @@ const EventRegister = () => {
     }
 
     return (
+        <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
+    <div className="relative h-screen bg-purple-900/60 overflow-hidden">
         <FormWrapper >
             {!memberFound && <>
                 <SearchMember memberDetails={memberDetails} handleFindMember={handleFindMember} handleChange={handleChange} loading={loading} name={name} />
@@ -68,6 +70,8 @@ const EventRegister = () => {
 
 
         </FormWrapper>
+        </div>
+        </div>
     );
 }
 

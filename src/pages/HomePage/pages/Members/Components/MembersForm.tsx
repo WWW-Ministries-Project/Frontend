@@ -50,7 +50,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
       validationSchema={userFormValidator}
     >
       {(form) => (
-        <div className="h-full mb-4 py-4 gap-y-5">
+        <div className="h-full   space-y-6">
           <section className="">
             <div className=" text-dark900 H600 font-extrabold my-5">
               Membership Status
@@ -69,6 +69,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
           </section>
+          <hr className="border-t border-neutralGray " />
           <section>
             <div className=" text-dark900 H600 font-extrabold my-5">
               Personal Information
@@ -135,6 +136,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
           </section>
+          <hr className="border-t border-neutralGray " />
           <section>
             <div className=" text-dark900 H600 font-extrabold my-5">
               Contact Information
@@ -177,6 +179,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
           </section>
+          <hr className="border-t border-neutralGray " />
           <section>
             <div className=" text-dark900 H600 font-extrabold my-5">
               Church Information
@@ -215,6 +218,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               </div>
             )}
           </section>
+          <hr className="border-t border-neutralGray " />
           <section>
             <div className=" text-dark900 H600 font-extrabold my-5">
               Work Information
@@ -253,6 +257,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
           </section>
+          <hr className="border-t border-neutralGray " />
           <section>
             <div className=" text-dark900 H600 font-extrabold my-5">
               Emergency Contact
@@ -304,13 +309,14 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
               />
             </div>
           </section>
+          <hr className="border-t border-neutralGray " />
           {props.edit && (
-            <section className="w-full pt-5">
-              <div className="flex justify-end gap-4">
+            <section className="w-full pt-5 sticky bottom-0 bg-white">
+              <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
                 <Button
                   value={"Cancel"}
                   onClick={props.onCancel}
-                  className="w-32 my-2 px-2 bg-transparent h-8 border border-primaryViolet text-primaryViolet "
+                  className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
                 />
                 <Button
                   value={"Save"}
@@ -320,7 +326,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                   }}
                   loading={props.loading}
                   disabled={props.disabled || props.loading}
-                  className="w-32 my-2 px-2  bg-primaryViolet h-8 border border-primaryViolet text-white "
+                  className="w-32 my-2 px-2  bg-primaryViolet  border border-primaryViolet text-white "
                 />
               </div>
             </section>

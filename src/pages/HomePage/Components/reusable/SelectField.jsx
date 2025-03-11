@@ -11,7 +11,7 @@ const SelectField = (props) => {
         <div>
             <div className={"flex flex-col gap-1 "+props.className}>
                 <label htmlFor={props.id}>{props.label}</label>
-                <select name={props.id} id={props.id} className="input" onChange={handleChange} value={props.value} disabled={props.disabled}>
+                <select name={props.id} id={props.id} className="p-2 rounded-lg border border-dark900" onChange={handleChange} value={props.value} disabled={props.disabled}>
                     <option value="">{props.placeholder}</option>
                     {props.options.map((option, index) => (
                         <option key={index} value={(option.value)}>{option.name}</option>

@@ -153,8 +153,10 @@ const Request = () => {
     }
   }, [requestData,allEvents]);
   return (
-    <PageOutline>
-      <div className="mx-auto py-8 lg:container lg:w-4/6">
+    <div className="p-4">
+      <section className="mx-auto p-8 lg:container lg:w-4/6 bg-white rounded-xl">
+      <PageOutline>
+      <div className="">
         <PageHeader title={title} />
 
         <Formik
@@ -314,6 +316,8 @@ const Request = () => {
         </Formik>
       </div>
     </PageOutline>
+    </section>
+    </div>
   );
 };
 

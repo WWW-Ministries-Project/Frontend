@@ -115,7 +115,8 @@ const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <PageOutline>
+    <div className="p-4">
+      <PageOutline>
       <PageHeader title={`Users(${users.length})`} />
       <SearchBar
         placeholder="Search for a user"
@@ -133,6 +134,7 @@ const UserManagement = () => {
         setColumnFilters={() => {}}
       />
     </PageOutline>
+    </div>
   );
 };
 

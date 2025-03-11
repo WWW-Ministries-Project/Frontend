@@ -150,9 +150,9 @@ function Members() {
   ];
 
   return (
-    <main className={`bg-white p-8`}>
+    <main className={` p-4`}>
       {/* Members Table Section */}
-      <section className={`flex flex-col gap-5`}>
+      <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* search component and add member */}
         <div className="flex justify-between items-center">
           <p className="text-dark900 text-2xl font-semibold">

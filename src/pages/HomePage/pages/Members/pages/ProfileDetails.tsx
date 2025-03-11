@@ -114,8 +114,9 @@ const ProfileDetails = () => {
   };
 
   return (
-    <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-4/6 rounded-xl bg-white shadow">
-      <Banner
+    <div>
+       <div className="sticky top-0 z-50 bg-purple-200 w-full">
+       <Banner
         onClick={handleEdit}
         edit={edit}
         src={profilePic.src}
@@ -126,7 +127,10 @@ const ProfileDetails = () => {
         email={details.email}
         primary_number={details.primary_number}
       />
-      <div className="hideScrollbar px-8 pb-8 mx-auto lg:container bg-white rounded-xl h-[75vh]  overflow-y-auto">
+       </div>
+      <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-5/6   ">
+     
+      <div className="hideScrollbar px-8 pb-4 mx-auto lg:container  rounded-b-xl  overflow-y-auto">
         <Outlet
           context={{
             edit,
@@ -141,6 +145,7 @@ const ProfileDetails = () => {
       </div>
       {queryLoading && <LoaderComponent />}
     </section>
+    </div>
   );
 };
 

@@ -6,7 +6,7 @@ function ChurchLogo (props) {
 
     return (
         <>
-            <div className={"flex items-center gap-1.5 justify-center " + props.className}>
+            <div className={"flex items-center gap-1.5  " + props.className}>
                 <div className="">
                   <img src="/logo/main-logo.svg" alt="logo" />
                 </div>
