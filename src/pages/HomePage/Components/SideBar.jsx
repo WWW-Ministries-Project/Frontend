@@ -13,6 +13,13 @@ import UsersIcon from "@/assets/sidebar/UsersIcon";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
+import { useNavigate } from "react-router-dom";
+import { removeToken } from "@/utils/helperFunctions";
+import { logOut } from "@/pages/Authentication/utils/helpers";
+import LogoutIcon from "@/assets/sidebar/Logout";
+
+// const navigate = useNavigate();
+//  const { logout } = useAuth();
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
@@ -45,14 +52,20 @@ const SideBar = ({ show, ...props }) => {
     props.onClick();
   }
 
+   const handleLogOut = () => {
+      removeToken();
+      logOut();
+      navigate("/login");
+    }
+
   return (
     <div
-      className="mx-auto"
+      className="h-full mx-auto flex flex-col justify-between items-center  pr-3"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`space-y-8  mx-auto pr-3 lg:h-full xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "lg:w-10 lg:min-w-[3.7vw]" : " lg:min-w-[200px]"
+        className={` space-y-6  mx-auto  lg:h-full xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "" : " "
           } transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `}
         style={props.style}
       >
@@ -73,11 +86,11 @@ const SideBar = ({ show, ...props }) => {
               <div key={item.name}>
                 {
                   item.children ? (
-                    <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
+                    <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "" : ""
                       }`} /> </SideBarSubMenu>
                   ) : (<NavigationLink item={item} show={show}>
                     <IconComponent
-                      className={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
+                      className={`${show ? "" : ""
                         }`}
                     /> {show && item.name}</NavigationLink>)
                 }
@@ -85,7 +98,15 @@ const SideBar = ({ show, ...props }) => {
             );
           })}
         </div>
+        
       </div>
+     <div className="xs:hidden lg:flex  items-center w-full  bg-white mx-auto" >
+     {/* <img src={LogoutIcon} alt="" onClick={''} className="cursor-pointer inline sm:inline md:inline text-dark900" /> */}
+     <div className="flex items-center gap-1 rounded-lg hover:bg-gray-100 hover:border cursor-pointer p-2 " onClick={()=>logOut()}>
+     <LogoutIcon/>
+     {show&&<p>Logout</p>}
+     </div>
+     </div>
     </div>
   );
 };

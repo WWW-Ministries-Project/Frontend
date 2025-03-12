@@ -115,7 +115,9 @@ function HomePage() {
     <div className=" ">
       {token ? (
         <main className="h-screen p-3">
+          <div className="">
           <Header handleShowNav={handleShowNav} />
+          </div>
           <div className="flex">
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
@@ -137,7 +139,7 @@ function HomePage() {
              <div className="">
              {/* <Header handleShowNav={handleShowNav} /> */}
               </div>
-          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl   bg-[#E5E5EA] inset-shadow-sm`}>
+          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border  border-neutralGray inset-shadow-sm inset-shadow-mainGray bg-[#E5E5EA] inset-shadow-sm`}>
             
             <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl">
             {/* <Breadcrumb /> */}
