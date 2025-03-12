@@ -1,6 +1,6 @@
 
 import arrowDown from "/src/assets/down.svg";
-import hamburger from "/src/assets/hamburger.svg";
+import hamburger from "/src/assets/sidenav.svg";
 // import SearchBar from "../../../components/SearchBar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,11 +22,15 @@ function Header({ handleShowNav }) {
     navigate("/login");
   }
   return (
-    <div className="">
+    <div className="flex items-center ">
       <header className="flex justify-between  items-center  w-full  ">
-        <div className="flex gap-x-4 ">
-                    <ChurchLogo show={true} className={''} />
+        <div className="flex items-center gap-x-6  py-2">
+        
+                    <div className="">
+                    <ChurchLogo show={true} className={'h-3'} />
+                    </div>
                     <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
+                   
                   </div>
         
         <div className="w-[40.9%]">
@@ -41,7 +45,7 @@ function Header({ handleShowNav }) {
             <img src={arrowDown} alt="arrow down  text-dark900" onClick={handleClick} />
           </div>
           {showLogOut ? (
-            <div onClick={handleLogOut} className="absolute top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl  items-center hover:bg-neutralGray cursor-pointer ">
+            <div onClick={handleLogOut} className="absolute z-100 top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl  items-center hover:bg-neutralGray cursor-pointer ">
               LogOut
             </div>
           ) : null}
