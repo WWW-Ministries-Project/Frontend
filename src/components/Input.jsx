@@ -7,14 +7,14 @@ const Input = (props) => {
   return (
     <div className={"inputBox bg-white rounded-lg W px-5 " + props.className}>
       <label
-        className="font-light text-left text-gray p-2 text-xs "
+        className=" text-left text-dark900 p-2  "
         htmlFor={props.id}>
         {props.label}
       </label>
       <br />
       <input
         className={
-          "w-[98%] border border-bgWhite rounded-md focus:border focus:outline-none invalid:border-error placeholder:text-lightGray placeholder:text-xs placeholder:opacity-80 " +
+          "w-[98%] border p-2 rounded-md focus:border focus:outline-none invalid:border-error placeholder:text-gray  " +
           props.inputClass
         }
         type={props.type}

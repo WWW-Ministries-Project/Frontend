@@ -271,20 +271,19 @@ function Settings() {
     <div className="p-4">
       <PageOutline>
 
-        <PageHeader title="Settings" buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
+        <div>
+        <PageHeader title="General configuration"  />
         <p className="P200 text-gray">
           Manage your departments and positions here...
         </p>
-        <div className="flex mt-2 mb-6">
+        <div className="flex mt-2 mb-6 ">
+          <div className="border border-lightGray flex gap-2 rounded-lg p-1">
           {
             tabs.map((tab) => {
               return (
                 <div
-                  className="bg-white rounded shadow text-center h-10 px-2 flex items-center justify-center  border border-[#EEF2F4] cursor-pointer w-40"
-                  style={{
-                    color: selectedTab === tab ? "#786D8F" : "#C7C2D3",
-                    backgroundColor: selectedTab === tab ? "#F4F6FA" : "#fff",
-                  }}
+                  className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab? " bg-lightGray font-semibold":""} cursor-pointer w-40`}
+                  
                   onClick={() => handleTabSelect(tab)}
                   key={tab}
                 >
@@ -293,12 +292,15 @@ function Settings() {
               );
             })
           }
+          </div>
         </div>
-        <div className="H600 text-dark900"> {selectedTab}</div>
-        <section className="mt-6 bg-white p-7">
+        </div>
+        <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
+       
+        <section className=" bg-white">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              <SearchBar className="w-[40.9%] h-10" placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
+              <SearchBar className="w-[40.9%] " placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
             </div>
           </div>
           <TableComponent
@@ -308,7 +310,7 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-        <FormsComponent className={`animate-fadeIn transition-all ease-in-out w-[353px] duration-1000 ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />
+        {displayForm&&<FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
       </PageOutline>
       {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
     </div>

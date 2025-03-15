@@ -124,38 +124,53 @@ const ViewUser = () => {
 
   return (
     <div className="p-4">
-      <PageOutline>
+      {/* <PageOutline> */}
       <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
         <h2 className="text-2xl font-semibold ">User Account</h2>
-        <div className="flex items-start justify-center space-x-24">
+        <div className="flex items-center  gap-8">
           <ProfilePic
             src={user.photo}
             alt="Profile"
-            className={" w-40 h-40 bg-lightGray"}
+            className={" w-32 h-32 bg-lightGray"}
           />
           {/* User Details */}
-          <div className="">
-            <div className="grid grid-cols-2 gap-y-4 gap-x-12">
-              <span className="">Full name</span>
-              <span className="font-semibold">{user?.name}</span>
+          <div className="space-y-4">
+            <div className="space-y-1">
+             
+              <div className="flex items-center gap-2">
+              <div className="font-semibold">{user?.name}</div>
+              <div className={`text-xs font-semibold rounded-full px-2 py-1 ${isActive ? " bg-green" : "bg-red-300"} text-white`}>
+              {`${isActive ? "Active" : "Inactive"}`}
+              </div>
+              </div>
 
-              <span className="">Email</span>
-              <span className="font-semibold">{user?.email}</span>
-
-              <span className="">Phone number</span>
-              <span className="font-semibold">{user.primary_number}</span>
-
-              <span className="">Position</span>
-              <span className="font-semibold">
-                {user.position?.name || "-"}
-              </span>
-
-              <span className="">Department</span>
-              <span className="font-semibold">
+              <div className="flex gap-2">
+              {user.department?.name&&<div className="">
                 {user.department?.name || "-"}
-              </span>
+              </div>} {user.department?.name&&"|"}
+              {user.position?.name&&<div className="">
+                {user.position?.name || "-"}
+              </div>}
+              </div>
+        
+              <div className="flex gap-2">
+              {user?.email&&<div className="">{user?.email}</div>} {"|"}
+              {user.primary_number&&<div className="">{user.primary_number}</div>}
+              </div>
+              
+              </div>
 
-              <span className="">Account status</span>
+              
+              
+
+              
+            
+          </div>
+        </div>
+        <HorizontalLine />
+        <section className="space-y-4">
+          <div className="flex items-center justify-between w-2/3">
+          <div className="">Account status</div>
               <ToggleSwitch
                 name="activate"
                 label={`${isActive ? "Deactivate" : "Activate"}`}
@@ -163,32 +178,39 @@ const ViewUser = () => {
                 onChange={toggleAccountStatus}
                 disabled={accessLoading}
               />
+          </div>
 
-              <span className="">Reset password?</span>
+          <div className="flex items-center justify-between w-2/3">
+                <div>User role</div>
+                <div className="max-w-[300px]">
+                <SelectField
+                  placeholder={"Select Role"}
+                  className="w-full"
+                  label={""}
+                  options={roleNames}
+                  onChange={(_, value) => changeAccess(value)}
+                  id={"role"}
+                  value={activeRole || role?.id}
+                />
+              </div>
+              </div>
+
+              <div className="flex items-center justify-between w-2/3">
+              <div className="">Reset password?</div>
               <Button
                 className={"primary"}
                 value="Reset"
                 onClick={resetPassword}
               />
+              </div>
+              
 
-              <span className="">Last password reset</span>
-              <span className="font-semibold">{new Date().toDateString()}</span>
-            </div>
-          </div>
-        </div>
+              {/* <div className="">Last password reset</div>
+              <div className="font-semibold">{new Date().toDateString()}</div> */}
+        </section>
         <HorizontalLine />
         <section>
-          <div className="max-w-[300px]">
-            <SelectField
-              placeholder={"Select Role"}
-              className="w-full"
-              label={"Change Role"}
-              options={roleNames}
-              onChange={(_, value) => changeAccess(value)}
-              id={"role"}
-              value={activeRole || role?.id}
-            />
-          </div>
+          
         </section>
         {
           <ActiveAccess
@@ -202,7 +224,7 @@ const ViewUser = () => {
         roleLoading ||
         accessLoading ||
         resetLoading) && <LoaderComponent />}
-    </PageOutline>
+    {/* </PageOutline> */}
     </div>
   );
 };

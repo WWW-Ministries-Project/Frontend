@@ -92,8 +92,8 @@ function LoginPage() {
             placeholder={"Enter email address"}
             inputClass={
               error.status
-                ? " h-8 rounded-md px-4 mt-2 border-error"
-                : " h-8 rounded-md px-4 mt-2"
+                ? "  rounded-md px-4 mt-2 border-error"
+                : "  rounded-md px-4 mt-2"
             }
             className="my-4 !p-0"
           />
@@ -108,8 +108,8 @@ function LoginPage() {
             placeholder={"Enter password"}
             inputClass={
               error.status
-                ? " h-8 rounded-md px-4 mt-2 border-error"
-                : " h-8 rounded-md px-4 mt-2"
+                ? " rounded-md px-4 mt-2 border-error"
+                : "  rounded-md px-4 mt-2"
             }
             className=" !p-0"
           />
@@ -118,7 +118,7 @@ function LoginPage() {
             loading={loading}
             disabled={loading}
             onClick={handleSubmit}
-            className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
+            className={"w-full  bg-primaryViolet my-8 text-white"}
           />
           <div className="text-lightGray text-sm">
             <div className="mb-4">

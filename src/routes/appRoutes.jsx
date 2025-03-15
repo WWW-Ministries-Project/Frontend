@@ -218,7 +218,7 @@ export const routes = [
           {
             path: "",
             alias: "departments",
-            name: "Departments",
+            name: "General configuration",
             element: <Settings />,
             isPrivate: false,
             permissionNeeded: "view_departments",

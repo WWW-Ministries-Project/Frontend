@@ -41,9 +41,9 @@ const SideBarSubMenu = ({
       {show ? (
         <div
           onClick={() => setShowChildren(!showChildren)}
-          className={`hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner hover:shadow-xl text-dark900 px-2  transition  z-10 py- lg:my-3 my-2 rounded-xl ${
+          className={`hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner  text-dark900 px-2  transition  z-10 py- lg:my-3 my-2 rounded-xl ${
             showChildren
-              ? " border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow shadow-xl transition"
+              ? " border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow  transition"
               : ""
           } `}
         >
@@ -111,7 +111,7 @@ const NavigationLinks = ({
         end
         to={item.path}
         className={({ isActive }) =>
-          `hover:border-[#6539C310] hover:border  hover:shadow-inner hover:shadow-xl hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1  ${
+          `hover:border-[#6539C310] hover:border  hover:shadow-inner  hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1  ${
             isActive
               ? "bg-[#6539C310] text-primaryViolet     transition"
               : "hover:text-primaryViolet"

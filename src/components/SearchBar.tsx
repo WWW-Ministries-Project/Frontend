@@ -11,13 +11,13 @@ interface ISearchBar {
 function SearchBar(props: ISearchBar): JSX.Element {
   return (
     <>
-      <div className={"flex items-center bg-white rounded-md py-1  border border-[#f2f2f2] "+props.className}>
-        <form className="w-full text-dark900 flex items-center  px-2 text-sma font-normal leading-6">
+      <div className={"flex items-center bg-white  "+props.className}>
+        <form className="w-full text-dark900 flex items-center   font-normal leading-6">
           <img
             role="submit button"
             src={search}
             alt="search"
-            className="inline mr-2"
+            className="inline text-lightGray border p-3 rounded-l-lg"
           />
 
           <input
@@ -25,7 +25,7 @@ function SearchBar(props: ISearchBar): JSX.Element {
             type="text"
             placeholder= {props.placeholder}
             name="search"
-            className="bg-inherit border-0 focus:outline-none focus:border-1 w-full px-2 h-7"
+            className="bg-inherit rounded-r-lg p-2 border  border-lightGray focus:outline-none w-[25rem]"
             value={props.value}
             onChange={props.onChange}
             autoComplete="off"

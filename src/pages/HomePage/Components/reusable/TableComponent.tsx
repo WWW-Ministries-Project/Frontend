@@ -71,15 +71,15 @@ function TableComponent<TData>({
   };
 
   return (
-    <div className={"overflow-x-auto "+props.className}>
-      <div className="rounded-xl">
-        <div className="hideScrollbar rounded-xl overflow-y-scroll">
-          <table className="w-full rounded-xl">
+    <div className={"overflow-x-auto  "+props.className}>
+      <div className="rounded-lg">
+        <div className="hideScrollbar rounded-lg overflow-y-scroll">
+          <table className="w-full rounded-lg">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
-                  className={`text-center text-mainGray py-4 bg-[#f8f9f999] ${rowClass}`}
+                  className={`text-center text-mainGray py-4 bg-lightGray`}
                 >
                   {headerGroup.headers.map((header) => (
                     <th
@@ -100,7 +100,7 @@ function TableComponent<TData>({
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-b-2 border-[#EBEFF2] h-20 text-dark900 leading-6 hover:bg-[#f8f9f999] ${rowClass}`}
+                  className={`border-b border-x  border-lightGray h-20 text-dark900 leading-6 hover:bg-[#f8f9f999] ${rowClass}`}
                   onClick={() => handleRowClick(row)}
                 >
                   {row.getVisibleCells().map((cell) => (

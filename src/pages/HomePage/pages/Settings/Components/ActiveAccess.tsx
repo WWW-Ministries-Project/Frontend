@@ -43,8 +43,8 @@ const ActiveAccess = (props: IProps) => {
       // @ts-ignore
         columns={accessColumns}
         data={modules || []}
-        rowClass="even:bg-white odd:bg-[#F2F4F7]"
-        className={" shadow-md"}
+        rowClass="even:bg-white odd:bg-lightGray/10"
+        className={""}
       />
     </>
   );
