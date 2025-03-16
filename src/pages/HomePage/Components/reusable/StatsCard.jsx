@@ -4,7 +4,7 @@ function StatsCard(props) {
   const { name, value, duration, additionalInfo } = props.stats;
   return (
     // <div className='pb-1 rounded-xl bg-primaryViolet'>
-    <div className="px-6 py-4 h-24 bg-white border-[#6539C3] border-b-4 shadow-sm rounded-xl P250 !font-normal flex flex-col justify-between">
+    <div className="px-6 py-4 h-24 bg-white border-primaryViolet border-b-4 shadow-sm rounded-xl P250 !font-normal flex flex-col justify-between">
       <div className="text-gray">{name} 
         {/* {additionalInfo ? <span className='cursor-pointer'><img src="/assets/home/info_circle.svg" alt="info" className='inline-block' /></span> : null} */}
         </div>

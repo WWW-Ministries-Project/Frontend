@@ -5,32 +5,33 @@ interface INavigationLinkProps {
   item: { path: string; name: string };
   show: boolean;
   children: React.ReactNode;
-  justifyCenter?:boolean
+  justifyCenter?: boolean;
 }
+
+
 
 export default function NavigationLink({
   item,
   show,
   children,
-  justifyCenter=true
+  justifyCenter = true,
 }: INavigationLinkProps) {
   return (
     <div>
+      
+
       <NavLink
-        to={item["path"]}
-        className={({ isActive }) =>
-          `hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner  text-dark900  transition h-10 z-10 flex items-center py-7 lg:my-3 ${
-            !show ? ( justifyCenter ? "justify-center" :'') : "px-2 py-7 mx-2"
-          } my-2 rounded-xl ${
-            isActive
-              ? "bg-[#6539C310] border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow  transition"
-              : "hover:text-primaryViolet "
-          } `
-        }
+        to={item.path}
         key={item.path + item.name}
+        className={({ isActive }) =>
+          `gap-2 text-dark900 transition h-10 z-10  flex items-center py-7 rounded-s-xl
+           ${!show ? (justifyCenter ? "justify-center" : "") : "px-2 py-7"} 
+           ${isActive ? "bg-lightGray text-primaryViolet " : "hover:text-primaryViolet"}`
+        }
       >
         {children}
       </NavLink>
+      
     </div>
   );
 }

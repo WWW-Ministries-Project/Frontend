@@ -1,5 +1,5 @@
-import { ReactNode, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { ReactNode } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import NavigationLink from "./NavigationLink";
 
 interface ChildItem {
@@ -19,53 +19,50 @@ interface SideBarSubMenuProps {
   parentPath: string;
   children: ReactNode;
   show: boolean;
-  justifyCenter: boolean;
+  showChildren: boolean;
+  toggleSubMenu: () => void; // 🔥 Toggle function passed from `SideBar`
 }
 
-const SideBarSubMenu = ({
-  item,
-  parentPath,
-  children,
-  show,
-}: SideBarSubMenuProps) => {
-  const [showChildren, setShowChildren] = useState(false);
+const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggleSubMenu }: SideBarSubMenuProps) => {
+  const location = useLocation();
+
   const returnChild = (child: ChildItem) => {
     return {
       path: `${parentPath}${child.path ? "/" + child.path : ""}`,
       name: child.name,
     };
   };
-  const isActive = false;
+
+  // ✅ Corrected Active Route Detection
+  const isActive =
+    location.pathname === item.path ||
+    location.pathname.startsWith(item.path) ||
+    location.pathname.includes(item.path);
+
   return (
-    <div className="">
+    <div>
       {show ? (
-        <div
-          onClick={() => setShowChildren(!showChildren)}
-          className={`hover:border-[#6539C3] hover:border hover:border-1 hover:shadow-inner  text-dark900 px-2  transition  z-10 py- lg:my-3 my-2 rounded-xl ${
-            showChildren
-              ? " border-[#6539C3] text-[#6539C3]  border border-1 shadow-inner drop-shadow  transition"
-              : ""
-          } `}
-        >
-          <>
-            <div className="flex items-center mx-2 justify-between">
-              <div
-                className={`text-dark900  transition flex items-center py-4 justify-between  rounded-xl `}
-              >
+        <div>
+          {/* Main Parent Menu */}
+          <div
+            onClick={toggleSubMenu} // 🔥 Toggle submenu on click
+            className={`text-dark900 transition z-10  cursor-pointer  ${
+              (showChildren || isActive) ? "text-primaryViolet bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
+            }
+            ${
+              (!showChildren && isActive) ? "text-primaryViolet bg-lightGray transition rounded-s-xl" : ""
+            }
+            
+            `}
+          >
+            <div className="flex items-center mx-2 justify-between gap-1">
+              <div className="flex items-center gap-2 transition py-4 rounded-xl">
                 {children}
                 <p className="cursor-pointer">{item.name}</p>
               </div>
-              {/*  dirxn icon */}
-              <p
-                className={`${showChildren ? "rotate-[270deg]" : "rotate-90"} `}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+              {/* Dropdown Arrow */}
+              <p className={`${showChildren ? "rotate-180" : "rotate-0"} transition-transform`}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
@@ -75,22 +72,26 @@ const SideBarSubMenu = ({
                 </svg>
               </p>
             </div>
-            <div className={`${showChildren ? "" : "hidden"}`} onClick={(e) => {e.stopPropagation()}}>
-              {item.children.map((child) => {
-                return child.sideTab ? (
+          </div>
+
+          {/* 🔥 Submenu Items (Only Show When `showChildren` is true) */}
+          {showChildren && (
+            <div className={`  pl-3 ${(showChildren ) ? "rounded-bl-xl bg-lightGray" : ""}
+            ${(showChildren && isActive) ? "rounded-bl-xl" : ""}
+            `}>
+              {item.children.map((child) => (
+                child.sideTab ? (
                   <NavigationLinks
-                    item={returnChild(child)}
                     key={child.name + child.path}
-                  ></NavigationLinks>
-                ) : (
-                  <div key={child.name + child.path}></div>
-                );
-              })}
+                    item={returnChild(child)}
+                  />
+                ) : null
+              ))}
             </div>
-          </>
+          )}
         </div>
       ) : (
-        <NavigationLink item={item} show={show} key={parentPath}>
+        <NavigationLink item={item} show={show}>
           {children}
         </NavigationLink>
       )}
@@ -100,22 +101,16 @@ const SideBarSubMenu = ({
 
 export default SideBarSubMenu;
 
-const NavigationLinks = ({
-  item,
-}: {
-  item: { path: string; name: string };
-}) => {
+const NavigationLinks = ({ item }: { item: { path: string; name: string } }) => {
   return (
     <div key={item.path + item.name}>
       <NavLink
         end
         to={item.path}
         className={({ isActive }) =>
-          `hover:border-[#6539C310] hover:border  hover:shadow-inner  hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 lg:my-3 px-4 my-1  ${
-            isActive
-              ? "bg-[#6539C310] text-primaryViolet     transition"
-              : "hover:text-primaryViolet"
-          } `
+          `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
+            isActive ? "bg-[#6539C310] text-primaryViolet transition" : "hover:text-primaryViolet"
+          }`
         }
       >
         {item.name}

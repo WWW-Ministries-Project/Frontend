@@ -17,6 +17,7 @@ import { eventColumns } from "./utils/eventHelpers";
 import EmptyState from "@/components/EmptyState";
 import { eventType } from "./utils/eventInterfaces";
 import Calendar from "./Components/Calenda";
+import HeaderControls from "@/components/headerControls";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -125,7 +126,21 @@ const EventsManagement = () => {
 
   return (
     <div className="p-4">
+      
       <PageOutline>
+      <HeaderControls
+          title="Events Managements"
+          totalMembers={filteredEvents.length} // Number of events
+          tableView={tableView}
+          handleViewMode={handleToggleView}
+          showFilter={false} // No separate filter needed
+          setShowFilter={() => {}}
+          showSearch={true} // Search enabled
+          setShowSearch={(show) => handleSearchChange(show ? "true" : "false")}
+          handleNavigation={() => handleNavigation("add-event")} // Navigate to Add Event
+          screenWidth={screenWidth}
+          btnName="Add Event" // Added btnName property
+        />
         <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
           {/* Toggle View Buttons */}
           <div

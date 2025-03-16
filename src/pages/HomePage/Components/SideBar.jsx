@@ -1,121 +1,181 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
+import { useAuth } from "../../../context/AuthWrapper";
+import { removeToken } from "@/utils/helperFunctions";
+import { logOut } from "@/pages/Authentication/utils/helpers";
+import { sideTabs } from "/src/routes/appRoutes";
+import NavigationLink from "./NavigationLink";
+import SideBarSubMenu from "./SidebarSubmenu";
+
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MembersIcon from "@/assets/sidebar/MembersIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
-import ChurchLogo from "@/components/ChurchLogo";
-import PropTypes from "prop-types";
-import { useState } from "react";
-import { useAuth } from "../../../context/AuthWrapper";
-// import { sideTabs } from "../utils/helperFunctions";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
-import NavigationLink from "./NavigationLink";
-import SideBarSubMenu from "./SidebarSubmenu";
-import { sideTabs } from "/src/routes/appRoutes";
-import { useNavigate } from "react-router-dom";
-import { removeToken } from "@/utils/helperFunctions";
-import { logOut } from "@/pages/Authentication/utils/helpers";
 import LogoutIcon from "@/assets/sidebar/Logout";
 
-// const navigate = useNavigate();
-//  const { logout } = useAuth();
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
-  "Users": UsersIcon, // TODO: replace this
-  // Attendance: AttendanceIcon,
+  Users: UsersIcon,
   Events: ManagementIcon,
-  // Finance: FinanceIcon,
   Assets: InstrumentIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
 };
 
-const SideBar = ({ show, ...props }) => {
-  const items = sideTabs;
+const SideBar = ({ className, show, ...props }) => {
   const {
     user: { permissions },
   } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [openMenus, setOpenMenus] = useState({});
 
-  const [isHovered, setIsHovered] = useState(false);
+  // Handle hover effects
+  const handleMouseEnter = () => setIsExpanded(true);
+  const handleMouseLeave = () => setIsExpanded(false);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
+  // Handle Logout
+  const handleLogOut = () => {
+    removeToken();
+    logOut();
+    navigate("/login");
   };
 
   function handleClick() {
-    props.onClick();
+    if (props.onClick) props.onClick();
   }
 
-   const handleLogOut = () => {
-      removeToken();
-      logOut();
-      navigate("/login");
-    }
+  const toggleSubMenu = (menuName) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [menuName]: !prev[menuName], // ✅ Toggle specific menu without affecting others
+    }));
+  };
+
+    // ✅ Function to close all submenus when route changes
+    const closeAllSubMenus = () => {
+      setOpenMenus({});
+    };
+  
+    // 🔥 useEffect: Close submenus when route changes
+    useEffect(() => {
+      closeAllSubMenus();
+    }, [location.pathname]);
 
   return (
     <div
-      className="h-full mx-auto flex flex-col justify-between items-center  pr-3"
+      className={`h-full flex flex-col justify-between b transition-all duration-300 ${
+        isExpanded ? "w-64" : "w-15"
+      }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div
-        className={` space-y-6  mx-auto  lg:h-full xs:h-[6vh] xs:rounded-t-2xl lg:rounded-2xl pt-1 bg-whit z-10 ${!show ? "" : " "
-          } transition-all duration-400 linear xs:min-h-[initial] xs:h-[70px] xs:w-full xs:bottom-0 xs:left-0 xs:flex xs:flex-row lg:flex-col  `}
-        style={props.style}
-      >
+      {/* Sidebar Navigation */}
+      <div className="flex flex-col space-y-2">
+  {sideTabs.map((item) => {
+    const IconComponent = icons[item.name];
+    if (!IconComponent) return null;
+
+    const isActive =
+      location.pathname === item.path ||
+      location.pathname.startsWith(item.path) ||
+      location.pathname.includes(item.path);
+
+      useEffect(() => {
+        if (isActive) {
+          setOpenMenus((prev) => ({
+            ...prev,
+            [item.name]: true,
+          }));
+        } else {
+          setOpenMenus((prev) => ({
+            ...prev,
+            [item.name]: false,
+          }));
+        }
+
+        console.log("openMenus", openMenus);
         
+      }, [isActive]);
+    
+      
+      
 
+    return (
+      
+      <div key={item.name} className="cursor-pointer" >
+              {item.children ? (
+                <div>
+                  {/* Apply shape only when active */}
+                  {(isActive || openMenus[item.name]) && (
+                    <div className="flex justify-end">
+                      <div className="shape"></div>
+                    </div>
+                  )}
 
-        {/* navigation links */}
-        <div className="xs:flex lg:flex-col  justify-around xs:w-full overflow-y-auto">
-          {items.map((item) => {
-            const IconComponent = icons[item.name];
+                  <SideBarSubMenu
+                  item={item}
+                  parentPath={item.path}
+                  show={isExpanded}
+                  showChildren={openMenus[item.name] || false}
+                  toggleSubMenu={() => toggleSubMenu(item.name)}
+                  >
+                    <IconComponent className="w-6 h-6 text-gray-600" />
+                  </SideBarSubMenu>
 
-            if (!IconComponent) {
-              console.error(`Icon component for ${item.name} not found`);
-              return null;
-            }
-            // return permissions["view_" + item["key"]] && (
-            return (
-              <div key={item.name}>
-                {
-                  item.children ? (
-                    <SideBarSubMenu item={item} parentPath={item.path} show={show} > <IconComponent className={`${show ? "" : ""
-                      }`} /> </SideBarSubMenu>
-                  ) : (<NavigationLink item={item} show={show}>
-                    <IconComponent
-                      className={`${show ? "" : ""
-                        }`}
-                    /> {show && item.name}</NavigationLink>)
-                }
-              </div>
-            );
-          })}
-        </div>
-        
+                  {/* Apply Bshape only when active */}
+                  {(isActive|| openMenus[item.name]) && (
+                    <div className="flex justify-end">
+                      <div className="Bshape"></div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {/* Apply shape only when active */}
+                  {isActive && (
+                    <div className="flex justify-end">
+                      <div className="shape"></div>
+                    </div>
+                  )}
+
+                  <NavigationLink item={item} show={isExpanded}>
+                    <IconComponent className="w-6 h-6 text-gray-600" />
+                    {isExpanded && <span>{item.name}</span>}
+                  </NavigationLink>
+
+                  {/* Apply Bshape only when active */}
+                  {isActive && (
+                    <div className="flex justify-end">
+                      <div className="Bshape"></div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+    );
+  })}
+</div>
+
+      {/* Logout Section */}
+      <div className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md" onClick={handleLogOut}>
+        <LogoutIcon className="w-6 h-6 text-gray-600" />
+        {isExpanded && <span>Logout</span>}
       </div>
-     <div className="xs:hidden lg:flex  items-center w-full  bg-white mx-auto" >
-     {/* <img src={LogoutIcon} alt="" onClick={''} className="cursor-pointer inline sm:inline md:inline text-dark900" /> */}
-     <div className="flex items-center gap-1 rounded-lg hover:bg-gray-100 hover:border cursor-pointer p-2 " onClick={()=>logOut()}>
-     <LogoutIcon/>
-     {show&&<p>Logout</p>}
-     </div>
-     </div>
     </div>
   );
 };
 
 SideBar.propTypes = {
-  onClick: PropTypes.func,
-  style: PropTypes.object,
-  show: PropTypes.bool,
   className: PropTypes.string,
+  show: PropTypes.bool,
+  onClick: PropTypes.func,
 };
 
 export default SideBar;

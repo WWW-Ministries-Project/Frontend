@@ -25,7 +25,8 @@ const AccessRights = () => {
     setFilter(e.target.value);
   };
   return (
-    <PageOutline>
+    <div className="p-4">
+      <PageOutline>
       <PageHeader
         title="Access Rights"
         buttonValue="Create Access"
@@ -78,6 +79,7 @@ const AccessRights = () => {
       </section>
       {loading && <LoaderComponent />}
     </PageOutline>
+    </div>
   );
 };
 

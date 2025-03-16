@@ -184,4 +184,43 @@ input.input::placeholder {
   }
 } */
 
+.shape{
+  height: 1rem;
+  width: 50px;
+  background: #D8DAE5;
+  /* background: red; */
+  /* margin-left: 50px; */
+  
+}
+.shape:before{
+  position: absolute;
+  content: '';
+  height: 1rem;
+  width: 100px;
+  background: white;
+  border-bottom-right-radius: 5rem;
+  
+  
+  margin-left: -50px;
+}
+.Bshape{
+  height: 1rem;
+  width: 50px;
+  background: #D8DAE5;
+  /* background: red; */
+  /* margin-left: 50px; */
+  
+}
+.Bshape:before{
+  position: absolute;
+  content: '';
+  height: 1rem;
+  width: 100px;
+  background: white;
+  border-top-right-radius: 5rem;
+  
+  
+  margin-left: -50px;
+}
+
 

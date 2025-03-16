@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
-import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
@@ -21,7 +20,8 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
-import { UserType } from "./utils/membersInterfaces";
+import { UserType } from "./utils/membersInterfaces"; // ✅ Import the reusable component
+import HeaderControls from "@/components/headerControls";
 
 function Members() {
   const location = useLocation();
@@ -31,7 +31,7 @@ function Members() {
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility] = useState({
-    membership_type: false, // Hide the column from rendering use accessor key
+    membership_type: false,
     is_user: false,
   });
   const [tableView, setTableView] = useState(
@@ -68,7 +68,7 @@ function Members() {
     }
   }, [screenWidth]);
 
-  //showing notification and sideEffects on delete
+  // Handle notifications on delete
   useEffect(() => {
     const handleEffect = async () => {
       if (success) {
@@ -83,11 +83,10 @@ function Members() {
     handleEffect();
   }, [success, error]);
 
-  //HANDLE ROUTIING AFTER SUCCESFULLY ADDING MEMBER
+  // Show notification after adding a member
   useEffect(() => {
     if (isNew) {
       showNotification("Member Added Successfully");
-      // Clear the 'new' state after showing the notification
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [isNew, location.pathname, navigate]);
@@ -99,6 +98,7 @@ function Members() {
   const handleNavigation = () => {
     navigate("add-member");
   };
+  
   const handleDelete = async () => {
     if (!("id" in dataToDeleteRef.current)) return;
     const id = dataToDeleteRef.current.id;
@@ -119,13 +119,10 @@ function Members() {
   };
 
   const handleFilterChange = (val: string, id: string) => {
-    console.log(val, typeof val, id);
     setColumnFilters((prev) => {
       const temp = !val ? prev.filter((obj) => obj.id !== id) : prev;
-      console.log(temp, "added value");
       return [...temp, { id, value: val }];
     });
-    console.log(columnFilters);
   };
 
   const membersCount = [
@@ -133,100 +130,60 @@ function Members() {
     { count: userStats.members?.stats.adults.Male, label: "Adult male" },
     { count: userStats.members?.stats.adults.Female, label: "Adult female" },
     { count: userStats.members?.stats.children.Male, label: "Children male" },
-    {
-      count: userStats.members?.stats.children.Female,
-      label: "Children female",
-    },
+    { count: userStats.members?.stats.children.Female, label: "Children female" },
   ];
+  
   const visitorsCount = [
     { count: userStats.visitors?.total_members, label: "Visitors" },
     { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
     { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
     { count: userStats.visitors?.stats.children.Male, label: "Children male" },
-    {
-      count: userStats.visitors?.stats.children.Female,
-      label: "Children female",
-    },
+    { count: userStats.visitors?.stats.children.Female, label: "Children female" },
   ];
 
   return (
-    <main className={` p-4`}>
+    <main className={`p-4`}>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
-        {/* search component and add member */}
-        <div className="flex justify-between items-center">
-          <p className="text-dark900 text-2xl font-semibold">
-            Church Members (
-            {userStats.members?.total_members +
-              userStats.visitors?.total_members || "-"}
-            )
-          </p>
-          <div className="flex justify-between items-center ">
-            <div className="flex justify-start gap-2 items-center  w-2/3">
-              <div className="flex gap-2 items-center">
-                <div
-                  className="flex gap-1 bg-lightGray p-1 rounded-md"
-                  id="switch"
-                >
-                  <div onClick={() => handleViewMode(true)}>
-                    <TableAsset
-                      stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                      className={tableView ? "bg-white rounded-md" : ""}
-                    />
-                  </div>
-                  <div onClick={() => handleViewMode(false)}>
-                    <GridAsset
-                      stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                      className={
-                        tableView
-                          ? "bg-lightGray rounded-md"
-                          : "bg-white  rounded-md"
-                      }
-                    />
-                  </div>
-                </div>
-                <FilterIcon
-                  className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                  onClick={() => setShowFilter(!showFilter)}
-                />
-                <SearchIcon
-                  className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                  onClick={() => setShowSearch(!showSearch)}
-                />
-              </div>
-              <Button
-                value={screenWidth <= 700 ? "+" : "Add member"}
-                className={
-                  "text-white px-5 min-h-12 max-h-14 p-3 bg-primaryViolet whitespace-nowrap" +
-                  (screenWidth <= 540 ? " w-12 px-3" : "")
-                }
-                onClick={handleNavigation}
-              />
-            </div>
-          </div>
-        </div>
+        
+        {/* ✅ Reusable HeaderControls Component */}
+        <HeaderControls
+          title="Church Memberships"
+          totalMembers={userStats.members?.total_members + userStats.visitors?.total_members}
+          tableView={tableView}
+          handleViewMode={handleViewMode}
+          showFilter={showFilter}
+          setShowFilter={setShowFilter}
+          showSearch={showSearch}
+          setShowSearch={setShowSearch}
+          handleNavigation={handleNavigation}
+          screenWidth={screenWidth}
+          btnName="Add Membership"
+        />
+
+        {/* Search & Filter Components */}
         <div className={`${showSearch ? "block" : "hidden"} w-full flex gap-2`}>
           <SearchBar
-            className=" h-10"
+            className="h-10"
             placeholder="Search members here..."
             value={filterMembers}
             onChange={handleSearchChange}
             id="searchMembers"
           />
         </div>
+        
         <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
           <MembersFilter onChange={handleFilterChange} />
         </div>
-        {/* <TableComponent /> */}
-        <div className="hidden gap-4 sm:hidden md:flex lg:flex  md:flex-col lg:flex-row xl:flex-row w-full">
+
+        {/* Members & Visitors Count */}
+        <div className="hidden gap-4 sm:hidden md:flex lg:flex md:flex-col lg:flex-row xl:flex-row w-full">
           <MembersCount items={membersCount} />
           <MembersCount items={visitorsCount} />
         </div>
-        <div
-          className={`w-full mx-auto bg-white  ${
-            tableView ? "bg-white p-2" : "bg-transparent "
-          } rounded-xl`}
-        >
+
+        {/* Table or Grid View */}
+        <div className={`w-full mx-auto ${tableView ? "bg-white p-2" : "bg-transparent"} rounded-xl`}>
           {tableView ? (
             <TableComponent
               columns={columns}
@@ -261,8 +218,10 @@ function Members() {
           )}
         </div>
       </section>
+      
       {loading && <LoaderComponent />}
     </main>
   );
 }
+
 export default Members;

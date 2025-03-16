@@ -122,11 +122,6 @@ function HomePage() {
           <div className={` hidden sm:hidden md:hidden lg:inline `}>
             <SideBar
               className=""
-              style={{
-                marginTop: "",
-                backgroundImage:
-                  "url('https://res.cloudinary.com/akwaah/image/upload/v1718973564/wavescx_brypzu.sv')",
-              }}
               onClick={handleShowNav}
               show={show}
             />
@@ -139,7 +134,7 @@ function HomePage() {
              <div className="">
              {/* <Header handleShowNav={handleShowNav} /> */}
               </div>
-          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border  border-neutralGray inset-shadow-sm inset-shadow-mainGray bg-[#E5E5EA] inset-shadow-sm`}>
+          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}>
             
             <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl">
             {/* <Breadcrumb /> */}

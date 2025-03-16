@@ -18,7 +18,8 @@ const Requisitions = () => {
   }, [data]);
 
   return (
-    <PageOutline>
+    <div className="p-4">
+      <PageOutline>
       <PageHeader
         title="Requisitions"
         buttonValue="Request item"
@@ -34,6 +35,7 @@ const Requisitions = () => {
         />
       )}
     </PageOutline>
+    </div>
   );
 };
 

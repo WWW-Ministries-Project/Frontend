@@ -23,13 +23,13 @@ function Header({ handleShowNav }) {
   }
   return (
     <div className="flex items-center ">
-      <header className="flex justify-between  items-center  w-full  ">
-        <div className="flex items-center gap-x-6  py-2">
+      <header className="flex justify-between  items-center  w-full  pb-3">
+        <div className="flex items-center gap-x-6  ">
         
                     <div className="">
                     <ChurchLogo show={true} className={'h-3'} />
                     </div>
-                    <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" />
+                    {/* <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" /> */}
                    
                   </div>
         
@@ -39,10 +39,10 @@ function Header({ handleShowNav }) {
         <div className="w-[246px] flex justify-end gap-x-2 items-center">
           {/* <img src={bell} alt="" /> */}
           {/* <div> */}
-          <div className="flex items-center rounded-xl  gap-x-3">
-            <ProfilePicture src={decodeToken()?.profile_img} className={"w-[2rem] h-[2rem]  border border-2 border-dark900 text-dark900 "} name={decodeToken()?.name} alt="profile picture" />
+          <div className="flex items-center rounded-xl  gap-x-3 cursor-pointer" onClick={handleClick}>
+            <ProfilePicture src={decodeToken()?.profile_img} className={"w-[2rem] h-[2rem] bg-lightGray/50 border  border-dark900 text-dark900 "} name={decodeToken()?.name} alt="profile picture" />
             <span className="text-dark900 font-semibold">{decodeToken()?.name}</span>
-            <img src={arrowDown} alt="arrow down  text-dark900" onClick={handleClick} />
+            {/* <img src={arrowDown} alt="arrow down  text-dark900" onClick={handleClick} /> */}
           </div>
           {showLogOut ? (
             <div onClick={handleLogOut} className="absolute z-100 top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl  items-center hover:bg-neutralGray cursor-pointer ">
