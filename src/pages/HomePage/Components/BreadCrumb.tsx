@@ -5,14 +5,14 @@ type BreadcrumbProps = {
   separator?: string;
 };
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = "/" }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = ">" }) => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x && !Number(x));
 
   return (
-    <>
+    <div className="p-2 bg-white sticky top-0 z-10 shadow-md">
       {pathnames.length > 1 ? (
-        <nav aria-label="breadcrumb" className="bg-gray-100 p-4 rounded">
+        <nav aria-label="breadcrumb" className="bg-gray-100 px-5 rounded">
           <ol className="flex space-x-2">
             {/* <li className="text-blue-500 hover:underline">
           <Link to="/">Home</Link>
@@ -25,11 +25,11 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = "/" }) => {
                 <React.Fragment key={index}>
                   {index > 0 && <li className="text-gray-500">{separator}</li>}
                   {isLast ? (
-                    <li className="text-gray-700" aria-current="page">
+                    <li className="text-dark900 text-bold" aria-current="page">
                       {value.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
                     </li>
                   ) : (
-                    <li className="text-blue-500 hover:underline">
+                    <li className="text-dark900  hover:text-semibold">
                       <Link to={routeTo}>
                         {value.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
                       </Link>
@@ -43,7 +43,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = "/" }) => {
       ) : (
         <></>
       )}
-    </>
+    </div>
   );
 };
 

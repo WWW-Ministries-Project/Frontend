@@ -16,10 +16,12 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import AssetCard from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
+import HeaderControls from "@/components/headerControls";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
+  const [showSearch, setShowSearch] = useState(true);
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [tableView, setTableView] = useState(
     sessionStorage.getItem("assetsTableView") === "false" ? false : true
@@ -65,11 +67,25 @@ const AssetManagement = () => {
   return (
     <div className="p-4">
       <PageOutline>
+      <HeaderControls
+          title="Asset Management"
+          totalMembers={assertsData.length} // Number of assets
+          tableView={tableView}
+          handleViewMode={handleViewMode}
+          showFilter={false} // No separate filter needed
+          setShowFilter={() => {}}
+          showSearch={showSearch} // Search enabled
+          setShowSearch={setShowSearch}
+          Filter={false} // Hide filter
+          handleNavigation={() => navigate("manage-asset")} // Navigate to Add Asset
+          screenWidth={window.innerWidth}
+          btnName="Add Asset" // Button name added
+        />
       <div className="">
         <section className="mt-   ">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
-              <div
+              {/* <div
                 className="flex gap-1 bg-lightGray p-1 rounded-md"
                 id="switch"
               >
@@ -89,21 +105,21 @@ const AssetManagement = () => {
                     }
                   />
                 </div>
-              </div>
-              <SearchBar
+              </div> */}
+              {showSearch&&<SearchBar
                 className="w-[40.9%] h-10"
                 placeholder="Search asserts here..."
                 value={filter}
                 onChange={handleSearchChange}
-              />
+              />}
             </div>
-            <div>
+            {/* <div>
               <Button
                 value="Add asset"
                 className={" text-white h-10 p-2 bg-primaryViolet"}
                 onClick={() => navigate("manage-asset")}
               />
-            </div>
+            </div> */}
           </div>
           {/* <TableComponent /> */}
           {tableView ? (

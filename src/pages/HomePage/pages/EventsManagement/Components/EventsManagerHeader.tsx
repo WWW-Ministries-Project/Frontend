@@ -10,6 +10,8 @@ interface EventsManagerHeaderProps {
   filterEvents: string;
   viewfilter: boolean;
   filterDate: Date;
+  showSearch: boolean;
+  showFilter: boolean;
 }
 
 const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
@@ -24,11 +26,11 @@ const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
   return (
     <div className="flex w-full justify-between items-center ">
       <div className="flex gap-4">
-        {props.viewfilter && (
+        {(props.viewfilter&& props.showFilter)  && (
           <DateFilter onChange={handleFilter} value={props.filterDate} />
         )}
 
-        {props.viewfilter && (
+        {(props.viewfilter&& props.showSearch) && (
           <SearchBar
             className="max-w-[40.9%] min-w-[100px] h-10"
             placeholder="Search events here..."
@@ -39,13 +41,13 @@ const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
         )}
       </div>
 
-      <Button
+      {/* <Button
         value="Create Event"
         className={"primary"}
         onClick={() => {
           props.onNavigate("/home/manage-event");
         }}
-      />
+      /> */}
     </div>
   );
 };

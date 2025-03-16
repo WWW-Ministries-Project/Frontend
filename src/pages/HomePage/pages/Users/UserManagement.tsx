@@ -10,6 +10,7 @@ import PageOutline from "../../Components/PageOutline";
 import ActionButton from "../../Components/reusable/ActionButton";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { UserType } from "../Members/utils/membersInterfaces";
+import HeaderControls from "@/components/headerControls";
 
 interface User extends UserType {
   is_active: boolean;
@@ -21,6 +22,7 @@ const UserManagement = () => {
   });
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [searchedUser, setSearchedUser] = useState("");
+  const [showSearch, setShowSearch] = useState(true);
   const navigate = useNavigate();
 
   const handleShowOptions = (id: number | string) => {
@@ -117,14 +119,29 @@ const UserManagement = () => {
   return (
     <div className="p-4">
       <PageOutline>
-      <PageHeader title={`Users(${users.length})`} />
-      <SearchBar
+      <HeaderControls
+          title="Users"
+          totalMembers={users.length}
+          tableView={false} // No table/grid toggle needed
+          handleViewMode={() => {}} // No-op function since we don't toggle views here
+          showFilter={false}
+          setShowFilter={() => {}}
+          showSearch={true}
+          setShowSearch={setShowSearch}
+          Filter={false}
+          Grid ={false} // No grid view
+          handleNavigation={() => navigate("add-user")} // Navigate to Add User
+          screenWidth={window.innerWidth}
+          btnName="" // Added missing btnName property
+        />
+      {/* <PageHeader title={`Users(${users.length})`} />
+      {showSearch&&<SearchBar
         placeholder="Search for a user"
         className="max-w-[300px] mb-2"
         id="searchUsers"
         value={searchedUser}
         onChange={handleSearchChange}
-      />
+      />} */}
       <TableComponent
         columns={usersColumns}
         data={users}

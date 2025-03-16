@@ -22,6 +22,8 @@ import HeaderControls from "@/components/headerControls";
 const EventsManagement = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<eventType[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const [filterDate, setFilterDate] = useState<Date>(new Date());
   const [filterEvents, setFilterEvents] = useState<string>("");
   const [showOptions, setShowOptions] = useState<string | null>(null); // Use null for no options shown
@@ -129,21 +131,22 @@ const EventsManagement = () => {
       
       <PageOutline>
       <HeaderControls
-          title="Events Managements"
+          title="Events "
           totalMembers={filteredEvents.length} // Number of events
           tableView={tableView}
           handleViewMode={handleToggleView}
           showFilter={false} // No separate filter needed
-          setShowFilter={() => {}}
-          showSearch={true} // Search enabled
-          setShowSearch={(show) => handleSearchChange(show ? "true" : "false")}
-          handleNavigation={() => handleNavigation("add-event")} // Navigate to Add Event
+          setShowFilter={setShowFilter}
+          showSearch={showSearch} // Search enabled
+          setShowSearch={setShowSearch}
+          Filter={false} // Hide filter
+          handleNavigation={() => handleNavigation("/home/manage-event")} // Navigate to Add Event
           screenWidth={screenWidth}
           btnName="Add Event" // Added btnName property
         />
         <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
           {/* Toggle View Buttons */}
-          <div
+          {/* <div
             className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer"
             id="switch"
             role="group"
@@ -169,7 +172,7 @@ const EventsManagement = () => {
                 }
               />
             </button>
-          </div>
+          </div> */}
 
           {/* Events Manager Header */}
           <div className="w-full">
@@ -180,6 +183,8 @@ const EventsManagement = () => {
               filterEvents={filterEvents}
               filterDate={filterDate}
               onSearch={handleSearchChange}
+              showSearch={showSearch}
+              showFilter={showFilter}
             />
           </div>
         </div>

@@ -18,6 +18,9 @@ interface HeaderControlsProps {
   handleNavigation: () => void;
   screenWidth: number;
   btnName: string; // Added btnName property
+  Filter?: boolean; // Added hideFilter property
+  Search?: boolean; // Added hideSearch property
+  Grid?: boolean; // Added Grid property
 }
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({
@@ -31,10 +34,13 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
   setShowSearch,
   handleNavigation,
   screenWidth,
-  btnName
+  btnName,
+  Search = true,
+  Filter = true,
+  Grid = true,
 }) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center mb-4">
       {/* Title with total members */}
       <p className="text-dark900 text-2xl font-semibold">
         {title} ({totalMembers || "-"})
@@ -45,7 +51,7 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
         <div className="flex justify-start gap-2 items-center w-2/3">
           {/* View Mode Switch */}
           <div className="flex gap-2 items-center">
-            <div className="flex gap-1 bg-lightGray p-1 rounded-md" id="switch">
+            {Grid&&<div className="flex gap-1 bg-lightGray p-1 rounded-md cursor-pointer" id="switch">
               <div onClick={() => handleViewMode(true)}>
                 <TableAsset
                   stroke={tableView ? "#8F95B2" : "#8F95B2"}
@@ -62,26 +68,26 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
                   }
                 />
               </div>
-            </div>
+            </div>}
             {/* Filter & Search Buttons */}
-            <FilterIcon
+            {Filter&&<FilterIcon
               className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
               onClick={() => setShowFilter(!showFilter)}
-            />
-            {/* <SearchIcon
+            />}
+            {Search&&<SearchIcon
               className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
               onClick={() => setShowSearch(!showSearch)}
-            /> */}
+            />}
           </div>
           {/* Add Member Button */}
-          {/* <Button
-            value={screenWidth <= 700 ? "+" : "kkkkj"}
+          {btnName&&<Button
+            value={screenWidth <= 700 ? "+" : btnName}
             className={
               "text-white px-5 min-h-12 max-h-14 p-3 bg-primaryViolet whitespace-nowrap" +
               (screenWidth <= 540 ? " w-12 px-3" : "")
             }
             onClick={handleNavigation}
-          /> */}
+          />}
         </div>
       </div>
     </div>
