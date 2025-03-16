@@ -10,7 +10,7 @@ import PageOutline from "../../Components/PageOutline";
 import ActionButton from "../../Components/reusable/ActionButton";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { UserType } from "../Members/utils/membersInterfaces";
-import HeaderControls from "@/components/headerControls";
+import HeaderControls from "@/components/HeaderControls";
 
 interface User extends UserType {
   is_active: boolean;

@@ -17,7 +17,7 @@ import { eventColumns } from "./utils/eventHelpers";
 import EmptyState from "@/components/EmptyState";
 import { eventType } from "./utils/eventInterfaces";
 import Calendar from "./Components/Calenda";
-import HeaderControls from "@/components/headerControls";
+import HeaderControls from "@/components/HeaderControls";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
