@@ -26,11 +26,11 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight/> }) =>
                 <React.Fragment key={index}>
                   {index > 0 && <li className="text-dark900">{separator}</li>}
                   {isLast ? (
-                    <li className="text-dark900 text-bold capitalize" aria-current="page">
+                    <li className="text-dark900 text-bold " aria-current="page">
                       {value.replace(/-/g, " ").replace(/_/g, " ")}
                     </li>
                   ) : (
-                    <li className="text-dark900 capitalize  hover:text-bold">
+                    <li className="text-dark900  hover:text-bold">
                       <Link to={routeTo}>
                         {value.replace(/-/g, " ").replace(/_/g, " ")}
                       </Link>
