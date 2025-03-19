@@ -101,8 +101,19 @@ function DashBoard() {
           </section>
         </div>
         <div className="flex flex-col  justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
-          <section className="bg-white p-7 w-full rounded-xl">
+          <section className="bg-white p-7 w-full rounded-xl space-y-4">
+            <div className="flex justify-between items-center ">
             <div className="text-dark900 H600">First Timers</div>
+            <div>
+                <Button
+                  value="All Members"
+                  className={
+                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
+                  }
+                  onClick={() => navigate("/home/members")}
+                />
+              </div>
+            </div>
             <div className="flex justify-between items-center ">
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
@@ -112,15 +123,7 @@ function DashBoard() {
                   onChange={handleSearchChange}
                 />
               </div>
-              <div>
-                <Button
-                  value="All Members"
-                  className={
-                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
-                  }
-                  onClick={() => navigate("/home/members")}
-                />
-              </div>
+              
             </div>
             <div className="">
               <TableComponent
@@ -133,8 +136,19 @@ function DashBoard() {
               />
             </div>
           </section>
-          <section className="bg-white p-7 w-full rounded-xl">
+          <section className="bg-white p-7 w-full rounded-xl space-y-4">
+            <div className="flex justify-between items-center">
             <div className="text-dark900 H600">Upcoming Event</div>
+            <div>
+                <Button
+                  value="All Events"
+                  className={
+                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
+                  }
+                  onClick={() => navigate("/home/events")}
+                />
+              </div>
+            </div>
             <div className="flex justify-between items-center ">
               <div className="flex justify-start gap-2 items-center w-2/3">
                 <SearchBar
@@ -144,15 +158,7 @@ function DashBoard() {
                   onChange={handleEventsSearchChange}
                 />
               </div>
-              <div>
-                <Button
-                  value="All Events"
-                  className={
-                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
-                  }
-                  onClick={() => navigate("/home/events")}
-                />
-              </div>
+              
             </div>
             <div className="">
               <TableComponent

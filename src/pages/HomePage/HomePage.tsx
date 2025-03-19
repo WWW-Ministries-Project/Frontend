@@ -114,7 +114,7 @@ function HomePage() {
   return (
     <div className=" ">
       {token ? (
-        <main className="h-screen p-3">
+        <main className="h-screen p-3 border border-1 border-red ">
           <div className="">
           <Header handleShowNav={handleShowNav} />
           </div>

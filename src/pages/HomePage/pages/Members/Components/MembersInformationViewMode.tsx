@@ -42,11 +42,11 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <h2 className="text-xl font-bold ">Membership Status</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className=" text-gray-600">Membership ID</p>
+            <p className=" text-gray-600 font-semibold">Membership ID</p>
             <p className="font-medium">{user.membership_Id || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Membership Type</p>
+            <p className=" text-gray-600 font-semibold">Membership Type</p>
             <p className="font-medium">{user.membership_type || "-"}</p>
           </div>
         </div>
@@ -59,35 +59,35 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <h2 className="text-xl font-bold text-gray-800">Personal Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className=" text-gray-600">Title</p>
+            <p className=" text-gray-600 font-semibold">Title</p>
             <p className="font-medium">{user.title || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">First Name</p>
+            <p className=" text-gray-600 font-semibold">First Name</p>
             <p className="font-medium">{user.first_name || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Other Name</p>
+            <p className=" text-gray-600 font-semibold">Other Name</p>
             <p className="font-medium">{user.other_name || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Last Name</p>
+            <p className=" text-gray-600 font-semibold">Last Name</p>
             <p className="font-medium">{user.last_name || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Date of Birth</p>
+            <p className=" text-gray-600 font-semibold">Date of Birth</p>
             <p className="font-medium">{formatInputDate(user.date_of_birth) || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Nationality</p>
+            <p className=" text-gray-600 font-semibold">Nationality</p>
             <p className="font-medium">{user.nationality || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Gender</p>
+            <p className=" text-gray-600 font-semibold">Gender</p>
             <p className="font-medium">{user.gender || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Marital Status</p>
+            <p className=" text-gray-600 font-semibold">Marital Status</p>
             <p className="font-medium capitalize">{user.marital_status || "-"}</p>
           </div>
         </div>
@@ -100,11 +100,11 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <h2 className="text-xl font-bold text-gray-800">Contact Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className=" text-gray-600">Contact Number</p>
+            <p className=" text-gray-600 font-semibold">Contact Number</p>
             <p className="font-medium">{`${user.country_code} ${user.primary_number}` || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">E-mail</p>
+            <p className=" text-gray-600 font-semibold">E-mail</p>
             <p className="font-medium">{user.email || "-"}</p>
           </div>
         </div>
@@ -116,17 +116,17 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
       <section className="">
         <h2 className="text-xl font-bold text-gray-800">Church Information</h2>
         <div className="mt-2">
-          <p className=" text-gray-600">Is this member a ministry worker?</p>
+          <p className=" text-gray-600 font-semibold">Is this member a ministry worker?</p>
           <p className="font-medium">{user.isMinistryWorker ? "Yes" : "No"}</p>
         </div>
         {user.isMinistryWorker && (
           <div className="grid grid-cols-2 gap-4 mt-2">
             <div>
-              <p className=" text-gray-600">Ministry/Department</p>
+              <p className=" text-gray-600 font-semibold">Ministry/Department</p>
               <p className="font-medium">{user.ministryDepartment || "-"}</p>
             </div>
             <div>
-              <p className=" text-gray-600">Position</p>
+              <p className=" text-gray-600 font-semibold">Position</p>
               <p className="font-medium">{user.position || "-"}</p>
             </div>
           </div>
@@ -140,15 +140,15 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <h2 className="text-xl font-bold text-gray-800">Work Information</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className=" text-gray-600">Institution</p>
+            <p className=" text-gray-600 font-semibold">Institution</p>
             <p className="font-medium">{user.work_info?.name_of_institution || "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Industry</p>
+            <p className=" text-gray-600 font-semibold">Industry</p>
             <p className="font-medium">{user?.work_info?.industry|| "-" }</p>
           </div>
           <div>
-            <p className=" text-gray-600">Position</p>
+            <p className=" text-gray-600 font-semibold">Position</p>
             <p className="font-medium">{user?.work_info?.position || "-"}</p>
           </div>
         </div>
@@ -161,15 +161,15 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <h2 className="text-xl font-bold text-gray-800">Emergency Contact</h2>
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <p className=" text-gray-600">Name</p>
+            <p className=" text-gray-600 font-semibold">Name</p>
             <p className="font-medium">{user?.emergency_contact?.name|| "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Relation</p>
+            <p className=" text-gray-600 font-semibold">Relation</p>
             <p className="font-medium">{user?.emergency_contact?.relation|| "-"}</p>
           </div>
           <div>
-            <p className=" text-gray-600">Contact Number</p>
+            <p className=" text-gray-600 font-semibold">Contact Number</p>
             <p className="font-medium">{user?.emergency_contact?.phone_number || "-"}</p>
           </div>
         </div>

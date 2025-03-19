@@ -29,7 +29,7 @@ function Header({ handleShowNav }) {
                     <div className="">
                     <ChurchLogo show={true} className={'h-3'} />
                     </div>
-                    {/* <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900" /> */}
+                    <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900 lg:hidden" />
                    
                   </div>
         
