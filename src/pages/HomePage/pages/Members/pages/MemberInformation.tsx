@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { useOutletContext } from "react-router-dom";
-import MembersForm from "../Components/MembersForm";
+import {MembersForm} from "../Components/MembersForm";
 import MemberInformationViewMode from "../Components/MembersInformationViewMode";
 const MemberInformation = () => {
   const { edit, handleCancel, details, handleChange, handleSubmit, loading } =
