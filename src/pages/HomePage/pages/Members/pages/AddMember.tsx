@@ -90,7 +90,7 @@ const AddMember = () => {
                   setFieldValue("picture", obj);
                 }}
               />
-              <MembersForm edit={true} loading={loading} />
+              <MembersForm />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
                 <div className="flex justify-end gap-4 sticky bottom-0 bg-white">

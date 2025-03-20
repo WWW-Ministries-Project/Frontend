@@ -1,4 +1,3 @@
-import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
@@ -7,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import useStateRef from "react-usestateref";
 import FormikInputDiv from "./FormikInput";
 
-interface ContactInputProps {
+interface IProps {
   disabled: boolean;
   label: string;
   className?: string;
@@ -17,7 +16,7 @@ interface ContactInputProps {
   required?: boolean;
 }
 
-const ContactInput: React.FC<ContactInputProps> = ({
+const ContactInputComponent: React.FC<IProps> = ({
   disabled,
   label,
   className,
@@ -27,7 +26,7 @@ const ContactInput: React.FC<ContactInputProps> = ({
   const countryStore = useCountryStore();
   const [countries, setCountries] = useState<countryType[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
-  const [searchTerm, setSearchTerm] = useStateRef(zipCode || "+233");
+  const [searchTerm, setSearchTerm] = useState(zipCode || "+233");
 
   const { setFieldValue } = useFormikContext<object>();
 
@@ -44,12 +43,13 @@ const ContactInput: React.FC<ContactInputProps> = ({
   }, [countryStore]);
 
   // Sync search term with zip code prop updates
-  useEffect(() => {
-    if (!searchTerm) setSearchTerm(zipCode || "");
-  }, [zipCode, setSearchTerm]);
+  // useEffect(() => {
+  //   if (!searchTerm) setSearchTerm(zipCode || "");
+  // }, [zipCode, setSearchTerm]);
 
   // Handle country code input change
-  const handleInputChange = ( value: string | number) => {
+  const handleInputChange = (_: string, value: string) => {
+    console.log(value, "value");
     const val = value.toString().toLowerCase();
     setSearchTerm(val);
 
@@ -60,7 +60,7 @@ const ContactInput: React.FC<ContactInputProps> = ({
         country.name.toLowerCase().includes(val) ||
         country.dialCode.toLowerCase().includes(val)
     );
-
+    console.log("jjj", searchTerm);
     setFieldValue("country_code", filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
   };
@@ -68,30 +68,9 @@ const ContactInput: React.FC<ContactInputProps> = ({
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
     setSearchTerm(country.dialCode);
+    setFieldValue("country_code", country.dialCode);
     setFilteredCountries([]);
   };
-
-  // Handle input validation
-  // const handleBlur = (name: string) => {
-  //   if (name === "country_code" && !searchTermRef.current.match(/^\+\d+$/)) {
-  //     setError((prev) => ({ ...prev, [name]: "Invalid country code" }));
-  //   } else {
-  //     setError((prev) => ({ ...prev, [name]: "" }));
-  //   }
-
-  //   if (
-  //     name === "phone" &&
-  //     contactValue &&
-  //     !contactValue.match(/^[\d\s\-()]+$/)
-  //   ) {
-  //     setError((prev) => ({
-  //       ...prev,
-  //       [name]: "Please enter a valid phone number",
-  //     }));
-  //   } else {
-  //     setError((prev) => ({ ...prev, [name]: "" }));
-  //   }
-  // };
 
   return (
     <div>
@@ -100,7 +79,7 @@ const ContactInput: React.FC<ContactInputProps> = ({
         {/* Country Code Input */}
         <div className="relative w-20">
           <Field
-            component={InputDiv}
+            component={FormikInputDiv}
             id="country_code"
             name="country_code"
             disabled={disabled}
@@ -155,4 +134,4 @@ const ContactInput: React.FC<ContactInputProps> = ({
   );
 };
 
-export default ContactInput;
+export const ContactInput = Object.assign(ContactInputComponent, {});

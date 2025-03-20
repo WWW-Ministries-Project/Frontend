@@ -17,7 +17,7 @@
 // import { object } from "yup";
 
 // interface MembersFormProps {
-//   edit?: boolean;
+//   disabled?: boolean;
 //   user?: UserType;
 //   department?: OptionsType[];
 //   onSubmit?: (val: UserType) => void;
@@ -61,7 +61,7 @@
 //               <Field
 //                 component={FormikSelectField}
 //                 label="Membership Type"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="membership_type"
 //                 name="membership_type"
 //                 options={[
@@ -80,7 +80,7 @@
 //               <Field
 //                 component={FormikSelectField}
 //                 label="Title"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="title"
 //                 name="title"
 //                 options={titleOptions}
@@ -90,21 +90,21 @@
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="First Name"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="first_name"
 //                 name="first_name"
 //               />
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="Other Name"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="other_name"
 //                 name="other_name"
 //               />
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="Last Name"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="last_name"
 //                 name="last_name"
 //               />
@@ -112,7 +112,7 @@
 //                 component={FormikInputDiv}
 //                 label="Date of Birth"
 //                 value={formatInputDate(values.date_of_birth)}
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="date_of_birth"
 //                 name="date_of_birth"
 //                 type="date"
@@ -122,7 +122,7 @@
 //                 label="Gender"
 //                 value={props.user?.gender}
 //                 options={genderOptions}
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="gender"
 //                 name="gender"
 //                 placeholder={"select gender"}
@@ -131,7 +131,7 @@
 //                 component={FormikSelectField}
 //                 label="Marital Status"
 //                 options={maritalOptions}
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 id="marital_status"
 //                 name="marital_status"
 //                 placeholder={"select marital status"}
@@ -149,7 +149,7 @@
 //                 contactValue={values.primary_number}
 //                 zipCode={values.country_code}
 //                 id="primary_number"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 onChange={(name, val) => {
 //                   form.setFieldValue(name, val);
 //                   form.setFieldTouched(name, true);
@@ -162,14 +162,14 @@
 //                 id="email"
 //                 name="email"
 //                 type={"email"}
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="Address"
 //                 id="address"
 //                 name="address"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //               <Field
 //                 component={FormikSelectField}
@@ -177,7 +177,7 @@
 //                 id="nationality"
 //                 name="nationality"
 //                 options={countryOptions || []}
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //             </div>
 //           </section>
@@ -206,7 +206,7 @@
 //                   id="department_id"
 //                   name="department_id"
 //                   options={departmentsOptions || []}
-//                   disabled={!props.edit}
+//                   disabled={disabled}
 //                 />
 //                 <Field
 //                   component={FormikSelectField}
@@ -214,7 +214,7 @@
 //                   id="position_id"
 //                   name="position_id"
 //                   options={positionsOptions || []}
-//                   disabled={!props.edit}
+//                   disabled={disabled}
 //                   parse={(value: string) => parseInt(value, 10)}
 //                 />
 //               </div>
@@ -235,7 +235,7 @@
 //                 }
 //                 id="work_name"
 //                 name="work_name"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //               <Field
 //                 component={FormikInputDiv}
@@ -245,7 +245,7 @@
 //                 }
 //                 id="work_industry"
 //                 name="work_industry"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //               <Field
 //                 component={FormikInputDiv}
@@ -255,7 +255,7 @@
 //                 }
 //                 id="work_position"
 //                 name="work_position"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //               />
 //             </div>
 //           </section>
@@ -268,7 +268,7 @@
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="Name of Contact"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 value={
 //                   values.emergency_contact_name ||
 //                   props.user?.emergency_contact?.name
@@ -279,7 +279,7 @@
 //               <Field
 //                 component={FormikSelectField}
 //                 label="Relation"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 value={
 //                   values.emergency_contact_relation ||
 //                   props.user?.emergency_contact?.relation
@@ -291,7 +291,7 @@
 //               <Field
 //                 component={FormikInputDiv}
 //                 label="Phone Number"
-//                 disabled={!props.edit}
+//                 disabled={disabled}
 //                 value={
 //                   values.emergency_contact_phone_number ||
 //                   props.user?.emergency_contact?.phone_number
@@ -302,7 +302,7 @@
 //             </div>
 //           </section>
 //           <hr className="border-t border-neutralGray " />
-//           {/* {props.edit && (
+//           {/* {props.disabled && (
 //             <section className="w-full pt-5 sticky bottom-0 bg-white">
 //               <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
 //                 <Button
@@ -401,27 +401,20 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { Field, useFormikContext } from "formik";
-import React from "react";
-import ContactInput from "../../../../../components/ContactInput";
+import { ContactInput } from "../../../../../components/ContactInput";
 import {
   formatInputDate,
   genderOptions,
 } from "../../../../../utils/helperFunctions";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { maritalOptions, titleOptions } from "../utils";
-import { OptionsType, UserType } from "../utils/membersInterfaces";
-import {RadioInput} from "./RadioInput";
+import { RadioInput } from "./RadioInput";
 
-interface MembersFormProps {
-  edit?: boolean;
-  user?: UserType;
-  department?: OptionsType[];
-  onSubmit?: (val: UserType) => void;
+interface IProps {
   disabled?: boolean;
-  loading?: boolean;
 }
 
-const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
+const MembersFormComponent = ({disabled=false}: IProps) => {
   // function handleChange(name: string, value: string | boolean) {
   //   props.onChange(name, value);
   // }
@@ -432,21 +425,6 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
   const { values } = useFormikContext<IMembersForm>();
 
   return (
-    // <Formik
-    //   enableReinitialize={true}
-    //   initialValues={initialValues}
-    //   // onSubmit={(val) => {
-    //   //   const transformedValues = {
-    //   //     ...val,
-    //   //     position_id: val.position_id && parseInt(val.position_id, 10),
-    //   //     department_id: val.department_id && parseInt(val.department_id, 10),
-    //   //   };
-    //   //   const changedValues = getChangedValues(props.user, transformedValues);
-    //   //   props.onSubmit(changedValues);
-    //   // }}
-    //   onSubmit={props.onSubmit}
-    //   validationSchema={userFormValidator}
-    // >
     <>
       <div className="h-full   space-y-6">
         <section className="">
@@ -457,7 +435,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             <Field
               component={FormikSelectField}
               label="Membership Type"
-              disabled={!props.edit}
+              disabled={disabled}
               id="membership_type"
               name="membership_type"
               options={[
@@ -476,7 +454,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             <Field
               component={FormikSelectField}
               label="Title"
-              disabled={!props.edit}
+              disabled={disabled}
               id="title"
               name="title"
               options={titleOptions}
@@ -486,21 +464,21 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             <Field
               component={FormikInputDiv}
               label="First Name"
-              disabled={!props.edit}
+              disabled={disabled}
               id="first_name"
               name="first_name"
             />
             <Field
               component={FormikInputDiv}
               label="Other Name"
-              disabled={!props.edit}
+              disabled={disabled}
               id="other_name"
               name="other_name"
             />
             <Field
               component={FormikInputDiv}
               label="Last Name"
-              disabled={!props.edit}
+              disabled={disabled}
               id="last_name"
               name="last_name"
             />
@@ -508,7 +486,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
               component={FormikInputDiv}
               label="Date of Birth"
               value={formatInputDate(values.date_of_birth)}
-              disabled={!props.edit}
+              disabled={disabled}
               id="date_of_birth"
               name="date_of_birth"
               type="date"
@@ -517,7 +495,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
               component={FormikSelectField}
               label="Gender"
               options={genderOptions}
-              disabled={!props.edit}
+              disabled={disabled}
               id="gender"
               name="gender"
               placeholder={"select gender"}
@@ -526,7 +504,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
               component={FormikSelectField}
               label="Marital Status"
               options={maritalOptions}
-              disabled={!props.edit}
+              disabled={disabled}
               id="marital_status"
               name="marital_status"
               placeholder={"select marital status"}
@@ -539,21 +517,21 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             Contact Information
           </div>
           <div className="w-full grid tablet:grid-cols-2 gap-4">
-            <ContactInput label="Phone Number" disabled={!props.edit} />
+            <ContactInput label="Phone Number" disabled={disabled} />
             <Field
               component={FormikInputDiv}
               label="Email"
               id="email"
               name="email"
               type={"email"}
-              disabled={!props.edit}
+              disabled={disabled}
             />
             <Field
               component={FormikInputDiv}
               label="Address"
               id="address"
               name="address"
-              disabled={!props.edit}
+              disabled={disabled}
             />
             <Field
               component={FormikSelectField}
@@ -561,7 +539,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
               id="nationality"
               name="nationality"
               options={countryOptions || []}
-              disabled={!props.edit}
+              disabled={disabled}
             />
           </div>
         </section>
@@ -585,7 +563,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
                 id="department_id"
                 name="department_id"
                 options={departmentsOptions || []}
-                disabled={!props.edit}
+                disabled={disabled}
               />
               <Field
                 component={FormikSelectField}
@@ -593,7 +571,7 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
                 id="position_id"
                 name="position_id"
                 options={positionsOptions || []}
-                disabled={!props.edit}
+                disabled={disabled}
                 parse={(value: string) => parseInt(value, 10)}
               />
             </div>
@@ -610,21 +588,21 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
               label="Name of Institution"
               id="work_name"
               name="work_name"
-              disabled={!props.edit}
+              disabled={disabled}
             />
             <Field
               component={FormikInputDiv}
               label="Industry"
               id="work_industry"
               name="work_industry"
-              disabled={!props.edit}
+              disabled={disabled}
             />
             <Field
               component={FormikInputDiv}
               label="Position"
               id="work_position"
               name="work_position"
-              disabled={!props.edit}
+              disabled={disabled}
             />
           </div>
         </section>
@@ -637,14 +615,14 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             <Field
               component={FormikInputDiv}
               label="Name of Contact"
-              disabled={!props.edit}
+              disabled={disabled}
               id="emergency_contact_name"
               name="emergency_contact_name"
             />
             <Field
               component={FormikSelectField}
               label="Relation"
-              disabled={!props.edit}
+              disabled={disabled}
               id="emergency_contact_relation"
               name="emergency_contact_relation"
               options={relationOptions}
@@ -652,34 +630,13 @@ const MembersFormComponent: React.FC<MembersFormProps> = (props) => {
             <Field
               component={FormikInputDiv}
               label="Phone Number"
-              disabled={!props.edit}
+              disabled={disabled}
               id="emergency_contact_phone_number"
               name="emergency_contact_phone_number"
             />
           </div>
         </section>
         <hr className="border-t border-neutralGray " />
-        {/* {props.edit && (
-            <section className="w-full pt-5 sticky bottom-0 bg-white">
-              <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
-                <Button
-                  value={"Cancel"}
-                  onClick={props.onCancel}
-                  className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
-                />
-                <Button
-                  value={"Save"}
-                  type="submit"
-                  onClick={() => {
-                    form.handleSubmit();
-                  }}
-                  loading={props.loading}
-                  disabled={props.disabled || props.loading}
-                  className="w-32 my-2 px-2  bg-primaryViolet  border border-primaryViolet text-white "
-                />
-              </div>
-            </section>
-          )} */}
       </div>
     </>
   );
