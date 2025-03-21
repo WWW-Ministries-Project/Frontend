@@ -1,4 +1,8 @@
 import CardWrappers from "@/Wrappers/CardWrapper";
+import ellipse from "@/assets/ellipse.svg";
+import Badge from "@/components/Badge";
+import Button from "@/components/Button";
+import { useNavigate } from "react-router-dom";
 
 // Define the Cohort type
 interface Cohort {
@@ -23,32 +27,34 @@ interface ProgramsCardProps {
     toggleMenu: (id: number) => void;
     isMenuOpen: number | null;
     cohorts: Cohort[];
+    handleCopyLink: (programId: number) => void;
 }
 
 interface EligibilityBadgeProps {
     eligibility: Program["eligibility"];
 }
 
-const ProgramsCard = ({ program, toggleMenu, isMenuOpen, cohorts }: ProgramsCardProps) => {
+const ProgramsCard = ({ program, toggleMenu, isMenuOpen, cohorts, handleCopyLink }: ProgramsCardProps) => {
+  const navigate = useNavigate()
     const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element | null => {
         switch (eligibility) {
             case "members":
                 return (
-                    <div className="bg-blue-50 text-xs text-blue-700 rounded-lg py-1 px-2 border border-blue-200">
+                    <Badge>
                         Members Only
-                    </div>
+                    </Badge>
                 );
             case "non-members":
                 return (
-                    <div className="bg-red/50 text-xs text-red-700 rounded-lg py-1 px-2 border border-red-200">
+                    <Badge className="bg-red-50 text-xs text-red-700  border border-red-200">
                         Non-Members Only
-                    </div>
+                    </Badge>
                 );
             case "both":
                 return (
-                    <div className="bg-green/50 text-xs text-green-700 rounded-lg py-1 px-2 border border-green/50">
+                    <Badge className="bg-green/10 text-xs text-green-700  border border-green/50">
                         Open to All
-                    </div>
+                    </Badge>
                 );
             default:
                 return null;
@@ -95,9 +101,9 @@ const ProgramsCard = ({ program, toggleMenu, isMenuOpen, cohorts }: ProgramsCard
                                         <p>{cohort.startDate}</p>
                                       </div>
                                     </div>
-                                    <div className="text-sm bg-primary text-white py-1 px-2 rounded-lg border border-lightGray">
+                                    <Badge className="text-sm bg-primary/10 text-primary  border border-lightGray">
                                       {cohort.status}
-                                    </div>
+                                    </Badge>
                                   </div>
                                 </div>
                               ))}
@@ -112,25 +118,24 @@ const ProgramsCard = ({ program, toggleMenu, isMenuOpen, cohorts }: ProgramsCard
                         {/* Actions */}
                         <div className="flex justify-between items-center">
                           <div>
-                            <button 
-                                className="text-primary" 
-                                onClick={() => window.location.href = `ministry-school/${program.id}`}
-                            >
-                                Manage
-                            </button>
+                            <Button 
+                            onClick={() => navigate(`programs?program=${program.id}`)} 
+                            value="Manage" 
+                            className="bg-primary text-white px-4"/>
+                            
                           </div>
                           <div>
                             <div className="relative">
                               <button className="text-primary" onClick={() => toggleMenu(program.id)}>
-                                Menu
+                              <img src={ellipse} alt="options" className="cursor-pointer" />
                               </button>
                               {isMenuOpen === program.id && (
                                 <div className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg">
                                   <ul className="py-1">
                                     <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Edit Program</li>
                                     <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Add Cohort</li>
-                                    <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Copy Application Link</li>
-                                    <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">View Application Page</li>
+                                    <li onClick={() => handleCopyLink(program.id)} className="px-4 py-2 hover:bg-lightGray cursor-pointer">Copy Application Link</li>
+                                    <li onClick={() => window.open(`/programs/apply/${program.id}`, "_blank")} className="px-4 py-2 hover:bg-lightGray cursor-pointer">View Application Page</li>
                                     <hr className="text-lightGray" />
                                     <li className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
                                   </ul>

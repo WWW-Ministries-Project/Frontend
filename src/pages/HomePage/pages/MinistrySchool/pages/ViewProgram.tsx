@@ -2,8 +2,12 @@ import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import AllCohortsPage from "../Components/AllCohort";
+import Modal from "@/components/Modal";
+import { useState } from "react";
+import CohortForm from "../Components/CohortForm";
 
 const ViewProgram = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const cohort = {
     id: 1,
     title: "Biblical Leadership",
@@ -90,11 +94,17 @@ const ViewProgram = () => {
         </section>
 
         <section>
-            <AllCohortsPage/>
+            <AllCohortsPage onCreate={() => setIsModalOpen(true)}/>
         </section>
 
        
       </PageOutline>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <CohortForm 
+          onClose={() => setIsModalOpen(false)} 
+          onSubmit={(data) => console.log("Form submitted:", data)} 
+        />
+      </Modal>
     </div>
   );
 };

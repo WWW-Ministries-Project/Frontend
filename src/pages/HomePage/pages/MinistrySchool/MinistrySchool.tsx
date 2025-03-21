@@ -3,6 +3,8 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import CardWrappers from "@/Wrappers/CardWrapper";
 import { useState } from "react";
 import ProgramsCard from "./Components/ProgramsCard";
+import Modal from "@/components/Modal";
+import ProgramForm from "./Components/ProgramForm";
 
 interface Program {
   id: number;
@@ -23,6 +25,7 @@ interface Cohort {
 }
 
 const MinistrySchool = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const programs: Program[] = [
     {
       id: 1,
@@ -108,6 +111,20 @@ const MinistrySchool = () => {
     setOpenMenuId((prevId) => (prevId === id ? null : id));
   };
 
+  interface CopyLinkToast {
+    title: string;
+    description: string;
+  }
+
+  const handleCopyLink = (programId: number): void => {
+    const link: string = `${window.location.origin}/programs/apply/${programId}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copied",
+      description: "Application link has been copied to clipboard",
+    } as CopyLinkToast);
+  };
+
   const getEligibilityBadge = (eligibility: Program["eligibility"]): JSX.Element | null => {
     switch (eligibility) {
       case "members":
@@ -156,6 +173,12 @@ const MinistrySchool = () => {
           showFilter={false}
           totalMembers={0}
           btnName="Create program"
+          handleNavigation={() => setIsModalOpen(true)}
+          tableView={false}
+          handleViewMode={() => {}}
+          setShowFilter={() => {}}
+          setShowSearch={() => {}}
+          screenWidth={window.innerWidth}
         />
 
         <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2 xs:grid-cols-2">
@@ -169,13 +192,58 @@ const MinistrySchool = () => {
                 toggleMenu={() => toggleMenu(program.id)}
                 isMenuOpen={openMenuId }
                 cohorts={cohortsToShow}
+                handleCopyLink = {handleCopyLink}
               />
             );
           })}
         </section>
+      
       </PageOutline>
+
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ProgramForm onClose={() => setIsModalOpen(false)} onSubmit={() => console.log("Form submitted")
+        }/>
+      </Modal>
     </div>
   );
 };
 
+function toast({ title, description }: { title: string; description: string }) {
+  const toastContainer = document.createElement("div");
+  toastContainer.style.position = "fixed";
+  toastContainer.style.bottom = "20px";
+  toastContainer.style.right = "20px";
+  toastContainer.style.backgroundColor = "#333";
+  toastContainer.style.color = "#fff";
+  toastContainer.style.padding = "10px 20px";
+  toastContainer.style.borderRadius = "5px";
+  toastContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
+  toastContainer.style.zIndex = "1000";
+  toastContainer.style.fontSize = "14px";
+  toastContainer.style.maxWidth = "300px";
+
+  const toastTitle = document.createElement("strong");
+  toastTitle.textContent = title;
+  toastTitle.style.display = "block";
+  toastTitle.style.marginBottom = "5px";
+
+  const toastDescription = document.createElement("span");
+  toastDescription.textContent = description;
+
+  toastContainer.appendChild(toastTitle);
+  toastContainer.appendChild(toastDescription);
+
+  document.body.appendChild(toastContainer);
+
+  setTimeout(() => {
+    toastContainer.style.transition = "opacity 0.5s";
+    toastContainer.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(toastContainer);
+    }, 500);
+  }, 3000);
+}
+
 export default MinistrySchool;
+// Removed duplicate toast function implementation
+

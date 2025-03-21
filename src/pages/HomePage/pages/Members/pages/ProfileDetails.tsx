@@ -128,9 +128,9 @@ const ProfileDetails = () => {
         primary_number={details.primary_number}
       />
        </div>
-      <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-5/6   ">
+      <section className=" w-full h-full mb-4  mx-auto    ">
      
-      <div className="hideScrollbar px-8 pb-4 mx-auto lg:container  rounded-b-xl  overflow-y-auto">
+      <div className="hideScrollbar  pb-4 mx-auto   rounded-b-xl  overflow-y-auto">
         <Outlet
           context={{
             edit,

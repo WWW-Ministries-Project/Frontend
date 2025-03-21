@@ -80,7 +80,7 @@ const AddMember = () => {
           {({ values, setFieldValue, handleSubmit }) => (
             <>
               <ProfilePicture
-                className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
+                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
                 id="profile_picture"
                 name="profile_picture"
                 src={values.picture.src}
@@ -89,6 +89,7 @@ const AddMember = () => {
                 onChange={(obj) => {
                   setFieldValue("picture", obj);
                 }}
+                textClass={'text-3xl text-dark900'}
               />
               <MembersForm />
 

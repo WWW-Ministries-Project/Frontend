@@ -1,8 +1,14 @@
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { useNavigate } from "react-router-dom";
 
-const AllCohortsPage = () => {
+interface AllCohortsPageProps {
+  onCreate: () => void;
+}
+
+const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate }) => {
+  const navigate = useNavigate()
   // Mock data for cohorts (you can replace this with actual data from your database)
   const cohortsData = [
     {
@@ -56,6 +62,7 @@ const AllCohortsPage = () => {
               <Button
                 value="Add Cohort"
                 className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
+                onClick={onCreate}
               />
             </div>
           </div>
@@ -71,7 +78,7 @@ const AllCohortsPage = () => {
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-semibold text-lg">{cohort.name}</div>
-                    <Badge className={`text-xs ${cohort.status === "Active" ? "bg-primary text-white" : "bg-yellow-400 text-dark900"}`}>
+                    <Badge className={`text-xs border-lightGray ${cohort.status === "Active" ? "bg-primary/20 text-dark900" : "bg-yellow-100 text-dark900"}`}>
                       {cohort.status}
                     </Badge>
                   </div>
@@ -90,6 +97,7 @@ const AllCohortsPage = () => {
                     <Button
                       value="Manage Cohort"
                       className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
+                      onClick={() => navigate(`cohort/${cohort.id}`)}
                     />
                   </div>
                 </div>

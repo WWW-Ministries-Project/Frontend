@@ -1,6 +1,8 @@
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import ClassForm from "../Components/ClassForm";
+import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 
 const ViewCohort = () => {
   // Mock data for cohort (You can replace this with real data from an API or database)
@@ -153,6 +155,12 @@ const ViewCohort = () => {
                   </div>
         </section>
       </PageOutline>
+      <Modal open={true} onClose={() => console.log("Modal closed")}>
+        <ClassForm 
+          onClose={() => console.log("ClassForm closed")} 
+          onSubmit={(data) => console.log("ClassForm submitted", data)} 
+        />
+      </Modal>
     </div>
   );
 };

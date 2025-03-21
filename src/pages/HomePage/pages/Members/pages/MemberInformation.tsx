@@ -87,8 +87,8 @@ const MemberInformation = () => {
         )}
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-white p-4 h-[20rem] rounded-b-xl space-y-4">
+      <div className="space-y-4 ">
+        <div className="bg-white p-4 h-[20rem] container rounded-b-xl space-y-4">
           <div className="flex justify-between ">
             <div className="font-semibold">Membership school</div>
             <div>icon</div>

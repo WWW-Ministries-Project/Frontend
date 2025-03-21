@@ -21,7 +21,7 @@ import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
 import { UserType } from "./utils/membersInterfaces"; // ✅ Import the reusable component
-import HeaderControls from "@/components/headerControls";
+import HeaderControls from "@/components/HeaderControls";
 
 function Members() {
   const location = useLocation();

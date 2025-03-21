@@ -5,7 +5,6 @@ export default {
     extend: {
       colors: {
         primary: "#6539C3",
-        // primary: "#080D2D",
         primaryGray: "#575F6A",
         mainGray: "#626262",
         wwmBlue: "#080D2D",
@@ -97,6 +96,16 @@ export default {
       "2xl": "1536px", // Extra extra large devices
       "3xl": "1800px", // Ultra large devices (e.g., 4K screens)
     },
+    // Add container configuration here
+    container: {
+      center: true, // Center the container by default
+      padding: {
+        DEFAULT: "1rem", // Default padding
+        sm: "2rem", // Padding for small screens
+        lg: "4rem", // Padding for large screens
+        xl: "5rem", // Padding for extra-large screens
+      },
+    },
   },
   plugins: [
     function ({ addUtilities }) {
@@ -165,7 +174,6 @@ export default {
         ".header": {
           height: "clamp(40px, 6vh, 60px)",
         },
-        
       };
       addUtilities(utilities);
     },

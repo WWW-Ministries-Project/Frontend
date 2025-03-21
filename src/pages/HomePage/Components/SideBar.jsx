@@ -24,9 +24,10 @@ const icons = {
   Users: UsersIcon,
   Events: ManagementIcon,
   Assets: InstrumentIcon,
+  "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
-  "School of Ministry": MinistrySchoolIcon,
+  
 };
 
 const SideBar = ({ className, show, ...props }) => {

@@ -211,6 +211,29 @@ export const routes = [
         isPrivate: false,
         permissionNeeded: "view_events",
       },
+      
+      {
+        path: "ministry-school",
+        name: "School of Ministry",
+        element: <MinistrySchool />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+        sideTab: true,
+      },
+      {
+        path: "ministry-school/programs",
+        name: "View Program",
+        element: <ViewProgram />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/programs/cohort/:id",
+        name: "View Cohort",
+        element: <ViewCohort />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
       {
         path: "settings",
         name: "Settings",
@@ -244,28 +267,6 @@ export const routes = [
             sideTab: false,
           },
         ]
-      },
-      {
-        path: "ministry-school",
-        name: "School of Ministry",
-        element: <MinistrySchool />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-        sideTab: true,
-      },
-      {
-        path: "ministry-school/:id",
-        name: "View Program",
-        element: <ViewProgram />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-      },
-      {
-        path: "ministry-school/:id/:id",
-        name: "View Cohort",
-        element: <ViewCohort />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "*",
