@@ -16,7 +16,7 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import AssetCard from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
-import HeaderControls from "@/components/headerControls";
+import HeaderControls from "@/components/HeaderControls";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
@@ -116,7 +116,7 @@ const AssetManagement = () => {
             {/* <div>
               <Button
                 value="Add asset"
-                className={" text-white h-10 p-2 bg-primaryViolet"}
+                className={" text-white h-10 p-2 bg-primary"}
                 onClick={() => navigate("manage-asset")}
               />
             </div> */}

@@ -73,7 +73,7 @@ function RequestAttachments({
         <PageHeader title="Attachments" />
         {!isEditable && (
           <UploadButton
-            className="font-light text-primaryViolet cursor-pointer"
+            className="font-light text-primary cursor-pointer"
             onFileChange={onFileChange}
           >
             <span>+ Upload file</span>

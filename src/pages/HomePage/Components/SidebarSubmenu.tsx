@@ -47,10 +47,10 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
           <div
             onClick={toggleSubMenu} // 🔥 Toggle submenu on click
             className={`text-dark900 transition z-10  cursor-pointer  ${
-              (showChildren || isActive) ? "text-primaryViolet bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
+              (showChildren || isActive) ? "text-primary bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
             }
             ${
-              (!showChildren && isActive) ? "text-primaryViolet bg-lightGray transition rounded-s-xl" : ""
+              (!showChildren && isActive) ? "text-primary bg-lightGray transition rounded-s-xl" : ""
             }
             
             `}
@@ -109,7 +109,7 @@ const NavigationLinks = ({ item }: { item: { path: string; name: string } }) => 
         to={item.path}
         className={({ isActive }) =>
           `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
-            isActive ? "bg-[#6539C310] text-primaryViolet transition" : "hover:text-primaryViolet"
+            isActive ? "bg-[#6539C310] text-primary transition" : "hover:text-primary"
           }`
         }
       >

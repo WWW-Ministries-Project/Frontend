@@ -120,13 +120,13 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
           {!disabled && <div className="flex gap-4 justify-end mt-4">
             <Button
               value="Cancel"
-              className="p-2 px-4 text-primaryViolet bg-transparent border"
+              className="p-2 px-4 text-primary bg-transparent border"
               onClick={() => window.history.back()}
             />
             <Button
               value={"Save"}
               type={"submit"}
-              className="p-2 px-4 text-white bg-primaryViolet"
+              className="p-2 px-4 text-white bg-primary"
               loading={loading}
               onClick={form.submitForm}
             />

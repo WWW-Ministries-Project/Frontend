@@ -92,7 +92,7 @@ const ForgotPassword = () => {
               onClick={handleSubmit}
               loading = {loading}
               disabled = {loading || error.email}
-              className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
+              className={"w-full h-[38px] bg-primary my-8 text-white"}
             />
             <div className=" mx-auto">
               <div className="text-gray text-center text-sma">

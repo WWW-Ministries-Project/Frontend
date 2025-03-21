@@ -105,7 +105,7 @@ const ViewEvents = () => {
                             <div>
                                 <Button
                                     value="Edit"
-                                    className="px-8 py-2 text-white border border-primaryViolet bg-primaryViolet rounded-lg"
+                                    className="px-8 py-2 text-white border border-primary bg-primary rounded-lg"
                                     onClick={() => {
                                         navigate(`/home/manage-event?event_id=${id}`);
                                     }}
@@ -158,7 +158,7 @@ const ViewEvents = () => {
                         <div className="flex justify-center gap-x-4">
                             <Button
                                 value="Download "
-                                className="px-4 text-white bg-primaryViolet"
+                                className="px-4 text-white bg-primary"
                                 loading={loading}
                                 disabled={loading}
                                 onClick={() => {
@@ -167,7 +167,7 @@ const ViewEvents = () => {
                             />
                             <Button
                                 value="Cancel"
-                                className="px-4 text-primaryViolet border border-primaryViolet"
+                                className="px-4 text-primary border border-primary"
                                 loading={loading}
                                 disabled={loading}
                                 onClick={() => {

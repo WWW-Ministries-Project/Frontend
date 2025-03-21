@@ -114,8 +114,8 @@ const ProfileDetails = () => {
   };
 
   return (
-    <div>
-       <div className="sticky top-0 z-40 bg-purple-200 w-full">
+    <div className="px-4">
+       <div className="sticky top-0 z-40 w-full">
        <Banner
         onClick={handleEdit}
         edit={edit}

@@ -108,7 +108,7 @@ function DashBoard() {
                 <Button
                   value="All Members"
                   className={
-                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
+                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primary"
                   }
                   onClick={() => navigate("/home/members")}
                 />
@@ -143,7 +143,7 @@ function DashBoard() {
                 <Button
                   value="All Events"
                   className={
-                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primaryViolet"
+                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primary"
                   }
                   onClick={() => navigate("/home/events")}
                 />

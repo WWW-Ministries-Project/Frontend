@@ -4,7 +4,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primaryViolet: "#6539C3",
+        primary: "#6539C3",
+        // primary: "#080D2D",
         primaryGray: "#575F6A",
         mainGray: "#626262",
         wwmBlue: "#080D2D",
@@ -30,7 +31,6 @@ export default {
       keyframes: {
         wiggle: {
           "0%, 100%": {
-            // transform: 'rotate(-3deg)',
             transform: "matrix(1, 0, 0, 1, 0, 0)",
           },
           "50%": { transform: "rotate(3deg)" },
@@ -165,6 +165,7 @@ export default {
         ".header": {
           height: "clamp(40px, 6vh, 60px)",
         },
+        
       };
       addUtilities(utilities);
     },

@@ -136,7 +136,7 @@ function HomePage() {
               </div>
           <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}>
             
-            <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl">
+            <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
             <Breadcrumb />
               <Outlet
                 context={{

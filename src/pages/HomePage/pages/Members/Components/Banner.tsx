@@ -21,7 +21,7 @@ const Banner: React.FC<BannerProps> = (props) => {
     props.onClick(true);
   };
   return (
-    <div className="w-full h-32 relative">
+    <div className="w-full h-32 relative bg-primary text-white rounded-t-lg">
       {/* <img src={props.coverImage1} alt="cover Image" className="w-full rounded-xl" /> */}
       <div
         className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
@@ -31,7 +31,7 @@ const Banner: React.FC<BannerProps> = (props) => {
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="flex justify-between items-center lg:w-5/6 container mx-auto">
+        <div className="flex justify-between items-center  container mx-auto">
         <div className="flex gap-4 items-center   ">
           <ProfilePic
             className="w-24 h-24 outline outline-white"
@@ -43,13 +43,13 @@ const Banner: React.FC<BannerProps> = (props) => {
             onChange={props.onPicChange}
           />
           <article className="xs:hidden md:inline space-y-1">
-            <div className="font-extrabold text-2xl text-dark900">
+            <div className="font-extrabold text-2xl ">
               {props.name || "No Name"}
             </div>
-            <div className="text-dark900">{`${props.department} ${
+            <div className="">{`${props.department} ${
               props.department && props.position ? "|" : ""
             } ${props.position} `}</div>
-            <div className="text-dark900">
+            <div className="">
               {(props.email || "No Email") +
                 " | " +
                 (props.primary_number || "No Phone")}
@@ -61,7 +61,7 @@ const Banner: React.FC<BannerProps> = (props) => {
             <Button
               value="Edit Profile"
               onClick={handleClick}
-              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primaryViolet"
+              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
             />
           </div>
         )}

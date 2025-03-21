@@ -9,7 +9,7 @@ const ActionButton = React.memo(({ text, onClick }) => {
   return (
     <li
       onClick={onClick}
-      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-base hover:bg-[#E0D7F3] hover:text-primaryViolet`}
+      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-base hover:bg-[#E0D7F3] hover:text-primary`}
       onMouseOver={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >

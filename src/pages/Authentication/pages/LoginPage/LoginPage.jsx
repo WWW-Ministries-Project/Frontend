@@ -71,7 +71,7 @@ function LoginPage() {
   }
   return (
     <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
-    <div className="relative h-screen bg-purple-900/60 overflow-hidden">
+    <div className="relative h-screen bg-primary/60 overflow-hidden">
       <OuterDiv>
         <AuthenticationForm
           response={response}
@@ -118,18 +118,18 @@ function LoginPage() {
             loading={loading}
             disabled={loading}
             onClick={handleSubmit}
-            className={"w-full  bg-primaryViolet my-8 text-white"}
+            className={"w-full  bg-primary my-8 text-white"}
           />
           <div className="text-lightGray text-sm">
             <div className="mb-4">
               Forgot Password?{" "}
-              <Link to="/forgot-password" className="text-primaryViolet">
+              <Link to="/forgot-password" className="text-primary">
                 Reset
               </Link>
             </div>
             {/* <div className="">
               Don't have an account?{" "}
-              <span className="text-primaryViolet">Register</span>
+              <span className="text-primary">Register</span>
             </div> */}
           </div>
 

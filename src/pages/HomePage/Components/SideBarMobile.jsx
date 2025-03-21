@@ -10,6 +10,7 @@ import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
+import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
@@ -20,6 +21,7 @@ const icons = {
   Assets: InstrumentIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
+  "School of Ministry": MinistrySchoolIcon,
 };
 
 const SideBarMobile = ({ show, ...props }) => {
@@ -28,7 +30,7 @@ const SideBarMobile = ({ show, ...props }) => {
 
   return (
     <div
-      className={`fixed  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform ${
+      className={`absolute  top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform overflow-auto ${
         show ? "translate-x-0" : "-translate-x-full"
       } z-50`}
 

@@ -316,7 +316,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                 <Button
                   value={"Cancel"}
                   onClick={props.onCancel}
-                  className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
+                  className="w-32 my-2 px-2 bg-transparent  border border-primary text-primary "
                 />
                 <Button
                   value={"Save"}
@@ -326,7 +326,7 @@ const MembersForm: React.FC<MembersFormProps> = (props) => {
                   }}
                   loading={props.loading}
                   disabled={props.disabled || props.loading}
-                  className="w-32 my-2 px-2  bg-primaryViolet  border border-primaryViolet text-white "
+                  className="w-32 my-2 px-2  bg-primary  border border-primary text-white "
                 />
               </div>
             </section>

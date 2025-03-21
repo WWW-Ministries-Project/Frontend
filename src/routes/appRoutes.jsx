@@ -26,6 +26,9 @@ import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
+import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 
 
 export const routes = [
@@ -241,6 +244,28 @@ export const routes = [
             sideTab: false,
           },
         ]
+      },
+      {
+        path: "ministry-school",
+        name: "School of Ministry",
+        element: <MinistrySchool />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+        sideTab: true,
+      },
+      {
+        path: "ministry-school/:id",
+        name: "View Program",
+        element: <ViewProgram />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/:id/:id",
+        name: "View Cohort",
+        element: <ViewCohort />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
       },
       {
         path: "*",
