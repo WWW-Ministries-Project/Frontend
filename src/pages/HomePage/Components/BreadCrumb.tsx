@@ -26,7 +26,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight/> }) =>
                 <React.Fragment key={index}>
                   {index > 0 && <li className="text-dark900">{separator}</li>}
                   {isLast ? (
-                    <li className="text-dark900 text-bold " aria-current="page">
+                    <li className="text-dark900 font-bold " aria-current="page">
                       {value.replace(/-/g, " ").replace(/_/g, " ")}
                     </li>
                   ) : (

@@ -1,4 +1,4 @@
-import ContactInput from "@/components/ContactInput";
+import {ContactInput} from "@/components/ContactInput";
 import PropTypes from 'prop-types';
 import Button from "/src/components/Button";
 
