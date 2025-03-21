@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectField";
-import ContactInput from "@/components/ContactInput";
+import {ContactInput} from "@/components/ContactInput";
 
 interface RegisterMemberProps {
     memberDetails: {
