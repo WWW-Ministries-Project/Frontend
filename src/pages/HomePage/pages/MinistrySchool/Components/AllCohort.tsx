@@ -70,7 +70,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate }) => {
 
         <section className="">
           <div className="container mx-auto text-dark900">
-            <div className="grid gap-4 grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
               {cohortsData.map((cohort) => (
                 <div
                   key={cohort.id}

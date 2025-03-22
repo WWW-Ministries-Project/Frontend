@@ -1,5 +1,7 @@
 import { Formik, Field, Form } from 'formik';
 import * as Yup from 'yup';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 interface ClassFormProps {
   onClose: () => void;
@@ -24,19 +26,21 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
     schedule: Yup.string().required('Schedule is required'),
     classFormat: Yup.string().required('Class format is required'),
     location: Yup.string().when('classFormat', {
-      is: 'in-person',
-      then: (schema) => schema.required('Location is required for in-person classes'),
+      is: (value: any) => value === 'in-person' || value === 'hybrid',
+      then: (schema) => schema.required('Location is required for in-person or hybrid classes'),
     }),
     meetingLink: Yup.string().when('classFormat', {
-      is: 'online',
-      then: (schema) => schema.required('Meeting link is required for online classes'),
+      is: (value: any) => value === 'online' || value === 'hybrid',
+      then: (schema) => schema.required('Meeting link is required for online or hybrid classes'),
     }),
   });
 
   return (
-    <div className="bg-white p-6 rounded-lg w-[45rem] text-dark900 space-y-4">
-      <div className="text-lg font-bold text-center">Add New Class</div>
-      <div className="text-sm text-center mb-4">Create a new class for the Spring 2023 cohort.</div>
+    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-dark900 space-y-4 overflow-auto">
+      <div className=''>
+      <div className="text-lg font-bold">Add New Class</div>
+      <div className="text-sm  mb-4">Create a new class for the Spring 2023 cohort.</div>
+      </div>
 
       <Formik
         initialValues={initialValues}
@@ -45,7 +49,8 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
       >
         {({ errors, touched, values, setFieldValue }) => (
           <Form className="space-y-4">
-            {/* Class Name */}
+            <div className="grid lg:grid-cols-2 gap-4">
+                {/* Class Name */}
             <div className="flex gap-4">
               <div className="w-full">
                 <label htmlFor="className" className="block text-sm font-medium text-dark900">
@@ -82,7 +87,9 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
                 )}
               </div>
             </div>
+            </div>
 
+            <div className="grid lg:grid-cols-2 gap-4">
             {/* Capacity */}
             <div className="flex gap-4">
               <div className="w-full">
@@ -120,12 +127,13 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
                 )}
               </div>
             </div>
+            </div>
 
             {/* Class Format */}
             <div className="flex gap-4">
               <div className="w-full">
                 <label className="block text-sm font-medium text-dark900">Class Format *</label>
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <label>
                     <Field
                       type="radio"
@@ -160,8 +168,9 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
               </div>
             </div>
 
-            {/* Location (shown only if "In-Person" is selected) */}
-            {values.classFormat === 'in-person' && (
+            <div className="grid lg:grid-cols-2 gap-4">
+            {/* Location (shown only if "In-Person" or "Hybrid" is selected) */}
+            {(values.classFormat === 'in-person' || values.classFormat === 'hybrid') && (
               <div className="flex gap-4">
                 <div className="w-full">
                   <label htmlFor="location" className="block text-sm font-medium text-dark900">
@@ -201,19 +210,20 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, onSubmit }) => {
                 </div>
               </div>
             )}
+            </div>
 
             {/* Submit Button */}
-            <div className="flex justify-between gap-4 mt-4">
+            <div className="flex  gap-4 mt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-primaryViolet text-primaryViolet px-6 py-2 rounded-lg"
+                className="border border-primary text-primary px-6 py-2 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-primaryViolet text-white px-6 py-2 rounded-lg"
+                className="bg-primary text-white px-6 py-2 rounded-lg"
               >
                 Create Class
               </button>

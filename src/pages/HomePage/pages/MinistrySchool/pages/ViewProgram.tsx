@@ -66,11 +66,13 @@ const ViewProgram = () => {
         <section className="bg-primary p-4 space-y-3 rounded-t-lg sticky top-0">
           <div className="container mx-auto flex justify-between">
             <div className="space-y-3">
+              <div>
               <div className="flex gap-4 items-center">
-                <h1 className="text-white text-2xl font-bold">{cohort.title}</h1>
+                <h1 className="text-white  md:text-2xl font-bold">{cohort.title}</h1>
                 <Badge className="bg-green/80 border-green/30 font-medium text-xs text-dark900">Open to all</Badge>
               </div>
-              <p className="text-white">{cohort.description}</p>
+              <p className="text-white text-sm">{cohort.description}</p>
+              </div>
 
               <div className="space-y-1">
                 <p className="text-white text-lg font-semibold">Topics</p>
@@ -84,7 +86,7 @@ const ViewProgram = () => {
               </div>
             </div>
 
-            <div>
+            <div className="hidden md:block">
               <div className="flex items-center gap-2">
                 <Button value="Edit Program" className="p-2 m-1 text-primary min-h-10 max-h-14 bg-white" />
                 <Button value="View Application Page" className="p-2 m-1 text-white min-h-10 max-h-14 border border-white" />

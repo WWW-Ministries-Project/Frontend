@@ -181,7 +181,7 @@ const MinistrySchool = () => {
           screenWidth={window.innerWidth}
         />
 
-        <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2 xs:grid-cols-2">
+        <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2 ">
           {programs.map((program) => {
             const cohortsToShow = getCohortToShow(program.cohorts);
 

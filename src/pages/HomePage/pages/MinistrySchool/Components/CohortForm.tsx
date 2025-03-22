@@ -37,7 +37,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, onSubmit }) => {
   });
 
   return (
-    <div className="bg-white p-6 rounded-lg w-[45rem] text-dark900 space-y-4">
+    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-dark900 space-y-4">
       <div>
       <div className="text-lg font-bold">Add New Cohort</div>
       <div className="text-sm mb-4">Create a new cohort for the Biblical Leadership program.</div>

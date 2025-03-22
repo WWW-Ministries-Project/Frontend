@@ -3,8 +3,10 @@ import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import ClassForm from "../Components/ClassForm";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
+import { useState } from "react";
 
 const ViewCohort = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
   // Mock data for cohort (You can replace this with real data from an API or database)
  
    const cohort =
@@ -105,10 +107,12 @@ const ViewCohort = () => {
                 {/* Classes */}
                     <div className="flex justify-between items-center">
                       <div className="font-semibold text-lg">Classes</div>
-                      <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" />
+                      <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" 
+                      onClick={() => setIsModalOpen(true)}
+                      />
                     </div>
 
-                    <div className="grid gap-4 grid-cols-2">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
                     {cohort.classes.map((classItem) => (
                       <div key={classItem.id} className="border border-lightGray shadow-sm rounded-lg p-4 space-y-2">
                         <div className="space-y-2">
@@ -155,9 +159,9 @@ const ViewCohort = () => {
                   </div>
         </section>
       </PageOutline>
-      <Modal open={true} onClose={() => console.log("Modal closed")}>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ClassForm 
-          onClose={() => console.log("ClassForm closed")} 
+          onClose={() => setIsModalOpen(false)} 
           onSubmit={(data) => console.log("ClassForm submitted", data)} 
         />
       </Modal>

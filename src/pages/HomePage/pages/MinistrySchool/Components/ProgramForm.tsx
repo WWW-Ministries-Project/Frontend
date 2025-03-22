@@ -17,7 +17,7 @@ interface ProgramFormProps {
 
 const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
   return (
-    <div className="bg-white p-4 rounded-lg w-[45rem] text-dark900 space-y-4">
+    <div className="bg-white p-4 rounded-lg md:w-[45rem] text-dark900 space-y-4">
       <div>
         <div className="font-bold text-lg">Create New Program</div>
         <p className="text-sm">Fill in the program details to create a new school program.</p>
