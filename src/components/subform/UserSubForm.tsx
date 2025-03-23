@@ -7,6 +7,7 @@ import {
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
 import { getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
+import { string } from "yup";
 
 const UserSubFormComponent = ({ prefix }: { prefix: string }) => {
   const { values: entire, setFieldValue } = useFormikContext<object>();
@@ -57,7 +58,10 @@ const initialValues = {
   },
   has_children: false,
 };
-
+const validationSchema = {
+  ...PersonalDetails.validationSchema,
+};
 export const UserSubForm = Object.assign(UserSubFormComponent, {
   initialValues,
+  validationSchema,
 });

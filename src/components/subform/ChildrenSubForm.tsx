@@ -57,6 +57,8 @@ const initialValues = {
   children: [PersonalDetails.initialValues],
 };
 
+const validationSchema = {};
 export const ChildrenSubForm = Object.assign(ChildrenSubFormComponent, {
   initialValues,
+  validationSchema,
 });

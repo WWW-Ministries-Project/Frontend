@@ -91,6 +91,8 @@ const initialValues: IWorkInfoSubForm = {
   work_position: "",
   school_name: "",
 };
+const validationSchema = {};
 export const WorkInfoSubForm = Object.assign(WorkInfoSubFormComponent, {
   initialValues,
+  validationSchema,
 });

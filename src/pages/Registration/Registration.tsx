@@ -10,6 +10,7 @@ import {
 } from "@components/subform";
 import { Formik } from "formik";
 import { useState } from "react";
+import { object } from "yup";
 import {
   IWorkInfoSubForm,
   WorkInfoSubForm,
@@ -29,7 +30,15 @@ const Registration = () => {
   // const [steps, setSteps] = useState(stepss);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleNext = (formikSubmit: () => void) => {
+  const handleNext = async (
+    validateForm: () => Promise<any>,
+    formikSubmit: () => void
+  ) => {
+    const errors = await validateForm();
+    if (Object.keys(errors).length > 0) {
+      console.log("Validation failed:", errors);
+      return;
+    }
     setCurrentStep((prev) => (prev == steps.length - 1 ? prev : prev + 1));
     if (currentStep === steps.length - 1) {
       formikSubmit();
@@ -53,14 +62,15 @@ const Registration = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={(values) => console.log(values, "values")}
+          validationSchema={validationSchema[currentStep]}
         >
-          {({ handleSubmit }) => (
+          {({ handleSubmit, validateForm }) => (
             <>
               <Stepper
                 steps={steps}
                 currentStep={currentStep}
                 handleNext={() => {
-                  handleNext(handleSubmit);
+                  handleNext(validateForm, handleSubmit);
                 }}
                 handleBack={handleBack}
               />
@@ -78,6 +88,13 @@ interface IRegistration extends IChildrenSubForm {
   work_info: IWorkInfoSubForm;
   status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
 }
+const validationSchema = [
+  object({ personal_info: object(UserSubForm.validationSchema) }),
+  object({ contact_info: object(ContactsSubForm.validationSchema) }),
+  object({ children: object(ChildrenSubForm.validationSchema) }),
+  object({ work_info: object(WorkInfoSubForm.validationSchema) }),
+];
+
 const initialValues: IRegistration = {
   personal_info: UserSubForm.initialValues,
   contact_info: ContactsSubForm.initialValues,

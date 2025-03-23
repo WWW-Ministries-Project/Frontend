@@ -98,6 +98,8 @@ const initialValues: IPersonalDetails = {
   marital_status: "",
   nationality: "",
 };
+const validationSchema = {};
 export const PersonalDetails = Object.assign(PersonalDetailsComponent, {
   initialValues,
+  validationSchema
 });
