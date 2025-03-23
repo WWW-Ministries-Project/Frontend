@@ -1,9 +1,13 @@
-import FormikInputDiv from "@/components/FormikInput";
+import FormHeaderWrapper from "@/Wrappers/FormHeaderWrapper";
 import FormikSelectField from "@/components/FormikSelect";
 import {
   ContactDetails,
   IContactDetails,
 } from "@/pages/HomePage/Components/subforms/ContactDetails";
+import {
+  EmergencyContact,
+  IEmergencyContact,
+} from "@/pages/HomePage/Components/subforms/EmergencyContact";
 import {
   IPersonalDetails,
   PersonalDetails,
@@ -19,9 +23,6 @@ interface IProps {
 }
 
 const MembersFormComponent = ({ disabled = false }: IProps) => {
-  // function handleChange(name: string, value: string | boolean) {
-  //   props.onChange(name, value);
-  // }
   const { departmentsOptions } = useSettingsStore();
   const { positionsOptions } = useSettingsStore();
 
@@ -108,9 +109,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         </section>
         <hr className="border-t border-neutralGray " />
         <section>
-          <div className=" text-dark900 H600 font-extrabold my-5">
-            Work Information
-          </div>
+          <FormHeaderWrapper>Work Information</FormHeaderWrapper>
           <WorkInfoSubForm disabled={disabled} />
         </section>
         <hr className="border-t border-neutralGray " />
@@ -119,28 +118,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
             Emergency Contact
           </div>
           <div className="w-full  grid tablet:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Name of Contact"
-              disabled={disabled}
-              id="emergency_contact_name"
-              name="emergency_contact_name"
-            />
-            <Field
-              component={FormikSelectField}
-              label="Relation"
-              disabled={disabled}
-              id="emergency_contact_relation"
-              name="emergency_contact_relation"
-              options={relationOptions}
-            />
-            <Field
-              component={FormikInputDiv}
-              label="Phone Number"
-              disabled={disabled}
-              id="emergency_contact_phone_number"
-              name="emergency_contact_phone_number"
-            />
+            <EmergencyContact disabled={disabled} />
           </div>
         </section>
         <hr className="border-t border-neutralGray " />
@@ -149,30 +127,16 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
   );
 };
 
-const relationOptions = [
-  { name: "Brother", value: "brother" },
-  { name: "Sister", value: "sister" },
-  { name: "Father", value: "father" },
-  { name: "Mother", value: "mother" },
-  { name: "Husband", value: "husband" },
-  { name: "Wife", value: "wife" },
-  { name: "Son", value: "son" },
-  { name: "Daughter", value: "daughter" },
-  { name: "Other", value: "other" },
-];
-
 export interface IMembersForm
   extends IPersonalDetails,
     IContactDetails,
-    IWorkInfoSubForm {
+    IWorkInfoSubForm,
+    IEmergencyContact {
   membership_type: "MEMBER" | "VISITOR";
   title: string;
   is_user: boolean;
   department_id?: number;
   position_id?: number;
-  emergency_contact_name?: string;
-  emergency_contact_relation?: string;
-  emergency_contact_phone_number?: string;
   link: string;
 }
 
@@ -185,9 +149,7 @@ const initialValues: IMembersForm = {
   department_id: undefined,
   position_id: undefined,
   ...WorkInfoSubForm.initialValues,
-  emergency_contact_name: "",
-  emergency_contact_relation: "",
-  emergency_contact_phone_number: "",
+  ...EmergencyContact.initialValues,
   link: "",
 };
 

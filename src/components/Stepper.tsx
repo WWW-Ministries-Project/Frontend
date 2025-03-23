@@ -1,4 +1,5 @@
 import React from "react";
+import Button from "./Button";
 
 interface Step {
   label: string;
@@ -19,7 +20,7 @@ const Stepper: React.FC<StepperProps> = ({
   handleBack,
 }) => {
   return (
-    <div className=" mx-auto p-6">
+    <div className=" mx-auto p-6 ">
       {/* Step Indicators */}
       <div className="flex justify-between items-center mb-6">
         {steps.map((step, index) => (
@@ -45,20 +46,18 @@ const Stepper: React.FC<StepperProps> = ({
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
-        <button
+        <Button
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="px-4 py-2 bg-gray-400 text-white rounded disabled:opacity-50"
-        >
-          Back
-        </button>
-        <button
+          className="secondary"
+          value="Back"
+        />
+        <Button
           onClick={handleNext}
           disabled={currentStep === steps.length - 1}
           className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          {currentStep === steps.length - 1 ? "Finish" : "Next"}
-        </button>
+          value={currentStep === steps.length - 1 ? "Finish" : "Next"}
+        />
       </div>
     </div>
   );
