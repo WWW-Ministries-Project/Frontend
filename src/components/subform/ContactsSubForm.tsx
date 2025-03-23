@@ -1,18 +1,18 @@
 import { ContactInput } from "@/components/ContactInput";
 import FormikInputDiv from "@/components/FormikInput";
+import { FormLayout } from "@/components/ui";
+import { FormHeader } from "@/components/ui";
 import {
   EmergencyContact,
   IEmergencyContact,
 } from "@/pages/HomePage/Components/subforms/EmergencyContact";
-import FormHeaderWrapper from "@/Wrappers/FormHeaderWrapper";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { Field } from "formik";
 
 const ContactsSubFormComponent = () => {
   return (
     <section>
-      <SubFormWrapper>
-        <FormHeaderWrapper>Personal Information</FormHeaderWrapper>
+      <FormLayout>
+        <FormHeader>Personal Information</FormHeader>
         <ContactInput disabled={false} label={"Enter phone number"} />
         <Field
           component={FormikInputDiv}
@@ -46,9 +46,9 @@ const ContactsSubFormComponent = () => {
           name="city"
           type={"text"}
         />
-        <FormHeaderWrapper>Emergency Contact</FormHeaderWrapper>
+        <FormHeader>Emergency Contact</FormHeader>
         <EmergencyContact />
-      </SubFormWrapper>
+      </FormLayout>
     </section>
   );
 };

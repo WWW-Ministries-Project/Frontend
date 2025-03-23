@@ -1,28 +1,22 @@
-import React from "react";
-import Button from "./Button";
+import Button from "../../../components/Button";
 
-interface Step {
-  label: string;
-  content: JSX.Element;
-}
-
-interface StepperProps {
-  steps: Step[];
+interface IProps {
+  steps: IStep[];
   currentStep: number;
   handleNext: () => void;
   handleBack: () => void;
 }
 
-const Stepper: React.FC<StepperProps> = ({
+export const Stepper = ({
   steps,
   currentStep,
   handleNext,
   handleBack,
-}) => {
+}: IProps) => {
   return (
     <div className=" mx-auto p-6 ">
       {/* Step Indicators */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="hidden md:flex justify-between items-center mb-6">
         {steps.map((step, index) => (
           <div key={index} className="flex items-center">
             <div
@@ -30,13 +24,12 @@ const Stepper: React.FC<StepperProps> = ({
                 ${index === currentStep ? "font-bold" : ""}
               `}
             >
-              <span className="w-8 h-8 flex items-center justify-center rounded-full border">{index + 1}</span>
+              <span className="w-4 h-4 md:w-8 md:h-8 flex items-center justify-center rounded-full border">
+                {index + 1}
+              </span>
               {/* <div className="h-2 w-5 bg-gray-300"></div> */}
               <span>{step.label}</span>
             </div>
-            {index < steps.length - 1 && (
-              <div className="w-16 h-1 bg-gray-300 mx-2"></div>
-            )}
           </div>
         ))}
       </div>
@@ -63,4 +56,7 @@ const Stepper: React.FC<StepperProps> = ({
   );
 };
 
-export default Stepper;
+interface IStep {
+  label: string;
+  content: JSX.Element;
+}

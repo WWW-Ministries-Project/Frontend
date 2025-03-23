@@ -1,10 +1,14 @@
 import FormikInputDiv from "@/components/FormikInput";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
+import {FormLayout} from "@/components/ui";
 import { Field } from "formik";
 
-const WorkInfoSubFormComponent = ({ disabled=false }: { disabled?: boolean }) => {
+const WorkInfoSubFormComponent = ({
+  disabled = false,
+}: {
+  disabled?: boolean;
+}) => {
   return (
-    <SubFormWrapper>
+    <FormLayout>
       <Field
         component={FormikInputDiv}
         label="Name of Institution"
@@ -29,7 +33,7 @@ const WorkInfoSubFormComponent = ({ disabled=false }: { disabled?: boolean }) =>
         name="work_position"
         disabled={disabled}
       />
-    </SubFormWrapper>
+    </FormLayout>
   );
 };
 

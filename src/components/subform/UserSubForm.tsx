@@ -1,11 +1,11 @@
 import ProfilePicture from "@/components/ProfilePicture";
+import { FormLayout } from "@/components/ui";
+import {FullWidth} from "@/components/ui";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/pages/HomePage/Components/subforms/PersonalDetails";
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
-import FullWidthWrapper from "@/Wrappers/FullWidthWrapper";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { useFormikContext } from "formik";
 
 const UserSubFormComponent = () => {
@@ -24,17 +24,17 @@ const UserSubFormComponent = () => {
         }}
         textClass={"text-3xl text-dark900"}
       />
-      <SubFormWrapper>
+      <FormLayout>
         <PersonalDetails />
-        <FullWidthWrapper>
+        <FullWidth>
           <div className="flex flex-col">
             <p className="text-dark900 leading-5 mb-2">
               Are your children members of the church?
             </p>
             <RadioInput name="has_children" />
           </div>
-        </FullWidthWrapper>
-      </SubFormWrapper>
+        </FullWidth>
+      </FormLayout>
     </section>
   );
 };

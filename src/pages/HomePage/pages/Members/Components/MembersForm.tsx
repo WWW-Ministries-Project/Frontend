@@ -1,5 +1,5 @@
-import FormHeaderWrapper from "@/Wrappers/FormHeaderWrapper";
 import FormikSelectField from "@/components/FormikSelect";
+import {FormHeader} from "@/components/ui";
 import {
   ContactDetails,
   IContactDetails,
@@ -109,7 +109,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         </section>
         <hr className="border-t border-neutralGray " />
         <section>
-          <FormHeaderWrapper>Work Information</FormHeaderWrapper>
+          <FormHeader>Work Information</FormHeader>
           <WorkInfoSubForm disabled={disabled} />
         </section>
         <hr className="border-t border-neutralGray " />

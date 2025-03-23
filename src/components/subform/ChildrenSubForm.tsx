@@ -1,43 +1,42 @@
 import Button from "@/components/Button";
+import { FormHeader, FormLayout } from "@/components/ui";
+import {FullWidth} from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/pages/HomePage/Components/subforms/PersonalDetails";
-import FormHeaderWrapper from "@/Wrappers/FormHeaderWrapper";
-import FullWidthWrapper from "@/Wrappers/FullWidthWrapper";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { FieldArray, useFormikContext } from "formik";
 
 const ChildrenSubFormComponent = () => {
   const { values } = useFormikContext<IChildrenSubForm>();
 
   return (
-    <SubFormWrapper>
-      <FormHeaderWrapper>Children</FormHeaderWrapper>
+    <FormLayout>
+      <FormHeader>Children</FormHeader>
       <FieldArray name="children">
         {({ unshift, remove }) => (
           <>
-            <FullWidthWrapper $justify={"right"}>
+            <FullWidth $justify={"right"}>
               <Button
                 value="Add Another Child"
                 className="default"
                 type="button"
                 onClick={() => unshift(initialValues.children[0])}
               />
-            </FullWidthWrapper>
+            </FullWidth>
             {values.children.map((_, index) => (
               <>
                 {index > 0 && <HorizontalLine />}
                 {index > 0 && (
-                  <FullWidthWrapper $justify={"right"}>
+                  <FullWidth $justify={"right"}>
                     <Button
                       value="Remove"
                       className="secondary"
                       type="button"
                       onClick={() => remove(index)}
                     />
-                  </FullWidthWrapper>
+                  </FullWidth>
                 )}
                 <PersonalDetails key={index} />
               </>
@@ -45,7 +44,7 @@ const ChildrenSubFormComponent = () => {
           </>
         )}
       </FieldArray>
-    </SubFormWrapper>
+    </FormLayout>
   );
 };
 
