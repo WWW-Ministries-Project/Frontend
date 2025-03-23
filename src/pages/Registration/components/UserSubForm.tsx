@@ -27,10 +27,12 @@ const UserSubFormComponent = () => {
       <SubFormWrapper>
         <PersonalDetails />
         <FullWidthWrapper>
-          <p className="text-dark900 leading-5 mb-2">
-            Are your children members of the church?
-          </p>
-          <RadioInput name="has_children" />
+          <div className="flex flex-col">
+            <p className="text-dark900 leading-5 mb-2">
+              Are your children members of the church?
+            </p>
+            <RadioInput name="has_children" />
+          </div>
         </FullWidthWrapper>
       </SubFormWrapper>
     </section>

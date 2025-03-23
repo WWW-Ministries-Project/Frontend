@@ -2,12 +2,13 @@ import FormikInputDiv from "@/components/FormikInput";
 import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { Field } from "formik";
 
-const WorkInfoSubFormComponent = ({ disabled }: { disabled: boolean }) => {
+const WorkInfoSubFormComponent = ({ disabled=false }: { disabled?: boolean }) => {
   return (
     <SubFormWrapper>
       <Field
         component={FormikInputDiv}
         label="Name of Institution"
+        placeholder="Enter name of institution"
         id="work_name"
         name="work_name"
         disabled={disabled}
@@ -15,6 +16,7 @@ const WorkInfoSubFormComponent = ({ disabled }: { disabled: boolean }) => {
       <Field
         component={FormikInputDiv}
         label="Industry"
+        placeholder="Enter industry"
         id="work_industry"
         name="work_industry"
         disabled={disabled}
@@ -22,6 +24,7 @@ const WorkInfoSubFormComponent = ({ disabled }: { disabled: boolean }) => {
       <Field
         component={FormikInputDiv}
         label="Position"
+        placeholder="Enter position"
         id="work_position"
         name="work_position"
         disabled={disabled}
