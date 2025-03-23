@@ -97,7 +97,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate }) => {
                     <Button
                       value="Manage Cohort"
                       className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
-                      onClick={() => navigate(`cohort/${cohort.id}`)}
+                      onClick={() => navigate(`cohort?${cohort.id}`)}
                     />
                   </div>
                 </div>

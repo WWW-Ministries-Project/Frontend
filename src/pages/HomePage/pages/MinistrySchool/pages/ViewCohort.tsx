@@ -4,6 +4,7 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import ClassForm from "../Components/ClassForm";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 import { useState } from "react";
+import ClassCard from "../Components/ClassCard";
 
 const ViewCohort = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,46 +115,7 @@ const ViewCohort = () => {
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
                     {cohort.classes.map((classItem) => (
-                      <div key={classItem.id} className="border border-lightGray shadow-sm rounded-lg p-4 space-y-2">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <div className="font-semibold text-lg">{classItem.name}</div>
-                            <Badge className="text-xs bg-primary text-white">{classItem.format}</Badge>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div>Instructor</div>
-                            <div className="font-medium">{classItem.instructor}</div>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div>Schedule</div>
-                            <div className="font-medium">{classItem.schedule}</div>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div>Capacity</div>
-                            <div className="font-medium flex items-center gap-2">
-                              <div>{classItem.enrolled}/{classItem.capacity}</div>
-                              <Badge className="bg-yellow-200 text-xs text-yellow-900 border-lightGray">
-                                {classItem.enrolled >= classItem.capacity ? "Full" : "Almost full"}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <div>Location</div>
-                            <div className="font-medium">{classItem.location || "N/A"}</div>
-                          </div>
-
-                          {classItem.meetingLink && (
-                            <div className="flex justify-between items-center">
-                              <div>Meeting link</div>
-                              <div className="font-medium">{classItem.meetingLink}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                     <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
                     ))}
                     </div>
                   </div>

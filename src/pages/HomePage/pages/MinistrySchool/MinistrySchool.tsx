@@ -168,10 +168,10 @@ const MinistrySchool = () => {
     <div className="p-4">
       <PageOutline>
         <HeaderControls
-          title="Ministry School"
+          title=" School of Ministry"
           showSearch={false}
           showFilter={false}
-          totalMembers={0}
+          totalMembers={programs.length}
           btnName="Create program"
           handleNavigation={() => setIsModalOpen(true)}
           tableView={false}

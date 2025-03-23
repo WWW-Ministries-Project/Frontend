@@ -38,7 +38,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
         {({ values, setFieldValue, handleChange }) => (
           <Form>
             {/* Program Title */}
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <label htmlFor="programTitle" className="block text-sm font-medium text-dark900">
                 Program Title *
               </label>
@@ -52,7 +52,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             {/* Program Description */}
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <label htmlFor="programDescription" className="block text-sm font-medium text-dark900">
                 Description *
               </label>
@@ -66,9 +66,9 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             {/* Eligibility */}
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <label className="block text-sm font-medium text-dark900">Eligibility *</label>
-              <div className="flex flex-col space-y-1">
+              <div className="flex flex-col items space-y-1">
                 <label>
                   <Field
                     type="radio"
@@ -103,7 +103,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
             </div>
 
             {/* Program Topics */}
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <label className="block text-sm font-medium text-dark900">Program Topics</label>
               <FieldArray
                 name="topics"
@@ -127,34 +127,40 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
                     ))}
                     <div className="flex items-center space-x-2">
                       <Field
-                        type="text"
-                        name="newTopic"
-                        value={values.newTopic}
-                        onChange={handleChange}
-                        className="block w-full px-4 py-2 border border-lightGray rounded-lg"
-                        placeholder="Add a new topic"
+                      type="text"
+                      name="newTopic"
+                      value={values.newTopic}
+                      onChange={handleChange}
+                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                        if (e.key === "Enter" && values.newTopic) {
+                        push(values.newTopic);
+                        setFieldValue("newTopic", "");
+                        }
+                      }}
+                      className="block w-full px-4 py-2 border border-lightGray rounded-lg"
+                      placeholder="Add a new topic"
                       />
                       <button
-                        type="button"
-                        onClick={() => {
-                          if (values.newTopic) {
-                            push(values.newTopic);
-                            setFieldValue("newTopic", "");
-                          }
-                        }}
-                        className="bg-primary text-white px-4 py-2 rounded-lg"
+                      type="button"
+                      onClick={() => {
+                        if (values.newTopic) {
+                        push(values.newTopic);
+                        setFieldValue("newTopic", "");
+                        }
+                      }}
+                      className="bg-primary text-white px-4 py-2 rounded-lg"
                       >
-                        Add
+                      Add
                       </button>
                     </div>
-                    <p className="text-sm">Press Enter or click Add Topic to add a new topic to the program</p>
+                    <p className="text-xs">Press Enter or click Add Topic to add a new topic to the program</p>
                   </div>
                 )}
               />
             </div>
 
             {/* Prerequisites */}
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <label className="block text-sm font-medium text-dark900">Prerequisites</label>
               <div>
                 <Field
@@ -180,20 +186,20 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
 
             {/* Submit Button */}
             <div className="flex gap-4">
-            <div className="mt-4 text-center">
-              <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg">
-                Submit
-              </button>
-            </div>
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={onClose}
-                className="border border-primary text-primary px-6 py-2 rounded-lg"
-              >
-                Close
-              </button>
-            </div>
+              <div className="mt-4 text-center">
+                <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg">
+                  Submit
+                </button>
+              </div>
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="border border-primary text-primary px-6 py-2 rounded-lg"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </Form>
         )}
