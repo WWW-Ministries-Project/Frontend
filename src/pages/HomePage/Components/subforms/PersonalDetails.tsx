@@ -1,24 +1,31 @@
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { Field, useFormikContext } from "formik";
 import { maritalOptions } from "../../pages/Members/utils";
+import { useCountryStore } from "../../store/coutryStore";
 
-const PersonalDetailsComponent = ({ disabled }: { disabled: boolean }) => {
+const PersonalDetailsComponent = ({
+  disabled = false,
+}: {
+  disabled?: boolean;
+}) => {
+  const { countryOptions } = useCountryStore();
   const { values } = useFormikContext<IPersonalDetails>();
   return (
-    <SubFormWrapper>
+    <>
       <Field
         component={FormikInputDiv}
         label="First Name"
         disabled={disabled}
+        placeholder="Enter first name"
         id="first_name"
         name="first_name"
       />
       <Field
         component={FormikInputDiv}
         label="Other Name"
+        placeholder="Enter other name"
         disabled={disabled}
         id="other_name"
         name="other_name"
@@ -26,6 +33,7 @@ const PersonalDetailsComponent = ({ disabled }: { disabled: boolean }) => {
       <Field
         component={FormikInputDiv}
         label="Last Name"
+        placeholder="Enter last name"
         disabled={disabled}
         id="last_name"
         name="last_name"
@@ -33,6 +41,7 @@ const PersonalDetailsComponent = ({ disabled }: { disabled: boolean }) => {
       <Field
         component={FormikInputDiv}
         label="Date of Birth"
+        placeholder="Enter date of birth"
         value={formatInputDate(values.date_of_birth)}
         disabled={disabled}
         id="date_of_birth"
@@ -57,7 +66,16 @@ const PersonalDetailsComponent = ({ disabled }: { disabled: boolean }) => {
         name="marital_status"
         placeholder={"select marital status"}
       />
-    </SubFormWrapper>
+      <Field
+        component={FormikSelectField}
+        label="Country"
+        placeholder="Select nationality"
+        id="nationality"
+        name="nationality"
+        options={countryOptions || []}
+        disabled={disabled}
+      />
+    </>
   );
 };
 export interface IPersonalDetails {
@@ -67,14 +85,16 @@ export interface IPersonalDetails {
   date_of_birth: string;
   gender: string;
   marital_status: string;
+  nationality: string;
 }
-const initialValues:IPersonalDetails = {
+const initialValues: IPersonalDetails = {
   first_name: "",
   other_name: "",
   last_name: "",
   date_of_birth: "",
   gender: "",
   marital_status: "",
+  nationality: "",
 };
 export const PersonalDetails = Object.assign(PersonalDetailsComponent, {
   initialValues,

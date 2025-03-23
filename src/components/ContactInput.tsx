@@ -2,12 +2,11 @@ import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
-import React, { useEffect, useState } from "react";
-import useStateRef from "react-usestateref";
+import { useEffect, useState } from "react";
 import FormikInputDiv from "./FormikInput";
 
 interface IProps {
-  disabled: boolean;
+  disabled?: boolean;
   label: string;
   className?: string;
   placeholder?: string;
@@ -16,13 +15,13 @@ interface IProps {
   required?: boolean;
 }
 
-const ContactInputComponent: React.FC<IProps> = ({
-  disabled,
+const ContactInputComponent = ({
+  disabled=false,
   label,
   className,
   zipCode,
   zipClass,
-}) => {
+}: IProps) => {
   const countryStore = useCountryStore();
   const [countries, setCountries] = useState<countryType[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
@@ -49,7 +48,6 @@ const ContactInputComponent: React.FC<IProps> = ({
 
   // Handle country code input change
   const handleInputChange = (_: string, value: string) => {
-    console.log(value, "value");
     const val = value.toString().toLowerCase();
     setSearchTerm(val);
 
@@ -60,7 +58,6 @@ const ContactInputComponent: React.FC<IProps> = ({
         country.name.toLowerCase().includes(val) ||
         country.dialCode.toLowerCase().includes(val)
     );
-    console.log("jjj", searchTerm);
     setFieldValue("country_code", filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
   };
