@@ -7,8 +7,10 @@ import { useCountryStore } from "../../store/coutryStore";
 
 const PersonalDetailsComponent = ({
   disabled = false,
+  prefix,
 }: {
   disabled?: boolean;
+  prefix: string;
 }) => {
   const { countryOptions } = useCountryStore();
   const { values } = useFormikContext<IPersonalDetails>();
@@ -19,24 +21,24 @@ const PersonalDetailsComponent = ({
         label="First Name"
         disabled={disabled}
         placeholder="Enter first name"
-        id="first_name"
-        name="first_name"
+        id={`${prefix}.first_name`}
+        name={`${prefix}.first_name`}
       />
       <Field
         component={FormikInputDiv}
         label="Other Name"
         placeholder="Enter other name"
         disabled={disabled}
-        id="other_name"
-        name="other_name"
+        id={`${prefix}.other_name`}
+        name={`${prefix}.other_name`}
       />
       <Field
         component={FormikInputDiv}
         label="Last Name"
         placeholder="Enter last name"
         disabled={disabled}
-        id="last_name"
-        name="last_name"
+        id={`${prefix}.last_name`}
+        name={`${prefix}.last_name`}
       />
       <Field
         component={FormikInputDiv}
@@ -44,8 +46,8 @@ const PersonalDetailsComponent = ({
         placeholder="Enter date of birth"
         value={formatInputDate(values.date_of_birth)}
         disabled={disabled}
-        id="date_of_birth"
-        name="date_of_birth"
+        id={`${prefix}.date_of_birth`}
+        name={`${prefix}.date_of_birth`}
         type="date"
       />
       <Field
@@ -53,8 +55,8 @@ const PersonalDetailsComponent = ({
         label="Gender"
         options={genderOptions}
         disabled={disabled}
-        id="gender"
-        name="gender"
+        id={`${prefix}.gender`}
+        name={`${prefix}.gender`}
         placeholder={"select gender"}
       />
       <Field
@@ -62,16 +64,16 @@ const PersonalDetailsComponent = ({
         label="Marital Status"
         options={maritalOptions}
         disabled={disabled}
-        id="marital_status"
-        name="marital_status"
+        id={`${prefix}.marital_status`}
+        name={`${prefix}.marital_status`}
         placeholder={"select marital status"}
       />
       <Field
         component={FormikSelectField}
         label="Country"
         placeholder="Select nationality"
-        id="nationality"
-        name="nationality"
+        id={`${prefix}.nationality`}
+        name={`${prefix}.nationality`}
         options={countryOptions || []}
         disabled={disabled}
       />

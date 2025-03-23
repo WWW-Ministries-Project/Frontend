@@ -13,6 +13,7 @@ interface IProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
+  prefix: string
 }
 
 const ContactInputComponent = ({
@@ -21,6 +22,7 @@ const ContactInputComponent = ({
   className,
   zipCode,
   zipClass,
+  prefix
 }: IProps) => {
   const countryStore = useCountryStore();
   const [countries, setCountries] = useState<countryType[]>([]);
@@ -65,7 +67,7 @@ const ContactInputComponent = ({
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
     setSearchTerm(country.dialCode);
-    setFieldValue("country_code", country.dialCode);
+    setFieldValue(`${prefix}.country_code`, country.dialCode);
     setFilteredCountries([]);
   };
 
@@ -77,8 +79,8 @@ const ContactInputComponent = ({
         <div className="relative w-20">
           <Field
             component={FormikInputDiv}
-            id="country_code"
-            name="country_code"
+            id={`${prefix}.country_code`}
+            name={`${prefix}.country_code`}
             disabled={disabled}
             onChange={handleInputChange}
             inputClass={`w-full ${
@@ -116,8 +118,8 @@ const ContactInputComponent = ({
         <div className="flex-grow">
           <Field
             component={FormikInputDiv}
-            id={"primary_number"}
-            name={"primary_number"}
+            id={`${prefix}.primary_number`}
+            name={`${prefix}.primary_number`}
             placeholder="enter phone number"
             disabled={disabled}
             inputClass={`w-full ${

@@ -1,15 +1,16 @@
 import Button from "@/components/Button";
-import { FormHeader, FormLayout } from "@/components/ui";
-import {FullWidth} from "@/components/ui";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/pages/HomePage/Components/subforms/PersonalDetails";
-import { FieldArray, useFormikContext } from "formik";
+import { FieldArray, getIn, useFormikContext } from "formik";
+import { useMemo } from "react";
 
 const ChildrenSubFormComponent = () => {
-  const { values } = useFormikContext<IChildrenSubForm>();
+  const { values:entire } = useFormikContext<object>();
+  const values: IChildrenSubForm["children"] = useMemo(() => getIn(entire, "children")|| initialValues, [entire]);
 
   return (
     <FormLayout>
@@ -25,7 +26,7 @@ const ChildrenSubFormComponent = () => {
                 onClick={() => unshift(initialValues.children[0])}
               />
             </FullWidth>
-            {values.children.map((_, index) => (
+            {values.map((_, index) => (
               <>
                 {index > 0 && <HorizontalLine />}
                 {index > 0 && (
@@ -38,7 +39,7 @@ const ChildrenSubFormComponent = () => {
                     />
                   </FullWidth>
                 )}
-                <PersonalDetails key={index} />
+                <PersonalDetails key={index} prefix={`children.${index}`} />
               </>
             ))}
           </>

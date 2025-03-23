@@ -1,15 +1,19 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { FormLayout } from "@/components/ui";
-import {FullWidth} from "@/components/ui";
+import { FormLayout, FullWidth } from "@/components/ui";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/pages/HomePage/Components/subforms/PersonalDetails";
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
-import { useFormikContext } from "formik";
+import { getIn, useFormikContext } from "formik";
+import { useMemo } from "react";
 
-const UserSubFormComponent = () => {
-  const { values, setFieldValue } = useFormikContext<IUserSubForm>();
+const UserSubFormComponent = ({ prefix }: { prefix: string }) => {
+  const { values: entire, setFieldValue } = useFormikContext<object>();
+  const values: IUserSubForm = useMemo(
+    () => getIn(entire, prefix) || initialValues,
+    [entire, prefix]
+  );
   return (
     <section>
       <ProfilePicture
@@ -20,12 +24,12 @@ const UserSubFormComponent = () => {
         alt="Profile Picture"
         editable={true}
         onChange={(obj) => {
-          setFieldValue("picture", obj);
+          setFieldValue(`${prefix}.picture`, obj);
         }}
         textClass={"text-3xl text-dark900"}
       />
       <FormLayout>
-        <PersonalDetails />
+        <PersonalDetails prefix={prefix} />
         <FullWidth>
           <div className="flex flex-col">
             <p className="text-dark900 leading-5 mb-2">
@@ -38,7 +42,7 @@ const UserSubFormComponent = () => {
     </section>
   );
 };
-interface IUserSubForm extends IPersonalDetails {
+export interface IUserSubForm extends IPersonalDetails {
   picture: {
     src: string;
     picture: File | null;

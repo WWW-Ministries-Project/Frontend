@@ -47,7 +47,7 @@ export const Stepper = ({
         />
         <Button
           onClick={handleNext}
-          disabled={currentStep === steps.length - 1}
+          // disabled={currentStep === steps.length - 1}
           className="px-4 py-2 bg-blue-600 text-white rounded"
           value={currentStep === steps.length - 1 ? "Finish" : "Next"}
         />

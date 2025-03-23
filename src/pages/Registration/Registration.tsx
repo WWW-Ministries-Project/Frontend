@@ -2,30 +2,38 @@ import ChurchLogo from "@/components/ChurchLogo";
 import { Stepper } from "@/pages/Registration/components/Stepper";
 import {
   ChildrenSubForm,
-  ContactDetails,
   ContactsSubForm,
+  IChildrenSubForm,
+  IContactsSubForm,
+  IUserSubForm,
   UserSubForm,
 } from "@components/subform";
 import { Formik } from "formik";
 import { useState } from "react";
-import { WorkInfoSubForm } from "../HomePage/pages/Members/Components/subforms/WorkInfoSubForm";
+import {
+  IWorkInfoSubForm,
+  WorkInfoSubForm,
+} from "../HomePage/pages/Members/Components/subforms/WorkInfoSubForm";
 
 const steps = [
-  { label: "User Info", content: <UserSubForm /> },
-  { label: "Contact Info", content: <ContactsSubForm /> },
+  { label: "User Info", content: <UserSubForm prefix={`personal_info`} /> },
+  {
+    label: "Contact Info",
+    content: <ContactsSubForm prefix={`contact_info`} />,
+  },
   { label: "Children", content: <ChildrenSubForm /> },
-  { label: "Work Info", content: <WorkInfoSubForm /> },
+  { label: "Work Info", content: <WorkInfoSubForm prefix="work_info" /> },
 ];
 
 const Registration = () => {
   // const [steps, setSteps] = useState(stepss);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleNext = () => {
-    // Run validation or async checks before proceeding
-    console.log(`Validating step ${currentStep}`);
-    // Proceed to the next step if checks pass
-    setCurrentStep((prev) => prev + 1);
+  const handleNext = (formikSubmit: () => void) => {
+    setCurrentStep((prev) => (prev == steps.length - 1 ? prev : prev + 1));
+    if (currentStep === steps.length - 1) {
+      formikSubmit();
+    }
   };
 
   const handleBack = () => {
@@ -42,25 +50,40 @@ const Registration = () => {
           </h2>
           <p className="md:text-2xl mb-4">Let's get started</p>
         </div>
-        <Formik initialValues={initialValues} onSubmit={() => {}}>
-          <Stepper
-            steps={steps}
-            currentStep={currentStep}
-            handleNext={handleNext}
-            handleBack={handleBack}
-          />
+        <Formik
+          initialValues={initialValues}
+          onSubmit={(values) => console.log(values, "values")}
+        >
+          {({ handleSubmit }) => (
+            <>
+              <Stepper
+                steps={steps}
+                currentStep={currentStep}
+                handleNext={() => {
+                  handleNext(handleSubmit);
+                }}
+                handleBack={handleBack}
+              />
+            </>
+          )}
         </Formik>
       </div>
     </div>
   );
 };
 
-const initialValues = {
-  ...UserSubForm.initialValues,
-  ...ContactDetails.initialValues,
-  ...ContactsSubForm.initialValues,
+interface IRegistration extends IChildrenSubForm {
+  personal_info: IUserSubForm;
+  contact_info: IContactsSubForm;
+  work_info: IWorkInfoSubForm;
+  status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
+}
+const initialValues: IRegistration = {
+  personal_info: UserSubForm.initialValues,
+  contact_info: ContactsSubForm.initialValues,
+  work_info: WorkInfoSubForm.initialValues,
+  status: "UNCONFIRMED",
   ...ChildrenSubForm.initialValues,
-  ...WorkInfoSubForm.initialValues,
 };
 
 export default Registration;

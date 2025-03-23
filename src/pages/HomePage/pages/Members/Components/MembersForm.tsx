@@ -1,17 +1,14 @@
 import FormikSelectField from "@/components/FormikSelect";
-import {FormHeader} from "@/components/ui";
-import {
-  ContactDetails,
-  IContactDetails,
-} from "@/pages/HomePage/Components/subforms/ContactDetails";
 import {
   EmergencyContact,
   IEmergencyContact,
-} from "@/pages/HomePage/Components/subforms/EmergencyContact";
+} from "@/components/subform/EmergencyContact";
+import { FormHeader } from "@/components/ui";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/pages/HomePage/Components/subforms/PersonalDetails";
+import { ContactsSubForm, IContactsSubForm } from "@components/subform";
 import { Field, useFormikContext } from "formik";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { titleOptions } from "../utils";
@@ -64,14 +61,14 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
               options={titleOptions}
             />
           </div>
-          <PersonalDetails disabled={disabled} />
+          <PersonalDetails disabled={disabled} prefix="personal_info" />
         </section>
         <hr className="border-t border-neutralGray " />
         <section>
           <div className=" text-dark900 H600 font-extrabold my-5">
             Contact Information
           </div>
-          <ContactDetails disabled={disabled} />
+          <ContactsSubForm disabled={disabled} prefix="contact_info" />
         </section>
         <hr className="border-t border-neutralGray " />
         <section>
@@ -110,7 +107,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         <hr className="border-t border-neutralGray " />
         <section>
           <FormHeader>Work Information</FormHeader>
-          <WorkInfoSubForm disabled={disabled} />
+          <WorkInfoSubForm disabled={disabled} prefix="work_info" />
         </section>
         <hr className="border-t border-neutralGray " />
         <section>
@@ -129,7 +126,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
 export interface IMembersForm
   extends IPersonalDetails,
-    IContactDetails,
+    IContactsSubForm,
     IWorkInfoSubForm,
     IEmergencyContact {
   membership_type: "MEMBER" | "VISITOR";
@@ -144,7 +141,7 @@ const initialValues: IMembersForm = {
   membership_type: "MEMBER",
   title: "",
   ...PersonalDetails.initialValues,
-  ...ContactDetails.initialValues,
+  ...ContactsSubForm.initialValues,
   is_user: false,
   department_id: undefined,
   position_id: undefined,
