@@ -32,6 +32,7 @@ import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewClass from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
+import Registration from "@/pages/Registration/Registration";
 
 
 export const routes = [
@@ -298,6 +299,11 @@ export const routes = [
       },
     ]
 
+  },
+  {
+    path: "/register-member",
+    element: <Registration />,
+    isPrivate: false
   },
   {
     path: "events/register-event",

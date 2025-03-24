@@ -2,27 +2,28 @@ import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
-import React, { useEffect, useState } from "react";
-import useStateRef from "react-usestateref";
+import { useEffect, useState } from "react";
 import FormikInputDiv from "./FormikInput";
 
 interface IProps {
-  disabled: boolean;
+  disabled?: boolean;
   label: string;
   className?: string;
   placeholder?: string;
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
+  prefix: string
 }
 
-const ContactInputComponent: React.FC<IProps> = ({
-  disabled,
+const ContactInputComponent = ({
+  disabled=false,
   label,
   className,
   zipCode,
   zipClass,
-}) => {
+  prefix
+}: IProps) => {
   const countryStore = useCountryStore();
   const [countries, setCountries] = useState<countryType[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
@@ -49,7 +50,6 @@ const ContactInputComponent: React.FC<IProps> = ({
 
   // Handle country code input change
   const handleInputChange = (_: string, value: string) => {
-    console.log(value, "value");
     const val = value.toString().toLowerCase();
     setSearchTerm(val);
 
@@ -60,7 +60,6 @@ const ContactInputComponent: React.FC<IProps> = ({
         country.name.toLowerCase().includes(val) ||
         country.dialCode.toLowerCase().includes(val)
     );
-    console.log("jjj", searchTerm);
     setFieldValue("country_code", filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
   };
@@ -68,7 +67,7 @@ const ContactInputComponent: React.FC<IProps> = ({
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
     setSearchTerm(country.dialCode);
-    setFieldValue("country_code", country.dialCode);
+    setFieldValue(`${prefix}.country_code`, country.dialCode);
     setFilteredCountries([]);
   };
 
@@ -80,8 +79,8 @@ const ContactInputComponent: React.FC<IProps> = ({
         <div className="relative w-20">
           <Field
             component={FormikInputDiv}
-            id="country_code"
-            name="country_code"
+            id={`${prefix}.country_code`}
+            name={`${prefix}.country_code`}
             disabled={disabled}
             onChange={handleInputChange}
             inputClass={`w-full ${
@@ -119,8 +118,8 @@ const ContactInputComponent: React.FC<IProps> = ({
         <div className="flex-grow">
           <Field
             component={FormikInputDiv}
-            id={"primary_number"}
-            name={"primary_number"}
+            id={`${prefix}.primary_number`}
+            name={`${prefix}.primary_number`}
             placeholder="enter phone number"
             disabled={disabled}
             inputClass={`w-full ${
