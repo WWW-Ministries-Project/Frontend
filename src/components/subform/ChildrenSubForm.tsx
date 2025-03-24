@@ -13,7 +13,7 @@ const ChildrenSubFormComponent = () => {
   const values: IChildrenSubForm["children"] = useMemo(() => getIn(entire, "children")|| initialValues, [entire]);
 
   return (
-    <FormLayout>
+    <>
       <FormHeader>Children</FormHeader>
       <FieldArray name="children">
         {({ unshift, remove }) => (
@@ -45,7 +45,7 @@ const ChildrenSubFormComponent = () => {
           </>
         )}
       </FieldArray>
-    </FormLayout>
+    </>
   );
 };
 

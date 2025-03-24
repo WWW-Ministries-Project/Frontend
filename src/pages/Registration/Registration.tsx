@@ -91,7 +91,7 @@ interface IRegistration extends IChildrenSubForm {
 const validationSchema = [
   object({ personal_info: object(UserSubForm.validationSchema) }),
   object({ contact_info: object(ContactsSubForm.validationSchema) }),
-  object({ children: object(ChildrenSubForm.validationSchema) }),
+  // object({ children: object(ChildrenSubForm.validationSchema) }),
   object({ work_info: object(WorkInfoSubForm.validationSchema) }),
 ];
 

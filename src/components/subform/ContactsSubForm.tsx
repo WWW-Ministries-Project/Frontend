@@ -15,9 +15,8 @@ const ContactsSubFormComponent = ({
   disabled?: boolean;
 }) => {
   return (
-    <section>
-      <FormLayout>
-        <FormHeader>Personal Information</FormHeader>
+    <>
+        <FormHeader>Contacts Information</FormHeader>
         <ContactInput
           disabled={disabled}
           label={"Enter phone number"}
@@ -61,8 +60,7 @@ const ContactsSubFormComponent = ({
         />
         <FormHeader>Emergency Contact</FormHeader>
         <EmergencyContact prefix={prefix} />
-      </FormLayout>
-    </section>
+    </>
   );
 };
 

@@ -18,7 +18,7 @@ const WorkInfoSubFormComponent = ({
     [entire, prefix]
   );
   return (
-    <FormLayout>
+    <>
       <Field
         component={FormikSelectField}
         label="Employment Status"
@@ -66,7 +66,7 @@ const WorkInfoSubFormComponent = ({
           disabled={disabled}
         />
       )}
-    </FormLayout>
+    </>
   );
 };
 

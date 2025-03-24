@@ -17,6 +17,14 @@ const PersonalDetailsComponent = ({
   return (
     <>
       <Field
+        component={FormikSelectField}
+        label="Title"
+        disabled={disabled}
+        id="title"
+        name="title"
+        options={titleOptions}
+      />
+      <Field
         component={FormikInputDiv}
         label="First Name"
         disabled={disabled}
@@ -80,6 +88,14 @@ const PersonalDetailsComponent = ({
     </>
   );
 };
+const titleOptions = [
+  { name: "Mr", value: "Mr" },
+  { name: "Mrs", value: "Mrs" },
+  { name: "Miss", value: "Miss" },
+  { name: "Doc", value: "Doc" },
+  { name: "Prof", value: "Prof" },
+  { name: "Pastor", value: "Pastor" },
+];
 export interface IPersonalDetails {
   first_name: string;
   other_name?: string;
@@ -88,8 +104,10 @@ export interface IPersonalDetails {
   gender: string;
   marital_status: string;
   nationality: string;
+  title: string;
 }
 const initialValues: IPersonalDetails = {
+  title: "",
   first_name: "",
   other_name: "",
   last_name: "",
@@ -101,5 +119,5 @@ const initialValues: IPersonalDetails = {
 const validationSchema = {};
 export const PersonalDetails = Object.assign(PersonalDetailsComponent, {
   initialValues,
-  validationSchema
+  validationSchema,
 });

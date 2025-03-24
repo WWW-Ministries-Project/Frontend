@@ -1,3 +1,4 @@
+import { FormLayout } from "@/components/ui";
 import Button from "../../../components/Button";
 
 interface IProps {
@@ -35,7 +36,9 @@ export const Stepper = ({
       </div>
 
       {/* Step Content */}
-      <div className="mb-6">{steps[currentStep].content}</div>
+      <div className="mb-6">
+        <FormLayout>{steps[currentStep].content}</FormLayout>
+      </div>
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
