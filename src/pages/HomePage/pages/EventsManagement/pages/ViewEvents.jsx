@@ -71,7 +71,7 @@ const ViewEvents = () => {
                     }}
                 ></div>
                 <div className="relative flex justify-center items-center  text-white bg-black/60 overflow-hidden rounded-t-lg">
-                    <div className="lg:container lg:w-4/6 flex justify-between items-center w-full p-4">
+                    <div className="lg:container flex justify-between items-center w-full p-4">
                     <div className="flex items-center gap-4">
                     <div className="w-[25rem] ">
                       <img className="rounded-lg" src={eventdetails.poster || defaultImage1} alt="" />
@@ -121,12 +121,12 @@ const ViewEvents = () => {
             </div>
 
             {/* Main Content Section */}
-            <div className="container mx-auto hideScrollbar p-4 lg:container lg:w-4/6 bg-white rounded-b-xl overflow-y-auto">
+            <div className="container mx-auto hideScrollbar    rounded-b-xl overflow-y-auto">
                 {/* Event Details Section */}
-                <div className="w-full min-h-[90%] gap-x-5 flex justify-between">
-                    <div className="w-full bg-white gap-3 rounded-xl">
+                <div className="w-full  bg-white min-h-[90%] gap-x-5 p-4 flex justify-between">
+                    <div className="w-full  gap-3 rounded-xl">
                         {/* Event Attendees Section */}
-                        <section className="w-full">
+                        <section className="w-full lg:container">
                             <div className="w-full mb-2">
                                 <h2 className="H400 text-dark900">Event Attendees</h2>
                             </div>

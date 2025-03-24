@@ -46,6 +46,31 @@ export class ApiCreationCalls {
     return this.postToApi<T>("position/create-position", payload);
   };
 
+    // Create Program
+    createProgram = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+      return this.postToApi<T>("programs", payload);
+    };
+  
+    // Create Cohort
+    createCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+      return this.postToApi<T>("cohorts", payload);
+    };
+  
+    // Create Course
+    createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+      return this.postToApi<T>("courses", payload);
+    };
+  
+    // Enroll User
+    enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+      return this.postToApi<T>("enroll", payload);
+    };
+  
+    // Unenroll User
+    unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+      return this.postToApi<T>("unenroll", payload);
+    };
+
   //todo :speak to BE TO UPDATE THIS TO PUT
   updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/update-user", payload);
