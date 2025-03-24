@@ -1,28 +1,23 @@
-import React from "react";
-import Button from "./Button";
+import { FormLayout } from "@/components/ui";
+import Button from "../../../components/Button";
 
-interface Step {
-  label: string;
-  content: JSX.Element;
-}
-
-interface StepperProps {
-  steps: Step[];
+interface IProps {
+  steps: IStep[];
   currentStep: number;
   handleNext: () => void;
   handleBack: () => void;
 }
 
-const Stepper: React.FC<StepperProps> = ({
+export const Stepper = ({
   steps,
   currentStep,
   handleNext,
   handleBack,
-}) => {
+}: IProps) => {
   return (
     <div className=" mx-auto p-6 ">
       {/* Step Indicators */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="hidden md:flex justify-between items-center mb-6">
         {steps.map((step, index) => (
           <div key={index} className="flex items-center">
             <div
@@ -30,19 +25,20 @@ const Stepper: React.FC<StepperProps> = ({
                 ${index === currentStep ? "font-bold" : ""}
               `}
             >
-              <span className="w-8 h-8 flex items-center justify-center rounded-full border">{index + 1}</span>
+              <span className="w-4 h-4 md:w-8 md:h-8 flex items-center justify-center rounded-full border">
+                {index + 1}
+              </span>
               {/* <div className="h-2 w-5 bg-gray-300"></div> */}
               <span>{step.label}</span>
             </div>
-            {index < steps.length - 1 && (
-              <div className="w-16 h-1 bg-gray-300 mx-2"></div>
-            )}
           </div>
         ))}
       </div>
 
       {/* Step Content */}
-      <div className="mb-6">{steps[currentStep].content}</div>
+      <div className="mb-6">
+        <FormLayout>{steps[currentStep].content}</FormLayout>
+      </div>
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
@@ -54,13 +50,15 @@ const Stepper: React.FC<StepperProps> = ({
         />
         <Button
           onClick={handleNext}
-          disabled={currentStep === steps.length - 1}
           className="px-4 py-2 bg-blue-600 text-white rounded"
-          value={currentStep === steps.length - 1 ? "Finish" : "Next"}
+          value={currentStep === steps.length - 1 ? "Submit" : "Next"}
         />
       </div>
     </div>
   );
 };
 
-export default Stepper;
+interface IStep {
+  label: string;
+  content: JSX.Element;
+}

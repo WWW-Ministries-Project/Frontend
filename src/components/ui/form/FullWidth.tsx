@@ -4,7 +4,7 @@ interface IProps {
   children: ReactNode;
   $justify?: "left" | "center" | "right";
 }
-const FullWidthWrapper = ({ children, $justify = "left" }: IProps) => {
+export const FullWidth = ({ children, $justify = "left" }: IProps) => {
   const justifyClasses = {
     left: "justify-start",
     center: "justify-center",
@@ -16,5 +16,3 @@ const FullWidthWrapper = ({ children, $justify = "left" }: IProps) => {
     </div>
   );
 };
-
-export default FullWidthWrapper;

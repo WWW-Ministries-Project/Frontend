@@ -4,8 +4,10 @@ import { Field } from "formik";
 
 const EmergencyContactComponent = ({
   disabled = false,
+  prefix
 }: {
   disabled?: boolean;
+  prefix: string;
 }) => {
   return (
     <>
@@ -13,23 +15,23 @@ const EmergencyContactComponent = ({
         component={FormikInputDiv}
         label="Name of Contact"
         disabled={disabled}
-        id="emergency_contact_name"
-        name="emergency_contact_name"
+        id={`${prefix}.emergency_contact_name`}
+        name={`${prefix}.emergency_contact_name`}
       />
       <Field
         component={FormikSelectField}
         label="Relation"
         disabled={disabled}
-        id="emergency_contact_relation"
-        name="emergency_contact_relation"
+        id={`${prefix}.emergency_contact_relation`}
+        name={`${prefix}.emergency_contact_relation`}
         options={relationOptions}
       />
       <Field
         component={FormikInputDiv}
         label="Phone Number"
         disabled={disabled}
-        id="emergency_contact_phone_number"
-        name="emergency_contact_phone_number"
+        id={`${prefix}.emergency_contact_phone_number`}
+        name={`${prefix}.emergency_contact_phone_number`}
       />
     </>
   );

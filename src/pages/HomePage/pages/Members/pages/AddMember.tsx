@@ -80,7 +80,7 @@ const AddMember = () => {
           {({ values, setFieldValue, handleSubmit }) => (
             <>
               <ProfilePicture
-                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
+                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
                 id="profile_picture"
                 name="profile_picture"
                 src={values.picture.src}
@@ -98,13 +98,14 @@ const AddMember = () => {
                   <Button
                     value={"Cancel"}
                     onClick={handleCancel}
-                    className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
+                    className="primary "
                   />
                   <Button
                     value={"Save"}
                     type="button"
+
                     onClick={handleSubmit}
-                    className="w-32 my-2 px-2 bg-primaryViolet border border-primaryViolet text-white"
+                    className="default"
                   />
                 </div>
               </section>

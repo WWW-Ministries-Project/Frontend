@@ -1,11 +1,14 @@
 import { ContactInput } from "@/components/ContactInput";
 import FormikInputDiv from "@/components/FormikInput";
-import SubFormWrapper from "@/Wrappers/SubFormWrapper";
 import { Field } from "formik";
 
-const ContactDetailsComponent = ({ disabled=false }: { disabled?: boolean }) => {
+const ContactDetailsComponent = ({
+  disabled = false,
+}: {
+  disabled?: boolean;
+}) => {
   return (
-    <SubFormWrapper>
+    <>
       <ContactInput label="Phone Number" disabled={disabled} />
       <Field
         component={FormikInputDiv}
@@ -22,7 +25,7 @@ const ContactDetailsComponent = ({ disabled=false }: { disabled?: boolean }) => 
         name="address"
         disabled={disabled}
       />
-    </SubFormWrapper>
+    </>
   );
 };
 
