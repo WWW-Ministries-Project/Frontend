@@ -4,6 +4,7 @@ import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import { useNavigate } from "react-router-dom";
+import { formatTime } from "@/utils/helperFunctions";
 
 // Define the Cohort type
 interface Cohort {
@@ -18,7 +19,7 @@ interface Program {
   id: number;
   title: string;
   description: string;
-  eligibility: "members" | "non-members" | "both";
+  eligibility: "Members" | "Non_Members" | "Both";
   topics: string[];
   cohorts: Cohort[];
 }
@@ -71,15 +72,15 @@ const ProgramsCard = ({
 
   const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element | null => {
     switch (eligibility) {
-      case "members":
+      case "Members":
         return <Badge>Members Only</Badge>;
-      case "non-members":
+      case "Non_Members":
         return (
           <Badge className="bg-red-50 text-xs text-red-700 border border-red-200">
-            Non-Members Only
+            Non Members Only
           </Badge>
         );
-      case "both":
+      case "Both":
         return (
           <Badge className="bg-green/10 text-xs text-green-700 border border-green/50">
             Open to All
@@ -110,7 +111,7 @@ const ProgramsCard = ({
         <div className="flex flex-wrap gap-2">
           {program.topics.map((topic: string, index: number) => (
             <p key={index} className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50">
-              {topic}
+              {topic.name}
             </p>
           ))}
         </div>
@@ -127,7 +128,7 @@ const ProgramsCard = ({
                   <div>
                     <div className="font-medium">{cohort.name}</div>
                     <div className="text-sm">
-                      <p>{cohort.startDate}</p>
+                      <p>{formatTime(cohort.startDate)}</p>
                     </div>
                   </div>
                   <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">{cohort.status}</Badge>

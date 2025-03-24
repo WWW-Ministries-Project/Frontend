@@ -11,12 +11,18 @@ export class ApiUpdateCalls {
       updateExecutor: updateData,
     });
   }
+
+  // Update Event
   updateEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("event/update-event", payload);
   };
+
+  // Update Asset
   updateAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);
   };
+
+  // Update Requisition
   updateRequisition = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
@@ -25,11 +31,15 @@ export class ApiUpdateCalls {
       payload
     );
   };
+
+  // Update Position
   updatePosition = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("position/update-position", payload);
   };
+
+  // Update Department
   updateDepartment = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
@@ -38,15 +48,42 @@ export class ApiUpdateCalls {
       payload
     );
   };
+
+  // Update Access Level
   updateAccessRight = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("access/update-access-level", payload);
   };
+
+  // Assign Access Level to User
   assignAccessRight = <T>(payload: {
     user_id: string | number;
     access_level_id: string | number;
   }): Promise<ApiResponse<AccessRight>> => {
-    return this.apiExecution.updateData("access/assign_access_to_user", payload);
+    return this.apiExecution.updateData(
+      "access/assign_access_to_user",
+      payload
+    );
+  };
+
+  // Update Program
+  updateProgram = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("programs/update-program", payload);
+  };
+
+  // Update Cohort
+  updateCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("cohorts/update-cohort", payload);
+  };
+
+  // Update Class
+  updateClass = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("courses/update-course", payload);
+  };
+
+  // Update Enrollment
+  updateEnrollment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("enrollments/update-enrollment", payload);
   };
 }
