@@ -132,6 +132,8 @@ const MinistrySchool = () => {
                   isMenuOpen={null}
                   cohorts={getCohortToShow(program.cohorts)}
                   handleCopyLink={() => {}}
+                  onOpen = {() => setIsModalOpen(true)}
+                  onClose={() => setIsModalOpen(false)}
                 />
               );
             })}

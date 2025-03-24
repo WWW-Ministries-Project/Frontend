@@ -29,6 +29,7 @@ interface ProgramsCardProps {
   cohorts: Cohort[];
   handleCopyLink: (programId: number) => void;
   toggleMenu: () => void;
+  onOpen: () => void;
   isMenuOpen: number | null; // Added isMenuOpen prop
 }
 
@@ -40,6 +41,7 @@ const ProgramsCard = ({
   program,
   cohorts,
   handleCopyLink,
+  onOpen
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
 
@@ -162,7 +164,7 @@ const ProgramsCard = ({
             {isMenuOpen === program.id && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg">
                 <ul className="py-1">
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Edit Program</li>
+                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer" onClick={onOpen}>Edit Program</li>
                   <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Add Cohort</li>
                   <li onClick={() => handleCopyLink(program.id)} className="px-4 py-2 hover:bg-lightGray cursor-pointer">
                     Copy Application Link
