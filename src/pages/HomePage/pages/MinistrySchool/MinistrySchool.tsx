@@ -190,9 +190,9 @@ const MinistrySchool = () => {
                 key={program.id}
                 program={program}
                 toggleMenu={() => toggleMenu(program.id)}
-                isMenuOpen={openMenuId }
+                isMenuOpen={openMenuId}
                 cohorts={cohortsToShow}
-                handleCopyLink = {handleCopyLink}
+                handleCopyLink={handleCopyLink}
               />
             );
           })}

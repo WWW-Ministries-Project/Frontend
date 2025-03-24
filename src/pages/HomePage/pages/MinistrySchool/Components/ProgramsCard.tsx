@@ -27,6 +27,8 @@ interface ProgramsCardProps {
   program: Program;
   cohorts: Cohort[];
   handleCopyLink: (programId: number) => void;
+  toggleMenu: () => void;
+  isMenuOpen: number | null; // Added isMenuOpen prop
 }
 
 interface EligibilityBadgeProps {

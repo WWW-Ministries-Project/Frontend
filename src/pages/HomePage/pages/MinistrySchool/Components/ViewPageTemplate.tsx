@@ -12,7 +12,7 @@ interface Data {
   duration: string;
   applicationDeadline: string;
   classesLength: number;
-  topics: string[];
+  topics: string[] ;
   instructor: string;
   schedule: string; // Added schedule property
   format: string; // Added format property
@@ -70,7 +70,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
               <div className="flex flex-wrap gap-2">
                 {Data.topics.map((topic, index) => (
                   <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
-                    {topic.name || topic}
+                    {topic}
                   </Badge>
                 ))}
               </div>
