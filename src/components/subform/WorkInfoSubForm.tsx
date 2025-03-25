@@ -4,6 +4,7 @@ import { Field, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
 import { string } from "yup";
 import { OptionsType } from "../../pages/HomePage/pages/Members/utils/membersInterfaces";
+import { FormHeader } from "../ui";
 
 const WorkInfoSubFormComponent = ({
   disabled = false,
@@ -19,6 +20,7 @@ const WorkInfoSubFormComponent = ({
   );
   return (
     <>
+      <FormHeader>Contacts Information</FormHeader>
       <Field
         component={FormikSelectField}
         label="Employment Status"

@@ -25,7 +25,7 @@ const ContactInputComponent = ({
 }: IProps) => {
   const { countries } = useCountryStore();
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
-  const [searchTerm, setSearchTerm] = useState(zipCode || "+233");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { setFieldValue } = useFormikContext<object>();
 
@@ -46,13 +46,11 @@ const ContactInputComponent = ({
         country.name.toLowerCase().includes(val) ||
         country.dialCode.toLowerCase().includes(val)
     );
-    setFieldValue("country_code", filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
   };
 
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
-    setSearchTerm(country.dialCode);
     setFieldValue(`${prefix}.country_code`, country.dialCode);
     setFilteredCountries([]);
   };
