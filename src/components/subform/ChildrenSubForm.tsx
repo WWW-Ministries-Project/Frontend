@@ -1,16 +1,19 @@
 import Button from "@/components/Button";
-import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   IPersonalDetails,
   PersonalDetails,
-} from "@/pages/HomePage/Components/subforms/PersonalDetails";
+} from "@/components/subform/PersonalDetails";
+import { FormHeader, FullWidth } from "@/components/ui";
+import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { FieldArray, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
 
 const ChildrenSubFormComponent = () => {
-  const { values:entire } = useFormikContext<object>();
-  const values: IChildrenSubForm["children"] = useMemo(() => getIn(entire, "children")|| initialValues, [entire]);
+  const { values: entire } = useFormikContext<object>();
+  const values: IChildrenSubForm["children"] = useMemo(
+    () => getIn(entire, "children") || initialValues,
+    [entire]
+  );
 
   return (
     <>

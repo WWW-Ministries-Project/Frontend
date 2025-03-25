@@ -9,12 +9,14 @@ import {
   UserSubForm,
 } from "@components/subform";
 import { Formik } from "formik";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { object } from "yup";
 import {
   IWorkInfoSubForm,
   WorkInfoSubForm,
 } from "../HomePage/pages/Members/Components/subforms/WorkInfoSubForm";
+import { useCountryStore } from "../HomePage/store/coutryStore";
+import { fetchCountries } from "../HomePage/utils";
 
 const steps = [
   { label: "User Info", content: <UserSubForm prefix={`personal_info`} /> },
@@ -30,18 +32,35 @@ const Registration = () => {
   // const [steps, setSteps] = useState(stepss);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleNext = async (
-    validateForm: () => Promise<any>,
-    formikSubmit: () => void
-  ) => {
+  const countryStore = useCountryStore();
+
+  // Fetch countries on mount if not already in store
+  useEffect(() => {
+    if (!countryStore.countries.length) {
+      fetchCountries().then((data) => {
+        countryStore.setCountries(data);
+      });
+    }
+  }, [countryStore]);
+
+  const handleNext = async ({
+    validateForm,
+    handleSubmit: formikSubmit,
+    setTouched,
+  }: {
+    validateForm: () => Promise<any>;
+    handleSubmit: () => void;
+    setTouched: (errors: any) => void;
+  }) => {
     const errors = await validateForm();
     if (Object.keys(errors).length > 0) {
+      setTouched(errors);
       console.log("Validation failed:", errors);
       return;
     }
+    formikSubmit();
     setCurrentStep((prev) => (prev == steps.length - 1 ? prev : prev + 1));
     if (currentStep === steps.length - 1) {
-      formikSubmit();
     }
   };
 
@@ -64,13 +83,13 @@ const Registration = () => {
           onSubmit={(values) => console.log(values, "values")}
           validationSchema={validationSchema[currentStep]}
         >
-          {({ handleSubmit, validateForm }) => (
+          {(formik) => (
             <>
               <Stepper
                 steps={steps}
                 currentStep={currentStep}
                 handleNext={() => {
-                  handleNext(validateForm, handleSubmit);
+                  handleNext(formik);
                 }}
                 handleBack={handleBack}
               />

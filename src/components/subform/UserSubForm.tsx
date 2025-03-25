@@ -1,12 +1,13 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { FullWidth } from "@/components/ui";
 import {
   IPersonalDetails,
   PersonalDetails,
-} from "@/pages/HomePage/Components/subforms/PersonalDetails";
+} from "@/components/subform/PersonalDetails";
+import { FullWidth } from "@/components/ui";
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
 import { getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
+import { boolean } from "yup";
 
 const UserSubFormComponent = ({
   prefix,
@@ -65,6 +66,7 @@ const initialValues = {
 };
 const validationSchema = {
   ...PersonalDetails.validationSchema,
+  has_children: boolean(),
 };
 export const UserSubForm = Object.assign(UserSubFormComponent, {
   initialValues,

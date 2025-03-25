@@ -31,17 +31,7 @@ const ContactInputComponent = ({
 
   const { setFieldValue } = useFormikContext<object>();
 
-  // Fetch countries on mount if not already in store
-  useEffect(() => {
-    if (!countryStore.countries.length) {
-      fetchCountries().then((data) => {
-        setCountries(data);
-        countryStore.setCountries(data);
-      });
-    } else {
-      setCountries(countryStore.countries);
-    }
-  }, [countryStore]);
+
 
   // Sync search term with zip code prop updates
   // useEffect(() => {
