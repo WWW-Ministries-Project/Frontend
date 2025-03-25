@@ -102,42 +102,42 @@ export class ApiCalls {
     id: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any }>> => {
-    return this.fetchFromApi(`programs/${id}`, query);
+    return this.fetchFromApi(`program/programs/${id}`, query);
   };
 
   // Cohort Management
   fetchAllCohorts = (
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi("cohorts", query);
+    return this.fetchFromApi("program/cohorts", query);
   };
 
   fetchCohortById = (
     id: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any }>> => {
-    return this.fetchFromApi(`cohorts/${id}`, query);
+    return this.fetchFromApi(`program/cohorts/${id}`, query);
   };
 
   fetchCohortsByProgramId = (
     programId: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi(`program-cohorts/${programId}`, query);
+    return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
   };
 
   // Course Management
   fetchAllCourses = (
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi("courses", query);
+    return this.fetchFromApi("program/courses", query);
   };
 
   fetchCourseById = (
     id: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any }>> => {
-    return this.fetchFromApi(`courses/${id}`, query);
+    return this.fetchFromApi(`program/courses/${id}`, query);
   };
 
   // Enrollment Management
@@ -145,13 +145,13 @@ export class ApiCalls {
     courseId: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi("course-enrollment", query);
+    return this.fetchFromApi("program/course-enrollment", query);
   };
 
   fetchEnrollmentsByUser = (
     userId: string,
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi("user-enrollment", query);
+    return this.fetchFromApi("program/user-enrollment", query);
   };
 }

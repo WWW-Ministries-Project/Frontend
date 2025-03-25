@@ -69,21 +69,21 @@ export class ApiUpdateCalls {
 
   // Update Program
   updateProgram = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("programs/update-program", payload);
+    return this.apiExecution.updateData(`program/programs/${payload.id}`, payload.payload);
   };
 
   // Update Cohort
   updateCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("cohorts/update-cohort", payload);
+    return this.apiExecution.updateData("program/cohorts/update-cohort", payload);
   };
 
   // Update Class
   updateClass = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("courses/update-course", payload);
+    return this.apiExecution.updateData("program/courses/update-course", payload);
   };
 
   // Update Enrollment
   updateEnrollment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("enrollments/update-enrollment", payload);
+    return this.apiExecution.updateData("program/enrollments/update-enrollment", payload);
   };
 }

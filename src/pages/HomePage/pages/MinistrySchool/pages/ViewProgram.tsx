@@ -3,63 +3,71 @@ import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import AllCohortsPage from "../Components/AllCohort";
 import Modal from "@/components/Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CohortForm from "../Components/CohortForm";
+import { ApiCalls } from "@/utils/apiFetch";
+import { useParams } from "react-router-dom";
+
+// Define the Topic type
+type Topic = {
+  name: string;
+};
 
 const ViewProgram = () => {
+  const { id:programId } = useParams();
+  const query = location.search;
+  const params = new URLSearchParams(query);
+  // const programId = params.get('program');
+  const apiCalls = new ApiCalls();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const cohort = {
-    id: 1,
-    title: "Biblical Leadership",
-    description: "A comprehensive program on biblical principles of leadership",
-    eligibility: "both",
-    topics: ["Biblical Leadership Foundations", "Character Development", "Vision Casting", "Team Building"],
-    cohorts: [
-      {
-        id: 101,
-        name: "Spring 2023",
-        description: "First cohort of the Biblical Leadership program",
-        startDate: "2023-06-01",
-        duration: "12 weeks",
-        applicationDeadline: "2023-05-15",
-        status: "Active",
-        classes: [
-          {
-            id: 1001,
-            name: "Monday Evening Class",
-            instructor: "Pastor James Wilson",
-            capacity: 15,
-            enrolled: 12,
-            format: "in-person",
-            location: "Main Campus - Room 201",
-            schedule: "Mondays, 7:00 PM - 9:00 PM",
-          },
-          {
-            id: 1002,
-            name: "Wednesday Morning Class",
-            instructor: "Elder Sarah Johnson",
-            capacity: 15,
-            enrolled: 8,
-            format: "hybrid",
-            location: "Main Campus - Fellowship Hall",
-            meetingLink: "https://zoom.us/j/123456789",
-            schedule: "Wednesdays, 10:00 AM - 12:00 PM",
-          },
-          {
-            id: 1003,
-            name: "Online Weekend Class",
-            instructor: "Dr. Michael Brown",
-            capacity: 20,
-            enrolled: 4,
-            format: "online",
-            meetingLink: "https://zoom.us/j/987654321",
-            schedule: "Saturdays, 9:00 AM - 11:00 AM",
-          },
-        ],
-      },
-    ],
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [program, setProgram] = useState<any>(null); // Stores the program details
+
+  useEffect(() => {
+  const fetchProgramData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch program details
+      const programResponse = await apiCalls.fetchProgramById(programId as string); // Fetch program details by ID
+      console.log("fetching", programResponse);
+      if (programResponse.status === 200) {
+        setProgram(programResponse.data.data);
+      } else {
+        setError("Error fetching program details");
+      }
+
+      // Fetch cohorts for the program
+      // const cohortResponse = await apiCalls.fetchCohortsByProgramId(programId!); // Fetch cohorts by programId
+      // if (cohortResponse.success) {
+      //   setCohorts(cohortResponse.data);
+      // } else {
+      //   setError("Error fetching cohorts");
+      // }
+    } catch (err) {
+      setError("An error occurred while fetching program or cohorts data.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  if (programId) {
+    fetchProgramData();
+  }
+}, [programId]);
+
+  useEffect(() => {
+    console.log("this is a test", programId);
+    console.log("fetching", program);
+    
+    
+  }, [])
+  
+
+  
+ 
   return (
     <div className="px-4">
       <PageOutline className="p-0">
@@ -68,20 +76,20 @@ const ViewProgram = () => {
             <div className="space-y-3">
               <div>
               <div className="flex gap-4 items-center">
-                <h1 className="text-white  md:text-2xl font-bold">{cohort.title}</h1>
-                <Badge className="bg-green/80 border-green/30 font-medium text-xs text-dark900">Open to all</Badge>
+                <h1 className="text-white  md:text-2xl font-bold">{program?.title}</h1>
+                <Badge className="bg-green/80 border-green/30 font-medium text-xs text-dark900">{program?.eligibility}</Badge>
               </div>
-              <p className="text-white text-sm">{cohort.description}</p>
+              <p className="text-white text-sm">{program?.description}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-white text-lg font-semibold">Topics</p>
                 <div className="flex flex-wrap gap-2">
-                  {cohort.topics.map((topic, index) => (
+                    {program?.topics.map((topic: Topic, index: number) => (
                     <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
-                      {topic}
+                      {topic.name}
                     </Badge>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
@@ -96,7 +104,7 @@ const ViewProgram = () => {
         </section>
 
         <section>
-            <AllCohortsPage onCreate={() => setIsModalOpen(true)}/>
+            <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)}/>
         </section>
 
        

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Formik, Field, Form, FieldArray } from "formik";
 import MultiSelect from "@/components/MultiSelect";
 import { ApiCreationCalls } from "@/utils/apiPost";
+import { ApiUpdateCalls } from "@/utils/apiPut";
 
 // Options for prerequisites (e.g., seniority levels)
 const options = [
@@ -13,59 +14,82 @@ const options = [
 
 interface ProgramFormProps {
   onClose: () => void;
-  program: { title: string; description: string; eligibility: string; topics: string[]; prerequisites: string[] }; // Define the Program type inline or import it
+  program?: { // Make program optional
+    title: string;
+    description: string;
+    eligibility: string;
+    topics: { id: number; name: string; programId: number }[];
+    prerequisites: string[];
+    isPrerequisitesChecked?: boolean;
+    id?: number;
+  };
+  prerequisitesDropdown: { label: string; value: string }[]; // Add prerequisitesDropdown property
+  fetchPrograms: () => void; // Add fetchPrograms property
 }
 
-const ProgramForm: React.FC<ProgramFormProps> = ({ onClose }) => {
+const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisitesDropdown, fetchPrograms }) => {
   const [loading, setLoading] = useState(false);
   const apiCalls = new ApiCreationCalls();  // Assuming you have a class for API calls
+  const api = new ApiUpdateCalls();
 
   const onSubmit = async (values: any) => {
-    setLoading(true);  // Show loading state
+    setLoading(true); // Show loading state
 
     const payload = {
       title: values.title,
       description: values.description,
       eligibility: values.eligibility,
-      topics: values.topics, // Array of strings (names of topics)
+      topics: values?.topics?.map((topic: any) => (program?.id?topic?.name:topic)), // Ensure topics are in the required format
       prerequisites: values.isPrerequisitesChecked ? values.prerequisites : [], // If prerequisites are checked, include them
     };
 
     try {
-      // Assuming you have an API method `createProgram` in your ApiCreationCalls class
-      const response = await apiCalls.createProgram(payload);
-      if (response.success) {
-        console.log("Program created successfully:", response.data);
-        // Optionally close the form or show success message
-        onClose();
+      if (program?.id) {
+        // Update existing program if ID is available
+        const response = await api.updateProgram({ payload, id: program?.id });
+        if (response.success) {
+          console.log("Program updated successfully:", response.data);
+          onClose();
+        } else {
+          console.error("Error updating program:", response?.error || "Unknown error");
+        }
       } else {
-        console.error("Error creating program:", response?.error || "Unknown error");
-        // Show error message to user
+        // Create new program if no ID
+        const response = await apiCalls.createProgram(payload);
+        if (response.success) {
+          console.log("Program created successfully:", response.data);
+          onClose();
+        } else {
+          console.error("Error creating program:", response?.error || "Unknown error");
+        }
       }
     } catch (error) {
       console.error("Error in submitting program:", error);
-      // Handle error (e.g., show error message to user)
     } finally {
-      setLoading(false);  // Stop loading
+      fetchPrograms()
+      setLoading(false); // Stop loading
+      onClose()
     }
   };
 
   return (
     <div className="bg-white p-4 rounded-lg md:w-[45rem] text-dark900 space-y-4">
       <div>
-        <div className="font-bold text-lg">Create New Program</div>
-        <p className="text-sm">Fill in the program details to create a new school program.</p>
+        <div className="font-bold text-lg">
+          {program?.id ? "Edit Program" : "Create New Program"}
+        </div>
+        <p className="text-sm">Fill in the program details to {program?.id ? "update" : "create"} a school program.</p>
       </div>
 
       <Formik
         initialValues={{
-          title: "",
-          description: "",
-          eligibility: "Both",
-          topics: [],
+          title: program?.title || "",
+          description: program?.description || "",
+          eligibility: program?.eligibility || "Both",
+          topics: program?.topics || [],
           newTopic: "",
-          isPrerequisitesChecked: false,
-          prerequisites: [],
+          isPrerequisitesChecked: program?.isPrerequisitesChecked || false,
+          prerequisites: program?.prerequisites || [],
         }}
         onSubmit={onSubmit}
       >
@@ -146,7 +170,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose }) => {
                     {values.topics.map((topic, index) => (
                       <div key={index} className="flex items-center space-x-2 mb-2">
                         <Field
-                          name={`topics[${index}]`}
+                          name={program?.id?`topics[${index}].name`:`topics[${index}]`}
                           className="block w-full px-4 py-2 border border-lightGray rounded-lg"
                           placeholder="Enter a topic"
                         />
@@ -167,7 +191,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose }) => {
                         onChange={handleChange}
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                           if (e.key === "Enter" && values.newTopic) {
-                            push(values.newTopic);  // Now just push the topic name as a string
+                            push( values.newTopic);  // Add the topic as an object
                             setFieldValue("newTopic", "");
                           }
                         }}
@@ -178,7 +202,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose }) => {
                         type="button"
                         onClick={() => {
                           if (values.newTopic) {
-                            push(values.newTopic);  // Now just push the topic name as a string
+                            push(values.newTopic);  // Add the topic as an object
                             setFieldValue("newTopic", "");
                           }
                         }}
@@ -210,7 +234,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose }) => {
               {values.isPrerequisitesChecked && (
                 <div className="mt-2">
                   <MultiSelect
-                    options={options}
+                    options={prerequisitesDropdown}
                     selectedValues={values.prerequisites}
                     onChange={(selected) => setFieldValue("prerequisites", selected)}
                   />

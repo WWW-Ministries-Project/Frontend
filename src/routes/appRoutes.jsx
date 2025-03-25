@@ -225,7 +225,7 @@ export const routes = [
         sideTab: true,
       },
       {
-        path: "ministry-school/programs",
+        path: "ministry-school/programs/:id",
         name: "View Program",
         element: <ViewProgram />,
         isPrivate: false,

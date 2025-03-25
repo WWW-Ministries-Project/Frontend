@@ -7,6 +7,7 @@ import ProgramsCard from "./Components/ProgramsCard";
 import Modal from "@/components/Modal";
 import ProgramForm from "./Components/ProgramForm";
 import { ApiCalls } from "@/utils/apiFetch";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -32,29 +33,80 @@ const MinistrySchool = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
 
   const apiCalls = new ApiCalls();
+  const apiDelete = new ApiDeletionCalls() 
+
+  interface DropdownProgram {
+    value: number;
+    label: string;
+  }
+
+  const getProgramsForDropdown = (data: Program[]): DropdownProgram[] => {
+    return data.map((program) => ({
+      value: program.id,
+      label: program.title,
+    }));
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      const response = await apiCalls.fetchAllPrograms();
+      if (response.data && Array.isArray(response.data.data)) {
+        setPrograms(response.data.data as Program[]);
+        getProgramsForDropdown(response.data.data); 
+
+        console.log(getProgramsForDropdown(response.data.data));
+        
+      } else {
+        setError("Invalid data format received.");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching programs.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteProgram = async (programId: number) => {
+    try {
+      setLoading(true);
+      const response = await apiDelete.deleteProgram(programId);
+      if (response.status === 200) {
+        setPrograms((prevPrograms) =>
+          prevPrograms.filter((program) => program.id !== programId)
+        );
+        console.log("Program deleted successfully");
+      } else {
+        setError("Failed to delete the program.");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the program.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        const response = await apiCalls.fetchAllPrograms();
-        if (response.data && Array.isArray(response.data.data)) {
-          setPrograms(response.data.data as Program[]);
-          console.log(response.data.data);
-          
-        } else {
-          setError("Invalid data format received.");
-        }
-      } catch (err) {
-        setError("An error occurred while fetching programs.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    
 
     fetchPrograms();
   }, []);
+
+  const handleEdit = (program: Program): void => {
+    setSelectedProgram(program);
+    console.log("Program selected", program);
+    
+    setIsModalOpen(true)
+  };
+
+  const handleClose = () => {
+    setSelectedProgram(undefined);
+    console.log("Program selected", selectedProgram);
+    
+    setIsModalOpen(false)
+  };
 
   const getEligibilityBadge = (eligibility: Program["eligibility"]): JSX.Element | null => {
     switch (eligibility) {
@@ -132,8 +184,10 @@ const MinistrySchool = () => {
                   isMenuOpen={null}
                   cohorts={getCohortToShow(program.cohorts)}
                   handleCopyLink={() => {}}
-                  onOpen = {() => setIsModalOpen(true)}
-                  onClose={() => setIsModalOpen(false)}
+                  onOpen = {() => handleEdit(program)}
+                  onClose={() => handleClose()}
+                  onDelete={()=>deleteProgram(program.id)}
+                  
                 />
               );
             })}
@@ -142,7 +196,18 @@ const MinistrySchool = () => {
       </PageOutline>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ProgramForm onClose={() => setIsModalOpen(false)} />
+        <ProgramForm 
+        onClose={() => handleClose()} 
+        program={selectedProgram || { 
+          title: '', 
+          description: '', 
+          eligibility: '', 
+          topics: [], 
+          prerequisites: [] 
+        }}  
+        prerequisitesDropdown = {getProgramsForDropdown(programs)}
+        fetchPrograms = {fetchPrograms}
+        />
       </Modal>
     </div>
   );

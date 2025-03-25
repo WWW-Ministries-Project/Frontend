@@ -20,7 +20,7 @@ interface Program {
   title: string;
   description: string;
   eligibility: "Members" | "Non_Members" | "Both";
-  topics: string[];
+  topics: { name: string }[];
   cohorts: Cohort[];
 }
 
@@ -30,6 +30,7 @@ interface ProgramsCardProps {
   handleCopyLink: (programId: number) => void;
   toggleMenu: () => void;
   onOpen: () => void;
+  onDelete: () => void; // Added onDelete prop
   isMenuOpen: number | null; // Added isMenuOpen prop
 }
 
@@ -37,11 +38,14 @@ interface EligibilityBadgeProps {
   eligibility: Program["eligibility"];
 }
 
+
+
 const ProgramsCard = ({
   program,
   cohorts,
   handleCopyLink,
-  onOpen
+  onOpen,
+  onDelete
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
 
@@ -62,6 +66,8 @@ const ProgramsCard = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  
 
   // Function to toggle the menu when the ellipsis button is clicked
   const toggleMenu = (id: number) => {
@@ -111,7 +117,7 @@ const ProgramsCard = ({
           <p className="text-sm font-semibold">Topics</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {program.topics.map((topic: string, index: number) => (
+          {program.topics.map((topic, index) => (
             <p key={index} className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50">
               {topic.name}
             </p>
@@ -154,7 +160,7 @@ const ProgramsCard = ({
       {/* Actions */}
       <div className=" flex justify-between items-center">
         <div>
-          <Button onClick={() => navigate(`programs?program=${program.id}`)} value="Manage" className="bg-primary text-white px-4" />
+          <Button onClick={() => navigate(`programs/${program.id}`)} value="Manage" className="bg-primary text-white px-4" />
         </div>
         <div>
           <div className="relative" ref={menuRef}>
@@ -173,7 +179,7 @@ const ProgramsCard = ({
                     View Application Page
                   </li>
                   <hr className="text-lightGray" />
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
+                  <li onClick={onDelete} className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
                 </ul>
               </div>
             )}
