@@ -6,7 +6,8 @@ import {
 import { FormHeader, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { FieldArray, getIn, useFormikContext } from "formik";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
+import { array, object } from "yup";
 
 const ChildrenSubFormComponent = () => {
   const { values: entire } = useFormikContext<object>();
@@ -30,7 +31,7 @@ const ChildrenSubFormComponent = () => {
               />
             </FullWidth>
             {values.map((_, index) => (
-              <>
+              <Fragment key={index}>
                 {index > 0 && <HorizontalLine />}
                 {index > 0 && (
                   <FullWidth $justify={"right"}>
@@ -43,7 +44,7 @@ const ChildrenSubFormComponent = () => {
                   </FullWidth>
                 )}
                 <PersonalDetails key={index} prefix={`children.${index}`} />
-              </>
+              </Fragment>
             ))}
           </>
         )}
@@ -60,7 +61,9 @@ const initialValues = {
   children: [PersonalDetails.initialValues],
 };
 
-const validationSchema = {};
+const validationSchema = {
+  children: array().of(object().shape(PersonalDetails.validationSchema)),
+};
 export const ChildrenSubForm = Object.assign(ChildrenSubFormComponent, {
   initialValues,
   validationSchema,

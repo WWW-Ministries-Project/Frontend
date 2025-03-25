@@ -1,9 +1,9 @@
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormLayout } from "@/components/ui";
 import { Field, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
-import { OptionsType } from "../../utils/membersInterfaces";
+import { string } from "yup";
+import { OptionsType } from "../../pages/HomePage/pages/Members/utils/membersInterfaces";
 
 const WorkInfoSubFormComponent = ({
   disabled = false,
@@ -91,7 +91,19 @@ const initialValues: IWorkInfoSubForm = {
   work_position: "",
   school_name: "",
 };
-const validationSchema = {};
+const validationSchema = {
+  employment_status: string().oneOf(["student", "employed", "unemployed"]),
+  work_name: string().when("employment_status", {
+    is: "employed",
+    then: () => string().required("Required"),
+  }),
+  work_industry: string(),
+  work_position: string(),
+  school_name: string().when("employment_status", {
+    is: "student",
+    then: () => string().required("Required"),
+  }),
+};
 export const WorkInfoSubForm = Object.assign(WorkInfoSubFormComponent, {
   initialValues,
   validationSchema,

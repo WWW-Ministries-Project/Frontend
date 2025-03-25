@@ -14,7 +14,7 @@ import { object } from "yup";
 import {
   IWorkInfoSubForm,
   WorkInfoSubForm,
-} from "../HomePage/pages/Members/Components/subforms/WorkInfoSubForm";
+} from "../../components/subform/WorkInfoSubForm";
 import { useCountryStore } from "../HomePage/store/coutryStore";
 import { fetchCountries } from "../HomePage/utils";
 
@@ -110,7 +110,7 @@ interface IRegistration extends IChildrenSubForm {
 const validationSchema = [
   object({ personal_info: object(UserSubForm.validationSchema) }),
   object({ contact_info: object(ContactsSubForm.validationSchema) }),
-  // object({ children: object(ChildrenSubForm.validationSchema) }),
+  object({ ...ChildrenSubForm.validationSchema }),
   object({ work_info: object(WorkInfoSubForm.validationSchema) }),
 ];
 

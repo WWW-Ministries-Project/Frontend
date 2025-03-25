@@ -11,9 +11,12 @@ import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { ContactsSubForm, IContactsSubForm } from "@components/subform";
 import { Field, useFormikContext } from "formik";
+import {
+  IWorkInfoSubForm,
+  WorkInfoSubForm,
+} from "../../../../../components/subform/WorkInfoSubForm";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
-import { IWorkInfoSubForm, WorkInfoSubForm } from "./subforms/WorkInfoSubForm";
 
 interface IProps {
   disabled?: boolean;
