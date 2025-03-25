@@ -4,8 +4,9 @@ import {
   EmergencyContact,
   IEmergencyContact,
 } from "@/components/subform/EmergencyContact";
-import { FormHeader, FormLayout } from "@/components/ui";
+import { FormHeader } from "@/components/ui";
 import { Field } from "formik";
+import { string } from "yup";
 
 const ContactsSubFormComponent = ({
   prefix,
@@ -16,50 +17,50 @@ const ContactsSubFormComponent = ({
 }) => {
   return (
     <>
-        <FormHeader>Contacts Information</FormHeader>
-        <ContactInput
-          disabled={disabled}
-          label={"Enter phone number"}
-          prefix={prefix}
-        />
-        <Field
-          component={FormikInputDiv}
-          label="Email"
-          placeholder="Enter email"
-          id={`${prefix}.email`}
-          name={`${prefix}.email`}
-          disabled={disabled}
-          type={"text"}
-        />
-        <Field
-          component={FormikInputDiv}
-          label="Country"
-          placeholder="Enter country of residence"
-          id={`${prefix}.resident_country`}
-          name={`${prefix}.resident_country`}
-          disabled={disabled}
-          type={"text"}
-        />
-        <Field
-          component={FormikInputDiv}
-          label="State/Region"
-          placeholder="Enter state/region of residence"
-          id={`${prefix}.state_region`}
-          name={`${prefix}.state_region`}
-          disabled={disabled}
-          type={"text"}
-        />
-        <Field
-          component={FormikInputDiv}
-          label="City"
-          placeholder="Enter city of residence"
-          id={`${prefix}.city`}
-          name={`${prefix}.city`}
-          disabled={disabled}
-          type={"text"}
-        />
-        <FormHeader>Emergency Contact</FormHeader>
-        <EmergencyContact prefix={prefix} />
+      <FormHeader>Contacts Information</FormHeader>
+      <ContactInput
+        disabled={disabled}
+        label={"Enter phone number"}
+        prefix={prefix}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="Email"
+        placeholder="Enter email"
+        id={`${prefix}.email`}
+        name={`${prefix}.email`}
+        disabled={disabled}
+        type={"text"}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="Country"
+        placeholder="Enter country of residence"
+        id={`${prefix}.resident_country`}
+        name={`${prefix}.resident_country`}
+        disabled={disabled}
+        type={"text"}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="State/Region"
+        placeholder="Enter state/region of residence"
+        id={`${prefix}.state_region`}
+        name={`${prefix}.state_region`}
+        disabled={disabled}
+        type={"text"}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="City"
+        placeholder="Enter city of residence"
+        id={`${prefix}.city`}
+        name={`${prefix}.city`}
+        disabled={disabled}
+        type={"text"}
+      />
+      <FormHeader>Emergency Contact</FormHeader>
+      <EmergencyContact prefix={prefix} />
     </>
   );
 };
@@ -82,7 +83,17 @@ const initialValues: IContactsSubForm = {
   state_region: "",
   city: "",
 };
-const validationSchema = { ...EmergencyContact.validationSchema };
+const validationSchema = {
+  primary_number: string()
+    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+    .required("Phone number is required"),
+  country_code: string().required("required"),
+  email: string().email("Invalid email format").required("Email is required"),
+  resident_country: string().required("Resident country is required"),
+  state_region: string().required("State/Region is required"),
+  city: string().required("City is required"),
+  ...EmergencyContact.validationSchema,
+};
 export const ContactsSubForm = Object.assign(ContactsSubFormComponent, {
   initialValues,
   validationSchema,
