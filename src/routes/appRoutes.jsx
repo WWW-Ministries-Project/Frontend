@@ -232,7 +232,7 @@ export const routes = [
         permissionNeeded: "view_events",
       },
       {
-        path: "ministry-school/programs/cohort",
+        path: "ministry-school/programs/:id/cohort/:id",
         name: "View Cohort",
         element: <ViewCohort />,
         isPrivate: false,

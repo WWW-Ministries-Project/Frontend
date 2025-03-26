@@ -14,7 +14,7 @@ interface Cohort {
   id: number;
   name: string;
   startDate: string;
-  status: "active" | "upcoming" | "Completed";
+  status: "Ongoing" | "Upcoming" | "Completed";
   classes: number;
   enrolledCount: number;
 }
@@ -135,17 +135,17 @@ const MinistrySchool = () => {
 
   // Ensure that cohorts is always an array, even when it is empty or undefined.
   const getCohortToShow = (cohorts: Cohort[]): Cohort[] => {
-    const activeCohort = cohorts.find((cohort) => cohort.status === "active");
+    const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) {
-      return [activeCohort]; // Return the active cohort
+      return [activeCohort]; // Return the Ongoing cohort
     }
 
-    const upcomingCohort = cohorts.find((cohort) => cohort.status === "upcoming");
+    const upcomingCohort = cohorts.find((cohort) => cohort.status === "Upcoming");
     if (upcomingCohort) {
-      return [upcomingCohort]; // Return the upcoming cohort if no active cohort
+      return [upcomingCohort]; // Return the Upcoming cohort if no Ongoing cohort
     }
 
-    return []; // Return an empty array if neither active nor upcoming cohort exists
+    return []; // Return an empty array if neither Ongoing nor Upcoming cohort exists
   };
 
   return (
@@ -173,7 +173,7 @@ const MinistrySchool = () => {
           <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
             {programs.map((program) => {
               const cohortsToShow = getCohortToShow(program.cohorts);
-              console.log(getCohortToShow(program.cohorts));
+              console.log('program cohortsToShow',getCohortToShow(program.cohorts));
               
 
               return (
@@ -182,7 +182,7 @@ const MinistrySchool = () => {
                   program={program}
                   toggleMenu={() => {}}
                   isMenuOpen={null}
-                  cohorts={getCohortToShow(program.cohorts)}
+                  cohorts={cohortsToShow}
                   handleCopyLink={() => {}}
                   onOpen = {() => handleEdit(program)}
                   onClose={() => handleClose()}

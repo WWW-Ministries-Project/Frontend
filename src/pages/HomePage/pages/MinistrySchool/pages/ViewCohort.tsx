@@ -3,18 +3,26 @@ import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import ClassForm from "../Components/ClassForm";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ClassCard from "../Components/ClassCard";
+import { ApiCalls } from "@/utils/apiFetch";
+import { useParams } from "react-router-dom";
+import { formatTime } from "@/utils/helperFunctions";
 
 const ViewCohort = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const apiCalls = new ApiCalls();
+  const { id: cohortId } = useParams(); // Get cohort ID from the route
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [cohort, setCohort] = useState<any>(null);
   // Mock data for cohort (You can replace this with real data from an API or database)
  
-   const cohort =
+   const cohort1 =
       {
         id: 101,
         name: "Spring 2023",
-        description: "First cohort of the Biblical Leadership program",
+        description: "First cohort of the Biblical Leadership cohort",
         startDate: "2023-06-01",
         duration: "12 weeks",
         applicationDeadline: "2023-05-15",
@@ -55,6 +63,29 @@ const ViewCohort = () => {
           },
         ],
       }
+
+    useEffect(() => {
+        const fetchCohortData = async () => {
+          if (!cohortId) return; // Ensure we have the programId before making the API call
+    
+          try {
+            setLoading(true);
+            // Fetch cohort details by programId
+            const programResponse = await apiCalls.fetchCohortById(cohortId);
+            if (programResponse.status === 200) {
+              setCohort(programResponse.data.data);
+            } else {
+              setError("Error fetching cohort details");
+            }
+          } catch (err) {
+            setError("An error occurred while fetching cohort details.");
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        fetchCohortData(); // Call the function when programId changes
+      }, [cohortId]); 
     
 
 
@@ -68,34 +99,34 @@ const ViewCohort = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
                         <div className=" text-white text-2xl font-bold">
-                        {cohort.name}
+                        {cohort?.name}
                         </div>
-                        <Badge className="text-xs bg-primary text-white">{cohort.status}</Badge>
+                        <Badge className="text-xs bg-primary text-white">{cohort?.status}</Badge>
                         </div>
                       <Button value="Edit Cohort" className="p-2 m-1 bg-white min-h-10 max-h-14 text-primary" />
                       
                     </div>
                     <div className="text-sm">
-                      <p>{cohort.description}</p>
+                      <p>{cohort?.description}</p>
                     </div>
                     </div>
 
                     <div className="flex gap-8">
                       <div>
                         <div className="font-semibold text-small">Start date</div>
-                        <div>{cohort.startDate}</div>
+                        <div>{formatTime(cohort?.startDate)}</div>
                       </div>
                       <div>
                         <div className="font-semibold text-small">Duration</div>
-                        <div>{cohort.duration}</div>
+                        <div>{cohort?.duration}</div>
                       </div>
                       <div>
                         <div className="font-semibold text-small">Application Deadline</div>
-                        <div>{cohort.applicationDeadline}</div>
+                        <div>{formatTime( cohort?.applicationDeadline)}</div>
                       </div>
                       <div>
                         <div className="font-semibold text-small">Classes</div>
-                        <div>{cohort.classes.length} classes</div>
+                        <div>{cohort?.courses.length} classes</div>
                       </div>
                     </div>
                     </div>
@@ -114,7 +145,7 @@ const ViewCohort = () => {
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
-                    {cohort.classes.map((classItem) => (
+                    {cohort?.courses.map((classItem) => (
                      <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
                     ))}
                     </div>

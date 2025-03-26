@@ -1,6 +1,7 @@
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { formatInputDate, formatTime } from "@/utils/helperFunctions";
 import { useNavigate } from "react-router-dom";
 
 interface AllCohortsPageProps {
@@ -83,11 +84,11 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts }) =>
                       {cohort.status}
                     </Badge>
                   </div>
-                  <div className="text-sm">
-                    <p>Program: {cohort.program}</p>
-                    <p>Start Date: {cohort.startDate}</p>
-                    <p>Duration: {cohort.duration}</p>
-                    <p>Application Deadline: {cohort.applicationDeadline}</p>
+                  <div className="text-md space-y-1">
+                    
+                    <p><span className="font-semibold">Start Date:</span> {formatTime (cohort.startDate)}</p>
+                    <p><span className="font-semibold">Duration:</span> {cohort.duration}</p>
+                    <p><span className="font-semibold">Application Deadline:</span> {formatTime (cohort.applicationDeadline)}</p>
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -98,7 +99,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts }) =>
                     <Button
                       value="Manage Cohort"
                       className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
-                      onClick={() => navigate(`cohort?${cohort.id}`)}
+                      onClick={() => navigate(`cohort/${cohort.id}`)}
                     />
                   </div>
                 </div>
