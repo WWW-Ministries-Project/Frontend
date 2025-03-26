@@ -1,8 +1,7 @@
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
-import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FormikInputDiv from "./FormikInput";
 
 interface IProps {
@@ -13,35 +12,22 @@ interface IProps {
   zipCode?: string;
   zipClass?: string;
   required?: boolean;
-  prefix: string
+  prefix: string;
 }
 
 const ContactInputComponent = ({
-  disabled=false,
+  disabled = false,
   label,
   className,
   zipCode,
   zipClass,
-  prefix
+  prefix,
 }: IProps) => {
-  const countryStore = useCountryStore();
-  const [countries, setCountries] = useState<countryType[]>([]);
+  const { countries } = useCountryStore();
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
-  const [searchTerm, setSearchTerm] = useState(zipCode || "+233");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { setFieldValue } = useFormikContext<object>();
-
-  // Fetch countries on mount if not already in store
-  useEffect(() => {
-    if (!countryStore.countries.length) {
-      fetchCountries().then((data) => {
-        setCountries(data);
-        countryStore.setCountries(data);
-      });
-    } else {
-      setCountries(countryStore.countries);
-    }
-  }, [countryStore]);
 
   // Sync search term with zip code prop updates
   // useEffect(() => {
@@ -60,13 +46,11 @@ const ContactInputComponent = ({
         country.name.toLowerCase().includes(val) ||
         country.dialCode.toLowerCase().includes(val)
     );
-    setFieldValue("country_code", filtered[0]?.dialCode || "");
     setFilteredCountries(filtered);
   };
 
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
-    setSearchTerm(country.dialCode);
     setFieldValue(`${prefix}.country_code`, country.dialCode);
     setFilteredCountries([]);
   };
