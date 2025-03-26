@@ -1,12 +1,13 @@
 import ProfilePicture from "@/components/ProfilePicture";
-import { FullWidth } from "@/components/ui";
 import {
   IPersonalDetails,
   PersonalDetails,
-} from "@/pages/HomePage/Components/subforms/PersonalDetails";
+} from "@/components/subform/PersonalDetails";
+import { FullWidth } from "@/components/ui";
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
 import { getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
+import { boolean } from "yup";
 
 const UserSubFormComponent = ({
   prefix,
@@ -42,7 +43,7 @@ const UserSubFormComponent = ({
           <p className="text-dark900 leading-5 mb-2">
             Are your children members of the church?
           </p>
-          <RadioInput name="has_children" />
+          <RadioInput name={`${prefix}.has_children`} />
         </div>
       </FullWidth>
     </>
@@ -65,6 +66,7 @@ const initialValues = {
 };
 const validationSchema = {
   ...PersonalDetails.validationSchema,
+  has_children: boolean(),
 };
 export const UserSubForm = Object.assign(UserSubFormComponent, {
   initialValues,

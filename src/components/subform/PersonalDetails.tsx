@@ -2,8 +2,9 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
-import { maritalOptions } from "../../pages/Members/utils";
-import { useCountryStore } from "../../store/coutryStore";
+import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
+import { useCountryStore } from "../../pages/HomePage/store/coutryStore";
+import { string } from "yup";
 
 const PersonalDetailsComponent = ({
   disabled = false,
@@ -20,8 +21,9 @@ const PersonalDetailsComponent = ({
         component={FormikSelectField}
         label="Title"
         disabled={disabled}
-        id="title"
-        name="title"
+        placeholder="Select title"
+        id={`${prefix}.title`}
+        name={`${prefix}.title`}
         options={titleOptions}
       />
       <Field
@@ -116,7 +118,16 @@ const initialValues: IPersonalDetails = {
   marital_status: "",
   nationality: "",
 };
-const validationSchema = {};
+const validationSchema = {
+  title: string().required("Title is required"),
+  first_name: string(),
+  other_name: string(),
+  last_name: string().required("Last name is required"),
+  date_of_birth: string().required("Date of birth is required"),
+  gender: string().required("Gender is required"),
+  marital_status: string().required("Marital status is required"),
+  nationality: string().required("Nationality is required"),
+};
 export const PersonalDetails = Object.assign(PersonalDetailsComponent, {
   initialValues,
   validationSchema,

@@ -18,7 +18,7 @@ const AuthenticationForm = (props) => {
                 {props.response?.status >= 400 ? (
                   <Alert
                     className="  text-left px-2 my-6 h-6"
-                    text={errorText ||"incorrect email or password please try again "}
+                    text={props.errorText ||"incorrect email or password please try again "}
                   />
                 ) : null}
                 {/* {props.response.status === 404 ? (

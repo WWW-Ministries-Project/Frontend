@@ -3,17 +3,20 @@ import {
   EmergencyContact,
   IEmergencyContact,
 } from "@/components/subform/EmergencyContact";
-import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   IPersonalDetails,
   PersonalDetails,
-} from "@/pages/HomePage/Components/subforms/PersonalDetails";
+} from "@/components/subform/PersonalDetails";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { ContactsSubForm, IContactsSubForm } from "@components/subform";
 import { Field, useFormikContext } from "formik";
+import {
+  IWorkInfoSubForm,
+  WorkInfoSubForm,
+} from "../../../../../components/subform/WorkInfoSubForm";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
-import { IWorkInfoSubForm, WorkInfoSubForm } from "./subforms/WorkInfoSubForm";
 
 interface IProps {
   disabled?: boolean;
@@ -29,17 +32,17 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     <>
       <FormLayout>
         <FormHeader>Membership Status</FormHeader>
-          <Field
-            component={FormikSelectField}
-            label="Membership Type"
-            disabled={disabled}
-            id="membership_type"
-            name="membership_type"
-            options={[
-              { name: "Member", value: "MEMBER" },
-              { name: "Visitor", value: "VISITOR" },
-            ]}
-          />
+        <Field
+          component={FormikSelectField}
+          label="Membership Type"
+          disabled={disabled}
+          id="membership_type"
+          name="membership_type"
+          options={[
+            { name: "Member", value: "MEMBER" },
+            { name: "Visitor", value: "VISITOR" },
+          ]}
+        />
         <HorizontalLine />
 
         <FormHeader>Personal Information</FormHeader>
@@ -85,7 +88,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         <FormHeader>Work Information</FormHeader>
         <WorkInfoSubForm disabled={disabled} prefix="work_info" />
         <HorizontalLine />
-        
+
         <FormHeader>Emergency Contact</FormHeader>
         <EmergencyContact prefix="emergency_contacts" disabled={disabled} />
         <HorizontalLine />

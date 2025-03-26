@@ -1,10 +1,11 @@
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
+import { string } from "yup";
 
 const EmergencyContactComponent = ({
   disabled = false,
-  prefix
+  prefix,
 }: {
   disabled?: boolean;
   prefix: string;
@@ -60,7 +61,11 @@ const initialValues = {
   emergency_contact_relation: "",
   emergency_contact_phone_number: "",
 };
-const validationSchema = {};
+const validationSchema = {
+  emergency_contact_name: string().required("Required"),
+  emergency_contact_relation: string().required("Required"),
+  emergency_contact_phone_number: string().required("Required"),
+};
 
 export const EmergencyContact = Object.assign(EmergencyContactComponent, {
   initialValues,
