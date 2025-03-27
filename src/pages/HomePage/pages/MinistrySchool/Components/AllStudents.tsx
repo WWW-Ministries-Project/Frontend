@@ -15,7 +15,7 @@ interface Student {
 
 
 
-const AllStudents = ({ Data }: { Data: Student[] }) => {
+const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) => {
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement | null>(null);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -23,11 +23,11 @@ const AllStudents = ({ Data }: { Data: Student[] }) => {
   const [searchQuery, setSearchQuery] = useState("");
   
   const filterStudents = () => {
-    return Data.filter(
+    return Data?.filter(
       (student) =>
-        student.status === selectedTab &&
-        (student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          student.email.toLowerCase().includes(searchQuery.toLowerCase()))
+        student?.status === selectedTab &&
+        (student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          student?.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   };
 
@@ -46,10 +46,21 @@ const AllStudents = ({ Data }: { Data: Student[] }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {/* Export Button */}
-          <button className="bg-primary text-white px-4 py-2 rounded-lg">
+          <div className="flex gap-x-4">
+            {/* Export Button */}
+          <div>
+          <button className="border border-primary text-primary px-4 py-2 rounded-lg">
             Export List
           </button>
+          </div>
+          {/* Export Button */}
+          <div>
+          <button onClick={onOpen} className="bg-primary text-white px-4 py-2 rounded-lg">
+            Add student
+          </button>
+          </div>
+          </div>
+
         </div>
       <div className="flex justify-between items-center mb-4">
         
@@ -83,26 +94,26 @@ const AllStudents = ({ Data }: { Data: Student[] }) => {
               </tr>
             </thead>
             <tbody>
-              {filterStudents().map((student, index) => (
+              {filterStudents()?.map((student, index) => (
                 <tr key={index} className="border-t border-lightGray">
-                  <td className="px-4 py-2">{student.name}</td>
-                  <td className="px-4 py-2">{student.email}</td>
-                  <td className="px-4 py-2">{student.status}</td>
-                  <td className="px-4 py-2">{student.attendance}%</td>
+                  <td className="px-4 py-2">{student?.name}</td>
+                  <td className="px-4 py-2">{student?.email}</td>
+                  <td className="px-4 py-2">{student?.status}</td>
+                  <td className="px-4 py-2">{student?.attendance}%</td>
                   <td className="px-4 py-2">
                     <div className="relative w-full">
                       <div className="h-2 bg-lightGray rounded-full">
                         <div
                           className="h-2 bg-primaryViolet rounded-full"
-                          style={{ width: `${student.progress}%` }}
+                          style={{ width: `${student?.progress}%` }}
                         ></div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-2">{student.memberType}</td>
+                  <td className="px-4 py-2">{student?.memberType}</td>
                   <td className="px-4 py-2">
                   <div className="relative " ref={menuRef}>
-            <button className="text-primary" onClick={() => navigate(`student?${student.id}`)}>
+            <button className="text-primary" onClick={() => navigate(`student?${student?.id}`)}>
               {/* <img src={ellipse} alt="options" className="cursor-pointer" /> */}
               View 
             </button>
@@ -117,9 +128,10 @@ const AllStudents = ({ Data }: { Data: Student[] }) => {
 
         {/* Pagination (if needed) */}
         <div className="mt-4 text-center">
-          Showing {filterStudents().length} of {Data.length} students
+          Showing {filterStudents()?.length} of {Data?.length} students
         </div>
       </div>
+      
     </div>
   );
 };

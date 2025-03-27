@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ApiCreationCalls } from "@/utils/apiPost";  // for creating
 import { ApiUpdateCalls } from "@/utils/apiPut";    // for updating
+import { formatInputDate } from "@/utils/helperFunctions";
 
 interface CohortFormProps {
   onClose: () => void;
@@ -18,9 +19,10 @@ interface CohortFormProps {
     status: string;
   }; // Cohort object to edit (optional)
   programId: number; // Program ID for the cohort
+  fetchProgramData: () => void; //
 }
 
-const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId }) => {
+const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fetchProgramData }) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [applicationDeadline, setApplicationDeadline] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,8 +34,8 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId }) =
     name: cohort?.name || "",
     duration: cohort?.duration || "",
     description: cohort?.description || "",
-    startDate: cohort?.startDate || "",
-    applicationDeadline: cohort?.applicationDeadline || "",
+    startDate: formatInputDate (cohort?.startDate) || "",
+    applicationDeadline: formatInputDate (cohort?.applicationDeadline) || "",
     status: cohort?.status || "Upcoming",
   };
 
@@ -88,6 +90,8 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId }) =
       console.error("Error submitting cohort:", error);
     } finally {
       setLoading(false);  // Stop loading
+      fetchProgramData()
+      onClose(); // Close the form
     }
   };
 
@@ -153,7 +157,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId }) =
                   selected={startDate}
                   onChange={(date) => {
                     setStartDate(date);
-                    setFieldValue('startDate', date);
+                    setFieldValue('startDate', date ? formatInputDate(date.toISOString()) : undefined);
                   }}
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"

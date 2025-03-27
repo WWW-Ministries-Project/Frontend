@@ -18,54 +18,8 @@ const ViewCohort = () => {
   const [cohort, setCohort] = useState<any>(null);
   // Mock data for cohort (You can replace this with real data from an API or database)
  
-   const cohort1 =
-      {
-        id: 101,
-        name: "Spring 2023",
-        description: "First cohort of the Biblical Leadership cohort",
-        startDate: "2023-06-01",
-        duration: "12 weeks",
-        applicationDeadline: "2023-05-15",
-        status: "Active",
-        classes: [
-          {
-            id: 1001,
-            name: "Monday Evening Class",
-            instructor: "Pastor James Wilson",
-            capacity: 15,
-            enrolled: 12,
-            format: "in-person",
-            location: "Main Campus - Room 201",
-            schedule: "Mondays, 7:00 PM - 9:00 PM",
-            meetingLink: "",
-          },
-          {
-            id: 1002,
-            name: "Wednesday Morning Class",
-            instructor: "Elder Sarah Johnson",
-            capacity: 15,
-            enrolled: 8,
-            format: "hybrid",
-            location: "Main Campus - Fellowship Hall",
-            meetingLink: "https://zoom.us/j/123456789",
-            schedule: "Wednesdays, 10:00 AM - 12:00 PM",
-          },
-          {
-            id: 1003,
-            name: "Online Weekend Class",
-            instructor: "Dr. Michael Brown",
-            capacity: 20,
-            enrolled: 4,
-            format: "online",
-            location: "",
-            meetingLink: "https://zoom.us/j/987654321",
-            schedule: "Saturdays, 9:00 AM - 11:00 AM",
-          },
-        ],
-      }
 
-    useEffect(() => {
-        const fetchCohortData = async () => {
+  const fetchCohortData = async () => {
           if (!cohortId) return; // Ensure we have the programId before making the API call
     
           try {
@@ -82,7 +36,10 @@ const ViewCohort = () => {
           } finally {
             setLoading(false);
           }
-        };
+        };  
+  
+  useEffect(() => {
+        
     
         fetchCohortData(); // Call the function when programId changes
       }, [cohortId]); 
@@ -94,7 +51,7 @@ const ViewCohort = () => {
       <PageOutline className="p-0">
         <section className=" sticky top-0">
         <div className="bg-primary rounded-t-lg text-white">
-                    <div className="lg:container mx-auto p-4 space-y-3">
+                    <div className="container mx-auto p-4 space-y-3">
                         <div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
@@ -156,6 +113,8 @@ const ViewCohort = () => {
         <ClassForm 
           onClose={() => setIsModalOpen(false)} 
           onSubmit={(data) => console.log("ClassForm submitted", data)} 
+          initialData={cohort}
+          cohortId = {cohort?.id}
         />
       </Modal>
     </div>

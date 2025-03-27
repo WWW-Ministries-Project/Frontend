@@ -6,34 +6,46 @@ type BreadcrumbProps = {
   separator?: string;
 };
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight/> }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) => {
   const location = useLocation();
-  const pathnames = location.pathname.split("/").filter((x) => x && !Number(x));
+  const { pathname } = location;
+
+  const segments = pathname.split("/").filter((x) => x);
+
+  // Build breadcrumb items by skipping numeric segments but keeping them in the path
+  const breadcrumbItems: { label: string; path: string }[] = [];
+  let pathAccumulator = "";
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    pathAccumulator += `/${segment}`;
+
+    // Skip numeric segments in the label
+    if (!isNaN(Number(segment))) continue;
+
+    // Format label nicely
+    const label = decodeURIComponent(segment.replace(/-/g, " ").replace(/_/g, " "));
+
+    breadcrumbItems.push({ label, path: pathAccumulator });
+  }
 
   return (
-    <div className="m-3 p-2 bg-white text-dark900 rounded-lg  z-10 cursor-pointer">
-      {pathnames.length > 1 ? (
-        <nav aria-label="breadcrumb" className="bg-gray-100 px-5 rounded ">
+    <div className="m-3 p-2 bg-white text-dark900 rounded-lg z-10 cursor-pointer">
+      {breadcrumbItems.length > 1 ? (
+        <nav aria-label="breadcrumb" className="bg-gray-100 px-5 rounded">
           <ol className="flex space-x-2 items-center">
-            {/* <li className="text-blue-500 hover:underline">
-          <Link to="/">Home</Link>
-        </li> */}
-            {pathnames.map((value, index) => {
-              const isLast = index === pathnames.length - 1;
-              const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
-
+            {breadcrumbItems.map((item, index) => {
+              const isLast = index === breadcrumbItems.length - 1;
               return (
                 <React.Fragment key={index}>
                   {index > 0 && <li className="text-dark900">{separator}</li>}
                   {isLast ? (
-                    <li className="text-dark900 font-bold " aria-current="page">
-                      {value.replace(/-/g, " ").replace(/_/g, " ")}
+                    <li className="text-dark900 font-bold" aria-current="page">
+                      {item.label}
                     </li>
                   ) : (
-                    <li className="text-dark900  hover:text-bold">
-                      <Link to={routeTo}>
-                        {value.replace(/-/g, " ").replace(/_/g, " ")}
-                      </Link>
+                    <li className="text-dark900 hover:text-bold">
+                      <Link to={item.path}>{item.label}</Link>
                     </li>
                   )}
                 </React.Fragment>
@@ -41,9 +53,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight/> }) =>
             })}
           </ol>
         </nav>
-      ) : (
-        <></>
-      )}
+      ) : null}
     </div>
   );
 };

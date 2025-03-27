@@ -239,14 +239,14 @@ export const routes = [
         permissionNeeded: "view_events",
       },
       {
-        path: "ministry-school/programs/cohort/class",
+        path: "ministry-school/programs/:id/cohort/:id/class",
         name: "View Class",
         element: <ViewClass />,
         isPrivate: false,
         permissionNeeded: "view_events",
       },
       {
-        path: "ministry-school/programs/cohort/class/student",
+        path: "ministry-school/programs/:id/cohort/:id/class/student",
         name: "View Student",
         element: <ViewStudent />,
         isPrivate: false,

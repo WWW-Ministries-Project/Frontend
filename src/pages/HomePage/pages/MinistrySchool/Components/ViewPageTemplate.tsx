@@ -44,18 +44,18 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
       <PageOutline className="p-0">
         <section className="sticky top-0">
           <div className="bg-primary rounded-t-lg text-white">
-            <div className="lg:container mx-auto p-4 space-y-3">
+            <div className="container mx-auto p-4 space-y-3">
               <div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <div className="text-white text-2xl font-bold">{Data.title||Data.name}</div>
-                    <Badge className="text-xs bg-primary text-white">{Data.status}</Badge>
+                    <div className="text-white text-2xl font-bold">{Data?.title||Data?.name}</div>
+                    <Badge className="text-xs bg-primary text-white">{Data?.status}</Badge>
                   </div>
                   {btnName&&<Button value={`${btnName}`} onClick={onEditClick} className="p-2 m-1 bg-white min-h-10 max-h-14 text-primary" />}
                 </div>
                 {/* Description */}
                 <div className="text-sm">
-                  <p>{Data.description}</p>
+                  <p>{Data?.description}</p>
                 </div>
               </div>
 
@@ -65,10 +65,10 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
               </div>
 
               {/* Topics */}
-            {(Data.topics&&showTopic)&&<div className="space-y-1">
+            {(Data?.topics&&showTopic)&&<div className="space-y-1">
               <p className="text-white text-lg font-semibold">Topics</p>
               <div className="flex flex-wrap gap-2">
-                {Data.topics.map((topic, index) => (
+                {Data?.topics.map((topic, index) => (
                   <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
                     {topic}
                   </Badge>

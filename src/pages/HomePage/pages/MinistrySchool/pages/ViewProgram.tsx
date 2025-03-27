@@ -20,26 +20,28 @@ const ViewProgram = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [program, setProgram] = useState<any>(null); // Stores the program details
+  const [selectedCohort, setSelectedCohort] = useState<Cohort | undefined>(undefined);
 
-  useEffect(() => {
-    const fetchProgramData = async () => {
-      if (!programId) return; // Ensure we have the programId before making the API call
+  const fetchProgramData = async () => {
+    if (!programId) return; // Ensure we have the programId before making the API call
 
-      try {
-        setLoading(true);
-        // Fetch program details by programId
-        const programResponse = await apiCalls.fetchProgramById(programId);
-        if (programResponse.status === 200) {
-          setProgram(programResponse.data.data);
-        } else {
-          setError("Error fetching program details");
-        }
-      } catch (err) {
-        setError("An error occurred while fetching program details.");
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      // Fetch program details by programId
+      const programResponse = await apiCalls.fetchProgramById(programId);
+      if (programResponse.status === 200) {
+        setProgram(programResponse.data.data);
+      } else {
+        setError("Error fetching program details");
       }
-    };
+    } catch (err) {
+      setError("An error occurred while fetching program details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    
 
     fetchProgramData(); // Call the function when programId changes
   }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
@@ -49,6 +51,31 @@ const ViewProgram = () => {
       return <div className="text-red-600">{error}</div>;
     }
     return null;
+  };
+
+  interface Cohort {
+    id: number;
+    name: string;
+    description: string;
+    startDate: string;
+    applicationDeadline: string;
+    duration: string;
+    status: string;
+    [key: string]: any; // Add additional properties as needed
+  }
+
+  const handleEdit = (cohort: Cohort): void => {
+    console.log("handleEdit");
+    
+    setSelectedCohort(cohort)
+    setIsModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setSelectedCohort(undefined);
+    console.log("Program selected", selectedCohort);
+    
+    setIsModalOpen(false)
   };
 
   return loading ? (
@@ -92,15 +119,16 @@ const ViewProgram = () => {
 
         <section>
           {/* Show cohorts for this program */}
-          {handleErrorDisplay() || <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)} />}
+          {handleErrorDisplay() || <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)} onEdit={handleEdit}  onDelete={() => { /* Add delete logic here */ }}/>}
         </section>
       </PageOutline>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <CohortForm
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={(data) => console.log("Form submitted:", data)}
-          programId={programId ? parseInt(programId, 10) : undefined} // Pass the programId to CohortForm
+          onClose={() => handleClose()}
+          programId={programId && !isNaN(parseInt(programId, 10)) ? parseInt(programId, 10) : 0} // Pass the programId to CohortForm
+          fetchProgramData = {fetchProgramData}
+          cohort = {selectedCohort}
         />
       </Modal>
     </div>

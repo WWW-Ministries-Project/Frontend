@@ -78,7 +78,7 @@ const ManageAsset = () => {
 
   return (
     <div className="p-4">
-      <section className="p-8 lg:container lg:w-4/6 bg-white mx-auto rounded-xl ">
+      <section className="p-8 container lg:w-4/6 bg-white mx-auto rounded-xl ">
       <h1 className="H700 font-bold text-dark900">{title}</h1>
       {!isDisabled && (
         <p className="text-sma text-lightGray py-2">
