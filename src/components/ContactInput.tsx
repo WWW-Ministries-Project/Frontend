@@ -2,14 +2,14 @@ import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
 import { useState } from "react";
+import { string } from "yup";
 import FormikInputDiv from "./FormikInput";
 
 interface IProps {
   disabled?: boolean;
-  label: string;
+  label?: string;
   className?: string;
   placeholder?: string;
-  zipCode?: string;
   zipClass?: string;
   required?: boolean;
   prefix: string;
@@ -17,9 +17,8 @@ interface IProps {
 
 const ContactInputComponent = ({
   disabled = false,
-  label,
+  label="Phone Number",
   className,
-  zipCode,
   zipClass,
   prefix,
 }: IProps) => {
@@ -51,7 +50,7 @@ const ContactInputComponent = ({
 
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
-    setFieldValue(`${prefix}.country_code`, country.dialCode);
+    setFieldValue(`${prefix}.phone.country_code`, country.dialCode);
     setFilteredCountries([]);
   };
 
@@ -63,8 +62,8 @@ const ContactInputComponent = ({
         <div className="relative w-20">
           <Field
             component={FormikInputDiv}
-            id={`${prefix}.country_code`}
-            name={`${prefix}.country_code`}
+            id={`${prefix}.phone.country_code`}
+            name={`${prefix}.phone.country_code`}
             disabled={disabled}
             onChange={handleInputChange}
             inputClass={`w-full ${
@@ -102,8 +101,10 @@ const ContactInputComponent = ({
         <div className="flex-grow">
           <Field
             component={FormikInputDiv}
-            id={`${prefix}.primary_number`}
-            name={`${prefix}.primary_number`}
+            id={`${prefix}.phone.number`}
+            name={`${prefix}.phone.number`}
+            aria-label="phone number"
+            maxlength={10}
             placeholder="enter phone number"
             disabled={disabled}
             inputClass={`w-full ${
@@ -116,5 +117,23 @@ const ContactInputComponent = ({
     </div>
   );
 };
+export interface IContactInput {
+  country_code: string;
+  number: string;
+}
+const initialValues: IContactInput = {
+  country_code: "",
+  number: "",
+};
 
-export const ContactInput = Object.assign(ContactInputComponent, {});
+const validationSchema = {
+  number: string()
+    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+    .required("Phone number is required"),
+  country_code: string().required("required"),
+};
+
+export const ContactInput = Object.assign(ContactInputComponent, {
+  initialValues,
+  validationSchema,
+});
