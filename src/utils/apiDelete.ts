@@ -46,7 +46,7 @@ export class ApiDeletionCalls {
   };
 
   deleteCohort = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("program/cohorts/delete-cohort", { id });
+    return this.deleteFromApi<void>(`program/cohorts/${id}`, { id });
   };
 
   deleteCourse = (id: string | number): Promise<ApiResponse<void>> => {

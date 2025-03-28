@@ -5,20 +5,24 @@ import { formatInputDate, formatTime } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ellipse from "@/assets/ellipse.svg";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
 
 interface AllCohortsPageProps {
   onCreate: () => void;
   cohorts: any[]; // List of cohorts
   onEdit: (cohort: any) => void; // Function to edit cohort
-  onDelete: () => void;
+  onDelete: (id: number) => void;
 }
 
 const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEdit, onDelete }) => {
   const navigate = useNavigate();
+  const apiDelete = new ApiDeletionCalls() 
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
   const buttonRef = useRef<HTMLButtonElement | null>(null); // Reference for the button that toggles the menu
   const [isMenuOpen, setIsMenuOpen] = useState<number | null>(null); // State to track which menu is open
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const toggleMenu = (id: number) => {
     if (isMenuOpen === id) {
@@ -33,6 +37,25 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
 
     onEdit(cohort); // Pass selected cohort back to parent component
   };
+
+  // const deleteCohort = async (cohortId: number) => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await apiDelete.deleteProgram(cohortId);
+  //     if (response.status === 200) {
+  //       setPrograms((prevPrograms) =>
+  //         prevPrograms.filter((cohort) => cohort.id !== cohortId)
+  //       );
+  //       console.log("Program deleted successfully");
+  //     } else {
+  //       setError("Failed to delete the program.");
+  //     }
+  //   } catch (err) {
+  //     setError("An error occurred while deleting the program.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -134,7 +157,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
 
                             <hr className="text-lightGray" />
                             <li
-                              onClick={onDelete}
+                              onClick={() => onDelete(cohort.id)}
                               className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                             >
                               Delete Cohort

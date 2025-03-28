@@ -12,19 +12,30 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) =
 
   const segments = pathname.split("/").filter((x) => x);
 
-  // Build breadcrumb items by skipping numeric segments but keeping them in the path
+  // Build breadcrumb items while combining ID segments with their parents
   const breadcrumbItems: { label: string; path: string }[] = [];
   let pathAccumulator = "";
 
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
+    const isNumeric = !isNaN(Number(segment));
     pathAccumulator += `/${segment}`;
 
-    // Skip numeric segments in the label
-    if (!isNaN(Number(segment))) continue;
+    // Skip numeric segments - we'll handle them with their parent segment
+    if (isNumeric) continue;
 
-    // Format label nicely
-    const label = decodeURIComponent(segment.replace(/-/g, " ").replace(/_/g, " "));
+    // Check if next segment is numeric (an ID)
+    const nextSegmentIsNumeric = i + 1 < segments.length && !isNaN(Number(segments[i + 1]));
+
+    // Format label
+    let label = decodeURIComponent(segment.replace(/-/g, " ").replace(/_/g, " "));
+    
+    // If next segment is numeric, combine them
+    if (nextSegmentIsNumeric) {
+      label = `${label} ${segments[i + 1]}`;
+      pathAccumulator += `/${segments[i + 1]}`;
+      i++; // Skip the numeric segment in next iteration
+    }
 
     breadcrumbItems.push({ label, path: pathAccumulator });
   }

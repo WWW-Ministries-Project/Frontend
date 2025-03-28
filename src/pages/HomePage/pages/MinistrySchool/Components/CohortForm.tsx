@@ -157,7 +157,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   selected={startDate}
                   onChange={(date) => {
                     setStartDate(date);
-                    setFieldValue('startDate', date ? formatInputDate(date.toISOString()) : undefined);
+                    setFieldValue('startDate', date );
                   }}
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
@@ -201,7 +201,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                   placeholderText="Pick a date"
-                  minDate={startDate || undefined}
+                  maxDate={startDate || undefined}
                 />
                 {errors.applicationDeadline && touched.applicationDeadline && (
                   <div className="text-red-600 text-xs">{errors.applicationDeadline}</div>

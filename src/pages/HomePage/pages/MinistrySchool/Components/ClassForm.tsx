@@ -8,13 +8,13 @@ import { ApiUpdateCalls } from "@/utils/apiPut";  // Ensure you have the correct
 
 interface ClassFormProps {
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  fetchCohortData: () => void;
   classId?: number; // Optional class ID for updating
   initialData?: any; // Initial data for updating class
   cohortId?: number; // Required cohort ID
 }
 
-const ClassForm: React.FC<ClassFormProps> = ({ onClose, classId, initialData, cohortId }) => {
+const ClassForm: React.FC<ClassFormProps> = ({ onClose, classId, initialData, cohortId, fetchCohortData }) => {
   const [loading, setLoading] = useState(false);
   const apiCalls = new ApiCreationCalls();
   const api = new ApiUpdateCalls();
@@ -76,6 +76,8 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, classId, initialData, co
       console.error("Error in submitting class:", error);
     } finally {
       setLoading(false);
+      onClose()
+fetchCohortData()
     }
   };
 

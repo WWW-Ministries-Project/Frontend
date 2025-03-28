@@ -53,7 +53,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose })
     const payload = {
       ...values,
       courseId: selectedClass.id, // Add classId to the payload
-      userId:1
+      // userId
     };
 
     try {

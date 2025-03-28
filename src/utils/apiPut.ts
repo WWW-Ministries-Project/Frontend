@@ -74,7 +74,7 @@ export class ApiUpdateCalls {
 
   // Update Cohort
   updateCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("program/cohorts/update-cohort", payload);
+    return this.apiExecution.updateData(`program/cohorts/${payload.id}`, payload.payload);
   };
 
   // Update Class

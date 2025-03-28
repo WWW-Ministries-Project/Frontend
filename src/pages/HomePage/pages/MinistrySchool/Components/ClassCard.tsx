@@ -153,7 +153,7 @@ const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
 
                 <hr className="text-lightGray/10" />
                 <li
-                  onClick={onDelete} // Pass the delete logic here
+                  onClick={"onDelete"} // Pass the delete logic here
                   className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                 >
                   Delete Class

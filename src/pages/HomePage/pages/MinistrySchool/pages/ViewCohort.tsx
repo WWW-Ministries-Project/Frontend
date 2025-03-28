@@ -9,6 +9,29 @@ import { ApiCalls } from "@/utils/apiFetch";
 import { useParams } from "react-router-dom";
 import { formatTime } from "@/utils/helperFunctions";
 
+type ClassItem = {
+  id: number;
+  name: string;
+  format: string;
+  instructor: string;
+  schedule: string;
+  classFormat: string;
+  enrolled: number;
+  capacity: number;
+  location?: string;
+  meetingLink?: string;
+}
+
+type Cohort = {
+  id: number;
+  description: string;
+  startDate: string;
+  duration: string;
+  applicationDeadline: string;
+  courses: ClassItem[];
+};
+
+
 const ViewCohort = () => {
   const apiCalls = new ApiCalls();
   const { id: cohortId } = useParams(); // Get cohort ID from the route
@@ -17,6 +40,8 @@ const ViewCohort = () => {
   const [loading, setLoading] = useState(true);
   const [cohort, setCohort] = useState<any>(null);
   // Mock data for cohort (You can replace this with real data from an API or database)
+
+
  
 
   const fetchCohortData = async () => {
@@ -92,6 +117,7 @@ const ViewCohort = () => {
         </section>
         <section>
             {/* classes */}
+            
             <div  className="container mx-auto rounded-lg p-4 space-y-2">
                 {/* Classes */}
                     <div className="flex justify-between items-center">
@@ -102,7 +128,7 @@ const ViewCohort = () => {
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
-                    {cohort?.courses.map((classItem) => (
+                    {cohort?.courses.map((classItem: ClassItem) => (
                      <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
                     ))}
                     </div>
@@ -112,7 +138,7 @@ const ViewCohort = () => {
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ClassForm 
           onClose={() => setIsModalOpen(false)} 
-          onSubmit={(data) => console.log("ClassForm submitted", data)} 
+          fetchCohortData={()=>fetchCohortData()} 
           initialData={cohort}
           cohortId = {cohort?.id}
         />

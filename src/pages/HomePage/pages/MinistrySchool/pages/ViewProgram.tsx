@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import CohortForm from "../Components/CohortForm";
 import { ApiCalls } from "@/utils/apiFetch";
 import { useParams } from "react-router-dom";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
 
 // Define the Topic type
 type Topic = {
@@ -16,6 +17,7 @@ type Topic = {
 const ViewProgram = () => {
   const { id: programId } = useParams(); // Get program ID from the route
   const apiCalls = new ApiCalls();
+  const apiDelete = new ApiDeletionCalls() 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,6 +80,26 @@ const ViewProgram = () => {
     setIsModalOpen(false)
   };
 
+  const deleteCohort = async (cohortId: number) => {
+    try {
+      setLoading(true);
+      const response = await apiDelete.deleteCohort(cohortId);
+      if (response.status === 200) {
+        fetchProgramData();
+        // setProgram((prevPrograms: any) =>
+        //   prevPrograms.filter((program: any) => program.cohort.id !== cohortId)
+        // );
+        console.log("Program deleted successfully");
+      } else {
+        setError("Failed to delete the program.");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the program.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return loading ? (
     <div>Loading...</div> // Show loading text while data is being fetched
   ) : (
@@ -119,7 +141,7 @@ const ViewProgram = () => {
 
         <section>
           {/* Show cohorts for this program */}
-          {handleErrorDisplay() || <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)} onEdit={handleEdit}  onDelete={() => { /* Add delete logic here */ }}/>}
+          {handleErrorDisplay() || <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)} onEdit={handleEdit} onDelete={(cohortId) => deleteCohort(cohortId)} />}
         </section>
       </PageOutline>
 
