@@ -4,7 +4,6 @@ import {
   ChildrenSubForm,
   ContactsSubForm,
   IChildrenSubForm,
-  IContactsSubForm,
   IUserSubForm,
   UserSubForm,
 } from "@components/subform";
@@ -17,12 +16,16 @@ import {
 } from "../../components/subform/WorkInfoSubForm";
 import { useCountryStore } from "../HomePage/store/coutryStore";
 import { fetchCountries } from "../HomePage/utils";
+import {
+  IRegistrationContactSubForm,
+  RegistrationContactSubForm,
+} from "./components/subform/ContactSubForm";
 
 const steps = [
   { label: "User Info", content: <UserSubForm prefix={`personal_info`} /> },
   {
     label: "Contact Info",
-    content: <ContactsSubForm prefix={`contact_info`} />,
+    content: <RegistrationContactSubForm />,
   },
   { label: "Children", content: <ChildrenSubForm /> },
   { label: "Work Info", content: <WorkInfoSubForm prefix="work_info" /> },
@@ -42,6 +45,7 @@ const Registration = () => {
       });
     }
   }, [countryStore]);
+  console.log(initialValues, "initialValues");
 
   const handleNext = async ({
     validateForm,
@@ -101,25 +105,24 @@ const Registration = () => {
   );
 };
 
-interface IRegistration extends IChildrenSubForm {
+interface IRegistration extends IChildrenSubForm, IRegistrationContactSubForm {
   personal_info: IUserSubForm;
-  contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
 }
 const validationSchema = [
   object({ personal_info: object(UserSubForm.validationSchema) }),
-  object({ contact_info: object(ContactsSubForm.validationSchema) }),
+  object({ ...RegistrationContactSubForm.validationSchema }),
   object({ ...ChildrenSubForm.validationSchema }),
   object({ work_info: object(WorkInfoSubForm.validationSchema) }),
 ];
 
 const initialValues: IRegistration = {
   personal_info: UserSubForm.initialValues,
-  contact_info: ContactsSubForm.initialValues,
   work_info: WorkInfoSubForm.initialValues,
   status: "UNCONFIRMED",
   ...ChildrenSubForm.initialValues,
+  ...RegistrationContactSubForm.initialValues,
 };
 
 export default Registration;

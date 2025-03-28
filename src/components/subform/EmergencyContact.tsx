@@ -1,7 +1,8 @@
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
-import { string } from "yup";
+import { object, string } from "yup";
+import { ContactInput, IContactInput } from "../ContactInput";
 
 const EmergencyContactComponent = ({
   disabled = false,
@@ -16,24 +17,25 @@ const EmergencyContactComponent = ({
         component={FormikInputDiv}
         label="Name of Contact"
         disabled={disabled}
-        id={`${prefix}.emergency_contact_name`}
-        name={`${prefix}.emergency_contact_name`}
+        id={`${prefix}.name`}
+        name={`${prefix}.name`}
       />
       <Field
         component={FormikSelectField}
         label="Relation"
         disabled={disabled}
-        id={`${prefix}.emergency_contact_relation`}
-        name={`${prefix}.emergency_contact_relation`}
+        id={`${prefix}.relation`}
+        name={`${prefix}.relation`}
         options={relationOptions}
       />
-      <Field
+      {/* <Field
         component={FormikInputDiv}
         label="Phone Number"
         disabled={disabled}
         id={`${prefix}.emergency_contact_phone_number`}
         name={`${prefix}.emergency_contact_phone_number`}
-      />
+      /> */}
+      <ContactInput prefix={prefix} />
     </>
   );
 };
@@ -51,20 +53,20 @@ const relationOptions = [
 ];
 
 export interface IEmergencyContact {
-  emergency_contact_name?: string;
-  emergency_contact_relation?: string;
-  emergency_contact_phone_number?: string;
+  name?: string;
+  relation?: string;
+  phone?: IContactInput;
 }
 
-const initialValues = {
-  emergency_contact_name: "",
-  emergency_contact_relation: "",
-  emergency_contact_phone_number: "",
+const initialValues: IEmergencyContact = {
+  name: "",
+  relation: "",
+  phone: ContactInput.initialValues,
 };
 const validationSchema = {
-  emergency_contact_name: string().required("Required"),
-  emergency_contact_relation: string().required("Required"),
-  emergency_contact_phone_number: string().required("Required"),
+  name: string().required("Required"),
+  relation: string().required("Required"),
+  phone: object().shape(ContactInput.validationSchema),
 };
 
 export const EmergencyContact = Object.assign(EmergencyContactComponent, {

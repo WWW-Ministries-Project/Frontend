@@ -9,9 +9,13 @@ import { FieldArray, getIn, useFormikContext } from "formik";
 import { Fragment, useMemo } from "react";
 import { array, object } from "yup";
 
-const ChildrenSubFormComponent = () => {
+const ChildrenSubFormComponent = ({
+  disabled = false,
+}: {
+  disabled?: boolean;
+}) => {
   const { values: entire } = useFormikContext<object>();
-  const values: IChildrenSubForm["children"] = useMemo(
+  const children: IChildrenSubForm["children"] = useMemo(
     () => getIn(entire, "children") || initialValues,
     [entire]
   );
@@ -30,7 +34,7 @@ const ChildrenSubFormComponent = () => {
                 onClick={() => unshift(initialValues.children[0])}
               />
             </FullWidth>
-            {values.map((_, index) => (
+            {children.map((_, index) => (
               <Fragment key={index}>
                 {index > 0 && <HorizontalLine />}
                 {index > 0 && (
@@ -43,7 +47,11 @@ const ChildrenSubFormComponent = () => {
                     />
                   </FullWidth>
                 )}
-                <PersonalDetails key={index} prefix={`children.${index}`} />
+                <PersonalDetails
+                  key={index}
+                  disabled={disabled}
+                  prefix={`children.${index}`}
+                />
               </Fragment>
             ))}
           </>
@@ -62,7 +70,9 @@ const initialValues = {
 };
 
 const validationSchema = {
-  children: array().of(object().shape(PersonalDetails.validationSchema)),
+  children: array()
+    .of(object().shape(PersonalDetails.validationSchema))
+    .optional(),
 };
 export const ChildrenSubForm = Object.assign(ChildrenSubFormComponent, {
   initialValues,

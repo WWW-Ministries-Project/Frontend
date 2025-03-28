@@ -1,12 +1,8 @@
-import { ContactInput } from "@/components/ContactInput";
+import { ContactInput, IContactInput } from "@/components/ContactInput";
 import FormikInputDiv from "@/components/FormikInput";
-import {
-  EmergencyContact,
-  IEmergencyContact,
-} from "@/components/subform/EmergencyContact";
 import { FormHeader } from "@/components/ui";
 import { Field } from "formik";
-import { string } from "yup";
+import { object, string } from "yup";
 
 const ContactsSubFormComponent = ({
   prefix,
@@ -59,40 +55,35 @@ const ContactsSubFormComponent = ({
         disabled={disabled}
         type={"text"}
       />
-      <FormHeader>Emergency Contact</FormHeader>
-      <EmergencyContact prefix={prefix} />
+      {/* <FormHeader>Emergency Contact</FormHeader> */}
+      {/* <EmergencyContact prefix={prefix} /> */}
     </>
   );
 };
 
-export interface IContactsSubForm extends IEmergencyContact {
-  primary_number: string;
-  country_code: string;
+export interface IContactsSubForm {
   email: string;
   resident_country: string;
   state_region: string;
   city: string;
+  phone: IContactInput;
 }
 
 const initialValues: IContactsSubForm = {
-  ...EmergencyContact.initialValues,
-  primary_number: "",
-  country_code: "",
   email: "",
   resident_country: "",
   state_region: "",
   city: "",
+  phone: ContactInput.initialValues,
+  // ...EmergencyContact.initialValues,
 };
 const validationSchema = {
-  primary_number: string()
-    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
-    .required("Phone number is required"),
-  country_code: string().required("required"),
   email: string().email("Invalid email format").required("Email is required"),
   resident_country: string().required("Resident country is required"),
   state_region: string().required("State/Region is required"),
   city: string().required("City is required"),
-  ...EmergencyContact.validationSchema,
+  phone: object().shape(ContactInput.validationSchema),
+  // ...EmergencyContact.validationSchema,
 };
 export const ContactsSubForm = Object.assign(ContactsSubFormComponent, {
   initialValues,

@@ -38,29 +38,30 @@ const AddMember = () => {
   };
 
   async function handleSubmit(values: IAddMember) {
-    try {
-      let uploadedLink = values.picture.src;
+    console.log(values,"values");
+    // try {
+    //   let uploadedLink = values.picture.src;
 
-      if (values.picture.picture) {
-        const data = new FormData();
-        data.append("file", values.picture.picture);
+    //   if (values.picture.picture) {
+    //     const data = new FormData();
+    //     data.append("file", values.picture.picture);
 
-        const response = await axiosPic.post(`${baseUrl}upload`, data);
+    //     const response = await axiosPic.post(`${baseUrl}upload`, data);
 
-        if (response?.status === 200) {
-          uploadedLink = response.data.result.link;
-        } else {
-          console.error("Image upload failed");
-          return;
-        }
-      }
+    //     if (response?.status === 200) {
+    //       uploadedLink = response.data.result.link;
+    //     } else {
+    //       console.error("Image upload failed");
+    //       return;
+    //     }
+    //   }
 
-      const { picture, ...formData } = values;
-      formData.link = uploadedLink;
-      await postData(formData);
-    } catch (error) {
-      console.error("Error during submission:", error);
-    }
+    //   const { picture, ...formData } = values;
+    //   // setFieldValue("picture", { src: uploadedLink, picture: "" });
+    //   await postData(formData);
+    // } catch (error) {
+    //   console.error("Error during submission:", error);
+    // }
   }
 
   return (

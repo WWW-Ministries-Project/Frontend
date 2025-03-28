@@ -2,9 +2,9 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
+import { string } from "yup";
 import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
 import { useCountryStore } from "../../pages/HomePage/store/coutryStore";
-import { string } from "yup";
 
 const PersonalDetailsComponent = ({
   disabled = false,
