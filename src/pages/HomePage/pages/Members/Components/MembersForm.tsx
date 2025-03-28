@@ -125,7 +125,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
 export interface IMembersForm extends IChildrenSubForm {
   personal_info: IPersonalDetails;
-  emergency: IEmergencyContact;
+  emergency_contact: IEmergencyContact;
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   church_info:{
@@ -140,7 +140,7 @@ const initialValues: IMembersForm = {
   personal_info: PersonalDetails.initialValues,
   contact_info: ContactsSubForm.initialValues,
   work_info: WorkInfoSubForm.initialValues,
-  emergency: EmergencyContact.initialValues,
+  emergency_contact: EmergencyContact.initialValues,
   is_user: false,
   church_info:{
     membership_type: "IN-HOUSE",
