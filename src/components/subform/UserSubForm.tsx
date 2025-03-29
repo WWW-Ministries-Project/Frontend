@@ -62,7 +62,7 @@ const initialValues = {
     src: "",
     picture: null,
   },
-  has_children: false,
+  has_children: true,
 };
 const validationSchema = {
   ...PersonalDetails.validationSchema,

@@ -1,4 +1,3 @@
-import { ContactInput } from "@/components/ContactInput";
 import FormikInputDiv from "@/components/FormikInput";
 import { Field } from "formik";
 
@@ -9,7 +8,7 @@ const ContactDetailsComponent = ({
 }) => {
   return (
     <>
-      <ContactInput label="Phone Number" disabled={disabled} />
+      {/* <ContactInput label="Phone Number" disabled={disabled} /> */}
       <Field
         component={FormikInputDiv}
         label="Email"

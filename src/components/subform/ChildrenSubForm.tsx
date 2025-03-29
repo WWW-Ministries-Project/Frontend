@@ -16,7 +16,7 @@ const ChildrenSubFormComponent = ({
 }) => {
   const { values: entire } = useFormikContext<object>();
   const children: IChildrenSubForm["children"] = useMemo(
-    () => getIn(entire, "children") || initialValues,
+    () => getIn(entire, "children") || initialValues.children,
     [entire]
   );
 
@@ -72,7 +72,7 @@ const initialValues = {
 const validationSchema = {
   children: array()
     .of(object().shape(PersonalDetails.validationSchema))
-    .optional(),
+    .default([]),
 };
 export const ChildrenSubForm = Object.assign(ChildrenSubFormComponent, {
   initialValues,
