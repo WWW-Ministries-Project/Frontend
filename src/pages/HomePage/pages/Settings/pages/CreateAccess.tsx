@@ -121,8 +121,9 @@ const CreateAccess = () => {
   };
 
   return (
-    <PageOutline>
-      <PageHeader title={`${id ? "Update" : "Create"} Access Right`} />
+    <div className="px-4">
+      <PageOutline className="">
+      <PageHeader   title={`${id ? "Update" : "Create"} Access Right`} />
       <div className="text-lighterBlack">
         Fill in the form below with the rights this access should have
       </div>
@@ -162,6 +163,7 @@ const CreateAccess = () => {
         </div>
       </section>
     </PageOutline>
+    </div>
   );
 };
 

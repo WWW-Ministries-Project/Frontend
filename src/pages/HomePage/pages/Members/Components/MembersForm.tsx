@@ -55,8 +55,8 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
           id="church_info.membership_type"
           name="church_info.membership_type"
           options={[
-            { name: "online", value: "ONLINE" },
-            { name: "inHouse", value: "IN-HOUSE" },
+            { name: "Online e-church family", value: "MEMBER" },
+            { name: "In-person church family", value: "VISITOR" },
             // { name: "Pending", value: "pending" },
           ]}
           disabled={disabled}

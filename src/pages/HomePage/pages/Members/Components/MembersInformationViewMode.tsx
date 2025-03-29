@@ -3,6 +3,7 @@ import React from "react";
 
 interface MemberInfo {
   membership_Id: string;
+  member_id: string;
   membership_type: string;
   title: string;
   first_name: string;
@@ -43,11 +44,11 @@ const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
             <p className=" text-gray-600 font-semibold">Membership ID</p>
-            <p className="font-medium">{user.membership_Id || "-"}</p>
+            <p className="font-medium">{user.member_id || "-"}</p>
           </div>
           <div>
             <p className=" text-gray-600 font-semibold">Membership Type</p>
-            <p className="font-medium">{user.membership_type || "-"}</p>
+            <p className="font-medium">{user.membership_type === "MEMBER" ? "Online e-church family" : "In-person church family"}</p>
           </div>
         </div>
       </section>

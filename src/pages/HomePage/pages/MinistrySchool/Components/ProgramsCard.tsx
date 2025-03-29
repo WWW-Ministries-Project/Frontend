@@ -4,6 +4,7 @@ import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import { useNavigate } from "react-router-dom";
+import { formatTime } from "@/utils/helperFunctions";
 
 // Define the Cohort type
 interface Cohort {
@@ -18,8 +19,8 @@ interface Program {
   id: number;
   title: string;
   description: string;
-  eligibility: "members" | "non-members" | "both";
-  topics: string[];
+  eligibility: "Members" | "Non_Members" | "Both";
+  topics: { name: string }[];
   cohorts: Cohort[];
 }
 
@@ -27,16 +28,24 @@ interface ProgramsCardProps {
   program: Program;
   cohorts: Cohort[];
   handleCopyLink: (programId: number) => void;
+  toggleMenu: () => void;
+  onOpen: () => void;
+  onDelete: () => void; // Added onDelete prop
+  isMenuOpen: number | null; // Added isMenuOpen prop
 }
 
 interface EligibilityBadgeProps {
   eligibility: Program["eligibility"];
 }
 
+
+
 const ProgramsCard = ({
   program,
   cohorts,
   handleCopyLink,
+  onOpen,
+  onDelete
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
 
@@ -58,6 +67,8 @@ const ProgramsCard = ({
     };
   }, []);
 
+  
+
   // Function to toggle the menu when the ellipsis button is clicked
   const toggleMenu = (id: number) => {
     if (isMenuOpen === id) {
@@ -69,15 +80,15 @@ const ProgramsCard = ({
 
   const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element | null => {
     switch (eligibility) {
-      case "members":
+      case "Members":
         return <Badge>Members Only</Badge>;
-      case "non-members":
+      case "Non_Members":
         return (
           <Badge className="bg-red-50 text-xs text-red-700 border border-red-200">
-            Non-Members Only
+            Non Members Only
           </Badge>
         );
-      case "both":
+      case "Both":
         return (
           <Badge className="bg-green/10 text-xs text-green-700 border border-green/50">
             Open to All
@@ -106,9 +117,9 @@ const ProgramsCard = ({
           <p className="text-sm font-semibold">Topics</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {program.topics.map((topic: string, index: number) => (
+          {program.topics.map((topic, index) => (
             <p key={index} className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50">
-              {topic}
+              {topic.name}
             </p>
           ))}
         </div>
@@ -125,7 +136,7 @@ const ProgramsCard = ({
                   <div>
                     <div className="font-medium">{cohort.name}</div>
                     <div className="text-sm">
-                      <p>{cohort.startDate}</p>
+                      <p>{formatTime(cohort.startDate)}</p>
                     </div>
                   </div>
                   <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">{cohort.status}</Badge>
@@ -149,7 +160,7 @@ const ProgramsCard = ({
       {/* Actions */}
       <div className=" flex justify-between items-center">
         <div>
-          <Button onClick={() => navigate(`programs?program=${program.id}`)} value="Manage" className="bg-primary text-white px-4" />
+          <Button onClick={() => navigate(`programs/${program.id}`)} value="Manage" className="bg-primary text-white px-4" />
         </div>
         <div>
           <div className="relative" ref={menuRef}>
@@ -159,7 +170,7 @@ const ProgramsCard = ({
             {isMenuOpen === program.id && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg">
                 <ul className="py-1">
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Edit Program</li>
+                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer" onClick={onOpen}>Edit Program</li>
                   <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Add Cohort</li>
                   <li onClick={() => handleCopyLink(program.id)} className="px-4 py-2 hover:bg-lightGray cursor-pointer">
                     Copy Application Link
@@ -168,7 +179,7 @@ const ProgramsCard = ({
                     View Application Page
                   </li>
                   <hr className="text-lightGray" />
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
+                  <li onClick={onDelete} className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
                 </ul>
               </div>
             )}

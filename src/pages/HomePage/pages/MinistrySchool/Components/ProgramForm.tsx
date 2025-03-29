@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Formik, Field, Form, FieldArray } from "formik";
 import MultiSelect from "@/components/MultiSelect";
+import { ApiCreationCalls } from "@/utils/apiPost";
+import { ApiUpdateCalls } from "@/utils/apiPut";
 
 // Options for prerequisites (e.g., seniority levels)
 const options = [
@@ -12,26 +14,82 @@ const options = [
 
 interface ProgramFormProps {
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  program?: { // Make program optional
+    title: string;
+    description: string;
+    eligibility: string;
+    topics: { id: number; name: string; programId: number }[];
+    prerequisites: string[];
+    isPrerequisitesChecked?: boolean;
+    id?: number;
+  };
+  prerequisitesDropdown: { label: string; value: string }[]; // Add prerequisitesDropdown property
+  fetchPrograms: () => void; // Add fetchPrograms property
 }
 
-const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
+const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisitesDropdown, fetchPrograms }) => {
+  const [loading, setLoading] = useState(false);
+  const apiCalls = new ApiCreationCalls();  // Assuming you have a class for API calls
+  const api = new ApiUpdateCalls();
+
+  const onSubmit = async (values: any) => {
+    setLoading(true); // Show loading state
+
+    const payload = {
+      title: values.title,
+      description: values.description,
+      eligibility: values.eligibility,
+      topics: values?.topics?.map((topic: any) => (program?.id?topic?.name:topic)), // Ensure topics are in the required format
+      prerequisites: values.isPrerequisitesChecked ? values.prerequisites : [], // If prerequisites are checked, include them
+    };
+
+    try {
+      if (program?.id) {
+        // Update existing program if ID is available
+        const response = await api.updateProgram({ payload, id: program?.id });
+        if (response.success) {
+          console.log("Program updated successfully:", response.data);
+          onClose();
+        } else {
+          console.error("Error updating program:", response?.error || "Unknown error");
+        }
+      } else {
+        // Create new program if no ID
+        const response = await apiCalls.createProgram(payload);
+        if (response.success) {
+          console.log("Program created successfully:", response.data);
+          onClose();
+        } else {
+          console.error("Error creating program:", response?.error || "Unknown error");
+        }
+      }
+    } catch (error) {
+      console.error("Error in submitting program:", error);
+    } finally {
+      fetchPrograms()
+      setLoading(false); // Stop loading
+      onClose()
+    }
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg md:w-[45rem] text-dark900 space-y-4">
       <div>
-        <div className="font-bold text-lg">Create New Program</div>
-        <p className="text-sm">Fill in the program details to create a new school program.</p>
+        <div className="font-bold text-lg">
+          {program?.id ? "Edit Program" : "Create New Program"}
+        </div>
+        <p className="text-sm">Fill in the program details to {program?.id ? "update" : "create"} a school program.</p>
       </div>
 
       <Formik
         initialValues={{
-          programTitle: "",
-          programDescription: "",
-          eligibility: "both",
-          topics: [],
+          title: program?.title || "",
+          description: program?.description || "",
+          eligibility: program?.eligibility || "Both",
+          topics: program?.topics || [],
           newTopic: "",
-          isPrerequisitesChecked: false,
-          prerequisites: [],
+          isPrerequisitesChecked: program?.isPrerequisitesChecked || false,
+          prerequisites: program?.prerequisites || [],
         }}
         onSubmit={onSubmit}
       >
@@ -39,13 +97,13 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
           <Form>
             {/* Program Title */}
             <div className="mb-4 space-y-2">
-              <label htmlFor="programTitle" className="block text-sm font-medium text-dark900">
+              <label htmlFor="title" className="block text-sm font-medium text-dark900">
                 Program Title *
               </label>
               <Field
                 type="text"
-                id="programTitle"
-                name="programTitle"
+                id="title"
+                name="title"
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter program title"
               />
@@ -53,13 +111,13 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
 
             {/* Program Description */}
             <div className="mb-4 space-y-2">
-              <label htmlFor="programDescription" className="block text-sm font-medium text-dark900">
+              <label htmlFor="description" className="block text-sm font-medium text-dark900">
                 Description *
               </label>
               <Field
                 as="textarea"
-                id="programDescription"
-                name="programDescription"
+                id="description"
+                name="description"
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter program description"
               />
@@ -73,8 +131,8 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
                   <Field
                     type="radio"
                     name="eligibility"
-                    value="members"
-                    checked={values.eligibility === "members"}
+                    value="Members"
+                    checked={values.eligibility === "Members"}
                     className="mr-2"
                   />
                   Members Only
@@ -83,21 +141,21 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
                   <Field
                     type="radio"
                     name="eligibility"
-                    value="non-members"
-                    checked={values.eligibility === "non-members"}
+                    value="Non_Members"
+                    checked={values.eligibility === "Non_Members"}
                     className="mr-2"
                   />
-                  Non-Members Only
+                  Non Members Only
                 </label>
                 <label>
                   <Field
                     type="radio"
                     name="eligibility"
-                    value="both"
-                    checked={values.eligibility === "both"}
+                    value="Both"
+                    checked={values.eligibility === "Both"}
                     className="mr-2"
                   />
-                  Both Members and Non-Members
+                  Both Members and Non Members
                 </label>
               </div>
             </div>
@@ -112,7 +170,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
                     {values.topics.map((topic, index) => (
                       <div key={index} className="flex items-center space-x-2 mb-2">
                         <Field
-                          name={`topics[${index}]`}
+                          name={program?.id?`topics[${index}].name`:`topics[${index}]`}
                           className="block w-full px-4 py-2 border border-lightGray rounded-lg"
                           placeholder="Enter a topic"
                         />
@@ -127,30 +185,30 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
                     ))}
                     <div className="flex items-center space-x-2">
                       <Field
-                      type="text"
-                      name="newTopic"
-                      value={values.newTopic}
-                      onChange={handleChange}
-                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                        if (e.key === "Enter" && values.newTopic) {
-                        push(values.newTopic);
-                        setFieldValue("newTopic", "");
-                        }
-                      }}
-                      className="block w-full px-4 py-2 border border-lightGray rounded-lg"
-                      placeholder="Add a new topic"
+                        type="text"
+                        name="newTopic"
+                        value={values.newTopic}
+                        onChange={handleChange}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === "Enter" && values.newTopic) {
+                            push( values.newTopic);  // Add the topic as an object
+                            setFieldValue("newTopic", "");
+                          }
+                        }}
+                        className="block w-full px-4 py-2 border border-lightGray rounded-lg"
+                        placeholder="Add a new topic"
                       />
                       <button
-                      type="button"
-                      onClick={() => {
-                        if (values.newTopic) {
-                        push(values.newTopic);
-                        setFieldValue("newTopic", "");
-                        }
-                      }}
-                      className="bg-primary text-white px-4 py-2 rounded-lg"
+                        type="button"
+                        onClick={() => {
+                          if (values.newTopic) {
+                            push(values.newTopic);  // Add the topic as an object
+                            setFieldValue("newTopic", "");
+                          }
+                        }}
+                        className="bg-primary text-white px-4 py-2 rounded-lg"
                       >
-                      Add
+                        Add
                       </button>
                     </div>
                     <p className="text-xs">Press Enter or click Add Topic to add a new topic to the program</p>
@@ -176,7 +234,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
               {values.isPrerequisitesChecked && (
                 <div className="mt-2">
                   <MultiSelect
-                    options={options}
+                    options={prerequisitesDropdown}
                     selectedValues={values.prerequisites}
                     onChange={(selected) => setFieldValue("prerequisites", selected)}
                   />
@@ -188,7 +246,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, onSubmit }) => {
             <div className="flex gap-4">
               <div className="mt-4 text-center">
                 <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg">
-                  Submit
+                  {loading ? "Submitting..." : "Submit"}
                 </button>
               </div>
               <div className="mt-4 text-center">

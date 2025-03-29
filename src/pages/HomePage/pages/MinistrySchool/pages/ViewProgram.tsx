@@ -3,83 +3,127 @@ import Button from "@/components/Button";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import AllCohortsPage from "../Components/AllCohort";
 import Modal from "@/components/Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CohortForm from "../Components/CohortForm";
+import { ApiCalls } from "@/utils/apiFetch";
+import { useParams } from "react-router-dom";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
+
+// Define the Topic type
+type Topic = {
+  name: string;
+};
 
 const ViewProgram = () => {
+  const { id: programId } = useParams(); // Get program ID from the route
+  const apiCalls = new ApiCalls();
+  const apiDelete = new ApiDeletionCalls() 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const cohort = {
-    id: 1,
-    title: "Biblical Leadership",
-    description: "A comprehensive program on biblical principles of leadership",
-    eligibility: "both",
-    topics: ["Biblical Leadership Foundations", "Character Development", "Vision Casting", "Team Building"],
-    cohorts: [
-      {
-        id: 101,
-        name: "Spring 2023",
-        description: "First cohort of the Biblical Leadership program",
-        startDate: "2023-06-01",
-        duration: "12 weeks",
-        applicationDeadline: "2023-05-15",
-        status: "Active",
-        classes: [
-          {
-            id: 1001,
-            name: "Monday Evening Class",
-            instructor: "Pastor James Wilson",
-            capacity: 15,
-            enrolled: 12,
-            format: "in-person",
-            location: "Main Campus - Room 201",
-            schedule: "Mondays, 7:00 PM - 9:00 PM",
-          },
-          {
-            id: 1002,
-            name: "Wednesday Morning Class",
-            instructor: "Elder Sarah Johnson",
-            capacity: 15,
-            enrolled: 8,
-            format: "hybrid",
-            location: "Main Campus - Fellowship Hall",
-            meetingLink: "https://zoom.us/j/123456789",
-            schedule: "Wednesdays, 10:00 AM - 12:00 PM",
-          },
-          {
-            id: 1003,
-            name: "Online Weekend Class",
-            instructor: "Dr. Michael Brown",
-            capacity: 20,
-            enrolled: 4,
-            format: "online",
-            meetingLink: "https://zoom.us/j/987654321",
-            schedule: "Saturdays, 9:00 AM - 11:00 AM",
-          },
-        ],
-      },
-    ],
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [program, setProgram] = useState<any>(null); // Stores the program details
+  const [selectedCohort, setSelectedCohort] = useState<Cohort | undefined>(undefined);
+
+  const fetchProgramData = async () => {
+    if (!programId) return; // Ensure we have the programId before making the API call
+
+    try {
+      setLoading(true);
+      // Fetch program details by programId
+      const programResponse = await apiCalls.fetchProgramById(programId);
+      if (programResponse.status === 200) {
+        setProgram(programResponse.data.data);
+      } else {
+        setError("Error fetching program details");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching program details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    
+
+    fetchProgramData(); // Call the function when programId changes
+  }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
+
+  const handleErrorDisplay = () => {
+    if (error) {
+      return <div className="text-red-600">{error}</div>;
+    }
+    return null;
   };
 
-  return (
+  interface Cohort {
+    id: number;
+    name: string;
+    description: string;
+    startDate: string;
+    applicationDeadline: string;
+    duration: string;
+    status: string;
+    [key: string]: any; // Add additional properties as needed
+  }
+
+  const handleEdit = (cohort: Cohort): void => {
+    console.log("handleEdit");
+    
+    setSelectedCohort(cohort)
+    setIsModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setSelectedCohort(undefined);
+    console.log("Program selected", selectedCohort);
+    
+    setIsModalOpen(false)
+  };
+
+  const deleteCohort = async (cohortId: number) => {
+    try {
+      setLoading(true);
+      const response = await apiDelete.deleteCohort(cohortId);
+      if (response.status === 200) {
+        fetchProgramData();
+        // setProgram((prevPrograms: any) =>
+        //   prevPrograms.filter((program: any) => program.cohort.id !== cohortId)
+        // );
+        console.log("Program deleted successfully");
+      } else {
+        setError("Failed to delete the program.");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the program.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return loading ? (
+    <div>Loading...</div> // Show loading text while data is being fetched
+  ) : (
     <div className="px-4">
       <PageOutline className="p-0">
         <section className="bg-primary p-4 space-y-3 rounded-t-lg sticky top-0">
           <div className="container mx-auto flex justify-between">
             <div className="space-y-3">
               <div>
-              <div className="flex gap-4 items-center">
-                <h1 className="text-white  md:text-2xl font-bold">{cohort.title}</h1>
-                <Badge className="bg-green/80 border-green/30 font-medium text-xs text-dark900">Open to all</Badge>
-              </div>
-              <p className="text-white text-sm">{cohort.description}</p>
+                <div className="flex gap-4 items-center">
+                  <h1 className="text-white md:text-2xl font-bold">{program?.title}</h1>
+                  <Badge className="bg-green/80 border-green/30 font-medium text-xs text-dark900">
+                    {program?.eligibility}
+                  </Badge>
+                </div>
+                <p className="text-white text-sm">{program?.description}</p>
               </div>
 
               <div className="space-y-1">
                 <p className="text-white text-lg font-semibold">Topics</p>
                 <div className="flex flex-wrap gap-2">
-                  {cohort.topics.map((topic, index) => (
+                  {program?.topics.map((topic: Topic, index: number) => (
                     <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
-                      {topic}
+                      {topic.name}
                     </Badge>
                   ))}
                 </div>
@@ -96,15 +140,17 @@ const ViewProgram = () => {
         </section>
 
         <section>
-            <AllCohortsPage onCreate={() => setIsModalOpen(true)}/>
+          {/* Show cohorts for this program */}
+          {handleErrorDisplay() || <AllCohortsPage cohorts={program?.cohorts} onCreate={() => setIsModalOpen(true)} onEdit={handleEdit} onDelete={(cohortId) => deleteCohort(cohortId)} />}
         </section>
-
-       
       </PageOutline>
+
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <CohortForm 
-          onClose={() => setIsModalOpen(false)} 
-          onSubmit={(data) => console.log("Form submitted:", data)} 
+        <CohortForm
+          onClose={() => handleClose()}
+          programId={programId && !isNaN(parseInt(programId, 10)) ? parseInt(programId, 10) : 0} // Pass the programId to CohortForm
+          fetchProgramData = {fetchProgramData}
+          cohort = {selectedCohort}
         />
       </Modal>
     </div>

@@ -1,10 +1,23 @@
+import { useState, useEffect } from "react";
 import HeaderControls from "@/components/HeaderControls";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import CardWrappers from "@/Wrappers/CardWrapper";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProgramsCard from "./Components/ProgramsCard";
 import Modal from "@/components/Modal";
 import ProgramForm from "./Components/ProgramForm";
+import { ApiCalls } from "@/utils/apiFetch";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
+
+// Define the Cohort and Program types
+interface Cohort {
+  id: number;
+  name: string;
+  startDate: string;
+  status: "Ongoing" | "Upcoming" | "Completed";
+  classes: number;
+  enrolledCount: number;
+}
 
 interface Program {
   id: number;
@@ -15,114 +28,84 @@ interface Program {
   cohorts: Cohort[];
 }
 
-interface Cohort {
-  id: number;
-  name: string;
-  startDate: string;
-  status: "Active" | "Upcoming" | "Completed";
-  classes: number;
-  enrolledCount: number;
-}
-
 const MinistrySchool = () => {
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const programs: Program[] = [
-    {
-      id: 1,
-      title: "Biblical Leadership",
-      description: "A comprehensive program on biblical principles of leadership",
-      eligibility: "both",
-      topics: ["Biblical Leadership Foundations", "Character Development", "Vision Casting", "Team Building"],
-      cohorts: [
-        {
-          id: 101,
-          name: "Spring 2023",
-          startDate: "2023-06-01",
-          status: "Active",
-          classes: 3,
-          enrolledCount: 24,
-        },
-        {
-          id: 102,
-          name: "Fall 2023",
-          startDate: "2023-09-15",
-          status: "Upcoming",
-          classes: 2,
-          enrolledCount: 18,
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "Discipleship Training",
-      description: "Learn how to effectively disciple others in their faith journey",
-      eligibility: "members",
-      topics: ["Discipleship Basics", "Mentoring Skills", "Spiritual Formation", "Accountability"],
-      cohorts: [
-        {
-          id: 201,
-          name: "Summer 2023",
-          startDate: "2023-07-15",
-          status: "Upcoming",
-          classes: 2,
-          enrolledCount: 15,
-        },
-      ],
-    },
-    {
-      id: 3,
-      title: "Bible Study Methods",
-      description: "Learn effective methods for studying and interpreting the Bible",
-      eligibility: "both",
-      topics: ["Observation", "Interpretation", "Application", "Bible Study Tools"],
-      cohorts: [
-        {
-          id: 301,
-          name: "Spring 2023",
-          startDate: "2023-05-10",
-          status: "Completed",
-          classes: 2,
-          enrolledCount: 32,
-        },
-      ],
-    },
-    {
-      id: 4,
-      title: "Marriage Enrichment",
-      description: "Strengthen your marriage with biblical principles and practical tools",
-      eligibility: "non-members",
-      topics: ["Communication", "Conflict Resolution", "Intimacy", "Parenting"],
-      cohorts: [
-        {
-          id: 401,
-          name: "Fall 2023",
-          startDate: "2023-08-05",
-          status: "Upcoming",
-          classes: 1,
-          enrolledCount: 12,
-        },
-      ],
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
 
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const apiCalls = new ApiCalls();
+  const apiDelete = new ApiDeletionCalls() 
 
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prevId) => (prevId === id ? null : id));
-  };
-
-  interface CopyLinkToast {
-    title: string;
-    description: string;
+  interface DropdownProgram {
+    value: number;
+    label: string;
   }
 
-  const handleCopyLink = (programId: number): void => {
-    const link: string = `${window.location.origin}/programs/apply/${programId}`;
-    navigator.clipboard.writeText(link);
-    toast({
-      title: "Link copied",
-      description: "Application link has been copied to clipboard",
-    } as CopyLinkToast);
+  const getProgramsForDropdown = (data: Program[]): DropdownProgram[] => {
+    return data.map((program) => ({
+      value: program.id,
+      label: program.title,
+    }));
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      const response = await apiCalls.fetchAllPrograms();
+      if (response.data && Array.isArray(response.data.data)) {
+        setPrograms(response.data.data as Program[]);
+        getProgramsForDropdown(response.data.data); 
+
+        console.log(getProgramsForDropdown(response.data.data));
+        
+      } else {
+        setError("Invalid data format received.");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching programs.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteProgram = async (programId: number) => {
+    try {
+      setLoading(true);
+      const response = await apiDelete.deleteProgram(programId);
+      if (response.status === 200) {
+        setPrograms((prevPrograms) =>
+          prevPrograms.filter((program) => program.id !== programId)
+        );
+        console.log("Program deleted successfully");
+      } else {
+        setError("Failed to delete the program.");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the program.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    
+
+    fetchPrograms();
+  }, []);
+
+  const handleEdit = (program: Program): void => {
+    setSelectedProgram(program);
+    console.log("Program selected", program);
+    
+    setIsModalOpen(true)
+  };
+
+  const handleClose = () => {
+    setSelectedProgram(undefined);
+    console.log("Program selected", selectedProgram);
+    
+    setIsModalOpen(false)
   };
 
   const getEligibilityBadge = (eligibility: Program["eligibility"]): JSX.Element | null => {
@@ -150,25 +133,26 @@ const MinistrySchool = () => {
     }
   };
 
-  const getCohortToShow = (cohorts: Cohort[]) => {
-    const activeCohort = cohorts.find((cohort) => cohort.status === "Active");
+  // Ensure that cohorts is always an array, even when it is empty or undefined.
+  const getCohortToShow = (cohorts: Cohort[]): Cohort[] => {
+    const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) {
-      return [activeCohort]; // Show only the active cohort
+      return [activeCohort]; // Return the Ongoing cohort
     }
 
     const upcomingCohort = cohorts.find((cohort) => cohort.status === "Upcoming");
     if (upcomingCohort) {
-      return [upcomingCohort]; // Show only the most immediate upcoming cohort
+      return [upcomingCohort]; // Return the Upcoming cohort if no Ongoing cohort
     }
 
-    return []; // If no active or upcoming, show no cohort
+    return []; // Return an empty array if neither Ongoing nor Upcoming cohort exists
   };
 
   return (
     <div className="p-4">
       <PageOutline>
         <HeaderControls
-          title=" School of Ministry"
+          title="School of Ministry"
           showSearch={false}
           showFilter={false}
           totalMembers={programs.length}
@@ -181,69 +165,52 @@ const MinistrySchool = () => {
           screenWidth={window.innerWidth}
         />
 
-        <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2 ">
-          {programs.map((program) => {
-            const cohortsToShow = getCohortToShow(program.cohorts);
+        {loading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div>{error}</div>
+        ) : (
+          <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
+            {programs.map((program) => {
+              const cohortsToShow = getCohortToShow(program.cohorts);
+              console.log('program cohortsToShow',getCohortToShow(program.cohorts));
+              
 
-            return (
-              <ProgramsCard
-                key={program.id}
-                program={program}
-                toggleMenu={() => toggleMenu(program.id)}
-                isMenuOpen={openMenuId }
-                cohorts={cohortsToShow}
-                handleCopyLink = {handleCopyLink}
-              />
-            );
-          })}
-        </section>
-      
+              return (
+                <ProgramsCard
+                  key={program.id}
+                  program={program}
+                  toggleMenu={() => {}}
+                  isMenuOpen={null}
+                  cohorts={cohortsToShow}
+                  handleCopyLink={() => {}}
+                  onOpen = {() => handleEdit(program)}
+                  onClose={() => handleClose()}
+                  onDelete={()=>deleteProgram(program.id)}
+                  
+                />
+              );
+            })}
+          </section>
+        )}
       </PageOutline>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ProgramForm onClose={() => setIsModalOpen(false)} onSubmit={() => console.log("Form submitted")
-        }/>
+        <ProgramForm 
+        onClose={() => handleClose()} 
+        program={selectedProgram || { 
+          title: '', 
+          description: '', 
+          eligibility: '', 
+          topics: [], 
+          prerequisites: [] 
+        }}  
+        prerequisitesDropdown = {getProgramsForDropdown(programs)}
+        fetchPrograms = {fetchPrograms}
+        />
       </Modal>
     </div>
   );
 };
 
-function toast({ title, description }: { title: string; description: string }) {
-  const toastContainer = document.createElement("div");
-  toastContainer.style.position = "fixed";
-  toastContainer.style.bottom = "20px";
-  toastContainer.style.right = "20px";
-  toastContainer.style.backgroundColor = "#333";
-  toastContainer.style.color = "#fff";
-  toastContainer.style.padding = "10px 20px";
-  toastContainer.style.borderRadius = "5px";
-  toastContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
-  toastContainer.style.zIndex = "1000";
-  toastContainer.style.fontSize = "14px";
-  toastContainer.style.maxWidth = "300px";
-
-  const toastTitle = document.createElement("strong");
-  toastTitle.textContent = title;
-  toastTitle.style.display = "block";
-  toastTitle.style.marginBottom = "5px";
-
-  const toastDescription = document.createElement("span");
-  toastDescription.textContent = description;
-
-  toastContainer.appendChild(toastTitle);
-  toastContainer.appendChild(toastDescription);
-
-  document.body.appendChild(toastContainer);
-
-  setTimeout(() => {
-    toastContainer.style.transition = "opacity 0.5s";
-    toastContainer.style.opacity = "0";
-    setTimeout(() => {
-      document.body.removeChild(toastContainer);
-    }, 500);
-  }, 3000);
-}
-
 export default MinistrySchool;
-// Removed duplicate toast function implementation
-
