@@ -90,7 +90,7 @@ const MemberInformation = () => {
       <div className="space-y-4 ">
         <div className="bg-white p-4 h-[20rem] container rounded-b-xl space-y-4">
           <div className="flex justify-between ">
-            <div className="font-semibold">Membership school</div>
+            <div className="font-semibold">School of Ministry</div>
             <div>icon</div>
           </div>
           {/* List of programs */}

@@ -16,9 +16,10 @@ interface SelectedClass {
 interface EnrollStudentProps {
   selectedClass: SelectedClass;
   onClose: () => void;
+  fetchCohortData: () => void;
 }
 
-const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose }) => {
+const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, fetchCohortData }) => {
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(false);
   const apiPost = new ApiCreationCalls();
@@ -53,7 +54,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose })
     const payload = {
       ...values,
       courseId: selectedClass.id, // Add classId to the payload
-      // userId
+      userId: 8
     };
 
     try {
@@ -68,6 +69,8 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose })
       console.error("Error in enrolling student:", error);
     } finally {
       setLoading(false);
+      onClose()
+      fetchCohortData()
     }
   };
 

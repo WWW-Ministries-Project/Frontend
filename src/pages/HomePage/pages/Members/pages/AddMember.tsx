@@ -39,6 +39,8 @@ const AddMember = () => {
 
   async function handleSubmit(values: IAddMember) {
     console.log(values,"values");
+    const {  ...formData } = values;
+    await postData(formData);
     // try {
     //   let uploadedLink = values.picture.src;
 

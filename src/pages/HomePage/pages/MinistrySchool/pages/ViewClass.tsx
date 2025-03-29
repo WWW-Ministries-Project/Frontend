@@ -17,27 +17,28 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedClass, setSelectedClass] = useState<any>(null);
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const fetchCohortData = async () => {
+      if (!classId) return; // Ensure we have the programId before making the API call
+
+      try {
+        setLoading(true);
+        // Fetch cohort details by programId
+        const programResponse = await apiCalls.fetchCourseById(classId);
+        if (programResponse.status === 200) {
+          setSelectedClass(programResponse.data.data);
+        } else {
+          setError("Error fetching cohort details");
+        }
+      } catch (err) {
+        setError("An error occurred while fetching cohort details.");
+      } finally {
+        setLoading(false);
+      }
+    };
     useEffect(() => {
-            const fetchCohortData = async () => {
-              if (!classId) return; // Ensure we have the programId before making the API call
-        
-              try {
-                setLoading(true);
-                // Fetch cohort details by programId
-                const programResponse = await apiCalls.fetchCourseById(classId);
-                if (programResponse.status === 200) {
-                  setSelectedClass(programResponse.data.data);
-                } else {
-                  setError("Error fetching cohort details");
-                }
-              } catch (err) {
-                setError("An error occurred while fetching cohort details.");
-              } finally {
-                setLoading(false);
-              }
-            };
+            
         
             fetchCohortData(); // Call the function when programId changes
           }, [classId]); 
@@ -104,6 +105,7 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
               <EnrollStudent 
                 selectedClass={selectedClass} 
                 onClose={() => setIsModalOpen(false)} 
+                fetchCohortData={()=>fetchCohortData()}
               />
             </Modal>
         </div>

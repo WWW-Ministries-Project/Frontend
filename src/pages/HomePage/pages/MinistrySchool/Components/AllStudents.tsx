@@ -1,15 +1,20 @@
 import { useRef, useState } from "react";
 import ellipse from "@/assets/ellipse.svg";
 import { useNavigate } from "react-router-dom";
+import Badge from "@/components/Badge";
 
 interface Student {
   id: number;
+  firstName: string;
+  lastName: string;
   name: string;
   email: string;
+  phone: string;
   status: string;
   attendance: number;
   progress: number;
   memberType: string;
+  userId?: string; // Added userId property
 }
 
 
@@ -22,14 +27,14 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
   const [selectedTab, setSelectedTab] = useState("Active");
   const [searchQuery, setSearchQuery] = useState("");
   
-  const filterStudents = () => {
-    return Data?.filter(
-      (student) =>
-        student?.status === selectedTab &&
-        (student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          student?.email.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  };
+  // const filterStudents = () => {
+  //   return Data?.filter(
+  //     (student) =>
+  //       student?.status === selectedTab &&
+  //       (student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //         student?.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  //   );
+  // };
 
   const toggleMenu = (id: number) => {
     setOpenMenuId((prevId) => (prevId === id ? null : id));
@@ -48,15 +53,15 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
           />
           <div className="flex gap-x-4">
             {/* Export Button */}
-          <div>
+          {/* <div>
           <button className="border border-primary text-primary px-4 py-2 rounded-lg">
             Export List
           </button>
-          </div>
+          </div> */}
           {/* Export Button */}
           <div>
           <button onClick={onOpen} className="bg-primary text-white px-4 py-2 rounded-lg">
-            Add student
+            Enroll student
           </button>
           </div>
           </div>
@@ -66,7 +71,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
         
 
         {/* Tabs */}
-        <div className="flex gap-4 border p-1 rounded-lg border-lightGray">
+        {/* <div className="flex gap-4 border p-1 rounded-lg border-lightGray">
           {["All Students", "Active", "Inactive", "Completed", "In Progress", "Not Started"].map((tab) => (
             <button
               key={tab}
@@ -76,7 +81,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
               {tab}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white border border-lightGray p-4 rounded-lg">
@@ -84,22 +89,24 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
           <table className="min-w-full table-auto">
             <thead className="text-dark900">
               <tr>
-                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">First Name</th>
+                <th className="px-4 py-2 text-left">Last Name</th>
                 <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Attendance</th>
+                <th className="px-4 py-2 text-left">Phone Number</th>
+                {/* <th className="px-4 py-2 text-left">Attendance</th> */}
                 <th className="px-4 py-2 text-left">Progress</th>
                 <th className="px-4 py-2 text-left">Member</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filterStudents()?.map((student, index) => (
+              {Data?.map((student, index) => (
                 <tr key={index} className="border-t border-lightGray">
-                  <td className="px-4 py-2">{student?.name}</td>
+                  <td className="px-4 py-2">{student?.firstName}</td>
+                  <td className="px-4 py-2">{student?.lastName}</td>
                   <td className="px-4 py-2">{student?.email}</td>
-                  <td className="px-4 py-2">{student?.status}</td>
-                  <td className="px-4 py-2">{student?.attendance}%</td>
+                  <td className="px-4 py-2">{student?.phone}</td>
+                  {/* <td className="px-4 py-2">{student?.attendance}%</td> */}
                   <td className="px-4 py-2">
                     <div className="relative w-full">
                       <div className="h-2 bg-lightGray rounded-full">
@@ -110,7 +117,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-2">{student?.memberType}</td>
+                  <td className="px-4 py-2"><Badge className="md:w-2/3 text-xs border border-lightGray text-dark900 ">{student?.userId? "Member":"Non-member"}</Badge></td>
                   <td className="px-4 py-2">
                   <div className="relative " ref={menuRef}>
             <button className="text-primary" onClick={() => navigate(`student?${student?.id}`)}>
@@ -128,7 +135,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
 
         {/* Pagination (if needed) */}
         <div className="mt-4 text-center">
-          Showing {filterStudents()?.length} of {Data?.length} students
+          Showing {Data?.length} of {Data?.length} students
         </div>
       </div>
       
