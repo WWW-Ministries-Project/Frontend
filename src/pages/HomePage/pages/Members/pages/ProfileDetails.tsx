@@ -126,6 +126,7 @@ const ProfileDetails = () => {
         position={details.position?.name || ""}
         email={details.email}
         primary_number={details.primary_number}
+        membership_type={details.membership_type}
       />
        </div>
       <section className=" w-full h-full mb-4  mx-auto    ">

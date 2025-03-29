@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import ellipse from "@/assets/ellipse.svg";
 import { useNavigate } from "react-router-dom";
 import Badge from "@/components/Badge";
+import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 
 interface Student {
   id: number;
@@ -86,6 +87,17 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
 
       <div className="bg-white border border-lightGray p-4 rounded-lg">
         <div className="overflow-x-auto">
+          {/* <TableComponent
+            data={Data}
+            columns={[
+              { header: "First Name", accessorKey: "firstName" },
+              { header: "Last Name", accessorKey: "lastName" },
+              { header: "Email", accessorKey: "email" },
+              { header: "Phone Number", accessorKey: "phone" },
+              { header: "Progress", accessorKey: "progress" },
+              { header: "Member", accessorKey: "memberType" },
+            ]}
+          /> */}
           <table className="min-w-full table-auto">
             <thead className="text-dark900">
               <tr>

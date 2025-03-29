@@ -5,6 +5,7 @@ import { ApiCalls } from "@/utils/apiFetch"; // Assuming this is where your API 
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
 import { ApiCreationCalls } from "@/utils/apiPost";
+import { RadioInput } from "../../Members/Components/RadioInput";
 
 // Type for selectedClass and Enrollment Form Props
 interface SelectedClass {
@@ -94,7 +95,8 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                   Is the student a member?
                 </label>
                 <div className="flex gap-4">
-                  <div>
+                  <RadioInput name={`isMember`} />
+                  {/* <div>
                     <Field
                       type="radio"
                       name="isMember"
@@ -113,7 +115,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                       className="mr-2"
                     />
                     No
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}

@@ -5,6 +5,10 @@ import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import MemberInformationViewMode from "../Components/MembersInformationViewMode";
+import { FormHeader } from "@/components/ui";
+import Badge from "@/components/Badge";
+import MinistrySchoolCard from "../Components/MinistrySchoolCard";
+import ChildCard from "../Components/ChildCard";
 const MemberInformation = () => {
   const { edit, handleCancel, details, handleSubmit, loading } =
     useOutletContext<{
@@ -88,15 +92,24 @@ const MemberInformation = () => {
       </div>
 
       <div className="space-y-4 ">
-        <div className="bg-white p-4 h-[20rem] container rounded-b-xl space-y-4">
-          <div className="flex justify-between ">
-            <div className="font-semibold">School of Ministry</div>
-            <div>icon</div>
-          </div>
-          {/* List of programs */}
-          <div></div>
-        </div>
-        <div className="bg-white p-4 h-[20rem] rounded-xl">Children</div>
+      {details?.enrollments?.length > 0 ? (
+      details.enrollments.map((enrollment: Enrollment) => (
+        <MinistrySchoolCard key={enrollment.id} enrollment={enrollment} />
+      ))
+    ) : (
+      <MinistrySchoolCard /> // This will show the empty state
+    )}
+        
+        
+        {details?.children?.length > 0 ? (
+      details.children.map((child) => (
+        <ChildCard key={child.id} child={child} />
+      ))
+    ) : (
+      <ChildCard /> // This will show the empty state
+    )}
+        
+        
       </div>
     </div>
   );
