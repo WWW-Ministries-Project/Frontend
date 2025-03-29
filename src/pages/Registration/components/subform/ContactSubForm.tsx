@@ -26,6 +26,10 @@ const initialValues: IRegistrationContactSubForm = {
   emergency_contact: EmergencyContact.initialValues,
 };
 
+// const validationSchema = {
+//   contact_info: object().shape({}),
+//   emergency_contact: object().shape({}),
+// };
 const validationSchema = {
   contact_info: object().shape(ContactsSubForm.validationSchema),
   emergency_contact: object().shape(EmergencyContact.validationSchema),
