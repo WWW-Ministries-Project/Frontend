@@ -125,7 +125,7 @@ const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
           <Button
             value="Manage class"
             className={"px-2 py-2 bg-primary text-white"}
-            onClick={() => navigate(`class?${classItem.id}`)}
+            onClick={() => navigate(`class/${classItem.id}`)}
           />
         </div>
 

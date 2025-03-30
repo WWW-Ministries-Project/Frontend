@@ -40,7 +40,7 @@ const MinistrySchoolCard = ({ enrollment }: MinistrySchoolCardProps) => {
             {enrollment.course.cohort.program.title}
           </div>
           <div>
-            <Badge>on-going</Badge>
+            <Badge>{enrollment.course.cohort.status}</Badge>
           </div>
         </div>
         <div className="flex text-sm">

@@ -8,6 +8,7 @@ import Modal from "@/components/Modal";
 import ProgramForm from "./Components/ProgramForm";
 import { ApiCalls } from "@/utils/apiFetch";
 import { ApiDeletionCalls } from "@/utils/apiDelete";
+import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -23,7 +24,7 @@ interface Program {
   id: number;
   title: string;
   description: string;
-  eligibility: "members" | "non-members" | "both";
+  eligibility: "Members" | "Non_Members" | "Both";
   topics: string[];
   cohorts: Cohort[];
 }
@@ -110,19 +111,19 @@ const MinistrySchool = () => {
 
   const getEligibilityBadge = (eligibility: Program["eligibility"]): JSX.Element | null => {
     switch (eligibility) {
-      case "members":
+      case "Members":
         return (
           <div className="bg-blue-50 text-xs text-blue-700 rounded-lg py-1 px-2 border border-blue-200">
             Members Only
           </div>
         );
-      case "non-members":
+      case "Non_Members":
         return (
           <div className="bg-red/50 text-xs text-red-700 rounded-lg py-1 px-2 border border-red-200">
             Non-Members Only
           </div>
         );
-      case "both":
+      case "Both":
         return (
           <div className="bg-green/50 text-xs text-green-700 rounded-lg py-1 px-2 border border-green/50">
             Open to All
@@ -148,6 +149,25 @@ const MinistrySchool = () => {
     return []; // Return an empty array if neither Ongoing nor Upcoming cohort exists
   };
 
+  // const SkeletonLoader = () => (
+  //   <div className="animate-pulse border border-1 border-lightGray p-4 rounded-lg space-y-3 text-dark900 flex flex-col">
+  //     <div className="flex  justify-between">
+  //     <div className="h-6 bg-lightGray rounded w-3/5"></div>
+  //     <div className="h-4 bg-lightGray rounded w-1/5"></div>
+  //     </div>
+  //     <div className="h-4 bg-lightGray rounded w-1/2"></div>
+  //     <div className="h-4 bg-lightGray rounded w-3/4"></div>
+  //     <div className="space-y-2">
+  //       <div className="h-4 bg-lightGray rounded w-2/3"></div>
+  //       <div className="h-4 bg-lightGray rounded w-1/2"></div>
+  //     </div>
+  //     <div className="flex justify-between space-x-2">
+  //       <div className="h-10 bg-lightGray rounded w-1/3"></div>
+  //       <div className="h-10 bg-lightGray rounded w-1/3"></div>
+  //     </div>
+  //   </div>
+  // );
+
   return (
     <div className="p-4">
       <PageOutline>
@@ -163,10 +183,14 @@ const MinistrySchool = () => {
           setShowFilter={() => {}}
           setShowSearch={() => {}}
           screenWidth={window.innerWidth}
+          Search={false}
+          Filter = {false}
+          Grid = {false}
         />
 
         {loading ? (
-          <div>Loading...</div>
+          <SkeletonLoader  />
+          
         ) : error ? (
           <div>{error}</div>
         ) : (

@@ -6,15 +6,17 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ellipse from "@/assets/ellipse.svg";
 import { ApiDeletionCalls } from "@/utils/apiDelete";
+import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 
 interface AllCohortsPageProps {
   onCreate: () => void;
   cohorts: any[]; // List of cohorts
   onEdit: (cohort: any) => void; // Function to edit cohort
   onDelete: (id: number) => void;
+  loading: Boolean; 
 }
 
-const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEdit, onDelete }) => {
+const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEdit, onDelete, loading }) => {
   const navigate = useNavigate();
   const apiDelete = new ApiDeletionCalls() 
 
@@ -22,7 +24,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
   const buttonRef = useRef<HTMLButtonElement | null>(null); // Reference for the button that toggles the menu
   const [isMenuOpen, setIsMenuOpen] = useState<number | null>(null); // State to track which menu is open
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const toggleMenu = (id: number) => {
     if (isMenuOpen === id) {
@@ -81,10 +83,11 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
   }, []);
 
   return (
-    <div className="px-4">
+    
+    <div className="">
       <div className="p-0">
         <section className="py-4 space-y-2 rounded-t-lg">
-          <div className="container mx-auto flex justify-between">
+          <div className=" flex justify-between">
             <div className="">
               <h1 className="text-dark900 text-2xl font-bold">All Cohorts</h1>
             </div>
@@ -99,8 +102,10 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
           </div>
         </section>
 
-        <section className="">
-          <div className="container mx-auto text-dark900">
+        
+       
+          <section className="">
+          <div className=" text-dark900">
             <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
               {cohorts?.map((cohort) => (
                 <div key={cohort.id} className="border border-lightGray rounded-lg p-4 space-y-3">

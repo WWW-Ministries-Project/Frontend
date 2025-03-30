@@ -49,9 +49,11 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
         <div className="px-4">
             <ViewPageTemplate 
                 Data={selectedClass} 
-                btnName="Edit Class"
-                onEditClick={() => { /* Add appropriate edit click handler here */ }}
+                primaryButton="Edit Class"
+                onPrimaryButtonClick={() => { /* Add appropriate edit click handler here */ }}
                 showTopic={true}
+                loading={loading}
+                isGrid={false}
                 details = 
                     {<div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
                 {/* <div>

@@ -101,6 +101,7 @@ const ProgramsCard = ({
 
   return (
     <CardWrappers key={program.id} className={"border border-1 border-lightGray p-4 rounded-lg space-y-3 text-dark900 flex flex-col"}>
+      <div className="space-y-1">
       <div className="flex justify-between gap-2">
         <div className="text-lg font-semibold">{program.title}</div>
         <div>{getEligibilityBadge({ eligibility: program.eligibility })}</div>
@@ -109,6 +110,7 @@ const ProgramsCard = ({
       {/* Description */}
       <div>
         <p className="text-sm">{program.description}</p>
+      </div>
       </div>
 
       {/* Topics */}

@@ -8,6 +8,7 @@ import ClassCard from "../Components/ClassCard";
 import { ApiCalls } from "@/utils/apiFetch";
 import { useParams } from "react-router-dom";
 import { formatTime } from "@/utils/helperFunctions";
+import ViewPageTemplate from "../Components/ViewPageTemplate";
 
 type ClassItem = {
   id: number;
@@ -73,7 +74,59 @@ const ViewCohort = () => {
 
   return (
     <div className="px-4">
-      <PageOutline className="p-0">
+      <ViewPageTemplate 
+        Data={cohort} 
+        title="Cohort Details" 
+        description="View and manage cohort details here."
+        primaryButton="Edit Cohort"
+        onPrimaryButtonClick={() => console.log("Primary button clicked")} 
+        onSecondaryButtonClick={() => console.log("Secondary button clicked")} 
+        loading={loading} 
+        details={
+          <div className="flex gap-8">
+                      <div>
+                        <div className="font-semibold text-small">Start date</div>
+                        <div>{formatTime(cohort?.startDate)}</div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-small">Duration</div>
+                        <div>{cohort?.duration}</div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-small">Application Deadline</div>
+                        <div>{formatTime( cohort?.applicationDeadline)}</div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-small">Classes</div>
+                        <div>{cohort?.courses.length} classes</div>
+                      </div>
+                    </div>
+        }
+
+        children={<section>
+          {/* classes */}
+          
+          <div  className=" rounded-lg py-4 space-y-2">
+              {/* Classes */}
+                  <div className="flex justify-between items-center">
+                  <div className="">
+              <h1 className="text-dark900 text-2xl font-bold">Class</h1>
+            </div>
+                    <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" 
+                    onClick={() => setIsModalOpen(true)}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
+                  {cohort?.courses.map((classItem: ClassItem) => (
+                   <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
+                  ))}
+                  </div>
+                </div>
+      </section>} 
+        
+      />
+      {/* <PageOutline className="p-0">
         <section className=" sticky top-0">
         <div className="bg-primary rounded-t-lg text-white">
                     <div className="container mx-auto p-4 space-y-3">
@@ -93,48 +146,13 @@ const ViewCohort = () => {
                     </div>
                     </div>
 
-                    <div className="flex gap-8">
-                      <div>
-                        <div className="font-semibold text-small">Start date</div>
-                        <div>{formatTime(cohort?.startDate)}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Duration</div>
-                        <div>{cohort?.duration}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Application Deadline</div>
-                        <div>{formatTime( cohort?.applicationDeadline)}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Classes</div>
-                        <div>{cohort?.courses.length} classes</div>
-                      </div>
-                    </div>
+                    
                     </div>
                 </div>
         
         </section>
-        <section>
-            {/* classes */}
-            
-            <div  className="container mx-auto rounded-lg p-4 space-y-2">
-                {/* Classes */}
-                    <div className="flex justify-between items-center">
-                      <div className="font-semibold text-lg">Classes</div>
-                      <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" 
-                      onClick={() => setIsModalOpen(true)}
-                      />
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
-                    {cohort?.courses.map((classItem: ClassItem) => (
-                     <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
-                    ))}
-                    </div>
-                  </div>
-        </section>
-      </PageOutline>
+        
+      </PageOutline> */}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ClassForm 
           onClose={() => setIsModalOpen(false)} 

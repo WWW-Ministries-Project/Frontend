@@ -132,7 +132,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
                   <td className="px-4 py-2"><Badge className="md:w-2/3 text-xs border border-lightGray text-dark900 ">{student?.userId? "Member":"Non-member"}</Badge></td>
                   <td className="px-4 py-2">
                   <div className="relative " ref={menuRef}>
-            <button className="text-primary" onClick={() => navigate(`student?${student?.id}`)}>
+            <button className="text-primary" onClick={() => navigate(`student/${student?.id}`)}>
               {/* <img src={ellipse} alt="options" className="cursor-pointer" /> */}
               View 
             </button>

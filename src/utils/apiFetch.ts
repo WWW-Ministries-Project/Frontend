@@ -140,6 +140,13 @@ export class ApiCalls {
     return this.fetchFromApi(`program/courses/${id}`, query);
   };
 
+  fetchStudentById = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any }>> => {
+    return this.fetchFromApi(`program/progress/${id}`, query);
+  };
+
   // Enrollment Management
   fetchEnrollmentsByCourse = (
     courseId: string,
