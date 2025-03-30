@@ -30,7 +30,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
   const { values } = useFormikContext<IMembersForm>();
   const { has_children } = useMemo(
-    () => getIn(values, "personal_info"),
+    () => getIn(values, "personal_info") || false,
     [values]
   );
 
@@ -128,11 +128,11 @@ export interface IMembersForm extends IChildrenSubForm {
   emergency_contact: IEmergencyContact;
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
-  church_info:{
+  church_info: {
     membership_type: "ONLINE" | "IN-HOUSE";
     department_id?: number;
     position_id?: number;
-  }
+  };
   is_user: boolean;
 }
 
@@ -142,10 +142,10 @@ const initialValues: IMembersForm = {
   work_info: WorkInfoSubForm.initialValues,
   emergency_contact: EmergencyContact.initialValues,
   is_user: false,
-  church_info:{
+  church_info: {
     membership_type: "IN-HOUSE",
     department_id: undefined,
-    position_id: undefined
+    position_id: undefined,
   },
   ...ChildrenSubForm.initialValues,
 };
