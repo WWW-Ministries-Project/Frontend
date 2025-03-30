@@ -1,4 +1,4 @@
-import ContactInput from "@/components/ContactInput";
+import {ContactInput} from "@/components/ContactInput";
 import PropTypes from 'prop-types';
 import Button from "/src/components/Button";
 
@@ -15,7 +15,7 @@ const SearchMember = ({ memberDetails, handleChange, loading, handleFindMember, 
                 
             </div>
             <div>
-            <Button value="Next" className="w-full  text-white  border bg-primaryViolet  " disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
+            <Button value="Next" className="w-full  text-white  border bg-primary  " disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
             </div>
         </div>
     );

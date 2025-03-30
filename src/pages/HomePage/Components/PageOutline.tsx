@@ -1,9 +1,10 @@
 interface IPageOutline {
   children: React.ReactNode;
+  className?: string;
 }
-const PageOutline = ({ children }: IPageOutline): JSX.Element => {
+const PageOutline = ({ children, className }: IPageOutline): JSX.Element => {
   return (
-    <section className="bg-white rounded-xl p-4 min-h-screen">
+    <section className={`${className? className: "p-4"} bg-white rounded-xl  min-h-screen`}>
       {children}
     </section>
   );

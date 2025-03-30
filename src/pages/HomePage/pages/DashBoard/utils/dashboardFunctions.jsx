@@ -11,7 +11,7 @@ export const dashboardColumns = [
             name={row.original.name}
             alt="profile pic"
             className="h-[38px] w-[38px] rounded-full"
-            textClass={" font-great-vibes border border-primaryViolet overflow-hidden"}
+            textClass={" font-great-vibes border border-primary overflow-hidden"}
           />
         
     },

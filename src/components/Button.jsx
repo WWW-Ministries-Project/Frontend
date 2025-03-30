@@ -9,16 +9,16 @@ const Button = (props) => {
   let className;
   switch (props.className) {
     case "primary":
-      className = "border p-2 text-white bg-primaryViolet ";
+      className = "border p-2 text-white bg-primary ";
       break;
     case "secondary":
-      className = "border border-primaryViolet text-primaryViolet";
+      className = "border border-primary text-primary";
       break;
     case "tertiary":
-      className = " text-primaryViolet ";
+      className = " text-primary ";
       break;
     case "default":
-      className = " text-white bg-primaryViolet ";
+      className = " text-white bg-primary ";
       break;
     default:
       className = props.className;

@@ -1,27 +1,19 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
+import Button from "@/components/Button";
 import { usePost } from "@/CustomHooks/usePost";
 import { useStore } from "@/store/useStore";
 import api from "@/utils/apiCalls";
-import { ApiResponse, pictureType } from "@/utils/interfaces";
+import { ApiResponse } from "@/utils/interfaces";
+import { Formik } from "formik";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useState from "react-usestateref";
 import ProfilePicture from "../../../../../components/ProfilePicture";
-import { memberValues } from "../../../../../utils/helperFunctions";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
-import MembersForm from "../Components/MembersForm";
+import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { UserType } from "../utils/membersInterfaces";
-import editIcon from "/assets/home/edit.svg";
 
 const AddMember = () => {
   const navigate = useNavigate();
-  const [profilePic, setProfilePic] = useState<pictureType>({
-    picture: "",
-    src: "",
-  });
-  //@ts-expect-error
-  const [userValue, setUserValue, userValueRef] = useState<UserType>(memberValues);
-
   const store = useStore();
   const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: UserType }>
@@ -40,71 +32,106 @@ const AddMember = () => {
       console.log(error);
     }
   }, [data]);
-  function changePic(pic: pictureType) {
-    setProfilePic(() => pic);
-  }
-  const handleChange = (name: string, value: string | boolean) => {
-    setUserValue((prev) => ({ ...prev, [name]: value }));
-  };
+
   const handleCancel = () => {
-    //@ts-expect-error
-    setUserValue(memberValues);
-    setProfilePic({ picture: "", src: "" });
     navigate("/home/members");
   };
-  async function handleSubmit(val: UserType) {
-    const data = new FormData();
-    data.append("file", profilePic.picture);
-    const endpoint = "/upload";
-    const path = `${baseUrl}${endpoint}`;
-    const response: any =
-      profilePic.picture && (await axiosPic.post(path, data));
-    if (profilePic.picture && response.status === 200) {
-      const link = response.data.result.link;
-      setUserValue((prev) => ({ ...prev, val, photo: link }));
-    }
-    setProfilePic({ picture: "", src: "" });
-    setUserValue((prev) => ({ ...prev, ...val }));
-    await postData(userValueRef.current);
+
+  async function handleSubmit(values: IAddMember) {
+    console.log(values,"values");
+    const {  ...formData } = values;
+    await postData(formData);
+    // try {
+    //   let uploadedLink = values.picture.src;
+
+    //   if (values.picture.picture) {
+    //     const data = new FormData();
+    //     data.append("file", values.picture.picture);
+
+    //     const response = await axiosPic.post(`${baseUrl}upload`, data);
+
+    //     if (response?.status === 200) {
+    //       uploadedLink = response.data.result.link;
+    //     } else {
+    //       console.error("Image upload failed");
+    //       return;
+    //     }
+    //   }
+
+    //   const { picture, ...formData } = values;
+    //   // setFieldValue("picture", { src: uploadedLink, picture: "" });
+    //   await postData(formData);
+    // } catch (error) {
+    //   console.error("Error during submission:", error);
+    // }
   }
+
   return (
     <div className="p-4">
-      <section className="mx-auto p-8 lg:container lg:w-4/6 bg-white rounded-xl">
+      <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
         <div className="flex flex-col gap-4 items-center tablet:items-start">
           <div className="font-bold text-xl">Member Information</div>
           <div className="text text-[#8F95B2] mt-">
             Fill the form below with the member information
           </div>
-
-          <section>
-            <ProfilePicture
-              src={profilePic.src}
-              editable={true}
-              text={""}
-              alt="profile pic"
-              icon={editIcon}
-              className="h-[10rem] w-[10rem] outline-primaryViolet mt-3 profilePic transition-all outline outline-1 duration-1000 mx-auto"
-              textClass={"text-[32px] leading-[36px] "}
-              onChange={changePic}
-              id={"profilePic"}
-            />
-            <div className="text-xs text-[#8F95B2] mt-3">
-              Image size must be less <br /> than 2mb, jpeg or png
-            </div>
-          </section>
         </div>
-        <MembersForm
-          user={userValue}
-          edit={true}
-          onChange={handleChange}
+        <Formik
+          enableReinitialize={true}
+          initialValues={initialValues}
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          // disabled={!userValue.email || !userValue.first_name || loading}
-          loading={loading}
-        />
+        >
+          {({ values, setFieldValue, handleSubmit }) => (
+            <>
+              <ProfilePicture
+                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
+                id="profile_picture"
+                name="profile_picture"
+                src={values.picture.src}
+                alt="Profile Picture"
+                editable={true}
+                onChange={(obj) => {
+                  setFieldValue("picture", obj);
+                }}
+                textClass={'text-3xl text-dark900'}
+              />
+              <MembersForm />
+
+              <section className="w-full pt-5 sticky bottom-0 bg-white">
+                <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
+                  <Button
+                    value={"Cancel"}
+                    onClick={handleCancel}
+                    className="primary "
+                  />
+                  <Button
+                    value={"Save"}
+                    type="button"
+
+                    onClick={handleSubmit}
+                    className="default"
+                  />
+                </div>
+              </section>
+            </>
+          )}
+        </Formik>
       </section>
     </div>
   );
+};
+
+interface IAddMember extends IMembersForm {
+  picture: {
+    src: string;
+    picture: File | null;
+  };
+}
+const initialValues = {
+  ...MembersForm.initialValues,
+  picture: {
+    src: "",
+    picture: null,
+  },
 };
 
 export default AddMember;

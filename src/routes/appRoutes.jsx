@@ -26,6 +26,13 @@ import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
+import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
+import ViewClass from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
+import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
+import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
+import Registration from "@/pages/Registration/Registration";
 
 
 export const routes = [
@@ -208,6 +215,50 @@ export const routes = [
         isPrivate: false,
         permissionNeeded: "view_events",
       },
+      
+      {
+        path: "ministry-school",
+        name: "School of Ministry",
+        element: <MinistrySchool />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+        sideTab: true,
+      },
+      {
+        path: "ministry-school/programs/:id",
+        name: "View Program",
+        element: <ViewProgram />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/programs/:id/cohort/:id",
+        name: "View Cohort",
+        element: <ViewCohort />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/programs/:id/cohort/:id/class/:id",
+        name: "View Class",
+        element: <ViewClass />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
+        name: "View Student",
+        element: <ViewStudent />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "ministry-school/programs/cohort/class/student/certificate",
+        name: "View Certificate",
+        element: <ViewCertificate />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
       {
         path: "settings",
         name: "Settings",
@@ -248,6 +299,11 @@ export const routes = [
       },
     ]
 
+  },
+  {
+    path: "/register-member",
+    element: <Registration />,
+    isPrivate: false
   },
   {
     path: "events/register-event",

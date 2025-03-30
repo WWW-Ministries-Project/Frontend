@@ -38,3 +38,22 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Default behavior (if no custom configuration is made) */
+
+
+.multiselect {
+  display: flex;
+  flex-direction: column;
+}
+
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.multiselect-option input {
+  margin-right: 10px;
+}
+

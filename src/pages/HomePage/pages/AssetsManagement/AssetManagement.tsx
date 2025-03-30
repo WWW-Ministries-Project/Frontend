@@ -116,7 +116,7 @@ const AssetManagement = () => {
             {/* <div>
               <Button
                 value="Add asset"
-                className={" text-white h-10 p-2 bg-primaryViolet"}
+                className={" text-white h-10 p-2 bg-primary"}
                 onClick={() => navigate("manage-asset")}
               />
             </div> */}

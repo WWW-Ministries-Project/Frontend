@@ -4,6 +4,8 @@ export interface pictureType {
 }
 
 export interface ApiResponse<T> {
+  success: any;
+  error: string;
   status: number;
   data: T;
 }

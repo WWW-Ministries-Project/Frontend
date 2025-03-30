@@ -29,7 +29,7 @@ function RequisitionComments({
         <PageHeader title="Comments" />
         <Button
           value="+ add comment"
-          className="font-light text-primaryViolet cursor-pointer"
+          className="font-light text-primary cursor-pointer"
           onClick={() => openCommentModal("comment")}
         />
       </div>

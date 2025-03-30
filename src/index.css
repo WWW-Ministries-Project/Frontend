@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 :root {
-  --primaryViolet: #6539C3;
+  --primary: #6539C3;
 }
 * {
   box-sizing: border-box;
@@ -221,6 +221,43 @@ input.input::placeholder {
   
   
   margin-left: -50px;
+}
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+@screen sm {
+  max-width: 640px;
+}
+@screen md {
+  max-width: 768px;
+}
+@screen lg {
+  max-width: 1024px;
+}
+@screen xl {
+  max-width: 1280px;
+}
+@screen 2xl {
+  max-width: 1536px;
+}
+
+.multiselect {
+  display: flex;
+  flex-direction: column;
+}
+
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.multiselect-option input {
+  margin-right: 10px;
 }
 
 

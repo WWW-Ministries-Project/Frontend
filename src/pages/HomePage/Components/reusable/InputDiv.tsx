@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react';
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
+import React, { forwardRef } from "react";
 
 export interface InputDivProps {
   type?: string;
@@ -25,7 +25,9 @@ export interface InputDivProps {
 }
 
 const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
     const name = e.target.name;
     props.onChange(name, e.target.value);
   }
@@ -35,22 +37,36 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   }
 
   return (
-    <div className={`flex text-dark900 flex-col gap-1 ${props.className}`} ref={ref} onClick={props.onClick} style={{ cursor: props.onClick ? 'pointer' : 'default' }}>
-      <label className='font-semibold ' htmlFor={props.id}>{props.label}</label>
+    <div
+      className={`flex text-dark900 flex-col gap-1 ${props.className}`}
+      ref={ref}
+      onClick={props.onClick}
+      style={{ cursor: props.onClick ? "pointer" : "default" }}
+    >
+      <label className="font-semibold " htmlFor={props.id}>
+        {props.label}
+      </label>
       {props.type === "textarea" ? (
         <textarea
-          className={`input rounded-xl !h-[150px] ${props.inputClass} ${props.error ? "!border-error !outline-error" : ""}`}
+          className={`input rounded-xl !h-[150px] ${props.inputClass} ${
+            props.error ? "!border-error !outline-error" : ""
+          }`}
           id={props.id}
           name={props.id}
           value={props.value}
           onChange={handleChange}
           placeholder={props.placeholder}
           disabled={props.disabled}
-
         />
       ) : (
         <input
-          className={`   ${props.inputClass? props.inputClass : "rounded-lg p-2 border border-dark900 focus:outline-none"}  ${props.error ? "!border-error focus:outline-none !outline-error" : ""}`}
+          className={`   ${
+            props.inputClass
+              ? props.inputClass
+              : "rounded-lg p-2 border border-dark900 focus:outline-none"
+          }  ${
+            props.error ? "!border-error focus:outline-none !outline-error" : ""
+          }`}
           id={props.id}
           name={props.id}
           type={props.type || "text"}
@@ -91,6 +107,6 @@ InputDiv.propTypes = {
   max: PropTypes.string,
 };
 
-InputDiv.displayName = 'InputDiv';
+InputDiv.displayName = "InputDiv";
 
 export default InputDiv;

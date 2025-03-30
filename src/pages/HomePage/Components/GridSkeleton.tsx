@@ -15,7 +15,7 @@ const GridSkeleton = () => {
             <p className="text-sm w-32 h-12 bg-lightGray"></p>
           </div>
           <div className="w-32 h-12 bg-lightGray animate-pulse"></div>
-          {/* <Button value={"View Profile"} onClick={handleClick} className="w-full mt-2 bg-transparent h-8 border border-primaryViolet " /> */}
+          {/* <Button value={"View Profile"} onClick={handleClick} className="w-full mt-2 bg-transparent h-8 border border-primary " /> */}
         </div>
       </CardWrappers>)}
     </GridWrapper>

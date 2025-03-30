@@ -9,7 +9,7 @@ const AuthenticationForm = (props) => {
     <>
       <div className=" md:w-2/3  max-w-[500px] h-full mx-auto ">
         <form>
-          <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primaryViolet">
+          <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primary">
             <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">
               <ChurchLogo className={' mb-5'} />
               <div className="flex justify-center text-dark900 text-2xl mb-2">{props.header}</div>
@@ -18,7 +18,7 @@ const AuthenticationForm = (props) => {
                 {props.response?.status >= 400 ? (
                   <Alert
                     className="  text-left px-2 my-6 h-6"
-                    text={errorText ||"incorrect email or password please try again "}
+                    text={props.errorText ||"incorrect email or password please try again "}
                   />
                 ) : null}
                 {/* {props.response.status === 404 ? (

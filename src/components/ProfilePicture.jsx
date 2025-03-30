@@ -28,7 +28,7 @@ const  ProfilePic = (props)=> {
                     {props.src ? <img src={ props.src} alt={props.alt} className='w-full rounded-full h-full' id="profile" /> : 
                     <div className={'w-full rounded-full h-full flex justify-center items-center '+ props.textClass}>{firstLetters(props.name)}</div>}
                     {props.editable? <label className="absolute left-2/3 bottom-0 cursor-pointer " htmlFor={props.id}>
-                    <div className='bg-white border border-white rounded-full p-1'><img src={props.icon || icon} alt="" /></div>
+                    <div className='bg-white border border-lightGray rounded-full p-1'><img src={props.icon || icon} alt="" /></div>
                 </label>: null}
                     {/* {props.editable? <label className=" absolute top-0 z-2 rounded-full w-full h-full flex justify-center items-center text-sm bg-blur cursor-pointer text-white" htmlFor={props.id}>
                     <span>Change Image</span>

@@ -27,14 +27,20 @@ const EventsCard = (props: IEventCard) => {
     e.stopPropagation();
     props.onDelete(props.event);
   };
+
   const handleShowOptions = (e: React.MouseEvent) => {
     e.stopPropagation();
     props.onShowOptions(props.event.id);
   };
 
+  // Format the date dynamically
+  const eventDate = new Date(props.event.start_date);
+  const dayOfWeek = eventDate.toLocaleString("en-US", { weekday: "short" });
+  const dayOfMonth = eventDate.getDate();
+
   return (
     <div
-      className={`rounded-xl pb-1 `}
+      className={`rounded-xl pb-1`}
       style={{
         backgroundColor: props.event.event_type
           ? eventTypeColors[props.event.event_type]
@@ -55,13 +61,14 @@ const EventsCard = (props: IEventCard) => {
           }}
         >
           <img
-            className="max-w-[70vw] rounded-xl w-full h-32"
+            className="max-w-[70vw] rounded-xl w-full h-44"
             src={props.event.poster || defaultImage1}
             alt="poster for event"
           />
         </div>
+
         <div
-          className="flex px-3 gap-1 items-center font-bold cursor-pointer"
+          className="flex px-3 gap-1 text-sm"
           onClick={() =>
             handleNavigation(
               `/home/events/view-event?event_id=${props.event.id}`
@@ -69,25 +76,46 @@ const EventsCard = (props: IEventCard) => {
           }
         >
           <div
-            className={`w-2 h-2 ${
+            className={`border rounded-lg py-2 px-3 flex justify-center items-center flex-col ${
               compareDates(props.event.start_date + "")
-                ? "bg-[#FF5765]"
-                : "bg-green"
-            } rounded rounded-full ${props.indicatorClass}`}
-          />
-          <p>{props.event.name}</p>
-        </div>
-        <div className="flex px-3 gap-1 items-center text-sm">
-          <img src={calendar} alt="clock icon" />
-          <p>
-            {formatTime(props.event.start_date + "") || "TBD"} |
-            <span className="text-sm">{props.event.start_time}</span>
-            <span className="text-sm">- {props.event.end_time} </span>
-          </p>
-        </div>
-        <div className="flex px-3 gap-1 text-sm">
-          <img src={location} alt="location" />
-          <p>{props.event.location || "-"}</p>
+                ? "bg-[#FF576510] border-[#FF576550]"
+                : "bg-green/10 border-green/50"
+            }`}
+          >
+            <div className="font-medium">{dayOfWeek}</div>
+            <div className="font-bold text-lg">{dayOfMonth}</div>
+          </div>
+          <div className="space-y-1">
+            <div
+              className="flex px-3  items-center font-bold cursor-pointer"
+              onClick={() =>
+                handleNavigation(
+                  `/home/events/view-event?event_id=${props.event.id}`
+                )
+              }
+            >
+              <div
+                className={`${
+                  compareDates(props.event.start_date + "")
+                    ? "bg-[#FF5765]"
+                    : "bg-green"
+                } rounded-full ${props.indicatorClass} `}
+              />
+              <p className="text-md">{props.event.name}</p>
+            </div>
+            <div className="flex px-3 gap-1 items-center text-sm">
+              <img src={calendar} alt="clock icon" />
+              <p>
+                {formatTime(props.event.start_date + "") || "TBD"} |
+                <span className="text-sm">{props.event.start_time}</span>
+                <span className="text-sm">- {props.event.end_time} </span>
+              </p>
+            </div>
+            <div className="flex px-3 gap-1 text-sm">
+              <img src={location} alt="location" />
+              <p>{props.event.location || "-"}</p>
+            </div>
+          </div>
         </div>
         <div
           className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`}
@@ -132,8 +160,6 @@ EventsCard.propTypes = {
   calendarView: PropTypes.bool,
   showOptions: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   onShowOptions: PropTypes.func,
-  // onNavigate: PropTypes.func,
-  // onDelete: PropTypes.func
 };
 
 export default EventsCard;

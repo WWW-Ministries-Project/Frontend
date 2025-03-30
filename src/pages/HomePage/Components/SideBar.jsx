@@ -16,6 +16,7 @@ import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
 import LogoutIcon from "@/assets/sidebar/Logout";
+import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
 
 const icons = {
   Dashboard: DashboardIcon,
@@ -23,8 +24,10 @@ const icons = {
   Users: UsersIcon,
   Events: ManagementIcon,
   Assets: InstrumentIcon,
+  "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
+  
 };
 
 const SideBar = ({ className, show, ...props }) => {
@@ -33,7 +36,7 @@ const SideBar = ({ className, show, ...props }) => {
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
 
   // Handle hover effects

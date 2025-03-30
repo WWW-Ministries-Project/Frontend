@@ -154,7 +154,7 @@ const Request = () => {
   }, [requestData,allEvents]);
   return (
     <div className="p-4">
-      <section className="mx-auto p-8 lg:container lg:w-4/6 bg-white rounded-xl">
+      <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
       <PageOutline>
       <div className="">
         <PageHeader title={title} />

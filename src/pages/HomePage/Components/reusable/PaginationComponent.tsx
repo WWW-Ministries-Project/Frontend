@@ -23,7 +23,7 @@ const PaginationComponent = ({
         onClick={goFirst}
         className={
           canGoBack
-            ? "border border-primaryViolet p-1 sm rounded-md text-primaryViolet"
+            ? "border border-primary p-1 sm rounded-md text-primary"
             : "border border-lightGray p-1 rounded-md opacity-50"
         }
       >
@@ -33,7 +33,7 @@ const PaginationComponent = ({
       <button
         className={
           canGoBack
-            ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
+            ? "border border-primary p-1 rounded-md text-primary"
             : "border border-lightGray p-1 rounded-md opacity-50"
         }
         disabled={!canGoBack}
@@ -45,7 +45,7 @@ const PaginationComponent = ({
       <button
         className={
           canGoForward
-            ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
+            ? "border border-primary p-1 rounded-md text-primary"
             : "border border-lightGray p-1 rounded-md opacity-50"
         }
         disabled={!canGoForward}
@@ -57,7 +57,7 @@ const PaginationComponent = ({
       <button
         className={
           canGoForward
-            ? "border border-primaryViolet p-1 rounded-md text-primaryViolet"
+            ? "border border-primary p-1 rounded-md text-primary"
             : "border border-lightGray p-1 rounded-md opacity-50"
         }
         onClick={() => goToPage(rest.totalPages - 1)}

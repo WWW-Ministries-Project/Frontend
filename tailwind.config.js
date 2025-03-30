@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primaryViolet: "#6539C3",
+        primary: "#6539C3",
         primaryGray: "#575F6A",
         mainGray: "#626262",
         wwmBlue: "#080D2D",
@@ -30,7 +30,6 @@ export default {
       keyframes: {
         wiggle: {
           "0%, 100%": {
-            // transform: 'rotate(-3deg)',
             transform: "matrix(1, 0, 0, 1, 0, 0)",
           },
           "50%": { transform: "rotate(3deg)" },
@@ -96,6 +95,16 @@ export default {
       xl: "1280px", // Extra large devices
       "2xl": "1536px", // Extra extra large devices
       "3xl": "1800px", // Ultra large devices (e.g., 4K screens)
+    },
+    // Add container configuration here
+    container: {
+      center: true, // Center the container by default
+      padding: {
+        DEFAULT: "1rem", // Default padding
+        sm: "2rem", // Padding for small screens
+        lg: "4rem", // Padding for large screens
+        xl: "5rem", // Padding for extra-large screens
+      },
     },
   },
   plugins: [

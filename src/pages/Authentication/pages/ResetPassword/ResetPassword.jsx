@@ -148,7 +148,7 @@ function ResetPassword() {
               onClick={handleSubmit}
               loading={loading}
               disabled={!samePassword || loading}
-              className={"w-full h-[38px] bg-primaryViolet my-8 text-white"}
+              className={"w-full h-[38px] bg-primary my-8 text-white"}
             />
             <div>
               <div className="text-gray text-center text-sma">

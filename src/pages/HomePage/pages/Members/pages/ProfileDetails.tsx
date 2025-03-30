@@ -114,8 +114,8 @@ const ProfileDetails = () => {
   };
 
   return (
-    <div>
-       <div className="sticky top-0 z-40 bg-purple-200 w-full">
+    <div className="px-4">
+       <div className="sticky top-0 z-40 w-full">
        <Banner
         onClick={handleEdit}
         edit={edit}
@@ -126,11 +126,12 @@ const ProfileDetails = () => {
         position={details.position?.name || ""}
         email={details.email}
         primary_number={details.primary_number}
+        membership_type={details.membership_type}
       />
        </div>
-      <section className=" w-full h-full mb-4 lg:container mx-auto lg:w-5/6   ">
+      <section className=" w-full h-full mb-4  mx-auto    ">
      
-      <div className="hideScrollbar px-8 pb-4 mx-auto lg:container  rounded-b-xl  overflow-y-auto">
+      <div className="hideScrollbar  pb-4 mx-auto   rounded-b-xl  overflow-y-auto">
         <Outlet
           context={{
             edit,

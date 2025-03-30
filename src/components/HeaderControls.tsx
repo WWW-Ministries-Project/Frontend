@@ -83,7 +83,7 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
           {btnName&&<Button
             value={screenWidth <= 700 ? "+" : btnName}
             className={
-              "text-white px-5 min-h-12 max-h-14 p-3 bg-primaryViolet whitespace-nowrap" +
+              "text-white px-5 min-h-12 max-h-14 p-3 bg-primary whitespace-nowrap" +
               (screenWidth <= 540 ? " w-12 px-3" : "")
             }
             onClick={handleNavigation}

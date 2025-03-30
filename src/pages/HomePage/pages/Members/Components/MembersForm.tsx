@@ -1,340 +1,157 @@
-import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
-import { Field, Formik } from "formik";
-import React from "react";
-import Button from "../../../../../components/Button";
-import ContactInput from "../../../../../components/ContactInput";
+import { fetchCountries } from "@/pages/HomePage/utils";
 import {
-  formatInputDate,
-  genderOptions,
-  getChangedValues,
-} from "../../../../../utils/helperFunctions";
+  ChildrenSubForm,
+  ContactsSubForm,
+  EmergencyContact,
+  IChildrenSubForm,
+  IContactsSubForm,
+  IEmergencyContact,
+  IPersonalDetails,
+  IWorkInfoSubForm,
+  PersonalDetails,
+  WorkInfoSubForm,
+} from "@components/subform";
+import { Field, getIn, useFormikContext } from "formik";
+import { useEffect, useMemo } from "react";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { maritalOptions, titleOptions, userFormValidator } from "../utils";
-import { OptionsType, UserType } from "../utils/membersInterfaces";
-import RadioInput from "./RadioInput";
+import { RadioInput } from "./RadioInput";
 
-interface MembersFormProps {
-  edit: boolean;
-  user: UserType;
-  department?: OptionsType[];
-  onChange: (name: string, value: string | boolean) => void;
-  onSubmit: (val: UserType) => void;
-  onCancel: () => void;
+interface IProps {
   disabled?: boolean;
-  loading: boolean;
 }
 
-const MembersForm: React.FC<MembersFormProps> = (props) => {
-  // function handleChange(name: string, value: string | boolean) {
-  //   props.onChange(name, value);
-  // }
-  const departmentsOptions = useSettingsStore().departmentsOptions;
-  const positionOptions = useSettingsStore().positionsOptions;
-  const countryOptions = useCountryStore().countryOptions;
+const MembersFormComponent = ({ disabled = false }: IProps) => {
+  const { departmentsOptions } = useSettingsStore();
+  const { positionsOptions } = useSettingsStore();
+
+  const { values } = useFormikContext<IMembersForm>();
+  const { has_children } = useMemo(
+    () => getIn(values, "personal_info"),
+    [values]
+  );
+
+  const countryStore = useCountryStore();
+
+  // Fetch countries on mount if not already in store
+  useEffect(() => {
+    if (!countryStore.countries.length) {
+      fetchCountries().then((data) => {
+        countryStore.setCountries(data);
+      });
+    }
+  }, [countryStore]);
 
   return (
-    <Formik
-      enableReinitialize={true}
-      initialValues={props.user}
-      onSubmit={(val) => {
-        const transformedValues = {
-          ...val,
-          position_id: val.position_id && parseInt(val.position_id, 10),
-          department_id: val.department_id && parseInt(val.department_id, 10),
-        };
-        const changedValues = getChangedValues(props.user, transformedValues);
-        props.onSubmit(changedValues);
-      }}
-      validationSchema={userFormValidator}
-    >
-      {(form) => (
-        <div className="h-full   space-y-6">
-          <section className="">
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Membership Status
-            </div>
-            <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
-              <Field
-                component={FormikSelectField}
-                label="Membership Type"
-                disabled={!props.edit}
-                id="membership_type"
-                name="membership_type"
-                options={[
-                  { name: "Member", value: "MEMBER" },
-                  { name: "Visitor", value: "VISITOR" },
-                ]}
-              />
-            </div>
-          </section>
-          <hr className="border-t border-neutralGray " />
-          <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Personal Information
-            </div>
-            <div className="w-full grid tablet:grid-cols-2 gap-4 mb-5">
-              <Field
-                component={FormikSelectField}
-                label="Title"
-                disabled={!props.edit}
-                id="title"
-                name="title"
-                options={titleOptions}
-              />
-            </div>
-            <div className="w-full grid tablet:grid-cols-2 gap-4">
-              <Field
-                component={FormikInputDiv}
-                label="First Name"
-                disabled={!props.edit}
-                id="first_name"
-                name="first_name"
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Other Name"
-                disabled={!props.edit}
-                id="other_name"
-                name="other_name"
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Last Name"
-                disabled={!props.edit}
-                id="last_name"
-                name="last_name"
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Date of Birth"
-                value={formatInputDate(form.values.date_of_birth)}
-                disabled={!props.edit}
-                id="date_of_birth"
-                name="date_of_birth"
-                type="date"
-              />
-              <Field
-                component={FormikSelectField}
-                label="Gender"
-                value={props.user?.gender}
-                options={genderOptions}
-                disabled={!props.edit}
-                id="gender"
-                name="gender"
-                placeholder={"select gender"}
-              />
-              <Field
-                component={FormikSelectField}
-                label="Marital Status"
-                options={maritalOptions}
-                disabled={!props.edit}
-                id="marital_status"
-                name="marital_status"
-                placeholder={"select marital status"}
-              />
-            </div>
-          </section>
-          <hr className="border-t border-neutralGray " />
-          <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Contact Information
-            </div>
-            <div className="w-full grid tablet:grid-cols-2 gap-4">
-              <ContactInput
-                label="Phone Number"
-                contactValue={form.values.primary_number}
-                zipCode={form.values.country_code}
-                id="primary_number"
-                disabled={!props.edit}
-                onChange={(name, val) => {
-                  form.setFieldValue(name, val);
-                  form.setFieldTouched(name, true);
-                }}
-                placeholder="enter phone number"
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Email"
-                id="email"
-                name="email"
-                type={"email"}
-                disabled={!props.edit}
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Address"
-                id="address"
-                name="address"
-                disabled={!props.edit}
-              />
-              <Field
-                component={FormikSelectField}
-                label="Country"
-                id="nationality"
-                name="nationality"
-                options={countryOptions || []}
-                disabled={!props.edit}
-              />
-            </div>
-          </section>
-          <hr className="border-t border-neutralGray " />
-          <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Church Information
-            </div>
-            <div className="mb-5">
-              <p className="text-dark900 leading-5 mb-2">
-                Is this member a ministry worker?
-              </p>
-              <RadioInput
-                value={form.values.is_user || false}
-                onChange={(name, val) => {
-                  form.setFieldValue(name, val);
-                }}
-              />
-            </div>
-            {form.values.is_user && (
-              <div className="w-full  grid tablet:grid-cols-2 gap-4">
-                {/* bug from backend */}
-                <Field
-                  component={FormikSelectField}
-                  label="Ministry/Department"
-                  id="department_id"
-                  name="department_id"
-                  options={departmentsOptions || []}
-                  disabled={!props.edit}
-                />
-                <Field
-                  component={FormikSelectField}
-                  label="Position"
-                  id="position_id"
-                  name="position_id"
-                  options={positionOptions || []}
-                  disabled={!props.edit}
-                  parse={(value: string) => parseInt(value, 10)}
-                />
-              </div>
-            )}
-          </section>
-          <hr className="border-t border-neutralGray " />
-          <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Work Information
-            </div>
-            <div className="w-full  grid tablet:grid-cols-2 gap-4">
-              <Field
-                component={FormikInputDiv}
-                label="Name of Institution"
-                value={
-                  form.values.work_name ||
-                  props.user?.work_info?.name_of_institution
-                }
-                id="work_name"
-                name="work_name"
-                disabled={!props.edit}
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Industry"
-                value={
-                  form.values.work_industry || props.user?.work_info?.industry
-                }
-                id="work_industry"
-                name="work_industry"
-                disabled={!props.edit}
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Position"
-                value={
-                  form.values.work_position || props.user?.work_info?.position
-                }
-                id="work_position"
-                name="work_position"
-                disabled={!props.edit}
-              />
-            </div>
-          </section>
-          <hr className="border-t border-neutralGray " />
-          <section>
-            <div className=" text-dark900 H600 font-extrabold my-5">
-              Emergency Contact
-            </div>
-            <div className="w-full  grid tablet:grid-cols-2 gap-4">
-              <Field
-                component={FormikInputDiv}
-                label="Name of Contact"
-                disabled={!props.edit}
-                value={
-                  form.values.emergency_contact_name ||
-                  props.user?.emergency_contact?.name
-                }
-                id="emergency_contact_name"
-                name="emergency_contact_name"
-              />
-              <Field
-                component={FormikSelectField}
-                label="Relation"
-                disabled={!props.edit}
-                value={
-                  form.values.emergency_contact_relation ||
-                  props.user?.emergency_contact?.relation
-                }
-                id="emergency_contact_relation"
-                name="emergency_contact_relation"
-                options={[
-                  { name: "Brother", value: "brother" },
-                  { name: "Sister", value: "sister" },
-                  { name: "Father", value: "father" },
-                  { name: "Mother", value: "mother" },
-                  { name: "Husband", value: "husband" },
-                  { name: "Wife", value: "wife" },
-                  { name: "Son", value: "son" },
-                  { name: "Daughter", value: "daughter" },
-                  { name: "Other", value: "other" },
-                ]}
-              />
-              <Field
-                component={FormikInputDiv}
-                label="Phone Number"
-                disabled={!props.edit}
-                value={
-                  form.values.emergency_contact_phone_number ||
-                  props.user?.emergency_contact?.phone_number
-                }
-                id="emergency_contact_phone_number"
-                name="emergency_contact_phone_number"
-              />
-            </div>
-          </section>
-          <hr className="border-t border-neutralGray " />
-          {props.edit && (
-            <section className="w-full pt-5 sticky bottom-0 bg-white">
-              <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
-                <Button
-                  value={"Cancel"}
-                  onClick={props.onCancel}
-                  className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
-                />
-                <Button
-                  value={"Save"}
-                  type="submit"
-                  onClick={() => {
-                    form.handleSubmit();
-                  }}
-                  loading={props.loading}
-                  disabled={props.disabled || props.loading}
-                  className="w-32 my-2 px-2  bg-primaryViolet  border border-primaryViolet text-white "
-                />
-              </div>
-            </section>
-          )}
-        </div>
-      )}
-    </Formik>
+    <>
+      <FormLayout>
+        <FormHeader>Membership Status</FormHeader>
+        <Field
+          component={FormikSelectField}
+          label="Membership Type"
+          id="church_info.membership_type"
+          name="church_info.membership_type"
+          options={[
+            { name: "Online e-church family", value: "MEMBER" },
+            { name: "In-person church family", value: "VISITOR" },
+            // { name: "Pending", value: "pending" },
+          ]}
+          disabled={disabled}
+        />
+        <HorizontalLine />
+
+        <FormHeader>Personal Information</FormHeader>
+        <PersonalDetails disabled={disabled} prefix="personal_info" />
+        <HorizontalLine />
+
+        <ContactsSubForm disabled={disabled} prefix="contact_info" />
+        <HorizontalLine />
+
+        <EmergencyContact disabled={disabled} prefix="emergency_contact" />
+        <HorizontalLine />
+
+        <FullWidth>
+          <div className="flex flex-col">
+            <p className="text-dark900 leading-5 mb-2">
+              Is this member a ministry worker?
+            </p>
+            <RadioInput name="is_user" />
+          </div>
+        </FullWidth>
+        {values.is_user && (
+          <>
+            {/* bug from backend */}
+            <Field
+              component={FormikSelectField}
+              label="Ministry/Department"
+              id="church_info.department_id"
+              name="church_info.department_id"
+              placeholder="Select department"
+              options={departmentsOptions || []}
+              disabled={disabled}
+            />
+            <Field
+              component={FormikSelectField}
+              label="Position"
+              id="church_info.position_id"
+              name="church_info.position_id"
+              placeholder="Select position"
+              options={positionsOptions || []}
+              disabled={disabled}
+              parse={(value: string) => parseInt(value, 10)}
+            />
+          </>
+        )}
+        <HorizontalLine />
+
+        <WorkInfoSubForm disabled={disabled} prefix="work_info" />
+        <HorizontalLine />
+        <FullWidth>
+          <div className="flex flex-col">
+            <p className="text-dark900 leading-5 mb-2">
+              Are your children members of the church?
+            </p>
+            <RadioInput name={`${"personal_info"}.has_children`} />
+          </div>
+        </FullWidth>
+        {has_children && <ChildrenSubForm disabled={disabled} />}
+      </FormLayout>
+    </>
   );
 };
 
-export default MembersForm;
+export interface IMembersForm extends IChildrenSubForm {
+  personal_info: IPersonalDetails;
+  emergency_contact: IEmergencyContact;
+  contact_info: IContactsSubForm;
+  work_info: IWorkInfoSubForm;
+  church_info:{
+    membership_type: "ONLINE" | "IN-HOUSE";
+    department_id?: number;
+    position_id?: number;
+  }
+  is_user: boolean;
+}
+
+const initialValues: IMembersForm = {
+  personal_info: PersonalDetails.initialValues,
+  contact_info: ContactsSubForm.initialValues,
+  work_info: WorkInfoSubForm.initialValues,
+  emergency_contact: EmergencyContact.initialValues,
+  is_user: false,
+  church_info:{
+    membership_type: "IN-HOUSE",
+    department_id: undefined,
+    position_id: undefined
+  },
+  ...ChildrenSubForm.initialValues,
+};
+
+// export default MembersForm;
+export const MembersForm = Object.assign(MembersFormComponent, {
+  initialValues: initialValues,
+  schema: {},
+});
