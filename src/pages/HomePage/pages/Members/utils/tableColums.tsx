@@ -8,7 +8,6 @@ import { UserType } from "./membersInterfaces";
 
 const booleanFilter = (row: any, columnId: string, filterValue: boolean) => {
   // Access the row's column value
-  // console.log( row.getValue(columnId),"row",filterValue,"filter")
   const rowValue = row.getValue(columnId);  // This gets the value of the row for the given columnId
   return Boolean(rowValue) === Boolean(filterValue);
 };
@@ -84,4 +83,10 @@ export const membersColumns: ColumnDef<UserType>[] = [
     accessorKey: "membership_type",
     filterFn: "includesString",
   },
+  {
+    header: "Department",
+    accessorKey: "department_id",
+    filterFn: booleanFilter,
+    
+  }
 ];
