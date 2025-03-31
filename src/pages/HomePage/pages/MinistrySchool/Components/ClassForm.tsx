@@ -20,7 +20,7 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, classId, initialData, co
   const api = new ApiUpdateCalls();
 
   const initialValues = {
-    name: initialData?.className || '',
+    name: initialData?.name || '',
     instructor: initialData?.instructor || '',
     capacity: initialData?.capacity || '',
     schedule: initialData?.schedule || '',
@@ -53,12 +53,15 @@ const ClassForm: React.FC<ClassFormProps> = ({ onClose, classId, initialData, co
     const payload = {
       ...values,
       cohortId, // Ensure cohortId is added to the payload
-      ...(classId && { id: classId }),
+      // ...(classId && { id: classId }),
+      id: initialData?.id
     };
 
     try {
+      console.log("Submit", payload);
+      
       let response;
-      if (classId) {
+      if (initialData?.id) {
         // Update class if classId exists
         response = await api.updateClass(payload);  // Ensure you have this method in your ApiUpdateCalls class
       } else {
@@ -84,9 +87,9 @@ fetchCohortData()
   return (
     <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-dark900 space-y-4 overflow-auto">
       <div>
-        <div className="text-lg font-bold">{classId ? "Edit Class" : "Add New Class"}</div>
+        <div className="text-lg font-bold">{initialData?.id ? "Edit Class" : "Add New Class"}</div>
         <div className="text-sm mb-4">
-          {classId ? "Edit the details of the class" : "Create a new class for the cohort."}
+          {initialData?.id ? "Edit the details of the class" : "Create a new class for the cohort."}
         </div>
       </div>
 
@@ -255,7 +258,7 @@ fetchCohortData()
                 type="submit"
                 className="bg-primary text-white px-6 py-2 rounded-lg"
               >
-                {classId ? "Update Class" : "Create Class"}
+                {initialData?.id ? "Update Class" : "Create Class"}
               </button>
             </div>
           </Form>

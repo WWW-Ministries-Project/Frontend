@@ -17,7 +17,7 @@ interface ClassItem {
   meetingLink?: string;
 }
 
-const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
+const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEdit?: (course: ClassItem) => void; onDelete: () => void }) => {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -146,14 +146,14 @@ const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
               <ul className="py-1">
                 <li
                   className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                  onClick={() => console.log("Edit Class", classItem)} // Add appropriate edit logic here
+                  onClick={() => onEdit && onEdit(classItem)} // Add appropriate edit logic here
                 >
                   Edit Class
                 </li>
 
                 <hr className="text-lightGray/10" />
                 <li
-                  onClick={"onDelete"} // Pass the delete logic here
+                  onClick={onDelete} // Pass the delete logic here
                   className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                 >
                   Delete Class

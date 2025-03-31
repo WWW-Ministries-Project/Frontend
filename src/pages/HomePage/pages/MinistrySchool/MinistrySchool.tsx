@@ -9,6 +9,8 @@ import ProgramForm from "./Components/ProgramForm";
 import { ApiCalls } from "@/utils/apiFetch";
 import { ApiDeletionCalls } from "@/utils/apiDelete";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
+import AlertComp from "../../Components/reusable/AlertComponent";
+import Alert from "@/pages/Authentication/components/Alerts";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -171,6 +173,11 @@ const MinistrySchool = () => {
   return (
     <div className="p-4">
       <PageOutline>
+      {/* <AlertComp 
+        message={error || "An unexpected error occurred."} 
+        type="error" 
+        onClose={() => setError(null)} 
+      /> */}
         <HeaderControls
           title="School of Ministry"
           showSearch={false}
@@ -233,6 +240,7 @@ const MinistrySchool = () => {
         fetchPrograms = {fetchPrograms}
         />
       </Modal>
+      
     </div>
   );
 };

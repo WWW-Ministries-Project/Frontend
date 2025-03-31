@@ -154,9 +154,7 @@ const ProgramsCard = ({
       {/* )} */}
       <div className="flex-grow" />
 
-      <div>
-        <hr className="text-lightGray/50  " />
-      </div>
+      
       
 
       {/* Actions */}

@@ -161,4 +161,10 @@ export class ApiCalls {
   ): Promise<ApiResponse<{ data: any[] }>> => {
     return this.fetchFromApi("program/user-enrollment", query);
   };
+
+  fetchMembers = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("program/users", query);
+  };
 }

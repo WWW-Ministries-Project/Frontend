@@ -1,65 +1,80 @@
+import { ApiUpdateCalls } from "@/utils/apiPut";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Topic {
   id: number;
   name: string;
-  score: number;
+  score: number | undefined;
   status: "PASS" | "FAIL" | "PENDING";
+  notes: string;
 }
 
-const TopicAssessment: React.FC<{ topics: Topic[] }> = ({ topics }) => {
-    const navigate = useNavigate()
-  // Initialize state with mock topics
-  const [topic, setTopics] = useState<Topic[]>([
-    {
-      id: 1,
-      name: "Biblical Leadership Foundations",
-      score: 92,
-      status: "PASS",
-    },
-    {
-      id: 2,
-      name: "Character Development",
-      score: 88,
-      status: "PASS",
-    },
-    {
-      id: 3,
-      name: "Vision Casting",
-      score: 0,
-      status: "PENDING",
-    },
-    {
-      id: 4,
-      name: "Team Building",
-      score: 0,
-      status: "PENDING",
-    },
-  ]);
+const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollmentId: number; onCancel: ()=>void  }> = ({ topics, editMode, enrollmentId, onCancel }) => {
+  const navigate = useNavigate();
+  const apiPut = new ApiUpdateCalls()
 
+  // Initialize state with topics, with score as undefined
+  const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
   const [isGenerateEnabled, setIsGenerateEnabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Check if all topics have passed
-    const allPassed = topics?.every((topic) => topic.status === "PASS");
+    const allPassed = updatedTopics.every((topic) => topic.status === "PASS");
     setIsGenerateEnabled(allPassed);
-  }, [topics]);
+  }, [updatedTopics]);
 
   const handleStatusChange = (id: number, newStatus: "PASS" | "FAIL" | "PENDING") => {
-    setTopics((prevTopics) =>
+    setUpdatedTopics((prevTopics) =>
       prevTopics.map((topic) =>
-        topic?.id === id ? { ...topic, status: newStatus } : topic
+        topic.id === id ? { ...topic, status: newStatus } : topic
       )
     );
   };
 
-  const handleScoreChange = (id: number, newScore: number) => {
-    setTopics((prevTopics) =>
+  const handleScoreChange = (id: number, newScore: number | undefined) => {
+    setUpdatedTopics((prevTopics) =>
       prevTopics.map((topic) =>
-        topic?.id === id ? { ...topic, score: newScore } : topic
+        topic.id === id ? { ...topic, score: newScore } : topic
       )
     );
+  };
+
+  // Function to update the topics
+  const updateTopics = async () => {
+    setLoading(true)
+    const progressUpdates = updatedTopics.map((topic) => ({
+      topicId: topic.id,
+      enrollmentId: enrollmentId, // This should be dynamically fetched or passed to the function
+      score: topic.score,
+      status: topic.status,
+      notes: topic.notes,
+    }));
+
+    // Prepare the payload
+    const payload = { progressUpdates };
+
+    try {
+      
+      console.log("Payload: ",  payload);
+      
+      
+      const response = await apiPut.updateStudentProgress(payload)
+
+      if (response.success) {
+        console.log("Topics updated successfully!", response);
+        // You can call navigate() here if you want to redirect to another page
+        // navigate(`/some-path`);
+      } else {
+        console.log("Failed to update topics.");
+      }
+    } catch (error) {
+      console.error("Error updating topics:", error);
+      alert("An error occurred while updating the topics.");
+    } finally {
+      setLoading(false)
+    }
   };
 
   const handleGenerateCertificate = () => {
@@ -84,34 +99,55 @@ const TopicAssessment: React.FC<{ topics: Topic[] }> = ({ topics }) => {
                 <th className="px-4 py-2 text-left">Topic</th>
                 <th className="px-4 py-2 text-left">Score</th>
                 <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left">Notes</th>
               </tr>
             </thead>
             <tbody>
-              {topics && topics?.map((topic) => (
-                <tr key={topic?.id} className="border-t border-lightGray">
-                  <td className="px-4 py-2">{topic?.name}</td>
+              {updatedTopics.map((topic) => (
+                <tr key={topic.id} className="border-t border-lightGray">
+                  <td className="px-4 py-2">{topic.name}</td>
+                  <td className="px-4 py-2">
+                    {editMode ? (
+                      <input
+                        type="number"
+                        className="px-4 py-2 border border-lightGray rounded-lg"
+                        value={topic.score !== undefined ? topic.score : ""}
+                        onChange={(e) => handleScoreChange(topic.id, Number(e.target.value))}
+                      />
+                    ) : (
+                      topic.score
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {editMode ? (
+                      <select
+                        className="px-4 py-2 border border-lightGray rounded-lg"
+                        value={topic.status}
+                        onChange={(e) => handleStatusChange(topic.id, e.target.value as "PASS" | "FAIL" | "PENDING")}
+                      >
+                        <option value="PENDING">Pending</option>
+                        <option value="PASS">Pass</option>
+                        <option value="FAIL">Fail</option>
+                      </select>
+                    ) : (
+                      <p className="capitalize">{topic.status.toLowerCase()}</p>
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <input
-                      type="number"
+                      type="text"
+                      value={topic.notes}
+                      onChange={(e) => {
+                        setUpdatedTopics((prevTopics) =>
+                          prevTopics.map((t) =>
+                            t.id === topic.id ? { ...t, notes: e.target.value } : t
+                          )
+                        );
+                      }}
+                      disabled={!editMode}
                       className="px-4 py-2 border border-lightGray rounded-lg"
-                      value={topic?.score}
-                      onChange={(e) => handleScoreChange(topic?.id, Number(e.target.value))}
+                      placeholder="Enter note"
                     />
-                  </td>
-                  <td className="px-4 py-2">
-                    <select
-                      className="px-4 py-2 border border-lightGray rounded-lg"
-                      value={topic?.status}
-                      onChange={(e) => handleStatusChange(topic?.id, e.target.value as "PASS" | "FAIL" | "PENDING")}
-                    >
-                      <option value="PENDING">Pending</option>
-                      <option value="PASS">Pass</option>
-                      <option value="FAIL">Fail</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-2">
-                    <button className="text-primaryViolet">Notes</button>
                   </td>
                 </tr>
               ))}
@@ -120,29 +156,53 @@ const TopicAssessment: React.FC<{ topics: Topic[] }> = ({ topics }) => {
         </div>
 
         {/* Overall Assessment */}
-        {/* {topics&&<div className="mt-6 text-sm">
-          <div>
-            <span className="font-semibold">Overall Assessment</span>
+        <div className="flex items-center justify-between">
+          <div className=" text-sm">
+            <div>
+              <span className="font-semibold">Overall Assessment</span>
+            </div>
+            <div>
+              <span className="font-medium">Average Score: </span>
+              <span>
+                {(
+                  updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
+                  updatedTopics.length
+                ).toFixed(2)}
+                %
+              </span>
+            </div>
+            <div>
+              <span className="font-medium">Progress: </span>
+              <span>
+                {((updatedTopics.filter((topic) => topic.status === "PASS").length / updatedTopics.length) *
+                  100) ||
+                  0}
+                % Complete
+              </span>
+            </div>
           </div>
-          <div>
-            <span>Average Score: </span>
-            <span>{(topics?.reduce((acc, topic) => acc + topic?.score, 0) / topics?.length).toFixed(2)}%</span>
-          </div>
-          <div>
-            <span>Progress: </span>
-            <span>{(topics?.filter((topic) => topic?.status === "PASS").length / topics?.length) * 100}% Complete</span>
-          </div>
-        </div>} */}
 
-        {/* Generate Certificate Button */}
-        <div className="mt-4">
-          <button
-            className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-dark900"}`}
-            disabled={!isGenerateEnabled}
-            onClick={handleGenerateCertificate}
-          >
-            Generate Certificate
-          </button>
+          {/* Save Button */}
+          <div className="">
+            {editMode ? (
+             <div className="space-x-4">
+              <button className={`px-6 py-2 rounded-lg border border-primary text-primary`} onClick={onCancel}>
+                Cancel
+              </button>
+               <button className={`px-6 py-2 rounded-lg bg-primary text-white`} onClick={updateTopics}>
+                Save
+              </button>
+             </div>
+            ) : (
+              <button
+                className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-dark900"}`}
+                disabled={!isGenerateEnabled}
+                onClick={handleGenerateCertificate}
+              >
+                Generate Certificate
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

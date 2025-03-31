@@ -50,6 +50,6 @@ export class ApiDeletionCalls {
   };
 
   deleteCourse = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("program/courses/delete-course", { id });
+    return this.deleteFromApi<void>(`program/courses/${id}`, { id });
   };
 }

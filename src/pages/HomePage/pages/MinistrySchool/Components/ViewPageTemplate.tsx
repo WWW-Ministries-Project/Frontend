@@ -7,7 +7,7 @@ import { ReactNode } from "react";
 
 interface Data {
     name: string;
-  title: string;
+    title: string;
   status: string;
   description: string;
   startDate: string;
@@ -38,6 +38,8 @@ interface ViewPageTemplateProps {
   showTopic: boolean;
   loading: boolean;
   isGrid: boolean;
+  title: string;
+  description: string;
 }
 
 const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
@@ -100,7 +102,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
               
               <div className="flex gap-4">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div className="space-y-2">
+                <div key={index} className="space-y-2">
                   <div className="h-4 bg-lightGray rounded w-20"></div>
                   <div className="h-4 bg-lightGray rounded w-28"></div>
                 </div>
