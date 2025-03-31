@@ -15,7 +15,7 @@ interface BannerProps {
   onClick: (bool: boolean) => void;
   edit: boolean;
   onPicChange: (obj: pictureType) => void;
-  membership_type?: boolean; // Added property
+  membership_type?: String;
 }
 
 const Banner: React.FC<BannerProps> = (props) => {
@@ -24,7 +24,6 @@ const Banner: React.FC<BannerProps> = (props) => {
   };
   return (
     <div className="w-full h-36 relative bg-primary text-white rounded-t-lg">
-      {/* <img src={props.coverImage1} alt="cover Image" className="w-full rounded-xl" /> */}
       <div
         className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
         style={{

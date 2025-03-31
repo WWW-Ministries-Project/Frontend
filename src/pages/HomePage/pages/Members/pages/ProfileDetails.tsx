@@ -13,10 +13,6 @@ import { initialUser } from "../utils/membersHelpers";
 import { UserType } from "../utils/membersInterfaces";
 
 const ProfileDetails = () => {
-  const links = [
-    { name: "Member Information", path: "info" },
-    { name: "Assets", path: "assets" },
-  ];
   const [edit, setEdit] = useState(false);
   const [profilePic, setProfilePic] = useState<pictureType>({
     picture: "",
