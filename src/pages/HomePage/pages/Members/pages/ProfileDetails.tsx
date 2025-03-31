@@ -1,7 +1,7 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { navigateRef } from "@/pages/HomePage/HomePage";
-import { api } from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import useState from "react-usestateref";

@@ -2,7 +2,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import HeaderControls from "@/components/HeaderControls";
 import { useStore } from "@/store/useStore";
-import { api } from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";

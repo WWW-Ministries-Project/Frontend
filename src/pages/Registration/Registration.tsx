@@ -4,7 +4,7 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import ChurchLogo from "@/components/ChurchLogo";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import {
   ChildrenSubForm,
