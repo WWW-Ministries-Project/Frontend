@@ -2,7 +2,7 @@ import GridAsset from "@/assets/GridAsset";
 import TableAssets from "@/assets/TableAssets";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";

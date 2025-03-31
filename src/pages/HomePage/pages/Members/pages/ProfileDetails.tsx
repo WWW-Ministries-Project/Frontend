@@ -3,7 +3,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { pictureType } from "@/utils/interfaces";
 import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";

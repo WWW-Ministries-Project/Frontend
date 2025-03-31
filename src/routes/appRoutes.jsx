@@ -69,14 +69,14 @@ export const routes = [
       {
         path: "",
         element: <DashBoard />,
-        isPrivate: true,
+        isPrivate: false,
         permissionNeeded: "view_dashboard",
       },
       {
         path: "dashboard",
         name: "Dashboard",
         element: <DashBoard />,
-        isPrivate: true,
+        isPrivate: false,
         permissionNeeded: "view_dashboard",
         sideTab: true,
       },

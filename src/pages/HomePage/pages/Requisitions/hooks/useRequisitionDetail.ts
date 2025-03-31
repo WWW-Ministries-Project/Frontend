@@ -2,7 +2,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { useEffect, useMemo, useState } from "react";
 import { IRequisitionDetails } from "../types/requestInterface";
 import { useParams } from "react-router-dom";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { usePost } from "@/CustomHooks/usePost";
 import { ApiResponse } from "@/utils/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";

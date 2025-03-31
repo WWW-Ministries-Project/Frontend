@@ -6,7 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";

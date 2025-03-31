@@ -2,7 +2,7 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import Button from "@/components/Button";
 import { usePost } from "@/CustomHooks/usePost";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect } from "react";

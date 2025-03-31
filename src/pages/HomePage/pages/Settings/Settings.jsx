@@ -16,7 +16,7 @@ import { useDelete } from "/src/CustomHooks/useDelete.tsx";
 import { usePost } from "/src/CustomHooks/usePost.tsx";
 import { usePut } from "/src/CustomHooks/usePut.tsx";
 import { useStore } from "/src/store/useStore.ts";
-import api from "/src/utils/apiCalls.ts";
+import {api} from "@/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();

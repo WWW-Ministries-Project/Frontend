@@ -5,7 +5,7 @@ import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";

@@ -3,7 +3,7 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { tableColumns } from "../utils/tableColums";
 import { useNavigate } from "react-router-dom";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { useEffect } from "react";
