@@ -13,6 +13,7 @@ import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { UserType } from "../utils/membersInterfaces";
 import { mapUserData } from "../utils";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 
 const AddMember = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const AddMember = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
+  const editMode = location.state?.mode === "edit";
   const {
     data: member,
     loading: fetchLoading,
@@ -34,10 +36,6 @@ const AddMember = () => {
 
   const initialValue = useMemo(() => {
     if (member?.data.data) {
-      // return {
-      //   ...member.data.data,
-      //   ...member.data.data.user_info,
-      // };
       return mapUserData(member.data.data);
     } else {
       return initialValues;
@@ -91,7 +89,7 @@ const AddMember = () => {
       }
 
       // Send data regardless of whether an image was uploaded
-      await postData(dataToSend);
+      editMode ? await updateData(dataToSend) : await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);
     }
@@ -111,7 +109,7 @@ const AddMember = () => {
           initialValues={initialValue}
           onSubmit={handleSubmit}
         >
-          {({ values, setFieldValue, handleSubmit }) => (
+          {({ handleSubmit }) => (
             <>
               {/* <ProfilePicture
                 className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
@@ -135,9 +133,10 @@ const AddMember = () => {
                     className="primary "
                   />
                   <Button
-                    value={"Save"}
+                    value={editMode ? "Update" : "Save"}
                     type="button"
                     onClick={handleSubmit}
+                    loading={loading||updateLoading}
                     className="default"
                   />
                 </div>
@@ -146,6 +145,7 @@ const AddMember = () => {
           )}
         </Formik>
       </section>
+      {fetchLoading && <LoaderComponent />}
     </div>
   );
 };
