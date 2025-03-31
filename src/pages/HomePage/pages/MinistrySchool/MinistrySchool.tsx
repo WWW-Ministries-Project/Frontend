@@ -10,7 +10,6 @@ import { ApiCalls } from "@/utils/apiFetch";
 import { ApiDeletionCalls } from "@/utils/apiDelete";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import AlertComp from "../../Components/reusable/AlertComponent";
-import Alert from "@/pages/Authentication/components/Alerts";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -36,6 +35,9 @@ const MinistrySchool = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
 
   const apiCalls = new ApiCalls();
@@ -80,7 +82,10 @@ const MinistrySchool = () => {
         setPrograms((prevPrograms) =>
           prevPrograms.filter((program) => program.id !== programId)
         );
+        
         console.log("Program deleted successfully");
+        setFeedback("Program deleted successfully")
+        setType("success");
       } else {
         setError("Failed to delete the program.");
       }
@@ -88,6 +93,10 @@ const MinistrySchool = () => {
       setError("An error occurred while deleting the program.");
     } finally {
       setLoading(false);
+      setShowFeedback(true);
+      setInterval(() => {
+        setShowFeedback(false);
+      }, 5000);
     }
   };
 
@@ -151,33 +160,19 @@ const MinistrySchool = () => {
     return []; // Return an empty array if neither Ongoing nor Upcoming cohort exists
   };
 
-  // const SkeletonLoader = () => (
-  //   <div className="animate-pulse border border-1 border-lightGray p-4 rounded-lg space-y-3 text-dark900 flex flex-col">
-  //     <div className="flex  justify-between">
-  //     <div className="h-6 bg-lightGray rounded w-3/5"></div>
-  //     <div className="h-4 bg-lightGray rounded w-1/5"></div>
-  //     </div>
-  //     <div className="h-4 bg-lightGray rounded w-1/2"></div>
-  //     <div className="h-4 bg-lightGray rounded w-3/4"></div>
-  //     <div className="space-y-2">
-  //       <div className="h-4 bg-lightGray rounded w-2/3"></div>
-  //       <div className="h-4 bg-lightGray rounded w-1/2"></div>
-  //     </div>
-  //     <div className="flex justify-between space-x-2">
-  //       <div className="h-10 bg-lightGray rounded w-1/3"></div>
-  //       <div className="h-10 bg-lightGray rounded w-1/3"></div>
-  //     </div>
-  //   </div>
-  // );
+  const handleFeedback = (message: string, type: string): void => {
+    setFeedback(message);
+    setType(type);
+  };
 
   return (
     <div className="p-4">
       <PageOutline>
-      {/* <AlertComp 
-        message={error || "An unexpected error occurred."} 
-        type="error" 
-        onClose={() => setError(null)} 
-      /> */}
+      {showFeedback&&<AlertComp 
+        message={feedback} 
+        type={"success"} 
+        onClose={() => setShowFeedback(false)} 
+      />}
         <HeaderControls
           title="School of Ministry"
           showSearch={false}
@@ -238,6 +233,8 @@ const MinistrySchool = () => {
         }}  
         prerequisitesDropdown = {getProgramsForDropdown(programs)}
         fetchPrograms = {fetchPrograms}
+        handleFeedback={handleFeedback}
+        handleAlert = {setShowFeedback}
         />
       </Modal>
       

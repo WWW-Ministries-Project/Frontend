@@ -12,7 +12,7 @@ interface AlertProps {
 const AlertComp: React.FC<AlertProps> = ({ message, type, onClose }) => {
   // Define styles for each alert type
   const alertStyles = {
-    success: 'bg-green-100 text-green-800 border-green-300',
+    success: 'bg-green-50 text-green-800 border-green-300',
     error: 'bg-red-100 text-red-800 border-red-300',
     warning: 'bg-yellow-100 text-yellow-800 border-yellow-300',
     info: 'bg-blue-100 text-blue-800 border-blue-300',
@@ -20,7 +20,7 @@ const AlertComp: React.FC<AlertProps> = ({ message, type, onClose }) => {
 
   return (
     <div
-      className={`flex items-center p-4 mb-4 border-l-4 rounded-lg ${alertStyles[type]}`}
+      className={`absolute top-12 right-8 flex w-1/4 items-center p-2 mb-2 border-l-4 border rounded-lg ${alertStyles[type]}`}
       role="alert"
     >
       <div className="flex-1">
