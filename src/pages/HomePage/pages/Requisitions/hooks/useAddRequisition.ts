@@ -4,7 +4,7 @@ import { image } from "@/pages/HomePage/Components/MultiImageComponent";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useEffect, useState } from "react";

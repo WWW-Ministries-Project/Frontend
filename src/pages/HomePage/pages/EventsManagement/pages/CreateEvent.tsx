@@ -3,7 +3,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";

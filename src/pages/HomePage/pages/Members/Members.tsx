@@ -1,11 +1,8 @@
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import FilterIcon from "@/assets/FilterIcon";
-import GridAsset from "@/assets/GridAsset";
-import SearchIcon from "@/assets/SearchIcon";
-import TableAsset from "@/assets/TableAssets";
+import HeaderControls from "@/components/HeaderControls";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import { api } from "@/utils/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -20,8 +17,7 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
-import { UserType } from "./utils/membersInterfaces"; // ✅ Import the reusable component
-import HeaderControls from "@/components/HeaderControls";
+import { UserType } from "./utils/membersInterfaces";
 
 function Members() {
   const location = useLocation();
@@ -33,6 +29,7 @@ function Members() {
   const [columnVisibility] = useState({
     membership_type: false,
     is_user: false,
+    department_id: false,
   });
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
@@ -98,7 +95,7 @@ function Members() {
   const handleNavigation = () => {
     navigate("add-member");
   };
-  
+
   const handleDelete = async () => {
     if (!("id" in dataToDeleteRef.current)) return;
     const id = dataToDeleteRef.current.id;
@@ -130,26 +127,33 @@ function Members() {
     { count: userStats.members?.stats.adults.Male, label: "Adult male" },
     { count: userStats.members?.stats.adults.Female, label: "Adult female" },
     { count: userStats.members?.stats.children.Male, label: "Children male" },
-    { count: userStats.members?.stats.children.Female, label: "Children female" },
+    {
+      count: userStats.members?.stats.children.Female,
+      label: "Children female",
+    },
   ];
-  
+
   const visitorsCount = [
     { count: userStats.visitors?.total_members, label: "Visitors" },
     { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
     { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
     { count: userStats.visitors?.stats.children.Male, label: "Children male" },
-    { count: userStats.visitors?.stats.children.Female, label: "Children female" },
+    {
+      count: userStats.visitors?.stats.children.Female,
+      label: "Children female",
+    },
   ];
 
   return (
     <main className={`p-4`}>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
-        
         {/* ✅ Reusable HeaderControls Component */}
         <HeaderControls
           title="Church Memberships"
-          totalMembers={userStats.members?.total_members + userStats.visitors?.total_members}
+          totalMembers={
+            userStats.members?.total_members + userStats.visitors?.total_members
+          }
           tableView={tableView}
           handleViewMode={handleViewMode}
           showFilter={showFilter}
@@ -171,7 +175,7 @@ function Members() {
             id="searchMembers"
           />
         </div>
-        
+
         <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
           <MembersFilter onChange={handleFilterChange} />
         </div>
@@ -183,7 +187,11 @@ function Members() {
         </div>
 
         {/* Table or Grid View */}
-        <div className={`w-full mx-auto ${tableView ? "bg-white p-2" : "bg-transparent"} rounded-xl`}>
+        <div
+          className={`w-full mx-auto ${
+            tableView ? "bg-white p-2" : "bg-transparent"
+          } rounded-xl`}
+        >
           {tableView ? (
             <TableComponent
               columns={columns}
@@ -218,7 +226,7 @@ function Members() {
           )}
         </div>
       </section>
-      
+
       {loading && <LoaderComponent />}
     </main>
   );

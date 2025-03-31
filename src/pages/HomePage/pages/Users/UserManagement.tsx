@@ -1,7 +1,7 @@
 import ProfilePicture from "@/components/ProfilePicture";
 import SearchBar from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";

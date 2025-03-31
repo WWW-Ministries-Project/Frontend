@@ -4,7 +4,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActiveAccess from "../Components/ActiveAccess";
