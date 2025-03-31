@@ -111,13 +111,14 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
   );
 };
 
+export type membersType = "ONLINE" | "IN-HOUSE";
 export interface IMembersForm extends IChildrenSubForm {
   personal_info: IUserSubForm;
   emergency_contact: IEmergencyContact;
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   church_info: {
-    membership_type: "ONLINE" | "IN-HOUSE";
+    membership_type: membersType;
     department_id?: number;
     position_id?: number;
   };

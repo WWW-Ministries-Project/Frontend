@@ -1,23 +1,49 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 import Button from "@/components/Button";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import { useStore } from "@/store/useStore";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import ProfilePicture from "../../../../../components/ProfilePicture";
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { UserType } from "../utils/membersInterfaces";
+import { mapUserData } from "../utils";
 
 const AddMember = () => {
   const navigate = useNavigate();
   const store = useStore();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const id = params.get("member_id");
+  const {
+    data: member,
+    loading: fetchLoading,
+    error: fetchError,
+  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" });
   const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: UserType }>
   >(api.post.createMember);
+  const { updateData, loading: updateLoading } = usePut<
+    ApiResponse<{ data: UserType }>
+  >(api.post.updateMember);
+
+  const initialValue = useMemo(() => {
+    if (member?.data.data) {
+      // return {
+      //   ...member.data.data,
+      //   ...member.data.data.user_info,
+      // };
+      return mapUserData(member.data.data);
+    } else {
+      return initialValues;
+    }
+  }, [member?.data.data]);
+  console.log(member?.data.data, "member");
 
   useEffect(() => {
     if (data) {
@@ -34,13 +60,13 @@ const AddMember = () => {
   }, [data]);
 
   const handleCancel = () => {
-    navigate("/home/members");
+    navigate(-1);
   };
 
   async function handleSubmit(values: IAddMember) {
     console.log(values, "values");
 
-    let dataToSend= { ...values };
+    let dataToSend = { ...values };
 
     try {
       let uploadedFile = values.personal_info.picture?.picture;
@@ -82,7 +108,7 @@ const AddMember = () => {
         </div>
         <Formik
           enableReinitialize={true}
-          initialValues={initialValues}
+          initialValues={initialValue}
           onSubmit={handleSubmit}
         >
           {({ values, setFieldValue, handleSubmit }) => (
@@ -111,7 +137,6 @@ const AddMember = () => {
                   <Button
                     value={"Save"}
                     type="button"
-
                     onClick={handleSubmit}
                     className="default"
                   />
@@ -125,10 +150,9 @@ const AddMember = () => {
   );
 };
 
-interface IAddMember extends IMembersForm {
-}
+export interface IAddMember extends IMembersForm {}
 const initialValues: IAddMember = {
-  ...MembersForm.initialValues
+  ...MembersForm.initialValues,
 };
 
 export default AddMember;
