@@ -79,7 +79,11 @@ export class ApiUpdateCalls {
 
   // Update Class
   updateClass = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("program/courses/update-course", payload);
+    return this.apiExecution.updateData(`program/courses/${payload.id}`, payload);
+  };
+  // Update Cohort
+  updateStudentProgress = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("program/progress-updates", payload);
   };
 
   // Update Enrollment

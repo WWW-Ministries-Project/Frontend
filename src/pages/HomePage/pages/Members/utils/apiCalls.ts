@@ -1,6 +1,6 @@
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 
 export const deleteMember = (id: string | number) => {
   api.delete

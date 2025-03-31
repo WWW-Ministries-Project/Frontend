@@ -10,7 +10,7 @@ import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponen
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { showNotification } from "@/pages/HomePage/utils";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialUser } from "../../Members/utils/membersHelpers";

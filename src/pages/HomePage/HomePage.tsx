@@ -2,7 +2,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import Dialog from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -114,7 +114,7 @@ function HomePage() {
   return (
     <div className=" ">
       {token ? (
-        <main className="h-screen p-3 border border-1 border-red ">
+        <main className="h-screen p-3  ">
           <div className="">
           <Header handleShowNav={handleShowNav} />
           </div>
@@ -136,7 +136,7 @@ function HomePage() {
               </div>
           <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}>
             
-            <div className="hideScrollbar lg:h-[92vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+            <div className="hideScrollbar lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
             <Breadcrumb />
               <Outlet
                 context={{

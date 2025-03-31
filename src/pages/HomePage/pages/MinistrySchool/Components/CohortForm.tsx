@@ -13,7 +13,7 @@ interface CohortFormProps {
     id: number;
     name: string;
     description: string;
-    startDate: string;
+    startDate: Date;
     applicationDeadline: string;
     duration: string;
     status: string;
@@ -30,12 +30,13 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
   const apiCreate = new ApiCreationCalls();  // For creating new cohort
   const apiUpdate = new ApiUpdateCalls();    // For updating existing cohort
 
+  // Set initial values with the cohort's values if provided
   const initialValues = {
     name: cohort?.name || "",
     duration: cohort?.duration || "",
     description: cohort?.description || "",
-    startDate: formatInputDate (cohort?.startDate) || "",
-    applicationDeadline: formatInputDate (cohort?.applicationDeadline) || "",
+    startDate: cohort?.startDate ? new Date(cohort.startDate) : null, // Convert to Date if exists
+    applicationDeadline: cohort?.applicationDeadline ? new Date(cohort.applicationDeadline) : null, // Convert to Date if exists
     status: cohort?.status || "Upcoming",
   };
 
@@ -66,6 +67,9 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
       programId,  // Associate the cohort with a specific program
     };
 
+    console.log("onSubmit", payload);
+    
+
     try {
       if (cohort?.id) {
         // Update existing cohort if ID is provided
@@ -90,7 +94,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
       console.error("Error submitting cohort:", error);
     } finally {
       setLoading(false);  // Stop loading
-      fetchProgramData()
+      fetchProgramData();
       onClose(); // Close the form
     }
   };
@@ -154,10 +158,10 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   Start Date *
                 </label>
                 <DatePicker
-                  selected={startDate}
+                  selected={values.startDate || startDate} // Set initial value
                   onChange={(date) => {
                     setStartDate(date);
-                    setFieldValue('startDate', date );
+                    setFieldValue('startDate', date);
                   }}
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
@@ -193,7 +197,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   Application Deadline *
                 </label>
                 <DatePicker
-                  selected={applicationDeadline}
+                  selected={values.applicationDeadline || applicationDeadline} // Set initial value
                   onChange={(date) => {
                     setApplicationDeadline(date);
                     setFieldValue('applicationDeadline', date);
@@ -201,7 +205,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                   placeholderText="Pick a date"
-                  maxDate={startDate || undefined}
+                  maxDate={values.startDate || startDate}
                 />
                 {errors.applicationDeadline && touched.applicationDeadline && (
                   <div className="text-red-600 text-xs">{errors.applicationDeadline}</div>

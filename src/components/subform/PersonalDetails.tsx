@@ -80,7 +80,7 @@ const PersonalDetailsComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Country"
+        label="Nationality"
         placeholder="Select nationality"
         id={`${prefix}.nationality`}
         name={`${prefix}.nationality`}

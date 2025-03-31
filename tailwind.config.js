@@ -17,7 +17,7 @@ export default {
         bgWhite: "#F9F9F9",
         lightGray: "#D8DAE5",
         blur: "#222222cc",
-        green: "#6FCF97",
+        // green: "#6FCF97",
         lighterBlack: "#575570",
         neutralGray: "#E8EDFF",
       },

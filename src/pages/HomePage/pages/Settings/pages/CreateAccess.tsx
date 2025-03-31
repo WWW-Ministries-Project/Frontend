@@ -7,7 +7,7 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";

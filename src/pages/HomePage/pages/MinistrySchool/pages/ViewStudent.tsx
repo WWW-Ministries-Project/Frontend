@@ -52,6 +52,7 @@ const ViewStudent = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
+    const [editMode, setEditMode] = useState(false)
 
     const fetchStudentData = async () => {
       if (!studentId) return; // Ensure we have the programId before making the API call
@@ -76,16 +77,19 @@ const ViewStudent = () => {
                 
             
       fetchStudentData(); // Call the function when programId changes
-              }, [studentId]); 
-    
+              }, [studentId]);
+
+    const toggleEditMode = () => {
+                setEditMode((prevMode) => !prevMode); // Toggle the current state of editMode
+              };
 
     return ( 
         <div className="px-4">
            <ViewPageTemplate 
                Data={selectedStudent}
                showTopic={showTopic}
-               primaryButton="Edit" 
-               onPrimaryButtonClick={() => { /* Add edit click handler here */ }} 
+               primaryButton={editMode?"":"Edit"} 
+               onPrimaryButtonClick={toggleEditMode } 
                loading={loading}
                isGrid={false}
                details={<div className="flex flex-wrap gap-x-12">
@@ -104,7 +108,12 @@ const ViewStudent = () => {
                </div>}
            >
                <div>
-                <TopicAssessment topics={selectedStudent?.course?.cohort?.program?.topics}/>
+                <TopicAssessment 
+                  topics={selectedStudent?.course?.cohort?.program?.topics} 
+                  editMode={editMode} 
+                  enrollmentId={selectedStudent?.id}
+                  onCancel = {()=>setEditMode(false)}
+                  />
                </div>
            </ViewPageTemplate>
         </div>

@@ -9,9 +9,10 @@ import { ApiCalls } from "@/utils/apiFetch";
 import { useParams } from "react-router-dom";
 import { formatTime } from "@/utils/helperFunctions";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
+import { ApiDeletionCalls } from "@/utils/apiDelete";
 
 type ClassItem = {
-  id: number;
+  id: string;
   name: string;
   format: string;
   instructor: string;
@@ -35,11 +36,13 @@ type Cohort = {
 
 const ViewCohort = () => {
   const apiCalls = new ApiCalls();
+  const apiDelete = new ApiDeletionCalls() 
   const { id: cohortId } = useParams(); // Get cohort ID from the route
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [cohort, setCohort] = useState<any>(null);
+  const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
   // Mock data for cohort (You can replace this with real data from an API or database)
 
 
@@ -65,10 +68,35 @@ const ViewCohort = () => {
         };  
   
   useEffect(() => {
+    fetchCohortData(); // Call the function when programId changes
+  }, [cohortId]); 
+  
+  const handleEdit = (course: ClassItem): void => {
+    setSelectedClass(course);
+    setIsModalOpen(true);
+  }
+
+  const deleteClass = async (classId: string) => {
+    try {
+      setLoading(true);
+      const response = await apiDelete.deleteCourse(classId);
+      if (response.status === 200) {
         
-    
-        fetchCohortData(); // Call the function when programId changes
-      }, [cohortId]); 
+        // setProgram((prevPrograms: any) =>
+        //   prevPrograms.filter((class: any) => class.cohort.id !== cohortId)
+        // );
+        console.log("Class deleted successfully");
+      } else {
+        setError("Failed to delete the class.");
+      }
+    } catch (err) {
+      setError("An error occurred while deleting the class.");
+    } finally {
+      setLoading(false);
+      fetchCohortData();
+    }
+  };
+  
     
 
 
@@ -78,7 +106,10 @@ const ViewCohort = () => {
         Data={cohort} 
         title="Cohort Details" 
         description="View and manage cohort details here."
-        primaryButton="Edit Cohort"
+        primaryButton=""
+        secondaryButton=""
+        showTopic={true}
+        isGrid={true}
         onPrimaryButtonClick={() => console.log("Primary button clicked")} 
         onSecondaryButtonClick={() => console.log("Secondary button clicked")} 
         loading={loading} 
@@ -119,7 +150,13 @@ const ViewCohort = () => {
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
                   {cohort?.courses.map((classItem: ClassItem) => (
-                   <ClassCard classItem={{ ...classItem, id: classItem.id.toString() }} />
+                   <div key={classItem.id}>
+                    <ClassCard 
+                      classItem={classItem} 
+                      onEdit={handleEdit} 
+                      onDelete={() => deleteClass(classItem.id)} 
+                    />
+                   </div>
                   ))}
                   </div>
                 </div>
@@ -157,7 +194,7 @@ const ViewCohort = () => {
         <ClassForm 
           onClose={() => setIsModalOpen(false)} 
           fetchCohortData={()=>fetchCohortData()} 
-          initialData={cohort}
+          initialData={selectedClass}
           cohortId = {cohort?.id}
         />
       </Modal>

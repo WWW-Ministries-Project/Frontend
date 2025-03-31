@@ -25,9 +25,11 @@ interface ProgramFormProps {
   };
   prerequisitesDropdown: { label: string; value: string }[]; // Add prerequisitesDropdown property
   fetchPrograms: () => void; // Add fetchPrograms property
+  handleFeedback: (message: string, type:string) => void; // Add setFeedback property
+  handleAlert:(message: boolean) => void; // Add setAlert
 }
 
-const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisitesDropdown, fetchPrograms }) => {
+const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisitesDropdown, fetchPrograms, handleFeedback, handleAlert }) => {
   const [loading, setLoading] = useState(false);
   const apiCalls = new ApiCreationCalls();  // Assuming you have a class for API calls
   const api = new ApiUpdateCalls();
@@ -47,28 +49,35 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
       if (program?.id) {
         // Update existing program if ID is available
         const response = await api.updateProgram({ payload, id: program?.id });
-        if (response.success) {
-          console.log("Program updated successfully:", response.data);
+        console.log("updated program", response);
+        
+        if (response.status === 200) {
+          handleFeedback("Cohort updated successfully", "success");
           onClose();
         } else {
-          console.error("Error updating program:", response?.error || "Unknown error");
+          handleFeedback("Error updating cohort", "error");
         }
       } else {
         // Create new program if no ID
         const response = await apiCalls.createProgram(payload);
-        if (response.success) {
-          console.log("Program created successfully:", response.data);
-          onClose();
+        if (response) {
+          handleFeedback("Cohort created successfully", "success");
+          
+          handleAlert(true)
         } else {
-          console.error("Error creating program:", response?.error || "Unknown error");
+          handleFeedback("Error creating cohort", "error")
+          handleAlert(true)
         }
       }
     } catch (error) {
-      console.error("Error in submitting program:", error);
+      handleFeedback("Error in submitting program", "error");
     } finally {
       fetchPrograms()
       setLoading(false); // Stop loading
       onClose()
+      setTimeout(() => {
+        handleAlert(false)
+      }, 3000);
     }
   };
 

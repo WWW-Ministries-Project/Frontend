@@ -49,7 +49,7 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
         <div className="px-4">
             <ViewPageTemplate 
                 Data={selectedClass} 
-                primaryButton="Edit Class"
+                primaryButton=""
                 onPrimaryButtonClick={() => { /* Add appropriate edit click handler here */ }}
                 showTopic={true}
                 loading={loading}

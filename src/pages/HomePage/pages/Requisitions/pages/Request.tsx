@@ -14,7 +14,7 @@ import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { IRequisitionDetails } from "../types/requestInterface";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import MultiImageComponent, {
   image,

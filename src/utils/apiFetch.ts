@@ -4,6 +4,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./helperFunctions";
 import type { ApiResponse } from "./interfaces";
+import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -29,7 +30,7 @@ export class ApiCalls {
   };
   fetchAMember = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: UserType }>> => {
+  ): Promise<ApiResponse<{ data: IMemberInfo }>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 
@@ -160,5 +161,11 @@ export class ApiCalls {
     query?: Record<string, any>
   ): Promise<ApiResponse<{ data: any[] }>> => {
     return this.fetchFromApi("program/user-enrollment", query);
+  };
+
+  fetchMembers = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("program/users", query);
   };
 }

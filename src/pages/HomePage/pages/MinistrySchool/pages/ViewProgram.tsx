@@ -108,9 +108,10 @@ const ViewProgram = () => {
     <div className="px-4">
         <ViewPageTemplate
         Data={program}
-        primaryButton="Edit Program"
-        secondaryButton="View Application Page" 
+        primaryButton=""
+        secondaryButton="" 
         showTopic={true}
+        isGrid={true} // Add the required isGrid property
         onPrimaryButtonClick={() => console.log("Primary button clicked")}
         onSecondaryButtonClick={() => console.log("Secondary button clicked")}
         details={""}
@@ -128,7 +129,7 @@ const ViewProgram = () => {
           onClose={() => handleClose()}
           programId={programId && !isNaN(parseInt(programId, 10)) ? parseInt(programId, 10) : 0} // Pass the programId to CohortForm
           fetchProgramData = {fetchProgramData}
-          cohort = {selectedCohort}
+          cohort = {selectedCohort ? { ...selectedCohort, startDate: new Date(selectedCohort.startDate) } : undefined}
         />
       </Modal>
     </div>

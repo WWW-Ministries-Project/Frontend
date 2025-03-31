@@ -1,23 +1,47 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 import Button from "@/components/Button";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import { useStore } from "@/store/useStore";
-import api from "@/utils/apiCalls";
+import { api } from "@/utils/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import ProfilePicture from "../../../../../components/ProfilePicture";
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { UserType } from "../utils/membersInterfaces";
+import { mapUserData } from "../utils";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 
 const AddMember = () => {
   const navigate = useNavigate();
   const store = useStore();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const id = params.get("member_id");
+  const editMode = location.state?.mode === "edit";
+  const {
+    data: member,
+    loading: fetchLoading,
+    error: fetchError,
+  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" });
   const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: UserType }>
   >(api.post.createMember);
+  const { updateData, loading: updateLoading } = usePut<
+    ApiResponse<{ data: UserType }>
+  >(api.post.updateMember);
+
+  const initialValue = useMemo(() => {
+    if (member?.data.data) {
+      return mapUserData(member.data.data);
+    } else {
+      return initialValues;
+    }
+  }, [member?.data.data]);
+  console.log(member?.data.data, "member");
 
   useEffect(() => {
     if (data) {
@@ -34,36 +58,41 @@ const AddMember = () => {
   }, [data]);
 
   const handleCancel = () => {
-    navigate("/home/members");
+    navigate(-1);
   };
 
   async function handleSubmit(values: IAddMember) {
-    console.log(values,"values");
-    const {  ...formData } = values;
-    await postData(formData);
-    // try {
-    //   let uploadedLink = values.picture.src;
+    console.log(values, "values");
 
-    //   if (values.picture.picture) {
-    //     const data = new FormData();
-    //     data.append("file", values.picture.picture);
+    let dataToSend = { ...values };
 
-    //     const response = await axiosPic.post(`${baseUrl}upload`, data);
+    try {
+      let uploadedFile = values.personal_info.picture?.picture;
 
-    //     if (response?.status === 200) {
-    //       uploadedLink = response.data.result.link;
-    //     } else {
-    //       console.error("Image upload failed");
-    //       return;
-    //     }
-    //   }
+      if (uploadedFile instanceof File) {
+        const formData = new FormData();
+        formData.append("file", uploadedFile);
 
-    //   const { picture, ...formData } = values;
-    //   // setFieldValue("picture", { src: uploadedLink, picture: "" });
-    //   await postData(formData);
-    // } catch (error) {
-    //   console.error("Error during submission:", error);
-    // }
+        const response = await axiosPic.post(`${baseUrl}upload`, formData);
+
+        if (response?.status === 200) {
+          dataToSend = {
+            ...values,
+            personal_info: {
+              ...values.personal_info,
+              picture: { src: response.data.result.link, picture: null },
+            },
+          };
+        } else {
+          throw new Error("Image upload failed");
+        }
+      }
+
+      // Send data regardless of whether an image was uploaded
+      editMode ? await updateData(dataToSend) : await postData(dataToSend);
+    } catch (error) {
+      console.error("Error during submission:", error);
+    }
   }
 
   return (
@@ -77,12 +106,12 @@ const AddMember = () => {
         </div>
         <Formik
           enableReinitialize={true}
-          initialValues={initialValues}
+          initialValues={initialValue}
           onSubmit={handleSubmit}
         >
-          {({ values, setFieldValue, handleSubmit }) => (
+          {({ handleSubmit }) => (
             <>
-              <ProfilePicture
+              {/* <ProfilePicture
                 className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
                 id="profile_picture"
                 name="profile_picture"
@@ -93,7 +122,7 @@ const AddMember = () => {
                   setFieldValue("picture", obj);
                 }}
                 textClass={'text-3xl text-dark900'}
-              />
+              /> */}
               <MembersForm />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
@@ -104,10 +133,10 @@ const AddMember = () => {
                     className="primary "
                   />
                   <Button
-                    value={"Save"}
+                    value={editMode ? "Update" : "Save"}
                     type="button"
-
                     onClick={handleSubmit}
+                    loading={loading||updateLoading}
                     className="default"
                   />
                 </div>
@@ -116,22 +145,14 @@ const AddMember = () => {
           )}
         </Formik>
       </section>
+      {fetchLoading && <LoaderComponent />}
     </div>
   );
 };
 
-interface IAddMember extends IMembersForm {
-  picture: {
-    src: string;
-    picture: File | null;
-  };
-}
-const initialValues = {
+export interface IAddMember extends IMembersForm {}
+const initialValues: IAddMember = {
   ...MembersForm.initialValues,
-  picture: {
-    src: "",
-    picture: null,
-  },
 };
 
 export default AddMember;

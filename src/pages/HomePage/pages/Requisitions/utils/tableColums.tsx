@@ -6,7 +6,7 @@ import Elipsis from "@/assets/ellipse.svg";
 import { DateTime } from "luxon";
 import { useNavigate } from "react-router-dom";
 import StatusPill from "@/components/StatusPill";
-import api from "@/utils/apiCalls";
+import {api} from "@/utils/apiCalls";
 import { useDelete } from "@/CustomHooks/useDelete";
 import {
   showNotification,
