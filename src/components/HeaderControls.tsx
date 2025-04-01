@@ -9,18 +9,20 @@ import Button from "@/components/Button";
 interface HeaderControlsProps {
   title: string;
   totalMembers?: number;
-  tableView: boolean;
-  handleViewMode: (isTableView: boolean) => void;
-  showFilter: boolean;
-  setShowFilter: (show: boolean) => void;
-  showSearch: boolean;
-  setShowSearch: (show: boolean) => void;
-  handleNavigation: () => void;
-  screenWidth: number;
-  btnName: string; // Added btnName property
+  tableView?: boolean;
+  handleViewMode?: (isTableView: boolean) => void;
+  showFilter?: boolean;
+  setShowFilter?: (show: boolean) => void;
+  showSearch?: boolean;
+  setShowSearch?: (show: boolean) => void;
+  handleNavigation?: () => void;
+  screenWidth?: number;
+  btnName?: string; // Added btnName property
   Filter?: boolean; // Added hideFilter property
   Search?: boolean; // Added hideSearch property
   Grid?: boolean; // Added Grid property
+  subtitle?: string; // Added subtitle property
+  showSubtitle?: boolean; // Added showSubtitle property
 }
 
 const HeaderControls: React.FC<HeaderControlsProps> = ({
@@ -33,18 +35,23 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
   showSearch,
   setShowSearch,
   handleNavigation,
-  screenWidth,
+  screenWidth = 0,
   btnName,
-  Search = true,
-  Filter = true,
-  Grid = true,
+  Search = false,
+  Filter = false,
+  Grid = false,
+  subtitle,
+  showSubtitle=false
 }) => {
   return (
     <div className="flex justify-between items-center mb-4">
       {/* Title with total members */}
+      <div className="space-y-1">
       <p className="text-dark900 text-2xl font-semibold">
-        {title} ({totalMembers || "-"})
+        {title} {totalMembers !== undefined ? `(${totalMembers})` : ""}
       </p>
+      {showSubtitle&&<p>{subtitle}</p>}
+      </div>
 
       {/* Controls Section */}
       <div className="flex justify-between items-center">
@@ -72,11 +79,11 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
             {/* Filter & Search Buttons */}
             {Filter&&<FilterIcon
               className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-              onClick={() => setShowFilter(!showFilter)}
+              onClick={() => setShowFilter && setShowFilter(!showFilter)}
             />}
             {Search&&<SearchIcon
               className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-              onClick={() => setShowSearch(!showSearch)}
+              onClick={() => setShowSearch && setShowSearch(!showSearch)}
             />}
           </div>
           {/* Add Member Button */}

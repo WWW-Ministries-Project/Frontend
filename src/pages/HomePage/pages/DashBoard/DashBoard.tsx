@@ -13,6 +13,7 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import type { UserStats, UserType } from "../Members/utils/membersInterfaces";
 import { dashboardColumns } from "./utils/dashboardFunctions";
+import DashBoardPage from "./DashboardPage";
 
 function DashBoard() {
   const { members, userStats } = useOutletContext<{
@@ -82,6 +83,10 @@ function DashBoard() {
           onClose={handleToggleView}
         />
       )}
+
+      <DashBoardPage/>
+
+      
 
       <div className="grid gap-y-4">
         <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2 ">

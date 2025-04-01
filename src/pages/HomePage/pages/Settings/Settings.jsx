@@ -18,6 +18,7 @@ import { usePut } from "/src/CustomHooks/usePut.tsx";
 import { useStore } from "/src/store/useStore.ts";
 import api from "/src/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
+import TabSelection from "../../Components/reusable/TabSelection";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
   const tabs = ["Department", "Position"];
@@ -276,23 +277,15 @@ function Settings() {
         <p className="P200 text-gray">
           Manage your departments and positions here...
         </p>
+
+        
         <div className="flex mt-2 mb-6 ">
-          <div className="border border-lightGray flex gap-2 rounded-lg p-1">
-          {
-            tabs.map((tab) => {
-              return (
-                <div
-                  className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab? " bg-lightGray font-semibold":""} cursor-pointer w-40`}
-                  
-                  onClick={() => handleTabSelect(tab)}
-                  key={tab}
-                >
-                  {tab}
-                </div>
-              );
-            })
-          }
-          </div>
+        <TabSelection
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+          />
+          
         </div>
         </div>
         <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
