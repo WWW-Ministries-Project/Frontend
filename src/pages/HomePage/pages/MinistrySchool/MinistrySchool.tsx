@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
 import HeaderControls from "@/components/HeaderControls";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import CardWrappers from "@/Wrappers/CardWrapper";
-import { useNavigate } from "react-router-dom";
-import ProgramsCard from "./Components/ProgramsCard";
 import Modal from "@/components/Modal";
-import ProgramForm from "./Components/ProgramForm";
-import { ApiCalls } from "@/utils/apiFetch";
-import { ApiDeletionCalls } from "@/utils/apiDelete";
-import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { ApiDeletionCalls } from "@/utils/api/apiDelete";
+import { ApiCalls } from "@/utils/api/apiFetch";
+import { useEffect, useState } from "react";
 import AlertComp from "../../Components/reusable/AlertComponent";
+import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
+import ProgramForm from "./Components/ProgramForm";
+import ProgramsCard from "./Components/ProgramsCard";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -38,10 +36,12 @@ const MinistrySchool = () => {
   const [type, setType] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
+  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(
+    undefined
+  );
 
   const apiCalls = new ApiCalls();
-  const apiDelete = new ApiDeletionCalls() 
+  const apiDelete = new ApiDeletionCalls();
 
   interface DropdownProgram {
     value: number;
@@ -60,10 +60,9 @@ const MinistrySchool = () => {
       const response = await apiCalls.fetchAllPrograms();
       if (response.data && Array.isArray(response.data.data)) {
         setPrograms(response.data.data as Program[]);
-        getProgramsForDropdown(response.data.data); 
+        getProgramsForDropdown(response.data.data);
 
         console.log(getProgramsForDropdown(response.data.data));
-        
       } else {
         setError("Invalid data format received.");
       }
@@ -82,9 +81,9 @@ const MinistrySchool = () => {
         setPrograms((prevPrograms) =>
           prevPrograms.filter((program) => program.id !== programId)
         );
-        
+
         console.log("Program deleted successfully");
-        setFeedback("Program deleted successfully")
+        setFeedback("Program deleted successfully");
         setType("success");
       } else {
         setError("Failed to delete the program.");
@@ -101,26 +100,26 @@ const MinistrySchool = () => {
   };
 
   useEffect(() => {
-    
-
     fetchPrograms();
   }, []);
 
   const handleEdit = (program: Program): void => {
     setSelectedProgram(program);
     console.log("Program selected", program);
-    
-    setIsModalOpen(true)
+
+    setIsModalOpen(true);
   };
 
   const handleClose = () => {
     setSelectedProgram(undefined);
     console.log("Program selected", selectedProgram);
-    
-    setIsModalOpen(false)
+
+    setIsModalOpen(false);
   };
 
-  const getEligibilityBadge = (eligibility: Program["eligibility"]): JSX.Element | null => {
+  const getEligibilityBadge = (
+    eligibility: Program["eligibility"]
+  ): JSX.Element | null => {
     switch (eligibility) {
       case "Members":
         return (
@@ -152,7 +151,9 @@ const MinistrySchool = () => {
       return [activeCohort]; // Return the Ongoing cohort
     }
 
-    const upcomingCohort = cohorts.find((cohort) => cohort.status === "Upcoming");
+    const upcomingCohort = cohorts.find(
+      (cohort) => cohort.status === "Upcoming"
+    );
     if (upcomingCohort) {
       return [upcomingCohort]; // Return the Upcoming cohort if no Ongoing cohort
     }
@@ -168,11 +169,13 @@ const MinistrySchool = () => {
   return (
     <div className="p-4">
       <PageOutline>
-      {showFeedback&&<AlertComp 
-        message={feedback} 
-        type={"success"} 
-        onClose={() => setShowFeedback(false)} 
-      />}
+        {showFeedback && (
+          <AlertComp
+            message={feedback}
+            type={"success"}
+            onClose={() => setShowFeedback(false)}
+          />
+        )}
         <HeaderControls
           title="School of Ministry"
           showSearch={false}
@@ -186,21 +189,22 @@ const MinistrySchool = () => {
           setShowSearch={() => {}}
           screenWidth={window.innerWidth}
           Search={false}
-          Filter = {false}
-          Grid = {false}
+          Filter={false}
+          Grid={false}
         />
 
         {loading ? (
-          <SkeletonLoader  />
-          
+          <SkeletonLoader />
         ) : error ? (
           <div>{error}</div>
         ) : (
           <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
             {programs.map((program) => {
               const cohortsToShow = getCohortToShow(program.cohorts);
-              console.log('program cohortsToShow',getCohortToShow(program.cohorts));
-              
+              console.log(
+                "program cohortsToShow",
+                getCohortToShow(program.cohorts)
+              );
 
               return (
                 <ProgramsCard
@@ -210,10 +214,9 @@ const MinistrySchool = () => {
                   isMenuOpen={null}
                   cohorts={cohortsToShow}
                   handleCopyLink={() => {}}
-                  onOpen = {() => handleEdit(program)}
+                  onOpen={() => handleEdit(program)}
                   onClose={() => handleClose()}
-                  onDelete={()=>deleteProgram(program.id)}
-                  
+                  onDelete={() => deleteProgram(program.id)}
                 />
               );
             })}
@@ -222,22 +225,23 @@ const MinistrySchool = () => {
       </PageOutline>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ProgramForm 
-        onClose={() => handleClose()} 
-        program={selectedProgram || { 
-          title: '', 
-          description: '', 
-          eligibility: '', 
-          topics: [], 
-          prerequisites: [] 
-        }}  
-        prerequisitesDropdown = {getProgramsForDropdown(programs)}
-        fetchPrograms = {fetchPrograms}
-        handleFeedback={handleFeedback}
-        handleAlert = {setShowFeedback}
+        <ProgramForm
+          onClose={() => handleClose()}
+          program={
+            selectedProgram || {
+              title: "",
+              description: "",
+              eligibility: "",
+              topics: [],
+              prerequisites: [],
+            }
+          }
+          prerequisitesDropdown={getProgramsForDropdown(programs)}
+          fetchPrograms={fetchPrograms}
+          handleFeedback={handleFeedback}
+          handleAlert={setShowFeedback}
         />
       </Modal>
-      
     </div>
   );
 };

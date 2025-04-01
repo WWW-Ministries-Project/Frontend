@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
-import { Formik, Field, Form } from "formik";
-import * as Yup from "yup";
-import { ApiCalls } from "@/utils/apiFetch"; // Assuming this is where your API calls are
-import Modal from "@/components/Modal";
-import Button from "@/components/Button";
+import { ApiCalls } from "@/utils/api/apiFetch"; // Assuming this is where your API calls are
+import { ApiCreationCalls } from "@/utils/api/apiPost";
+import { Field, Form, Formik } from "formik";
+import { useEffect, useState } from "react";
 import Select from "react-select";
-import { ApiCreationCalls } from "@/utils/apiPost";
+import * as Yup from "yup";
 
 // Type for selectedClass and Enrollment Form Props
 interface SelectedClass {
@@ -30,7 +28,11 @@ interface Member {
   };
 }
 
-const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, fetchCohortData }) => {
+const EnrollStudent: React.FC<EnrollStudentProps> = ({
+  selectedClass,
+  onClose,
+  fetchCohortData,
+}) => {
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
@@ -48,7 +50,9 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
       is: (isMember: boolean) => !isMember,
       then: () => Yup.string().required("Last name is required"),
     }),
-    email: Yup.string().email("Invalid email format").required("Email is required"),
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required"),
     phone: Yup.string(),
   });
 
@@ -76,7 +80,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
               first_name: item.user_info?.first_name || "",
               last_name: item.user_info?.last_name || "",
             },
-          })) as Member[] 
+          })) as Member[]
         ); // Safely map and validate the response data
       } else {
         console.error("Unexpected response format: data is not an array");
@@ -106,7 +110,10 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
         console.log("Student enrolled successfully", response.data);
         onClose(); // Close modal after successful enrollment
       } else {
-        console.error("Error enrolling student:", response?.error || "Unknown error");
+        console.error(
+          "Error enrolling student:",
+          response?.error || "Unknown error"
+        );
       }
     } catch (error) {
       console.error("Error in enrolling student:", error);
@@ -134,7 +141,9 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
   return (
     <div className="bg-white p-6 rounded-lg md:w-[45rem] text-dark900 space-y-4 overflow-auto">
       <div className="text-lg font-bold">
-        {selectedClass?.eligibility === "Both" ? "Enroll Student" : `Enroll as ${selectedClass?.eligibility}`}
+        {selectedClass?.eligibility === "Both"
+          ? "Enroll Student"
+          : `Enroll as ${selectedClass?.eligibility}`}
       </div>
       <Formik
         initialValues={initialValues}
@@ -146,7 +155,9 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             {/* Is Member Question */}
             {selectedClass?.eligibility === "Both" && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-dark900">Is the student a member?</label>
+                <label className="text-sm font-medium text-dark900">
+                  Is the student a member?
+                </label>
                 <Field
                   type="radio"
                   name="isMember"
@@ -160,7 +171,10 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             {/* Member Dropdown */}
             {selectedClass?.eligibility !== "Non_Members" && (
               <div>
-                <label htmlFor="member" className="text-sm font-medium text-dark900">
+                <label
+                  htmlFor="member"
+                  className="text-sm font-medium text-dark900"
+                >
                   Select Member
                 </label>
                 <Select
@@ -168,7 +182,9 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                     value: member?.id,
                     label: member?.name,
                   }))}
-                  onChange={(selectedOption) => handleMemberChange(selectedOption, setFieldValue)}
+                  onChange={(selectedOption) =>
+                    handleMemberChange(selectedOption, setFieldValue)
+                  }
                   getOptionLabel={(e: any) => `${e.label}`}
                   className="mt-1"
                 />
@@ -177,7 +193,10 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* First Name, Last Name, Email, Phone (disabled for members) */}
             <div className="space-y-2">
-              <label htmlFor="firstName" className="block text-sm font-medium text-dark900">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-dark900"
+              >
                 First Name *
               </label>
               <Field
@@ -187,7 +206,9 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter first name"
                 disabled={isMember}
-                value={selectedMember?.user_info?.first_name || values.firstName}
+                value={
+                  selectedMember?.user_info?.first_name || values.firstName
+                }
               />
               {errors.firstName && touched.firstName && (
                 <div className="text-red-600 text-xs">{errors.firstName}</div>
@@ -195,7 +216,10 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="lastName" className="block text-sm font-medium text-dark900">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-dark900"
+              >
                 Last Name *
               </label>
               <Field
@@ -214,7 +238,10 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* Email */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-dark900">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-dark900"
+              >
                 Email *
               </label>
               <Field
@@ -226,12 +253,17 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                 disabled={isMember}
                 value={selectedMember?.email || values.email}
               />
-              {errors.email && touched.email && <div className="text-red-600 text-xs">{errors.email}</div>}
+              {errors.email && touched.email && (
+                <div className="text-red-600 text-xs">{errors.email}</div>
+              )}
             </div>
 
             {/* Phone Number */}
             <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium text-dark900">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-dark900"
+              >
                 Phone Number
               </label>
               <Field
@@ -241,15 +273,25 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter phone number"
               />
-              {errors.phone && touched.phone && <div className="text-red-600 text-xs">{errors.phone}</div>}
+              {errors.phone && touched.phone && (
+                <div className="text-red-600 text-xs">{errors.phone}</div>
+              )}
             </div>
 
             {/* Submit Button */}
             <div className="flex gap-4 mt-4">
-              <button type="button" onClick={onClose} className="border border-primary text-primary px-6 py-2 rounded-lg">
+              <button
+                type="button"
+                onClick={onClose}
+                className="border border-primary text-primary px-6 py-2 rounded-lg"
+              >
                 Cancel
               </button>
-              <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg" disabled={loading}>
+              <button
+                type="submit"
+                className="bg-primary text-white px-6 py-2 rounded-lg"
+                disabled={loading}
+              >
                 {loading ? "Enrolling..." : "Enroll"}
               </button>
             </div>

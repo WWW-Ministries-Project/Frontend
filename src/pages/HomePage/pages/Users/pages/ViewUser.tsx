@@ -4,13 +4,12 @@ import ToggleSwitch from "@/components/ToggleInput";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { showNotification } from "@/pages/HomePage/utils";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialUser } from "../../Members/utils/membersHelpers";
@@ -136,82 +135,78 @@ const ViewUser = () => {
           {/* User Details */}
           <div className="space-y-4">
             <div className="space-y-1">
-             
               <div className="flex items-center gap-2">
-              <div className="font-semibold">{user?.name}</div>
-              <div className={`text-xs font-semibold rounded-full px-2 py-1 ${isActive ? " bg-green" : "bg-red-300"} text-white`}>
-              {`${isActive ? "Active" : "Inactive"}`}
-              </div>
+                <div className="font-semibold">{user?.name}</div>
+                <div
+                  className={`text-xs font-semibold rounded-full px-2 py-1 ${
+                    isActive ? " bg-green" : "bg-red-300"
+                  } text-white`}
+                >
+                  {`${isActive ? "Active" : "Inactive"}`}
+                </div>
               </div>
 
               <div className="flex gap-2">
-              {user.department?.name&&<div className="">
-                {user.department?.name || "-"}
-              </div>} {user.department?.name&&"|"}
-              {user.position?.name&&<div className="">
-                {user.position?.name || "-"}
-              </div>}
+                {user.department?.name && (
+                  <div className="">{user.department?.name || "-"}</div>
+                )}{" "}
+                {user.department?.name && "|"}
+                {user.position?.name && (
+                  <div className="">{user.position?.name || "-"}</div>
+                )}
               </div>
-        
+
               <div className="flex gap-2">
-              {user?.email&&<div className="">{user?.email}</div>} {"|"}
-              {user.primary_number&&<div className="">{user.primary_number}</div>}
+                {user?.email && <div className="">{user?.email}</div>} {"|"}
+                {user.primary_number && (
+                  <div className="">{user.primary_number}</div>
+                )}
               </div>
-              
-              </div>
-
-              
-              
-
-              
-            
+            </div>
           </div>
         </div>
         <HorizontalLine />
         <section className="space-y-4">
           <div className="flex items-center justify-between w-2/3">
-          <div className="">Account status</div>
-              <ToggleSwitch
-                name="activate"
-                label={`${isActive ? "Deactivate" : "Activate"}`}
-                isChecked={isActive}
-                onChange={toggleAccountStatus}
-                disabled={accessLoading}
-              />
+            <div className="">Account status</div>
+            <ToggleSwitch
+              name="activate"
+              label={`${isActive ? "Deactivate" : "Activate"}`}
+              isChecked={isActive}
+              onChange={toggleAccountStatus}
+              disabled={accessLoading}
+            />
           </div>
 
           <div className="flex items-center justify-between w-2/3">
-                <div>User role</div>
-                <div className="max-w-[300px]">
-                <SelectField
-                  placeholder={"Select Role"}
-                  className="w-full"
-                  label={""}
-                  options={roleNames}
-                  onChange={(_, value) => changeAccess(value)}
-                  id={"role"}
-                  value={activeRole || role?.id}
-                />
-              </div>
-              </div>
-
-              <div className="flex items-center justify-between w-2/3">
-              <div className="">Reset password?</div>
-              <Button
-                className={"primary"}
-                value="Reset"
-                onClick={resetPassword}
+            <div>User role</div>
+            <div className="max-w-[300px]">
+              <SelectField
+                placeholder={"Select Role"}
+                className="w-full"
+                label={""}
+                options={roleNames}
+                onChange={(_, value) => changeAccess(value)}
+                id={"role"}
+                value={activeRole || role?.id}
               />
-              </div>
-              
+            </div>
+          </div>
 
-              {/* <div className="">Last password reset</div>
+          <div className="flex items-center justify-between w-2/3">
+            <div className="">Reset password?</div>
+            <Button
+              className={"primary"}
+              value="Reset"
+              onClick={resetPassword}
+            />
+          </div>
+
+          {/* <div className="">Last password reset</div>
               <div className="font-semibold">{new Date().toDateString()}</div> */}
         </section>
         <HorizontalLine />
-        <section>
-          
-        </section>
+        <section></section>
         {
           <ActiveAccess
             permissions={role?.permissions || {}}
@@ -224,7 +219,7 @@ const ViewUser = () => {
         roleLoading ||
         accessLoading ||
         resetLoading) && <LoaderComponent />}
-    {/* </PageOutline> */}
+      {/* </PageOutline> */}
     </div>
   );
 };

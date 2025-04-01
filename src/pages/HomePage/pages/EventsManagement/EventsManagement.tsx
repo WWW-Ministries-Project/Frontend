@@ -1,11 +1,9 @@
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import GridAsset from "@/assets/GridAsset";
-import {api} from "@/utils/apiCalls";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { api } from "@/utils/api/apiCalls";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
-import CalendarAssets from "../../../../assets/CalendarAsset";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import LoaderComponent from "../../Components/reusable/LoaderComponent";
@@ -15,9 +13,9 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
 import EmptyState from "@/components/EmptyState";
-import { eventType } from "./utils/eventInterfaces";
-import Calendar from "./Components/Calenda";
 import HeaderControls from "@/components/HeaderControls";
+import Calendar from "./Components/Calenda";
+import { eventType } from "./utils/eventInterfaces";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -41,9 +39,12 @@ const EventsManagement = () => {
     loading: eventsLoading,
   } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading: deleteLoading, success, error } = useDelete(
-    api.delete.deleteEvent
-  );
+  const {
+    executeDelete,
+    loading: deleteLoading,
+    success,
+    error,
+  } = useDelete(api.delete.deleteEvent);
 
   // Handle screen width changes
   useEffect(() => {
@@ -74,9 +75,12 @@ const EventsManagement = () => {
   }, [success, error, refetch]);
 
   // Navigation handler
-  const handleNavigation = useCallback((path: string) => {
-    navigate(path);
-  }, [navigate]);
+  const handleNavigation = useCallback(
+    (path: string) => {
+      navigate(path);
+    },
+    [navigate]
+  );
 
   // Filter handler
   const handleFilter = useCallback(
@@ -128,9 +132,8 @@ const EventsManagement = () => {
 
   return (
     <div className="p-4">
-      
       <PageOutline>
-      <HeaderControls
+        <HeaderControls
           title="Events "
           totalMembers={filteredEvents.length} // Number of events
           tableView={tableView}

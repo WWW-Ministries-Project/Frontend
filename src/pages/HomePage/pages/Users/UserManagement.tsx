@@ -1,16 +1,14 @@
+import HeaderControls from "@/components/HeaderControls";
 import ProfilePicture from "@/components/ProfilePicture";
-import SearchBar from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import ActionButton from "../../Components/reusable/ActionButton";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { UserType } from "../Members/utils/membersInterfaces";
-import HeaderControls from "@/components/HeaderControls";
 
 interface User extends UserType {
   is_active: boolean;
@@ -119,7 +117,7 @@ const UserManagement = () => {
   return (
     <div className="p-4">
       <PageOutline>
-      <HeaderControls
+        <HeaderControls
           title="Users"
           totalMembers={users.length}
           tableView={false} // No table/grid toggle needed
@@ -129,12 +127,12 @@ const UserManagement = () => {
           showSearch={true}
           setShowSearch={setShowSearch}
           Filter={false}
-          Grid ={false} // No grid view
+          Grid={false} // No grid view
           handleNavigation={() => navigate("add-user")} // Navigate to Add User
           screenWidth={window.innerWidth}
           btnName="" // Added missing btnName property
         />
-      {/* <PageHeader title={`Users(${users.length})`} />
+        {/* <PageHeader title={`Users(${users.length})`} />
       {showSearch&&<SearchBar
         placeholder="Search for a user"
         className="max-w-[300px] mb-2"
@@ -142,15 +140,15 @@ const UserManagement = () => {
         value={searchedUser}
         onChange={handleSearchChange}
       />} */}
-      <TableComponent
-        columns={usersColumns}
-        data={users}
-        filter={searchedUser}
-        setFilter={setSearchedUser}
-        columnFilters={[]}
-        setColumnFilters={() => {}}
-      />
-    </PageOutline>
+        <TableComponent
+          columns={usersColumns}
+          data={users}
+          filter={searchedUser}
+          setFilter={setSearchedUser}
+          columnFilters={[]}
+          setColumnFilters={() => {}}
+        />
+      </PageOutline>
     </div>
   );
 };

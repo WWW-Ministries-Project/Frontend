@@ -2,7 +2,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import Dialog from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -11,10 +11,10 @@ import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
 import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
+import Breadcrumb from "./Components/BreadCrumb";
 import SideBarMobile from "./Components/SideBarMobile";
 import LoaderComponent from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
-import Breadcrumb from "./Components/BreadCrumb";
 
 export const navigateRef = {
   current: null as
@@ -116,41 +116,39 @@ function HomePage() {
       {token ? (
         <main className="h-screen p-3  ">
           <div className="">
-          <Header handleShowNav={handleShowNav} />
+            <Header handleShowNav={handleShowNav} />
           </div>
           <div className="flex">
-          <div className={` hidden sm:hidden md:hidden lg:inline `}>
-            <SideBar
-              className=""
-              onClick={handleShowNav}
-              show={show}
-            />
-          </div>
-
-          <div className="inline lg:hidden">
-            <SideBarMobile show={show} onClick={handleShowNav} />
-          </div>
-             <div className="w-full ">
-             <div className="">
-             {/* <Header handleShowNav={handleShowNav} /> */}
-              </div>
-          <div className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}>
-            
-            <div className="hideScrollbar lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-            <Breadcrumb />
-              <Outlet
-                context={{
-                  members,
-                  filter,
-                  setFilter,
-                  handleSearchChange,
-                  userStats,
-                }}
-              />
+            <div className={` hidden sm:hidden md:hidden lg:inline `}>
+              <SideBar className="" onClick={handleShowNav} show={show} />
             </div>
-            {membersLoading || (upcomingEventsLoading && <LoaderComponent />)}
-          </div>
-             </div>
+
+            <div className="inline lg:hidden">
+              <SideBarMobile show={show} onClick={handleShowNav} />
+            </div>
+            <div className="w-full ">
+              <div className="">
+                {/* <Header handleShowNav={handleShowNav} /> */}
+              </div>
+              <div
+                className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
+              >
+                <div className="hideScrollbar lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                  <Breadcrumb />
+                  <Outlet
+                    context={{
+                      members,
+                      filter,
+                      setFilter,
+                      handleSearchChange,
+                      userStats,
+                    }}
+                  />
+                </div>
+                {membersLoading ||
+                  (upcomingEventsLoading && <LoaderComponent />)}
+              </div>
+            </div>
           </div>
           <NotificationCard />
           <Dialog />
@@ -158,7 +156,7 @@ function HomePage() {
       ) : (
         <Navigate to="/login" />
       )}
-      {membersLoading && <LoaderComponent/>}
+      {membersLoading && <LoaderComponent />}
     </div>
   );
 }
