@@ -17,17 +17,17 @@ export interface ApiCallOptions {
     baseUrl: string,
     path: string,
     query?: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
+  ) => Promise<ApiResponse<any> | undefined>;
   postExecutor?: (
     baseUrl: string,
     path: string,
     payload: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
+  ) => Promise<ApiResponse<any> | undefined>;
   updateExecutor?: (
     baseUrl: string,
     path: string,
     payload: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
+  ) => Promise<ApiResponse<any> | undefined>;
 }
 
 export interface userType {

@@ -25,9 +25,8 @@ const AddMember = () => {
   const {
     data: member,
     loading: fetchLoading,
-    error: fetchError,
   } = useFetch(api.fetch.fetchAMember, { user_id: id + "" });
-  const { postData, loading, error, data } = usePost<
+  const { postData, loading, data } = usePost<
     ApiResponse<{ data: UserType }>
   >(api.post.createMember);
   const { updateData, loading: updateLoading } = usePut<
@@ -41,7 +40,6 @@ const AddMember = () => {
       return initialValues;
     }
   }, [member?.data.data]);
-  console.log(member?.data.data, "member");
 
   useEffect(() => {
     if (data) {
@@ -52,9 +50,6 @@ const AddMember = () => {
       store.addMember(temp);
       navigate("/home/members", { state: { new: true } });
     }
-    if (error) {
-      console.log(error);
-    }
   }, [data]);
 
   const handleCancel = () => {
@@ -62,8 +57,6 @@ const AddMember = () => {
   };
 
   async function handleSubmit(values: IAddMember) {
-    console.log(values, "values");
-
     let dataToSend = { ...values };
 
     try {
