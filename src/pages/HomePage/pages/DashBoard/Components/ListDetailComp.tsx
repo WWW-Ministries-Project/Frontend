@@ -5,7 +5,7 @@ import { formatTime } from "@/utils/helperFunctions";
 interface ListDetailCompProps {
     icon: React.ReactNode;
     title: string;
-    startDate?: string;
+    startDate?: Date;
     startTime?: string;
     eventType?: string;
     mode?: React.ReactNode;
@@ -21,7 +21,7 @@ const ListDetailComp = ({icon, title, startDate, startTime, eventType, mode}: Li
                         <div>
                             <div className="font-bold ">{title}</div>
                             <div className="flex text-sm gap-2 ">
-                                <p className="font-medium">{formatTime(startDate)} • {startTime}</p>
+                                <p className="font-medium">{formatTime(startDate ? startDate.toString() : "")} • {startTime}</p>
                                 {eventType&&<Badge><p className="capitalize">{eventType.toLowerCase()}</p></Badge>}
                             </div>
                         </div>

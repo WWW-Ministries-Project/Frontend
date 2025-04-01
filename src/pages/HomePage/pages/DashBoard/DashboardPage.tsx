@@ -14,6 +14,12 @@ const DashBoardPage = () => {
     setSelectedTab(tab);  // Set the selected tab to display the corresponding component
   };
 
+  const tabs = [
+    "Overview", 
+    "Analytics", 
+    // "Events"
+  ]
+
   return (
     <div className="p-4">
         <PageOutline className="">
@@ -31,7 +37,7 @@ const DashBoardPage = () => {
         <section>
           <div className="flex mt-2 mb-6">
             <TabSelection
-              tabs={["Overview", "Analytics", "Events"]}
+              tabs={tabs}
               selectedTab={selectedTab}
               onTabSelect={handleTabSelect}  // Use the handleTabSelect function to update the selected tab
             />
@@ -42,7 +48,7 @@ const DashBoardPage = () => {
           {/* Dynamically render the content based on the selected tab */}
           {selectedTab === "Overview" && <Overview />}
           {selectedTab === "Analytics" && <Analytics />}
-          {selectedTab === "Events" && <Events />}
+          {/* {selectedTab === "Events" && <Events />} */}
         </section>
       </div>
     </PageOutline>

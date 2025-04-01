@@ -43,7 +43,7 @@ const Overview = () => {
             rightSideNumber={30}
           />
           <StatsCard
-            title="Sample Title"
+            title="Visitors"
             icon={<CalendarAssets className={'h-5 '} />}
             quantity={10}
             increaseDecrease={"5"}
@@ -54,7 +54,7 @@ const Overview = () => {
             rightSideNumber={30}
           />
           <StatsCard
-            title="Sample Title"
+            title="Attendance"
             icon={<CalendarAssets className={'h-5 '}/>}
             quantity={10}
             increaseDecrease={"5"}
@@ -65,7 +65,7 @@ const Overview = () => {
             rightSideNumber={30}
           />
           <StatsCard
-            title="Sample Title"
+            title="Total Soul Won"
             icon={<CalendarAssets className={'h-5 '}/>}
             quantity={10}
             increaseDecrease={"5"}
@@ -92,7 +92,7 @@ const Overview = () => {
                   <ListDetailComp
                     icon={<CalendarAssets />}
                     title={event.name}
-                    startDate={formatInputDate (event.start_date)}
+                    startDate={formatInputDate (event?.start_date)}
                     startTime={event.start_time}
                     eventType={event.event_type}
                     mode={event.location}
