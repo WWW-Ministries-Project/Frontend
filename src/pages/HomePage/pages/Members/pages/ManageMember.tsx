@@ -10,6 +10,7 @@ import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
@@ -22,13 +23,13 @@ const AddMember = () => {
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
   const editMode = location.state?.mode === "edit";
-  const {
-    data: member,
-    loading: fetchLoading,
-  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" });
-  const { postData, loading, data } = usePost<
-    ApiResponse<{ data: UserType }>
-  >(api.post.createMember);
+  const { data: member, loading: fetchLoading } = useFetch(
+    api.fetch.fetchAMember,
+    { user_id: id + "" }
+  );
+  const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
+    api.post.createMember
+  );
   const { updateData, loading: updateLoading } = usePut<
     ApiResponse<{ data: UserType }>
   >(api.post.updateMember);
@@ -56,7 +57,16 @@ const AddMember = () => {
     navigate(-1);
   };
 
-  async function handleSubmit(values: IAddMember) {
+  async function handleSubmit(
+    values: IAddMember,
+    validateForm: () => Promise<any>,
+    setTouched: (errors: any) => void
+  ) {
+    // const errors: any = await validateForm();
+    // if (Object.keys(errors).length > 0) {
+    //   setTouched(errors);
+    //   return;
+    // }
     let dataToSend = { ...values };
 
     try {
@@ -100,9 +110,10 @@ const AddMember = () => {
         <Formik
           enableReinitialize={true}
           initialValues={initialValue}
-          onSubmit={handleSubmit}
+          onSubmit={(values) => handleSubmit(values)}
+          validationSchema={validationSchema}
         >
-          {({ handleSubmit }) => (
+          {({ handleSubmit, errors }) => (
             <>
               {/* <ProfilePicture
                 className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
@@ -128,6 +139,9 @@ const AddMember = () => {
                   <Button
                     value={editMode ? "Update" : "Save"}
                     type="button"
+                    // onClick={() => {
+                    //   console.log(errors, "errors");
+                    // }}
                     onClick={handleSubmit}
                     loading={loading || updateLoading}
                     className="default"
@@ -148,4 +162,5 @@ const initialValues: IAddMember = {
   ...MembersForm.initialValues,
 };
 
+const validationSchema = object().shape(MembersForm.validationSchema);
 export default AddMember;
