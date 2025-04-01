@@ -30,7 +30,7 @@ export const deleteData = async <T>(
   baseUrl: string,
   path: string,
   query?: Record<string, any>
-): Promise<ApiResponse<T> | undefined> => {
+): Promise<ApiResponse<T>> => {
   try {
     // Construct query string if query parameters are provided
     const queryString = query
@@ -47,8 +47,8 @@ export const deleteData = async <T>(
     };
   } catch (error) {
     // console.error(`Error deleting data from ${baseUrl}${path}:`, error);
-    // throw error;
-    ApiErrorHandler.handleError(error);
+    ApiErrorHandler.handleError(error);    
+    throw error;
   }
 };
 
@@ -76,7 +76,7 @@ export const updateData = async <T>(
   baseUrl: string,
   path: string,
   payload: Record<string, any>
-): Promise<ApiResponse<T> | undefined> => {
+): Promise<ApiResponse<T>> => {
   try {
     const url = `${baseUrl}${path}`;
     const response: AxiosResponse<T> = await axios.put(url, payload);
@@ -89,6 +89,6 @@ export const updateData = async <T>(
   } catch (error) {
     // console.error(`Error posting data to ${baseUrl}${path}:`, error);
     ApiErrorHandler.handleError(error);
-    // throw error;
+    throw error;
   }
 };

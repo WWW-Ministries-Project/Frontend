@@ -28,7 +28,7 @@ import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
-import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
+import ManageMember from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
@@ -89,7 +89,7 @@ export const routes = [
       },
       {
         path: "members/add-member",
-        element: <AddMember />,
+        element: <ManageMember />,
         isPrivate: true,
         permissionNeeded: "view_members",
       },

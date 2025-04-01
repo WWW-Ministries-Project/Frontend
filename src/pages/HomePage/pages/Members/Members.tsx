@@ -50,9 +50,7 @@ function Members() {
     true
   );
   const store = useStore();
-  const members = store.members;
-  const userStats = store.userStats;
-  const removeMember = store.removeMember;
+  const { members, userStats, removeMember } = store;
   const columns = membersColumns;
 
   useEffect(() => {

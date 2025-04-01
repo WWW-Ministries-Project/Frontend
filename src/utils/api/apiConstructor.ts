@@ -24,7 +24,7 @@ export class ApiExecution {
   ) => Promise<ApiResponse<any>>;
 
   constructor({
-    baseUrl = url,
+    baseUrl=url ,
     fetchExecutor,
     deleteExecutor,
     postExecutor,
