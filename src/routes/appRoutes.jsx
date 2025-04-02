@@ -34,6 +34,8 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
 import Registration from "@/pages/Registration/Registration";
 import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage";
+import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 
 
 export const routes = [
@@ -115,6 +117,22 @@ export const routes = [
             permissionNeeded: "view_members",
           },
         ]
+      },
+      {
+        path: "visitors",
+        name: "Visitors",
+        element: <VisitorManagement />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: true,
+      },
+      {
+        path: "visitors/:visitorId",
+        name: "Visitors",
+        element: <VisitorDetails />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: true,
       },
       {
         path: "events",
@@ -201,21 +219,7 @@ export const routes = [
         isPrivate: false,
         permissionNeeded: "view_assets",
       },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-        sideTab: true,
-      },
-      {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-      },
+      
       
       {
         path: "ministry-school",
@@ -257,6 +261,21 @@ export const routes = [
         path: "ministry-school/programs/cohort/class/student/certificate",
         name: "View Certificate",
         element: <ViewCertificate />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+        sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
         isPrivate: false,
         permissionNeeded: "view_events",
       },

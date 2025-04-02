@@ -23,10 +23,10 @@ const Banner: React.FC<BannerProps> = (props) => {
     props.onClick(true);
   };
   return (
-    <div className="w-full h-36 relative bg-primary text-white rounded-t-lg">
+    <div className=" flex w-full relative bg-primary text-white rounded-t-lg">
       {/* <img src={props.coverImage1} alt="cover Image" className="w-full rounded-xl" /> */}
       <div
-        className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
+        className="p-4 rounded-t-lg left-0 w-full h-full flex items-center justify-between  bg-cover"
         style={{
           backgroundImage: `url(${coverImage1})`,
           backgroundPosition: "center",
