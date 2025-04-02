@@ -23,16 +23,21 @@ const AddMember = () => {
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
   const editMode = location.state?.mode === "edit";
-  const { data: member, loading: fetchLoading } = useFetch(
-    api.fetch.fetchAMember,
-    { user_id: id + "" }
-  );
+  const {
+    data: member,
+    loading: fetchLoading,
+    refetch,
+  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" }, true);
   const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
     api.post.createMember
   );
   const { updateData, loading: updateLoading } = usePut<
     ApiResponse<{ data: UserType }>
   >(api.post.updateMember);
+
+  useEffect(() => {
+    id && refetch();
+  }, [id]);
 
   const initialValue = useMemo(() => {
     if (member?.data.data) {
@@ -59,14 +64,7 @@ const AddMember = () => {
 
   async function handleSubmit(
     values: IAddMember,
-    validateForm: () => Promise<any>,
-    setTouched: (errors: any) => void
   ) {
-    // const errors: any = await validateForm();
-    // if (Object.keys(errors).length > 0) {
-    //   setTouched(errors);
-    //   return;
-    // }
     let dataToSend = { ...values };
 
     try {
@@ -115,18 +113,6 @@ const AddMember = () => {
         >
           {({ handleSubmit, errors }) => (
             <>
-              {/* <ProfilePicture
-                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
-                id="profile_picture"
-                name="profile_picture"
-                src={values.picture.src}
-                alt="Profile Picture"
-                editable={true}
-                onChange={(obj) => {
-                  setFieldValue("picture", obj);
-                }}
-                textClass={'text-3xl text-dark900'}
-              /> */}
               <MembersForm />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
