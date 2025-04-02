@@ -31,7 +31,7 @@ interface IMemberInfo {
   };
 }
 
-const MemberInformation = () => {
+export const MemberInformation = () => {
   const { details: user } = useOutletContext<{
     details: IMemberInfo;
   }>();
@@ -201,5 +201,3 @@ const MemberInformation = () => {
     </div>
   );
 };
-
-export default MemberInformation;

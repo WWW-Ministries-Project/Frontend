@@ -1,4 +1,4 @@
-import ProfileDetails from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
+import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -28,10 +28,10 @@ import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
-import ManageMember from "../pages/HomePage/pages/Members/pages/ManageMember";
+import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
+import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 
 
 export const routes = [

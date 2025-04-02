@@ -16,7 +16,7 @@ import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { UserType } from "../utils/membersInterfaces";
 
-const AddMember = () => {
+export const ManageMember = () => {
   const navigate = useNavigate();
   const store = useStore();
   const location = useLocation();
@@ -149,4 +149,3 @@ const initialValues: IAddMember = {
 };
 
 const validationSchema = object().shape(MembersForm.validationSchema);
-export default AddMember;
