@@ -41,7 +41,7 @@ function Members() {
   const [showFilter, setShowFilter] = useState(false);
 
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading, success, error } = useDelete(
+  const { executeDelete, loading, success } = useDelete(
     api.delete.deleteMember
   );
   const { refetch: refetchUserStats } = useFetch(
@@ -50,9 +50,7 @@ function Members() {
     true
   );
   const store = useStore();
-  const members = store.members;
-  const userStats = store.userStats;
-  const removeMember = store.removeMember;
+  const { members, userStats, removeMember } = store;
   const columns = membersColumns;
 
   useEffect(() => {
@@ -70,15 +68,14 @@ function Members() {
     const handleEffect = async () => {
       if (success) {
         showNotification("Member Deleted Successfully");
+        if ("id" in dataToDeleteRef.current)
+          removeMember(dataToDeleteRef.current.id);
         const userStatsData = await refetchUserStats();
         userStatsData && store.setUserStats(userStatsData.data);
       }
-      if (error) {
-        showNotification("Something went wrong");
-      }
     };
     handleEffect();
-  }, [success, error]);
+  }, [success]);
 
   // Show notification after adding a member
   useEffect(() => {
@@ -100,7 +97,6 @@ function Members() {
     if (!("id" in dataToDeleteRef.current)) return;
     const id = dataToDeleteRef.current.id;
     await executeDelete(id!);
-    removeMember(id!);
   };
 
   const handleDeleteModal = (val?: UserType) => {
