@@ -1,5 +1,5 @@
-import { ApiCallOptions, ApiResponse } from "./interfaces";
 import { baseUrl as url } from "@/pages/Authentication/utils/helpers";
+import { ApiCallOptions, ApiResponse } from "../interfaces";
 export class ApiExecution {
   baseUrl: string;
   fetchExecutor?: (
@@ -65,7 +65,7 @@ export class ApiExecution {
     path: string,
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> {
-    if(!this.updateExecutor) throw new Error("Update executor not defined");
+    if (!this.updateExecutor) throw new Error("Update executor not defined");
     return this.updateExecutor(this.baseUrl, path, payload);
   }
 }

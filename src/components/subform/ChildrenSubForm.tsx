@@ -71,8 +71,11 @@ const initialValues = {
 
 const validationSchema = {
   children: array()
-    .of(object().shape(PersonalDetails.validationSchema))
-    .default([]),
+    .when("personal_info.has_children", {
+      is: true,
+      then: (schema) => schema.of(object().shape(PersonalDetails.validationSchema)).min(1),
+      otherwise: (schema) => schema.default([]), 
+    })
 };
 export const ChildrenSubForm = Object.assign(ChildrenSubFormComponent, {
   initialValues,

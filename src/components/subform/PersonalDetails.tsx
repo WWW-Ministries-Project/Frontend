@@ -2,9 +2,9 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
-import { string } from "yup";
+import { date, string } from "yup";
 import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
-import { useCountryStore } from "../../pages/HomePage/store/coutryStore";
+import { CountryField } from "../fields/CountryField";
 
 const PersonalDetailsComponent = ({
   disabled = false,
@@ -13,7 +13,6 @@ const PersonalDetailsComponent = ({
   disabled?: boolean;
   prefix: string;
 }) => {
-  const { countryOptions } = useCountryStore();
   const { values } = useFormikContext<IPersonalDetails>();
   return (
     <>
@@ -78,15 +77,7 @@ const PersonalDetailsComponent = ({
         name={`${prefix}.marital_status`}
         placeholder={"select marital status"}
       />
-      <Field
-        component={FormikSelectField}
-        label="Country"
-        placeholder="Select nationality"
-        id={`${prefix}.nationality`}
-        name={`${prefix}.nationality`}
-        options={countryOptions || []}
-        disabled={disabled}
-      />
+      <CountryField disabled={disabled} prefix={prefix} />
     </>
   );
 };
@@ -123,7 +114,7 @@ const validationSchema = {
   first_name: string(),
   other_name: string(),
   last_name: string().required("Last name is required"),
-  date_of_birth: string().required("Date of birth is required"),
+  date_of_birth: date().max(new Date()),
   gender: string().required("Gender is required"),
   marital_status: string().required("Marital status is required"),
   nationality: string().required("Nationality is required"),

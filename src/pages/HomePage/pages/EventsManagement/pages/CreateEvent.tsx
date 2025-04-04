@@ -3,13 +3,13 @@ import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import api from "@/utils/apiCalls";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
+import { showNotification } from "@/pages/HomePage/utils";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
 import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
-import { showNotification } from "@/pages/HomePage/utils";
 
 const CreateEvent = () => {
   //@ts-ignore
@@ -17,7 +17,12 @@ const CreateEvent = () => {
   const [inputValue, setInputValue] = useState(eventInput);
   // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const { postData,loading:postLoading, error:postError, data:postedData } = usePost(api.post.createEvent);
+  const {
+    postData,
+    loading: postLoading,
+    error: postError,
+    data: postedData,
+  } = usePost(api.post.createEvent);
   const { updateData } = usePut(api.put.updateEvent);
 
   const query = location.search;
@@ -36,13 +41,13 @@ const CreateEvent = () => {
   }, [id, user]);
 
   useEffect(() => {
-    if(postedData){
+    if (postedData) {
       showNotification("Event created successfully", "success");
     }
-    if(postError){
+    if (postError) {
       showNotification("Something went wrong", "error");
     }
-  })
+  });
 
   const handleSubmit = async (val: eventType) => {
     // setLoading(true);
@@ -73,21 +78,21 @@ const CreateEvent = () => {
   return (
     <div className="p-4">
       <section className="mx-auto py-8 px-16 container lg:w-4/6 bg-white rounded-xl ">
-      <h1 className="H700 text-primary">Create Event</h1>
-      <p className="text-sma text-primary py-2">
-        Fill in the form below with the event details
-      </p>
-      <div className="hideScrollbar overflow-y-auto">
-        <ImageUpload onFileChange={(file: File) => setFile(file)} src={""} />
-        <EventsForm
-          inputValue={inputValue}
-          onSubmit={handleSubmit}
-          loading={postLoading}
-          updating={id ? true : false}
-        />
-      </div>
-      {postLoading && <LoaderComponent />}
-    </section>
+        <h1 className="H700 text-primary">Create Event</h1>
+        <p className="text-sma text-primary py-2">
+          Fill in the form below with the event details
+        </p>
+        <div className="hideScrollbar overflow-y-auto">
+          <ImageUpload onFileChange={(file: File) => setFile(file)} src={""} />
+          <EventsForm
+            inputValue={inputValue}
+            onSubmit={handleSubmit}
+            loading={postLoading}
+            updating={id ? true : false}
+          />
+        </div>
+        {postLoading && <LoaderComponent />}
+      </section>
     </div>
   );
 };

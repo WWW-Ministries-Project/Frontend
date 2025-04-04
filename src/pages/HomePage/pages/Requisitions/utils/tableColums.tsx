@@ -1,18 +1,18 @@
-import { ColumnDef } from "@tanstack/react-table";
-import type { Requisition, RequisitionStatusType } from "../types/requestInterface";
-import Action from "@/components/Action";
-import { useCallback, useEffect, useState } from "react";
 import Elipsis from "@/assets/ellipse.svg";
-import { DateTime } from "luxon";
-import { useNavigate } from "react-router-dom";
+import Action from "@/components/Action";
 import StatusPill from "@/components/StatusPill";
-import api from "@/utils/apiCalls";
 import { useDelete } from "@/CustomHooks/useDelete";
-import {
-  showNotification,
-  showDeleteDialog,
-} from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
+import { api } from "@/utils/api/apiCalls";
+import { ColumnDef } from "@tanstack/react-table";
+import { DateTime } from "luxon";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type {
+  Requisition,
+  RequisitionStatusType,
+} from "../types/requestInterface";
 
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
@@ -26,9 +26,9 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           navigate(`/home/requests/${encodedId}`);
         };
 
-        return <button onClick={handleClick}>
-          {row.original.generated_id}
-        </button>;
+        return (
+          <button onClick={handleClick}>{row.original.generated_id}</button>
+        );
       };
 
       return <ItemButton />;
@@ -87,7 +87,9 @@ export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Status",
     accessorKey: "approval_status",
-    cell: (info) => <StatusPill text={info.getValue() as RequisitionStatusType} />,
+    cell: (info) => (
+      <StatusPill text={info.getValue() as RequisitionStatusType} />
+    ),
   },
   {
     header: "Action",
@@ -100,7 +102,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
         const { executeDelete, success, error } = useDelete(
           api.delete.deleteRequest
         );
-        const {removeRequest} = useStore()
+        const { removeRequest } = useStore();
         useEffect(() => {
           if (success) {
             showNotification("Request deleted successfully");
@@ -116,7 +118,9 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           await executeDelete(row.original.requisition_id);
         }, [executeDelete, row]);
 
-        const isEditable = row.original.approval_status==="Awaiting_HOD_Approval" || row.original.approval_status==="Draft"
+        const isEditable =
+          row.original.approval_status === "Awaiting_HOD_Approval" ||
+          row.original.approval_status === "Draft";
         return (
           <div className="relative -mt-3">
             <button
@@ -145,7 +149,6 @@ export const tableColumns: ColumnDef<Requisition>[] = [
                       handleDelete
                     );
                   }}
-
                   isEditable={isEditable}
                 />
               </div>

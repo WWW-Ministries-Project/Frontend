@@ -1,15 +1,13 @@
-import Badge from "@/components/Badge";
 import Button from "@/components/Button";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import ClassForm from "../Components/ClassForm";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
-import { useEffect, useState } from "react";
-import ClassCard from "../Components/ClassCard";
-import { ApiCalls } from "@/utils/apiFetch";
-import { useParams } from "react-router-dom";
+import { ApiDeletionCalls } from "@/utils/api/apiDelete";
+import { ApiCalls } from "@/utils/api/apiFetch";
 import { formatTime } from "@/utils/helperFunctions";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import ClassCard from "../Components/ClassCard";
+import ClassForm from "../Components/ClassForm";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
-import { ApiDeletionCalls } from "@/utils/apiDelete";
 
 type ClassItem = {
   id: string;
@@ -22,7 +20,7 @@ type ClassItem = {
   capacity: number;
   location?: string;
   meetingLink?: string;
-}
+};
 
 type Cohort = {
   id: number;
@@ -33,10 +31,9 @@ type Cohort = {
   courses: ClassItem[];
 };
 
-
 const ViewCohort = () => {
   const apiCalls = new ApiCalls();
-  const apiDelete = new ApiDeletionCalls() 
+  const apiDelete = new ApiDeletionCalls();
   const { id: cohortId } = useParams(); // Get cohort ID from the route
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,43 +42,39 @@ const ViewCohort = () => {
   const [selectedClass, setSelectedClass] = useState<ClassItem | null>(null);
   // Mock data for cohort (You can replace this with real data from an API or database)
 
-
- 
-
   const fetchCohortData = async () => {
-          if (!cohortId) return; // Ensure we have the programId before making the API call
-    
-          try {
-            setLoading(true);
-            // Fetch cohort details by programId
-            const programResponse = await apiCalls.fetchCohortById(cohortId);
-            if (programResponse.status === 200) {
-              setCohort(programResponse.data.data);
-            } else {
-              setError("Error fetching cohort details");
-            }
-          } catch (err) {
-            setError("An error occurred while fetching cohort details.");
-          } finally {
-            setLoading(false);
-          }
-        };  
-  
+    if (!cohortId) return; // Ensure we have the programId before making the API call
+
+    try {
+      setLoading(true);
+      // Fetch cohort details by programId
+      const programResponse = await apiCalls.fetchCohortById(cohortId);
+      if (programResponse.status === 200) {
+        setCohort(programResponse.data.data);
+      } else {
+        setError("Error fetching cohort details");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching cohort details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCohortData(); // Call the function when programId changes
-  }, [cohortId]); 
-  
+  }, [cohortId]);
+
   const handleEdit = (course: ClassItem): void => {
     setSelectedClass(course);
     setIsModalOpen(true);
-  }
+  };
 
   const deleteClass = async (classId: string) => {
     try {
       setLoading(true);
       const response = await apiDelete.deleteCourse(classId);
       if (response.status === 200) {
-        
         // setProgram((prevPrograms: any) =>
         //   prevPrograms.filter((class: any) => class.cohort.id !== cohortId)
         // );
@@ -96,72 +89,73 @@ const ViewCohort = () => {
       fetchCohortData();
     }
   };
-  
-    
-
 
   return (
     <div className="px-4">
-      <ViewPageTemplate 
-        Data={cohort} 
-        title="Cohort Details" 
+      <ViewPageTemplate
+        Data={cohort}
+        title="Cohort Details"
         description="View and manage cohort details here."
         primaryButton=""
         secondaryButton=""
         showTopic={true}
         isGrid={true}
-        onPrimaryButtonClick={() => console.log("Primary button clicked")} 
-        onSecondaryButtonClick={() => console.log("Secondary button clicked")} 
-        loading={loading} 
+        onPrimaryButtonClick={() => console.log("Primary button clicked")}
+        onSecondaryButtonClick={() => console.log("Secondary button clicked")}
+        loading={loading}
         details={
           <div className="flex gap-8">
-                      <div>
-                        <div className="font-semibold text-small">Start date</div>
-                        <div>{formatTime(cohort?.startDate)}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Duration</div>
-                        <div>{cohort?.duration}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Application Deadline</div>
-                        <div>{formatTime( cohort?.applicationDeadline)}</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-small">Classes</div>
-                        <div>{cohort?.courses.length} classes</div>
-                      </div>
-                    </div>
-        }
-
-        children={<section>
-          {/* classes */}
-          
-          <div  className=" rounded-lg py-4 space-y-2">
-              {/* Classes */}
-                  <div className="flex justify-between items-center">
-                  <div className="">
-              <h1 className="text-primary text-2xl font-bold">Class</h1>
+            <div>
+              <div className="font-semibold text-small">Start date</div>
+              <div>{formatTime(cohort?.startDate)}</div>
             </div>
-                    <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" 
-                    onClick={() => setIsModalOpen(true)}
-                    />
-                  </div>
+            <div>
+              <div className="font-semibold text-small">Duration</div>
+              <div>{cohort?.duration}</div>
+            </div>
+            <div>
+              <div className="font-semibold text-small">
+                Application Deadline
+              </div>
+              <div>{formatTime(cohort?.applicationDeadline)}</div>
+            </div>
+            <div>
+              <div className="font-semibold text-small">Classes</div>
+              <div>{cohort?.courses.length} classes</div>
+            </div>
+          </div>
+        }
+        children={
+          <section>
+            {/* classes */}
 
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
-                  {cohort?.courses.map((classItem: ClassItem) => (
-                   <div key={classItem.id}>
-                    <ClassCard 
-                      classItem={classItem} 
-                      onEdit={handleEdit} 
-                      onDelete={() => deleteClass(classItem.id)} 
-                    />
-                   </div>
-                  ))}
-                  </div>
+            <div className=" rounded-lg py-4 space-y-2">
+              {/* Classes */}
+              <div className="flex justify-between items-center">
+                <div className="">
+                  <h1 className="text-dark900 text-2xl font-bold">Class</h1>
                 </div>
-      </section>} 
-        
+                <Button
+                  value="Add Class"
+                  className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
+                  onClick={() => setIsModalOpen(true)}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
+                {cohort?.courses.map((classItem: ClassItem) => (
+                  <div key={classItem.id}>
+                    <ClassCard
+                      classItem={classItem}
+                      onEdit={handleEdit}
+                      onDelete={() => deleteClass(classItem.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        }
       />
       {/* <PageOutline className="p-0">
         <section className=" sticky top-0">
@@ -191,11 +185,11 @@ const ViewCohort = () => {
         
       </PageOutline> */}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ClassForm 
-          onClose={() => setIsModalOpen(false)} 
-          fetchCohortData={()=>fetchCohortData()} 
+        <ClassForm
+          onClose={() => setIsModalOpen(false)}
+          fetchCohortData={() => fetchCohortData()}
           initialData={selectedClass}
-          cohortId = {cohort?.id}
+          cohortId={cohort?.id}
         />
       </Modal>
     </div>

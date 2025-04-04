@@ -1,5 +1,5 @@
-import { ApiUpdateCalls } from "@/utils/apiPut";
-import React, { useState, useEffect } from "react";
+import { ApiUpdateCalls } from "@/utils/api/apiPut";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Topic {
@@ -10,9 +10,14 @@ interface Topic {
   notes: string;
 }
 
-const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollmentId: number; onCancel: ()=>void  }> = ({ topics, editMode, enrollmentId, onCancel }) => {
+const TopicAssessment: React.FC<{
+  topics: Topic[];
+  editMode: boolean;
+  enrollmentId: number;
+  onCancel: () => void;
+}> = ({ topics, editMode, enrollmentId, onCancel }) => {
   const navigate = useNavigate();
-  const apiPut = new ApiUpdateCalls()
+  const apiPut = new ApiUpdateCalls();
 
   // Initialize state with topics, with score as undefined
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
@@ -25,7 +30,10 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
     setIsGenerateEnabled(allPassed);
   }, [updatedTopics]);
 
-  const handleStatusChange = (id: number, newStatus: "PASS" | "FAIL" | "PENDING") => {
+  const handleStatusChange = (
+    id: number,
+    newStatus: "PASS" | "FAIL" | "PENDING"
+  ) => {
     setUpdatedTopics((prevTopics) =>
       prevTopics.map((topic) =>
         topic.id === id ? { ...topic, status: newStatus } : topic
@@ -43,7 +51,7 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
 
   // Function to update the topics
   const updateTopics = async () => {
-    setLoading(true)
+    setLoading(true);
     const progressUpdates = updatedTopics.map((topic) => ({
       topicId: topic.id,
       enrollmentId: enrollmentId, // This should be dynamically fetched or passed to the function
@@ -56,11 +64,9 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
     const payload = { progressUpdates };
 
     try {
-      
-      console.log("Payload: ",  payload);
-      
-      
-      const response = await apiPut.updateStudentProgress(payload)
+      console.log("Payload: ", payload);
+
+      const response = await apiPut.updateStudentProgress(payload);
 
       if (response.success) {
         console.log("Topics updated successfully!", response);
@@ -73,7 +79,7 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
       console.error("Error updating topics:", error);
       alert("An error occurred while updating the topics.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -112,7 +118,9 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
                         type="number"
                         className="px-4 py-2 border border-lightGray rounded-lg"
                         value={topic.score !== undefined ? topic.score : ""}
-                        onChange={(e) => handleScoreChange(topic.id, Number(e.target.value))}
+                        onChange={(e) =>
+                          handleScoreChange(topic.id, Number(e.target.value))
+                        }
                       />
                     ) : (
                       topic.score
@@ -123,7 +131,12 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
                       <select
                         className="px-4 py-2 border border-lightGray rounded-lg"
                         value={topic.status}
-                        onChange={(e) => handleStatusChange(topic.id, e.target.value as "PASS" | "FAIL" | "PENDING")}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            topic.id,
+                            e.target.value as "PASS" | "FAIL" | "PENDING"
+                          )
+                        }
                       >
                         <option value="PENDING">Pending</option>
                         <option value="PASS">Pass</option>
@@ -140,7 +153,9 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
                       onChange={(e) => {
                         setUpdatedTopics((prevTopics) =>
                           prevTopics.map((t) =>
-                            t.id === topic.id ? { ...t, notes: e.target.value } : t
+                            t.id === topic.id
+                              ? { ...t, notes: e.target.value }
+                              : t
                           )
                         );
                       }}
@@ -165,8 +180,10 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
               <span className="font-medium">Average Score: </span>
               <span>
                 {(
-                  updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
-                  updatedTopics.length
+                  updatedTopics.reduce(
+                    (acc, topic) => acc + (topic.score || 0),
+                    0
+                  ) / updatedTopics.length
                 ).toFixed(2)}
                 %
               </span>
@@ -174,9 +191,10 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
             <div>
               <span className="font-medium">Progress: </span>
               <span>
-                {((updatedTopics.filter((topic) => topic.status === "PASS").length / updatedTopics.length) *
-                  100) ||
-                  0}
+                {(updatedTopics.filter((topic) => topic.status === "PASS")
+                  .length /
+                  updatedTopics.length) *
+                  100 || 0}
                 % Complete
               </span>
             </div>
@@ -185,14 +203,20 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
           {/* Save Button */}
           <div className="">
             {editMode ? (
-             <div className="space-x-4">
-              <button className={`px-6 py-2 rounded-lg border border-primary text-primary`} onClick={onCancel}>
-                Cancel
-              </button>
-               <button className={`px-6 py-2 rounded-lg bg-primary text-white`} onClick={updateTopics}>
-                Save
-              </button>
-             </div>
+              <div className="space-x-4">
+                <button
+                  className={`px-6 py-2 rounded-lg border border-primary text-primary`}
+                  onClick={onCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`px-6 py-2 rounded-lg bg-primary text-white`}
+                  onClick={updateTopics}
+                >
+                  Save
+                </button>
+              </div>
             ) : (
               <button
                 className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-primary"}`}

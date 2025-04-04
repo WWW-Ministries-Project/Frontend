@@ -7,7 +7,7 @@ class UnifiedApi {
   fetch: ApiCalls;
   delete: ApiDeletionCalls;
   post: ApiCreationCalls;
-  put: ApiUpdateCalls
+  put: ApiUpdateCalls;
 
   constructor() {
     this.fetch = new ApiCalls();
@@ -18,4 +18,5 @@ class UnifiedApi {
 }
 
 // Create an instance of the unified API class and export it
-export default new UnifiedApi();
+// export default new UnifiedApi();
+export const api = new UnifiedApi();

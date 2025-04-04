@@ -10,15 +10,17 @@ import {
   IChildrenSubForm,
   IContactsSubForm,
   IEmergencyContact,
-  IPersonalDetails,
+  IUserSubForm,
   IWorkInfoSubForm,
-  PersonalDetails,
+  UserSubForm,
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, getIn, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
+import { boolean, date, number, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
+import FormikInputDiv from "@/components/FormikInput";
 
 interface IProps {
   disabled?: boolean;
@@ -46,90 +48,89 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
   }, [countryStore]);
 
   return (
-    <>
-      <FormLayout>
-        <FormHeader>Membership Status</FormHeader>
+    <FormLayout>
+      <FormHeader>Personal Information</FormHeader>
+      <UserSubForm disabled={disabled} prefix="personal_info" />
+      <HorizontalLine />
+
+      <ContactsSubForm disabled={disabled} prefix="contact_info" />
+      <HorizontalLine />
+
+      <FormHeader>Emergency Contact</FormHeader>
+      <EmergencyContact disabled={disabled} prefix="emergency_contact" />
+      <HorizontalLine />
+
+      <FormHeader>Membership Status</FormHeader>
+      <Field
+        component={FormikSelectField}
+        label="Membership Type"
+        placeholder="Select membership type"
+        id="church_info.membership_type"
+        name="church_info.membership_type"
+        options={[
+          { name: "Online e-church family", value: "MEMBER" },
+          { name: "In-person church family", value: "VISITOR" },
+          // { name: "Pending", value: "pending" },
+        ]}
+        disabled={disabled}
+      />
+      <FullWidth>
+        <div className="flex flex-col">
+          <p className="text-dark900 leading-5 mb-2">
+            Is this member a ministry worker?
+          </p>
+          <RadioInput name="is_user" />
+        </div>
+      </FullWidth>
+
+      <Field
+        component={FormikSelectField}
+        label="Ministry/Department"
+        id="church_info.department_id"
+        name="church_info.department_id"
+        placeholder="Select department"
+        options={departmentsOptions || []}
+        disabled={disabled}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="Date joined"
+        id="church_info.member_since"
+        name="church_info.member_since"
+        placeholder="Select date joined"
+        type="date"
+        max={new Date().toISOString().split("T")[0]}
+        disabled={disabled}
+      />
+      {values.is_user && (
         <Field
           component={FormikSelectField}
-          label="Membership Type"
-          id="church_info.membership_type"
-          name="church_info.membership_type"
-          options={[
-            { name: "Online e-church family", value: "MEMBER" },
-            { name: "In-person church family", value: "VISITOR" },
-            // { name: "Pending", value: "pending" },
-          ]}
+          label="Position"
+          id="church_info.position_id"
+          name="church_info.position_id"
+          placeholder="Select position"
+          options={positionsOptions || []}
           disabled={disabled}
+          parse={(value: string) => parseInt(value, 10)}
         />
-        <HorizontalLine />
+      )}
+      <HorizontalLine />
 
-        <FormHeader>Personal Information</FormHeader>
-        <PersonalDetails disabled={disabled} prefix="personal_info" />
-        <HorizontalLine />
-
-        <ContactsSubForm disabled={disabled} prefix="contact_info" />
-        <HorizontalLine />
-
-        <EmergencyContact disabled={disabled} prefix="emergency_contact" />
-        <HorizontalLine />
-
-        <FullWidth>
-          <div className="flex flex-col">
-            <p className="text-primary leading-5 mb-2">
-              Is this member a ministry worker?
-            </p>
-            <RadioInput name="is_user" />
-          </div>
-        </FullWidth>
-        {values.is_user && (
-          <>
-            {/* bug from backend */}
-            <Field
-              component={FormikSelectField}
-              label="Ministry/Department"
-              id="church_info.department_id"
-              name="church_info.department_id"
-              placeholder="Select department"
-              options={departmentsOptions || []}
-              disabled={disabled}
-            />
-            <Field
-              component={FormikSelectField}
-              label="Position"
-              id="church_info.position_id"
-              name="church_info.position_id"
-              placeholder="Select position"
-              options={positionsOptions || []}
-              disabled={disabled}
-              parse={(value: string) => parseInt(value, 10)}
-            />
-          </>
-        )}
-        <HorizontalLine />
-
-        <WorkInfoSubForm disabled={disabled} prefix="work_info" />
-        <HorizontalLine />
-        <FullWidth>
-          <div className="flex flex-col">
-            <p className="text-primary leading-5 mb-2">
-              Are your children members of the church?
-            </p>
-            <RadioInput name={`${"personal_info"}.has_children`} />
-          </div>
-        </FullWidth>
-        {has_children && <ChildrenSubForm disabled={disabled} />}
-      </FormLayout>
-    </>
+      <WorkInfoSubForm disabled={disabled} prefix="work_info" />
+      <HorizontalLine />
+      {has_children && <ChildrenSubForm disabled={disabled} />}
+    </FormLayout>
   );
 };
 
+export type membersType = "ONLINE" | "IN-HOUSE";
 export interface IMembersForm extends IChildrenSubForm {
-  personal_info: IPersonalDetails;
+  personal_info: IUserSubForm;
   emergency_contact: IEmergencyContact;
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   church_info: {
-    membership_type: "ONLINE" | "IN-HOUSE";
+    membership_type: membersType;
     department_id?: number;
     position_id?: number;
   };
@@ -137,7 +138,7 @@ export interface IMembersForm extends IChildrenSubForm {
 }
 
 const initialValues: IMembersForm = {
-  personal_info: PersonalDetails.initialValues,
+  personal_info: UserSubForm.initialValues,
   contact_info: ContactsSubForm.initialValues,
   work_info: WorkInfoSubForm.initialValues,
   emergency_contact: EmergencyContact.initialValues,
@@ -149,9 +150,40 @@ const initialValues: IMembersForm = {
   },
   ...ChildrenSubForm.initialValues,
 };
+const validationSchema = {
+  personal_info: object(UserSubForm.validationSchema),
+  contact_info: object(ContactsSubForm.validationSchema),
+  work_info: object(WorkInfoSubForm.validationSchema),
+  emergency_contact: object(EmergencyContact.validationSchema),
+  is_user: boolean().required("Required"),
+  church_info: object().shape({
+    member_since: date().max(new Date()),
+    membership_type: string().required("Required"),
+    department_id: number().required("Required"),
+    position_id: number().when("is_user", {
+      is: true,
+      then: () => number().required("Required"),
+    }),
+  }),
+  ...ChildrenSubForm.validationSchema,
+};
+
+// const validationSchema = object({
+//   personal_info: object(UserSubForm.validationSchema),
+//   contact_info: object(ContactsSubForm.validationSchema),
+//   work_info: object(WorkInfoSubForm.validationSchema),
+//   emergency_contact: object(EmergencyContact.validationSchema),
+//   is_user: boolean().required("Required"),
+//   church_info: object().shape({
+//     membership_type: string().required("Required"),
+//     department_id: number().required("Required"),
+//     position_id: number().required("Required"),
+//   }),
+//   ...ChildrenSubForm.validationSchema,
+// });
 
 // export default MembersForm;
 export const MembersForm = Object.assign(MembersFormComponent, {
   initialValues: initialValues,
-  schema: {},
+  validationSchema,
 });

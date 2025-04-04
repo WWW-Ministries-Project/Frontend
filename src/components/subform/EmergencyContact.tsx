@@ -17,6 +17,7 @@ const EmergencyContactComponent = ({
         component={FormikInputDiv}
         label="Name of Contact"
         disabled={disabled}
+        placeholder="Enter name of contact"
         id={`${prefix}.name`}
         name={`${prefix}.name`}
       />
@@ -24,6 +25,7 @@ const EmergencyContactComponent = ({
         component={FormikSelectField}
         label="Relation"
         disabled={disabled}
+        placeholder="Select relation"
         id={`${prefix}.relation`}
         name={`${prefix}.relation`}
         options={relationOptions}
