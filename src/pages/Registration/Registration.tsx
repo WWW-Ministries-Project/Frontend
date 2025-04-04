@@ -20,8 +20,6 @@ import {
   WorkInfoSubForm,
 } from "../../components/subform/WorkInfoSubForm";
 import { baseUrl } from "../Authentication/utils/helpers";
-import { useCountryStore } from "../HomePage/store/coutryStore";
-import { fetchCountries } from "../HomePage/utils";
 import {
   IRegistrationContactSubForm,
   RegistrationContactSubForm,
@@ -33,19 +31,7 @@ const Registration = () => {
     ApiResponse<{ data: IRegistration }>
   >(api.post.createMember);
 
-  const countryStore = useCountryStore();
-
-  // Fetch countries on mount if not already in store
-  useEffect(() => {
-    if (!countryStore.countries.length) {
-      fetchCountries().then((data) => {
-        countryStore.setCountries(data);
-      });
-    }
-  }, [countryStore]);
-
   async function handleSubmit(values: IRegistration) {
-
     let dataToSend: IRegistration = { ...values };
 
     try {
