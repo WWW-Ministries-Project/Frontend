@@ -4,7 +4,7 @@ import useFileUpload from "@/CustomHooks/useFileUpload";
 import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
-  return <div className={`text-primary ${className}`}>{text}</div>;
+  return <div className={`text-dark900 ${className}`}>{text}</div>;
 };
 
 type Signature = {
@@ -42,7 +42,7 @@ export default function AddSignature({
         <div className="flex items-center gap-2 flex-col md:flex-row lg:flex-row">
           <Button
             value="Draw"
-            className="w-fit sm:w-full md:w-ful border border-primary text-primary p-2.5"
+            className="w-fit sm:w-full md:w-ful border border-primary text-dark900 p-2.5"
           />
           <div>
             <input
@@ -54,7 +54,7 @@ export default function AddSignature({
             />
             <label
               htmlFor="file-input"
-              className="cursor-pointer  p-2 flex items-center gap-2 border border-primary rounded-lg text-primary"
+              className="cursor-pointer  p-2 flex items-center gap-2 border border-primary rounded-lg text-dark900"
             >
               <svg
                 width="21"
@@ -131,7 +131,7 @@ export default function AddSignature({
       <div className="flex items-center justify-end gap-2">
         <Button
           value="Cancel"
-          className="w-fit border border-primary text-primary p-2.5"
+          className="w-fit border border-primary text-dark900 p-2.5"
           onClick={() => {
             cancel();
           }}

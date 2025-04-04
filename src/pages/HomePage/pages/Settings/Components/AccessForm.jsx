@@ -37,7 +37,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                         {topOptions.map((option) => {
                             return (
                                 <div className="flex flex-col gap-3 my-7" key={option.key}>
-                                    <div  className='flex justify-between P100 font-semibold text-primary'>
+                                    <div  className='flex justify-between P100 font-semibold text-dark900'>
                                         <div>{option['name']}</div>
                                         {/* <img src="/src/assets/down.svg" alt="down arrow" aria-roledescription='down' className="cursor-pointer" ref={permissionBlock} onClick={handleHideBlock} /> */}
                                         <div className="cursor-pointer text-gray down" onClick={handleHideBlock}><img src={arrowDown} alt="arrow down" /></div>
@@ -59,7 +59,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                 <div className="flex gap-2 justify-end mt-10">
                         <Button
                             value="Close"
-                            className={" p-3 bg-white border border-[#F5F5F5] text-primary"}
+                            className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
                             onClick={CloseForm}
                         />
                         <Button value={buttonText} className={" p-3 text-white bg-primary"} onClick={handleSubmit} loading={loading} />

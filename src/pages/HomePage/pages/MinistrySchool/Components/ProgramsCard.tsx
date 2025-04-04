@@ -100,7 +100,7 @@ const ProgramsCard = ({
   };
 
   return (
-    <CardWrappers key={program.id} className={"border border-1 border-lightGray p-4 rounded-lg space-y-3 text-primary flex flex-col"}>
+    <CardWrappers key={program.id} className={"border border-1 border-lightGray p-4 rounded-lg space-y-3 text-dark900 flex flex-col"}>
       <div className="space-y-1">
       <div className="flex justify-between gap-2">
         <div className="text-lg font-semibold">{program.title}</div>
@@ -141,7 +141,7 @@ const ProgramsCard = ({
                       <p>{formatTime(cohort.startDate)}</p>
                     </div>
                   </div>
-                  <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">{cohort.status}</Badge>
+                  <Badge className="text-sm bg-primary/10 text-dark900 border border-lightGray">{cohort.status}</Badge>
                 </div>
               </div>
             ))}
@@ -164,7 +164,7 @@ const ProgramsCard = ({
         </div>
         <div>
           <div className="relative" ref={menuRef}>
-            <button className="text-primary" onClick={() => toggleMenu(program.id)}>
+            <button className="text-dark900" onClick={() => toggleMenu(program.id)}>
               <img src={ellipse} alt="options" className="cursor-pointer" />
             </button>
             {isMenuOpen === program.id && (

@@ -75,7 +75,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
         <FullWidth>
           <div className="flex flex-col">
-            <p className="text-primary leading-5 mb-2">
+            <p className="text-dark900 leading-5 mb-2">
               Is this member a ministry worker?
             </p>
             <RadioInput name="is_user" />
@@ -111,7 +111,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         <HorizontalLine />
         <FullWidth>
           <div className="flex flex-col">
-            <p className="text-primary leading-5 mb-2">
+            <p className="text-dark900 leading-5 mb-2">
               Are your children members of the church?
             </p>
             <RadioInput name={`${"personal_info"}.has_children`} />

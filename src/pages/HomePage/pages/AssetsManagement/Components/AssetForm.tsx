@@ -28,7 +28,7 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
     >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
-          <h2 className="H400 text-primary font-bold">Asset Information</h2>
+          <h2 className="H400 text-dark900 font-bold">Asset Information</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
@@ -120,7 +120,7 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
           {!disabled && <div className="flex gap-4 justify-end mt-4">
             <Button
               value="Cancel"
-              className="p-2 px-4 text-primary bg-transparent border"
+              className="p-2 px-4 text-dark900 bg-transparent border"
               onClick={() => window.history.back()}
             />
             <Button

@@ -10,7 +10,7 @@ const MinistrySchoolCard = ({ enrollment }: MinistrySchoolCardProps) => {
     return (
       <div className="bg-white p-4 rounded-b-xl space-y-4">
         <div className="flex justify-between item-center">
-          <div className="font-bold text-xl text-primary">School of Ministry</div>
+          <div className="font-bold text-xl text-dark900">School of Ministry</div>
         </div>
 
         {/* Empty state */}
@@ -34,9 +34,9 @@ const MinistrySchoolCard = ({ enrollment }: MinistrySchoolCardProps) => {
   const progressPercentage = (completedTopics / totalTopics) * 100;
 
   return (
-    <div className="bg-white p-4 rounded-b-xl space-y-4 text-primary">
+    <div className="bg-white p-4 rounded-b-xl space-y-4 text-dark900">
       <div className="flex justify-between item-center">
-        <div className="font-bold text-xl text-primary">School of Ministry</div>
+        <div className="font-bold text-xl text-dark900">School of Ministry</div>
       </div>
 
       {/* List of programs */}

@@ -132,7 +132,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
   // Form UI Rendering
   return (
-    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4 overflow-auto">
+    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-dark900 space-y-4 overflow-auto">
       <div className="text-lg font-bold">
         {selectedClass?.eligibility === "Both" ? "Enroll Student" : `Enroll as ${selectedClass?.eligibility}`}
       </div>
@@ -146,7 +146,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             {/* Is Member Question */}
             {selectedClass?.eligibility === "Both" && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-primary">Is the student a member?</label>
+                <label className="text-sm font-medium text-dark900">Is the student a member?</label>
                 <Field
                   type="radio"
                   name="isMember"
@@ -160,7 +160,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             {/* Member Dropdown */}
             {selectedClass?.eligibility !== "Non_Members" && (
               <div>
-                <label htmlFor="member" className="text-sm font-medium text-primary">
+                <label htmlFor="member" className="text-sm font-medium text-dark900">
                   Select Member
                 </label>
                 <Select
@@ -177,7 +177,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* First Name, Last Name, Email, Phone (disabled for members) */}
             <div className="space-y-2">
-              <label htmlFor="firstName" className="block text-sm font-medium text-primary">
+              <label htmlFor="firstName" className="block text-sm font-medium text-dark900">
                 First Name *
               </label>
               <Field
@@ -195,7 +195,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="lastName" className="block text-sm font-medium text-primary">
+              <label htmlFor="lastName" className="block text-sm font-medium text-dark900">
                 Last Name *
               </label>
               <Field
@@ -214,7 +214,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* Email */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-primary">
+              <label htmlFor="email" className="block text-sm font-medium text-dark900">
                 Email *
               </label>
               <Field
@@ -231,7 +231,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* Phone Number */}
             <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium text-primary">
+              <label htmlFor="phone" className="block text-sm font-medium text-dark900">
                 Phone Number
               </label>
               <Field
@@ -246,7 +246,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({ selectedClass, onClose, f
 
             {/* Submit Button */}
             <div className="flex gap-4 mt-4">
-              <button type="button" onClick={onClose} className="border border-primary text-primary px-6 py-2 rounded-lg">
+              <button type="button" onClick={onClose} className="border border-primary text-dark900 px-6 py-2 rounded-lg">
                 Cancel
               </button>
               <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg" disabled={loading}>

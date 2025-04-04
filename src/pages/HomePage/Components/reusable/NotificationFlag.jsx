@@ -9,7 +9,7 @@ function NotificationFlag (props) {
         <div className='relative mb-4'>
             <p 
             onClick={props.onClose} 
-            className="text-xs cursor-pointer hover:bg-primary hover:text-white flex text-primary outline outline-1 outline-primary rounded-full justify-center items-center h-5 w-5 absolute right-2 my-2">
+            className="text-xs cursor-pointer hover:bg-primary hover:text-white flex text-dark900 outline outline-1 outline-primary rounded-full justify-center items-center h-5 w-5 absolute right-2 my-2">
             X
           </p>
             <div className={"w-full flex items-center bg-white rounded-xl"+props.className}>
@@ -17,7 +17,7 @@ function NotificationFlag (props) {
                     <img src="/assets/home/notification.svg" alt="" className='rounded-s-xl h-'/>
                 </div>
                 <div className="px-5 ">
-                    <h3 className="text-primary text-lg font-bold">Good afternoon {props.name}!</h3>
+                    <h3 className="text-dark900 text-lg font-bold">Good afternoon {props.name}!</h3>
                     <p className="text-gray">Welcome to your world wide ministries admin dashboard. You can track your contacts and membership information all in one place. Filter the data to view the most relevant information you need.</p>
                 </div>
             </div>

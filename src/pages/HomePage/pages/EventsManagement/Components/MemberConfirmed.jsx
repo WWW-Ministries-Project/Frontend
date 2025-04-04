@@ -5,7 +5,7 @@ const MemberConfirmed = () => {
         <div>
                     <div className='w-full flex flex-col items-center gap-4'>
                         <img src={success} alt="success image" />
-                        <h2 className='H400 text-primary'>Attendance recorded successfully</h2>
+                        <h2 className='H400 text-dark900'>Attendance recorded successfully</h2>
                     </div>
                 </div>
     );

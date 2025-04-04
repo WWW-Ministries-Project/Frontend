@@ -37,7 +37,7 @@ interface ViewModeProps {
 
 const MemberInformationViewMode: React.FC<ViewModeProps> = ({ user }) => {
   return (
-    <div className="bg-white rounded-lg container  w-full mx-auto text-primary space-y-6">
+    <div className="bg-white rounded-lg container  w-full mx-auto text-dark900 space-y-6">
       {/* Membership Status */}
       <section className="">
         <h2 className="text-xl font-bold ">Membership Status</h2>

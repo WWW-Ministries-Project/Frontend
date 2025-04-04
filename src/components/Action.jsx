@@ -9,7 +9,7 @@ const ActionButton = React.memo(({ text, onClick }) => {
   return (
     <li
       onClick={onClick}
-      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-base hover:bg-[#E0D7F3] hover:text-primary`}
+      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-base hover:bg-[#E0D7F3] hover:text-dark900`}
       onMouseOver={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -37,7 +37,7 @@ const Action = ({ isEditable = true, ...props }) => {
         props.className
       }
     >
-      <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-2">
+      <ul className="!divide-lightGray py-2 text-sm text-dark900 flex flex-col gap-y-2">
         {isEditable && <ActionButton onClick={handleEdit} text="Edit" />}
         <ActionButton onClick={handleView} text="View" />
         {!props.hideDelete && (

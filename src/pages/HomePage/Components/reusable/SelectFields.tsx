@@ -29,7 +29,7 @@ function SelectField(props: SelectFieldProps) {
 
   return (
     <div>
-      <div className={"flex text-primary  flex-col gap-1 " + props.className}>
+      <div className={"flex text-dark900  flex-col gap-1 " + props.className}>
         <label className='font-semibold' htmlFor={props.id}>{props.label}</label>
         <select
           name={props.id}

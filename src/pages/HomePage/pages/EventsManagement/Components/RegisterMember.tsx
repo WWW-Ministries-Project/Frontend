@@ -28,7 +28,7 @@ const RegisterMember:React.FC<RegisterMemberProps> = ({memberDetails, name, load
     return (
         <div className="">
             <h2 className="H400">Welcome to {name}</h2>
-            <p className='text-sma text-primary'>Member is new Please fill in the form below to capture attendance</p>
+            <p className='text-sma text-dark900'>Member is new Please fill in the form below to capture attendance</p>
             <div className="mt-4 flex flex-col gap-4">
                 <InputDiv type='text' id='first_name' label="First Name" placeholder='Enter first name' value={memberDetails.first_name} onChange={handleChange}  />
                 <InputDiv type='text' id='last_name' label="Last Name" placeholder='Enter last name' value={memberDetails.last_name} onChange={handleChange}  />
@@ -40,7 +40,7 @@ const RegisterMember:React.FC<RegisterMemberProps> = ({memberDetails, name, load
                 <SelectField options={[{name:'Male',value:"Male"},{name:'Female',value:"Female"}]} id='gender' label='Gender' placeholder="Select Gender" onChange={handleChange} />
                 {/* <SelectField options={[{name:'Male',value:"male"},{name:'females',value:"female"}]} label='Memebership status' placeholder="Select Membership status" /> */}
                 <div className="flex justify-between my-4">
-                    <Button value="Cancel" className="text-primary bg-transparent w-40 p-1 border rounded-lg"onClick={handleCancel} />
+                    <Button value="Cancel" className="text-dark900 bg-transparent w-40 p-1 border rounded-lg"onClick={handleCancel} />
                     <Button value="Save" className="text-white w-40 p-2 bg-primary border rounded-lg" loading={loading} onClick={handleSubmit}  disabled={!memberDetails.first_name || !memberDetails.phone_number || loading} />
                 </div>
             </div>

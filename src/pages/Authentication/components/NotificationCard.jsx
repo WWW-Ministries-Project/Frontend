@@ -11,7 +11,7 @@ const NotificationCard = (props) => {
               <img src={props.src} alt="" />
             </div>
             <div className="">
-              <div className="text-center text-[19px] text-primary font-medium mb-2 ">{props.header}</div>
+              <div className="text-center text-[19px] text-dark900 font-medium mb-2 ">{props.header}</div>
               <div className="text-center text-gray text-sma mb-8">
                 {props.text}
               </div>

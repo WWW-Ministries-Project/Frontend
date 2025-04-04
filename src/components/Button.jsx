@@ -12,10 +12,10 @@ const Button = (props) => {
       className = "border p-2 text-white bg-primary ";
       break;
     case "secondary":
-      className = "border border-primary text-primary";
+      className = "border border-primary text-dark900";
       break;
     case "tertiary":
-      className = " text-primary ";
+      className = " text-dark900 ";
       break;
     case "default":
       className = " text-white bg-primary ";

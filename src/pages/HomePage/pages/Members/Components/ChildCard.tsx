@@ -46,7 +46,7 @@ const ChildCard = ({ child, onAddChild }: ChildCardProps) => {
     return (
         <div className="bg-white p-4 rounded-b-xl space-y-4">
           <div className="flex justify-between item-center">
-            <div className="font-bold text-xl text-primary">Children</div>
+            <div className="font-bold text-xl text-dark900">Children</div>
           </div>
           
           {/* Empty state */}
@@ -66,7 +66,7 @@ const ChildCard = ({ child, onAddChild }: ChildCardProps) => {
   return (
     <div className="bg-white p-4 rounded-b-xl space-y-4">
         <div className="flex justify-between item-center">
-          <div className="font-bold text-xl text-primary">Children</div>
+          <div className="font-bold text-xl text-dark900">Children</div>
         </div>
         <div className="bg-white rounded-lg overflow-hidden w-full p-4 border border-lightGray transition-shadow hover:shadow-sm">
         
@@ -75,7 +75,7 @@ const ChildCard = ({ child, onAddChild }: ChildCardProps) => {
           {/* Profile picture */}
           <div>
             <ProfilePic
-              className="w-16 h-16 outline outline-primary outline-1 text-primary bg-primary/10"
+              className="w-16 h-16 outline outline-primary outline-1 text-dark900 bg-primary/10"
               src={child?.src}
               alt={child?.name ? `${child.name}'s profile` : "Child profile"}
               name={child?.name}
@@ -85,10 +85,10 @@ const ChildCard = ({ child, onAddChild }: ChildCardProps) => {
   
           {/* Child info */}
           <div className="flex-1 min-w-0">
-            <div className="text-primary font-medium truncate">
+            <div className="text-dark900 font-medium truncate">
               {child?.name || "Unnamed Child"}
             </div>
-            <div className="flex text-primary text-sm gap-x-2 mt-1">
+            <div className="flex text-dark900 text-sm gap-x-2 mt-1">
               <p className="font-medium">Age:</p> 
               {calculateAge(child?.user_info?.date_of_birth)} years
             </div>

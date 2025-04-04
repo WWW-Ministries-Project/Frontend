@@ -132,7 +132,7 @@ const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEd
         <div className="relative">
           <button
             ref={buttonRef} // Reference to the button
-            className="text-primary"
+            className="text-dark900"
             onClick={() => toggleMenu(Number(classItem.id))} // Pass cohort.id as a number
           >
             <img src={ellipse} alt="options" className="cursor-pointer" />

@@ -56,7 +56,7 @@ const ContactInputComponent = ({
 
   return (
     <div>
-      <p className="text-primary font-semibold">{label}</p>
+      <p className="text-dark900 font-semibold">{label}</p>
       <div className="flex items-center w-full">
         {/* Country Code Input */}
         <div className="relative w-20">

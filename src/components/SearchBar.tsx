@@ -12,7 +12,7 @@ function SearchBar(props: ISearchBar): JSX.Element {
   return (
     <>
       <div className={"flex items-center bg-white  "+props.className}>
-        <form className="w-full text-primary flex items-center   font-normal leading-6">
+        <form className="w-full text-dark900 flex items-center   font-normal leading-6">
           <img
             role="submit button"
             src={search}

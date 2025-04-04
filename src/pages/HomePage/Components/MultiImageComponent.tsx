@@ -115,7 +115,7 @@ const MultiImageComponent = ({
   return (
     <div>
       {placeholder && (
-        <p className="font-semibold text-primary pb-1 ">{placeholder}</p>
+        <p className="font-semibold text-dark900 pb-1 ">{placeholder}</p>
       )}
       <div
         className={`flex p-2 overflow-auto flex-wrap gap-2 items-center justify-center   w-full h-[9.5rem] border border-dashed rounded-xl focus:outline-none`}

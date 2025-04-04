@@ -123,13 +123,13 @@ function LoginPage() {
           <div className="text-lightGray text-sm">
             <div className="mb-4">
               Forgot Password?{" "}
-              <Link to="/forgot-password" className="text-primary">
+              <Link to="/forgot-password" className="text-dark900">
                 Reset
               </Link>
             </div>
             {/* <div className="">
               Don't have an account?{" "}
-              <span className="text-primary">Register</span>
+              <span className="text-dark900">Register</span>
             </div> */}
           </div>
 

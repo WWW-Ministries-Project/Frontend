@@ -85,7 +85,7 @@ fetchCohortData()
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
+    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-dark900 space-y-4 overflow-auto">
       <div>
         <div className="text-lg font-bold">{initialData?.id ? "Edit Class" : "Add New Class"}</div>
         <div className="text-sm mb-4">
@@ -103,7 +103,7 @@ fetchCohortData()
             <div className="grid lg:grid-cols-2 gap-4">
               {/* Class Name */}
               <div className="w-full">
-                <label htmlFor="name" className="block text-sm font-medium text-primary">
+                <label htmlFor="name" className="block text-sm font-medium text-dark900">
                   Class Name *
                 </label>
                 <Field
@@ -120,7 +120,7 @@ fetchCohortData()
 
               {/* Instructor */}
               <div className="w-full">
-                <label htmlFor="instructor" className="block text-sm font-medium text-primary">
+                <label htmlFor="instructor" className="block text-sm font-medium text-dark900">
                   Instructor *
                 </label>
                 <Field
@@ -138,7 +138,7 @@ fetchCohortData()
 
             {/* Capacity */}
             <div className="w-full">
-              <label htmlFor="capacity" className="block text-sm font-medium text-primary">
+              <label htmlFor="capacity" className="block text-sm font-medium text-dark900">
                 Capacity *
               </label>
               <Field
@@ -155,7 +155,7 @@ fetchCohortData()
 
             {/* Schedule */}
             <div className="w-full">
-              <label htmlFor="schedule" className="block text-sm font-medium text-primary">
+              <label htmlFor="schedule" className="block text-sm font-medium text-dark900">
                 Schedule *
               </label>
               <Field
@@ -172,7 +172,7 @@ fetchCohortData()
 
             {/* Class Format */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-primary">Class Format *</label>
+              <label className="block text-sm font-medium text-dark900">Class Format *</label>
               <div className="flex flex-col space-y-2">
                 <label>
                   <Field
@@ -210,7 +210,7 @@ fetchCohortData()
             {/* Location */}
             {(values.classFormat === "In_Person" || values.classFormat === "Hybrid") && (
               <div className="w-full">
-                <label htmlFor="location" className="block text-sm font-medium text-primary">
+                <label htmlFor="location" className="block text-sm font-medium text-dark900">
                   Location *
                 </label>
                 <Field
@@ -229,7 +229,7 @@ fetchCohortData()
             {/* Meeting Link */}
             {(values.classFormat === "Online" || values.classFormat === "Hybrid") && (
               <div className="w-full">
-                <label htmlFor="meetingLink" className="block text-sm font-medium text-primary">
+                <label htmlFor="meetingLink" className="block text-sm font-medium text-dark900">
                   Meeting Link *
                 </label>
                 <Field
@@ -250,7 +250,7 @@ fetchCohortData()
               <button
                 type="button"
                 onClick={onClose}
-                className="border border-primary text-primary px-6 py-2 rounded-lg"
+                className="border border-primary text-dark900 px-6 py-2 rounded-lg"
               >
                 Cancel
               </button>

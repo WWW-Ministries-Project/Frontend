@@ -85,7 +85,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
                   <div className="h-10 bg-lightGray rounded w-1/3"></div>
                 </div> : 
                   <div>
-                  {primaryButton&&<Button value={`${primaryButton}`} onClick={onPrimaryButtonClick} className="p-2 m-1 bg-white min-h-10 max-h-14 text-primary" />}
+                  {primaryButton&&<Button value={`${primaryButton}`} onClick={onPrimaryButtonClick} className="p-2 m-1 bg-white min-h-10 max-h-14 text-dark900" />}
                   {secondaryButton&&<Button value={`${secondaryButton}`} onClick={onSecondaryButtonClick} className="p-2 m-1 border border-white min-h-10 max-h-14 text-white" />}
                   </div>}
                 </div>
@@ -127,7 +127,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
               <p className="text-white text-lg font-semibold">Topics</p>
               <div className="flex flex-wrap gap-2">
                 {Data?.topics.map((topic, index) => (
-                  <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-primary">
+                  <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
                     {topic?.name||topic}
                   </Badge>
                 ))}

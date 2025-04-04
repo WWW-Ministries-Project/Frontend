@@ -141,7 +141,7 @@ const ViewCohort = () => {
               {/* Classes */}
                   <div className="flex justify-between items-center">
                   <div className="">
-              <h1 className="text-primary text-2xl font-bold">Class</h1>
+              <h1 className="text-dark900 text-2xl font-bold">Class</h1>
             </div>
                     <Button value="Add Class" className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary" 
                     onClick={() => setIsModalOpen(true)}
@@ -175,7 +175,7 @@ const ViewCohort = () => {
                         </div>
                         <Badge className="text-xs bg-primary text-white">{cohort?.status}</Badge>
                         </div>
-                      <Button value="Edit Cohort" className="p-2 m-1 bg-white min-h-10 max-h-14 text-primary" />
+                      <Button value="Edit Cohort" className="p-2 m-1 bg-white min-h-10 max-h-14 text-dark900" />
                       
                     </div>
                     <div className="text-sm">

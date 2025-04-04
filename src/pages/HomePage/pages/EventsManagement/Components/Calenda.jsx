@@ -158,13 +158,13 @@ const Calendar = ({ events,...props }) => {
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
-              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-primary'></div>
+              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-dark900'></div>
               <p className=''>{event.start_time}</p>
               <p className='truncate'>{event.name}</p>
             </div>
           ))}
           {(dayEvents.length >= eventsToShow) && (
-            <div className="text-primary text-xs font-bold" onClick={(e) => handleDayClick(e, dayEvents)}>
+            <div className="text-dark900 text-xs font-bold" onClick={(e) => handleDayClick(e, dayEvents)}>
               {dayEvents.length - eventsToShow} more event{dayEvents.length - eventsToShow > 1 ? 's' : ''}
             </div>
           )}
@@ -185,20 +185,20 @@ const Calendar = ({ events,...props }) => {
           style={{ height: '15vh', cursor: 'pointer' }}
         >
           {isToday && (
-            <div className="h-6 w-6 border rounded-full border-primary flex items-center justify-center text-primary">
+            <div className="h-6 w-6 border rounded-full border-primary flex items-center justify-center text-dark900">
               {day}
             </div>
           )}
           {!isToday && day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
-              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-primary'></div>
+              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-dark900'></div>
               <p className=''>{event.start_time}</p>
               <p className='truncate'>{event.name}</p>
             </div>
           ))}
           {dayEvents.length > eventsToShow && (
-            <div className="text-primary text-xs font-bold" 
+            <div className="text-dark900 text-xs font-bold" 
             onClick={(e) => handleDayClick(e, dayEvents)}>
               {dayEvents.length - eventsToShow} more event{dayEvents.length - eventsToShow > 1 ? 's' : ''}
             </div>
@@ -220,13 +220,13 @@ const Calendar = ({ events,...props }) => {
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
-              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-primary'></div>
+              <div className='h-2 w-2 border rounded-full border-primary bg-primary  text-dark900'></div>
               <p className=''>{event.start_time}</p>
               <p className='truncate'>{event.name}</p>
             </div>
           ))}
           {dayEvents.length > eventsToShow && (
-            <div className="text-primary text-xs font-bold" onClick={(e) => handleDayClick(e, dayEvents)}>
+            <div className="text-dark900 text-xs font-bold" onClick={(e) => handleDayClick(e, dayEvents)}>
               {dayEvents.length - eventsToShow} more event{dayEvents.length - eventsToShow > 1 ? 's' : ''}
             </div>
           )}
@@ -250,7 +250,7 @@ const Calendar = ({ events,...props }) => {
       </div>
       <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto  ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-          <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-primary font-bold">{day}</div>
+          <div key={index} className="border border-[#dcdcdc] p-2 bg-gray-100 text-center text-dark900 font-bold">{day}</div>
         ))}
         {renderDays()}
       </div>
@@ -278,8 +278,8 @@ const Calendar = ({ events,...props }) => {
                 <ul>
                   {selectedDayEvents.map(event => (
                     <li key={event.id} className="my-2">
-                      <div className="flex text-xs gap-1 cursor-pointer hover:text-primary items-center " onClick={(e) => handleEventClick(e, event)}>
-                        <div className='h-2 w-2 border rounded-full border-primary bg-primary text-primary '></div>
+                      <div className="flex text-xs gap-1 cursor-pointer hover:text-dark900 items-center " onClick={(e) => handleEventClick(e, event)}>
+                        <div className='h-2 w-2 border rounded-full border-primary bg-primary text-dark900 '></div>
                         <p className=''>{event.start_time} - {event.end_time}</p>
                         <p>{event.name}</p>
                       </div>

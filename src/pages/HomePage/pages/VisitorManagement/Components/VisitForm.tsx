@@ -168,7 +168,7 @@ const VisitForm: React.FC<VisitFormProps> = ({ visitorId, onClose, initialData, 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="border border-primary text-primary px-6 py-2 rounded-lg"
+                  className="border border-primary text-dark900 px-6 py-2 rounded-lg"
                 >
                   Close
                 </button>

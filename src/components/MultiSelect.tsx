@@ -59,7 +59,7 @@ const Multiselect: React.FC<MultiselectProps> = ({ options, selectedValues, onCh
               return (
                 <div
                   key={value}
-                  className="flex items-center my-2 bg-primary/10 text-primary text-sm font-medium px-2 py-1 rounded-full"
+                  className="flex items-center my-2 bg-primary/10 text-dark900 text-sm font-medium px-2 py-1 rounded-full"
                 >
                   <span>{selectedOption?.label}</span>
                   <button
@@ -68,7 +68,7 @@ const Multiselect: React.FC<MultiselectProps> = ({ options, selectedValues, onCh
                       e.stopPropagation(); // Prevent dropdown from closing
                       removeSelectedValue(value);
                     }}
-                    className="ml-2 text-primary/60 hover:text-primary"
+                    className="ml-2 text-dark900/60 hover:text-dark900"
                   >
                     ×
                   </button>

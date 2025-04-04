@@ -70,7 +70,7 @@ const MemberInformation = () => {
                     <Button
                       value={"Cancel"}
                       onClick={handleCancel}
-                      className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-primaryViolet "
+                      className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-dark900Violet "
                     />
                     <Button
                       value={"Save"}

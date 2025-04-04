@@ -9,7 +9,7 @@ const SelectField = (props) => {
       }
     return (
         <div>
-            <div className={"flex flex-col gap-1 text-primary  "+props.className}>
+            <div className={"flex flex-col gap-1 text-dark900  "+props.className}>
                 <label className='font-semibold'  htmlFor={props.id}>{props.label}</label>
                 <select name={props.id} id={props.id} className="p-2 rounded-lg border border-primary" onChange={handleChange} value={props.value} disabled={props.disabled}>
                     <option value="">{props.placeholder}</option>

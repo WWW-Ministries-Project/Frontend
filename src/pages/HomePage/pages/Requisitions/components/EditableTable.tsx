@@ -102,7 +102,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
       {isEditable && (
         <Button
           value="+ Add item"
-          className="font-bold text-primary cursor-pointer float-right"
+          className="font-bold text-dark900 cursor-pointer float-right"
           onClick={addRow}
         />
       )}

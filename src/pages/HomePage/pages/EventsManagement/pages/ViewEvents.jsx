@@ -128,7 +128,7 @@ const ViewEvents = () => {
                         {/* Event Attendees Section */}
                         <section className="w-full container">
                             <div className="w-full mb-2">
-                                <h2 className="H400 text-primary">Event Attendees</h2>
+                                <h2 className="H400 text-dark900">Event Attendees</h2>
                             </div>
                             <div>
                                 {queryLoading ? (
@@ -167,7 +167,7 @@ const ViewEvents = () => {
                             />
                             <Button
                                 value="Cancel"
-                                className="px-4 text-primary border border-primary"
+                                className="px-4 text-dark900 border border-primary"
                                 loading={loading}
                                 disabled={loading}
                                 onClick={() => {

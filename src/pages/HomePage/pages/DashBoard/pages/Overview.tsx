@@ -27,7 +27,7 @@ const Overview = () => {
   }, [upcomingEvents]);
 
   return (
-    <div className="space-y-4 text-primary">
+    <div className="space-y-4 text-dark900">
       <section>
         <div className="flex gap-4">
           <StatsCard

@@ -89,7 +89,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
         <section className="py-4 space-y-2 rounded-t-lg">
           <div className=" flex justify-between">
             <div className="">
-              <h1 className="text-primary text-2xl font-bold">All Cohorts</h1>
+              <h1 className="text-dark900 text-2xl font-bold">All Cohorts</h1>
             </div>
 
             <div>
@@ -105,7 +105,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
         
        
           <section className="">
-          <div className=" text-primary">
+          <div className=" text-dark900">
             <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
               {cohorts?.map((cohort) => (
                 <div key={cohort.id} className="border border-lightGray rounded-lg p-4 space-y-3">
@@ -114,8 +114,8 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
                     <Badge
                       className={`text-xs border-lightGray ${
                         cohort?.status === "Active"
-                          ? "bg-primary/20 text-primary"
-                          : "bg-yellow-100 text-primary"
+                          ? "bg-primary/20 text-dark900"
+                          : "bg-yellow-100 text-dark900"
                       }`}
                     >
                       {cohort.status}
@@ -142,7 +142,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
                     <div className="relative">
                       <button
                         ref={buttonRef} // Reference to the button
-                        className="text-primary"
+                        className="text-dark900"
                         onClick={() => toggleMenu(cohort.id)}
                       >
                         <img src={ellipse} alt="options" className="cursor-pointer" />

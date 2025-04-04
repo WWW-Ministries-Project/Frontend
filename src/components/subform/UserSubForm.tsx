@@ -34,13 +34,13 @@ const UserSubFormComponent = ({
           onChange={(obj) => {
             setFieldValue(`${prefix}.picture`, obj);
           }}
-          textClass={"text-3xl text-primary"}
+          textClass={"text-3xl text-dark900"}
         />
       </FullWidth>
       <PersonalDetails prefix={prefix} />
       <FullWidth>
         <div className="flex flex-col">
-          <p className="text-primary leading-5 mb-2">
+          <p className="text-dark900 leading-5 mb-2">
             Are your children members of the church?
           </p>
           <RadioInput name={`${prefix}.has_children`} />

@@ -75,7 +75,7 @@ const ViewCertificate = ({ loading }: any) => {
         .font-semibold {
           font-weight: 600;
         }
-        .text-primary {
+        .text-dark900 {
           color: #6539C3;
         }
         .border-4 {
@@ -125,7 +125,7 @@ const ViewCertificate = ({ loading }: any) => {
         </div>
         <div className="p-6 flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center">
-            <div className="h-8 w-8 animate-spin text-primary mb-4"></div>
+            <div className="h-8 w-8 animate-spin text-dark900 mb-4"></div>
             <p className="text-muted-foreground">Generating certificate...</p>
           </div>
         </div>
@@ -154,7 +154,7 @@ const ViewCertificate = ({ loading }: any) => {
 
   return (
     <div className="p-4">
-      <PageOutline className="p-0 text-primary">
+      <PageOutline className="p-0 text-dark900">
         <div className="flex items-center p-4 border-b border-lightGray print:hidden">
           <h1 className="text-xl font-semibold ml-2">Certificate of Completion</h1>
           <div className="ml-auto flex gap-2">

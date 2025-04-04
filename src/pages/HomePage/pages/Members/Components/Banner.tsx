@@ -81,7 +81,7 @@ const Banner: React.FC<BannerProps> = (props) => {
             </div>
             
             :props.membership_type&&<div className="md:w-2/3">
-              <Badge className="text-sm border-primary bg-white border text-primary ">
+              <Badge className="text-sm border-primary bg-white border text-dark900 ">
                 {props.membership_type?"Online e-church family":" In-person church family"}
               </Badge>
             </div>}
@@ -94,7 +94,7 @@ const Banner: React.FC<BannerProps> = (props) => {
             <Button
               value="Edit Profile"
               onClick={handleClick}
-              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
+              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-dark900"
             />
           </div>
         )}

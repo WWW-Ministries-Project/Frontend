@@ -79,7 +79,7 @@ function TableComponent<TData>({
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
-                  className="bg-lightGray text-primary  border-b border-lightGray"
+                  className="bg-lightGray text-dark900  border-b border-lightGray"
                 >
                   {headerGroup.headers.map((header) => (
                     <th
@@ -102,7 +102,7 @@ function TableComponent<TData>({
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-b border-x border-lightGray text-primary h-16 leading-6 hover:bg-lightGray/20 cursor-pointer ${rowClass}`}
+                  className={`border-b border-x border-lightGray text-dark900 h-16 leading-6 hover:bg-lightGray/20 cursor-pointer ${rowClass}`}
                   onClick={() => handleRowClick(row)}
                 >
                   {row.getVisibleCells().map((cell) => (

@@ -186,7 +186,7 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
           <div className="">
             {editMode ? (
              <div className="space-x-4">
-              <button className={`px-6 py-2 rounded-lg border border-primary text-primary`} onClick={onCancel}>
+              <button className={`px-6 py-2 rounded-lg border border-primary text-dark900`} onClick={onCancel}>
                 Cancel
               </button>
                <button className={`px-6 py-2 rounded-lg bg-primary text-white`} onClick={updateTopics}>
@@ -195,7 +195,7 @@ const TopicAssessment: React.FC<{ topics: Topic[]; editMode: boolean; enrollment
              </div>
             ) : (
               <button
-                className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-primary"}`}
+                className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-dark900"}`}
                 disabled={!isGenerateEnabled}
                 onClick={handleGenerateCertificate}
               >

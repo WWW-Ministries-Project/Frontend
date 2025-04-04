@@ -6,7 +6,7 @@ const MemberConfirmation = ({memberDetails,handleConfirm,loading}) => {
     return (
         <div>
                     <h2 className='H400'>Confirmation</h2>
-                    <p className='text-sma text-primary'>Confirm if the details below are yours</p>
+                    <p className='text-sma text-dark900'>Confirm if the details below are yours</p>
                     <div className='w-full mt-10'>
                         <InputDiv label="Name" inputClass="border border-2 mb-4" value={memberDetails.name} type="tel" id="phone_number" disabled={true} />
                         <InputDiv label="Phone number" inputClass="border border-2" value={memberDetails.primary_number} type="tel" id="phone_number" disabled={true} />

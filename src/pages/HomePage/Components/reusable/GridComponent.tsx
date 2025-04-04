@@ -67,7 +67,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
             onClick={() => table.setPageIndex(0)}
             className={
               table.getCanPreviousPage()
-                ? "border border-primary p-1 sm rounded-md text-primary"
+                ? "border border-primary p-1 sm rounded-md text-dark900"
                 : "border border-lightGray p-1 rounded-md opacity-50"
             }
           >
@@ -77,7 +77,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
           <button
             className={
               table.getCanPreviousPage()
-                ? "border border-primary p-1 rounded-md text-primary"
+                ? "border border-primary p-1 rounded-md text-dark900"
                 : "border border-lightGray p-1 rounded-md opacity-50"
             }
             disabled={!table.getCanPreviousPage()}
@@ -89,7 +89,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
           <button
             className={
               table.getCanNextPage()
-                ? "border border-primary p-1 rounded-md text-primary"
+                ? "border border-primary p-1 rounded-md text-dark900"
                 : "border border-lightGray p-1 rounded-md opacity-50"
             }
             disabled={!table.getCanNextPage()}
@@ -101,7 +101,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
           <button
             className={
               table.getCanNextPage()
-                ? "border border-primary p-1 rounded-md text-primary"
+                ? "border border-primary p-1 rounded-md text-dark900"
                 : "border border-lightGray p-1 rounded-md opacity-50"
             }
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}

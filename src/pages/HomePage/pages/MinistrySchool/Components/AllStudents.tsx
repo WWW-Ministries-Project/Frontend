@@ -55,7 +55,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
           <div className="flex gap-x-4">
             {/* Export Button */}
           {/* <div>
-          <button className="border border-primary text-primary px-4 py-2 rounded-lg">
+          <button className="border border-primary text-dark900 px-4 py-2 rounded-lg">
             Export List
           </button>
           </div> */}
@@ -76,7 +76,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
           {["All Students", "Active", "Inactive", "Completed", "In Progress", "Not Started"].map((tab) => (
             <button
               key={tab}
-              className={`px-4 py-2 rounded-lg ${selectedTab === tab ? "bg-lightGray text-primary font-bold" : " text-primary"}`}
+              className={`px-4 py-2 rounded-lg ${selectedTab === tab ? "bg-lightGray text-dark900 font-bold" : " text-dark900"}`}
               onClick={() => setSelectedTab(tab)}
             >
               {tab}
@@ -99,7 +99,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
             ]}
           /> */}
           <table className="min-w-full table-auto">
-            <thead className="text-primary">
+            <thead className="text-dark900">
               <tr>
                 <th className="px-4 py-2 text-left">First Name</th>
                 <th className="px-4 py-2 text-left">Last Name</th>
@@ -129,10 +129,10 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-2"><Badge className="md:w-2/3 text-xs border border-lightGray text-primary ">{student?.userId? "Member":"Non-member"}</Badge></td>
+                  <td className="px-4 py-2"><Badge className="md:w-2/3 text-xs border border-lightGray text-dark900 ">{student?.userId? "Member":"Non-member"}</Badge></td>
                   <td className="px-4 py-2">
                   <div className="relative " ref={menuRef}>
-            <button className="text-primary" onClick={() => navigate(`student/${student?.id}`)}>
+            <button className="text-dark900" onClick={() => navigate(`student/${student?.id}`)}>
               {/* <img src={ellipse} alt="options" className="cursor-pointer" /> */}
               View 
             </button>

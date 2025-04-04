@@ -3,7 +3,7 @@ const SkeletonLoader = ({no=9}) => {
         <div className="grid gap-4 xl:grid-cols-3 md:grid-cols-2 ">
             {Array.from({ length: no }).map((_, index) => (
             //   <SkeletonLoader key={`skeleton-${index}`} />
-              <div key={`skeleton-${index}`} className="animate-pulse border border-1 border-lightGray p-4 rounded-lg space-y-3 text-primary flex flex-col">
+              <div key={`skeleton-${index}`} className="animate-pulse border border-1 border-lightGray p-4 rounded-lg space-y-3 text-dark900 flex flex-col">
       <div className="flex  justify-between">
       <div className="h-6 bg-lightGray rounded w-3/5"></div>
       <div className="h-4 bg-lightGray rounded w-1/5"></div>
