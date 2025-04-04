@@ -25,7 +25,7 @@ function RequisitionComments({
  
   return (
     <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
-      <div className="font-semibold text-dark900 flex items-center justify-between">
+      <div className="font-semibold text-primary flex items-center justify-between">
         <PageHeader title="Comments" />
         <Button
           value="+ add comment"
@@ -36,7 +36,7 @@ function RequisitionComments({
       <div className="flex flex-col gap-2 max-h-[12.5rem] overflow-y-auto">
         {sortedComments.map((comment, index) => (
           <div key={comment.id} className="flex flex-col">
-            <div className="text-sm text-mainGray">{comment.comment}</div>
+            <div className="text-sm text-primary">{comment.comment}</div>
             <div className="">{comment.request_comment_user.name}</div>
             {index !== comments.length - 1 && <HorizontalLine />}
           </div>

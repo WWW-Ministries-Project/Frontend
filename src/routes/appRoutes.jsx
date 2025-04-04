@@ -127,12 +127,12 @@ export const routes = [
         sideTab: true,
       },
       {
-        path: "visitors/:visitorId",
+        path: "visitors/visitor/:visitorId",
         name: "Visitors",
         element: <VisitorDetails />,
         isPrivate: false,
         permissionNeeded: "view_members",
-        sideTab: true,
+        sideTab: false,
       },
       {
         path: "events",

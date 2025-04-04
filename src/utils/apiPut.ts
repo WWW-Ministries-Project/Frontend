@@ -90,4 +90,24 @@ export class ApiUpdateCalls {
   updateEnrollment = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("program/enrollments/update-enrollment", payload);
   };
+
+  // Visitor Management
+  updateVisitor = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(`visitor/visitors/${payload.id}`, payload);
+  };
+
+  // Visit Management
+  updateVisit = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("visitor/visit", payload);
+  };
+
+  // Follow-Up Management
+  updateFollowUp = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("visitor/followup", payload);
+  };
+
+  // Prayer Request Management
+  updatePrayerRequest = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("visitor/prayerrequest", payload);
+  };
 }

@@ -82,7 +82,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg md:w-[45rem] text-dark900 space-y-4">
+    <div className="bg-white p-4 rounded-lg md:w-[45rem] text-primary space-y-4">
       <div>
         <div className="font-bold text-lg">
           {program?.id ? "Edit Program" : "Create New Program"}
@@ -106,7 +106,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
           <Form>
             {/* Program Title */}
             <div className="mb-4 space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium text-dark900">
+              <label htmlFor="title" className="block text-sm font-medium text-primary">
                 Program Title *
               </label>
               <Field
@@ -120,7 +120,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
 
             {/* Program Description */}
             <div className="mb-4 space-y-2">
-              <label htmlFor="description" className="block text-sm font-medium text-dark900">
+              <label htmlFor="description" className="block text-sm font-medium text-primary">
                 Description *
               </label>
               <Field
@@ -134,7 +134,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
 
             {/* Eligibility */}
             <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-dark900">Eligibility *</label>
+              <label className="block text-sm font-medium text-primary">Eligibility *</label>
               <div className="flex flex-col items space-y-1">
                 <label>
                   <Field
@@ -171,7 +171,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
 
             {/* Program Topics */}
             <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-dark900">Program Topics</label>
+              <label className="block text-sm font-medium text-primary">Program Topics</label>
               <FieldArray
                 name="topics"
                 render={({ push, remove }) => (
@@ -228,7 +228,7 @@ const ProgramForm: React.FC<ProgramFormProps> = ({ onClose, program, prerequisit
 
             {/* Prerequisites */}
             <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-dark900">Prerequisites</label>
+              <label className="block text-sm font-medium text-primary">Prerequisites</label>
               <div>
                 <Field
                   type="checkbox"

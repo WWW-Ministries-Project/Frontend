@@ -92,7 +92,7 @@ const AddMember = () => {
                 onChange={(obj) => {
                   setFieldValue("picture", obj);
                 }}
-                textClass={'text-3xl text-dark900'}
+                textClass={'text-3xl text-primary'}
               />
               <MembersForm />
 

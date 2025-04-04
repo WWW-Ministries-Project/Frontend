@@ -47,7 +47,7 @@ const HeaderControls: React.FC<HeaderControlsProps> = ({
     <div className="flex justify-between items-center mb-4">
       {/* Title with total members */}
       <div className="space-y-1">
-      <p className="text-dark900 text-2xl font-semibold">
+      <p className="text-primary text-2xl font-semibold">
         {title} {totalMembers !== undefined ? `(${totalMembers})` : ""}
       </p>
       {showSubtitle&&<p>{subtitle}</p>}

@@ -28,7 +28,7 @@ const AssetForm = ({ loading, onSubmit, initialValues, disabled }: IAssetFormPro
     >
       {(form) => (
         <div className="flex flex-col gap-4 mt-4 w-full">
-          <h2 className="H400 text-dark900 font-bold">Asset Information</h2>
+          <h2 className="H400 text-primary font-bold">Asset Information</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}

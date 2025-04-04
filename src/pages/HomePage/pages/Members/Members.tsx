@@ -126,7 +126,7 @@ function Members() {
   };
 
   const membersCount = [
-    { count: userStats.members?.total_members, label: "Members" },
+    { count: userStats.members?.total_members, label: "In person church family" },
     { count: userStats.members?.stats.adults.Male, label: "Adult male" },
     { count: userStats.members?.stats.adults.Female, label: "Adult female" },
     { count: userStats.members?.stats.children.Male, label: "Children male" },
@@ -134,7 +134,7 @@ function Members() {
   ];
   
   const visitorsCount = [
-    { count: userStats.visitors?.total_members, label: "Visitors" },
+    { count: userStats.visitors?.total_members, label: "Online e-church family" },
     { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
     { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
     { count: userStats.visitors?.stats.children.Male, label: "Children male" },
