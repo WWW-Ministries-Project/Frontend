@@ -32,6 +32,8 @@ import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
+import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage";
+import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 
 
 export const routes = [
