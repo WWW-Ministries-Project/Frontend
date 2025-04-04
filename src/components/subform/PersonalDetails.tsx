@@ -2,7 +2,7 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
-import { string } from "yup";
+import { date, string } from "yup";
 import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
 import { useCountryStore } from "../../pages/HomePage/store/coutryStore";
 
@@ -123,7 +123,7 @@ const validationSchema = {
   first_name: string(),
   other_name: string(),
   last_name: string().required("Last name is required"),
-  date_of_birth: string().required("Date of birth is required"),
+  date_of_birth: date().max(new Date()),
   gender: string().required("Gender is required"),
   marital_status: string().required("Marital status is required"),
   nationality: string().required("Nationality is required"),

@@ -17,9 +17,10 @@ import {
 } from "@components/subform";
 import { Field, getIn, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
-import { boolean, number, object, string } from "yup";
+import { boolean, date, number, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
+import FormikInputDiv from "@/components/FormikInput";
 
 interface IProps {
   disabled?: boolean;
@@ -91,6 +92,16 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         options={departmentsOptions || []}
         disabled={disabled}
       />
+      <Field
+        component={FormikInputDiv}
+        label="Date joined"
+        id="church_info.member_since"
+        name="church_info.member_since"
+        placeholder="Select date joined"
+        type="date"
+        max={new Date().toISOString().split("T")[0]}
+        disabled={disabled}
+      />
       {values.is_user && (
         <Field
           component={FormikSelectField}
@@ -146,6 +157,7 @@ const validationSchema = {
   emergency_contact: object(EmergencyContact.validationSchema),
   is_user: boolean().required("Required"),
   church_info: object().shape({
+    member_since: date().max(new Date()),
     membership_type: string().required("Required"),
     department_id: number().required("Required"),
     position_id: number().when("is_user", {
