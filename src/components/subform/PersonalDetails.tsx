@@ -4,7 +4,7 @@ import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
 import { date, string } from "yup";
 import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
-import { useCountryStore } from "../../pages/HomePage/store/coutryStore";
+import { CountryField } from "../fields/CountryField";
 
 const PersonalDetailsComponent = ({
   disabled = false,
@@ -13,7 +13,6 @@ const PersonalDetailsComponent = ({
   disabled?: boolean;
   prefix: string;
 }) => {
-  const { countryOptions } = useCountryStore();
   const { values } = useFormikContext<IPersonalDetails>();
   return (
     <>
@@ -78,15 +77,7 @@ const PersonalDetailsComponent = ({
         name={`${prefix}.marital_status`}
         placeholder={"select marital status"}
       />
-      <Field
-        component={FormikSelectField}
-        label="Nationality"
-        placeholder="Select nationality"
-        id={`${prefix}.nationality`}
-        name={`${prefix}.nationality`}
-        options={countryOptions || []}
-        disabled={disabled}
-      />
+      <CountryField disabled={disabled} prefix={prefix} />
     </>
   );
 };
