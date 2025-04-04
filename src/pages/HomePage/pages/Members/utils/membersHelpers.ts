@@ -1,78 +1,127 @@
-import * as Yup from 'yup';
-import { maxMinValueForDate } from '@/pages/HomePage/utils';
-import { UserType } from './membersInterfaces';
-
-export const userFormValidator = Yup.object({
-  title: Yup.string().required('Required'),
-  membership_type: Yup.string().required('Required'),
-  first_name: Yup.string().required('Required'),
-  // other_name: Yup.string(),
-  last_name: Yup.string().required('Required'),
-  date_of_birth: Yup.date().required("Required").max(maxMinValueForDate().minDate,"date can't be after today"),
-  gender: Yup.string().required('Required'),
-  // marital_status: Yup.string(),
-  primary_number: Yup.string().required('Required').matches(/^[\d\s\-()]+$/, 'Invalid'),
-  country_code: Yup.string().required('Required').matches(/^\+\d+$/, 'Invalid'),
-  email: Yup.string().email('Invalid email address').required('Required'),
-  // address: Yup.string(),
-  // country: Yup.string().required('Required'),
-  // is_user: Yup.boolean(),
-//   department: Yup.object({
-//     id: Yup.string(),
-//     name: Yup.string(),
-//   }),
-//   work_info: Yup.object({
-//     name_of_institution: Yup.string(),
-//     industry: Yup.string(),
-//     position: Yup.string(),
-//   }),
-// emergency_contact_name: Yup.string().required('Required'),
-//   emergency_contact_relation: Yup.string().required('Required'),
-//   emergency_contact_phone_number: Yup.string().required('Required'),
-});
+import { membersType } from "../Components/MembersForm";
+import { IAddMember } from "../pages/AddMember";
+import { UserType } from "./membersInterfaces";
 
 export const initialUser: UserType = {
-    membership_type: "",
-    first_name: "", 
-    other_name: "", 
-    last_name: "", 
-    date_of_birth: "",
-    gender: "", 
-    marital_status: "", 
-    primary_number: "", 
-    country_code: "", 
-    email: "", 
-    address: "", 
-    country: "", 
-    is_user: false,
-    department: { id: "", name: "" },
-    work_info: {
-      name_of_institution: "", 
-      industry: "", 
-      position: "", 
-    },
-    emergency_contact: {
-      name: "", 
-      relation: "", 
-      phone_number: "", 
-    },
-    is_active: true,
-    id: 0,
+  membership_type: "",
+  first_name: "",
+  other_name: "",
+  last_name: "",
+  date_of_birth: "",
+  gender: "",
+  marital_status: "",
+  primary_number: "",
+  country_code: "",
+  email: "",
+  address: "",
+  country: "",
+  is_user: false,
+  department: { id: "", name: "" },
+  work_info: {
+    name_of_institution: "",
+    industry: "",
+    position: "",
+  },
+  emergency_contact: {
     name: "",
-  };
-  export const titleOptions = [
-    { name: "Mr", value: "Mr" },
-    { name: "Mrs", value: "Mrs" },
-    { name: "Miss", value: "Miss" },
-    { name: "Doc", value: "Doc" },
-    { name: "Prof", value: "Prof" },
-    { name: "Pastor", value: "Pastor" },
-  ]
+    relation: "",
+    phone_number: "",
+  },
+  is_active: true,
+  id: 0,
+  name: "",
+};
+export const titleOptions = [
+  { name: "Mr", value: "Mr" },
+  { name: "Mrs", value: "Mrs" },
+  { name: "Miss", value: "Miss" },
+  { name: "Doc", value: "Doc" },
+  { name: "Prof", value: "Prof" },
+  { name: "Pastor", value: "Pastor" },
+];
 
-  export const maritalOptions = [
-    { name: "Single", value: "SINGLE" },
-    { name: "Married", value: "MARRIED" },
-    { name: "Divorced", value: "DIVORCED" },
-    { name: "Widow", value: "WIDOW" },
-    { name: "Widower", value: "WIDOWER" },
-  ]
+export const maritalOptions = [
+  { name: "Single", value: "SINGLE" },
+  { name: "Married", value: "MARRIED" },
+  { name: "Divorced", value: "DIVORCED" },
+  { name: "Widow", value: "WIDOW" },
+  { name: "Widower", value: "WIDOWER" },
+];
+
+export interface IMemberInfo {
+  membership_Id: string;
+  member_id: string;
+  membership_type: membersType;
+  title: string;
+  first_name: string;
+  last_name: string;
+  other_name?: string;
+  date_of_birth: string;
+  nationality: string;
+  gender: string;
+  marital_status: string;
+  primary_number: string;
+  country_code: string;
+  email: string;
+  isMinistryWorker: boolean;
+  department?: number;
+  position?: number;
+  work_info: {
+    name_of_institution: string;
+    industry: string;
+    position: string;
+  };
+  emergency_contact: {
+    name: string;
+    relation: string;
+    phone_number: string;
+  };
+  children: any[];
+  photo: string;
+  country: string;
+}
+
+export const mapUserData = (input: IMemberInfo): IAddMember => {
+  const formatDate = (date: string) => (date ? date.split("T")[0] : "");
+  const formatPhone = (phone: string) =>
+    phone ? phone.replace(/[^0-9]/g, "") : "";
+
+  return {
+    personal_info: {
+      title: input.title || "",
+      first_name: input.first_name,
+      other_name: input.other_name,
+      last_name: input.last_name,
+      date_of_birth: formatDate(input.date_of_birth),
+      gender: input.gender || "",
+      marital_status: input.marital_status || "",
+      nationality: input.nationality || "",
+      picture: { src: input.photo || "", picture: null },
+      has_children: input.children.length > 0,
+    },
+    contact_info: {
+      email: input.email,
+      resident_country: input.country,
+      state_region: "",
+      city: "",
+      phone: {
+        country_code: input.country_code || "",
+        number: formatPhone(input.primary_number),
+      },
+    },
+    work_info: {
+      work_name: input.work_info.name_of_institution,
+      work_industry: input.work_info.industry,
+      work_position: input.work_info.position,
+      // school_name: input.work_info.name_of_institution
+    },
+    emergency_contact: input.emergency_contact,
+    is_user: false,
+    church_info: {
+      membership_type: input.membership_type,
+      department_id: input.department,
+      position_id: input.position,
+    },
+    children: input.children,
+  };
+};

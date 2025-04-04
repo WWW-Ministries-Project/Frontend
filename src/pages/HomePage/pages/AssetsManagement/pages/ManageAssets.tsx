@@ -6,7 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import api from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";
@@ -33,7 +33,7 @@ const ManageAsset = () => {
     data: asset,
     loading: fetchLoading,
     error: fetchError,
-  } = useFetch(api.fetch.fetchAnAsset, { id: id + "" },);
+  } = useFetch(api.fetch.fetchAnAsset, { id: id + "" });
   //@ts-expect-error type should be inside data
   const assetData = useMemo(() => asset?.data.data || { photo: "" }, [asset]);
 
@@ -79,29 +79,29 @@ const ManageAsset = () => {
   return (
     <div className="p-4">
       <section className="p-8 container lg:w-4/6 bg-white mx-auto rounded-xl ">
-      <h1 className="H700 font-bold text-dark900">{title}</h1>
-      {!isDisabled && (
-        <p className="text-sma text-lightGray py-2">
-          Fill in the form below with the asset details
-        </p>
-      )}
-      <div className="hideScrollbar overflow-y-auto">
-        <div className="grid md:grid-cols-3 gap-4">
-          <ImageUpload
-            onFileChange={(file: File) => setFile(file)}
-            src={assetData.photo}
+        <h1 className="H700 font-bold text-dark900">{title}</h1>
+        {!isDisabled && (
+          <p className="text-sma text-lightGray py-2">
+            Fill in the form below with the asset details
+          </p>
+        )}
+        <div className="hideScrollbar overflow-y-auto">
+          <div className="grid md:grid-cols-3 gap-4">
+            <ImageUpload
+              onFileChange={(file: File) => setFile(file)}
+              src={assetData.photo}
+              disabled={isDisabled}
+            />
+          </div>
+          <AssetForm
+            loading={loading || updateLoading}
+            onSubmit={handleFormSubmit}
+            initialValues={assetData}
             disabled={isDisabled}
           />
         </div>
-        <AssetForm
-          loading={loading || updateLoading}
-          onSubmit={handleFormSubmit}
-          initialValues={assetData}
-          disabled={isDisabled}
-        />
-      </div>
-      {fetchLoading && <LoaderComponent />}
-    </section>
+        {fetchLoading && <LoaderComponent />}
+      </section>
     </div>
   );
 };

@@ -1,24 +1,28 @@
+import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { formatInputDate, formatTime } from "@/utils/helperFunctions";
+import { ApiDeletionCalls } from "@/utils/api/apiDelete";
+import { formatTime } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ellipse from "@/assets/ellipse.svg";
-import { ApiDeletionCalls } from "@/utils/apiDelete";
-import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 
 interface AllCohortsPageProps {
   onCreate: () => void;
   cohorts: any[]; // List of cohorts
   onEdit: (cohort: any) => void; // Function to edit cohort
   onDelete: (id: number) => void;
-  loading: Boolean; 
+  loading: Boolean;
 }
 
-const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEdit, onDelete, loading }) => {
+const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
+  onCreate,
+  cohorts,
+  onEdit,
+  onDelete,
+  loading,
+}) => {
   const navigate = useNavigate();
-  const apiDelete = new ApiDeletionCalls() 
+  const apiDelete = new ApiDeletionCalls();
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
   const buttonRef = useRef<HTMLButtonElement | null>(null); // Reference for the button that toggles the menu
@@ -64,9 +68,9 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
     const handleClickOutside = (event: MouseEvent) => {
       // Check if the click is outside the menu container and the button
       if (
-        menuRef.current && 
-        !menuRef.current.contains(event.target as Node) && 
-        buttonRef.current && 
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
       ) {
         setIsMenuOpen(null); // Close the menu if clicked outside
@@ -83,7 +87,6 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
   }, []);
 
   return (
-    
     <div className="">
       <div className="p-0">
         <section className="py-4 space-y-2 rounded-t-lg">
@@ -102,13 +105,14 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
           </div>
         </section>
 
-        
-       
-          <section className="">
+        <section className="">
           <div className=" text-dark900">
             <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
               {cohorts?.map((cohort) => (
-                <div key={cohort.id} className="border border-lightGray rounded-lg p-4 space-y-3">
+                <div
+                  key={cohort.id}
+                  className="border border-lightGray rounded-lg p-4 space-y-3"
+                >
                   <div className="flex justify-between items-center">
                     <div className="font-semibold text-lg">{cohort?.name}</div>
                     <Badge
@@ -123,13 +127,18 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
                   </div>
                   <div className="text-md space-y-1">
                     <p>
-                      <span className="font-semibold">Start Date:</span> {formatTime(cohort.startDate)}
+                      <span className="font-semibold">Start Date:</span>{" "}
+                      {formatTime(cohort.startDate)}
                     </p>
                     <p>
-                      <span className="font-semibold">Duration:</span> {cohort.duration}
+                      <span className="font-semibold">Duration:</span>{" "}
+                      {cohort.duration}
                     </p>
                     <p>
-                      <span className="font-semibold">Application Deadline:</span> {formatTime(cohort.applicationDeadline)}
+                      <span className="font-semibold">
+                        Application Deadline:
+                      </span>{" "}
+                      {formatTime(cohort.applicationDeadline)}
                     </p>
                   </div>
 
@@ -145,7 +154,11 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({ onCreate, cohorts, onEd
                         className="text-dark900"
                         onClick={() => toggleMenu(cohort.id)}
                       >
-                        <img src={ellipse} alt="options" className="cursor-pointer" />
+                        <img
+                          src={ellipse}
+                          alt="options"
+                          className="cursor-pointer"
+                        />
                       </button>
                       {isMenuOpen === cohort.id && (
                         <div

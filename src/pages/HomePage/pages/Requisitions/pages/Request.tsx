@@ -1,27 +1,27 @@
+import AddSignature from "@/components/AddSignature";
 import Button from "@/components/Button";
 import FormikInput from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import FormWrapperNew from "@/Wrappers/FormWrapperNew";
-import { Field, Formik } from "formik";
-import useSettingsStore from "../../Settings/utils/settingsStore";
-import EditableTable from "../components/EditableTable";
-import { addRequisitionSchema } from "../utils/requisitionSchema";
-import { useStore } from "@/store/useStore";
-import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
-import { useParams } from "react-router-dom";
+import Modal from "@/components/Modal";
+import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { IRequisitionDetails } from "../types/requestInterface";
-import api from "@/utils/apiCalls";
-import { useEffect, useMemo, useState } from "react";
 import MultiImageComponent, {
   image,
 } from "@/pages/HomePage/Components/MultiImageComponent";
-import AddSignature from "@/components/AddSignature";
-import Modal from "@/components/Modal";
-import { useAuth } from "@/context/AuthWrapper";
+import PageHeader from "@/pages/HomePage/Components/PageHeader";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import { useStore } from "@/store/useStore";
+import { api } from "@/utils/api/apiCalls";
+import FormWrapperNew from "@/Wrappers/FormWrapperNew";
+import { Field, Formik } from "formik";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import useSettingsStore from "../../Settings/utils/settingsStore";
+import EditableTable from "../components/EditableTable";
+import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
+import { IRequisitionDetails } from "../types/requestInterface";
+import { addRequisitionSchema } from "../utils/requisitionSchema";
 
 const Request = () => {
   const { setInitialRows, events: allEvents, addEvent } = useStore();
@@ -136,12 +136,7 @@ const Request = () => {
   useEffect(() => {
     const { summary } = requestData || {};
     const { program_id, department_id, program } = summary || {};
-    if (
-      !(
-        id &&
-        (program_id || department_id)
-      )
-    ) {
+    if (!(id && (program_id || department_id))) {
       return;
     } else {
       const event = allEvents?.find(
@@ -149,174 +144,188 @@ const Request = () => {
       );
 
       if (!event) addEvent({ id: program_id, name: program });
-      
     }
-  }, [requestData,allEvents]);
+  }, [requestData, allEvents]);
   return (
     <div className="p-4">
       <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
-      <PageOutline>
-      <div className="">
-        <PageHeader title={title} />
+        <PageOutline>
+          <div className="">
+            <PageHeader title={title} />
 
-        <Formik
-          initialValues={initialValues}
-          onSubmit={async (values) => {
-            const data = await handleUploadImage();
-            handleSubmit({ ...values, attachmentLists: data });
-          }}
-          validationSchema={addRequisitionSchema}
-          enableReinitialize
-        >
-          {({ handleSubmit, setValues, values, validateForm, setTouched }) => (
-            <>
-              <Modal open={openSignature} onClose={closeModal}>
-                <AddSignature
-                  cancel={closeModal}
-                  text="Submit"
-                  header="Request Signing"
-                  handleSignature={handleSignature}
-                  loading={loading || addingImage}
-                  defaultSignature={defaultSignature}
-                  onSubmit={async () => {
-                    try {
-                      let updatedSignature = signature.signature as string;
+            <Formik
+              initialValues={initialValues}
+              onSubmit={async (values) => {
+                const data = await handleUploadImage();
+                handleSubmit({ ...values, attachmentLists: data });
+              }}
+              validationSchema={addRequisitionSchema}
+              enableReinitialize
+            >
+              {({
+                handleSubmit,
+                setValues,
+                values,
+                validateForm,
+                setTouched,
+              }) => (
+                <>
+                  <Modal open={openSignature} onClose={closeModal}>
+                    <AddSignature
+                      cancel={closeModal}
+                      text="Submit"
+                      header="Request Signing"
+                      handleSignature={handleSignature}
+                      loading={loading || addingImage}
+                      defaultSignature={defaultSignature}
+                      onSubmit={async () => {
+                        try {
+                          let updatedSignature = signature.signature as string;
 
-                      if (signature.isImage && signature.signature) {
-                        const formData = new FormData();
-                        formData.append("file", signature.signature);
+                          if (signature.isImage && signature.signature) {
+                            const formData = new FormData();
+                            formData.append("file", signature.signature);
 
-                        const response = await handleUpload(formData);
+                            const response = await handleUpload(formData);
 
-                        if (response?.URL) {
-                          updatedSignature = response.URL;
+                            if (response?.URL) {
+                              updatedSignature = response.URL;
+                            }
+                          }
+
+                          setValues({
+                            ...values,
+                            approval_status: "Awaiting_HOD_Approval",
+                            user_sign: updatedSignature,
+                          });
+
+                          // Delay calling handleSubmit to ensure values are updated
+                          await new Promise((resolve) =>
+                            setTimeout(resolve, 0)
+                          );
+                          handleSubmit();
+                        } catch (error) {
+                          console.error(
+                            "Error in AddSignature submission:",
+                            error
+                          );
                         }
+                      }}
+                    />
+                  </Modal>
+                  <FormWrapperNew>
+                    <Field
+                      component={FormikInput}
+                      name="requester_name"
+                      label="Requester"
+                      id="requester_name"
+                      disabled
+                    />
+                    <Field
+                      component={FormikSelectField}
+                      name="department_id"
+                      label="Department"
+                      options={departments}
+                      id="department_id"
+                      placeholder="Select department"
+                    />
+                    <Field
+                      component={FormikSelectField}
+                      name="event_id"
+                      label="Program"
+                      options={events}
+                      required={true}
+                      id="event_id"
+                      placeholder="Select program/event"
+                    />
+                    <Field
+                      component={FormikInput}
+                      name="request_date"
+                      label="Date of requisition"
+                      id="request_date"
+                      type="date"
+                    />
+                    <Field
+                      component={FormikSelectField}
+                      name="currency"
+                      label="Currency"
+                      id="currency"
+                      options={currencies}
+                      placeholder="Select currency"
+                    />
+                    <span> &nbsp;</span>
+                    <Field
+                      component={FormikInput}
+                      name="comment"
+                      label="Comment"
+                      id="comment"
+                      type="textarea"
+                      col={50}
+                    />
+                    <MultiImageComponent
+                      placeholder="Atatchments"
+                      imageChange={imageChange}
+                      initialImages={initialImages ?? []}
+                    />
+                  </FormWrapperNew>
+
+                  <HorizontalLine />
+                  <EditableTable />
+                  <HorizontalLine />
+                  <div className="w-full flex justify-end gap-x-4 mt-4">
+                    <Button
+                      value="Cancel"
+                      className="tertiary"
+                      onClick={() => {
+                        window.history.back();
+                      }}
+                    />
+                    {!id && (
+                      <Button
+                        value="Save as Draft"
+                        className="secondary"
+                        onClick={() => {
+                          setValues({
+                            ...values,
+                            approval_status: "Draft",
+                            user_sign: null,
+                          });
+                          handleSubmit();
+                        }}
+                        type="submit"
+                        loading={loading || addingImage}
+                      />
+                    )}
+                    {isNoSignature && (
+                      <Button
+                        value="Add signature"
+                        className="secondary"
+                        onClick={() =>
+                          handleAddSignature(validateForm, setTouched)
+                        }
+                      />
+                    )}
+                    <Button
+                      value={id ? "Update" : "Send request"}
+                      className="default"
+                      loading={
+                        !!id && !openSignature && (loading || addingImage)
                       }
-
-                      setValues({
-                        ...values,
-                        approval_status: "Awaiting_HOD_Approval",
-                        user_sign: updatedSignature,
-                      });
-
-                      // Delay calling handleSubmit to ensure values are updated
-                      await new Promise((resolve) => setTimeout(resolve, 0));
-                      handleSubmit();
-                    } catch (error) {
-                      console.error("Error in AddSignature submission:", error);
-                    }
-                  }}
-                />
-              </Modal>
-              <FormWrapperNew>
-                <Field
-                  component={FormikInput}
-                  name="requester_name"
-                  label="Requester"
-                  id="requester_name"
-                  disabled
-                />
-                <Field
-                  component={FormikSelectField}
-                  name="department_id"
-                  label="Department"
-                  options={departments}
-                  id="department_id"
-                  placeholder="Select department"
-                />
-                <Field
-                  component={FormikSelectField}
-                  name="event_id"
-                  label="Program"
-                  options={events}
-                  required={true}
-                  id="event_id"
-                  placeholder="Select program/event"
-                />
-                <Field
-                  component={FormikInput}
-                  name="request_date"
-                  label="Date of requisition"
-                  id="request_date"
-                  type="date"
-                />
-                <Field
-                  component={FormikSelectField}
-                  name="currency"
-                  label="Currency"
-                  id="currency"
-                  options={currencies}
-                  placeholder="Select currency"
-                />
-                <span> &nbsp;</span>
-                <Field
-                  component={FormikInput}
-                  name="comment"
-                  label="Comment"
-                  id="comment"
-                  type="textarea"
-                  col={50}
-                />
-                <MultiImageComponent
-                  placeholder="Atatchments"
-                  imageChange={imageChange}
-                  initialImages={initialImages ?? []}
-                />
-              </FormWrapperNew>
-
-              <HorizontalLine />
-              <EditableTable />
-              <HorizontalLine />
-              <div className="w-full flex justify-end gap-x-4 mt-4">
-                <Button
-                  value="Cancel"
-                  className="tertiary"
-                  onClick={() => {
-                    window.history.back();
-                  }}
-                />
-                {!id && (
-                  <Button
-                    value="Save as Draft"
-                    className="secondary"
-                    onClick={() => {
-                      setValues({
-                        ...values,
-                        approval_status: "Draft",
-                        user_sign: null,
-                      });
-                      handleSubmit();
-                    }}
-                    type="submit"
-                    loading={loading || addingImage}
-                  />
-                )}
-                {isNoSignature && (
-                  <Button
-                    value="Add signature"
-                    className="secondary"
-                    onClick={() => handleAddSignature(validateForm, setTouched)}
-                  />
-                )}
-                <Button
-                  value={id ? "Update" : "Send request"}
-                  className="default"
-                  loading={!!id && !openSignature && (loading || addingImage)}
-                  onClick={() => {
-                    if (!id) {
-                      handleAddSignature(validateForm, setTouched);
-                    } else {
-                      handleSubmit();
-                    }
-                  }}
-                />
-              </div>
-            </>
-          )}
-        </Formik>
-      </div>
-    </PageOutline>
-    </section>
+                      onClick={() => {
+                        if (!id) {
+                          handleAddSignature(validateForm, setTouched);
+                        } else {
+                          handleSubmit();
+                        }
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+            </Formik>
+          </div>
+        </PageOutline>
+      </section>
     </div>
   );
 };

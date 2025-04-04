@@ -1,4 +1,5 @@
 
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
@@ -16,7 +17,6 @@ import { useDelete } from "/src/CustomHooks/useDelete.tsx";
 import { usePost } from "/src/CustomHooks/usePost.tsx";
 import { usePut } from "/src/CustomHooks/usePut.tsx";
 import { useStore } from "/src/store/useStore.ts";
-import api from "/src/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 import TabSelection from "../../Components/reusable/TabSelection";
 function Settings() {
@@ -289,7 +289,7 @@ function Settings() {
         </div>
         </div>
         <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
-       
+
         <section className=" bg-white">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -303,7 +303,7 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-        {displayForm&&<FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
+        {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
       </PageOutline>
       {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
     </div>

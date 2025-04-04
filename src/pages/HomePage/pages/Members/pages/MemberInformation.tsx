@@ -1,123 +1,203 @@
-import Button from "@/components/Button";
-import { Formik } from "formik";
-import PropTypes from "prop-types";
-import { useMemo } from "react";
+import { formatInputDate } from "@/utils/helperFunctions";
 import { useOutletContext } from "react-router-dom";
-import { IMembersForm, MembersForm } from "../Components/MembersForm";
-import MemberInformationViewMode from "../Components/MembersInformationViewMode";
-import { FormHeader } from "@/components/ui";
-import Badge from "@/components/Badge";
-import MinistrySchoolCard from "../Components/MinistrySchoolCard";
-import ChildCard from "../Components/ChildCard";
-const MemberInformation = () => {
-  const { edit, handleCancel, details, handleSubmit, loading } =
-    useOutletContext<{
-      edit: boolean;
-      handleCancel: () => void;
-      details: any;
-      handleSubmit: (val: any) => void;
-      loading: boolean;
-    }>();
-  const initialValues = useMemo((): IMembersForm => {
-    return {
-      membership_type: details?.membership_type ?? "MEMBER",
-      title: details?.title ?? "",
-      first_name: details?.first_name ?? "",
-      other_name: details?.other_name ?? "",
-      last_name: details?.last_name ?? "",
-      date_of_birth: details?.date_of_birth ?? "",
-      gender: details?.gender ?? "",
-      marital_status: details?.marital_status ?? "",
-      primary_number: details?.primary_number ?? "",
-      country_code: details?.country_code ?? "",
-      email: details?.email ?? "",
-      address: details?.address ?? "",
-      nationality: details?.nationality ?? "",
-      is_user: details?.is_active ?? false,
 
-      // Handling nested properties
-      department_id: details?.department?.id ?? undefined,
-      position_id: details?.position?.id ?? undefined,
+interface IMemberInfo {
+  membership_Id: string;
+  member_id: string;
+  membership_type: string;
+  title: string;
+  first_name: string;
+  last_name: string;
+  other_name?: string;
+  date_of_birth: string;
+  nationality: string;
+  gender: string;
+  marital_status: string;
+  primary_number: string;
+  country_code: string;
+  email: string;
+  isMinistryWorker: boolean;
+  ministryDepartment?: string;
+  position?: string;
+  work_info: {
+    name_of_institution: string;
+    industry: string;
+    position: string;
+  };
+  emergency_contact: {
+    name: string;
+    relation: string;
+    phone_number: string;
+  };
+}
 
-      // Work info mapping
-      work_name: details?.work_info?.name_of_institution ?? "",
-      work_industry: details?.work_info?.industry ?? "",
-      work_position: details?.work_info?.position ?? "",
-
-      // Emergency contact mapping
-      emergency_contact_name: details?.emergency_contact?.name ?? "",
-      emergency_contact_relation: details?.emergency_contact?.relation ?? "",
-      emergency_contact_phone_number:
-        details?.emergency_contact?.phone_number ?? "",
-
-      link: "",
-    };
-  }, [details]);
+export const MemberInformation = () => {
+  const { details: user } = useOutletContext<{
+    details: IMemberInfo;
+  }>();
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <div className="col-span-3 bg-white p-4 rounded-b-xl">
-        {edit ? (
-          <Formik
-            enableReinitialize={true}
-            initialValues={initialValues}
-            onSubmit={handleSubmit}
-          >
-            {({ handleSubmit }) => (
-              <>
-                <MembersForm disabled={!edit} />
-                <section className="w-full pt-5 sticky bottom-0 bg-transparent">
-                  <div className="flex justify-end gap-4 sticky bottom-0 bg-inherit">
-                    <Button
-                      value={"Cancel"}
-                      onClick={handleCancel}
-                      className="w-32 my-2 px-2 bg-transparent  border border-primaryViolet text-dark900Violet "
-                    />
-                    <Button
-                      value={"Save"}
-                      type="button"
-                      loading={loading}
-                      onClick={handleSubmit}
-                      className="w-32 my-2 px-2 bg-primaryViolet border border-primaryViolet text-white"
-                    />
-                  </div>
-                </section>
-              </>
-            )}
-          </Formik>
-        ) : (
+    <div className="bg-white rounded-lg container  w-full mx-auto text-dark900 space-y-6">
+      {/* Membership Status */}
+      <section className="">
+        <h2 className="text-xl font-bold ">Membership Status</h2>
+        <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
-            <MemberInformationViewMode user={details} />
+            <p className=" text-gray-600 font-semibold">Membership ID</p>
+            <p className="font-medium">{user.member_id || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Membership Type</p>
+            <p className="font-medium">
+              {user.membership_type === "MEMBER"
+                ? "Online e-church family"
+                : "In-person church family"}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <hr className="border-t border-neutralGray " />
+
+      {/* Personal Information */}
+      <section className="">
+        <h2 className="text-xl font-bold text-gray-800">
+          Personal Information
+        </h2>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <p className=" text-gray-600 font-semibold">Title</p>
+            <p className="font-medium">{user.title || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">First Name</p>
+            <p className="font-medium">{user.first_name || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Other Name</p>
+            <p className="font-medium">{user.other_name || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Last Name</p>
+            <p className="font-medium">{user.last_name || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Date of Birth</p>
+            <p className="font-medium">
+              {formatInputDate(user.date_of_birth) || "-"}
+            </p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Nationality</p>
+            <p className="font-medium">{user.nationality || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Gender</p>
+            <p className="font-medium">{user.gender || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Marital Status</p>
+            <p className="font-medium capitalize">
+              {user.marital_status || "-"}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <hr className="border-t border-neutralGray " />
+
+      {/* Contact Information */}
+      <section className="">
+        <h2 className="text-xl font-bold text-gray-800">Contact Information</h2>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <p className=" text-gray-600 font-semibold">Contact Number</p>
+            <p className="font-medium">
+              {`${user.country_code} ${user.primary_number}` || "-"}
+            </p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">E-mail</p>
+            <p className="font-medium">{user.email || "-"}</p>
+          </div>
+        </div>
+      </section>
+
+      <hr className="border-t border-neutralGray " />
+
+      {/* Church Information */}
+      <section className="">
+        <h2 className="text-xl font-bold text-gray-800">Church Information</h2>
+        <div className="mt-2">
+          <p className=" text-gray-600 font-semibold">
+            Is this member a ministry worker?
+          </p>
+          <p className="font-medium">{user.isMinistryWorker ? "Yes" : "No"}</p>
+        </div>
+        {user.isMinistryWorker && (
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <p className=" text-gray-600 font-semibold">
+                Ministry/Department
+              </p>
+              <p className="font-medium">{user.ministryDepartment || "-"}</p>
+            </div>
+            <div>
+              <p className=" text-gray-600 font-semibold">Position</p>
+              <p className="font-medium">{user.position || "-"}</p>
+            </div>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="space-y-4 ">
-      {details?.enrollments?.length > 0 ? (
-      details.enrollments.map((enrollment: Enrollment) => (
-        <MinistrySchoolCard key={enrollment.id} enrollment={enrollment} />
-      ))
-    ) : (
-      <MinistrySchoolCard /> // This will show the empty state
-    )}
-        
-        
-        {details?.children?.length > 0 ? (
-      details.children.map((child) => (
-        <ChildCard key={child.id} child={child} />
-      ))
-    ) : (
-      <ChildCard /> // This will show the empty state
-    )}
-        
-        
-      </div>
+      <hr className="border-t border-neutralGray " />
+
+      {/* Work Information */}
+      <section className="">
+        <h2 className="text-xl font-bold text-gray-800">Work Information</h2>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <p className=" text-gray-600 font-semibold">Institution</p>
+            <p className="font-medium">
+              {user.work_info?.name_of_institution || "-"}
+            </p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Industry</p>
+            <p className="font-medium">{user?.work_info?.industry || "-"}</p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Position</p>
+            <p className="font-medium">{user?.work_info?.position || "-"}</p>
+          </div>
+        </div>
+      </section>
+
+      <hr className="border-t border-neutralGray " />
+
+      {/* Emergency Contact */}
+      <section className="">
+        <h2 className="text-xl font-bold text-gray-800">Emergency Contact</h2>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <p className=" text-gray-600 font-semibold">Name</p>
+            <p className="font-medium">
+              {user?.emergency_contact?.name || "-"}
+            </p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Relation</p>
+            <p className="font-medium">
+              {user?.emergency_contact?.relation || "-"}
+            </p>
+          </div>
+          <div>
+            <p className=" text-gray-600 font-semibold">Contact Number</p>
+            <p className="font-medium">
+              {user?.emergency_contact?.phone_number || "-"}
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
-MemberInformation.propTypes = {
-  user: PropTypes.object,
-  department: PropTypes.array,
-  positions: PropTypes.array,
-};
-
-export default MemberInformation;

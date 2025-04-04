@@ -1,12 +1,10 @@
-import GridAsset from "@/assets/GridAsset";
-import TableAssets from "@/assets/TableAssets";
+import HeaderControls from "@/components/HeaderControls";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import api from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
-import Button from "../../../../components/Button";
 import SearchBar from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
@@ -16,7 +14,6 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import AssetCard from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
-import HeaderControls from "@/components/HeaderControls";
 
 const AssetManagement = () => {
   const navigate = useNavigate();
@@ -67,7 +64,7 @@ const AssetManagement = () => {
   return (
     <div className="p-4">
       <PageOutline>
-      <HeaderControls
+        <HeaderControls
           title="Asset Management"
           totalMembers={assertsData.length} // Number of assets
           tableView={tableView}
@@ -81,11 +78,11 @@ const AssetManagement = () => {
           screenWidth={window.innerWidth}
           btnName="Add Asset" // Button name added
         />
-      <div className="">
-        <section className="mt-   ">
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex justify-start gap-2 items-center  w-2/3">
-              {/* <div
+        <div className="">
+          <section className="mt-   ">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex justify-start gap-2 items-center  w-2/3">
+                {/* <div
                 className="flex gap-1 bg-lightGray p-1 rounded-md"
                 id="switch"
               >
@@ -106,56 +103,58 @@ const AssetManagement = () => {
                   />
                 </div>
               </div> */}
-              {showSearch&&<SearchBar
-                className="w-[40.9%] h-10"
-                placeholder="Search asserts here..."
-                value={filter}
-                onChange={handleSearchChange}
-              />}
-            </div>
-            {/* <div>
+                {showSearch && (
+                  <SearchBar
+                    className="w-[40.9%] h-10"
+                    placeholder="Search asserts here..."
+                    value={filter}
+                    onChange={handleSearchChange}
+                  />
+                )}
+              </div>
+              {/* <div>
               <Button
                 value="Add asset"
                 className={" text-white h-10 p-2 bg-primary"}
                 onClick={() => navigate("manage-asset")}
               />
             </div> */}
-          </div>
-          {/* <TableComponent /> */}
-          {tableView ? (
-            <div className="bg-white">
-              <TableComponent
-                columns={assetsColumns}
+            </div>
+            {/* <TableComponent /> */}
+            {tableView ? (
+              <div className="bg-white">
+                <TableComponent
+                  columns={assetsColumns}
+                  data={assertsData}
+                  filter={filter}
+                  setFilter={setFilter}
+                  displayedCount={12}
+                  columnFilters={[]}
+                  setColumnFilters={() => {}}
+                />
+              </div>
+            ) : (
+              <GridComponent
                 data={assertsData}
+                columns={assetsColumns}
                 filter={filter}
                 setFilter={setFilter}
                 displayedCount={12}
-                columnFilters={[]}
-                setColumnFilters={() => {}}
+                renderRow={(row) => (
+                  <AssetCard
+                    assets={row.original}
+                    key={row.id}
+                    onShowOptions={handleShowOptions}
+                    showOptions={showOptions === row.original.id}
+                    onDelete={showDeleteModal}
+                  />
+                )}
               />
-            </div>
-          ) : (
-            <GridComponent
-              data={assertsData}
-              columns={assetsColumns}
-              filter={filter}
-              setFilter={setFilter}
-              displayedCount={12}
-              renderRow={(row) => (
-                <AssetCard
-                  assets={row.original}
-                  key={row.id}
-                  onShowOptions={handleShowOptions}
-                  showOptions={showOptions === row.original.id}
-                  onDelete={showDeleteModal}
-                />
-              )}
-            />
-          )}
-        </section>
-        {(loading || deleteLoading) && <LoaderComponent />}
-      </div>
-    </PageOutline>
+            )}
+          </section>
+          {(loading || deleteLoading) && <LoaderComponent />}
+        </div>
+      </PageOutline>
     </div>
   );
 };

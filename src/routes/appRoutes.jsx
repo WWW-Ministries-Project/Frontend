@@ -1,4 +1,4 @@
-import ProfileDetails from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
+import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -9,33 +9,29 @@ import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventR
 import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
+import ViewClass from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
+import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
+import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
+import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
+import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
+import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
-import AddMember from "../pages/HomePage/pages/Members/pages/AddMember";
+import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
-import MembersAssets from "/src/pages/HomePage/pages/Members/pages/MembersAssets.jsx";
-import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
-import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
-import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
-import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
-import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
-import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
-import ViewClass from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
-import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
-import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
-import Registration from "@/pages/Registration/Registration";
-import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage";
-import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
-import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
+import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 
 
 export const routes = [
@@ -87,33 +83,27 @@ export const routes = [
         path: "members",
         name: "Members",
         element: <Members />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_members",
         sideTab: true,
       },
       {
         path: "members/add-member",
-        element: <AddMember />,
-        isPrivate: false,
+        element: <ManageMember />,
+        isPrivate: true,
         permissionNeeded: "view_members",
       },
       {
         path: "members/:id",
         element: <ProfileDetails />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_members",
         children: [
           {
             path: "info",
             name: "Info",
             element: <MemberInformation />,
-            isPrivate: false,
-            permissionNeeded: "view_members",
-          },
-          {
-            path: "assets",
-            element: <MembersAssets />,
-            isPrivate: false,
+            isPrivate: true,
             permissionNeeded: "view_members",
           },
         ]
@@ -138,27 +128,27 @@ export const routes = [
         path: "events",
         name: "Events",
         element: <EventsManagement />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
       },
       {
         path: "manage-event",
         element: <CreateEvent />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_events",
       },
       {
         path: "events/view-event",
         element: <ViewEvent />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_events",
       },
 
       {
         path: "requests",
         name: "Requests",
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
         children: [
@@ -166,28 +156,28 @@ export const routes = [
             path: "",
             name: "My Requests",
             element: <MyRequisitions />,
-            isPrivate: false,
+            isPrivate: true,
             sideTab: true
           },
           {
             path: ":id",
             name: "Requests Details",
             element: <RequestDetails />,
-            isPrivate: false,
+            isPrivate: true,
             sideTab: false,
           },
           {
             path: "request",
             name: "Request",
             element: <Request />,
-            isPrivate: false,
+            isPrivate: true,
             sideTab: false
           },
           {
             path: "request/:id",
             name: "Request",
             element: <Request />,
-            isPrivate: false,
+            isPrivate: true,
             sideTab: false
           },
           {
@@ -209,14 +199,14 @@ export const routes = [
         path: "assets",
         name: "Assets",
         element: <AssetManagement />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_assets",
         sideTab: true,
       },
       {
         path: "assets/manage-asset",
         element: <ManageAsset />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_assets",
       },
       
