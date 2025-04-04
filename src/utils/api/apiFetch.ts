@@ -1,10 +1,10 @@
 import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
+import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
 import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
+import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
-import { fetchData } from "./helperFunctions";
-import type { ApiResponse } from "./interfaces";
-import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
+import { fetchData } from "./apiFunctions";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -53,7 +53,9 @@ export class ApiCalls {
   fetchAssets = (): Promise<any> => {
     return this.fetchFromApi("assets/list-assets");
   };
-  fetchAnAsset = (query?: Record<string, any>): Promise<{ data: assetType }> => {
+  fetchAnAsset = (
+    query?: Record<string, any>
+  ): Promise<{ data: assetType }> => {
     return this.fetchFromApi("assets/get-asset", query);
   };
 
@@ -86,9 +88,7 @@ export class ApiCalls {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
-  fetchMyRequests = (
-    query?: Record<string, string | number>
-  ): Promise<any> => {
+  fetchMyRequests = (query?: Record<string, string | number>): Promise<any> => {
     return this.fetchFromApi("requisitions/my-requisitions", query);
   };
 

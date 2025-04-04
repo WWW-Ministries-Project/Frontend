@@ -1,6 +1,6 @@
+import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
-import { deleteData } from "./helperFunctions";
-import type { ApiResponse } from "./interfaces";
+import { deleteData } from "./apiFunctions";
 
 export class ApiDeletionCalls {
   private apiExecution: ApiExecution;
@@ -42,7 +42,7 @@ export class ApiDeletionCalls {
   // New Delete Methods
 
   deleteProgram = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/programs/${ id }`, { id });
+    return this.deleteFromApi<void>(`program/programs/${id}`, { id });
   };
 
   deleteCohort = (id: string | number): Promise<ApiResponse<void>> => {

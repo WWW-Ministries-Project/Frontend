@@ -1,7 +1,7 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { navigateRef } from "@/pages/HomePage/HomePage";
-import { api } from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import useState from "react-usestateref";
@@ -9,7 +9,7 @@ import Banner from "../Components/Banner";
 import { initialUser } from "../utils/membersHelpers";
 import { UserType } from "../utils/membersInterfaces";
 
-const ProfileDetails = () => {
+export const ProfileDetails = () => {
   const [details, setDetails] = useState<UserType>(initialUser);
   const { id } = useParams();
   const { data, loading: queryLoading } = useFetch(api.fetch.fetchAMember, {
@@ -62,5 +62,3 @@ const ProfileDetails = () => {
     </div>
   );
 };
-
-export default ProfileDetails;

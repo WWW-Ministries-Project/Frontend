@@ -1,13 +1,13 @@
 import Button from "@/components/Button";
 import { useFetch } from "@/CustomHooks/useFetch";
-import {usePost} from "@/CustomHooks/usePost";
+import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
@@ -123,46 +123,46 @@ const CreateAccess = () => {
   return (
     <div className="px-4">
       <PageOutline className="">
-      <PageHeader   title={`${id ? "Update" : "Create"} Access Right`} />
-      <div className="text-lighterBlack">
-        Fill in the form below with the rights this access should have
-      </div>
-      <section>
-        <InputDiv
-          label="Role"
-          type="text"
-          id="name"
-          placeholder="Enter name of access"
-          required={true}
-          className="max-w-[450px] my-4"
-          value={name}
-          onChange={(_, val) => {
-            setName(val + "");
-          }}
-        />
-        <TableComponent
-          data={displayedData}
-          columns={columns}
-          rowClass="even:bg-white odd:bg-[#F2F4F7]"
-          className={"shadow-md"}
-        />
-        <div className="flex justify-end gap-x-2 mt-4">
-          <Button
-            value="Cancel"
-            className="secondary"
-            onClick={() => {
-              navigate(-1);
+        <PageHeader title={`${id ? "Update" : "Create"} Access Right`} />
+        <div className="text-lighterBlack">
+          Fill in the form below with the rights this access should have
+        </div>
+        <section>
+          <InputDiv
+            label="Role"
+            type="text"
+            id="name"
+            placeholder="Enter name of access"
+            required={true}
+            className="max-w-[450px] my-4"
+            value={name}
+            onChange={(_, val) => {
+              setName(val + "");
             }}
           />
-          <Button
-            value="Save"
-            className="primary"
-            disabled={loading || !nameRef.current}
-            onClick={handleSubmit}
+          <TableComponent
+            data={displayedData}
+            columns={columns}
+            rowClass="even:bg-white odd:bg-[#F2F4F7]"
+            className={"shadow-md"}
           />
-        </div>
-      </section>
-    </PageOutline>
+          <div className="flex justify-end gap-x-2 mt-4">
+            <Button
+              value="Cancel"
+              className="secondary"
+              onClick={() => {
+                navigate(-1);
+              }}
+            />
+            <Button
+              value="Save"
+              className="primary"
+              disabled={loading || !nameRef.current}
+              onClick={handleSubmit}
+            />
+          </div>
+        </section>
+      </PageOutline>
     </div>
   );
 };

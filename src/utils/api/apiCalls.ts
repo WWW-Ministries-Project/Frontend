@@ -7,7 +7,7 @@ class UnifiedApi {
   fetch: ApiCalls;
   delete: ApiDeletionCalls;
   post: ApiCreationCalls;
-  put: ApiUpdateCalls
+  put: ApiUpdateCalls;
 
   constructor() {
     this.fetch = new ApiCalls();

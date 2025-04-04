@@ -4,7 +4,7 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import ChurchLogo from "@/components/ChurchLogo";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
-import {api} from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import {
   ChildrenSubForm,
@@ -45,7 +45,6 @@ const Registration = () => {
   }, [countryStore]);
 
   async function handleSubmit(values: IRegistration) {
-    console.log(values, "values");
 
     let dataToSend: IRegistration = { ...values };
 
@@ -116,7 +115,6 @@ const Registration = () => {
               const errors: any = await formik.validateForm();
               if (Object.keys(errors).length > 0) {
                 formik.setTouched(errors);
-                console.log("Validation failed:", errors);
                 return;
               }
               setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));

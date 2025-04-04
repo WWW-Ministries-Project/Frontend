@@ -3,19 +3,20 @@ import Button from "@/components/Button";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
+import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { useStore } from "@/store/useStore";
-import { api } from "@/utils/apiCalls";
+import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
-import { UserType } from "../utils/membersInterfaces";
 import { mapUserData } from "../utils";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
+import { UserType } from "../utils/membersInterfaces";
 
-const AddMember = () => {
+export const ManageMember = () => {
   const navigate = useNavigate();
   const store = useStore();
   const location = useLocation();
@@ -25,14 +26,18 @@ const AddMember = () => {
   const {
     data: member,
     loading: fetchLoading,
-    error: fetchError,
-  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" });
-  const { postData, loading, error, data } = usePost<
-    ApiResponse<{ data: UserType }>
-  >(api.post.createMember);
+    refetch,
+  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" }, true);
+  const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
+    api.post.createMember
+  );
   const { updateData, loading: updateLoading } = usePut<
     ApiResponse<{ data: UserType }>
   >(api.post.updateMember);
+
+  useEffect(() => {
+    id && refetch();
+  }, [id]);
 
   const initialValue = useMemo(() => {
     if (member?.data.data) {
@@ -41,7 +46,6 @@ const AddMember = () => {
       return initialValues;
     }
   }, [member?.data.data]);
-  console.log(member?.data.data, "member");
 
   useEffect(() => {
     if (data) {
@@ -52,18 +56,15 @@ const AddMember = () => {
       store.addMember(temp);
       navigate("/home/members", { state: { new: true } });
     }
-    if (error) {
-      console.log(error);
-    }
   }, [data]);
 
   const handleCancel = () => {
     navigate(-1);
   };
 
-  async function handleSubmit(values: IAddMember) {
-    console.log(values, "values");
-
+  async function handleSubmit(
+    values: IAddMember,
+  ) {
     let dataToSend = { ...values };
 
     try {
@@ -107,22 +108,11 @@ const AddMember = () => {
         <Formik
           enableReinitialize={true}
           initialValues={initialValue}
-          onSubmit={handleSubmit}
+          onSubmit={(values) => handleSubmit(values)}
+          validationSchema={validationSchema}
         >
-          {({ handleSubmit }) => (
+          {({ handleSubmit, errors }) => (
             <>
-              {/* <ProfilePicture
-                className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000"
-                id="profile_picture"
-                name="profile_picture"
-                src={values.picture.src}
-                alt="Profile Picture"
-                editable={true}
-                onChange={(obj) => {
-                  setFieldValue("picture", obj);
-                }}
-                textClass={'text-3xl text-dark900'}
-              /> */}
               <MembersForm />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
@@ -135,8 +125,11 @@ const AddMember = () => {
                   <Button
                     value={editMode ? "Update" : "Save"}
                     type="button"
+                    // onClick={() => {
+                    //   console.log(errors, "errors");
+                    // }}
                     onClick={handleSubmit}
-                    loading={loading||updateLoading}
+                    loading={loading || updateLoading}
                     className="default"
                   />
                 </div>
@@ -155,4 +148,4 @@ const initialValues: IAddMember = {
   ...MembersForm.initialValues,
 };
 
-export default AddMember;
+const validationSchema = object().shape(MembersForm.validationSchema);

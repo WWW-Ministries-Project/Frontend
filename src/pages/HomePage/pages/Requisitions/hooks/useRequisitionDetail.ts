@@ -1,12 +1,12 @@
 import { useFetch } from "@/CustomHooks/useFetch";
-import { useEffect, useMemo, useState } from "react";
-import { IRequisitionDetails } from "../types/requestInterface";
-import { useParams } from "react-router-dom";
-import {api} from "@/utils/apiCalls";
 import { usePost } from "@/CustomHooks/usePost";
-import { ApiResponse } from "@/utils/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useImageUpload } from "@/pages/HomePage/utils/useImageUpload";
+import { api } from "@/utils/api/apiCalls";
+import { ApiResponse } from "@/utils/interfaces";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { IRequisitionDetails } from "../types/requestInterface";
 
 export type ActionType =
   | "comment"
@@ -214,24 +214,24 @@ export const useRequisitionDetail = () => {
 
   const handleAddSignature = async () => {
     const id = Number(requisitionId);
-  
+
     if (typeof signature === "string") {
       await handleUpdate({ user_sign: signature, id }, "approve");
     } else {
       const formData = new FormData();
       formData.append("file", signature as File);
-  
+
       const response = await handleUpload(formData);
       const uploadedURL = response?.URL;
-  
+
       if (uploadedURL) {
         await handleUpdate({ user_sign: uploadedURL, id }, "approve");
       }
     }
-  
+
     setOpenSignature(false);
   };
-  
+
   return {
     requestData,
     loading,
@@ -259,6 +259,6 @@ export const useRequisitionDetail = () => {
     addingImage,
     handleSignature,
     handleAddSignature,
-    requisitionId
+    requisitionId,
   };
 };

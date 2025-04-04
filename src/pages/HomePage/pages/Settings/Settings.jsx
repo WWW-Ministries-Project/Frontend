@@ -1,4 +1,5 @@
 
+import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
@@ -16,7 +17,6 @@ import { useDelete } from "/src/CustomHooks/useDelete.tsx";
 import { usePost } from "/src/CustomHooks/usePost.tsx";
 import { usePut } from "/src/CustomHooks/usePut.tsx";
 import { useStore } from "/src/store/useStore.ts";
-import {api} from "@/utils/apiCalls.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
@@ -272,31 +272,31 @@ function Settings() {
       <PageOutline>
 
         <div>
-        <PageHeader title="General configuration"  />
-        <p className="P200 text-gray">
-          Manage your departments and positions here...
-        </p>
-        <div className="flex mt-2 mb-6 ">
-          <div className="border border-lightGray flex gap-2 rounded-lg p-1">
-          {
-            tabs.map((tab) => {
-              return (
-                <div
-                  className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab? " bg-lightGray font-semibold":""} cursor-pointer w-40`}
-                  
-                  onClick={() => handleTabSelect(tab)}
-                  key={tab}
-                >
-                  {tab}
-                </div>
-              );
-            })
-          }
+          <PageHeader title="General configuration" />
+          <p className="P200 text-gray">
+            Manage your departments and positions here...
+          </p>
+          <div className="flex mt-2 mb-6 ">
+            <div className="border border-lightGray flex gap-2 rounded-lg p-1">
+              {
+                tabs.map((tab) => {
+                  return (
+                    <div
+                      className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab ? " bg-lightGray font-semibold" : ""} cursor-pointer w-40`}
+
+                      onClick={() => handleTabSelect(tab)}
+                      key={tab}
+                    >
+                      {tab}
+                    </div>
+                  );
+                })
+              }
+            </div>
           </div>
         </div>
-        </div>
         <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
-       
+
         <section className=" bg-white">
           <div className="flex justify-between items-center mb-5">
             <div className="flex justify-start gap-2 items-center  w-2/3">
@@ -310,7 +310,7 @@ function Settings() {
             setFilter={setFilter}
           />
         </section>
-        {displayForm&&<FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
+        {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
       </PageOutline>
       {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
     </div>

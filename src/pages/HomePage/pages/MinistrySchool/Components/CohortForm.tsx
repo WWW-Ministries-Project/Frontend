@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { Formik, Field, Form } from "formik";
-import * as Yup from "yup";
+import { ApiCreationCalls } from "@/utils/api/apiPost"; // for creating
+import { ApiUpdateCalls } from "@/utils/api/apiPut"; // for updating
+import { Field, Form, Formik } from "formik";
+import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { ApiCreationCalls } from "@/utils/apiPost";  // for creating
-import { ApiUpdateCalls } from "@/utils/apiPut";    // for updating
-import { formatInputDate } from "@/utils/helperFunctions";
+import * as Yup from "yup";
 
 interface CohortFormProps {
   onClose: () => void;
@@ -22,13 +21,20 @@ interface CohortFormProps {
   fetchProgramData: () => void; //
 }
 
-const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fetchProgramData }) => {
+const CohortForm: React.FC<CohortFormProps> = ({
+  onClose,
+  cohort,
+  programId,
+  fetchProgramData,
+}) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
-  const [applicationDeadline, setApplicationDeadline] = useState<Date | null>(null);
+  const [applicationDeadline, setApplicationDeadline] = useState<Date | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
 
-  const apiCreate = new ApiCreationCalls();  // For creating new cohort
-  const apiUpdate = new ApiUpdateCalls();    // For updating existing cohort
+  const apiCreate = new ApiCreationCalls(); // For creating new cohort
+  const apiUpdate = new ApiUpdateCalls(); // For updating existing cohort
 
   // Set initial values with the cohort's values if provided
   const initialValues = {
@@ -36,7 +42,9 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
     duration: cohort?.duration || "",
     description: cohort?.description || "",
     startDate: cohort?.startDate ? new Date(cohort.startDate) : null, // Convert to Date if exists
-    applicationDeadline: cohort?.applicationDeadline ? new Date(cohort.applicationDeadline) : null, // Convert to Date if exists
+    applicationDeadline: cohort?.applicationDeadline
+      ? new Date(cohort.applicationDeadline)
+      : null, // Convert to Date if exists
     status: cohort?.status || "Upcoming",
   };
 
@@ -55,7 +63,7 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
   });
 
   const onSubmit = async (values: any) => {
-    setLoading(true);  // Show loading state
+    setLoading(true); // Show loading state
 
     const payload = {
       name: values.name,
@@ -64,36 +72,44 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
       startDate: values.startDate,
       applicationDeadline: values.applicationDeadline,
       status: values.status,
-      programId,  // Associate the cohort with a specific program
+      programId, // Associate the cohort with a specific program
     };
 
     console.log("onSubmit", payload);
-    
 
     try {
       if (cohort?.id) {
         // Update existing cohort if ID is provided
-        const response = await apiUpdate.updateCohort({ id: cohort.id, payload });
+        const response = await apiUpdate.updateCohort({
+          id: cohort.id,
+          payload,
+        });
         if (response.success) {
           console.log("Cohort updated successfully:", response.data);
-          onClose();  // Close the form
+          onClose(); // Close the form
         } else {
-          console.error("Error updating cohort:", response?.error || "Unknown error");
+          console.error(
+            "Error updating cohort:",
+            response?.error || "Unknown error"
+          );
         }
       } else {
         // Create new cohort if no ID is provided
         const response = await apiCreate.createCohort(payload);
         if (response.success) {
           console.log("Cohort created successfully:", response.data);
-          onClose();  // Close the form
+          onClose(); // Close the form
         } else {
-          console.error("Error creating cohort:", response?.error || "Unknown error");
+          console.error(
+            "Error creating cohort:",
+            response?.error || "Unknown error"
+          );
         }
       }
     } catch (error) {
       console.error("Error submitting cohort:", error);
     } finally {
-      setLoading(false);  // Stop loading
+      setLoading(false); // Stop loading
       fetchProgramData();
       onClose(); // Close the form
     }
@@ -105,7 +121,9 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
         <div className="text-lg font-bold">
           {cohort?.id ? "Edit Cohort" : "Create New Cohort"}
         </div>
-        <div className="text-sm mb-4">Create or edit a cohort for the program.</div>
+        <div className="text-sm mb-4">
+          Create or edit a cohort for the program.
+        </div>
       </div>
 
       <Formik
@@ -118,7 +136,10 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
             {/* Cohort Name */}
             <div className="flex gap-4">
               <div className="w-full">
-                <label htmlFor="name" className="block text-sm font-medium text-dark900">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-dark900"
+                >
                   Cohort Name *
                 </label>
                 <Field
@@ -136,7 +157,10 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
 
             {/* Description */}
             <div className="w-full">
-              <label htmlFor="description" className="block text-sm font-medium text-dark900">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-dark900"
+              >
                 Description *
               </label>
               <Field
@@ -154,14 +178,17 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
             <div className="grid lg:grid-cols-2">
               {/* Start Date */}
               <div className="w-full">
-                <label htmlFor="startDate" className="block text-sm font-medium text-dark900">
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-dark900"
+                >
                   Start Date *
                 </label>
                 <DatePicker
                   selected={values.startDate || startDate} // Set initial value
                   onChange={(date) => {
                     setStartDate(date);
-                    setFieldValue('startDate', date);
+                    setFieldValue("startDate", date);
                   }}
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
@@ -174,7 +201,10 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
 
               {/* Duration */}
               <div className="w-full">
-                <label htmlFor="duration" className="block text-sm font-medium text-dark900">
+                <label
+                  htmlFor="duration"
+                  className="block text-sm font-medium text-dark900"
+                >
                   Duration *
                 </label>
                 <Field
@@ -193,14 +223,17 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
             {/* Application Deadline */}
             <div className="grid lg:grid-cols-2">
               <div className="w-full">
-                <label htmlFor="applicationDeadline" className="block text-sm font-medium text-dark900">
+                <label
+                  htmlFor="applicationDeadline"
+                  className="block text-sm font-medium text-dark900"
+                >
                   Application Deadline *
                 </label>
                 <DatePicker
                   selected={values.applicationDeadline || applicationDeadline} // Set initial value
                   onChange={(date) => {
                     setApplicationDeadline(date);
-                    setFieldValue('applicationDeadline', date);
+                    setFieldValue("applicationDeadline", date);
                   }}
                   dateFormat="yyyy-MM-dd"
                   className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
@@ -208,16 +241,26 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                   maxDate={values.startDate || startDate}
                 />
                 {errors.applicationDeadline && touched.applicationDeadline && (
-                  <div className="text-red-600 text-xs">{errors.applicationDeadline}</div>
+                  <div className="text-red-600 text-xs">
+                    {errors.applicationDeadline}
+                  </div>
                 )}
               </div>
 
               {/* Status */}
               <div className="w-full">
-                <label htmlFor="status" className="block text-sm font-medium text-dark900">
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-dark900"
+                >
                   Status *
                 </label>
-                <Field as="select" id="status" name="status" className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg">
+                <Field
+                  as="select"
+                  id="status"
+                  name="status"
+                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
+                >
                   <option value="Upcoming">Upcoming</option>
                   <option value="Ongoing">Ongoing</option>
                   <option value="Completed">Completed</option>
@@ -241,7 +284,11 @@ const CohortForm: React.FC<CohortFormProps> = ({ onClose, cohort, programId, fet
                 type="submit"
                 className="bg-primary text-white px-6 py-2 rounded-lg"
               >
-                {loading ? "Submitting..." : cohort?.id ? "Update Cohort" : "Create Cohort"}
+                {loading
+                  ? "Submitting..."
+                  : cohort?.id
+                  ? "Update Cohort"
+                  : "Create Cohort"}
               </button>
             </div>
           </Form>
