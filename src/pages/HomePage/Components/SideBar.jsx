@@ -17,10 +17,12 @@ import RequestIcon from "@/assets/sidebar/RequestIcon";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
 import LogoutIcon from "@/assets/sidebar/Logout";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
+import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
+  Visitors: VisitorIcon,
   Users: UsersIcon,
   Events: ManagementIcon,
   Assets: InstrumentIcon,

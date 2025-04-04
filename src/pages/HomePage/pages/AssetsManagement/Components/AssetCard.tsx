@@ -27,7 +27,7 @@ const AssetCard = (props: IAssetCard) => {
   return (
     <div
       className={`rounded-xl pb-1 ${
-        props.assets.department_assigned ? "bg-primary" : "bg-mainGray"
+        props.assets.department_assigned ? "bg-primary" : "bg-primary"
       } `}
     >
       <CardWrapper

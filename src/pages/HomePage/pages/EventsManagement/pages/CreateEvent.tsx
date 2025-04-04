@@ -78,8 +78,8 @@ const CreateEvent = () => {
   return (
     <div className="p-4">
       <section className="mx-auto py-8 px-16 container lg:w-4/6 bg-white rounded-xl ">
-        <h1 className="H700 text-dark900">Create Event</h1>
-        <p className="text-sma text-dark900 py-2">
+        <h1 className="H700 text-primary">Create Event</h1>
+        <p className="text-sma text-primary py-2">
           Fill in the form below with the event details
         </p>
         <div className="hideScrollbar overflow-y-auto">

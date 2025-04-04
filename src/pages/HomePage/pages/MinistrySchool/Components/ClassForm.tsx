@@ -100,7 +100,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-dark900 space-y-4 overflow-auto">
+    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
       <div>
         <div className="text-lg font-bold">
           {initialData?.id ? "Edit Class" : "Add New Class"}
@@ -144,10 +144,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
 
               {/* Instructor */}
               <div className="w-full">
-                <label
-                  htmlFor="instructor"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="instructor" className="block text-sm font-medium text-primary">
                   Instructor *
                 </label>
                 <Field
@@ -167,10 +164,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
 
             {/* Capacity */}
             <div className="w-full">
-              <label
-                htmlFor="capacity"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="capacity" className="block text-sm font-medium text-primary">
                 Capacity *
               </label>
               <Field
@@ -187,10 +181,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
 
             {/* Schedule */}
             <div className="w-full">
-              <label
-                htmlFor="schedule"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="schedule" className="block text-sm font-medium text-primary">
                 Schedule *
               </label>
               <Field
@@ -207,9 +198,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
 
             {/* Class Format */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-dark900">
-                Class Format *
-              </label>
+              <label className="block text-sm font-medium text-primary">Class Format *</label>
               <div className="flex flex-col space-y-2">
                 <label>
                   <Field
@@ -248,10 +237,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
             {(values.classFormat === "In_Person" ||
               values.classFormat === "Hybrid") && (
               <div className="w-full">
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="location" className="block text-sm font-medium text-primary">
                   Location *
                 </label>
                 <Field
@@ -271,10 +257,7 @@ const ClassForm: React.FC<ClassFormProps> = ({
             {(values.classFormat === "Online" ||
               values.classFormat === "Hybrid") && (
               <div className="w-full">
-                <label
-                  htmlFor="meetingLink"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="meetingLink" className="block text-sm font-medium text-primary">
                   Meeting Link *
                 </label>
                 <Field

@@ -116,7 +116,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-dark900 space-y-4">
+    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4">
       <div>
         <div className="text-lg font-bold">
           {cohort?.id ? "Edit Cohort" : "Create New Cohort"}
@@ -136,10 +136,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
             {/* Cohort Name */}
             <div className="flex gap-4">
               <div className="w-full">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="name" className="block text-sm font-medium text-primary">
                   Cohort Name *
                 </label>
                 <Field
@@ -157,10 +154,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
             {/* Description */}
             <div className="w-full">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="description" className="block text-sm font-medium text-primary">
                 Description *
               </label>
               <Field
@@ -178,10 +172,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
             <div className="grid lg:grid-cols-2">
               {/* Start Date */}
               <div className="w-full">
-                <label
-                  htmlFor="startDate"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="startDate" className="block text-sm font-medium text-primary">
                   Start Date *
                 </label>
                 <DatePicker
@@ -201,10 +192,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
               {/* Duration */}
               <div className="w-full">
-                <label
-                  htmlFor="duration"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="duration" className="block text-sm font-medium text-primary">
                   Duration *
                 </label>
                 <Field
@@ -223,10 +211,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
             {/* Application Deadline */}
             <div className="grid lg:grid-cols-2">
               <div className="w-full">
-                <label
-                  htmlFor="applicationDeadline"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="applicationDeadline" className="block text-sm font-medium text-primary">
                   Application Deadline *
                 </label>
                 <DatePicker
@@ -249,10 +234,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
               {/* Status */}
               <div className="w-full">
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-dark900"
-                >
+                <label htmlFor="status" className="block text-sm font-medium text-primary">
                   Status *
                 </label>
                 <Field

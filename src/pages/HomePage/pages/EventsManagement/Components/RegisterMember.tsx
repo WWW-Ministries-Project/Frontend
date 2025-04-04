@@ -28,7 +28,7 @@ const RegisterMember:React.FC<RegisterMemberProps> = ({memberDetails, name, load
     return (
         <div className="">
             <h2 className="H400">Welcome to {name}</h2>
-            <p className='text-sma text-mainGray'>Member is new Please fill in the form below to capture attendance</p>
+            <p className='text-sma text-primary'>Member is new Please fill in the form below to capture attendance</p>
             <div className="mt-4 flex flex-col gap-4">
                 <InputDiv type='text' id='first_name' label="First Name" placeholder='Enter first name' value={memberDetails.first_name} onChange={handleChange}  />
                 <InputDiv type='text' id='last_name' label="Last Name" placeholder='Enter last name' value={memberDetails.last_name} onChange={handleChange}  />

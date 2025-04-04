@@ -23,7 +23,7 @@ const FormsComponent = (props) => {
     }
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-    <div className={"userInfo z-10 text-mainGray border rounded-lg bg-white p-4  overflow-y-scroll shadow-lg " + props.className}>
+    <div className={"userInfo z-10 text-primary border rounded-lg bg-white p-4  overflow-y-scroll shadow-lg " + props.className}>
         <div className=" border-b border-[#F5F5F5] text-primaryGray text-lg font-manrope font-bold">
             {props.editMode ? "Edit " : "Create "} {props.inputLabel}
         </div>
@@ -37,7 +37,7 @@ const FormsComponent = (props) => {
                 <div className="flex gap-2 justify-end ">
                     <Button
                         value="Close"
-                        className="p-3 bg-white border border-[#F5F5F5] text-dark900"
+                        className="p-3 bg-white border border-[#F5F5F5] text-primary"
                         onClick={props.CloseForm}
                     />
                     <Button 

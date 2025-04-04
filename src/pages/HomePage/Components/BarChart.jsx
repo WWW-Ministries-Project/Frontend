@@ -20,11 +20,17 @@ ChartJS.register(
 
 const BarChart = ({value}) => {
     const data={
-        labels:['Adult Males','Adult Females',"Children Males","Children Females"],
+        labels:['Adult ',"Youth ","Children "],
         datasets:[{
-            data:[value?.adults.Male,value?.adults.Female,value?.children.Male,value?.children.Female],
-            label:'Demographic',
+            data:[value?.adults.Male,value?.children.Male],
+            label:'Male',
             backgroundColor: ['#6539C3'],
+            // backgroundImages: ['rgba(54, 162, 235, 0.5)','rgba(255, 99, 132, 0.5)','rgba(255, 206, 86, 0.5)'],
+        },
+        {
+            data:[value?.adults.Female,value?.children.Female],
+            label:'Female',
+            backgroundColor: ['#6539C80'],
             // backgroundImages: ['rgba(54, 162, 235, 0.5)','rgba(255, 99, 132, 0.5)','rgba(255, 206, 86, 0.5)'],
         }
         ]

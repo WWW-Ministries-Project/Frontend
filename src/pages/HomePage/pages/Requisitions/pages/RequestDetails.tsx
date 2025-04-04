@@ -65,7 +65,7 @@ const RequestDetails = () => {
 
       <Modal open={openComment} onClose={closeComment}>
         <div className="p-10 flex flex-col gap-8">
-          <p className="text-center text-dark900 font-bold text-xl ">
+          <p className="text-center text-primary font-bold text-xl ">
             {commentHeader}
           </p>
           <Textarea
@@ -75,7 +75,7 @@ const RequestDetails = () => {
             placeholder="Enter comment..."
           />
           {actionType === "reject" && (
-            <p className="text-dark900 text-sm">
+            <p className="text-primary text-sm">
               By clicking "Submit", you agreed to disapproving this request
             </p>
           )}
@@ -123,7 +123,7 @@ const RequestDetails = () => {
         </div>
       </PageHeader>
 
-      <section className="grid grid-cols-4 gap-4 text-dark900">
+      <section className="grid grid-cols-4 gap-4 text-primary">
         {/* Left Section */}
         <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
@@ -134,10 +134,10 @@ const RequestDetails = () => {
             />
             <div>
               <div className="font-bold">{requestData?.requester?.name}</div>
-              <div className="text-mainGray">
+              <div className="text-primary">
                 {requestData?.requester?.position ?? "N/A"}
               </div>
-              <div className="text-mainGray">
+              <div className="text-primary">
                 {requestData?.requester?.email}
               </div>
             </div>

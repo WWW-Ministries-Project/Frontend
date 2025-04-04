@@ -11,9 +11,11 @@ import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
+import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
+  Visitors: VisitorIcon,
   "Users": MembersIcon, // TODO: replace this
   // Attendance: AttendanceIcon,
   Events: ManagementIcon,

@@ -59,7 +59,7 @@ const AccessForm = ({ handleChange,handleNameChange, permissionsValues, inputVal
                 <div className="flex gap-2 justify-end mt-10">
                         <Button
                             value="Close"
-                            className={" p-3 bg-white border border-[#F5F5F5] text-dark900"}
+                            className={" p-3 bg-white border border-[#F5F5F5] text-primary"}
                             onClick={CloseForm}
                         />
                         <Button value={buttonText} className={" p-3 text-white bg-primary"} onClick={handleSubmit} loading={loading} />

@@ -17,7 +17,7 @@ function NotificationFlag (props) {
                     <img src="/assets/home/notification.svg" alt="" className='rounded-s-xl h-'/>
                 </div>
                 <div className="px-5 ">
-                    <h3 className="text-dark900 text-lg font-bold">Good afternoon {props.name}!</h3>
+                    <h3 className="text-primary text-lg font-bold">Good afternoon {props.name}!</h3>
                     <p className="text-gray">Welcome to your world wide ministries admin dashboard. You can track your contacts and membership information all in one place. Filter the data to view the most relevant information you need.</p>
                 </div>
             </div>

@@ -38,7 +38,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
 
   return (
     <div
-      className={`flex text-dark900 flex-col gap-1 ${props.className}`}
+      className={`flex text-primary flex-col gap-1 ${props.className}`}
       ref={ref}
       onClick={props.onClick}
       style={{ cursor: props.onClick ? "pointer" : "default" }}
@@ -63,7 +63,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
           className={`   ${
             props.inputClass
               ? props.inputClass
-              : "rounded-lg p-2 border border-dark900 focus:outline-none"
+              : "rounded-lg p-2 border border-primary focus:outline-none"
           }  ${
             props.error ? "!border-error focus:outline-none !outline-error" : ""
           }`}

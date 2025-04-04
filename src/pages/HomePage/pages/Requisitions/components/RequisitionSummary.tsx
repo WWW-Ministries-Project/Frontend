@@ -38,7 +38,7 @@ const RequisitionSummary = React.memo(
     ];
     return (
       <aside className="border rounded-lg p-3 h-fit border-[#D9D9D9]">
-        <div className="font-semibold text-dark900">
+        <div className="font-semibold text-primary">
           <PageHeader title="Requisition Summary" />
         </div>
         <div className="flex flex-col gap-3">
@@ -47,14 +47,14 @@ const RequisitionSummary = React.memo(
               key={item.title}
               className="flex  whitespace-nowrap gap-3 text-left"
             >
-              <span className="font-semibold text-dark900 ">{item.title}:</span>
-              <span className="text-left font-normal text-mainGray">
+              <span className="font-semibold text-primary ">{item.title}:</span>
+              <span className="text-left font-normal text-primary">
                 {item.value}
               </span>
             </div>
           ))}
           <div className="flex items-center   gap-3 text-left">
-            <span className="font-semibold text-dark900 ">Status</span>
+            <span className="font-semibold text-primary ">Status</span>
             <StatusPill text={summary?.status as string} />
           </div>
         </div>

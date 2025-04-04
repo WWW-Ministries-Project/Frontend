@@ -1,13 +1,13 @@
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import ProfilePic from "@/components/ProfilePicture";
-import coverImage1 from "/src/assets/CoverImage.svg";
+// import coverImage1 from "/src/assets/CoverImage.svg";
 
 interface IProps {
   id: string | number;
   name?: string;
-  department: string;
-  position: string;
+  department?: string;
+  position?: string;
   email: string;
   primary_number: string;
   src: string;
@@ -22,9 +22,9 @@ const Banner = (props: IProps) => {
   return (
     <div className="w-full h-36 relative bg-primary text-white rounded-t-lg">
       <div
-        className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
+        className="p-4 rounded-t-lg left-0 w-full h-full flex items-center justify-between  bg-cover"
         style={{
-          backgroundImage: `url(${coverImage1})`,
+          // backgroundImage: `url(${coverImage1})`,
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}

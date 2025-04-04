@@ -43,7 +43,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     >
       {(form) => (
         <Form className="flex flex-col gap-4 mt-4 w-full">
-          <h2 className="text-dark900 H600 font-extrabold ">
+          <h2 className="text-primary H600 font-extrabold ">
             Event Information
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
@@ -68,7 +68,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.event_type || props.inputValue.event_type}
             />
           </div>
-          <h2 className="text-dark900 H600 font-extrabold ">
+          <h2 className="text-primary H600 font-extrabold ">
             Date & Time Information
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
           {!props.updating && (
             <>
               <div className="mt-4">
-                <p className="text-sm text-dark900">
+                <p className="text-sm text-primary">
                   Is this a one-day or multi-day event?
                 </p>
                 <div className="mt-2 flex gap-4 text-900">
@@ -136,9 +136,9 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                   </div>
                 )}
               </div>
-              <h2 className="text-dark900 H600 font-extrabold ">Repetition</h2>
+              <h2 className="text-primary H600 font-extrabold ">Repetition</h2>
               <div className="">
-                <p className="text-sm text-dark900">
+                <p className="text-sm text-primary">
                   Is this event a repetitive event?
                 </p>
                 <div className="mt-2 flex gap-4">
@@ -205,7 +205,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               </div>
             </>
           )}
-          <h2 className="text-dark900 H600 font-extrabold ">
+          <h2 className="text-primary H600 font-extrabold ">
             Other Information
           </h2>
           <div className="grid md:grid-cols-2 gap-4">

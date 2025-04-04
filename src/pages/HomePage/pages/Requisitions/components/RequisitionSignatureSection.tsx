@@ -27,7 +27,7 @@ const RequisitionSignatureSection: React.FC<RequisitionSignatureSectionProps> =
     }
 
     return (
-      <section className="flex items-center justify-between px-4 text-dark900">
+      <section className="flex items-center justify-between px-4 text-primary">
         <div className="flex flex-col gap-4">
           <SignatureSection
             signature={{

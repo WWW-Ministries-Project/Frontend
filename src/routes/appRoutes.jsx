@@ -7,6 +7,7 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
 import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
+import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
@@ -23,15 +24,16 @@ import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
+import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
-import DashBoard from "../pages/HomePage/pages/DashBoard/DashBoard";
 import Members from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
+import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 
 
 export const routes = [
@@ -67,14 +69,14 @@ export const routes = [
     children: [
       {
         path: "",
-        element: <DashBoard />,
+        element: <DashBoardPage />,
         isPrivate: false,
         permissionNeeded: "view_dashboard",
       },
       {
         path: "dashboard",
         name: "Dashboard",
-        element: <DashBoard />,
+        element: <DashBoardPage />,
         isPrivate: false,
         permissionNeeded: "view_dashboard",
         sideTab: true,
@@ -107,6 +109,22 @@ export const routes = [
             permissionNeeded: "view_members",
           },
         ]
+      },
+      {
+        path: "visitors",
+        name: "Visitors",
+        element: <VisitorManagement />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: true,
+      },
+      {
+        path: "visitors/visitor/:visitorId",
+        name: "Visitors",
+        element: <VisitorDetails />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: false,
       },
       {
         path: "events",
@@ -249,6 +267,21 @@ export const routes = [
         path: "ministry-school/programs/cohort/class/student/certificate",
         name: "View Certificate",
         element: <ViewCertificate />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+      },
+      {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: false,
+        permissionNeeded: "view_events",
+        sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
         isPrivate: false,
         permissionNeeded: "view_events",
       },

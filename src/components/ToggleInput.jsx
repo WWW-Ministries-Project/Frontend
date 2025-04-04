@@ -11,7 +11,7 @@ const ToggleSwitch = (props) => {
         // <label class="inline-flex items-center cursor-pointer">
         //     <div className="relative   flex items-center justify-between w-full">
         //         <div
-        //             className={`toggle-switch-label mb-2 P100 dark900`}
+        //             className={`toggle-switch-label mb-2 P100 primary`}
         //         >
         //             {props.label}
         //         </div>
