@@ -3,6 +3,7 @@ import FormikInputDiv from "@/components/FormikInput";
 import { FormHeader } from "@/components/ui";
 import { Field } from "formik";
 import { object, string } from "yup";
+import { CountryField } from "../fields/CountryField";
 
 const ContactsSubFormComponent = ({
   prefix,
@@ -28,14 +29,12 @@ const ContactsSubFormComponent = ({
         disabled={disabled}
         type={"text"}
       />
-      <Field
-        component={FormikInputDiv}
+      <CountryField
+        prefix={prefix}
+        disabled={disabled}
         label="Country"
         placeholder="Enter country of residence"
-        id={`${prefix}.resident_country`}
         name={`${prefix}.resident_country`}
-        disabled={disabled}
-        type={"text"}
       />
       <Field
         component={FormikInputDiv}
