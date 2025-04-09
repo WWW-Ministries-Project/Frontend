@@ -25,7 +25,7 @@ import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
-import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
+import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";

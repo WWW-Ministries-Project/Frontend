@@ -27,7 +27,7 @@ interface Visitor {
   visitCount: number;
 }
 
-const VisitorManagement = () => {
+export function VisitorManagement  () {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -236,5 +236,3 @@ const VisitorManagement = () => {
     </PageOutline>
   );
 };
-
-export default VisitorManagement;

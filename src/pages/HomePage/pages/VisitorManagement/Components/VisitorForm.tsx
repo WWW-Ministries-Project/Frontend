@@ -149,10 +149,10 @@ export interface IVisitorForm {
   visit: {
     date: string;
     howHeard: string;
+    event: string;
   };
   consentToContact: string;
   membershipWish: string;
-  event: string;
 }
 
 const initialValues: IVisitorForm = {
@@ -161,10 +161,10 @@ const initialValues: IVisitorForm = {
   visit: {
     date: "",
     howHeard: "",
+    event: "",
   },
   consentToContact: "",
   membershipWish: "",
-  event: "",
 };
 
 const validationSchema = object({
