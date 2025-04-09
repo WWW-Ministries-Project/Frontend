@@ -7,7 +7,7 @@ import Visits from "./Visit";
 import FollowUps from "./FollowUps";
 import PrayerRequest from "./PrayerRequest";
 import Note from "./Notes";
-import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
+// import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
 import HeaderControls from "@/components/HeaderControls";
 import { formatTime } from "@/utils/helperFunctions";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
@@ -23,7 +23,7 @@ const VisitorDetails = () => {
   const [loading, setLoading] = useState<boolean>(true);  // Handle loading state
   const [error, setError] = useState<string | null>(null); // Handle error state
 
-  const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
+  // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
 
   // Step 1: Fetch visitor details on component mount using the id from route params
   const fetchVisitorData = async () => {
@@ -32,7 +32,7 @@ const VisitorDetails = () => {
       if (!visitorId) {
         throw new Error("Visitor ID is undefined.");
       }
-      const response = await apiCalls.fetchVisitorById(visitorId);  // Ensure id is a string
+      // const response = await apiCalls.fetchVisitorById(visitorId);  // Ensure id is a string
       if (response?.data) {
         setVisitor(response.data.data);
       } else {

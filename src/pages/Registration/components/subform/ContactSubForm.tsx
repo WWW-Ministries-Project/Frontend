@@ -10,6 +10,7 @@ import { object } from "yup";
 const RegistrationContactSubFormComponent = () => {
   return (
     <>
+      <FormHeader>Contacts Information</FormHeader>
       <ContactsSubForm prefix="contact_info" />
       <FormHeader>Emergency Contact</FormHeader>
       <EmergencyContact prefix="emergency_contact" />

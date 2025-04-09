@@ -5,4 +5,5 @@ export * from "./UserSubForm";
 export * from "./WorkInfoSubForm";
 export * from "./EmergencyContact";
 export * from "./PersonalDetails";
+export * from "./NameInfo";
 

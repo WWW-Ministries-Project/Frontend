@@ -24,7 +24,7 @@ import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
-import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
+// import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import VisitorManagement from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
@@ -33,7 +33,7 @@ import Members from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import MemberInformation from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
+import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
 
 
 export const routes = [
@@ -114,18 +114,18 @@ export const routes = [
         path: "visitors",
         name: "Visitors",
         element: <VisitorManagement />,
-        isPrivate: false,
+        isPrivate: true,
         permissionNeeded: "view_members",
         sideTab: true,
       },
-      {
-        path: "visitors/visitor/:visitorId",
-        name: "Visitors",
-        element: <VisitorDetails />,
-        isPrivate: false,
-        permissionNeeded: "view_members",
-        sideTab: false,
-      },
+      // {
+      //   path: "visitors/visitor/:visitorId",
+      //   name: "Visitors",
+      //   element: <VisitorDetails />,
+      //   isPrivate: false,
+      //   permissionNeeded: "view_members",
+      //   sideTab: false,
+      // },
       {
         path: "events",
         name: "Events",
