@@ -23,7 +23,7 @@ const WorkInfoSubFormComponent = ({
       <FormHeader>Work Information</FormHeader>
       <Field
         component={FormikSelectField}
-        label="Employment Status"
+        label="Employment Status *"
         placeholder="Select employment status"
         id={`${prefix}.employment_status`}
         name={`${prefix}.employment_status`}
@@ -34,7 +34,7 @@ const WorkInfoSubFormComponent = ({
         <>
           <Field
             component={FormikInputDiv}
-            label="Name of Institution"
+            label="Name of Institution *"
             placeholder="Enter name of institution"
             id={`${prefix}.work_name`}
             name={`${prefix}.work_name`}
@@ -42,7 +42,7 @@ const WorkInfoSubFormComponent = ({
           />
           <Field
             component={FormikInputDiv}
-            label="Industry"
+            label="Industry *"
             placeholder="Enter industry"
             id={`${prefix}.work_industry`}
             name={`${prefix}.work_industry`}
@@ -61,7 +61,7 @@ const WorkInfoSubFormComponent = ({
       {employmentStatus === "student" && (
         <Field
           component={FormikInputDiv}
-          label="Name of Institution"
+          label="Name of Institution *"
           placeholder="Enter name of institution"
           id={`${prefix}.school_name`}
           name={`${prefix}.school_name`}

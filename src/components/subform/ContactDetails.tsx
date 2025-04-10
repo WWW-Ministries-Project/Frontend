@@ -11,7 +11,7 @@ const ContactDetailsComponent = ({
       {/* <ContactInput label="Phone Number" disabled={disabled} /> */}
       <Field
         component={FormikInputDiv}
-        label="Email"
+        label="Email *"
         id="email"
         name="email"
         type={"email"}
@@ -19,7 +19,7 @@ const ContactDetailsComponent = ({
       />
       <Field
         component={FormikInputDiv}
-        label="Address"
+        label="Address *"
         id="address"
         name="address"
         disabled={disabled}

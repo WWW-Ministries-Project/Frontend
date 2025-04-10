@@ -15,7 +15,7 @@ const EmergencyContactComponent = ({
     <>
       <Field
         component={FormikInputDiv}
-        label="Name of Contact"
+        label="Name of Contact *"
         disabled={disabled}
         placeholder="Enter name of contact"
         id={`${prefix}.name`}
@@ -23,7 +23,7 @@ const EmergencyContactComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Relation"
+        label="Relation *"
         disabled={disabled}
         placeholder="Select relation"
         id={`${prefix}.relation`}

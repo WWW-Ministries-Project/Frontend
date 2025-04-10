@@ -32,7 +32,7 @@ export const CountryField = ({
   return (
     <Field
       component={FormikSelectField}
-      label={label || "Nationality"}
+      label={label || "Nationality *"}
       placeholder={placeholder || "Select nationality"}
       id={name || `${prefix}.nationality`}
       name={name || `${prefix}.nationality`}

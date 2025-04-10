@@ -20,7 +20,7 @@ const PersonalDetailsComponent = ({
       <NameInfo disabled={disabled} prefix={prefix} />
       <Field
         component={FormikInputDiv}
-        label="Date of Birth"
+        label="Date of Birth *"
         placeholder="Enter date of birth"
         value={formatInputDate(values.date_of_birth)}
         disabled={disabled}
@@ -30,7 +30,7 @@ const PersonalDetailsComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Gender"
+        label="Gender *"
         options={genderOptions}
         disabled={disabled}
         id={`${prefix}.gender`}
@@ -39,7 +39,7 @@ const PersonalDetailsComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Marital Status"
+        label="Marital Status *"
         options={maritalOptions}
         disabled={disabled}
         id={`${prefix}.marital_status`}
