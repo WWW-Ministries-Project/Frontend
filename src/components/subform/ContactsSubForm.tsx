@@ -14,7 +14,6 @@ const ContactsSubFormComponent = ({
 }) => {
   return (
     <>
-      <FormHeader>Contacts Information</FormHeader>
       <ContactInput
         disabled={disabled}
         label={"Enter phone number"}

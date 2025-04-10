@@ -13,6 +13,7 @@ import StatsCard from "../../Components/reusable/StatsCard";
 import TableComponent from "../../Components/reusable/TableComponent";
 import type { UserStats, UserType } from "../Members/utils/membersInterfaces";
 import { dashboardColumns } from "./utils/dashboardFunctions";
+import DashBoardPage from "./DashboardPage";
 
 function DashBoard() {
   const { members, userStats } = useOutletContext<{
@@ -83,6 +84,10 @@ function DashBoard() {
         />
       )}
 
+      <DashBoardPage/>
+
+      
+
       <div className="grid gap-y-4">
         <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2 xs:grid-cols-2 ">
           {stats.map((stat) => (
@@ -91,11 +96,11 @@ function DashBoard() {
         </section>
         <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 ">
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
-            <div className="text-dark900 H600">Members Breakdown</div>
+            <div className="text-primary H600">Members Breakdown</div>
             <BarChart value={userStats.members?.stats} />
           </section>
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
-            <div className="text-dark900 H600">Event Attendance</div>
+            <div className="text-primary H600">Event Attendance</div>
             {/* <BarChart value={userStats.stats} /> */}
             <LineChart value={userStats.members?.stats} />
           </section>
@@ -103,7 +108,7 @@ function DashBoard() {
         <div className="flex flex-col  justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
           <section className="bg-white p-7 w-full rounded-xl space-y-4">
             <div className="flex justify-between items-center ">
-            <div className="text-dark900 H600">First Timers</div>
+            <div className="text-primary H600">First Timers</div>
             <div>
                 <Button
                   value="All Members"
@@ -138,7 +143,7 @@ function DashBoard() {
           </section>
           <section className="bg-white p-7 w-full rounded-xl space-y-4">
             <div className="flex justify-between items-center">
-            <div className="text-dark900 H600">Upcoming Event</div>
+            <div className="text-primary H600">Upcoming Event</div>
             <div>
                 <Button
                   value="All Events"

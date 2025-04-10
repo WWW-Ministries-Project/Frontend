@@ -154,7 +154,7 @@ const ViewCertificate = ({ loading }: any) => {
 
   return (
     <div className="p-4">
-      <PageOutline className="p-0 text-dark900">
+      <PageOutline className="p-0 text-primary">
         <div className="flex items-center p-4 border-b border-lightGray print:hidden">
           <h1 className="text-xl font-semibold ml-2">Certificate of Completion</h1>
           <div className="ml-auto flex gap-2">

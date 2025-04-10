@@ -18,6 +18,7 @@ import { usePost } from "/src/CustomHooks/usePost.tsx";
 import { usePut } from "/src/CustomHooks/usePut.tsx";
 import { useStore } from "/src/store/useStore.ts";
 import { decodeToken } from "/src/utils/helperFunctions.ts";
+import TabSelection from "../../Components/reusable/TabSelection";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
   const tabs = ["Department", "Position"];

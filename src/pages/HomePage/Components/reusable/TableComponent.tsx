@@ -13,24 +13,24 @@ import { Dispatch, SetStateAction, useState } from "react";
 import PaginationComponent from "./PaginationComponent";
 
 interface TableComponentProps<TData> {
-  data: TData[]; 
-  columns: ColumnDef<TData, any>[]; 
-  filter?: string; 
+  data: TData[];
+  columns: ColumnDef<TData, any>[];
+  filter?: string;
   columnFilters?: ColumnFilter[];
   columnVisibility?: Record<string, boolean>;
   setColumnFilters?: Dispatch<SetStateAction<ColumnFilter[]>>;
-  setFilter?: Dispatch<SetStateAction<string>>; 
+  setFilter?: Dispatch<SetStateAction<string>>;
   displayedCount?: number;
   rowClass?: string;
   headClass?: string;
-  className?: string,
-  onRowClick?: (data: any) => void
+  className?: string;
+  onRowClick?: (data: any) => void;
 }
 
 function TableComponent<TData>({
   data,
   columns,
-  filter = "", 
+  filter = "",
   columnFilters,
   setColumnFilters,
   setFilter,
@@ -53,7 +53,7 @@ function TableComponent<TData>({
       sorting,
       globalFilter: filter,
       columnFilters,
-      columnVisibility
+      columnVisibility,
     },
     initialState: {
       pagination: {
@@ -63,7 +63,7 @@ function TableComponent<TData>({
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
-    onColumnFiltersChange: setColumnFilters
+    onColumnFiltersChange: setColumnFilters,
   });
 
   const handleRowClick = (data: any) => {
@@ -71,40 +71,42 @@ function TableComponent<TData>({
   };
 
   return (
-    <div className={"overflow-x-auto  "+props.className}>
-      <div className="rounded-lg">
+    <div className={`overflow-x-auto ${props.className}`}>
+      <div className="rounded-lg shadow-md bg-white">
         <div className="hideScrollbar rounded-lg overflow-y-scroll">
-          <table className="w-full rounded-lg">
+          <table className="w-full text-sm text-left table-auto">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
-                  className={`text-center text-mainGray py-4 bg-lightGray`}
+                  className="bg-lightGray text-primary  border-b border-lightGray"
                 >
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
                       onClick={header.column.getToggleSortingHandler()}
-                      className={`py-4 px-2 text-left cursor-pointer ${headClass}`}
+                      className={`py-4 px-6 text-left font-semibold cursor-pointer ${headClass}`}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                      <span>
-                        {{ asc: "  ↑", desc: "  ↓" }[header.column.getIsSorted() as string ?? ""]}
+                      <span className="ml-2">
+                        {header.column.getIsSorted() ? (
+                          <span>{header.column.getIsSorted() === "asc" ? "↑" : "↓"}</span>
+                        ) : null}
                       </span>
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
-            <tbody className="bg-white">
+            <tbody>
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-b border-x  border-lightGray h-20 text-dark900 leading-6 hover:bg-[#f8f9f999] ${rowClass}`}
+                  className={`border-b border-x border-lightGray text-primary h-16 leading-6 hover:bg-lightGray/20 cursor-pointer ${rowClass}`}
                   onClick={() => handleRowClick(row)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-1">
+                    <td key={cell.id} className="px-4 py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

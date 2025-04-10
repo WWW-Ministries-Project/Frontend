@@ -48,7 +48,7 @@ function RequestAttachments({
       <div className="border p-2 rounded-lg flex gap-3">
         <FileIcon />
         <div className="flex gap-2 flex-col">
-          <div className="text-sm text-mainGray">
+          <div className="text-sm text-primary">
             {attachment.URL?.split("/").pop()}
           </div>
           <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ function RequestAttachments({
 
   return (
     <div className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
-      <div className="font-semibold text-dark900 flex items-center justify-between">
+      <div className="font-semibold text-primary flex items-center justify-between">
         <PageHeader title="Attachments" />
         {!isEditable && (
           <UploadButton

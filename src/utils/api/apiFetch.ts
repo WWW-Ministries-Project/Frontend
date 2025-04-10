@@ -168,4 +168,67 @@ export class ApiCalls {
   ): Promise<ApiResponse<{ data: any[] }>> => {
     return this.fetchFromApi("program/users", query);
   };
+
+  // Visitor Management
+  fetchAllVisitors = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("visitor/visitors", query);
+  };
+
+  fetchVisitorById = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any }>> => {
+    return this.fetchFromApi(`visitor/visitors/${id}`, query);
+  };
+
+  // Visit Management
+  fetchAllVisits = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("visit", query);
+  };
+
+  fetchVisitById = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any }>> => {
+    return this.fetchFromApi(`visit/${id}`, query);
+  };
+
+  fetchAllVisitsByVisitorId = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi(`visitor/visit/visitor/${id}`, query);
+  };
+
+  // Follow-Up Management
+  fetchAllFollowUps = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("followup", query);
+  };
+
+  fetchFollowUpById = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any }>> => {
+    return this.fetchFromApi(`followup/${id}`, query);
+  };
+
+  // Prayer Request Management
+  fetchAllPrayerRequests = (
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any[] }>> => {
+    return this.fetchFromApi("prayerrequest", query);
+  };
+
+  fetchPrayerRequestById = (
+    id: string,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<{ data: any }>> => {
+    return this.fetchFromApi(`prayerrequest/${id}`, query);
+  };
 }

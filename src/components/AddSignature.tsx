@@ -4,7 +4,7 @@ import useFileUpload from "@/CustomHooks/useFileUpload";
 import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
 
 const Text = ({ text, className }: { text: string; className?: string }) => {
-  return <div className={`text-dark900 ${className}`}>{text}</div>;
+  return <div className={`text-primary ${className}`}>{text}</div>;
 };
 
 type Signature = {

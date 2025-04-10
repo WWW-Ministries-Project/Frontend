@@ -82,27 +82,6 @@ const AssetManagement = () => {
           <section className="mt-   ">
             <div className="flex justify-between items-center mb-5">
               <div className="flex justify-start gap-2 items-center  w-2/3">
-                {/* <div
-                className="flex gap-1 bg-lightGray p-1 rounded-md"
-                id="switch"
-              >
-                <div onClick={() => handleViewMode(true)}>
-                  <TableAssets
-                    stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                    className={tableView ? "bg-white rounded-md" : ""}
-                  />
-                </div>
-                <div onClick={() => handleViewMode(false)}>
-                  <GridAsset
-                    stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                    className={
-                      tableView
-                        ? "bg-lightGray rounded-md"
-                        : "bg-white  rounded-md"
-                    }
-                  />
-                </div>
-              </div> */}
                 {showSearch && (
                   <SearchBar
                     className="w-[40.9%] h-10"
@@ -112,13 +91,6 @@ const AssetManagement = () => {
                   />
                 )}
               </div>
-              {/* <div>
-              <Button
-                value="Add asset"
-                className={" text-white h-10 p-2 bg-primary"}
-                onClick={() => navigate("manage-asset")}
-              />
-            </div> */}
             </div>
             {/* <TableComponent /> */}
             {tableView ? (

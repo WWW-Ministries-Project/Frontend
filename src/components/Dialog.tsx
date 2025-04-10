@@ -16,7 +16,7 @@ const Dialog = () => {
   }
   return (
     <div>
-      <dialog ref={dialog} className="rounded p-5 shadow-lg text-dark900">
+      <dialog ref={dialog} className="rounded p-5 shadow-lg text-primary">
         <h1 className="H600">Delete {dialogData.name}</h1>
         <div className="mt-3">
           Are you sure you want to delete {dialogData.name}. <br /> This action

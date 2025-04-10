@@ -7,7 +7,7 @@ const Input = (props) => {
   return (
     <div className={"inputBox bg-white rounded-lg W px-5 " + props.className}>
       <label
-        className=" text-left text-dark900 p-2  "
+        className=" text-left text-primary p-2  "
         htmlFor={props.id}>
         {props.label}
       </label>

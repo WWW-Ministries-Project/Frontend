@@ -24,7 +24,7 @@ export default function NavigationLink({
         to={item.path}
         key={item.path + item.name}
         className={({ isActive }) =>
-          `gap-2 text-dark900 transition h-10 z-10  flex items-center py-7 rounded-s-xl
+          `gap-2 text-primary transition h-10 z-10  flex items-center py-7 rounded-s-xl
            ${!show ? (justifyCenter ? "justify-center" : "") : "px-2 py-7"} 
            ${isActive ? "bg-lightGray text-primary " : "hover:text-primary"}`
         }

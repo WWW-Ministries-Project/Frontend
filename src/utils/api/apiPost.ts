@@ -83,4 +83,24 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };
+
+  // Visitor Management
+  createVisitor = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/visitors", payload);
+  };
+
+  // Visit Management
+  createVisit = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/visit", payload);
+  };
+
+  // Follow-Up Management
+  createFollowUp = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/followup", payload);
+  };
+
+  // Prayer Request Management
+  createPrayerRequest = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/prayerrequest", payload);
+  };
 }

@@ -56,7 +56,7 @@ const ContactInputComponent = ({
 
   return (
     <div>
-      <p className="text-dark900 font-semibold">{label}</p>
+      <p className="text-primary font-semibold">{label}</p>
       <div className="flex items-center w-full">
         {/* Country Code Input */}
         <div className="relative w-20">
@@ -68,7 +68,7 @@ const ContactInputComponent = ({
             onChange={handleInputChange}
             inputClass={`w-full ${
               zipClass ||
-              "rounded-l-lg p-2 border border-r-0 border-dark900 bg-lightGray/30"
+              "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/30"
             }`}
             placeholder="code"
             aria-describedby="country-code-description"
@@ -108,7 +108,7 @@ const ContactInputComponent = ({
             placeholder="enter phone number"
             disabled={disabled}
             inputClass={`w-full ${
-              className || "rounded-r-lg p-2 border border-dark900"
+              className || "rounded-r-lg p-2 border border-primary"
             }`}
             type="tel"
           />

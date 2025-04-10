@@ -59,7 +59,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
                 )}
               </div>
               <div className="flex  w-4/5">
-                <p className="font-bold text-[1rem] truncate text-dark900">
+                <p className="font-bold text-[1rem] truncate text-primary">
                   {props.member?.name}
                 </p>
               </div>
@@ -67,13 +67,13 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
           </div>
 
           <div className="space-y-3">
-            <div className="flex gap-1.5 text-sm text-dark900 ">
+            <div className="flex gap-1.5 text-sm text-primary ">
               <img src={email} alt="options" className="" />
               <p className="text truncate ">
                 {props.member?.email || "No email"}
               </p>
             </div>
-            <div className="flex gap-1.5 text-sm text-dark900">
+            <div className="flex gap-1.5 text-sm text-primary">
               <img src={phone} alt="options" className="" />
               <p className="text truncate ">
                 {`${
@@ -91,7 +91,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
         <Button
           value={"View "}
           onClick={handleClick}
-          className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-dark900"
+          className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-primary"
         />
       </div>
     </CardWrapper>

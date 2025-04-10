@@ -127,7 +127,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
               <p className="text-white text-lg font-semibold">Topics</p>
               <div className="flex flex-wrap gap-2">
                 {Data?.topics.map((topic, index) => (
-                  <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-dark900">
+                  <Badge key={index} className="bg-lightGray border-lightGray font-medium text-sm text-primary">
                     {topic?.name||topic}
                   </Badge>
                 ))}

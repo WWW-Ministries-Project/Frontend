@@ -46,7 +46,7 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
           {/* Main Parent Menu */}
           <div
             onClick={toggleSubMenu} // 🔥 Toggle submenu on click
-            className={`text-dark900 transition z-10  cursor-pointer  ${
+            className={`text-primary transition z-10  cursor-pointer  ${
               (showChildren || isActive) ? "text-primary bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
             }
             ${

@@ -8,7 +8,7 @@ function StatsCard(props) {
       <div className="text-gray">{name} 
         {/* {additionalInfo ? <span className='cursor-pointer'><img src="/assets/home/info_circle.svg" alt="info" className='inline-block' /></span> : null} */}
         </div>
-      <div className="H700 text-dark900">{value}</div>
+      <div className="H700 text-primary">{value}</div>
       <div className="P100">{duration}</div>
     </div>
     // </div>

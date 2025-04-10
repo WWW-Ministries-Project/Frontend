@@ -52,7 +52,8 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
       <FormHeader>Personal Information</FormHeader>
       <UserSubForm disabled={disabled} prefix="personal_info" />
       <HorizontalLine />
-
+      
+      <FormHeader>Contacts Information</FormHeader>
       <ContactsSubForm disabled={disabled} prefix="contact_info" />
       <HorizontalLine />
 

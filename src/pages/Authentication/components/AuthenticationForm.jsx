@@ -12,7 +12,7 @@ const AuthenticationForm = (props) => {
           <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primary">
             <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">
               <ChurchLogo className={' mb-5'} />
-              <div className="flex justify-center text-dark900 text-2xl mb-2">{props.header}</div>
+              <div className="flex justify-center text-primary text-2xl mb-2">{props.header}</div>
               <div className="text-center  text-gray">{props.text}</div>
               <div className="gap-4">
                 {props.response?.status >= 400 ? (

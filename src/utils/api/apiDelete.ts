@@ -52,4 +52,24 @@ export class ApiDeletionCalls {
   deleteCourse = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`program/courses/${id}`, { id });
   };
+
+  // Visitor Management
+  deleteVisitor = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`visitors/${id}`, { id });
+  };
+
+  // Visit Management
+  deleteVisit = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`visit/${id}`, { id });
+  };
+
+  // Follow-Up Management
+  deleteFollowUp = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`followup/${id}`, { id });
+  };
+
+  // Prayer Request Management
+  deletePrayerRequest = (id: string | number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`prayerrequest/${id}`, { id });
+  };
 }

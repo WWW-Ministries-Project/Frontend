@@ -37,7 +37,7 @@ const Action = ({ isEditable = true, ...props }) => {
         props.className
       }
     >
-      <ul className="!divide-lightGray py-2 text-sm text-dark900 flex flex-col gap-y-2">
+      <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-2">
         {isEditable && <ActionButton onClick={handleEdit} text="Edit" />}
         <ActionButton onClick={handleView} text="View" />
         {!props.hideDelete && (

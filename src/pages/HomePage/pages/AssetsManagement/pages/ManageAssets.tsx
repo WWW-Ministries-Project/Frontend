@@ -79,7 +79,7 @@ const ManageAsset = () => {
   return (
     <div className="p-4">
       <section className="p-8 container lg:w-4/6 bg-white mx-auto rounded-xl ">
-        <h1 className="H700 font-bold text-dark900">{title}</h1>
+        <h1 className="H700 font-bold text-primary">{title}</h1>
         {!isDisabled && (
           <p className="text-sma text-lightGray py-2">
             Fill in the form below with the asset details
