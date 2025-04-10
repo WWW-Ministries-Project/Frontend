@@ -74,8 +74,8 @@ const VisitorFormComponent = ({
               options={eventsOptions}
               label="Event"
               placeholder="Event"
-              name="event"
-              id="event"
+              name="eventId"
+              id="eventId"
             />
             <Field
               component={FormikInputDiv}
@@ -149,7 +149,7 @@ export interface IVisitorForm {
   visit: {
     date: string;
     howHeard: string;
-    event: string;
+    eventId: string;
   };
   consentToContact: string;
   membershipWish: string;
@@ -161,7 +161,7 @@ const initialValues: IVisitorForm = {
   visit: {
     date: "",
     howHeard: "",
-    event: "",
+    eventId: "",
   },
   consentToContact: "",
   membershipWish: "",
