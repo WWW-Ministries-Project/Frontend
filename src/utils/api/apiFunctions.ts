@@ -8,7 +8,7 @@ export const fetchData = async <T>(
   baseUrl: string,
   path: string,
   query?: Record<string, any>
-): Promise<ApiResponse<any> | undefined> => {
+): Promise<ApiResponse<any>> => {
   try {
     const queryString = query
       ? `?${new URLSearchParams(query).toString()}`
@@ -22,7 +22,8 @@ export const fetchData = async <T>(
       success: true,
     };
   } catch (error) {
-    ApiErrorHandler.handleError(error);
+    throw ApiErrorHandler.handleError(error);
+    // throw Error
   }
 };
 
@@ -46,9 +47,8 @@ export const deleteData = async <T>(
       success: true,
     };
   } catch (error) {
-    // console.error(`Error deleting data from ${baseUrl}${path}:`, error);
-    ApiErrorHandler.handleError(error);    
-    throw error;
+    throw ApiErrorHandler.handleError(error);    
+    // throw error;
   }
 };
 
@@ -67,8 +67,8 @@ export const postData = async <T>(
       success: true,
     };
   } catch (error) {
-    console.error(`Error posting data to ${baseUrl}${path}:`, error);
-    throw error;
+    // console.error(`Error posting data to ${baseUrl}${path}:`, error);
+    throw ApiErrorHandler.handleError(error);
   }
 };
 
@@ -88,7 +88,6 @@ export const updateData = async <T>(
     };
   } catch (error) {
     // console.error(`Error posting data to ${baseUrl}${path}:`, error);
-    ApiErrorHandler.handleError(error);
-    throw error;
+    throw ApiErrorHandler.handleError(error);
   }
 };
