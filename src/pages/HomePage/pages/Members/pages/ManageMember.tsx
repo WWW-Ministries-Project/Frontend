@@ -3,7 +3,6 @@ import Button from "@/components/Button";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
@@ -23,11 +22,11 @@ export function ManageMember() {
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
   const editMode = location.state?.mode === "edit";
-  const {
-    data: member,
-    loading: fetchLoading,
-    refetch,
-  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" }, true);
+  const { data: member, refetch } = useFetch(
+    api.fetch.fetchAMember,
+    { user_id: id + "" },
+    true
+  );
   const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
     api.post.createMember
   );
@@ -36,7 +35,8 @@ export function ManageMember() {
   >(api.post.updateMember);
 
   useEffect(() => {
-    id && refetch();
+    if (id) refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const initialValue = useMemo(() => {
@@ -56,13 +56,13 @@ export function ManageMember() {
       store.addMember(temp);
       navigate("/home/members", { state: { new: true } });
     }
-  }, [data]);
+  }, [data, navigate, store]);
 
   const handleCancel = () => {
     navigate(-1);
   };
 
-  async function handleSubmit(values: IAddMember) {
+  async function handleSubmit(values: IMembersForm) {
     let dataToSend = { ...values };
 
     try {
@@ -88,7 +88,8 @@ export function ManageMember() {
       }
 
       // Send data regardless of whether an image was uploaded
-      editMode ? await updateData(dataToSend) : await postData(dataToSend);
+      if (editMode) await updateData(dataToSend);
+      else await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);
     }
@@ -109,7 +110,7 @@ export function ManageMember() {
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {({ handleSubmit, errors }) => (
+          {({ handleSubmit}) => (
             <>
               <MembersForm />
 
@@ -136,13 +137,12 @@ export function ManageMember() {
           )}
         </Formik>
       </section>
-      {fetchLoading && <LoaderComponent />}
     </div>
   );
 }
 
-export interface IAddMember extends IMembersForm {}
-const initialValues: IAddMember = {
+// export interface IAddMember extends IMembersForm {}
+const initialValues: IMembersForm = {
   ...MembersForm.initialValues,
 };
 
