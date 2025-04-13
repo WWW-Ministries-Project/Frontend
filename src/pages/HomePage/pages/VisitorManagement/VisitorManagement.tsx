@@ -194,7 +194,8 @@ export function VisitorManagement  () {
   ];
 
   return (
-    <PageOutline>
+    <div className="p-4">
+      <PageOutline>
       {/* {showFeedback && (
           <AlertComp
             message={feedback}
@@ -234,5 +235,6 @@ export function VisitorManagement  () {
         />
       </Modal>
     </PageOutline>
+    </div>
   );
 };

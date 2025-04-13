@@ -84,7 +84,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         </div>
       </FullWidth>
 
-      <Field
+      {values.is_user && <Field
         component={FormikSelectField}
         label="Ministry/Department"
         id="church_info.department_id"
@@ -92,17 +92,8 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         placeholder="Select department"
         options={departmentsOptions || []}
         disabled={disabled}
-      />
-      <Field
-        component={FormikInputDiv}
-        label="Date joined"
-        id="church_info.member_since"
-        name="church_info.member_since"
-        placeholder="Select date joined"
-        type="date"
-        max={new Date().toISOString().split("T")[0]}
-        disabled={disabled}
-      />
+      />}
+      
       {values.is_user && (
         <Field
           component={FormikSelectField}
@@ -115,6 +106,16 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
           parse={(value: string) => parseInt(value, 10)}
         />
       )}
+      <Field
+        component={FormikInputDiv}
+        label="Date joined"
+        id="church_info.member_since"
+        name="church_info.member_since"
+        placeholder="Select date joined"
+        type="date"
+        max={new Date().toISOString().split("T")[0]}
+        disabled={disabled}
+      />
       <HorizontalLine />
 
       <WorkInfoSubForm disabled={disabled} prefix="work_info" />
@@ -160,7 +161,10 @@ const validationSchema = {
   church_info: object().shape({
     member_since: date().max(new Date()),
     membership_type: string().required("Required"),
-    department_id: number().required("Required"),
+    department_id: number().when("is_user", {
+      is: true,
+      then: () => number().required("Required"),
+    }),
     position_id: number().when("is_user", {
       is: true,
       then: () => number().required("Required"),
@@ -168,20 +172,6 @@ const validationSchema = {
   }),
   ...ChildrenSubForm.validationSchema,
 };
-
-// const validationSchema = object({
-//   personal_info: object(UserSubForm.validationSchema),
-//   contact_info: object(ContactsSubForm.validationSchema),
-//   work_info: object(WorkInfoSubForm.validationSchema),
-//   emergency_contact: object(EmergencyContact.validationSchema),
-//   is_user: boolean().required("Required"),
-//   church_info: object().shape({
-//     membership_type: string().required("Required"),
-//     department_id: number().required("Required"),
-//     position_id: number().required("Required"),
-//   }),
-//   ...ChildrenSubForm.validationSchema,
-// });
 
 // export default MembersForm;
 export const MembersForm = Object.assign(MembersFormComponent, {
