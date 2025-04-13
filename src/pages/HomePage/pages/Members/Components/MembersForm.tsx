@@ -69,9 +69,8 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         id="church_info.membership_type"
         name="church_info.membership_type"
         options={[
-          { name: "Online e-church family", value: "MEMBER" },
-          { name: "In-person church family", value: "VISITOR" },
-          // { name: "Pending", value: "pending" },
+          { name: "Online e-church family", value: "ONLINE" },
+          { name: "In-person church family", value: "IN_HOUSE" },
         ]}
         disabled={disabled}
       />
@@ -124,7 +123,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
   );
 };
 
-export type membersType = "ONLINE" | "IN-HOUSE";
+export type membersType = "ONLINE" | "IN_HOUSE";
 export interface IMembersForm extends IChildrenSubForm {
   personal_info: IUserSubForm;
   emergency_contact: IEmergencyContact;
@@ -145,7 +144,7 @@ const initialValues: IMembersForm = {
   emergency_contact: EmergencyContact.initialValues,
   is_user: false,
   church_info: {
-    membership_type: "IN-HOUSE",
+    membership_type: "IN_HOUSE",
     department_id: undefined,
     position_id: undefined,
   },
