@@ -19,6 +19,9 @@ interface ProgramFormProps {
     title: string;
     description: string;
     eligibility: string;
+    member_required: boolean;
+    leader_required: boolean;
+    ministry_required: boolean;
     topics: { id: number; name: string; programId: number }[];
     prerequisites: string[];
     isPrerequisitesChecked?: boolean;
@@ -51,9 +54,13 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
       eligibility: values.eligibility,
       topics: values?.topics?.map((topic: any) =>
         program?.id ? topic?.name : topic
-      ), // Ensure topics are in the required format
-      prerequisites: values.isPrerequisitesChecked ? values.prerequisites : [], // If prerequisites are checked, include them
+      ),
+      prerequisites: values.isPrerequisitesChecked ? values.prerequisites : [],
+      member_required: values.member_required,
+      leader_required: values.leader_required,
+      ministry_required: values.ministry_required,
     };
+    
 
     try {
       if (program?.id) {
@@ -108,6 +115,10 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
           title: program?.title || "",
           description: program?.description || "",
           eligibility: program?.eligibility || "Both",
+          member_required: program?.member_required || false,
+          leader_required: program?.leader_required || false,
+          ministry_required: program?.ministry_required || false,
+
           topics: program?.topics || [],
           newTopic: "",
           isPrerequisitesChecked: program?.isPrerequisitesChecked || false,
@@ -181,6 +192,40 @@ const ProgramForm: React.FC<ProgramFormProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* Completion Requirement */}
+<div className="mb-4 space-y-2">
+  <label className="block text-sm font-medium text-primary">
+    Completion of this program is required to become:
+  </label>
+  <div className="flex flex-col space-y-1 ml-2">
+    <label>
+      <Field
+        type="checkbox"
+        name="member_required"
+        className="mr-2"
+      />
+      A Member
+    </label>
+    <label>
+      <Field
+        type="checkbox"
+        name="leader_required"
+        className="mr-2"
+      />
+      A Leader
+    </label>
+    <label>
+      <Field
+        type="checkbox"
+        name="ministry_required"
+        className="mr-2"
+      />
+      A Ministry Worker
+    </label>
+  </div>
+</div>
+
 
             {/* Program Topics */}
             <div className="mb-4 space-y-2">

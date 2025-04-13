@@ -12,19 +12,20 @@ import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsMana
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import MinistrySchool from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
-import ViewClass from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
+import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-import Request from "@/pages/HomePage/pages/Requisitions/pages/Request.tsx";
-import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails.tsx";
+import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
+import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
+import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
@@ -33,8 +34,6 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import { MemberInformation } from "/src/pages/HomePage/pages/Members/pages/MemberInformation";
-
 
 export const routes = [
   // {
@@ -45,22 +44,19 @@ export const routes = [
   {
     path: "/",
     element: <LoginPage />,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
   },
   {
     path: "/login",
     element: <LoginPage />,
-
   },
   {
     path: "/forgot-password",
     element: <ForgotPassword />,
-
   },
   {
     path: "/reset-password",
     element: <ResetPassword />,
-
   },
   {
     path: "/home",
@@ -71,14 +67,12 @@ export const routes = [
         path: "",
         element: <DashBoardPage />,
         isPrivate: false,
-        permissionNeeded: "view_dashboard",
       },
       {
         path: "dashboard",
         name: "Dashboard",
         element: <DashBoardPage />,
         isPrivate: false,
-        permissionNeeded: "view_dashboard",
         sideTab: true,
       },
       {
@@ -108,7 +102,7 @@ export const routes = [
             isPrivate: true,
             permissionNeeded: "view_members",
           },
-        ]
+        ],
       },
       {
         path: "visitors",
@@ -159,7 +153,7 @@ export const routes = [
             name: "My Requests",
             element: <MyRequisitions />,
             isPrivate: true,
-            sideTab: true
+            sideTab: true,
           },
           {
             path: ":id",
@@ -173,28 +167,22 @@ export const routes = [
             name: "Request",
             element: <Request />,
             isPrivate: true,
-            sideTab: false
+            sideTab: false,
           },
           {
             path: "request/:id",
             name: "Request",
             element: <Request />,
             isPrivate: true,
-            sideTab: false
+            sideTab: false,
           },
           {
             path: "staff_requests",
             name: "Staff Requests",
             element: <Requisitions />,
-            sideTab: true
+            sideTab: true,
           },
-          {
-            path: "suppliers",
-            name: "Suppliers",
-            element: <UserManagement />,
-            sideTab: false
-          },
-        ]
+        ],
       },
 
       {
@@ -216,7 +204,7 @@ export const routes = [
         name: "Users",
         element: <UserManagement />,
         isPrivate: true,
-        permissionNeeded: "view_events",
+        permissionNeeded: "view_users",
         sideTab: true,
       },
       {
@@ -231,59 +219,32 @@ export const routes = [
         path: "ministry-school",
         name: "School of Ministry",
         element: <MinistrySchool />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
         sideTab: true,
       },
       {
         path: "ministry-school/programs/:id",
         name: "View Program",
         element: <ViewProgram />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "ministry-school/programs/:id/cohort/:id",
         name: "View Cohort",
         element: <ViewCohort />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "ministry-school/programs/:id/cohort/:id/class/:id",
         name: "View Class",
         element: <ViewClass />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
         name: "View Student",
         element: <ViewStudent />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "ministry-school/programs/cohort/class/student/certificate",
         name: "View Certificate",
         element: <ViewCertificate />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-      },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
-        sideTab: true,
-      },
-      {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "settings",
@@ -317,28 +278,30 @@ export const routes = [
             permissionNeeded: "view_access_rights",
             sideTab: false,
           },
-        ]
+        ],
       },
       {
         path: "*",
         element: <UnderConstruction />,
       },
-    ]
-
+    ],
   },
   {
     path: "/register-member",
     element: <Registration />,
-    isPrivate: false
+    isPrivate: false,
   },
   {
     path: "events/register-event",
     element: <EventRegister />,
-    isPrivate: false
+    isPrivate: false,
   },
 ];
 
 // const permissions = useUserStore((state) => state.permissions);
-const homePageRoute = routes?.find(route => route.path === "/home");
+const homePageRoute = routes?.find((route) => route.path === "/home");
 const homePageChildren = homePageRoute?.children || [];
-export const sideTabs = homePageChildren.filter(childRoute => childRoute.sideTab && ({ name: childRoute.name, path: childRoute.path }));
+export const sideTabs = homePageChildren.filter(
+  (childRoute) =>
+    childRoute.sideTab && { name: childRoute.name, path: childRoute.path }
+);

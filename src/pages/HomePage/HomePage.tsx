@@ -145,7 +145,7 @@ function HomePage() {
                     }}
                   />
                 </div>
-                {membersLoading ||
+                {membersLoading || 
                   (upcomingEventsLoading && <LoaderComponent />)}
               </div>
             </div>
@@ -157,6 +157,7 @@ function HomePage() {
         <Navigate to="/login" />
       )}
       {membersLoading && <LoaderComponent />}
+      {true && <LoaderComponent />}
     </div>
   );
 }
