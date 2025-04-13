@@ -7,8 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky install"
   },
+  "lint-staged": {
+  "*.{ts,tsx}": [
+    "tsc --noEmit",
+    "eslint --fix"
+  ]
+},
   "dependencies": {
     "@heroicons/react": "^2.1.5",
     "@tanstack/react-table": "^8.9.7",
@@ -46,6 +53,7 @@
     "typescript": "^5.4.5",
     "vite": "^4.3.9",
     "vite-plugin-svgr": "^4.2.0",
-    "vite-tsconfig-paths": "^4.3.2"
+    "vite-tsconfig-paths": "^4.3.2",
+    "husky": "^8.0.0"
   }
 }
