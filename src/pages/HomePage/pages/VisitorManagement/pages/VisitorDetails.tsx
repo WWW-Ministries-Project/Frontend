@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback  } from "react";
 import { useParams } from "react-router-dom";  // Import useParams from react-router-dom
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import Banner from "../../Members/Components/Banner";
@@ -15,50 +15,35 @@ import { PhoneIcon } from "@heroicons/react/24/solid";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
+import Badge from "@/components/Badge";
 
 const VisitorDetails = () => {
   const  {visitorId}  = useParams();  // Get the visitor id from route params
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
   const [visitor, setVisitor] = useState<any>(null);  // Store visitor data
-  const [loading, setLoading] = useState<boolean>(true);  // Handle loading state
+  // const [loading, setLoading] = useState<boolean>(true);  // Handle loading state
   const [error, setError] = useState<string | null>(null); // Handle error state
+  const fetchVisitor = useCallback(() => {
+    if (!visitorId) return Promise.resolve(null); // avoid call when undefined
+    return api.fetch.fetchVisitorById(visitorId);
+  }, [visitorId]);
+
+  const { data, loading } = useFetch(fetchVisitor);
 
   // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
 
-  // Step 1: Fetch visitor details on component mount using the id from route params
-  const fetchVisitorData = async () => {
-    try {
-      setLoading(true);
-      if (!visitorId) {
-        throw new Error("Visitor ID is undefined.");
-      }
-      // const response = await apiCalls.fetchVisitorById(visitorId);  // Ensure id is a string
-      if (response?.data) {
-        setVisitor(response.data.data);
-      } else {
-        setError("Visitor not found.");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching visitor data.");
-    } finally {
-      setLoading(false);
-      console.log("Fetched visitor data", visitor);
-    }
-  }; 
-
   useEffect(() => {
-    if (visitorId) {
-      fetchVisitorData();  // Fetch data only if id exists
+    if (data) {
+      setVisitor(data?.data?.data);
     }
-  }, [visitorId]);  // Run this effect when the `id` changes (e.g., when the URL changes)
+  }, [data]);
 
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab);  // Update the selected tab state
   };
 
-  // if (loading) {
-  //   return <div>Loading visitor data...</div>;  // Show a loading state
-  // }
 
   if (error) {
     return <div>{error}</div>;  // Show an error message if any
@@ -104,10 +89,10 @@ const VisitorDetails = () => {
           </div>
           :<div>
             {/* Step 2: Conditionally render content based on selectedTab */}
-            {selectedTab === "Visit" && <Visits visits={visitor?.visits} visitorId={visitor?.id} fetchVisitorData={fetchVisitorData}/>}
-            {selectedTab === "Follow-ups" && <FollowUps followUps={visitor?.followUps} visitorId={visitor?.id} fetchVisitorData={fetchVisitorData}/>}
+            {/* {selectedTab === "Visit" && <Visits visits={visitor?.visits} visitorId={visitor?.id} />}
+            {selectedTab === "Follow-ups" && <FollowUps followUps={visitor?.followUps} visitorId={visitor?.id} />}
             {selectedTab === "Prayer Requests" && <PrayerRequest prayerRequests={visitor?.prayerRequests} />}
-            {selectedTab === "Note" && <Note notes={visitor?.notes} />}
+            {selectedTab === "Note" && <Note notes={visitor?.notes} />} */}
           </div>}
         </section>
         <section className="text-primary">
@@ -141,11 +126,11 @@ const VisitorDetails = () => {
               title={visitor?.email}
               />
               <ListDetailComp
-              icon={'s'}
+              icon={''}
               title={visitor?.phone}
               />
               <ListDetailComp
-              icon={'s'}
+              icon={''}
               title={`${visitor?.country} - ${visitor?.state}`}
               />
             </div>
@@ -156,7 +141,8 @@ const VisitorDetails = () => {
 
             <div>
               <div className="font-semibold">How they heard about us:</div>
-              <div>{visitor?.howHeard}</div>
+              <div className="w-1/6"><Badge>{visitor?.howHeard}
+                </Badge></div>
             </div>
           </div>}
         </section>

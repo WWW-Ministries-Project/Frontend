@@ -17,6 +17,7 @@ interface IMemberInfo {
   country_code: string;
   email: string;
   isMinistryWorker: boolean;
+  is_active: boolean;
   ministryDepartment?: string;
   position?: string;
   work_info: {
@@ -114,7 +115,7 @@ export const MemberInformation = () => {
               <div className="flex items-center">
                 <span>{user.member_id || "-"}</span>
                 <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  Active Member
+                  {user.is_active?"Active Member":"Inactive Member"}
                 </span>
               </div>
             } 

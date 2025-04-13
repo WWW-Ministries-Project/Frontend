@@ -42,9 +42,9 @@ const Banner = (props: IProps) => {
               <div className="font-bold text-2xl ">
                 {props.name || "No Name"}
               </div>
-              <div className="">{`${props.department} ${
+              {(props.department|| props.position)&&<div className="">{`${props.department} ${
                 props.department && props.position ? "|" : ""
-              } ${props.position} `}</div>
+              } ${props.position} `}</div>}
               <div className="">
                 {(props.email || "No Email") +
                   " | " +

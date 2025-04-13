@@ -34,6 +34,7 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 
 export const routes = [
   // {
@@ -112,14 +113,14 @@ export const routes = [
         permissionNeeded: "view_members",
         sideTab: true,
       },
-      // {
-      //   path: "visitors/visitor/:visitorId",
-      //   name: "Visitors",
-      //   element: <VisitorDetails />,
-      //   isPrivate: false,
-      //   permissionNeeded: "view_members",
-      //   sideTab: false,
-      // },
+      {
+        path: "visitors/visitor/:visitorId",
+        name: "Visitors",
+        element: <VisitorDetails />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: false,
+      },
       {
         path: "events",
         name: "Events",

@@ -157,7 +157,6 @@ function HomePage() {
         <Navigate to="/login" />
       )}
       {membersLoading && <LoaderComponent />}
-      {true && <LoaderComponent />}
     </div>
   );
 }

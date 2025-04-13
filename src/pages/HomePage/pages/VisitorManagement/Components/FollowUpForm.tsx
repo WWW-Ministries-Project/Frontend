@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { Formik, Field, Form } from "formik";
 import * as Yup from "yup";
-import { ApiCreationCalls } from "@/utils/apiPost"; // Assuming you have an API call utility
-import { ApiUpdateCalls } from "@/utils/apiPut"; // Assuming you have an API update utility
-import { ApiCalls } from "@/utils/apiFetch";
+import { ApiCreationCalls } from "@/utils/api/apiPost";
+import { ApiCalls } from "@/utils/api/apiFetch";
+import { ApiUpdateCalls } from "@/utils/api/apiPut";
+// import { ApiCreationCalls } from "@/utils/apiPost"; // Assuming you have an API call utility
+// import { ApiUpdateCalls } from "@/utils/apiPut"; // Assuming you have an API update utility
+// import { ApiCalls } from "@/utils/apiFetch";
 
 interface FollowUpFormProps {
     visitorId: string;

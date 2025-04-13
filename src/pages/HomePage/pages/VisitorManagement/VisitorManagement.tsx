@@ -41,8 +41,9 @@ export function VisitorManagement  () {
   const { postData, loading: postLoading } = usePost(api.post.createVisitor);
 
   useEffect(() => {
-    if (data && Array.isArray(data.data)) {
-      setVisitors(data.data as Visitor[]);
+    if (data ) {
+      
+      setVisitors(data.data.data as Visitor[]);
     }
   }, [data]);
   useEffect(() => {
@@ -215,6 +216,7 @@ export function VisitorManagement  () {
         <div className="space-y-8">
           <HeaderControls
             title="Visitor Management"
+            tableView={false}
             showSubtitle={true}
             subtitle="Register, track, and analyze visitor information"
             btnName="Register visitor"

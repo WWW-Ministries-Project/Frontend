@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Formik, Field, Form } from "formik";
 import * as Yup from "yup";
-import { ApiCreationCalls } from "@/utils/apiPost"; // Assuming this is the API utility you use
-import { ApiUpdateCalls } from "@/utils/apiPut"; // Assuming this is the API utility for update requests
+import { ApiCreationCalls } from "@/utils/api/apiPost";
+import { ApiUpdateCalls } from "@/utils/api/apiPut";
+// import { ApiCreationCalls } from "@/utils/apiPost"; // Assuming this is the API utility you use
+// import { ApiUpdateCalls } from "@/utils/apiPut"; // Assuming this is the API utility for update requests
 
 // Sample events data to select an event (you should fetch this from your API)
 const eventsData = [

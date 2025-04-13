@@ -1,11 +1,13 @@
 import HeaderControls from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { ApiDeletionCalls } from "@/utils/apiDelete";
-import { ApiCalls } from "@/utils/apiFetch";
+// import { ApiDeletionCalls } from "@/utils/apiDelete";
+// import { ApiCalls } from "@/utils/apiFetch";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FollowUpForm from "../Components/FollowUpForm";
+import { ApiCalls } from "@/utils/api/apiFetch";
+import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 
 interface FollowUpsProps {
   visitorId: number | string;
