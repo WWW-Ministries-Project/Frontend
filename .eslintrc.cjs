@@ -10,13 +10,21 @@ module.exports = {
     // 'prettier/@typescript-eslint',
     // 'prettier/react'
   ],
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint","react-refresh"],
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   settings: { react: { version: "18.2" } },
-  plugins: ["react-refresh"],
+  // plugins: ["react-refresh"],
   rules: {
     "react-refresh/only-export-components": "warn",
     "no-console": "warn",
-    "no-unused-vars": "warn",
-    "@typescript-eslint/no-unused-vars": "warn",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+      },
+    ],
   },
 };
