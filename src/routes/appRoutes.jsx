@@ -211,21 +211,21 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_assets",
       },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_events",
-        sideTab: true,
-      },
-      {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: true,
-        permissionNeeded: "view_events",
-      },
+      // {
+      //   path: "users",
+      //   name: "Users",
+      //   element: <UserManagement />,
+      //   isPrivate: true,
+      //   permissionNeeded: "view_events",
+      //   sideTab: true,
+      // },
+      // {
+      //   path: "users/:id/info",
+      //   name: "View User",
+      //   element: <ViewUser />,
+      //   isPrivate: true,
+      //   permissionNeeded: "view_events",
+      // },
 
       {
         path: "ministry-school",

@@ -34,13 +34,13 @@ const Overview = () => {
             title="Total Members"
             icon={<MembersIcon className={'h-5 '}/>
           } 
-            quantity={userStats.members?.total_members}
+            quantity={userStats.members?.total_members + userStats.visitors?.total_members}
             increaseDecrease={"5"}
             increase={true}
-            leftSideName="Left Name"
-            leftSideNumber={20}
-            rightsideName="Right Name"
-            rightSideNumber={30}
+            leftSideName="In person church family"
+            leftSideNumber={userStats.members?.total_members}
+            rightsideName="Online e-church family"
+            rightSideNumber={userStats.visitors?.total_members}
           />
           <StatsCard
             title="Visitors"
