@@ -71,14 +71,12 @@ export const routes = [
         path: "",
         element: <DashBoardPage />,
         isPrivate: false,
-        permissionNeeded: "view_dashboard",
       },
       {
         path: "dashboard",
         name: "Dashboard",
         element: <DashBoardPage />,
         isPrivate: false,
-        permissionNeeded: "view_dashboard",
         sideTab: true,
       },
       {
@@ -187,13 +185,7 @@ export const routes = [
             name: "Staff Requests",
             element: <Requisitions />,
             sideTab: true
-          },
-          {
-            path: "suppliers",
-            name: "Suppliers",
-            element: <UserManagement />,
-            sideTab: false
-          },
+          }
         ]
       },
 
@@ -211,21 +203,21 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_assets",
       },
-      // {
-      //   path: "users",
-      //   name: "Users",
-      //   element: <UserManagement />,
-      //   isPrivate: true,
-      //   permissionNeeded: "view_events",
-      //   sideTab: true,
-      // },
-      // {
-      //   path: "users/:id/info",
-      //   name: "View User",
-      //   element: <ViewUser />,
-      //   isPrivate: true,
-      //   permissionNeeded: "view_events",
-      // },
+      {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_users",
+        sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
+        isPrivate: true,
+        permissionNeeded: "view_events",
+      },
 
       {
         path: "ministry-school",
@@ -277,13 +269,6 @@ export const routes = [
         isPrivate: false,
         permissionNeeded: "view_events",
         sideTab: true,
-      },
-      {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: false,
-        permissionNeeded: "view_events",
       },
       {
         path: "settings",

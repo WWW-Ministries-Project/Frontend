@@ -11,7 +11,7 @@ import SideBarSubMenu from "./SidebarSubmenu";
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
-import MembersIcon from "@/assets/sidebar/MembersIcon";
+import {MembersIcon} from "@/assets";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
