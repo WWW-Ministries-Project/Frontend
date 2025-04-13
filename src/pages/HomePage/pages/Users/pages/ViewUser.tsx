@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 import ProfilePic from "@/components/ProfilePicture";
-import ToggleSwitch from "@/components/ToggleInput";
+import { ToggleSwitch } from "@/components/ToggleSwitch.jsx";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import Button from '../../../../../components/Button';
-import ToggleSwitch from '../../../../../components/ToggleInput';
+import {ToggleSwitch} from '../../../../../components/ToggleSwitch';
 import InputDiv from '../../../Components/reusable/InputDiv';
 import arrowDown from '/src/assets/down.svg';
 import rightArrow from '/src/assets/rightArrow.svg';

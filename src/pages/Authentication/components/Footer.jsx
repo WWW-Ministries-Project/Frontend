@@ -8,7 +8,7 @@ const Footer = () => {
           <li className="inline-block">Policy Platform Agreement</li>
         </ul> */}
         <div className="inline-block absolute right-0 bottom-0">
-          <a href="https://wa.me/qr/6TUNEFPG5RGMD1" target="_blank">
+          <a href="https://wa.me/qr/6TUNEFPG5RGMD1" target="_blank" rel="noreferrer">
             <img
             src="/assets/authentication/FooterIcon.svg"
             alt="footer-icon"

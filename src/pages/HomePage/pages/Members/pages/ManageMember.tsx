@@ -66,7 +66,7 @@ export function ManageMember() {
     let dataToSend = { ...values };
 
     try {
-      let uploadedFile = values.personal_info.picture?.picture;
+      const uploadedFile = values.personal_info.picture?.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();

@@ -11,7 +11,7 @@ interface AllCohortsPageProps {
   cohorts: any[]; // List of cohorts
   onEdit: (cohort: any) => void; // Function to edit cohort
   onDelete: (id: number) => void;
-  loading: Boolean;
+  loading: boolean;
 }
 
 const AllCohortsPage: React.FC<AllCohortsPageProps> = ({

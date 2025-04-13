@@ -12,7 +12,7 @@ interface IProps {
   primary_number: string;
   src: string;
   onClick: (id: string | number) => void;
-  membership_type?: String;
+  membership_type?: string;
 }
 
 const Banner = (props: IProps) => {
