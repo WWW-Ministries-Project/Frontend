@@ -1,23 +1,20 @@
 import CalendarAssets from "@/assets/CalendarAsset";
-import Badge from "@/components/Badge";
+import { MembersIcon } from "@/assets/sidebar/MembersIcon";
 import HeaderControls from "@/components/HeaderControls";
-import StatsCard from "../Components/StatsCard";
-import ListDetailComp from "../Components/ListDetailComp";
 import { useStore } from "@/store/useStore";
-import { useEffect } from "react";
 import { formatInputDate } from "@/utils/helperFunctions";
-import { UserIcon } from "@heroicons/react/24/solid";
-import UsersIcon from "@/assets/sidebar/UsersIcon";
-import MembersIcon from "@/assets/sidebar/MembersIcon";
+import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { UserStats, UserType } from "../../Members/utils/membersInterfaces";
+import ListDetailComp from "../Components/ListDetailComp";
+import StatsCard from "../Components/StatsCard";
 
 const Overview = () => {
-    const { members, userStats } = useOutletContext<{
-            members: UserType[];
-            userStats: UserStats;
-            upcomingEvents: any;
-          }>();
+  const { members, userStats } = useOutletContext<{
+    members: UserType[];
+    userStats: UserStats;
+    upcomingEvents: any;
+  }>();
   // Get upcoming events from the store
   const upcomingEvents = useStore().upcomingEvents;
 
@@ -32,9 +29,11 @@ const Overview = () => {
         <div className="flex gap-4">
           <StatsCard
             title="Total Members"
-            icon={<MembersIcon className={'h-5 '}/>
-          } 
-            quantity={userStats.members?.total_members + userStats.visitors?.total_members}
+            icon={<MembersIcon className={"h-5 "} />}
+            quantity={
+              userStats.members?.total_members +
+              userStats.visitors?.total_members
+            }
             increaseDecrease={"5"}
             increase={true}
             leftSideName="In person church family"
@@ -44,7 +43,7 @@ const Overview = () => {
           />
           <StatsCard
             title="Visitors"
-            icon={<CalendarAssets className={'h-5 '} />}
+            icon={<CalendarAssets className={"h-5 "} />}
             quantity={10}
             increaseDecrease={"5"}
             increase={true}
@@ -55,7 +54,7 @@ const Overview = () => {
           />
           <StatsCard
             title="Attendance"
-            icon={<CalendarAssets className={'h-5 '}/>}
+            icon={<CalendarAssets className={"h-5 "} />}
             quantity={10}
             increaseDecrease={"5"}
             increase={true}
@@ -66,7 +65,7 @@ const Overview = () => {
           />
           <StatsCard
             title="Total Soul Won"
-            icon={<CalendarAssets className={'h-5 '}/>}
+            icon={<CalendarAssets className={"h-5 "} />}
             quantity={10}
             increaseDecrease={"5"}
             increase={true}
@@ -92,7 +91,7 @@ const Overview = () => {
                   <ListDetailComp
                     icon={<CalendarAssets />}
                     title={event.name}
-                    startDate={formatInputDate (event?.start_date)}
+                    startDate={formatInputDate(event?.start_date)}
                     startTime={event.start_time}
                     eventType={event.event_type}
                     mode={event.location}
@@ -101,7 +100,9 @@ const Overview = () => {
                 </div>
               ))
             ) : (
-              <div className="text-gray-500 text-center">No upcoming events</div>
+              <div className="text-gray-500 text-center">
+                No upcoming events
+              </div>
             )}
           </div>
 

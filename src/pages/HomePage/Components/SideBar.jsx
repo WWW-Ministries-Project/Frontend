@@ -1,22 +1,22 @@
-import { useEffect, useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import PropTypes from "prop-types";
-import { useAuth } from "../../../context/AuthWrapper";
-import { removeToken } from "@/utils/helperFunctions";
 import { logOut } from "@/pages/Authentication/utils/helpers";
-import { sideTabs } from "/src/routes/appRoutes";
+import { removeToken } from "@/utils/helperFunctions";
+import PropTypes from "prop-types";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthWrapper";
 import NavigationLink from "./NavigationLink";
 import SideBarSubMenu from "./SidebarSubmenu";
+import { sideTabs } from "/src/routes/appRoutes";
 
+import { MembersIcon } from "@/assets";
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
-import ManagementIcon from "@/assets/sidebar/ManagementIcon";
-import {MembersIcon} from "@/assets";
-import SettingsIcon from "@/assets/sidebar/SettingIcon";
-import RequestIcon from "@/assets/sidebar/RequestIcon";
-import UsersIcon from "@/assets/sidebar/UsersIcon";
 import LogoutIcon from "@/assets/sidebar/Logout";
+import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
+import RequestIcon from "@/assets/sidebar/RequestIcon";
+import SettingsIcon from "@/assets/sidebar/SettingIcon";
+import UsersIcon from "@/assets/sidebar/UsersIcon";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 
 const icons = {
@@ -41,27 +41,27 @@ const SideBar = ({ className, show, ...props }) => {
   const [openMenus, setOpenMenus] = useState({});
   const hoverTimerRef = useRef(null);
   const hoverDelayMs = 300; // Delay in milliseconds before expanding sidebar
-  
+
   // Handle hover effects with delay
   const handleMouseEnter = () => {
     // Clear any existing timeout to prevent multiple timers
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
     }
-    
+
     // Set a new timeout
     hoverTimerRef.current = setTimeout(() => {
       setIsExpanded(true);
     }, hoverDelayMs);
   };
-  
+
   const handleMouseLeave = () => {
     // Clear the timeout if mouse leaves before delay completes
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
-    
+
     // Immediately collapse sidebar
     setIsExpanded(false);
   };
@@ -97,7 +97,7 @@ const SideBar = ({ className, show, ...props }) => {
   const closeAllSubMenus = () => {
     setOpenMenus({});
   };
-  
+
   // Close submenus when route changes
   useEffect(() => {
     closeAllSubMenus();
@@ -105,9 +105,8 @@ const SideBar = ({ className, show, ...props }) => {
 
   return (
     <div
-      className={`h-full flex flex-col justify-between transition-all duration-300 ${
-        isExpanded ? "w-64" : "w-16"
-      } ${className || ""}`}
+      className={`h-full flex flex-col justify-between transition-all duration-300 ${isExpanded ? "w-64" : "w-16"
+        } ${className || ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -192,8 +191,8 @@ const SideBar = ({ className, show, ...props }) => {
       </div>
 
       {/* Logout Section */}
-      <div 
-        className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4" 
+      <div
+        className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
         onClick={handleLogOut}
         aria-label="Logout"
       >
