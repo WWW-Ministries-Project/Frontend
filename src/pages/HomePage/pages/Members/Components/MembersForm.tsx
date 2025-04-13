@@ -173,20 +173,6 @@ const validationSchema = {
   ...ChildrenSubForm.validationSchema,
 };
 
-// const validationSchema = object({
-//   personal_info: object(UserSubForm.validationSchema),
-//   contact_info: object(ContactsSubForm.validationSchema),
-//   work_info: object(WorkInfoSubForm.validationSchema),
-//   emergency_contact: object(EmergencyContact.validationSchema),
-//   is_user: boolean().required("Required"),
-//   church_info: object().shape({
-//     membership_type: string().required("Required"),
-//     department_id: number().required("Required"),
-//     position_id: number().required("Required"),
-//   }),
-//   ...ChildrenSubForm.validationSchema,
-// });
-
 // export default MembersForm;
 export const MembersForm = Object.assign(MembersFormComponent, {
   initialValues: initialValues,
