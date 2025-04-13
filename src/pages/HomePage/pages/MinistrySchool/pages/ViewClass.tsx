@@ -1,16 +1,12 @@
 import Modal from "@/components/Modal";
 import { ApiCalls } from "@/utils/api/apiFetch";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AllStudents from "../Components/AllStudents";
 import EnrollStudent from "../Components/EnrollStudent";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
 
-interface ViewClassProps {
-  children: ReactNode;
-}
-
-const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
+export function ViewClass () {
   const apiCalls = new ApiCalls();
   const { id: classId } = useParams(); // Get cohort ID from the route
   const [error, setError] = useState<string | null>(null);
@@ -128,4 +124,3 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
   );
 };
 
-export default ViewClass;
