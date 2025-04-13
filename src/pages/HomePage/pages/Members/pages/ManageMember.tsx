@@ -16,7 +16,7 @@ import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { UserType } from "../utils/membersInterfaces";
 
-export const ManageMember = () => {
+export function ManageMember() {
   const navigate = useNavigate();
   const store = useStore();
   const location = useLocation();
@@ -62,9 +62,7 @@ export const ManageMember = () => {
     navigate(-1);
   };
 
-  async function handleSubmit(
-    values: IAddMember,
-  ) {
+  async function handleSubmit(values: IAddMember) {
     let dataToSend = { ...values };
 
     try {
@@ -141,7 +139,7 @@ export const ManageMember = () => {
       {fetchLoading && <LoaderComponent />}
     </div>
   );
-};
+}
 
 export interface IAddMember extends IMembersForm {}
 const initialValues: IAddMember = {
