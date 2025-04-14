@@ -1,3 +1,4 @@
+import HeaderControls from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -9,20 +10,21 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
+import ActionButton from "../../Components/reusable/ActionButton";
 import TableComponent from "../../Components/reusable/TableComponent";
 import SkeletonLoader from "../../Components/TableSkeleton";
-import { showNotification } from "../../utils";
+import { showDeleteDialog, showNotification } from "../../utils";
 import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
+import { mapVisitorToForm } from "./utils/mapping";
 
 export function VisitorManagement() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
-  const [, setVisitors] = useState<VisitorType[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<
     IVisitorForm | undefined
   >(undefined);
-  const { data, loading } = useFetch(api.fetch.fetchAllVisitors);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
   const { postData, loading: postLoading } = usePost(api.post.createVisitor);
 
@@ -30,94 +32,93 @@ export function VisitorManagement() {
 
   useEffect(() => {
     if (success) {
-      setVisitors((prevVisitors) =>
-        prevVisitors.filter((visitor) => visitor.id !== selectedId.toString())
-      );
+      refetch();
       showNotification("Visitor deleted successfully", "success");
     }
   }, [success]);
 
-  const handleShowOptions = (id: number | string) => {
+  const handleShowOptions = (id: number | string) => {  
     setSelectedId((prevSelectedId) => (prevSelectedId === id ? "" : id));
   };
   const handleSubmit = (visitor: IVisitorForm) => {
-    console.log(visitor, "aha");
     postData(visitor);
+    setIsModalOpen(false);
   };
 
-  const deleteVisitor = async (visitorId: number) => {
+  const deleteVisitor = async (visitorId: number | string) => {
     executeDelete(visitorId);
   };
 
-  const headings: ColumnDef<VisitorType>[] = [
-    {
-      header: "Full Name",
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "phone",
-      header: "Phone",
-    },
-    {
-      accessorKey: "visitDate",
-      header: "Visit Date",
-      cell: ({ row }) => formatDate(row.original.visitDate),
-    },
+  const headings: ColumnDef<VisitorType>[] =[
+      {
+        header: "Full Name",
+        cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+      },
+      {
+        accessorKey: "phone",
+        header: "Phone",
+      },
+      {
+        accessorKey: "visitDate",
+        header: "Visit Date",
+        cell: ({ row }) => formatDate(row.original.visitDate),
+      },
 
-    {
-      accessorKey: "eventName",
-      header: "Event Name",
-    },
-    {
-      accessorKey: "howHeard",
-      header: "How Heard",
-    },
-    {
-      accessorKey: "followUpStatus",
-      header: "Follow-Up Status",
-    },
-    {
-      accessorKey: "visitCount",
-      header: "Visits",
-    },
-    {
-      header: "Actions",
-      accessorKey: "actions",
-      // cell: ({ row }: { row: { original: (typeof visitors)[number] } }) => (
-      //   <div onClick={() => handleShowOptions(row.original.id)}>
-      //     <ActionButton
-      //       showOptions={row.original.id == selectedId}
-      //       hideDelete={false}
-      //       onView={() => {
-      //         navigate(`visitor/${row.original.id}`);
-      //       }}
-      //       onEdit={() => {
-      //         setSelectedVisitor(row.original);
-      //         setIsModalOpen(true);
-      //       }}
-      //       onDelete={() => {
-      //         deleteVisitor(Number(row.original.id));
-      //       }}
-      //     />
-      //   </div>
-      // ),
-    },
-  ];
+      {
+        accessorKey: "eventName",
+        header: "Event Name",
+      },
+      {
+        accessorKey: "howHeard",
+        header: "How Heard",
+      },
+      {
+        accessorKey: "followUpStatus",
+        header: "Follow-Up Status",
+      },
+      {
+        accessorKey: "visitCount",
+        header: "Visits",
+      },
+      {
+        header: "Actions",
+        accessorKey: "actions",
+        cell: ({ row }) => (
+          <div onClick={() => handleShowOptions(row.original.id)}>
+            <ActionButton
+              showOptions={row.original.id == selectedId}
+              hideDelete={false}
+              onView={() => {
+                navigate(`visitor/${row.original.id}`);
+              }}
+              onEdit={() => {
+                setSelectedVisitor(mapVisitorToForm(row.original));
+                setIsModalOpen(true);
+              }}
+              onDelete={() => {
+                showDeleteDialog(
+                  {
+                    name:
+                      row.original.lastName + " " + row.original?.firstName ||
+                      "",
+                    id: row.original.id,
+                  },
+                  deleteVisitor
+                );
+              }}
+            />
+          </div>
+        ),
+      },
+    ];
 
   return (
     <div className="p-4">
       <PageOutline>
-        {/* {showFeedback && (
-          <AlertComp
-            message={feedback}
-            type={"success"}
-            onClose={() => setShowFeedback(false)}
-          />
-        )} */}
         {loading ? (
           <div className="space-y-4">
             <div className="animate-pulse space-y-2  w-[40rem] ">
@@ -128,14 +129,13 @@ export function VisitorManagement() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* <HeaderControls
+            <HeaderControls
               title="Visitor Management"
               showSubtitle={true}
               subtitle="Register, track, and analyze visitor information"
               btnName="Register visitor"
               handleNavigation={() => setIsModalOpen(true)}
-            /> */}
-
+            />
             <div>
               <TableComponent data={visitors} columns={headings} />
             </div>

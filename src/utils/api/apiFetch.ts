@@ -23,7 +23,7 @@ export class ApiCalls {
     return this.apiExecution.fetchData(endpoint, query);
   }
 
-  // User Management
+  // Members Management
   fetchAllMembers = (
     query?: Record<string, any>
   ): Promise<ApiResponse<UserType[]>> => {

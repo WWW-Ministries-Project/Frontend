@@ -12,28 +12,6 @@ import { useStore } from "@/store/useStore";
 import { Field, Formik } from "formik";
 import { date, object, string } from "yup";
 
-// Sample event data structure
-// TODO ask @jojo why thiis is here
-// const eventsData = [
-//   {
-//     id: 1,
-//     name: "Test Event",
-//     start_date: "2025-08-04T00:00:00.000Z",
-//     end_date: "2025-08-04T00:00:00.000Z",
-//     location: "Autem cum pariatur ",
-//     description: "Quas placeat magni ",
-//     event_status: null,
-//     poster: "",
-//     qr_code:
-//       "https://res.cloudinary.com/dt8vgj0u3/image/upload/v1743357893/www-ministires/events_qr/tyzr9duzz68xltjdtwqa.png",
-//     event_type: "SERVICE",
-//     start_time: "08:44",
-//     end_time: "15:58",
-//     event_attendance: [],
-//   },
-//   // Add more events to this array for selection
-// ];
-
 interface IProps {
   onClose: () => void;
   selectedVisitor?: IVisitorForm;
@@ -58,79 +36,82 @@ const VisitorFormComponent = ({
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
-        {({handleSubmit})=><>
-          <FormLayout>
-            <NameInfo prefix="personal_info" />
-            <ContactsSubForm prefix="contact_info" />
-            <Field
-              component={FormikInputDiv}
-              label="Adress *"
-              placeholder="123 Main St"
-              name={`contact_info.address`}
-              id={`contact_info.address`}
-            />
-            <Field
-              component={FormikSelectField}
-              options={eventsOptions}
-              label="Event"
-              placeholder="Event"
-              name="eventId"
-              id="eventId"
-            />
-            <Field
-              component={FormikInputDiv}
-              label="Visit Date *"
-              placeholder="Enter visit date"
-              name={`visit.date`}
-              id={`visit.date`}
-              type="date"
-            />
-            <Field
-              component={FormikSelectField}
-              options={howHeardOptions}
-              label="How did you hear about us *"
-              placeholder="Enter visit date"
-              name={`visit.howHeard`}
-              id={`visit.howHeard`}
-            />
-            <div className="flex items-center">
+        {({ handleSubmit }) => (
+          <>
+            <FormLayout>
+              <NameInfo prefix="personal_info" />
+              <ContactsSubForm prefix="contact_info" />
               <Field
-                type="checkbox"
-                id="consentToContact"
-                name="consentToContact"
-                className="mr-2"
+                component={FormikInputDiv}
+                label="Adress *"
+                placeholder="123 Main St"
+                name={`contact_info.address`}
+                id={`contact_info.address`}
               />
-              <label htmlFor="consentToContact" className="text-sm">
-                I consent to being contacted
-              </label>
-            </div>
-            <div className="flex items-center">
               <Field
-                type="checkbox"
-                id="membershipWish"
-                name="membershipWish"
-                className="mr-2"
+                component={FormikSelectField}
+                options={eventsOptions}
+                label="Event"
+                placeholder="Event"
+                name="eventId"
+                id="eventId"
               />
-              <label htmlFor="membershipWish" className="text-sm">
-                I wish to become a member
-              </label>
+              <Field
+                component={FormikInputDiv}
+                label="Visit Date *"
+                placeholder="Enter visit date"
+                name={`visit.date`}
+                id={`visit.date`}
+                type="date"
+              />
+              <Field
+                component={FormikSelectField}
+                options={howHeardOptions}
+                label="How did you hear about us *"
+                placeholder="Enter visit date"
+                name={`visit.howHeard`}
+                id={`visit.howHeard`}
+              />
+              <div className="flex items-center">
+                <Field
+                  type="checkbox"
+                  id="consentToContact"
+                  name="consentToContact"
+                  className="mr-2"
+                />
+                <label htmlFor="consentToContact" className="text-sm">
+                  I consent to being contacted
+                </label>
+              </div>
+              <div className="flex items-center">
+                <Field
+                  type="checkbox"
+                  id="membershipWish"
+                  name="membershipWish"
+                  className="mr-2"
+                />
+                <label htmlFor="membershipWish" className="text-sm">
+                  I wish to become a member
+                </label>
+              </div>
+            </FormLayout>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                loading={loading}
+                disabled={loading}
+                value="Submit"
+                className={"primary"}
+              />
+              <Button
+                onClick={onClose}
+                value="Cancel"
+                className={"tertiary"}
+                disabled={loading}
+              />
             </div>
-          </FormLayout>
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSubmit}
-              loading={loading}
-              value="Submit"
-              className={"primary"}
-            />
-            <Button
-              onClick={onClose}
-              value="Cancel"
-              className={"tertiary"}
-              loading={loading}
-            />
-          </div>
-        </>}
+          </>
+        )}
       </Formik>
     </div>
   );
@@ -183,5 +164,3 @@ export const VisitorForm = Object.assign(VisitorFormComponent, {
   initialValues,
   validationSchema,
 });
-
-
