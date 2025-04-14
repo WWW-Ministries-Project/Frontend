@@ -35,7 +35,7 @@ export function Members() {
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
+  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | object>({});
 
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -120,28 +120,28 @@ export function Members() {
 
   const membersCount = [
     {
-      count: userStats.members?.total_members,
+      count: userStats.inhouse.total_members,
       label: "In person church family",
     },
-    { count: userStats.members?.stats.adults.Male, label: "Adult male" },
-    { count: userStats.members?.stats.adults.Female, label: "Adult female" },
-    { count: userStats.members?.stats.children.Male, label: "Children male" },
+    { count: userStats.inhouse.stats.adults.Male, label: "Adult male" },
+    { count: userStats.inhouse.stats.adults.Female, label: "Adult female" },
+    { count: userStats.inhouse.stats.children.Male, label: "Children male" },
     {
-      count: userStats.members?.stats.children.Female,
+      count: userStats.inhouse.stats.children.Female,
       label: "Children female",
     },
   ];
 
   const visitorsCount = [
     {
-      count: userStats.visitors?.total_members,
+      count: userStats.online.total_members,
       label: "Online e-church family",
     },
-    { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
-    { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
-    { count: userStats.visitors?.stats.children.Male, label: "Children male" },
+    { count: userStats.online.stats.adults.Male, label: "Adult male" },
+    { count: userStats.online.stats.adults.Female, label: "Adult female" },
+    { count: userStats.online.stats.children.Male, label: "Children male" },
     {
-      count: userStats.visitors?.stats.children.Female,
+      count: userStats.online.stats.children.Female,
       label: "Children female",
     },
   ];
@@ -154,7 +154,7 @@ export function Members() {
         <HeaderControls
           title="Church Memberships"
           totalMembers={
-            userStats.members?.total_members + userStats.visitors?.total_members
+            userStats.online?.total_members + userStats.inhouse?.total_members
           }
           tableView={tableView}
           handleViewMode={handleViewMode}

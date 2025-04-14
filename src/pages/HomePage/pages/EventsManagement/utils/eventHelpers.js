@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { formatTime } from "/src/utils/helperFunctions";
+import { formatDate } from "/src/utils/helperFunctions";
 
 export const months = [
   { name: "January", value: 1 },
@@ -40,7 +40,7 @@ export const registeredEventAttendance = [
   {
     header: "Last visited",
     accessorKey: "created_at",
-    cell: ({ row }) => formatTime(row.original.created_at),
+    cell: ({ row }) => formatDate(row.original.created_at),
   },
 ];
 
@@ -48,7 +48,7 @@ export const eventColumns = [
   { header: "Name", accessorKey: "name", id: "title" },
   {
     header: "Date",
-    cell: (props) => formatTime(props.getValue()),
+    cell: (props) => formatDate(props.getValue()),
     accessorKey: "start_date",
     id: "date",
   },

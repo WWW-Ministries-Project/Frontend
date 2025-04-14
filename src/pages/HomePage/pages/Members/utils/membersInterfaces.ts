@@ -49,8 +49,8 @@ type statsType = {
   };
 };
 export type UserStats = {
-  members: statsType;
-  visitors: statsType;
+  online: statsType;
+  inhouse: statsType;
 };
 export interface OptionsType {
   name: string;

@@ -7,7 +7,7 @@ import axios from "/src/axiosInstance";
 import Button from "/src/components/Button";
 import EmptyState from "/src/components/EmptyState";
 import TableComponent from "/src/pages/HomePage/Components/reusable/TableComponent";
-import { formatTime } from "/src/utils/helperFunctions";
+import { formatDate } from "/src/utils/helperFunctions";
 
 const ViewEvents = () => {
     const [eventdetails, setEventdetails] = useState({});
@@ -28,7 +28,7 @@ const ViewEvents = () => {
     }, []);
 
     const handleQRCodeModal = () => {
-      setQRCodeModal(!QRCodeModal);
+        setQRCodeModal(!QRCodeModal);
     }
 
     const handleQrDownload = async (qr_code) => {
@@ -45,7 +45,7 @@ const ViewEvents = () => {
 
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `${eventdetails.name}_${formatTime(eventdetails.start_date)}.png`;
+            anchor.download = `${eventdetails.name}_${formatDate(eventdetails.start_date)}.png`;
             document.body.appendChild(anchor);
             anchor.click();
             document.body.removeChild(anchor);
@@ -67,55 +67,55 @@ const ViewEvents = () => {
                         backgroundImage: `url(${eventdetails.poster || defaultImage1})`,
                         filter: "blur(4px)", // Apply blur effect here
                         // zIndex: -1, // Ensure the image stays in the background
-                        
+
                     }}
                 ></div>
                 <div className="relative flex justify-center items-center  text-white bg-black/60 overflow-hidden rounded-t-lg">
                     <div className="container flex justify-between items-center w-full p-4">
-                    <div className="flex items-center gap-4">
-                    <div className="w-[25rem] ">
-                      <img className="rounded-lg" src={eventdetails.poster || defaultImage1} alt="" />
-                    </div>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                            <h1 className="text-2xl font-semibold text-white">{eventdetails.name}</h1>
-                            <p className=" text-white">{formatTime(eventdetails.start_date)} | {eventdetails.start_time} - {eventdetails.end_time}</p>
-                            <p className=" text-white"></p>
-                            <p className=" text-white ">
-                                <a
-                                    href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    event registration link
-                                </a>
-                            </p>
-                            <p className=" text-white">{eventdetails.description}</p>
+                        <div className="flex items-center gap-4">
+                            <div className="w-[25rem] ">
+                                <img className="rounded-lg" src={eventdetails.poster || defaultImage1} alt="" />
                             </div>
-                            <div className="gap-x-4 flex">
-                            <div>
-                                <Button
-                                    value="Generate QR code"
-                                    className="px-4 py-2 border text-white border-lightGray rounded-lg"
-                                    onClick={() => {
-                                        handleQRCodeModal();
-                                    }}
-                                />
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <h1 className="text-2xl font-semibold text-white">{eventdetails.name}</h1>
+                                    <p className=" text-white">{formatDate(eventdetails.start_date)} | {eventdetails.start_time} - {eventdetails.end_time}</p>
+                                    <p className=" text-white"></p>
+                                    <p className=" text-white ">
+                                        <a
+                                            href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            event registration link
+                                        </a>
+                                    </p>
+                                    <p className=" text-white">{eventdetails.description}</p>
+                                </div>
+                                <div className="gap-x-4 flex">
+                                    <div>
+                                        <Button
+                                            value="Generate QR code"
+                                            className="px-4 py-2 border text-white border-lightGray rounded-lg"
+                                            onClick={() => {
+                                                handleQRCodeModal();
+                                            }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Button
+                                            value="Edit"
+                                            className="px-8 py-2 text-white border border-primary bg-primary rounded-lg"
+                                            onClick={() => {
+                                                navigate(`/home/manage-event?event_id=${id}`);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <Button
-                                    value="Edit"
-                                    className="px-8 py-2 text-white border border-primary bg-primary rounded-lg"
-                                    onClick={() => {
-                                        navigate(`/home/manage-event?event_id=${id}`);
-                                    }}
-                                />
-                            </div>
+
                         </div>
-                        </div>
-                        
-                    </div>
-                        
+
                     </div>
                 </div>
             </div>

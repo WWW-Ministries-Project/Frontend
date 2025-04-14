@@ -4,7 +4,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { api } from "@/utils/api/apiCalls";
-import { formatTime } from "@/utils/helperFunctions";
+import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
@@ -27,7 +27,7 @@ interface Visitor {
   visitCount: number;
 }
 
-export function VisitorManagement  () {
+export function VisitorManagement() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
@@ -150,7 +150,7 @@ export function VisitorManagement  () {
     {
       accessorKey: "visitDate",
       header: "Visit Date",
-      cell: ({ row }) => formatTime(row.original.visitDate),
+      cell: ({ row }) => formatDate(row.original.visitDate),
     },
 
     {
@@ -196,45 +196,45 @@ export function VisitorManagement  () {
   return (
     <div className="p-4">
       <PageOutline>
-      {/* {showFeedback && (
+        {/* {showFeedback && (
           <AlertComp
             message={feedback}
             type={"success"}
             onClose={() => setShowFeedback(false)}
           />
         )} */}
-      {loading ? (
-        <div className="space-y-4">
-          <div className="animate-pulse space-y-2  w-[40rem] ">
-            <div className="h-8 bg-lightGray rounded w-2/6"></div>
-            <div className="h-6 bg-lightGray rounded w-4/6"></div>
+        {loading ? (
+          <div className="space-y-4">
+            <div className="animate-pulse space-y-2  w-[40rem] ">
+              <div className="h-8 bg-lightGray rounded w-2/6"></div>
+              <div className="h-6 bg-lightGray rounded w-4/6"></div>
+            </div>
+            <SkeletonLoader />
           </div>
-          <SkeletonLoader />
-        </div>
-      ) : (
-        <div className="space-y-8">
-          <HeaderControls
-            title="Visitor Management"
-            showSubtitle={true}
-            subtitle="Register, track, and analyze visitor information"
-            btnName="Register visitor"
-            handleNavigation={() => setIsModalOpen(true)}
-          />
+        ) : (
+          <div className="space-y-8">
+            <HeaderControls
+              title="Visitor Management"
+              showSubtitle={true}
+              subtitle="Register, track, and analyze visitor information"
+              btnName="Register visitor"
+              handleNavigation={() => setIsModalOpen(true)}
+            />
 
-          <div>
-            <TableComponent data={visitors} columns={headings} />
+            <div>
+              <TableComponent data={visitors} columns={headings} />
+            </div>
           </div>
-        </div>
-      )}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <VisitorForm
-          onClose={() => setIsModalOpen(false)}
-          selectedVisitor={selectedVisitor}
-          onSubmit={handleSubmit}
-          loading={postLoading}
-        />
-      </Modal>
-    </PageOutline>
+        )}
+        <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <VisitorForm
+            onClose={() => setIsModalOpen(false)}
+            selectedVisitor={selectedVisitor}
+            onSubmit={handleSubmit}
+            loading={postLoading}
+          />
+        </Modal>
+      </PageOutline>
     </div>
   );
-};
+}

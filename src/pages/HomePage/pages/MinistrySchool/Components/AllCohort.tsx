@@ -2,7 +2,7 @@ import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
-import { formatTime } from "@/utils/helperFunctions";
+import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -105,9 +105,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
           </div>
         </section>
 
-        
-       
-          <section className="">
+        <section className="">
           <div className=" text-primary">
             <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
               {cohorts?.map((cohort) => (
@@ -130,7 +128,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
                   <div className="text-md space-y-1">
                     <p>
                       <span className="font-semibold">Start Date:</span>{" "}
-                      {formatTime(cohort.startDate)}
+                      {formatDate(cohort.startDate)}
                     </p>
                     <p>
                       <span className="font-semibold">Duration:</span>{" "}
@@ -140,7 +138,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
                       <span className="font-semibold">
                         Application Deadline:
                       </span>{" "}
-                      {formatTime(cohort.applicationDeadline)}
+                      {formatDate(cohort.applicationDeadline)}
                     </p>
                   </div>
 

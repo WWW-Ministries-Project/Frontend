@@ -2,7 +2,7 @@ import Button from "@/components/Button";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { ApiCalls } from "@/utils/api/apiFetch";
-import { formatTime } from "@/utils/helperFunctions";
+import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ClassCard from "../Components/ClassCard";
@@ -107,7 +107,7 @@ const ViewCohort = () => {
           <div className="flex gap-8">
             <div>
               <div className="font-semibold text-small">Start date</div>
-              <div>{formatTime(cohort?.startDate)}</div>
+              <div>{formatDate(cohort?.startDate)}</div>
             </div>
             <div>
               <div className="font-semibold text-small">Duration</div>
@@ -117,7 +117,7 @@ const ViewCohort = () => {
               <div className="font-semibold text-small">
                 Application Deadline
               </div>
-              <div>{formatTime(cohort?.applicationDeadline)}</div>
+              <div>{formatDate(cohort?.applicationDeadline)}</div>
             </div>
             <div>
               <div className="font-semibold text-small">Classes</div>

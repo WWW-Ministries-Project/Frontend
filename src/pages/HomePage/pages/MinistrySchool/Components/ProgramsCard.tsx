@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
 import CardWrappers from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
+import { formatDate } from "@/utils/helperFunctions";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { formatTime } from "@/utils/helperFunctions";
 
 // Define the Cohort type
 interface Cohort {
@@ -38,14 +38,12 @@ interface EligibilityBadgeProps {
   eligibility: Program["eligibility"];
 }
 
-
-
 const ProgramsCard = ({
   program,
   cohorts,
   handleCopyLink,
   onOpen,
-  onDelete
+  onDelete,
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
 
@@ -67,8 +65,6 @@ const ProgramsCard = ({
     };
   }, []);
 
-  
-
   // Function to toggle the menu when the ellipsis button is clicked
   const toggleMenu = (id: number) => {
     if (isMenuOpen === id) {
@@ -78,7 +74,9 @@ const ProgramsCard = ({
     }
   };
 
-  const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element | null => {
+  const getEligibilityBadge = ({
+    eligibility,
+  }: EligibilityBadgeProps): JSX.Element | null => {
     switch (eligibility) {
       case "Members":
         return <Badge>Members Only</Badge>;
@@ -100,17 +98,22 @@ const ProgramsCard = ({
   };
 
   return (
-    <CardWrappers key={program.id} className={"border border-1 border-lightGray p-4 rounded-lg space-y-3 text-primary flex flex-col"}>
+    <CardWrappers
+      key={program.id}
+      className={
+        "border border-1 border-lightGray p-4 rounded-lg space-y-3 text-primary flex flex-col"
+      }
+    >
       <div className="space-y-1">
-      <div className="flex justify-between gap-2">
-        <div className="text-lg font-semibold">{program.title}</div>
-        <div>{getEligibilityBadge({ eligibility: program.eligibility })}</div>
-      </div>
+        <div className="flex justify-between gap-2">
+          <div className="text-lg font-semibold">{program.title}</div>
+          <div>{getEligibilityBadge({ eligibility: program.eligibility })}</div>
+        </div>
 
-      {/* Description */}
-      <div>
-        <p className="text-sm">{program.description}</p>
-      </div>
+        {/* Description */}
+        <div>
+          <p className="text-sm">{program.description}</p>
+        </div>
       </div>
 
       {/* Topics */}
@@ -120,7 +123,10 @@ const ProgramsCard = ({
         </div>
         <div className="flex flex-wrap gap-2">
           {program.topics.map((topic, index) => (
-            <p key={index} className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50">
+            <p
+              key={index}
+              className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50"
+            >
               {topic.name}
             </p>
           ))}
@@ -129,57 +135,88 @@ const ProgramsCard = ({
 
       {/* Cohorts */}
       {/* {cohorts.length > 0 && ( */}
+      <div>
+        <div className="text-sm font-semibold">Cohorts</div>
         <div>
-          <div className="text-sm font-semibold">Cohorts</div>
-          <div>
-            {cohorts.length > 0 && cohorts.map((cohort) => (
-              <div key={cohort.id} className="border border-1 border-lightGray/50 rounded-lg p-2 space-y-2">
+          {cohorts.length > 0 &&
+            cohorts.map((cohort) => (
+              <div
+                key={cohort.id}
+                className="border border-1 border-lightGray/50 rounded-lg p-2 space-y-2"
+              >
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="font-medium">{cohort.name}</div>
                     <div className="text-sm">
-                      <p>{formatTime(cohort.startDate)}</p>
+                      <p>{formatDate(cohort.startDate)}</p>
                     </div>
                   </div>
-                  <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">{cohort.status}</Badge>
+                  <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">
+                    {cohort.status}
+                  </Badge>
                 </div>
               </div>
             ))}
-            {cohorts.length === 0 && <div className="border border-1 border-lightGray/50 rounded-lg px-2 py-4 space-y-2">
+          {cohorts.length === 0 && (
+            <div className="border border-1 border-lightGray/50 rounded-lg px-2 py-4 space-y-2">
               No cohort added yet
             </div>
-            }
-          </div>
+          )}
         </div>
+      </div>
       {/* )} */}
       <div className="flex-grow" />
-
-      
-      
 
       {/* Actions */}
       <div className=" flex justify-between items-center">
         <div>
-          <Button onClick={() => navigate(`programs/${program.id}`)} value="Manage" className="bg-primary text-white px-4" />
+          <Button
+            onClick={() => navigate(`programs/${program.id}`)}
+            value="Manage"
+            className="bg-primary text-white px-4"
+          />
         </div>
         <div>
           <div className="relative" ref={menuRef}>
-            <button className="text-primary" onClick={() => toggleMenu(program.id)}>
+            <button
+              className="text-primary"
+              onClick={() => toggleMenu(program.id)}
+            >
               <img src={ellipse} alt="options" className="cursor-pointer" />
             </button>
             {isMenuOpen === program.id && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg">
                 <ul className="py-1">
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer" onClick={onOpen}>Edit Program</li>
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">Add Cohort</li>
-                  <li onClick={() => handleCopyLink(program.id)} className="px-4 py-2 hover:bg-lightGray cursor-pointer">
+                  <li
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                    onClick={onOpen}
+                  >
+                    Edit Program
+                  </li>
+                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">
+                    Add Cohort
+                  </li>
+                  <li
+                    onClick={() => handleCopyLink(program.id)}
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                  >
                     Copy Application Link
                   </li>
-                  <li onClick={() => window.open(`/programs/apply/${program.id}`, "_blank")} className="px-4 py-2 hover:bg-lightGray cursor-pointer">
+                  <li
+                    onClick={() =>
+                      window.open(`/programs/apply/${program.id}`, "_blank")
+                    }
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                  >
                     View Application Page
                   </li>
                   <hr className="text-lightGray" />
-                  <li onClick={onDelete} className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600">Delete Program</li>
+                  <li
+                    onClick={onDelete}
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600"
+                  >
+                    Delete Program
+                  </li>
                 </ul>
               </div>
             )}
