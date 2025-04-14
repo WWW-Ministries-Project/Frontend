@@ -34,8 +34,7 @@ function HomePage() {
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
-  // const userStats = store.userStats;
-  const userStats = {online:4,inhouse:3};
+  const userStats = store.userStats;
   const token = getToken();
   //@ts-ignore
   const { user } = useAuth();

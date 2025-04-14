@@ -39,19 +39,19 @@ function DashBoard() {
   const stats = [
     {
       name: "Total Members",
-      value: userStats.members?.total_members || 0,
+      value: userStats.online?.total_members || 0,
     },
     {
       name: "Males",
-      value: userStats.members?.total_males || 0,
+      value: userStats.online?.total_males || 0,
     },
     {
       name: "Female",
-      value: userStats.members?.total_females || 0,
+      value: userStats.online?.total_females || 0,
     },
     {
       name: "Children",
-      value: userStats.members?.stats?.children?.Total || 0,
+      value: userStats.online?.stats?.children?.Total || 0,
     },
   ];
 
@@ -97,12 +97,12 @@ function DashBoard() {
         <div className="flex flex-col items-center justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1 ">
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-primary H600">Members Breakdown</div>
-            <BarChart value={userStats.members?.stats} />
+            <BarChart value={userStats.inhouse?.stats} />
           </section>
           <section className=" bg-white p-7 shadow-sm rounded-xl w-full">
             <div className="text-primary H600">Event Attendance</div>
             {/* <BarChart value={userStats.stats} /> */}
-            <LineChart value={userStats.members?.stats} />
+            <LineChart value={userStats.online?.stats} />
           </section>
         </div>
         <div className="flex flex-col  justify-between grid gap-4 2xl:grid-cols-2 xl:grid-cols-2 lg:grid-cols-2 md:grid grid-cols-1">
