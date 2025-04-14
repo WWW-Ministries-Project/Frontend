@@ -12,10 +12,10 @@ import ActiveAccess from "../Components/ActiveAccess";
 import { AccessRight } from "../utils/settingsInterfaces";
 
 const AccessRights = () => {
-  const { data, loading } = useFetch<{ data: { data: AccessRight[] } }>(
+  const { data, loading } = useFetch(
     api.fetch.fetchAccessLevels
   );
-  const accessRights = useMemo(() => data?.data.data || [], [data]);
+  const accessRights = useMemo(() => data?.data || [], [data]);
   const [filter, setFilter] = useState("");
   const [selectedAccessRight, setSelectedAccessRight] =
     useState<AccessRight | null>(null);

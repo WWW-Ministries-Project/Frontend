@@ -23,7 +23,7 @@ const AssetManagement = () => {
   const [tableView, setTableView] = useState(
     sessionStorage.getItem("assetsTableView") === "false" ? false : true
   );
-  const { data, loading } = useFetch(api.fetch.fetchAssets);
+  const { data:assets, loading } = useFetch(api.fetch.fetchAssets);
   const {
     executeDelete,
     success,
@@ -31,7 +31,7 @@ const AssetManagement = () => {
     loading: deleteLoading,
   } = useDelete(api.delete.deleteAsset);
 
-  const assertsData = useMemo(() => data?.data?.data || [], [data]);
+  const assertsData = useMemo(() => assets?.data || [], [assets]);
 
   const handleViewMode = (bol: boolean) => {
     sessionStorage.setItem("assetsTableView", bol + "");

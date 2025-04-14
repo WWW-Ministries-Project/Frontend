@@ -14,9 +14,9 @@ export const fetchData = async <T>(
       ? `?${new URLSearchParams(query).toString()}`
       : "";
     const url = `${baseUrl}${path}${queryString}`;
-    const response: AxiosResponse<T> = await axios.get(url);
+    const response: AxiosResponse<{ data: T }> = await axios.get(url);
     return {
-      data: response.data,
+      data: response.data.data,
       status: response.status,
       error: "",
       success: true,
@@ -47,7 +47,7 @@ export const deleteData = async <T>(
       success: true,
     };
   } catch (error) {
-    throw ApiErrorHandler.handleError(error);    
+    throw ApiErrorHandler.handleError(error);
     // throw error;
   }
 };

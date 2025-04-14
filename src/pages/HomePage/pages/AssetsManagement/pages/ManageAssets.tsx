@@ -34,8 +34,7 @@ const ManageAsset = () => {
     loading: fetchLoading,
     error: fetchError,
   } = useFetch(api.fetch.fetchAnAsset, { id: id + "" });
-  //@ts-expect-error type should be inside data
-  const assetData = useMemo(() => asset?.data.data || { photo: "" }, [asset]);
+  const assetData = useMemo(() => asset?.data || { photo: "" }, [asset]);
 
   useEffect(() => {
     if (data) {

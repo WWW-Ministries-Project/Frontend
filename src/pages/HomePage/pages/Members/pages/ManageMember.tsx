@@ -40,12 +40,12 @@ export function ManageMember() {
   }, [id]);
 
   const initialValue = useMemo(() => {
-    if (member?.data.data) {
-      return mapUserData(member.data.data);
+    if (member?.data) {
+      return mapUserData(member.data);
     } else {
       return initialValues;
     }
-  }, [member?.data.data]);
+  }, [member?.data]);
 
   useEffect(() => {
     if (data) {
