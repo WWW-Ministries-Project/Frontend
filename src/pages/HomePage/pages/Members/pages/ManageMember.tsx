@@ -56,7 +56,8 @@ export function ManageMember() {
       store.addMember(temp);
       navigate("/home/members", { state: { new: true } });
     }
-  }, [data, navigate, store]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const handleCancel = () => {
     navigate(-1);
