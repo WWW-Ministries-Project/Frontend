@@ -58,8 +58,8 @@ const EventsManagement = () => {
 
   // Update events when data is fetched
   useEffect(() => {
-    if (data?.data?.data) {
-      setEvents(data.data.data);
+    if (data?.data) {
+      setEvents(data.data);
     }
   }, [data]);
 

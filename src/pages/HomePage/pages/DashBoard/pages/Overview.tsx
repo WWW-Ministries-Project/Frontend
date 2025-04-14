@@ -21,6 +21,7 @@ const Overview = () => {
   // Log the upcoming events for debugging
   useEffect(() => {
     console.log("Upcoming Events", upcomingEvents);
+    console.log(userStats)
   }, [upcomingEvents]);
 
   return (
@@ -31,15 +32,15 @@ const Overview = () => {
             title="Total Members"
             icon={<MembersIcon className={"h-5 "} />}
             quantity={
-              userStats.members?.total_members +
-              userStats.visitors?.total_members
+              userStats.online?.total_members +
+              userStats.inhouse?.total_members
             }
             increaseDecrease={"5"}
             increase={true}
             leftSideName="In person church family"
-            leftSideNumber={userStats.members?.total_members}
+            leftSideNumber={userStats.inhouse?.total_members}
             rightsideName="Online e-church family"
-            rightSideNumber={userStats.visitors?.total_members}
+            rightSideNumber={userStats.online?.total_members}
           />
           <StatsCard
             title="Visitors"

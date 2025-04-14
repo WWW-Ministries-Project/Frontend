@@ -19,7 +19,7 @@ export const ProfileDetails = () => {
   useEffect(() => {
     if (id) {
       //@ts-expect-error TODO: fix typescript issue
-      setDetails(data?.data?.data ?? initialUser);
+      setDetails(data?.data ?? initialUser);
     }
   }, [data, id]);
 

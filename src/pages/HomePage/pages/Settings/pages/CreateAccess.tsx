@@ -30,7 +30,7 @@ const CreateAccess = () => {
     Departments: "",
     Access_rights: "",
   });
-  const { data: accessLevel } = useFetch<{ data: { data: AccessRight } }>(
+  const { data: accessLevel } = useFetch(
     api.fetch.fetchAnAccess,
     {
       id: id!,
@@ -88,8 +88,8 @@ const CreateAccess = () => {
 
   useEffect(() => {
     if (id) {
-      setData((prev) => ({ ...prev, ...accessLevel?.data.data.permissions! }));
-      setName(accessLevel?.data.data.name!);
+      setData((prev) => ({ ...prev, ...accessLevel?.data.permissions! }));
+      setName(accessLevel?.data.name!);
     }
   }, [accessLevel, id]);
   const handleAccessLevelChange = (

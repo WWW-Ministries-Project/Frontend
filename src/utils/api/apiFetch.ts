@@ -5,6 +5,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
+import { VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -25,12 +26,12 @@ export class ApiCalls {
   // User Management
   fetchAllMembers = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: UserType[] }>> => {
+  ): Promise<ApiResponse<UserType[]>> => {
     return this.fetchFromApi("user/list-users", query);
   };
   fetchAMember = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: IMemberInfo }>> => {
+  ): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 
@@ -55,7 +56,7 @@ export class ApiCalls {
   };
   fetchAnAsset = (
     query?: Record<string, any>
-  ): Promise<{ data: assetType }> => {
+  ): Promise<ApiResponse<assetType>> => {
     return this.fetchFromApi("assets/get-asset", query);
   };
 
@@ -79,12 +80,12 @@ export class ApiCalls {
   // Access Levels
   fetchAccessLevels = (
     query?: Record<string, string | number>
-  ): Promise<ApiResponse<{ data: AccessRight[] }>> => {
+  ): Promise<ApiResponse<AccessRight[] >> => {
     return this.fetchFromApi("access/list-access-levels", query);
   };
   fetchAnAccess = (
     query?: Record<string, string | number>
-  ): Promise<ApiResponse<{ data: AccessRight }>> => {
+  ): Promise<ApiResponse<AccessRight >> => {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
@@ -95,56 +96,56 @@ export class ApiCalls {
   // Program Management
   fetchAllPrograms = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/programs", query);
   };
 
   fetchProgramById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse< any >> => {
     return this.fetchFromApi(`program/programs/${id}`, query);
   };
 
   // Cohort Management
   fetchAllCohorts = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi("program/cohorts", query);
   };
 
   fetchCohortById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any >> => {
     return this.fetchFromApi(`program/cohorts/${id}`, query);
   };
 
   fetchCohortsByProgramId = (
     programId: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
   };
 
   // Course Management
   fetchAllCourses = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi("program/courses", query);
   };
 
   fetchCourseById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any >> => {
     return this.fetchFromApi(`program/courses/${id}`, query);
   };
 
   fetchStudentById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any >> => {
     return this.fetchFromApi(`program/progress/${id}`, query);
   };
 
@@ -152,27 +153,25 @@ export class ApiCalls {
   fetchEnrollmentsByCourse = (
     courseId: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi("program/course-enrollment", query);
   };
 
   fetchEnrollmentsByUser = (
     userId: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi("program/user-enrollment", query);
   };
 
-  fetchMembers = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  fetchMembers = (query?: Record<string, any>): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/users", query);
   };
 
   // Visitor Management
   fetchAllVisitors = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<VisitorType[]>> => {
     return this.fetchFromApi("visitor/visitors", query);
   };
 
@@ -186,49 +185,49 @@ export class ApiCalls {
   // Visit Management
   fetchAllVisits = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("visit", query);
   };
 
   fetchVisitById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`visit/${id}`, query);
   };
 
   fetchAllVisitsByVisitorId = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi(`visitor/visit/visitor/${id}`, query);
   };
 
   // Follow-Up Management
   fetchAllFollowUps = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[] >> => {
     return this.fetchFromApi("followup", query);
   };
 
   fetchFollowUpById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`followup/${id}`, query);
   };
 
   // Prayer Request Management
   fetchAllPrayerRequests = (
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("prayerrequest", query);
   };
 
   fetchPrayerRequestById = (
     id: string,
     query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`prayerrequest/${id}`, query);
   };
 }

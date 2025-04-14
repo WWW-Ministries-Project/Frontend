@@ -111,7 +111,7 @@ const UserManagement = () => {
   ];
 
   const users: User[] = useMemo(
-    () => registeredMembers?.data.data || [],
+    () => registeredMembers?.data || [],
     [registeredMembers]
   );
   return (

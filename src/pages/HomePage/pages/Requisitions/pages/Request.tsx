@@ -51,7 +51,7 @@ const Request = () => {
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
-  const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
+  const { data } = useFetch< {data: IRequisitionDetails}>(
     api.fetch.fetchRequisitionDetails,
     { id: decodedId }
   );
@@ -76,10 +76,10 @@ const Request = () => {
   const [initialImages, setInitialImages] = useState<image[]>([]);
 
   useEffect(() => {
-    const response = data?.data?.data;
+    const response = data?.data;
     if (response) {
       setRequestData(response);
-      const products = data?.data?.data?.products?.map((product) => ({
+      const products = data?.data?.products?.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,

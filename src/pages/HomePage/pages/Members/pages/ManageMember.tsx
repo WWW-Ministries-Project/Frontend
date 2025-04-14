@@ -40,12 +40,12 @@ export function ManageMember() {
   }, [id]);
 
   const initialValue = useMemo(() => {
-    if (member?.data.data) {
-      return mapUserData(member.data.data);
+    if (member?.data) {
+      return mapUserData(member.data);
     } else {
       return initialValues;
     }
-  }, [member?.data.data]);
+  }, [member?.data]);
 
   useEffect(() => {
     if (data) {
@@ -56,7 +56,8 @@ export function ManageMember() {
       store.addMember(temp);
       navigate("/home/members", { state: { new: true } });
     }
-  }, [data, navigate, store]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const handleCancel = () => {
     navigate(-1);

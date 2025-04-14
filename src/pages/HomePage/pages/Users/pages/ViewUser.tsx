@@ -42,7 +42,7 @@ const ViewUser = () => {
   const user: Omit<UserType, "position", "department"> & {
     position: string;
     department: string;
-  } = responseData?.data.data || initialUser;
+  } = responseData?.data || initialUser;
 
   const {
     postData,
@@ -58,10 +58,10 @@ const ViewUser = () => {
   const [isActive, setIsActive] = useState<boolean>(user?.is_active || false);
   const [activeRole, setActiveRole] = useState<string | number>("");
 
-  const role = fetchedRole?.data.data;
+  const role = fetchedRole?.data;
   const roleNames = useMemo(
     () =>
-      allRoles?.data.data.map((role) => ({
+      allRoles?.data.map((role) => ({
         name: role.name,
         value: role.id,
       })) || [],

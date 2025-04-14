@@ -16,7 +16,7 @@ const MyRequisitions = () => {
   const { setRequests, requests } = useStore();
 
   useEffect(() => {
-    setRequests(data?.data?.data);
+    setRequests(data?.data);
   }, [data]);
 
   return (

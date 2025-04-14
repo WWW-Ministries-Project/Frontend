@@ -34,7 +34,8 @@ function HomePage() {
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
-  const userStats = store.userStats;
+  // const userStats = store.userStats;
+  const userStats = {online:4,inhouse:3};
   const token = getToken();
   //@ts-ignore
   const { user } = useAuth();
@@ -57,7 +58,7 @@ function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMembers(membersData.data.data);
+      store.setMembers(membersData.data);
     }
 
     if (userStatsData) {
@@ -65,17 +66,17 @@ function HomePage() {
     }
 
     if (upcomingEventsData) {
-      store.setEvents(upcomingEventsData.data.data);
+      store.setEvents(upcomingEventsData.data);
     }
 
     if (positionsData) {
-      settingsStore.setPositions(positionsData.data.data);
+      settingsStore.setPositions(positionsData.data);
     }
   }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
-      settingsStore.setDepartments(res.data.data);
+      settingsStore.setDepartments(res.data);
     });
   }, []);
 
