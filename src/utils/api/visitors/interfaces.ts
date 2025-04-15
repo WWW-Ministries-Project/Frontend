@@ -1,9 +1,9 @@
 export type VisitorType = {
     id: string;
-    title: string | null;
+    title: string;
     firstName: string;
     lastName: string;
-    otherName: string | null;
+    otherName?: string;
     email: string;
     phone: string;
     country: string;

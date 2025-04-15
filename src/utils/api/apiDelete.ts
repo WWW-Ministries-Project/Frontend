@@ -55,7 +55,7 @@ export class ApiDeletionCalls {
 
   // Visitor Management
   deleteVisitor = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`visitors/${id}`, { id });
+    return this.deleteFromApi<void>(`visitor/visitor`, { id });
   };
 
   // Visit Management
