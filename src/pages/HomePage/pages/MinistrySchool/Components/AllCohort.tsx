@@ -1,6 +1,6 @@
 import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";

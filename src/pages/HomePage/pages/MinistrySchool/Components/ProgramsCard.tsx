@@ -1,7 +1,7 @@
 import CardWrappers from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";

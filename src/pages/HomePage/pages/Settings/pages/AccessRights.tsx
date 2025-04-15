@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import SearchBar from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
@@ -58,7 +58,7 @@ const AccessRights = () => {
                 type="button"
                 value="Close"
                 onClick={() => alert("Close clicked")}
-                className="tertiary"
+                variant="ghost"
               />
               <Button
                 type="button"
@@ -68,7 +68,7 @@ const AccessRights = () => {
                     `/home/settings/create-access?access_id=${selectedAccessRight?.id}`
                   )
                 }
-                className="secondary"
+                variant="secondary"
               />
             </div>
             {selectedAccessRight && (

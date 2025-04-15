@@ -1,5 +1,5 @@
-import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
+import { Button } from "@/components";
+import {ProfilePicture} from "@/components/ProfilePicture";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -82,12 +82,12 @@ const RequestDetails = () => {
           <div className="flex gap-4 justify-end">
             <Button
               value="Cancel"
-              className="tertiary"
+              variant="ghost"
               onClick={closeComment}
             />
             <Button
               value="Submit"
-              className="primary"
+              variant="primary"
               onClick={handleComment}
               disabled={!comment}
               loading={isUpdating}
@@ -102,7 +102,7 @@ const RequestDetails = () => {
           {isEditable && (
             <Button
               value="Edit"
-              className="tertiary"
+              variant="ghost"
               onClick={() => navigate(`/home/requests/request/${id}`)}
             />
           )}
@@ -110,12 +110,12 @@ const RequestDetails = () => {
             <>
               <Button
                 value="Disapprove"
-                className="secondary"
+                variant="secondary"
                 onClick={() => openCommentModal("reject")}
               />
               <Button
                 value="Approve"
-                className="primary"
+                variant="primary"
                 onClick={handleOpenSignature}
               />
             </>
@@ -127,7 +127,7 @@ const RequestDetails = () => {
         {/* Left Section */}
         <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
-            <ProfilePic
+            <ProfilePicture
               alt="profile pic"
               className="w-[7rem] h-[7rem] border shadow-md"
               name={requestData?.requester?.name}

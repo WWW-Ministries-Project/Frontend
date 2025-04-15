@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Button from "./Button";
+import { Button } from "./Button";
 import useFileUpload from "@/CustomHooks/useFileUpload";
 import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
 
@@ -131,14 +131,14 @@ export default function AddSignature({
       <div className="flex items-center justify-end gap-2">
         <Button
           value="Cancel"
-          className="w-fit border border-primary text-primary p-2.5"
+          variant="ghost"
           onClick={() => {
             cancel();
           }}
         />
         <Button
           value={text}
-          className="w-fit text-white bg-primary p-3"
+          variant="primary"
           onClick={onSubmit}
           disabled={!(preview || signature.trim())}
           loading={loading}

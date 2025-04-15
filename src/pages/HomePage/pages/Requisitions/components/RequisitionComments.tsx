@@ -1,5 +1,5 @@
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { RequestComments } from "../types/requestInterface";
 import { useMemo } from "react";
@@ -29,7 +29,7 @@ function RequisitionComments({
         <PageHeader title="Comments" />
         <Button
           value="+ add comment"
-          className="font-light text-primary cursor-pointer"
+          variant="primary"
           onClick={() => openCommentModal("comment")}
         />
       </div>

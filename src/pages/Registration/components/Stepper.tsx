@@ -1,5 +1,5 @@
 import { FormLayout } from "@/components/ui";
-import Button from "../../../components/Button";
+import { Button } from "@/components";
 
 interface IProps {
   steps: IStep[];
@@ -45,7 +45,7 @@ export const Stepper = ({
         <Button
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="secondary"
+          variant="secondary"
           value="Back"
         />
         <Button

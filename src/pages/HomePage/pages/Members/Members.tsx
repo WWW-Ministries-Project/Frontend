@@ -71,7 +71,7 @@ export function Members() {
         if ("id" in dataToDeleteRef.current)
           removeMember(dataToDeleteRef.current.id);
         const userStatsData = await refetchUserStats();
-        userStatsData && store.setUserStats(userStatsData.data);
+        if (userStatsData) store.setUserStats(userStatsData.data);
       }
     };
     handleEffect();
