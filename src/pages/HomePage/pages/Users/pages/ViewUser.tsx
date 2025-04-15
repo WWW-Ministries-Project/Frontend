@@ -1,5 +1,5 @@
 import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components/ProfilePicture";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -38,7 +38,7 @@ const ViewUser = () => {
     data: accessData,
     error: accessError,
   } = usePut(api.put.assignAccessRight);
-  // @ts-ignore
+  // @ts-expect-error will fix
   const user: Omit<UserType, "position", "department"> & {
     position: string;
     department: string;
@@ -127,7 +127,7 @@ const ViewUser = () => {
       <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
         <h2 className="text-2xl font-semibold ">User Account</h2>
         <div className="flex items-center  gap-8">
-          <ProfilePic
+          <ProfilePicture
             src={user.photo}
             alt="Profile"
             className={" w-32 h-32 bg-lightGray"}

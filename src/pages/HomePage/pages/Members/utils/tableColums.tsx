@@ -1,4 +1,4 @@
-import ProfilePicture from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";

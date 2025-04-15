@@ -1,6 +1,6 @@
+import { ProfilePicture } from "@/components";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
 // import coverImage1 from "/src/assets/CoverImage.svg";
 
 interface IProps {
@@ -31,7 +31,7 @@ const Banner = (props: IProps) => {
       >
         <div className="flex justify-between items-cente  container mx-auto">
           <div className="flex gap-4 items-center  ">
-            <ProfilePic
+            <ProfilePicture
               className="w-24 h-24 outline outline-white"
               src={props.src}
               alt="cover Image"

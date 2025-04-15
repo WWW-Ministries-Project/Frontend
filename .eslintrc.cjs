@@ -20,6 +20,7 @@ module.exports = {
     "no-console": "warn",
     "no-unused-vars": "off",
     // '@typescript-eslint/import/no-default-export': 'warn',
+    "react/prop-types": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {

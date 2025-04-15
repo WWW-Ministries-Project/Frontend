@@ -1,5 +1,5 @@
 import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components/ProfilePicture";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -127,7 +127,7 @@ const RequestDetails = () => {
         {/* Left Section */}
         <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
-            <ProfilePic
+            <ProfilePicture
               alt="profile pic"
               className="w-[7rem] h-[7rem] border shadow-md"
               name={requestData?.requester?.name}
