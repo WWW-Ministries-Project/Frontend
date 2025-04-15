@@ -25,6 +25,8 @@ const ActionButton = React.memo(({ text, onClick }) => {
   );
 });
 
+ActionButton.displayName = "ActionButton";
+
 const Action = ({ isEditable = true, ...props }) => {
   const handleEdit = () => props.onEdit();
   const handleView = () => props.onView();

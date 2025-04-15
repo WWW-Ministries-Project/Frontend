@@ -1,5 +1,5 @@
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import ellipse from "@/assets/ellipse.svg";

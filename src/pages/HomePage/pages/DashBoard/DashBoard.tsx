@@ -4,7 +4,7 @@ import { eventColumns } from "@/pages/HomePage/pages/EventsManagement/utils/even
 import { useStore } from "@/store/useStore";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import Button from "../../../../components/Button";
+import { Button } from "@/components";
 import { decodeToken } from "../../../../utils/helperFunctions";
 import BarChart from "../../Components/BarChart";
 import LineChart from "../../Components/LineChart";
@@ -112,9 +112,7 @@ function DashBoard() {
             <div>
                 <Button
                   value="All Members"
-                  className={
-                    " p-3 m-1 text-white min-h-10 max-h-14 bg-primary"
-                  }
+                  variant="primary"
                   onClick={() => navigate("/home/members")}
                 />
               </div>

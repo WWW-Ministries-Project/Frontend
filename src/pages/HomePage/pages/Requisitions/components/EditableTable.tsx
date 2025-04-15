@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useStore } from "@/store/useStore";
 import DeleteIcon from "@/assets/DeleteIcon";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 
 const TableHeader = ({
   header,

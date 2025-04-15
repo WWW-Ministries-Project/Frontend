@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -149,14 +149,14 @@ const CreateAccess = () => {
           <div className="flex justify-end gap-x-2 mt-4">
             <Button
               value="Cancel"
-              className="secondary"
+              variant="secondary"
               onClick={() => {
                 navigate(-1);
               }}
             />
             <Button
               value="Save"
-              className="primary"
+              variant="primary"
               disabled={loading || !nameRef.current}
               onClick={handleSubmit}
             />

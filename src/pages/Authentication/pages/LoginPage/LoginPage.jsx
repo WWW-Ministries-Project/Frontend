@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { pictureInstance } from "../../../../axiosInstance";
-import Button from "../../../../components/Button";
+import {Button} from "../../../../components";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
 import { useAuth } from "../../../../context/AuthWrapper";

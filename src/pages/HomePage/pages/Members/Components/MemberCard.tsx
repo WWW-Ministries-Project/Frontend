@@ -3,7 +3,7 @@ import ellipse from "@/assets/ellipse.svg";
 import email from "@/assets/email.svg";
 import phone from "@/assets/phone.svg";
 import Action from "@/components/Action";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import {ProfilePicture} from "@/components";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";

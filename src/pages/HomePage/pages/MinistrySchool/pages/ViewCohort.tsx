@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { ApiCalls } from "@/utils/api/apiFetch";

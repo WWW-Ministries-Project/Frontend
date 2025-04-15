@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import {ProfilePicture} from "@/components/ProfilePicture";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -196,7 +196,7 @@ const ViewUser = () => {
           <div className="flex items-center justify-between w-2/3">
             <div className="">Reset password?</div>
             <Button
-              className={"primary"}
+              variant={"primary"}
               value="Reset"
               onClick={resetPassword}
             />

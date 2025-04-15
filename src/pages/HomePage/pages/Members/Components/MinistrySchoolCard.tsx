@@ -1,5 +1,5 @@
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 
 interface MinistrySchoolCardProps {
   enrollment?: any; // Made optional for empty state

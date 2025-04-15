@@ -1,5 +1,5 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -120,7 +120,7 @@ export function ManageMember() {
                   <Button
                     value={"Cancel"}
                     onClick={handleCancel}
-                    className="primary "
+                    variant="primary"
                   />
                   <Button
                     value={editMode ? "Update" : "Save"}
@@ -130,7 +130,7 @@ export function ManageMember() {
                     // }}
                     onClick={handleSubmit}
                     loading={loading || updateLoading}
-                    className="default"
+                    variant="default"
                   />
                 </div>
               </section>

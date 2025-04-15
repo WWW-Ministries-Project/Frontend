@@ -1,5 +1,5 @@
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableSkeleton from "@/pages/HomePage/Components/TableSkeleton";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";

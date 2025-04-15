@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import {ProfilePicture} from "@/components/ProfilePicture";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
@@ -82,12 +82,12 @@ const RequestDetails = () => {
           <div className="flex gap-4 justify-end">
             <Button
               value="Cancel"
-              className="tertiary"
+              variant="ghost"
               onClick={closeComment}
             />
             <Button
               value="Submit"
-              className="primary"
+              variant="primary"
               onClick={handleComment}
               disabled={!comment}
               loading={isUpdating}
@@ -102,7 +102,7 @@ const RequestDetails = () => {
           {isEditable && (
             <Button
               value="Edit"
-              className="tertiary"
+              variant="ghost"
               onClick={() => navigate(`/home/requests/request/${id}`)}
             />
           )}
@@ -110,12 +110,12 @@ const RequestDetails = () => {
             <>
               <Button
                 value="Disapprove"
-                className="secondary"
+                variant="secondary"
                 onClick={() => openCommentModal("reject")}
               />
               <Button
                 value="Approve"
-                className="primary"
+                variant="primary"
                 onClick={handleOpenSignature}
               />
             </>

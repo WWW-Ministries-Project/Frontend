@@ -1,6 +1,6 @@
 import { ProfilePicture } from "@/components";
 import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 // import coverImage1 from "/src/assets/CoverImage.svg";
 
 interface IProps {

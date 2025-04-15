@@ -1,6 +1,6 @@
 import {ContactInput} from "@/components/ContactInput";
 import PropTypes from 'prop-types';
-import Button from "/src/components/Button";
+import { Button } from "/src/components";
 
 const SearchMember = ({ memberDetails, handleChange, loading, handleFindMember, name }) => {
     return (
@@ -15,7 +15,7 @@ const SearchMember = ({ memberDetails, handleChange, loading, handleFindMember, 
                 
             </div>
             <div>
-            <Button value="Next" className="w-full  text-white  border bg-primary  " disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
+            <Button value="Next" variant="primary" disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
             </div>
         </div>
     );

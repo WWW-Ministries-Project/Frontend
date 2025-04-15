@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers";
 import defaultImage1 from "/src/assets/image.svg";
 import axios from "/src/axiosInstance";
-import Button from "/src/components/Button";
+import { Button } from "/src/components";
 import EmptyState from "/src/components/EmptyState";
 import TableComponent from "/src/pages/HomePage/Components/reusable/TableComponent";
 import { formatDate } from "/src/utils/helperFunctions";
