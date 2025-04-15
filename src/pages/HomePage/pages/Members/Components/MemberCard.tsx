@@ -3,8 +3,8 @@ import ellipse from "@/assets/ellipse.svg";
 import email from "@/assets/email.svg";
 import phone from "@/assets/phone.svg";
 import Action from "@/components/Action";
-import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture.jsx";
+import { Button } from "@/components";
+import {ProfilePicture} from "@/components";
 import { useUserStore } from "@/store/userStore";
 import { useNavigate } from "react-router-dom";
 import { UserType } from "../utils/membersInterfaces";
@@ -34,7 +34,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
   };
   return (
     <CardWrapper className=" grid grid-cols-4 flex gap-x-1 p-3 rounded-xl border border-[#D8DAE5] ">
-      <ProfilePic
+      <ProfilePicture
         className="w-[6rem] h-[6rem]  border border-[#D8DAE5] "
         textClass={" font-bold bg-lightGray overflow-hidden opacity-70"}
         src={props.member?.photo}

@@ -1,4 +1,4 @@
-import ProfilePicture from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";

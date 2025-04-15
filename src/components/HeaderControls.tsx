@@ -4,7 +4,7 @@ import TableAsset from "@/assets/TableAssets"; // Corrected import path
 import GridAsset from "@/assets/GridAsset";
 import FilterIcon from "@/assets/FilterIcon";
 import SearchIcon from "@/assets/SearchIcon";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 
 interface HeaderControlsProps {
   title: string;

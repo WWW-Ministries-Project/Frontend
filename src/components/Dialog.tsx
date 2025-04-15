@@ -1,12 +1,16 @@
 import { useDialogStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useEffect, useRef } from "react";
-import Button from "./Button";
+import { Button } from "./Button";
 
 const Dialog = () => {
   const dialog = useRef<HTMLDialogElement>(null);
   const { dialogData } = useDialogStore();
   useEffect(() => {
-    dialogData.showModal ? dialog.current?.showModal() : dialog.current?.close();
+    if (dialogData.showModal) {
+      dialog.current?.showModal();
+    } else {
+      dialog.current?.close();
+    }
   }, [dialogData.showModal]);
   function handleShowModal() {
     dialogData.onCancel();

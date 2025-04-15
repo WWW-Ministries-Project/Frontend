@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import {
@@ -101,12 +101,12 @@ const VisitorFormComponent = ({
                 loading={loading}
                 disabled={loading}
                 value="Submit"
-                className={"primary"}
+                variant={"primary"}
               />
               <Button
                 onClick={onClose}
                 value="Cancel"
-                className={"tertiary"}
+                variant={"ghost"}
                 disabled={loading}
               />
             </div>

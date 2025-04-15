@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { ReactNode } from "react";
 
 
@@ -25,7 +25,7 @@ const PageHeader: React.FC<IPageHeader> = ({
       {buttonValue && (
         <Button
           value={buttonValue}
-          className="primary text-white px-5 min-h-12 max-h-14 p-3 bg-primary whitespace-nowrap"
+          variant="primary"
           onClick={onClick}
         />
         

@@ -1,27 +1,42 @@
-import PropTypes from "prop-types";
+import { CSSProperties, MouseEvent } from "react";
 
-const Button = (props) => {
-  const handleClick = (e) => {
+interface IProps {
+  link?: string;
+  value: string;
+  target?: string;
+  type?: "button" | "submit" | "reset";
+  className?: string;
+  variant?: "primary" | "secondary" | "ghost" | "default";
+  onClick?: () => void;
+  style?: CSSProperties;
+  disabled?: boolean;
+  loading?: boolean;
+}
+
+export const Button = (props: IProps) => {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    props.onClick();
+    props.onClick?.();
   };
-  let className;
-  switch (props.className) {
+
+  let className: string;
+
+  switch (props.variant) {
     case "primary":
       className = "border p-2 text-white bg-primary ";
       break;
     case "secondary":
       className = "border border-primary text-primary";
       break;
-    case "tertiary":
+    case "ghost":
       className = " text-primary ";
       break;
     case "default":
       className = " text-white bg-primary ";
       break;
     default:
-      className = props.className;
+      className = props.className || "";
       break;
   }
 
@@ -29,7 +44,7 @@ const Button = (props) => {
     <>
       <button
         className={
-          "leading-5 rounded-lg  text-center text-black disabled:bg-lightGray p-2   " +
+          "leading-5 rounded-lg text-center text-black disabled:bg-lightGray p-2 " +
           className
         }
         disabled={props.disabled || false}
@@ -60,17 +75,3 @@ const Button = (props) => {
     </>
   );
 };
-
-Button.propTypes = {
-  link: PropTypes.string,
-  value: PropTypes.string.isRequired,
-  target: PropTypes.string,
-  type: PropTypes.string,
-  className: PropTypes.string,
-  onClick: PropTypes.func,
-  style: PropTypes.object,
-  disabled: PropTypes.bool,
-  loading: PropTypes.bool,
-};
-
-export default Button;

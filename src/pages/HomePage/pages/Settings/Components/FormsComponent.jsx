@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import InputDiv from '../../../Components/reusable/InputDiv';
-import Button from '../../../../../components/Button';
+import { Button } from '../../../../../components';
 import SelectField from '../../../Components/reusable/SelectField';
 import TextField from '../../../Components/reusable/TextField';
 

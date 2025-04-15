@@ -1,5 +1,5 @@
 import AddSignature from "@/components/AddSignature";
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import FormikInput from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import Modal from "@/components/Modal";
@@ -275,7 +275,7 @@ const Request = () => {
                   <div className="w-full flex justify-end gap-x-4 mt-4">
                     <Button
                       value="Cancel"
-                      className="tertiary"
+                      variant="ghost"
                       onClick={() => {
                         window.history.back();
                       }}
@@ -283,7 +283,7 @@ const Request = () => {
                     {!id && (
                       <Button
                         value="Save as Draft"
-                        className="secondary"
+                        variant="secondary"
                         onClick={() => {
                           setValues({
                             ...values,
@@ -299,7 +299,7 @@ const Request = () => {
                     {isNoSignature && (
                       <Button
                         value="Add signature"
-                        className="secondary"
+                        variant="secondary"
                         onClick={() =>
                           handleAddSignature(validateForm, setTouched)
                         }
@@ -307,7 +307,7 @@ const Request = () => {
                     )}
                     <Button
                       value={id ? "Update" : "Send request"}
-                      className="default"
+                      variant="default"
                       loading={
                         !!id && !openSignature && (loading || addingImage)
                       }

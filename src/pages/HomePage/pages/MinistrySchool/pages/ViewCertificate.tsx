@@ -3,7 +3,6 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas'; // Import html2canvas
 import { ArrowLeftCircleIcon, PrinterIcon } from '@heroicons/react/24/solid';
 import DownloadIcon from '@/assets/DownloadIcon';
-import Button from '@/components/Button';
 import PageOutline from '@/pages/HomePage/Components/PageOutline';
 import ChurchLogo from '@/components/ChurchLogo';
 

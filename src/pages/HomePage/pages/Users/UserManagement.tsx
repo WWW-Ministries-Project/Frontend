@@ -1,5 +1,5 @@
 import HeaderControls from "@/components/HeaderControls";
-import ProfilePicture from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components/ProfilePicture";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";

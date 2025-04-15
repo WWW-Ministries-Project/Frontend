@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import Button from "../../../../components/Button";
+import {Button} from "../../../../components";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import NotificationCard from "../../components/NotificationCard";

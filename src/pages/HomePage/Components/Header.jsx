@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
-import ProfilePicture from "/src/components/ProfilePicture";
+import {ProfilePicture} from "@/components";
 import ChurchLogo from "@/components/ChurchLogo";
 
 function Header({ handleShowNav }) {
