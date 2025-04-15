@@ -58,11 +58,12 @@ const MinistrySchool = () => {
   const fetchPrograms = async () => {
     try {
       const response = await apiCalls.fetchAllPrograms();
-      if (response.data && Array.isArray(response.data.data)) {
-        setPrograms(response.data.data as Program[]);
-        getProgramsForDropdown(response.data.data);
-
-        console.log(getProgramsForDropdown(response.data.data));
+      console.log(response.data)
+  
+      if (response.data && Array.isArray(response.data)) {
+        setPrograms(response.data as Program[]);
+        getProgramsForDropdown(response.data);
+        console.log(getProgramsForDropdown(response.data));
       } else {
         setError("Invalid data format received.");
       }
@@ -72,6 +73,7 @@ const MinistrySchool = () => {
       setLoading(false);
     }
   };
+  
 
   const deleteProgram = async (programId: number) => {
     try {
@@ -171,7 +173,7 @@ const MinistrySchool = () => {
       <PageOutline>
         {showFeedback && (
           <AlertComp
-            message={feedback}
+            message={feedback || ""}
             type={"success"}
             onClose={() => setShowFeedback(false)}
           />

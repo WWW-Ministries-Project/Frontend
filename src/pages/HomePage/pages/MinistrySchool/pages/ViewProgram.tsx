@@ -32,7 +32,7 @@ const ViewProgram = () => {
       // Fetch program details by programId
       const programResponse = await apiCalls.fetchProgramById(programId);
       if (programResponse.status === 200) {
-        setProgram(programResponse.data.data);
+        setProgram(programResponse.data);
       } else {
         setError("Error fetching program details");
       }
@@ -103,6 +103,8 @@ const ViewProgram = () => {
     // ) : (
     <div className="px-4">
       <ViewPageTemplate
+        title="Program Details" // Add the title property
+        description="View and manage program details" // Add the description property
         Data={program}
         primaryButton=""
         secondaryButton=""

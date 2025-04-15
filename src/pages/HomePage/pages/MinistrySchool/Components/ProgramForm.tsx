@@ -16,14 +16,14 @@ interface ProgramFormProps {
   onClose: () => void;
   program?: {
     // Make program optional
-    title: string;
-    description: string;
-    eligibility: string;
-    member_required: boolean;
-    leader_required: boolean;
-    ministry_required: boolean;
-    topics: { id: number; name: string; programId: number }[];
-    prerequisites: string[];
+    title?: string;
+    description?: string;
+    eligibility?: string;
+    member_required?: boolean;
+    leader_required?: boolean;
+    ministry_required?: boolean;
+    topics?: { id: number; name: string; programId: number }[];
+    prerequisites?: string[];
     isPrerequisitesChecked?: boolean;
     id?: number;
   };

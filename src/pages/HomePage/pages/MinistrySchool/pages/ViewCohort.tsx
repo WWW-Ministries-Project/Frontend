@@ -50,7 +50,7 @@ const ViewCohort = () => {
       // Fetch cohort details by programId
       const programResponse = await apiCalls.fetchCohortById(cohortId);
       if (programResponse.status === 200) {
-        setCohort(programResponse.data.data);
+        setCohort(programResponse.data);
       } else {
         setError("Error fetching cohort details");
       }

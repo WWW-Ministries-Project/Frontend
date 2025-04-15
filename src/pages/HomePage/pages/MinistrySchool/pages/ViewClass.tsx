@@ -22,7 +22,7 @@ export function ViewClass () {
       // Fetch cohort details by programId
       const programResponse = await apiCalls.fetchCourseById(classId);
       if (programResponse.status === 200) {
-        setSelectedClass(programResponse.data.data);
+        setSelectedClass(programResponse.data);
       } else {
         setError("Error fetching cohort details");
       }
@@ -44,6 +44,12 @@ export function ViewClass () {
         onPrimaryButtonClick={() => {
           /* Add appropriate edit click handler here */
         }}
+        secondaryButton="Cancel"
+        onSecondaryButtonClick={() => {
+          /* Add appropriate cancel click handler here */
+        }}
+        title="Class Details"
+        description="View detailed information about the selected class."
         showTopic={true}
         loading={loading}
         isGrid={false}
