@@ -9,12 +9,12 @@ import { object } from "yup";
 
 const RegistrationContactSubFormComponent = () => {
   return (
-    <div className="w-full flex flex-col gap-4  md:grid md:grid-cols-2">
+    <>
       <FormHeader>Contacts Information</FormHeader>
       <ContactsSubForm prefix="contact_info" />
       <FormHeader>Emergency Contact</FormHeader>
       <EmergencyContact prefix="emergency_contact" />
-    </div>
+    </>
   );
 };
 export interface IRegistrationContactSubForm {

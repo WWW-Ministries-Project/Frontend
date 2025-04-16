@@ -22,10 +22,10 @@ export const Stepper = ({
           <div key={index} className="flex items-center">
             <div
               className={`w- h-8 flex items-center justify-center rounded-full gap-2
-                ${index === currentStep ? "font-bold" : ""}
+                ${index === currentStep ? "font-bold text-primary" : ""}
               `}
             >
-              <span className="w-4 h-4 md:w-8 md:h-8 flex items-center justify-center rounded-full border">
+              <span className={`w-4 h-4 md:w-8 md:h-8 flex items-center justify-center rounded-full border ${index === currentStep ? "bg-primary text-white " : ""}`}>
                 {index + 1}
               </span>
               {/* <div className="h-2 w-5 bg-gray-300"></div> */}

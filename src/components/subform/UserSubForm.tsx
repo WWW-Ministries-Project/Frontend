@@ -25,7 +25,7 @@ const UserSubFormComponent = ({
     <>
       <FullWidth>
         <ProfilePicture
-          className="h-[10rem] w-[10rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-4"
+          className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-4"
           id="profile_picture"
           name="profile_picture"
           src={values.picture.src}
