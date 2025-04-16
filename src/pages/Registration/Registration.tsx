@@ -65,13 +65,15 @@ const Registration = () => {
 
   return (
     // <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover h-screen flex items-center">
-      <div className="bg-white w-2/3 max-w-[1000px] h-[90%] mx-auto overflow-y-scroll rounded-lg">
-        <div className="flex flex-col items-center">
-          <ChurchLogo className={" mb-5 "} show={true} />
-          <h2 className="p-1 text-sm md:text-2xl font-bold mb-4">
+      <div className="bg-white w-2/3 max-w-[1000px] h-[80vh] mx-auto overflow-y-scroll rounded-lg p-8 space-y-8">
+        <div className="flex flex-col items-center space-y-3">
+          <ChurchLogo className={" "} show={true} />
+          <div className="text-center">
+          <h2 className="p-1 text-sm md:text-2xl font-bold ">
             Welcome to our registration portal
           </h2>
-          <p className="md:text-2xl mb-4">Let's get started</p>
+          <p className="md:text-lg">Let's get started with your registration</p>
+          </div>
         </div>
         <Formik
           initialValues={initialValues}
@@ -143,10 +145,10 @@ const initialValues: IRegistration = {
 };
 
 const getSteps = (hasChildren: boolean) => [
-  { label: "User Info", content: <UserSubForm prefix="personal_info" /> },
-  { label: "Contact Info", content: <RegistrationContactSubForm /> },
-  ...(hasChildren ? [{ label: "Children", content: <ChildrenSubForm /> }] : []),
-  { label: "Work Info", content: <WorkInfoSubForm prefix="work_info" /> },
+  { label: "Basic Information", content: <UserSubForm prefix="personal_info" /> },
+  { label: "Contact Information", content: <RegistrationContactSubForm /> },
+  ...(hasChildren ? [{ label: "Family Information", content: <ChildrenSubForm /> }] : []),
+  { label: "Work Information", content: <WorkInfoSubForm prefix="work_info" /> },
 ];
 
 const getValidationSchema = (hasChildren: boolean): ObjectSchema<any>[] => [

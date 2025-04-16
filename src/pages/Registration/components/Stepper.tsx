@@ -15,7 +15,7 @@ export const Stepper = ({
   handleBack,
 }: IProps) => {
   return (
-    <div className=" mx-auto p-6 ">
+    <div className=" mx-auto  ">
       {/* Step Indicators */}
       <div className="hidden md:flex justify-between items-center mb-6">
         {steps.map((step, index) => (
@@ -42,15 +42,17 @@ export const Stepper = ({
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
-        <Button
+        <div>
+        {(currentStep !== 0)&&<Button
           onClick={handleBack}
           disabled={currentStep === 0}
           variant="secondary"
           value="Back"
-        />
+        />}
+        </div>
         <Button
           onClick={handleNext}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
+          className="px-4 py-2 bg-primary text-white rounded"
           value={currentStep === steps.length - 1 ? "Submit" : "Next"}
         />
       </div>

@@ -237,7 +237,7 @@ const ProgramsCard = ({
                  <button
                    className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
                    onClick={() => {
-                     window.open(`/programs/apply/${program.id}`, "_blank");
+                     window.open(`/out/programs/${program.title}`, "_blank");
                      setIsMenuOpen(false);
                    }}
                    role="menuitem"
