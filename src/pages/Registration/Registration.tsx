@@ -64,7 +64,7 @@ const Registration = () => {
   }
 
   return (
-    <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover h-screen flex items-center">
+    // <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover h-screen flex items-center">
       <div className="bg-white w-2/3 max-w-[1000px] h-[90%] mx-auto overflow-y-scroll rounded-lg">
         <div className="flex flex-col items-center">
           <ChurchLogo className={" mb-5 "} show={true} />
@@ -122,7 +122,7 @@ const Registration = () => {
           }}
         </Formik>
       </div>
-    </div>
+    // </div>
   );
 };
 
