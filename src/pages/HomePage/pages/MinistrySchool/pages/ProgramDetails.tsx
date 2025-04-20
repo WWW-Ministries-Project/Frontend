@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useProgramsStore } from '../store/programsStore';
+import { formatDate } from "@/utils";
+import { ApiCalls } from "@/utils/api/apiFetch";
 
-interface CohortInfo {
+interface Cohort {
   id: string;
   name: string;
   startDate: string;
@@ -10,6 +14,13 @@ interface CohortInfo {
 
 const ProgramDetails = () => {
   const [email, setEmail] = useState("");
+  // const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
+  const { selectedCohort, selectedProgram, setCurrentApplicant } = useProgramsStore();
+  const navigate = useNavigate();
+  const apiCalls = new ApiCalls();
   
   // Sample data - in a real app this would come from props or an API
   const programInfo = {
@@ -33,11 +44,65 @@ const ProgramDetails = () => {
     ]
   };
 
-  const handleContinue = (e: React.FormEvent) => {
+  const fetUsersbyEmail = async () => {
+    try {
+      if (!email || !selectedCohort?.id) {
+        setError("Please enter your email and select a cohort");
+        return;
+      }
+  
+      setLoading(true);
+      setError(null);
+      
+      const response = await apiCalls.fetchUserByEmailAndCohort(
+        email,
+        Number(selectedCohort.id) // Convert to number if your API expects number
+      );
+  
+      if (response.data) {
+        setData(response.data);
+        setCurrentApplicant(response.data); // Set the current applicant in the store
+        // If user exists, you might want to navigate or show success
+        console.log("User found:", response.data);
+        // navigate("apply", { state: { email, cohortId: selectedCohort.id } });
+      } else {
+        setError("User not found in this cohort");
+      }
+    } catch (err) {
+      setError("An error occurred while checking your information");
+      console.error("Error fetching user:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Selected Cohort:", selectedCohort);
+    
+  }, [])
+  
+
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Continuing with email:", email);
-    // In a real app, you would navigate to the next step or make an API call
+    
+    if (!selectedCohort) {
+      alert("Please select a cohort to apply for");
+      return;
+    }
+  
+    if (!email) {
+      alert("Please enter your email");
+      return;
+    }
+  
+    // First check if user exists in cohort
+    await fetUsersbyEmail();
+    
+    // If user exists (data is set), proceed to next step
+    if (data) {
+      navigate("apply", { state: { email, cohortId: selectedCohort.id } });
+    }
+    // If not, the error will be shown from fetUsersbyEmail
   };
 
   const getStatusBadge = (status: string) => {
@@ -66,77 +131,96 @@ const ProgramDetails = () => {
   };
 
   return (
-    // <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
-    // <div className="relative h-screen bg-primary/60 overflow-hidden">
-    //   <div className="flex items-center justify-center h-full">
-      <div className="p-8 bg-white w-full max-w-xl rounded-lg border border-gray-200 shadow-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{programInfo.title}</h1>
-          <p className="text-gray-600">{programInfo.description}</p>
-        </div>
+    <div className="p-8 bg-white w-full max-w-xl rounded-lg border border-gray-200 shadow-md">
+      {error && (
+  <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 rounded">
+    {error}
+  </div>
+)}
+      {/* Header */}
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{selectedProgram?.title}</h1>
+        <p className="text-gray-600">{selectedProgram?.description}</p>
+      </div>
 
-        {/* Available Cohorts */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Available Cohorts</h2>
-          <div className="space-y-3">
-            {programInfo.cohorts.map((cohort) => (
-              <div 
-                key={cohort.id} 
-                className="border border-gray-200 rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition-colors"
-              >
-                <div>
-                  <h3 className="font-medium text-gray-900">{cohort.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    Starts: {cohort.startDate} • Duration: {cohort.duration}
-                  </p>
-                </div>
-                <div>
-                  {getStatusBadge(cohort.status)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <hr className="my-6 border-gray-200" />
-
-        {/* Application Form */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Start Your Application</h2>
-          <p className="text-gray-600 mb-4">
-            Please enter your email or phone number so we can check if you're already a member.
-          </p>
-          
-          <form onSubmit={handleContinue}>
-            <div className="mb-4">
-              <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                Email or Phone Number
-              </label>
-              <input
-                type="text"
-                id="emailOrPhone"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email or phone number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md   focus:border-primary outline-none transition-all"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-md transition-colors "
+      {/* Available Cohorts */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Available Cohorts</h2>
+        <div className="space-y-3">
+          {
+            <div 
+               
+              className={`border rounded-lg p-4 flex justify-between items-center transition-colors  
+                
+              `}
+              // onClick={() => setSelectedCohort(cohort.id)}
             >
-              Continue
-            </button>
-          </form>
+              <div>
+                <h3 className="font-medium text-gray-900">{selectedCohort?.name}</h3>
+                <p className="text-sm text-gray-600">
+                  Starts: {formatDate(selectedCohort?.startDate || "")} • Duration: {selectedCohort?.duration || "N/A"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {getStatusBadge(selectedCohort?.status ?? "")}
+                {/* {selectedCohort === cohort.id && (
+                  <span className="text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )} */}
+              </div>
+            </div>
+          }
         </div>
       </div>
-    //   </div>
-    //   </div>
-    // </div>
+
+      {/* Divider */}
+      <hr className="my-8 border-gray-200" />
+
+      {/* Application Form */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Start Your Application</h2>
+        <div className="text-gray-800 mb-4">
+          <p><span className="font-bold">Note:</span></p>
+          <li className="text-sm">This program is for only members of the worldwide word ministries</li>
+          <li className="text-sm">If you are not a member, please <span 
+              className="text-blue-800 font-bold animate-pulse hover:animate-none hover:underline cursor-pointer" 
+              onClick={() => window.open(`${window.location.origin}/out/register-member`, '_blank', 'noopener,noreferrer')}
+            >
+              register
+            </span> first
+          </li>
+          <li className="text-sm">If you are already a registered member, please enter your email or phone number to continue</li>
+        </div>
+        
+        <form onSubmit={handleContinue}>
+          <div className="mb-4">
+            <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700 mb-1">
+              Email or Phone Number
+            </label>
+            <input
+              type="text"
+              id="emailOrPhone"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email or phone number"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-primary outline-none transition-all"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-md transition-colors"
+            disabled={!selectedCohort}
+          >
+            Continue
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 

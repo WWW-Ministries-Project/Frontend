@@ -1,5 +1,7 @@
 import ChurchLogo from "@/components/ChurchLogo";
 import ProgramsCard from "../Components/ProgramsCard";
+import { ApiCalls } from "@/utils/api/apiFetch";
+import { useEffect, useState } from "react";
 
 // Sample data for programs
 const programs = [
@@ -180,9 +182,44 @@ interface Cohort {
     enrolledCount: number;
 }
 
+interface Program {
+    id: number;
+    title: string;
+    description: string;
+    eligibility: "Members" | "Non_Members" | "Both";
+    topics: { name: string; id: string }[];
+    cohorts: Cohort[];
+  }
+
 const ProgramApply = () => {
+    const apiCalls = new ApiCalls();
+    const [programs, setPrograms] = useState<Program[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchPrograms = async () => {
+        try {
+          const response = await apiCalls.fetchAllPrograms();
+          console.log(response.data)
+      
+          if (response.data && Array.isArray(response.data)) {
+            setPrograms(response.data as Program[]);
+            response.data.forEach((program: any) => {
+                console.log("Showing cohorts", program.cohorts);
+            });
+            
+          } else {
+            setError("Invalid data format received.");
+          }
+        } catch (err) {
+          setError("An error occurred while fetching programs.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
     const getCohortToShow = (cohorts: Cohort[]): Cohort[] => {
-        const activeCohort = cohorts.find((cohort) => cohort.status === "Active");
+        const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
         if (activeCohort) {
             return [activeCohort]; // Return the Active cohort
         }
@@ -194,6 +231,10 @@ const ProgramApply = () => {
 
         return []; // Return an empty array if neither Active nor Upcoming cohort exists
     };
+
+    useEffect(() => {
+        fetchPrograms();
+      }, []);
 
     return (
     
@@ -214,8 +255,6 @@ const ProgramApply = () => {
                                     <ProgramsCard
                                         key={program.id}
                                         program={program}
-                                        toggleMenu={() => {}}
-                                        isMenuOpen={null}
                                         cohorts={cohortsToShow}
                                         handleCopyLink={() => {}}
                                         applyCard = {true}

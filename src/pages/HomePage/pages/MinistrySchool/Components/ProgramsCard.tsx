@@ -5,6 +5,7 @@ import { Button } from "@/components";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProgramsStore } from '../store/programsStore';
 
 // Define the Cohort type
 interface Cohort {
@@ -20,7 +21,7 @@ interface Program {
   title: string;
   description: string;
   eligibility: "Members" | "Non_Members" | "Both";
-  topics: { name: string }[];
+  topics: { name: string, id: string }[];
   cohorts: Cohort[];
 }
 
@@ -48,6 +49,7 @@ const ProgramsCard = ({
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const { setSelectedCohort } = useProgramsStore();
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -64,6 +66,17 @@ const ProgramsCard = ({
   // Toggle menu
   const toggleMenu = () => {
     setIsMenuOpen(prev => !prev);
+  };
+
+  const handleApply = (cohort: Cohort) => {
+    // Set the selected cohort and program in the store
+    setSelectedCohort(cohort, program);
+
+    console.log("Selected cohort:", cohort);
+    
+    
+    // Navigate to the application page
+    navigate(`${program.title}`);
   };
 
   const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element => {
@@ -166,7 +179,7 @@ const ProgramsCard = ({
       {
       applyCard?<div className="flex justify-between items-center pt-2">
       <Button
-        onClick={() => navigate(`${program.title}`)}
+        onClick={() => {program.cohorts.length > 0 && handleApply(program.cohorts[0])}}
         value="Apply"
         className="bg-primary text-white px-6 py-2 w-full hover:bg-primary/90 transition-colors"
       />
@@ -215,6 +228,7 @@ const ProgramsCard = ({
                    onClick={() => {
                      navigate(`programs/${program.id}/add-cohort`);
                      setIsMenuOpen(false);
+
                    }}
                    role="menuitem"
                  >

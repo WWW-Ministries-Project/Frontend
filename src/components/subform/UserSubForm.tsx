@@ -24,8 +24,9 @@ const UserSubFormComponent = ({
   return (
     <>
       <FullWidth>
+        <div className="flex flex-col items-center justify-center w-full">
         <ProfilePicture
-          className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-4"
+          className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
           id="profile_picture"
           name="profile_picture"
           src={values.picture.src}
@@ -36,6 +37,8 @@ const UserSubFormComponent = ({
           }}
           textClass={"text-3xl text-primary"}
         />
+        <p className="text-sm ">Click on the <strong>pen icon</strong> to upload your profile image </p>
+        </div>
       </FullWidth>
       <PersonalDetails prefix={prefix} />
       <FullWidth>
