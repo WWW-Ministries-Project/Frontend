@@ -122,7 +122,7 @@ const ProgramInformation = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md w-full max-w-3xl max-h-[80vh] mx-auto overflow-y-scroll px-6 md:px-8">
+    (currentApplicant?<div className="bg-white rounded-lg shadow-md w-full max-w-3xl max-h-[80vh] mx-auto overflow-y-scroll px-6 md:px-8">
       {/* Welcome Header */}
       <div className="text-center mb-6 sticky top-0 bg-white z-10 p-4 rounded-lg w-[calc(100%+10px)] -mx-8 pt-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -249,6 +249,12 @@ const ProgramInformation = () => {
         </div>
       </form>
     </div>
+    :
+    <div className="text-center text-white mt-8 bg-primary/80 p-4 rounded-lg shadow-md w-full max-w-2xl ">
+    <h2 className="text-2xl font-bold mb-4">No Programs Available</h2>
+    We will be adding more programs soon.
+</div>  
+  )
   );
 };
 

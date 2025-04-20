@@ -2,175 +2,10 @@ import ChurchLogo from "@/components/ChurchLogo";
 import ProgramsCard from "../Components/ProgramsCard";
 import { ApiCalls } from "@/utils/api/apiFetch";
 import { useEffect, useState } from "react";
+import { useProgramsStore } from '../store/programsStore';
 
 // Sample data for programs
-const programs = [
-    {
-        id: 1,
-        title: "Biblical Leadership",
-        description: "A comprehensive program on biblical principles of leadership",
-        eligibility: "Both",
-        topics: [
-            {
-                "id": 28,
-                "name": "Introduction",
-                "programId": 10
-            },
-            {
-                "id": 29,
-                "name": "Creation Order",
-                "programId": 10
-            }
-        ],
-        cohorts: [
-            {
-                id: 101,
-                name: "Spring 2023",
-                startDate: "2023-06-01",
-                status: "Active",
-                classes: 3,
-                enrolledCount: 24,
-            },
-            {
-                id: 102,
-                name: "Fall 2023",
-                startDate: "2023-09-15",
-                status: "Upcoming",
-                classes: 2,
-                enrolledCount: 18,
-            },
-        ],
-    },
-    {
-        id: 2,
-        title: "Discipleship Training",
-        description: "Learn how to effectively disciple others in their faith journey",
-        eligibility: "Members",
-        topics: [
-            {
-                "id": 28,
-                "name": "Introduction",
-                "programId": 10
-            },
-            {
-                "id": 29,
-                "name": "Creation Order",
-                "programId": 10
-            }
-        ],
-        cohorts: [
-            {
-                id: 201,
-                name: "Summer 2023",
-                startDate: "2023-07-15",
-                status: "Upcoming",
-                classes: 2,
-                enrolledCount: 15,
-            },
-        ],
-    },
-    {
-        id: 3,
-        title: "Bible Study Methods",
-        description: "Learn effective methods for studying and interpreting the Bible",
-        eligibility: "Both",
-        topics: ["Observation", "Interpretation", "Application", "Bible Study Tools"],
-        cohorts: [
-            {
-                id: 301,
-                name: "Spring 2023",
-                startDate: "2023-05-10",
-                status: "Completed",
-                classes: 2,
-                enrolledCount: 32,
-            },
-        ],
-    },
-    {
-        id: 4,
-        title: "Marriage Enrichment",
-        description: "Strengthen your marriage with biblical principles and practical tools",
-        eligibility: "Non_Members",
-        topics: [
-            {
-                "id": 28,
-                "name": "Introduction",
-                "programId": 10
-            },
-            {
-                "id": 29,
-                "name": "Creation Order",
-                "programId": 10
-            }
-        ],
-        cohorts: [
-            {
-                id: 401,
-                name: "Fall 2023",
-                startDate: "2023-08-05",
-                status: "Upcoming",
-                classes: 1,
-                enrolledCount: 12,
-            },
-        ],
-    },
-    {
-        id: 2,
-        title: "Discipleship Training",
-        description: "Learn how to effectively disciple others in their faith journey",
-        eligibility: "Members",
-        topics: [
-            {
-                "id": 28,
-                "name": "Introduction",
-                "programId": 10
-            },
-            {
-                "id": 29,
-                "name": "Creation Order",
-                "programId": 10
-            }
-        ],
-        cohorts: [
-            {
-                id: 201,
-                name: "Summer 2023",
-                startDate: "2023-07-15",
-                status: "Upcoming",
-                classes: 2,
-                enrolledCount: 15,
-            },
-        ],
-    },
-    {
-        id: 2,
-        title: "Discipleship Training",
-        description: "Learn how to effectively disciple others in their faith journey",
-        eligibility: "Members",
-        topics: [
-            {
-                "id": 28,
-                "name": "Introduction",
-                "programId": 10
-            },
-            {
-                "id": 29,
-                "name": "Creation Order",
-                "programId": 10
-            }
-        ],
-        cohorts: [
-            {
-                id: 201,
-                name: "Summer 2023",
-                startDate: "2023-07-15",
-                status: "Upcoming",
-                classes: 2,
-                enrolledCount: 15,
-            },
-        ],
-    },
-];
+
 
 // Define the Cohort type
 interface Cohort {
@@ -196,8 +31,10 @@ const ProgramApply = () => {
     const [programs, setPrograms] = useState<Program[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const { clearSelection } = useProgramsStore();
 
     const fetchPrograms = async () => {
+        clearSelection(); // Clear any previous selections
         try {
           const response = await apiCalls.fetchAllPrograms();
           console.log(response.data)
@@ -245,7 +82,7 @@ const ProgramApply = () => {
                 Equipping believers with biblical knowledge and practical skills for <br/> effective ministry
                 </p>
                 </div>
-                <div className="grid grid-cols-3 gap-8 w-full max-w-6xl">
+                {programs.length>0?<div className="grid grid-cols-3 gap-8 w-full max-w-6xl">
                     {programs
                         .filter((program) => program.cohorts.length > 0) // Only programs with cohorts
                         .map((program) => {
@@ -263,7 +100,12 @@ const ProgramApply = () => {
                             );
                         })}
                     
+                </div>:
+                <div className="text-center text-white mt-8 bg-primary/80 p-4 rounded-lg shadow-md w-full max-w-2xl ">
+                    <h2 className="text-2xl font-bold mb-4">No Programs Available</h2>
+                    We will be adding more programs soon.
                 </div>
+                }
                 </div>
  
     );

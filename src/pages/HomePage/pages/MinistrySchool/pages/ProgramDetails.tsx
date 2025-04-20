@@ -131,7 +131,7 @@ const ProgramDetails = () => {
   };
 
   return (
-    <div className="p-8 bg-white w-full max-w-xl rounded-lg border border-gray-200 shadow-md">
+    (selectedCohort?<div className="p-8 bg-white w-full max-w-xl rounded-lg border border-gray-200 shadow-md">
       {error && (
   <div className="text-red-600 text-sm mt-2 p-2 bg-red-50 rounded">
     {error}
@@ -220,7 +220,12 @@ const ProgramDetails = () => {
           </button>
         </form>
       </div>
-    </div>
+    </div>:
+    <div className="text-center text-white mt-8 bg-primary/80 p-4 rounded-lg shadow-md w-full max-w-2xl ">
+    <h2 className="text-2xl font-bold mb-4">No Programs Available</h2>
+    We will be adding more programs soon.
+</div>
+    )
   );
 };
 
