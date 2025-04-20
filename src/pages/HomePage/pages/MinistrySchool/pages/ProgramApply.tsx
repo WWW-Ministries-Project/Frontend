@@ -82,7 +82,7 @@ const ProgramApply = () => {
                 Equipping believers with biblical knowledge and practical skills for <br/> effective ministry
                 </p>
                 </div>
-                {programs.length>0?<div className="grid grid-cols-3 gap-8 w-full max-w-6xl">
+                {(programs)?<div className="grid grid-cols-3 gap-8 w-full max-w-6xl">
                     {programs
                         .filter((program) => program.cohorts.length > 0) // Only programs with cohorts
                         .map((program) => {

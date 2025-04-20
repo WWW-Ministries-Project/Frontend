@@ -7,7 +7,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({
   open,
-  persist = false,
+  persist = true,
   onClose,
   children,
 }) => {

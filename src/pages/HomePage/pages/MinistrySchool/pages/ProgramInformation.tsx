@@ -40,13 +40,14 @@ const ProgramInformation = () => {
     // Handle form submission
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
 
     // Prepare the payload
     const payload = {
-      firstName: currentApplicant.user.first_name,
-      lastName: currentApplicant.user.last_name,
+      first_name: currentApplicant.user.first_name,
+      last_name: currentApplicant.user.last_name,
       email: currentApplicant.user.email,
       phone: currentApplicant.user.primary_number,
       isMember: true,
