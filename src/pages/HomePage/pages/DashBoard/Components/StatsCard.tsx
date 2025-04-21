@@ -14,7 +14,7 @@ interface StatsCardProps {
 
 const StatsCard = ({title, icon, quantity, increaseDecrease, increase, leftSideName, leftSideNumber, rightsideName, rightSideNumber}: StatsCardProps) => {
     return ( 
-        <div className=" w-1/4 border border-lightGray rounded-lg text-primary p-4 space-y-3 shadow-sm">
+        <div className="  border border-lightGray rounded-lg text-primary p-4 space-y-3 shadow-sm">
         <div className="flex justify-between  items-center">
             <div className="font-semibold">{title}</div>
             <div className="text-primary">{icon}</div>

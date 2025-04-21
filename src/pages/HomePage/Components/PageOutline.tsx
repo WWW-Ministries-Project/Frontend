@@ -4,7 +4,7 @@ interface IPageOutline {
 }
 const PageOutline = ({ children, className }: IPageOutline): JSX.Element => {
   return (
-    <section className={`${className? className: "p-4"} bg-white rounded-xl  min-h-screen`}>
+    <section className={`${className? className: "p-4"} bg-white rounded-xl  min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4`}>
       {children}
     </section>
   );

@@ -5,6 +5,7 @@ import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "@/components/EmptyState";
 
 interface AllCohortsPageProps {
   onCreate: () => void;
@@ -86,6 +87,13 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
     };
   }, []);
 
+  // if (cohorts.length === 0) return (
+  //       <div className="text-center py-8 w-1/4 mx-auto">
+  //         <EmptyState msg={"No cohort found"}/>
+          
+  //       </div>
+  //     );
+
   return (
     <div className="">
       <div className="p-0">
@@ -105,6 +113,11 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
           </div>
         </section>
 
+        {cohorts.length === 0 ? (<div className="text-center py-8 w-1/4 mx-auto">
+          <EmptyState msg={"No cohort found"}/>
+          
+        </div>)
+          :
         <section className="">
           <div className=" text-primary">
             <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
@@ -189,7 +202,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
               ))}
             </div>
           </div>
-        </section>
+        </section>}
       </div>
     </div>
   );

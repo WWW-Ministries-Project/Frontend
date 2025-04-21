@@ -27,7 +27,7 @@ const Overview = () => {
   return (
     <div className="space-y-4 text-primary">
       <section>
-        <div className="flex gap-4">
+        <div className="grid md:grid-cols-4 gap-4">
           <StatsCard
             title="Total Members"
             icon={<MembersIcon className={"h-5 "} />}
@@ -79,8 +79,8 @@ const Overview = () => {
       </section>
 
       <section>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="border border-lightGray rounded-lg col-span-2 p-4 max-lg:h-[40rem] overflow-auto shadow-sm">
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="border border-lightGray rounded-lg lg:col-span-2 p-4 overflow-auto shadow-sm">
             <div className="sticky top-0 bg-white">
               <HeaderControls title="Upcoming Events" />
             </div>
@@ -107,7 +107,7 @@ const Overview = () => {
             )}
           </div>
 
-          <div className="border border-lightGray rounded-lg p-4 max-lg:h-[40rem] overflow-auto shadow-sm">
+          <div className="border border-lightGray rounded-lg p-4  overflow-auto shadow-sm">
             <HeaderControls title="Recent Activities" />
             <ListDetailComp
               icon={<CalendarAssets />}

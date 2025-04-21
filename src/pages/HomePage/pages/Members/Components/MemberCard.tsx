@@ -33,7 +33,7 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
     props.onDelete(props.member);
   };
   return (
-    <CardWrapper className=" grid grid-cols-4 flex gap-x-1 p-3 rounded-xl border border-[#D8DAE5] ">
+    <CardWrapper className=" grid grid-cols-4  gap-x-1 p-3 rounded-xl border border-[#D8DAE5] ">
       <ProfilePicture
         className="w-[6rem] h-[6rem]  border border-[#D8DAE5] "
         textClass={" font-bold bg-lightGray overflow-hidden opacity-70"}

@@ -105,7 +105,7 @@ const SideBar = ({ className, show, ...props }) => {
 
   return (
     <div
-      className={`h-full flex flex-col justify-between transition-all duration-300 ${isExpanded ? "w-64" : "w-16"
+      className={`h-screen flex flex-col justify-between transition-all duration-300 ${isExpanded ? "w-64" : "w-16"
         } ${className || ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -188,9 +188,7 @@ const SideBar = ({ className, show, ...props }) => {
             </div>
           );
         })}
-      </div>
-
-      {/* Logout Section */}
+        {/* Logout Section */}
       <div
         className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
         onClick={handleLogOut}
@@ -201,6 +199,9 @@ const SideBar = ({ className, show, ...props }) => {
           <span className="transition-opacity duration-200">Logout</span>
         )}
       </div>
+      </div>
+
+      
     </div>
   );
 };

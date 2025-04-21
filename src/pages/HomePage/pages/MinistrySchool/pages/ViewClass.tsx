@@ -44,7 +44,7 @@ export function ViewClass () {
         onPrimaryButtonClick={() => {
           /* Add appropriate edit click handler here */
         }}
-        secondaryButton="Cancel"
+        secondaryButton=""
         onSecondaryButtonClick={() => {
           /* Add appropriate cancel click handler here */
         }}
@@ -55,22 +55,7 @@ export function ViewClass () {
         isGrid={false}
         details={
           <div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
-            {/* <div>
-                  <div className="font-semibold text-small">Start Date</div>
-                  <div>{selectedClass?.startDate}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Duration</div>
-                  <div>{selectedClass?.duration}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Application Deadline</div>
-                  <div>{selectedClass?.applicationDeadline}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Classes</div>
-                  <div>{selectedClass?.classesLength} classes</div>
-                </div> */}
+            
             {selectedClass?.instructor && (
               <div>
                 <div className="font-semibold text-small">Instructor</div>
