@@ -3,4 +3,4 @@
 
 echo "checking staged files"
 # npm test
-# npx lint-staged
+npx lint-staged
