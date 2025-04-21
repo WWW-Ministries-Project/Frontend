@@ -18,6 +18,7 @@ import MemberCard from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
 import { UserType } from "./utils/membersInterfaces";
+import PageOutline from "../../Components/PageOutline";
 
 export function Members() {
   const location = useLocation();
@@ -147,7 +148,8 @@ export function Members() {
   ];
 
   return (
-    <main className={`p-4`}>
+    <div className="p-4">
+      <PageOutline>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
@@ -230,6 +232,7 @@ export function Members() {
       </section>
 
       {loading && <LoaderComponent />}
-    </main>
+      </PageOutline>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import empty from "/src/assets/images/empty_state.png";
+import empty from "/src/assets/emptyState.svg";
 import PropTypes from 'prop-types';
 
 const EmptyState = (props) => {

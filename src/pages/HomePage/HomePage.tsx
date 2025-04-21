@@ -112,14 +112,14 @@ function HomePage() {
   navigateRef.current = navigate;
 
   return (
-    <div className=" ">
+    <div className="lg:fixed ">
       {token ? (
-        <main className="h-screen p-3  ">
+        <main className="h-screen w-screen p-3  ">
           <div className="">
             <Header handleShowNav={handleShowNav} />
           </div>
           <div className="flex">
-            <div className={` hidden sm:hidden md:hidden lg:inline `}>
+            <div className={` hidden sm:hidden md:hidden lg:inline  `}>
               <SideBar className="" onClick={handleShowNav} show={show} />
             </div>
 
@@ -133,8 +133,10 @@ function HomePage() {
               <div
                 className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
               >
-                <div className="hideScrollbar lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                  <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
                   <Breadcrumb />
+                  </div>
                   <Outlet
                     context={{
                       members,

@@ -1,7 +1,7 @@
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { string } from "yup";
 import FormikInputDiv from "./FormikInput";
 
@@ -17,7 +17,7 @@ interface IProps {
 
 const ContactInputComponent = ({
   disabled = false,
-  label="Phone Number",
+  label = "Phone Number",
   className,
   zipClass,
   prefix,
@@ -25,20 +25,21 @@ const ContactInputComponent = ({
   const { countries } = useCountryStore();
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { setFieldValue, errors, touched } = useFormikContext<object>();
 
-  const { setFieldValue } = useFormikContext<object>();
-
-  // Sync search term with zip code prop updates
-  // useEffect(() => {
-  //   if (!searchTerm) setSearchTerm(zipCode || "");
-  // }, [zipCode, setSearchTerm]);
+  // Sort countries alphabetically by name
+  const sortedCountries = [...countries].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
 
   // Handle country code input change
   const handleInputChange = (_: string, value: string) => {
     const val = value.toString().toLowerCase();
     setSearchTerm(val);
+    setIsDropdownOpen(true);
 
-    const filtered = countries.filter(
+    const filtered = sortedCountries.filter(
       (country) =>
         country.countryCode.toLowerCase().includes(val) ||
         country.initials.toLowerCase().includes(val) ||
@@ -52,75 +53,112 @@ const ContactInputComponent = ({
   const handleCountrySelect = (country: countryType) => {
     setFieldValue(`${prefix}.phone.country_code`, country.dialCode);
     setFilteredCountries([]);
+    setIsDropdownOpen(false);
+    setSearchTerm("");
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setIsDropdownOpen(false);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  // Get error messages
+  const countryCodeError = (errors as any)?.[prefix]?.phone?.country_code;
+  const phoneNumberError = (errors as any)?.[prefix]?.phone?.number;
+  const countryCodeTouched = (touched as any)?.[prefix]?.phone?.country_code;
+  const phoneNumberTouched = (touched as any)?.[prefix]?.phone?.number;
+
   return (
-    <div>
-      <p className="text-primary font-semibold">{label}</p>
+    <div className="mb-4">
+      <label className="text-primary font-semibold block mb-1">{label}</label>
       <div className="flex items-center w-full">
         {/* Country Code Input */}
-        <div className="relative w-20">
+        <div className="relative w-24">
           <Field
             component={FormikInputDiv}
             id={`${prefix}.phone.country_code`}
             name={`${prefix}.phone.country_code`}
             disabled={disabled}
             onChange={handleInputChange}
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              setIsDropdownOpen(true);
+              if (!searchTerm) {
+                setFilteredCountries(sortedCountries);
+              }
+            }}
+            value={searchTerm}
             inputClass={`w-full ${
               zipClass ||
               "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/30"
-            }`}
-            placeholder="code"
+            } ${countryCodeError && countryCodeTouched ? "border-red-500" : ""}`}
+            placeholder="Code"
             aria-describedby="country-code-description"
             aria-label="Country Calling Code"
-            autocomplete="tel-country-code"
+            autoComplete="off"
           />
 
           {/* Country Code Dropdown */}
-          {searchTerm && filteredCountries.length > 0 && (
-            <div className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow w-full max-h-60 overflow-y-auto text-sm">
+          {isDropdownOpen && filteredCountries.length > 0 && (
+            <div 
+              className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow-lg w-full max-h-60 overflow-y-auto text-sm border border-gray-200"
+              onClick={(e) => e.stopPropagation()}
+            >
               {filteredCountries.map((country) => (
                 <div
                   key={country.countryCode}
                   onClick={() => handleCountrySelect(country)}
-                  className="p-1 cursor-pointer flex gap-1 items-center"
+                  className="p-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
                 >
                   <img
                     src={country.flag}
-                    alt="country flag"
-                    className="h-5 w-5"
+                    alt={country.name}
+                    className="h-4 w-6 object-cover"
                   />
-                  {country.dialCode}
+                  <span className="font-medium">{country.dialCode}</span>
+                  <span className="text-gray-600">{country.name}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Phone Number Input (Takes Full Width) */}
-        <div className="flex-grow">
+        {/* Phone Number Input */}
+        <div className="flex-grow relative">
           <Field
             component={FormikInputDiv}
             id={`${prefix}.phone.number`}
             name={`${prefix}.phone.number`}
-            aria-label="phone number"
-            maxlength={10}
-            placeholder="enter phone number"
+            aria-label="Phone number"
+            maxLength={10}
+            placeholder="Enter phone number"
             disabled={disabled}
             inputClass={`w-full ${
               className || "rounded-r-lg p-2 border border-primary"
-            }`}
+            } ${phoneNumberError && phoneNumberTouched ? "border-red-500" : ""}`}
             type="tel"
           />
         </div>
       </div>
+
+      {/* Validation Error Messages */}
+      {countryCodeError && countryCodeTouched && (
+        <p className="text-red-500 text-xs mt-1">{countryCodeError}</p>
+      )}
+      {phoneNumberError && phoneNumberTouched && (
+        <p className="text-red-500 text-xs mt-1">{phoneNumberError}</p>
+      )}
     </div>
   );
 };
+
 export interface IContactInput {
   country_code: string;
   number: string;
 }
+
 const initialValues: IContactInput = {
   country_code: "",
   number: "",
@@ -130,7 +168,7 @@ const validationSchema = {
   number: string()
     .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
     .required("Phone number is required"),
-  country_code: string().required("required"),
+  country_code: string().required("Country code is required"),
 };
 
 export const ContactInput = Object.assign(ContactInputComponent, {

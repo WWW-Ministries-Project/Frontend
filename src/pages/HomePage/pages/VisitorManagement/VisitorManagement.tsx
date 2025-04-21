@@ -16,6 +16,7 @@ import SkeletonLoader from "../../Components/TableSkeleton";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
 import { mapVisitorToForm } from "./utils/mapping";
+import EmptyState from "@/components/EmptyState";
 
 export function VisitorManagement() {
   const navigate = useNavigate();
@@ -135,13 +136,23 @@ export function VisitorManagement() {
               subtitle="Register, track, and analyze visitor information"
               btnName="Register visitor"
               handleNavigation={() => setIsModalOpen(true)}
+              screenWidth={window.innerWidth}
             />
             <div>
-              <TableComponent data={visitors} columns={headings} />
+              {
+                visitors.length === 0 ? (
+                  <div className="text-center py-8 w-1/4 mx-auto">
+                    <EmptyState msg={"No visitor found"} />
+                  </div>
+                )
+                :
+                <TableComponent data={visitors} columns={headings} />}
             </div>
           </div>
         )}
-        <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        
+      </PageOutline>
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <VisitorForm
             onClose={() => setIsModalOpen(false)}
             selectedVisitor={selectedVisitor}
@@ -149,7 +160,6 @@ export function VisitorManagement() {
             loading={postLoading}
           />
         </Modal>
-      </PageOutline>
     </div>
   );
 }

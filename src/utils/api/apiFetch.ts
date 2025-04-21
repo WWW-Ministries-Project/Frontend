@@ -146,6 +146,18 @@ export class ApiCalls {
     return this.fetchFromApi("program/users", query);
   };
 
+  fetchUserByEmailAndCohort = (
+    email: string,
+    cohortId: number,
+    query?: Record<string, any>
+  ): Promise<ApiResponse<any>> => {
+    return this.fetchFromApi("user/get-user-email", {
+      ...query,
+      email,
+      cohortId
+    });
+  };
+
   // Cohort Management
   fetchAllCohorts = (
     query?: Record<string, any>

@@ -8,6 +8,7 @@ import AlertComp from "../../Components/reusable/AlertComponent";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import ProgramForm from "./Components/ProgramForm";
 import ProgramsCard from "./Components/ProgramsCard";
+import EmptyState from "@/components/EmptyState";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -36,9 +37,7 @@ const MinistrySchool = () => {
   const [type, setType] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(
-    undefined
-  );
+  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
 
   const apiCalls = new ApiCalls();
   const apiDelete = new ApiDeletionCalls();
@@ -57,17 +56,18 @@ const MinistrySchool = () => {
 
   const fetchPrograms = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await apiCalls.fetchAllPrograms();
-      if (response.data && Array.isArray(response.data.data)) {
-        setPrograms(response.data.data as Program[]);
-        getProgramsForDropdown(response.data.data);
-
-        console.log(getProgramsForDropdown(response.data.data));
+  
+      if (response.data && Array.isArray(response.data)) {
+        setPrograms(response.data as Program[]);
       } else {
         setError("Invalid data format received.");
       }
     } catch (err) {
-      setError("An error occurred while fetching programs.");
+      setError("Failed to fetch programs. Please try again later.");
+      console.error("Fetch programs error:", err);
     } finally {
       setLoading(false);
     }
@@ -81,8 +81,6 @@ const MinistrySchool = () => {
         setPrograms((prevPrograms) =>
           prevPrograms.filter((program) => program.id !== programId)
         );
-
-        console.log("Program deleted successfully");
         setFeedback("Program deleted successfully");
         setType("success");
       } else {
@@ -90,12 +88,11 @@ const MinistrySchool = () => {
       }
     } catch (err) {
       setError("An error occurred while deleting the program.");
+      console.error("Delete program error:", err);
     } finally {
       setLoading(false);
       setShowFeedback(true);
-      setInterval(() => {
-        setShowFeedback(false);
-      }, 5000);
+      setTimeout(() => setShowFeedback(false), 5000);
     }
   };
 
@@ -105,65 +102,94 @@ const MinistrySchool = () => {
 
   const handleEdit = (program: Program): void => {
     setSelectedProgram(program);
-    console.log("Program selected", program);
-
     setIsModalOpen(true);
   };
 
   const handleClose = () => {
     setSelectedProgram(undefined);
-    console.log("Program selected", selectedProgram);
-
     setIsModalOpen(false);
   };
 
   const getEligibilityBadge = (
     eligibility: Program["eligibility"]
   ): JSX.Element | null => {
-    switch (eligibility) {
-      case "Members":
-        return (
-          <div className="bg-blue-50 text-xs text-blue-700 rounded-lg py-1 px-2 border border-blue-200">
-            Members Only
-          </div>
-        );
-      case "Non_Members":
-        return (
-          <div className="bg-red/50 text-xs text-red-700 rounded-lg py-1 px-2 border border-red-200">
-            Non-Members Only
-          </div>
-        );
-      case "Both":
-        return (
-          <div className="bg-green/50 text-xs text-green-700 rounded-lg py-1 px-2 border border-green/50">
-            Open to All
-          </div>
-        );
-      default:
-        return null;
-    }
+    const badgeClasses = {
+      Members: "bg-blue-50 text-blue-700 border-blue-200",
+      Non_Members: "bg-red-50 text-red-700 border-red-200",
+      Both: "bg-green-50 text-green-700 border-green-200"
+    };
+
+    const badgeText = {
+      Members: "Members Only",
+      Non_Members: "Non-Members Only",
+      Both: "Open to All"
+    };
+
+    if (!eligibility || !badgeClasses[eligibility]) return null;
+
+    return (
+      <div className={`text-xs rounded-lg py-1 px-2 border ${badgeClasses[eligibility]}`}>
+        {badgeText[eligibility]}
+      </div>
+    );
   };
 
-  // Ensure that cohorts is always an array, even when it is empty or undefined.
-  const getCohortToShow = (cohorts: Cohort[]): Cohort[] => {
+  const getCohortToShow = (cohorts: Cohort[] = []): Cohort[] => {
     const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
-    if (activeCohort) {
-      return [activeCohort]; // Return the Ongoing cohort
-    }
+    if (activeCohort) return [activeCohort];
 
-    const upcomingCohort = cohorts.find(
-      (cohort) => cohort.status === "Upcoming"
-    );
-    if (upcomingCohort) {
-      return [upcomingCohort]; // Return the Upcoming cohort if no Ongoing cohort
-    }
+    const upcomingCohort = cohorts.find((cohort) => cohort.status === "Upcoming");
+    if (upcomingCohort) return [upcomingCohort];
 
-    return []; // Return an empty array if neither Ongoing nor Upcoming cohort exists
+    return [];
   };
 
   const handleFeedback = (message: string, type: string): void => {
     setFeedback(message);
     setType(type);
+    setShowFeedback(true);
+    setTimeout(() => setShowFeedback(false), 5000);
+  };
+
+  const renderContent = () => {
+    if (loading) return <SkeletonLoader />;
+    
+    if (error) return (
+      <div className="p-4 text-red-600 bg-red-50 rounded-lg">
+        {error}
+        <button 
+          onClick={fetchPrograms}
+          className="ml-2 text-blue-600 hover:text-blue-800"
+        >
+          Retry
+        </button>
+      </div>
+    );
+
+    if (programs.length === 0) return (
+      <div className="text-center py-8 w-1/4 mx-auto">
+        <EmptyState msg={"No programs found"}/>
+        
+      </div>
+    );
+
+    return (
+      <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
+        {programs.map((program) => (
+          <ProgramsCard
+            key={program.id}
+            program={program}
+            toggleMenu={() => {}}
+            isMenuOpen={null}
+            cohorts={getCohortToShow(program.cohorts)}
+            handleCopyLink={() => {}}
+            onOpen={() => handleEdit(program)}
+            onClose={handleClose}
+            onDelete={() => deleteProgram(program.id)}
+          />
+        ))}
+      </section>
+    );
   };
 
   return (
@@ -171,8 +197,8 @@ const MinistrySchool = () => {
       <PageOutline>
         {showFeedback && (
           <AlertComp
-            message={feedback}
-            type={"success"}
+            message={feedback || ""}
+            type={type || "success"}
             onClose={() => setShowFeedback(false)}
           />
         )}
@@ -193,40 +219,12 @@ const MinistrySchool = () => {
           Grid={false}
         />
 
-        {loading ? (
-          <SkeletonLoader />
-        ) : error ? (
-          <div>{error}</div>
-        ) : (
-          <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
-            {programs.map((program) => {
-              const cohortsToShow = getCohortToShow(program.cohorts);
-              console.log(
-                "program cohortsToShow",
-                getCohortToShow(program.cohorts)
-              );
-
-              return (
-                <ProgramsCard
-                  key={program.id}
-                  program={program}
-                  toggleMenu={() => {}}
-                  isMenuOpen={null}
-                  cohorts={cohortsToShow}
-                  handleCopyLink={() => {}}
-                  onOpen={() => handleEdit(program)}
-                  onClose={() => handleClose()}
-                  onDelete={() => deleteProgram(program.id)}
-                />
-              );
-            })}
-          </section>
-        )}
+        {renderContent()}
       </PageOutline>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ProgramForm
-          onClose={() => handleClose()}
+          onClose={handleClose}
           program={
             selectedProgram || {
               title: "",

@@ -1,19 +1,25 @@
+import Navbar from "@/components/Navbar";
 import { Button } from "../../components"
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
-
-function HomePage () {
+function LandingPage() {
     const navigate = useNavigate();
 
     return (
-        <>
-            <div className="h-full w-full flex flex-col justify-center items-center">
-                <h1>WELCOME HOME</h1>
-                <Button value="Login Page" className={"p-4"} onClick={() => {navigate("/login")}} />
+        <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover min-h-screen">
+            <div className="bg-primary/60 min-h-screen backdrop-blur-sm">
+                {/* Sticky Navbar */}
+                <div className="sticky top-0 z-50 bg-primary/60 ">
+                    <Navbar />
+                </div>
+                
+                {/* Page Content */}
+                <div className="p-8 flex flex-col items-center justify-center ">
+                    <Outlet />
+                </div>
             </div>
-        </>
+        </div>
     )
 }
 
-
-export default HomePage
+export default LandingPage

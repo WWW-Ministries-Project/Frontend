@@ -41,9 +41,9 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) =
   }
 
   return (
-    <div className="m-3 p-2 bg-white text-primary rounded-lg z-10 cursor-pointer">
+    <div className="  py-2 container text-primary rounded-lg z-10 cursor-pointer ">
       {breadcrumbItems.length > 1 ? (
-        <nav aria-label="breadcrumb" className="bg-gray-100 px-5 rounded">
+        <nav aria-label="breadcrumb" className=" px-5 rounded">
           <ol className="flex space-x-2 items-center">
             {breadcrumbItems.map((item, index) => {
               const isLast = index === breadcrumbItems.length - 1;
@@ -51,7 +51,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) =
                 <React.Fragment key={index}>
                   {index > 0 && <li className="text-primary">{separator}</li>}
                   {isLast ? (
-                    <li className="text-primary font-bold" aria-current="page">
+                    <li className="text-primary inverted-colors font-bold" aria-current="page">
                       {item.label}
                     </li>
                   ) : (

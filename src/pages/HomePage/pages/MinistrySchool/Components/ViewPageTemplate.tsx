@@ -55,7 +55,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
   isGrid=true
 }) => {
   return (
-    <div className="">
+    <div className="p-4">
       <PageOutline className="p-0">
         <section className="sticky top-0">
           <div className="bg-gradient-to-r from-primary to-primary/90 rounded-t-lg text-white">

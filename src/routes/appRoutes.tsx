@@ -34,6 +34,10 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
+import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
+import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
+import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 
 export const routes = [
   // {
@@ -246,6 +250,7 @@ export const routes = [
         name: "View Certificate",
         element: <ViewCertificate />,
       },
+      
       {
         path: "settings",
         name: "Settings",
@@ -285,6 +290,59 @@ export const routes = [
         element: <UnderConstruction />,
       },
     ],
+  },
+  {
+    path: "/out",
+    element: <LandingPage />,
+    // isPrivate: true,
+    children: [
+      {
+        path: "programs",
+        name: "Programs",
+        element: <ProgramApply />,
+        sideTab: false,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        sideTab: false,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        sideTab: false,
+        isPrivate: false,
+      },
+      {
+        path: "register-member",
+        element: <Registration />,
+        isPrivate: false,
+      },
+      {
+        path: "events/register-event",
+        element: <EventRegister />,
+        isPrivate: false,
+      },
+    ]
+  },
+
+  {
+    path: "programs/:name",
+    name: "Programs",
+    element: <ProgramDetails />,
+    sideTab: false,
+    isPrivate: false,
+  },
+  {
+    path: "programs/:name/apply",
+    name: "Programs",
+    element: <ProgramInformation />,
+    sideTab: false,
+    isPrivate: false,
   },
   {
     path: "/register-member",

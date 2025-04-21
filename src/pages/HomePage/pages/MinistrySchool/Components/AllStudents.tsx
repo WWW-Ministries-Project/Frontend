@@ -3,6 +3,7 @@ import ellipse from "@/assets/ellipse.svg";
 import { useNavigate } from "react-router-dom";
 import Badge from "@/components/Badge";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import EmptyState from "@/components/EmptyState";
 
 interface Student {
   id: number;
@@ -44,14 +45,16 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
   return (
     <div className="space-y-4 py-4">
         <div className="flex items-center justify-between gap-4">
-          {/* Search Bar */}
-          <input
+          <div>
+            {/* Search Bar */}
+          {Data?.length !== 0&&<input
             type="text"
             placeholder="Search students..."
             className="px-4 py-2 border border-lightGray rounded-lg"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          />}
+          </div>
           <div className="flex gap-x-4">
             {/* Export Button */}
           {/* <div>
@@ -85,19 +88,15 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
         </div> */}
       </div>
 
-      <div className="bg-white border border-lightGray p-4 rounded-lg">
+      {
+        Data?.length === 0 ? (
+          <div className="text-center py-8 w-1/4 mx-auto">
+            <EmptyState msg={"No students found"} />
+          </div>
+        ) :
+        <div className="bg-white border border-lightGray p-4 rounded-lg">
         <div className="overflow-x-auto">
-          {/* <TableComponent
-            data={Data}
-            columns={[
-              { header: "First Name", accessorKey: "firstName" },
-              { header: "Last Name", accessorKey: "lastName" },
-              { header: "Email", accessorKey: "email" },
-              { header: "Phone Number", accessorKey: "phone" },
-              { header: "Progress", accessorKey: "progress" },
-              { header: "Member", accessorKey: "memberType" },
-            ]}
-          /> */}
+          
           <table className="min-w-full table-auto">
             <thead className="text-primary">
               <tr>
@@ -149,7 +148,7 @@ const AllStudents = ({ Data, onOpen }: { Data: Student[]; onOpen: () => void }) 
         <div className="mt-4 text-center">
           Showing {Data?.length} of {Data?.length} students
         </div>
-      </div>
+      </div>}
       
     </div>
   );

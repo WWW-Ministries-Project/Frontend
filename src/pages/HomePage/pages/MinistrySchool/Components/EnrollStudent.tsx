@@ -22,9 +22,11 @@ interface Member {
   id: number;
   name: string;
   email: string;
+  
   user_info: {
     first_name: string;
     last_name: string;
+    primary_number?: string;
   };
 }
 
@@ -70,15 +72,16 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
       const response = await apiFetch.fetchMembers(); // Replace with your API endpoint
       console.log("Fetching members", response.data);
 
-      if (response.status === 200 && Array.isArray(response.data.data)) {
+      if (response.status === 200 && Array.isArray(response.data)) {
         setMembers(
-          response?.data?.data?.map((item: any) => ({
+          response?.data?.map((item: any) => ({
             id: item.id,
             name: item.name,
             email: item.email,
             user_info: {
               first_name: item.user_info?.first_name || "",
               last_name: item.user_info?.last_name || "",
+              primary_number: item.user_info?.primary_number || "0",
             },
           })) as Member[]
         ); // Safely map and validate the response data
@@ -134,6 +137,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
       setFieldValue("firstName", member.user_info.first_name);
       setFieldValue("lastName", member.user_info.last_name);
       setFieldValue("email", member.email);
+      setFieldValue("phone", member.user_info.primary_number || "0"); // Assuming phone is part of the member data
     }
   };
 
@@ -255,6 +259,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
                 name="phone"
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter phone number"
+                value={selectedMember?.user_info.primary_number || values.phone}
               />
               {errors.phone && touched.phone && (
                 <div className="text-red-600 text-xs">{errors.phone}</div>

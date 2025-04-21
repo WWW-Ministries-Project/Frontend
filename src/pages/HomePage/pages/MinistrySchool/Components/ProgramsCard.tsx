@@ -5,6 +5,7 @@ import { Button } from "@/components";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProgramsStore } from '../store/programsStore';
 
 // Define the Cohort type
 interface Cohort {
@@ -14,24 +15,23 @@ interface Cohort {
   status: string;
 }
 
-// Define the Program type outside the component
+// Define the Program type
 interface Program {
   id: number;
   title: string;
   description: string;
   eligibility: "Members" | "Non_Members" | "Both";
-  topics: { name: string }[];
+  topics: { name: string, id: string }[];
   cohorts: Cohort[];
 }
 
 interface ProgramsCardProps {
   program: Program;
-  cohorts: Cohort[];
-  handleCopyLink: (programId: number) => void;
-  toggleMenu: () => void;
-  onOpen: () => void;
-  onDelete: () => void; // Added onDelete prop
-  isMenuOpen: number | null; // Added isMenuOpen prop
+  cohorts?: Cohort[];
+  handleCopyLink?: (programId: number) => void;
+  onOpen?: () => void;
+  onDelete?: () => void;
+  applyCard?: boolean;
 }
 
 interface EligibilityBadgeProps {
@@ -40,43 +40,46 @@ interface EligibilityBadgeProps {
 
 const ProgramsCard = ({
   program,
-  cohorts,
+  cohorts = [],
   handleCopyLink,
   onOpen,
   onDelete,
+  applyCard = false,
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
-
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState<number | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const { setSelectedCohort } = useProgramsStore();
 
   // Close menu if clicked outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(null); // Close the menu
+        setIsMenuOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Function to toggle the menu when the ellipsis button is clicked
-  const toggleMenu = (id: number) => {
-    if (isMenuOpen === id) {
-      setIsMenuOpen(null); // If the menu is already open, close it
-    } else {
-      setIsMenuOpen(id); // Otherwise, open it for the clicked program
-    }
+  // Toggle menu
+  const toggleMenu = () => {
+    setIsMenuOpen(prev => !prev);
   };
 
-  const getEligibilityBadge = ({
-    eligibility,
-  }: EligibilityBadgeProps): JSX.Element | null => {
+  const handleApply = (cohort: Cohort) => {
+    // Set the selected cohort and program in the store
+    setSelectedCohort(cohort, program);
+
+    console.log("Selected cohort:", cohort);
+    
+    
+    // Navigate to the application page
+    navigate(`${program.title}`);
+  };
+
+  const getEligibilityBadge = ({ eligibility }: EligibilityBadgeProps): JSX.Element => {
     switch (eligibility) {
       case "Members":
         return <Badge>Members Only</Badge>;
@@ -93,136 +96,188 @@ const ProgramsCard = ({
           </Badge>
         );
       default:
-        return null;
+        return <Badge>Unknown</Badge>;
     }
   };
 
   return (
     <CardWrappers
-      key={program.id}
-      className={
-        "border border-1 border-lightGray p-4 rounded-lg space-y-3 text-primary flex flex-col"
-      }
+      className="border border-lightGray rounded-lg p-6 flex flex-col gap-4 text-primary transition-shadow hover:shadow-md"
     >
-      <div className="space-y-1">
-        <div className="flex justify-between gap-2">
-          <div className="text-lg font-semibold">{program.title}</div>
-          <div>{getEligibilityBadge({ eligibility: program.eligibility })}</div>
-        </div>
+      <div>
+        {/* Header: Title and Eligibility */}
+      <div className="flex justify-between items-start gap-3">
+        <h3 className={`${applyCard?"text-2xl font-semibold":"text-lg font-semibold line-clamp-2"}`}>{program.title}</h3>
+        {!applyCard&&getEligibilityBadge({ eligibility: program.eligibility })}
+      </div>
 
-        {/* Description */}
-        <div>
-          <p className="text-sm">{program.description}</p>
-        </div>
+      {/* Description */}
+      <p className="text-sm text-gray-700 line-clamp-3">{program.description}</p>
       </div>
 
       {/* Topics */}
-      <div className="space-y-1">
-        <div>
-          <p className="text-sm font-semibold">Topics</p>
-        </div>
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold">Topics</h4>
         <div className="flex flex-wrap gap-2">
-          {program.topics.map((topic, index) => (
-            <p
+          {program?.topics?.map((topic, index) => (
+            <span
               key={index}
-              className="text-sm py-1 px-2 border border-lightGray rounded-lg bg-lightGray/50"
+              className="text-xs py-1 px-3 border border-lightGray rounded-full bg-lightGray/30"
             >
               {topic.name}
-            </p>
+            </span>
           ))}
         </div>
       </div>
 
+      {!applyCard&&<hr className="border-lightGray" />}
+
       {/* Cohorts */}
-      {/* {cohorts.length > 0 && ( */}
-      <div>
-        <div className="text-sm font-semibold">Cohorts</div>
-        <div>
-          {cohorts.length > 0 &&
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold">Cohorts</h4>
+        <div className="space-y-2">
+          {cohorts.length > 0 ? (
             cohorts.map((cohort) => (
               <div
                 key={cohort.id}
-                className="border border-1 border-lightGray/50 rounded-lg p-2 space-y-2"
+                className="border border-lightGray rounded-lg p-3 transition-colors hover:bg-gray-50"
               >
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="font-medium">{cohort.name}</div>
-                    <div className="text-sm">
-                      <p>{formatDate(cohort.startDate)}</p>
+                    <div className="text-xs text-gray-600">
+                      {formatDate(cohort.startDate)}
                     </div>
                   </div>
-                  <Badge className="text-sm bg-primary/10 text-primary border border-lightGray">
+                  <Badge 
+                    className={`text-xs px-3 py-1 ${
+                      cohort.status === "Active" 
+                        ? "bg-green-50 text-green-700 border-green-200" 
+                        : cohort.status === "Completed"
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : "bg-gray-50 text-gray-700 border-gray-200"
+                    }`}
+                  >
                     {cohort.status}
                   </Badge>
                 </div>
               </div>
-            ))}
-          {cohorts.length === 0 && (
-            <div className="border border-1 border-lightGray/50 rounded-lg px-2 py-4 space-y-2">
-              No cohort added yet
+            ))
+          ) : (
+            <div className="border border-dashed border-lightGray rounded-lg p-4 text-center text-gray-500 text-sm">
+              No cohorts added yet
             </div>
           )}
         </div>
       </div>
-      {/* )} */}
+      
+
       <div className="flex-grow" />
+      {!applyCard&&<hr className="my-0 w-[calc(100%+32px)] -mx-4 border-t-1 border-lightGray" />}
 
       {/* Actions */}
-      <div className=" flex justify-between items-center">
-        <div>
-          <Button
-            onClick={() => navigate(`programs/${program.id}`)}
-            value="Manage"
-            className="bg-primary text-white px-4"
-          />
-        </div>
-        <div>
-          <div className="relative" ref={menuRef}>
-            <button
-              className="text-primary"
-              onClick={() => toggleMenu(program.id)}
-            >
-              <img src={ellipse} alt="options" className="cursor-pointer" />
-            </button>
-            {isMenuOpen === program.id && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg">
-                <ul className="py-1">
-                  <li
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                    onClick={onOpen}
-                  >
-                    Edit Program
-                  </li>
-                  <li className="px-4 py-2 hover:bg-lightGray cursor-pointer">
-                    Add Cohort
-                  </li>
-                  <li
-                    onClick={() => handleCopyLink(program.id)}
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                  >
-                    Copy Application Link
-                  </li>
-                  <li
-                    onClick={() =>
-                      window.open(`/programs/apply/${program.id}`, "_blank")
-                    }
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                  >
-                    View Application Page
-                  </li>
-                  <hr className="text-lightGray" />
-                  <li
-                    onClick={onDelete}
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer text-red-600"
-                  >
-                    Delete Program
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
+      {
+      applyCard?<div className="flex justify-between items-center pt-2">
+      <Button
+        onClick={() => {program.cohorts.length > 0 && handleApply(program.cohorts[0])}}
+        value="Apply"
+        className="bg-primary text-white px-6 py-2 w-full hover:bg-primary/90 transition-colors"
+      />
       </div>
+       :
+       <div className="flex justify-between items-center pt-2">
+       <Button
+         onClick={() => navigate(`programs/${program.id}`)}
+         value="Manage"
+         className="bg-primary text-white px-6 py-2 hover:bg-primary/90 transition-colors"
+       />
+       
+       <div className="relative" ref={menuRef}>
+         <button
+           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+           onClick={toggleMenu}
+           aria-label="Program options"
+           aria-expanded={isMenuOpen}
+           aria-haspopup="true"
+         >
+           <img src={ellipse} alt="" className="w-5 h-5" />
+         </button>
+         
+         {isMenuOpen && (
+           <div 
+             className="absolute right-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
+             role="menu"
+             aria-orientation="vertical"
+           >
+             <ul className="py-1">
+               <li>
+                 <button
+                   className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
+                   onClick={() => {
+                     onOpen?.();
+                     setIsMenuOpen(false);
+                   }}
+                   role="menuitem"
+                 >
+                   Edit Program
+                 </button>
+               </li>
+               <li>
+                 <button
+                   className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
+                   onClick={() => {
+                     navigate(`programs/${program.id}/add-cohort`);
+                     setIsMenuOpen(false);
+
+                   }}
+                   role="menuitem"
+                 >
+                   Add Cohort
+                 </button>
+               </li>
+               <li>
+                 <button
+                   className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
+                   onClick={() => {
+                     handleCopyLink?.(program.id);
+                     setIsMenuOpen(false);
+                   }}
+                   role="menuitem"
+                 >
+                   Copy Application Link
+                 </button>
+               </li>
+               <li>
+                 <button
+                   className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
+                   onClick={() => {
+                     window.open(`/out/programs/${program.title}`, "_blank");
+                     setIsMenuOpen(false);
+                   }}
+                   role="menuitem"
+                 >
+                   View Application Page
+                 </button>
+               </li>
+               <hr className="my-1 border-lightGray" />
+               <li>
+                 <button
+                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                   onClick={() => {
+                     onDelete?.();
+                     setIsMenuOpen(false);
+                   }}
+                   role="menuitem"
+                 >
+                   Delete Program
+                 </button>
+               </li>
+             </ul>
+           </div>
+         )}
+       </div>
+     </div>
+      }
     </CardWrappers>
   );
 };
