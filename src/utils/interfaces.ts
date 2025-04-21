@@ -23,11 +23,12 @@ export interface ApiCallOptions {
     path: string,
     payload: Record<string, any>
   ) => Promise<ApiResponse<any>>;
-  updateExecutor?: (
+  updateExecutor?:<T, K> (
     baseUrl: string,
     path: string,
-    payload: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
+    payload: K,
+    query?: Record<string, string>
+  ) => Promise<ApiResponse<T>>;
 }
 
 export interface userType {

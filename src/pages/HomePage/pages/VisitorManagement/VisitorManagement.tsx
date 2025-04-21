@@ -3,6 +3,7 @@ import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import { VisitorType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { formatDate } from "@/utils/helperFunctions";
@@ -28,6 +29,7 @@ export function VisitorManagement() {
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
   const { postData, loading: postLoading } = usePost(api.post.createVisitor);
+  const { updateData, loading: putLoading } = usePut(api.put.updateVisitor);
 
   const visitors = useMemo(() => data?.data || [], [data]);
 
@@ -36,13 +38,19 @@ export function VisitorManagement() {
       refetch();
       showNotification("Visitor deleted successfully", "success");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
 
-  const handleShowOptions = (id: number | string) => {  
+  const handleShowOptions = (id: number | string) => {
     setSelectedId((prevSelectedId) => (prevSelectedId === id ? "" : id));
   };
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedVisitor(undefined);
+  };
   const handleSubmit = (visitor: IVisitorForm) => {
-    postData(visitor);
+    if (selectedVisitor) updateData(visitor);
+    else postData(visitor);
     setIsModalOpen(false);
   };
 
@@ -50,72 +58,71 @@ export function VisitorManagement() {
     executeDelete(visitorId);
   };
 
-  const headings: ColumnDef<VisitorType>[] =[
-      {
-        header: "Full Name",
-        cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
-      },
-      {
-        accessorKey: "email",
-        header: "Email",
-      },
-      {
-        accessorKey: "phone",
-        header: "Phone",
-      },
-      {
-        accessorKey: "visitDate",
-        header: "Visit Date",
-        cell: ({ row }) => formatDate(row.original.visitDate),
-      },
+  const headings: ColumnDef<VisitorType>[] = [
+    {
+      header: "Full Name",
+      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      accessorKey: "phone",
+      header: "Phone",
+    },
+    {
+      accessorKey: "visitDate",
+      header: "Visit Date",
+      cell: ({ row }) => formatDate(row.original.visitDate),
+    },
 
-      {
-        accessorKey: "eventName",
-        header: "Event Name",
-      },
-      {
-        accessorKey: "howHeard",
-        header: "How Heard",
-      },
-      {
-        accessorKey: "followUpStatus",
-        header: "Follow-Up Status",
-      },
-      {
-        accessorKey: "visitCount",
-        header: "Visits",
-      },
-      {
-        header: "Actions",
-        accessorKey: "actions",
-        cell: ({ row }) => (
-          <div onClick={() => handleShowOptions(row.original.id)}>
-            <ActionButton
-              showOptions={row.original.id == selectedId}
-              hideDelete={false}
-              onView={() => {
-                navigate(`visitor/${row.original.id}`);
-              }}
-              onEdit={() => {
-                setSelectedVisitor(mapVisitorToForm(row.original));
-                setIsModalOpen(true);
-              }}
-              onDelete={() => {
-                showDeleteDialog(
-                  {
-                    name:
-                      row.original.lastName + " " + row.original?.firstName ||
-                      "",
-                    id: row.original.id,
-                  },
-                  deleteVisitor
-                );
-              }}
-            />
-          </div>
-        ),
-      },
-    ];
+    {
+      accessorKey: "eventName",
+      header: "Event Name",
+    },
+    {
+      accessorKey: "howHeard",
+      header: "How Heard",
+    },
+    {
+      accessorKey: "followUpStatus",
+      header: "Follow-Up Status",
+    },
+    {
+      accessorKey: "visitCount",
+      header: "Visits",
+    },
+    {
+      header: "Actions",
+      accessorKey: "actions",
+      cell: ({ row }) => (
+        <div onClick={() => handleShowOptions(row.original.id)}>
+          <ActionButton
+            showOptions={row.original.id == selectedId}
+            hideDelete={false}
+            onView={() => {
+              navigate(`visitor/${row.original.id}`);
+            }}
+            onEdit={() => {
+              setSelectedVisitor(mapVisitorToForm(row.original));
+              setIsModalOpen(true);
+            }}
+            onDelete={() => {
+              showDeleteDialog(
+                {
+                  name:
+                    row.original.lastName + " " + row.original?.firstName || "",
+                  id: row.original.id,
+                },
+                deleteVisitor
+              );
+            }}
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="p-4">
@@ -135,8 +142,11 @@ export function VisitorManagement() {
               showSubtitle={true}
               subtitle="Register, track, and analyze visitor information"
               btnName="Register visitor"
-              handleNavigation={() => setIsModalOpen(true)}
               screenWidth={window.innerWidth}
+              handleNavigation={() => {
+                setIsModalOpen(true);
+                setSelectedVisitor(undefined);
+              }}
             />
             <div>
               {
@@ -154,10 +164,10 @@ export function VisitorManagement() {
       </PageOutline>
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
           <VisitorForm
-            onClose={() => setIsModalOpen(false)}
+            onClose={handleModalClose}
             selectedVisitor={selectedVisitor}
             onSubmit={handleSubmit}
-            loading={postLoading}
+            loading={postLoading || putLoading}
           />
         </Modal>
     </div>
