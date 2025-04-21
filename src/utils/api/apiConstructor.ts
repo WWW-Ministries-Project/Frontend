@@ -17,10 +17,11 @@ export class ApiExecution {
     path: string,
     payload: Record<string, any>
   ) => Promise<ApiResponse<any>>;
-  updateExecutor?: (
+  updateExecutor?:<T> (
     baseUrl: string,
     path: string,
-    payload: Record<string, any>
+    payload:T,
+    query?: Record<string, string>
   ) => Promise<ApiResponse<any>>;
 
   constructor({
@@ -61,11 +62,12 @@ export class ApiExecution {
     return this.postExecutor(this.baseUrl, path, payload);
   }
 
-  updateData<T>(
+  updateData<T,K>(
     path: string,
-    payload: Record<string, any>
+    payload: K,
+    query?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     if (!this.updateExecutor) throw new Error("Update executor not defined");
-    return this.updateExecutor(this.baseUrl, path, payload);
+    return this.updateExecutor(this.baseUrl, path, payload,query);
   }
 }

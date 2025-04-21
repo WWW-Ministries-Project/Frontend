@@ -32,7 +32,7 @@ const VisitorFormComponent = ({
       <div className="font-bold text-lg mb-4">Visitor Registration</div>
       <Formik
         initialValues={selectedVisitor || initialValues}
-        validationSchema={validationSchema}
+        // validationSchema={validationSchema}
         enableReinitialize={true}
         onSubmit={onSubmit}
       >

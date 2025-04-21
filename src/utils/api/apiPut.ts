@@ -2,6 +2,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
+import { VisitorType } from "./visitors/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -26,7 +27,7 @@ export class ApiUpdateCalls {
   updateRequisition = <T>(
     payload: Record<string, any>
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData<T>(
+    return this.apiExecution.updateData(
       "requisitions/update-requisition",
       payload
     );
@@ -110,8 +111,11 @@ export class ApiUpdateCalls {
   };
 
   // Visitor Management
-  updateVisitor = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(`visitor/visitors/${payload.id}`, payload);
+  updateVisitor = (
+    payload: Record<string, any>,
+    id?: string
+  ): Promise<ApiResponse<VisitorType>> => {
+    return this.apiExecution.updateData(`visitor/visitors`, payload, { id });
   };
 
   // Visit Management
@@ -120,12 +124,16 @@ export class ApiUpdateCalls {
   };
 
   // Follow-Up Management
-  updateFollowUp = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateFollowUp = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("visitor/followup", payload);
   };
 
   // Prayer Request Management
-  updatePrayerRequest = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updatePrayerRequest = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("visitor/prayerrequest", payload);
   };
 }

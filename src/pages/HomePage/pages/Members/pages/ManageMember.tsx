@@ -30,9 +30,7 @@ export function ManageMember() {
   const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
     api.post.createMember
   );
-  const { updateData, loading: updateLoading } = usePut<
-    ApiResponse<{ data: UserType }>
-  >(api.post.updateMember);
+  const { updateData, loading: updateLoading } = usePut(api.post.updateMember);
 
   useEffect(() => {
     if (id) refetch();

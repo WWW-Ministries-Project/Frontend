@@ -72,13 +72,18 @@ export const postData = async <T>(
   }
 };
 
-export const updateData = async <T>(
+export const updateData = async <T,K>(
   baseUrl: string,
   path: string,
-  payload: Record<string, any>
+  payload: K,
+  query?: Record<string, string>|string
 ): Promise<ApiResponse<T>> => {
   try {
-    const url = `${baseUrl}${path}`;
+    const queryString = query
+      ? `?${new URLSearchParams(query).toString()}`
+      : "";
+      console.log(queryString,query);
+    const url = `${baseUrl}${path}${queryString}`;
     const response: AxiosResponse<T> = await axios.put(url, payload);
     return {
       data: response.data,
