@@ -1,8 +1,7 @@
+import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
-import { fetchCountries } from "@/pages/HomePage/utils";
 import {
   ChildrenSubForm,
   ContactsSubForm,
@@ -16,11 +15,10 @@ import {
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, getIn, useFormikContext } from "formik";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { boolean, date, number, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
-import FormikInputDiv from "@/components/FormikInput";
 
 interface IProps {
   disabled?: boolean;
@@ -36,23 +34,12 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     [values]
   );
 
-  const countryStore = useCountryStore();
-
-  // Fetch countries on mount if not already in store
-  useEffect(() => {
-    if (!countryStore.countries.length) {
-      fetchCountries().then((data) => {
-        countryStore.setCountries(data);
-      });
-    }
-  }, [countryStore]);
-
   return (
     <FormLayout>
       <FormHeader>Personal Information</FormHeader>
       <UserSubForm disabled={disabled} prefix="personal_info" />
       <HorizontalLine />
-      
+
       <FormHeader>Contacts Information</FormHeader>
       <ContactsSubForm disabled={disabled} prefix="contact_info" />
       <HorizontalLine />
@@ -83,16 +70,18 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         </div>
       </FullWidth>
 
-      {values.is_user && <Field
-        component={FormikSelectField}
-        label="Ministry/Department"
-        id="church_info.department_id"
-        name="church_info.department_id"
-        placeholder="Select department"
-        options={departmentsOptions || []}
-        disabled={disabled}
-      />}
-      
+      {values.is_user && (
+        <Field
+          component={FormikSelectField}
+          label="Ministry/Department"
+          id="church_info.department_id"
+          name="church_info.department_id"
+          placeholder="Select department"
+          options={departmentsOptions || []}
+          disabled={disabled}
+        />
+      )}
+
       {values.is_user && (
         <Field
           component={FormikSelectField}

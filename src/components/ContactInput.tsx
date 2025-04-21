@@ -26,10 +26,10 @@ const ContactInputComponent = ({
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { setFieldValue, errors, touched } = useFormikContext<object>();
+  const { setFieldValue } = useFormikContext<object>();
 
   // Sort countries alphabetically by name
-  const sortedCountries = [...countries].sort((a, b) => 
+  const sortedCountries = [...countries].sort((a, b) =>
     a.name.localeCompare(b.name)
   );
 
@@ -64,12 +64,6 @@ const ContactInputComponent = ({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Get error messages
-  const countryCodeError = (errors as any)?.[prefix]?.phone?.country_code;
-  const phoneNumberError = (errors as any)?.[prefix]?.phone?.number;
-  const countryCodeTouched = (touched as any)?.[prefix]?.phone?.country_code;
-  const phoneNumberTouched = (touched as any)?.[prefix]?.phone?.number;
-
   return (
     <div className="mb-4">
       <label className="text-primary font-semibold block mb-1">{label}</label>
@@ -93,7 +87,7 @@ const ContactInputComponent = ({
             inputClass={`w-full ${
               zipClass ||
               "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/30"
-            } ${countryCodeError && countryCodeTouched ? "border-red-500" : ""}`}
+            }`}
             placeholder="Code"
             aria-describedby="country-code-description"
             aria-label="Country Calling Code"
@@ -102,7 +96,7 @@ const ContactInputComponent = ({
 
           {/* Country Code Dropdown */}
           {isDropdownOpen && filteredCountries.length > 0 && (
-            <div 
+            <div
               className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow-lg w-full max-h-60 overflow-y-auto text-sm border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
@@ -137,19 +131,11 @@ const ContactInputComponent = ({
             disabled={disabled}
             inputClass={`w-full ${
               className || "rounded-r-lg p-2 border border-primary"
-            } ${phoneNumberError && phoneNumberTouched ? "border-red-500" : ""}`}
+            }`}
             type="tel"
           />
         </div>
       </div>
-
-      {/* Validation Error Messages */}
-      {countryCodeError && countryCodeTouched && (
-        <p className="text-red-500 text-xs mt-1">{countryCodeError}</p>
-      )}
-      {phoneNumberError && phoneNumberTouched && (
-        <p className="text-red-500 text-xs mt-1">{phoneNumberError}</p>
-      )}
     </div>
   );
 };

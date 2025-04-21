@@ -1,6 +1,5 @@
 import { ContactInput, IContactInput } from "@/components/ContactInput";
 import FormikInputDiv from "@/components/FormikInput";
-import { FormHeader } from "@/components/ui";
 import { Field } from "formik";
 import { object, string } from "yup";
 import { CountryField } from "../fields/CountryField";
@@ -53,8 +52,6 @@ const ContactsSubFormComponent = ({
         disabled={disabled}
         type={"text"}
       />
-      {/* <FormHeader>Emergency Contact</FormHeader> */}
-      {/* <EmergencyContact prefix={prefix} /> */}
     </>
   );
 };
@@ -81,7 +78,6 @@ const validationSchema = {
   state_region: string().required("State/Region is required"),
   city: string().required("City is required"),
   phone: object().shape(ContactInput.validationSchema),
-  // ...EmergencyContact.validationSchema,
 };
 export const ContactsSubForm = Object.assign(ContactsSubFormComponent, {
   initialValues,
