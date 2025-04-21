@@ -136,6 +136,7 @@ export function VisitorManagement() {
               subtitle="Register, track, and analyze visitor information"
               btnName="Register visitor"
               handleNavigation={() => setIsModalOpen(true)}
+              screenWidth={window.innerWidth}
             />
             <div>
               {
