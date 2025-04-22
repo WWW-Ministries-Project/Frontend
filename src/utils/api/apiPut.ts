@@ -115,7 +115,11 @@ export class ApiUpdateCalls {
     payload: Record<string, any>,
     id?: string
   ): Promise<ApiResponse<VisitorType>> => {
-    return this.apiExecution.updateData(`visitor/visitors`, payload, { id });
+    return this.apiExecution.updateData(
+      `visitor/visitors`,
+      payload,
+      id ? { id } : undefined
+    );
   };
 
   // Visit Management

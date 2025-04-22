@@ -10,25 +10,25 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export type QueryType = Record<string, string>;
+export type QueryExecutorType = <T>(
+  baseUrl: string,
+  path: string,
+  query?: QueryType
+) => Promise<ApiResponse<T>>;
+
+export type PayloadExecutorType = <T, K>(
+  baseUrl: string,
+  path: string,
+  payload: K,
+  query?: QueryType
+) => Promise<ApiResponse<T>>;
 export interface ApiCallOptions {
-  baseUrl?: string; // Optional baseUrl
-  fetchExecutor?: (baseUrl: string, path: string) => Promise<ApiResponse<any>>;
-  deleteExecutor?: (
-    baseUrl: string,
-    path: string,
-    query?: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
-  postExecutor?: (
-    baseUrl: string,
-    path: string,
-    payload: Record<string, any>
-  ) => Promise<ApiResponse<any>>;
-  updateExecutor?:<T, K> (
-    baseUrl: string,
-    path: string,
-    payload: K,
-    query?: Record<string, string>
-  ) => Promise<ApiResponse<T>>;
+  baseUrl?: string;
+  fetchExecutor?: QueryExecutorType;
+  deleteExecutor?: QueryExecutorType;
+  postExecutor?: PayloadExecutorType;
+  updateExecutor?: PayloadExecutorType;
 }
 
 export interface userType {
