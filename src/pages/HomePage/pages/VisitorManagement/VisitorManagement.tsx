@@ -1,12 +1,11 @@
+import EmptyState from "@/components/EmptyState";
 import HeaderControls from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { VisitorType } from "@/utils";
-import { api } from "@/utils/api/apiCalls";
-import { formatDate } from "@/utils/helperFunctions";
+import { api, formatDate, VisitorType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,15 +15,14 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import SkeletonLoader from "../../Components/TableSkeleton";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
-import { mapVisitorToForm } from "./utils/mapping";
-import EmptyState from "@/components/EmptyState";
+import { mapVisitorToForm } from "./utils";
 
 export function VisitorManagement() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<
-    IVisitorForm | undefined
+    IVisitorForm & { id: string } | undefined
   >(undefined);
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
@@ -48,8 +46,8 @@ export function VisitorManagement() {
     setIsModalOpen(false);
     setSelectedVisitor(undefined);
   };
-  const handleSubmit = (visitor: IVisitorForm) => {
-    if (selectedVisitor) updateData(visitor);
+  const handleSubmit = (visitor: IVisitorForm & { id?: string }) => {
+    if (selectedVisitor) updateData(visitor, selectedVisitor.id);
     else postData(visitor);
     setIsModalOpen(false);
   };
@@ -149,27 +147,25 @@ export function VisitorManagement() {
               }}
             />
             <div>
-              {
-                visitors.length === 0 ? (
-                  <div className="text-center py-8 w-1/4 mx-auto">
-                    <EmptyState msg={"No visitor found"} />
-                  </div>
-                )
-                :
-                <TableComponent data={visitors} columns={headings} />}
+              {visitors.length === 0 ? (
+                <div className="text-center py-8 w-1/4 mx-auto">
+                  <EmptyState msg={"No visitor found"} />
+                </div>
+              ) : (
+                <TableComponent data={visitors} columns={headings} />
+              )}
             </div>
           </div>
         )}
-        
       </PageOutline>
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <VisitorForm
-            onClose={handleModalClose}
-            selectedVisitor={selectedVisitor}
-            onSubmit={handleSubmit}
-            loading={postLoading || putLoading}
-          />
-        </Modal>
+        <VisitorForm
+          onClose={handleModalClose}
+          selectedVisitor={selectedVisitor}
+          onSubmit={handleSubmit}
+          loading={postLoading || putLoading}
+        />
+      </Modal>
     </div>
   );
 }
