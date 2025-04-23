@@ -1,14 +1,14 @@
 import { AxiosResponse } from "axios";
 import axios from "../../axiosInstance";
-import { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiErrorHandler } from "./errors/ApiError";
 
 // Define the fetchData function
 export const fetchData = async <T>(
   baseUrl: string,
   path: string,
-  query?: Record<string, any>
-): Promise<ApiResponse<any>> => {
+  query?: QueryType
+): Promise<ApiResponse<T>> => {
   try {
     const queryString = query
       ? `?${new URLSearchParams(query).toString()}`
@@ -30,7 +30,7 @@ export const fetchData = async <T>(
 export const deleteData = async <T>(
   baseUrl: string,
   path: string,
-  query?: Record<string, any>
+  query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
     // Construct query string if query parameters are provided
@@ -52,10 +52,10 @@ export const deleteData = async <T>(
   }
 };
 
-export const postData = async <T>(
+export const postData = async <T,K>(
   baseUrl: string,
   path: string,
-  payload: Record<string, any>
+  payload: K
 ): Promise<ApiResponse<T>> => {
   try {
     const url = `${baseUrl}${path}`;
@@ -72,17 +72,16 @@ export const postData = async <T>(
   }
 };
 
-export const updateData = async <T,K>(
+export const updateData = async <T, K>(
   baseUrl: string,
   path: string,
   payload: K,
-  query?: Record<string, string>|string
+  query?: Record<string, string> | string
 ): Promise<ApiResponse<T>> => {
   try {
     const queryString = query
       ? `?${new URLSearchParams(query).toString()}`
       : "";
-      console.log(queryString,query);
     const url = `${baseUrl}${path}${queryString}`;
     const response: AxiosResponse<T> = await axios.put(url, payload);
     return {
