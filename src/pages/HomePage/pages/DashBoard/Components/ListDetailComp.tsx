@@ -1,4 +1,4 @@
-import Badge from "@/components/Badge";
+import { Badge } from "@/components/Badge";
 import { formatDate } from "@/utils/helperFunctions";
 
 interface ListDetailCompProps {

@@ -188,7 +188,7 @@ const InfoField = ({
 }) => (
   <div className="mb-3">
     <p className="text-gray-600 font-medium  mb-1">{label}</p>
-    <p className="font-semibold text-gray-900">{value || "-"}</p>
+    <div className="font-semibold text-gray-900">{value || "-"}</div>
   </div>
 );
 

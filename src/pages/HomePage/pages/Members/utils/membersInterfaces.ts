@@ -28,6 +28,7 @@ export interface UserType {
   emergency_contact_name?: string;
   emergency_contact_relation?: string;
   emergency_contact_phone_number?: string;
+  status:string;
   work_info?: {
     name_of_institution: string;
     industry: string;
