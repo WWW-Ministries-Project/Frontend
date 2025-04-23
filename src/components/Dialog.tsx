@@ -29,10 +29,10 @@ const Dialog = () => {
         <div className="mt-3 flex justify-between p-2">
           <Button
             value="Cancel"
-            className="tertiary"
+            variant="ghost"
             onClick={handleShowModal}
           />
-          <Button value="Delete" className="primary" onClick={handleDelete} />
+          <Button value="Delete" variant="primary" onClick={handleDelete} />
         </div>
       </dialog>
     </div>
