@@ -1,5 +1,5 @@
 import { ProfilePicture } from "@/components";
-import Badge from "@/components/Badge";
+import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 // import coverImage1 from "/src/assets/CoverImage.svg";
 
@@ -11,11 +11,12 @@ interface IProps {
   email: string;
   primary_number: string;
   src: string;
+  status: string;
   onClick: (id: string | number) => void;
   membership_type?: string;
 }
 
-const Banner = (props: IProps) => {
+export const Banner = (props: IProps) => {
   const handleClick = () => {
     props.onClick(props.id);
   };
@@ -50,11 +51,14 @@ const Banner = (props: IProps) => {
                   " | " +
                   (props.primary_number || "No Phone")}
               </div>
-              <div className="md:w-2/3">
-                <Badge className="text-sm border-primary bg-white border text-primary ">
+              <div className="flex gap-2">
+                <Badge className="text-sm border-primary bg-white border text-primary w-fit ">
                   {props.membership_type
                     ? "Online e-church family"
                     : " In-person church family"}
+                </Badge>
+                <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
+                  {props.status}
                 </Badge>
               </div>
             </article>
@@ -71,5 +75,3 @@ const Banner = (props: IProps) => {
     </div>
   );
 };
-
-export default Banner;

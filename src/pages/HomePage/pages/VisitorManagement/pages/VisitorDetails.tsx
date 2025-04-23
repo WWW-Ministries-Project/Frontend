@@ -2,7 +2,7 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
-import Banner from "../../Members/Components/Banner";
+import { Banner } from "../../Members/Components/Banner";
 import FollowUps from "./FollowUps";
 import Note from "./Notes";
 import PrayerRequest from "./PrayerRequest";

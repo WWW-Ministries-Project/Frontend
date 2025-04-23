@@ -1,8 +1,8 @@
-import Badge from "@/components/Badge";
-import { Button } from "@/components";
-import { useNavigate } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
 import ellipse from "@/assets/ellipse.svg";
+import { Button } from "@/components";
+import { Badge } from "@/components/Badge";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ClassItem {
   id: string;
@@ -17,7 +17,15 @@ interface ClassItem {
   meetingLink?: string;
 }
 
-const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEdit?: (course: ClassItem) => void; onDelete: () => void }) => {
+const ClassCard = ({
+  classItem,
+  onEdit,
+  onDelete,
+}: {
+  classItem: ClassItem;
+  onEdit?: (course: ClassItem) => void;
+  onDelete: () => void;
+}) => {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -53,7 +61,10 @@ const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEd
   }, []);
 
   // Badge for displaying capacity status
-  const getCapacityBadge = (enrolled: number, capacity: number): JSX.Element => {
+  const getCapacityBadge = (
+    enrolled: number,
+    capacity: number
+  ): JSX.Element => {
     const percentage = (enrolled / capacity) * 100;
     if (percentage >= 100) {
       return (
@@ -84,7 +95,9 @@ const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEd
       <div className="space-y-2 flex-grow">
         <div className="flex justify-between items-center">
           <div className="font-semibold text-lg">{classItem.name}</div>
-          <Badge className="text-xs bg-primary text-white">{classItem.classFormat}</Badge>
+          <Badge className="text-xs bg-primary text-white">
+            {classItem.classFormat}
+          </Badge>
         </div>
 
         <div className="flex justify-between items-center">
@@ -100,7 +113,9 @@ const ClassCard = ({ classItem, onEdit, onDelete }: { classItem: ClassItem; onEd
         <div className="flex justify-between items-center">
           <div>Capacity</div>
           <div className="font-medium flex items-center gap-2">
-            <div>{classItem.enrolled}/{classItem.capacity}</div>
+            <div>
+              {classItem.enrolled}/{classItem.capacity}
+            </div>
             {getCapacityBadge(classItem.enrolled, classItem.capacity)}
           </div>
         </div>

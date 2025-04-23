@@ -15,7 +15,7 @@ import { date, object, string } from "yup";
 interface IProps {
   onClose: () => void;
   selectedVisitor?: IVisitorForm;
-  onSubmit: (value: IVisitorForm) => void;
+  onSubmit: (value: IVisitorForm & { id?: string }) => void;
   loading: boolean;
 }
 

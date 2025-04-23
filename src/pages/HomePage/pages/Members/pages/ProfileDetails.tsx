@@ -5,7 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import useState from "react-usestateref";
-import Banner from "../Components/Banner";
+import { Banner } from "../Components/Banner";
 import { initialUser } from "../utils/membersHelpers";
 import { UserType } from "../utils/membersInterfaces";
 
@@ -24,7 +24,7 @@ export const ProfileDetails = () => {
   }, [data, id]);
 
   const handleEdit = (id: number | string) => {
-    navigateRef.current &&
+    if (navigateRef.current)
       navigateRef.current(
         `/home/members/add-member?member_id=${encodeURIComponent(id)}`,
         {
@@ -45,6 +45,7 @@ export const ProfileDetails = () => {
           email={details.email}
           primary_number={details.primary_number}
           membership_type={details.membership_type}
+          status={details.status}
           id={details.id}
         />
       </div>

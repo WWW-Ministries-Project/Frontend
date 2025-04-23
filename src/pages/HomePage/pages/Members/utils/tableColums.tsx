@@ -54,7 +54,7 @@ export const membersColumns: ColumnDef<UserType>[] = [
   //   cell: (info) => (info.getValue() ? info.getValue() + " days ago" : "N/A"),
   // },
   {
-    header: "Created",
+    header: "Date joined",
     accessorKey: "created_at",
     cell: (info) =>
       DateTime.fromISO(info.getValue() as string).toLocaleString(

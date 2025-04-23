@@ -13,6 +13,7 @@ const NotificationCard = () => {
     }, 5000); // 5 seconds delay for auto-close
 
     return () => clearTimeout(timer);
+    //@ts-nocheck no-
   }, [notification.onClose]);
 
   const backgroundColor =
@@ -24,7 +25,7 @@ const NotificationCard = () => {
 
   return (
     <div
-      className={`flex items-start p-4 border rounded-lg shadow-lg ${backgroundColor} ${borderColor} 
+      className={`flex items-start p-4 border rounded-lg shadow-lg z-10 ${backgroundColor} ${borderColor} 
       transform transition-opacity duration-400 ease-in-out 
       ${
         visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"

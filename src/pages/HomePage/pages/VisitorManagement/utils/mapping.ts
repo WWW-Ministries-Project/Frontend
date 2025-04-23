@@ -1,8 +1,9 @@
 import { VisitorType } from "@/utils";
 import { IVisitorForm } from "../Components/VisitorForm";
 
-export const mapVisitorToForm = (visitor: VisitorType): IVisitorForm => {
+export const mapVisitorToForm = (visitor: VisitorType): IVisitorForm & {id: string} => {
   return {
+    id: visitor.id,
     personal_info: {
       title: visitor.title,
       first_name: visitor.firstName,

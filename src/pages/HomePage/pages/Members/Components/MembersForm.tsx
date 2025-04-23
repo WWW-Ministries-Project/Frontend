@@ -120,6 +120,7 @@ export interface IMembersForm extends IChildrenSubForm {
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   church_info: {
+    member_since?: Date;
     membership_type: membersType;
     department_id?: number;
     position_id?: number;
@@ -134,6 +135,7 @@ const initialValues: IMembersForm = {
   emergency_contact: EmergencyContact.initialValues,
   is_user: false,
   church_info: {
+    member_since: undefined,
     membership_type: "IN_HOUSE",
     department_id: undefined,
     position_id: undefined,
