@@ -2,7 +2,7 @@ import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsI
 import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
 import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
-import type { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { VisitorType } from "./visitors/interfaces";
@@ -68,10 +68,9 @@ export class ApiCalls {
   };
 
   fetchVisitorById = (
-    id: string,
-    query?: Record<string, any>
+    query?: QueryType
   ): Promise<ApiResponse<{ data: any }>> => {
-    return this.fetchFromApi(`visitor/visitors/${id}`, query);
+    return this.fetchFromApi(`visitor/visitors`, query);
   };
 
   // Event Management

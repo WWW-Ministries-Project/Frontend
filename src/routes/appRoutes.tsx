@@ -26,7 +26,12 @@ import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
+import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
+import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
+import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
@@ -34,10 +39,6 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
-import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
-import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 
 export const routes = [
   // {
@@ -116,14 +117,14 @@ export const routes = [
         permissionNeeded: "view_members",
         sideTab: true,
       },
-      // {
-      //   path: "visitors/visitor/:visitorId",
-      //   name: "Visitors",
-      //   element: <VisitorDetails />,
-      //   isPrivate: false,
-      //   permissionNeeded: "view_members",
-      //   sideTab: false,
-      // },
+      {
+        path: "visitors/visitor/:visitorId",
+        name: "Visitors",
+        element: <VisitorDetails />,
+        isPrivate: false,
+        permissionNeeded: "view_members",
+        sideTab: false,
+      },
       {
         path: "events",
         name: "Events",
@@ -250,7 +251,7 @@ export const routes = [
         name: "View Certificate",
         element: <ViewCertificate />,
       },
-      
+
       {
         path: "settings",
         name: "Settings",
@@ -327,7 +328,7 @@ export const routes = [
         element: <EventRegister />,
         isPrivate: false,
       },
-    ]
+    ],
   },
 
   {

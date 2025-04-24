@@ -3,25 +3,31 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import { Banner } from "../../Members/Components/Banner";
-import FollowUps from "./FollowUps";
-import Note from "./Notes";
-import PrayerRequest from "./PrayerRequest";
-import Visits from "./Visit";
 // import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
 import HeaderControls from "@/components/HeaderControls";
+import { useFetch } from "@/CustomHooks/useFetch";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
+import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
 
 const VisitorDetails = () => {
-  const { visitorId } = useParams(); // Get the visitor id from route params
+  const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
-  const [visitor, setVisitor] = useState<any>(null); // Store visitor data
+  const [, setVisitor] = useState<any>(null); // Store visitor data
   const [loading, setLoading] = useState<boolean>(true); // Handle loading state
   const [error, setError] = useState<string | null>(null); // Handle error state
 
+  const {
+    data: visitor,
+    loading: visitorsLoading,
+    error: visitorsError,
+  } = useFetch(api.fetch.fetchVisitorById, {
+     visitorId,
+  });
+  console.log(visitor, "visitor", visitorId, "visitorId");
   // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
 
   // Step 1: Fetch visitor details on component mount using the id from route params
@@ -109,24 +115,6 @@ const VisitorDetails = () => {
             ) : (
               <div>
                 {/* Step 2: Conditionally render content based on selectedTab */}
-                {selectedTab === "Visit" && (
-                  <Visits
-                    visits={visitor?.visits}
-                    visitorId={visitor?.id}
-                    fetchVisitorData={fetchVisitorData}
-                  />
-                )}
-                {selectedTab === "Follow-ups" && (
-                  <FollowUps
-                    followUps={visitor?.followUps}
-                    visitorId={visitor?.id}
-                    fetchVisitorData={fetchVisitorData}
-                  />
-                )}
-                {selectedTab === "Prayer Requests" && (
-                  <PrayerRequest prayerRequests={visitor?.prayerRequests} />
-                )}
-                {selectedTab === "Note" && <Note notes={visitor?.notes} />}
               </div>
             )}
           </section>

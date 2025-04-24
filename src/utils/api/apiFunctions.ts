@@ -9,6 +9,7 @@ export const fetchData = async <T>(
   path: string,
   query?: QueryType
 ): Promise<ApiResponse<T>> => {
+  console.log(path, query);
   try {
     const queryString = query
       ? `?${new URLSearchParams(query).toString()}`
