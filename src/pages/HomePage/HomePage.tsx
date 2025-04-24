@@ -36,7 +36,7 @@ function HomePage() {
   const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
-  //@ts-ignore
+  //@ts-expect-error this auth dey worry
   const { user } = useAuth();
 
   //side nav

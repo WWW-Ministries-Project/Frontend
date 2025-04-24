@@ -18,10 +18,18 @@ import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
 const VisitorDetails = () => {
   const { visitorId } = useParams(); // Get the visitor id from route params
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
-  const [visitor, setVisitor] = useState<any>(null); // Store visitor data
+  const [, setVisitor] = useState<any>(null); // Store visitor data
   const [loading, setLoading] = useState<boolean>(true); // Handle loading state
   const [error, setError] = useState<string | null>(null); // Handle error state
 
+  const {
+    data: visitor,
+    loading: visitorsLoading,
+    error: visitorsError,
+  } = useFetch(api.fetch.fetchVisitorById, {
+     id:visitorId,
+  });
+  console.log(visitor, "visitor", visitorId, "visitorId");
   // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
 
   // Step 1: Fetch visitor details on component mount using the id from route params

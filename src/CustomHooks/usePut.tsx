@@ -5,7 +5,7 @@ export const usePut = <T,K>(putFunction: (payload: K,id?:string) => Promise<T>) 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
 
-  const updateData = React.useCallback(async (payload: any,id?:string) => {
+  const updateData = React.useCallback(async (payload: K,id?:string) => {
     setError(null);
     setLoading(true);
 
