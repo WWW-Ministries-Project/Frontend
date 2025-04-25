@@ -3,6 +3,7 @@ import FormikInputDiv from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
+import { useMemo } from "react";
 import { date, object, string } from "yup";
 
 interface IProps {
@@ -12,7 +13,10 @@ interface IProps {
 }
 
 const VisitFormComponent = ({ onClose, initialData, onSubmit }: IProps) => {
-  const initial: IVisitForm = initialData || initialValues;
+  const initial: IVisitForm = useMemo(
+    () => initialData || initialValues,
+    [initialData]
+  );
   const { eventsOptions } = useStore();
 
   return (
@@ -48,8 +52,8 @@ const VisitFormComponent = ({ onClose, initialData, onSubmit }: IProps) => {
               type="textarea"
               label="Note *"
               placeholder="Enter any notes about the visit"
-              id="note"
-              name="note"
+              id="notes"
+              name="notes"
             />
             <div className="flex justify-end gap-4 mt-2">
               <Button

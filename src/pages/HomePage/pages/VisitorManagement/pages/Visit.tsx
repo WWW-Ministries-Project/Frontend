@@ -2,11 +2,12 @@ import HeaderControls from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { formatDate, VisitType } from "@/utils";
+import { api, formatDate, VisitType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IVisitForm, VisitForm } from "../Components/VisitForm";
+import { usePost } from "@/CustomHooks/usePost";
 
 interface Visit {
   id: number | string;
@@ -34,6 +35,8 @@ const Visits = ({
   const [selectedVisit, setSelectedVisit] = useState<IVisitForm | undefined>(
     undefined
   ); // Store selected visit for editing
+
+  const {postData: postVisit} = usePost(api.post.createVisit)
 
   // Function to toggle the options menu for each row
   const handleShowOptions = (id: number | string) => {
@@ -64,7 +67,7 @@ const Visits = ({
               setSelectedVisit({
                 date: row.original.date,
                 eventId: row.original.eventName || "",
-                notes: row.original.notes || "",
+                notes: row.original.notes || "hola",
               });
               setIsModalOpen(true);
             }}
