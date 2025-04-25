@@ -38,6 +38,7 @@ import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApp
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails.js";
 
 export const routes = [
   // {
@@ -116,14 +117,14 @@ export const routes = [
         permissionNeeded: "view_members",
         sideTab: true,
       },
-      // {
-      //   path: "visitors/visitor/:visitorId",
-      //   name: "Visitors",
-      //   element: <VisitorDetails />,
-      //   isPrivate: false,
-      //   permissionNeeded: "view_members",
-      //   sideTab: false,
-      // },
+      {
+        path: "visitors/visitor/:visitorId",
+        name: "Visitors",
+        element: <VisitorDetails />,
+        isPrivate: false,
+        permissionNeeded: "view_visitors",
+        sideTab: false,
+      },
       {
         path: "events",
         name: "Events",

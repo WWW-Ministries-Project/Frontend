@@ -46,7 +46,7 @@ export class ApiCalls {
 
   fetchVisitorById = (
     query?: QueryType
-  ): Promise<ApiResponse<{ data: VisitorType }>> => {
+  ): Promise<ApiResponse<VisitorType>> => {
     return this.fetchFromApi(`visitor/visitor`, query);
   };
 

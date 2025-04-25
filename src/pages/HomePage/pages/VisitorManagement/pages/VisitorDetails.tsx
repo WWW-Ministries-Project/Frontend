@@ -1,6 +1,6 @@
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import { Banner } from "../../Members/Components/Banner";
 import FollowUps from "./FollowUps";
@@ -14,62 +14,26 @@ import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
 
 const VisitorDetails = () => {
-  const { visitorId } = useParams(); // Get the visitor id from route params
+  const { visitorId } = useParams(); 
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
-  const [, setVisitor] = useState<any>(null); // Store visitor data
-  const [loading, setLoading] = useState<boolean>(true); // Handle loading state
-  const [error, setError] = useState<string | null>(null); // Handle error state
+  const [loading, setLoading] = useState<boolean>(false);
 
   const {
-    data: visitor,
-    loading: visitorsLoading,
-    error: visitorsError,
+    data,
   } = useFetch(api.fetch.fetchVisitorById, {
-     id:visitorId,
+     id:visitorId!,
   });
+  const visitor = useMemo(() => data?.data, [data]);
   console.log(visitor, "visitor", visitorId, "visitorId");
-  // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
-
-  // Step 1: Fetch visitor details on component mount using the id from route params
-  const fetchVisitorData = async () => {
-    try {
-      setLoading(true);
-      if (!visitorId) {
-        throw new Error("Visitor ID is undefined.");
-      }
-      // const response = await apiCalls.fetchVisitorById(visitorId);  // Ensure id is a string
-      if (response?.data) {
-        setVisitor(response.data.data);
-      } else {
-        setError("Visitor not found.");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching visitor data.");
-    } finally {
-      setLoading(false);
-      console.log("Fetched visitor data", visitor);
-    }
-  };
-
-  useEffect(() => {
-    if (visitorId) {
-      fetchVisitorData(); // Fetch data only if id exists
-    }
-  }, [visitorId]); // Run this effect when the `id` changes (e.g., when the URL changes)
 
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab); // Update the selected tab state
   };
 
-  // if (loading) {
-  //   return <div>Loading visitor data...</div>;  // Show a loading state
-  // }
-
-  if (error) {
-    return <div>{error}</div>; // Show an error message if any
-  }
 
   return (
     <div className="p-4">
@@ -80,12 +44,11 @@ const VisitorDetails = () => {
           visitor && (
             <Banner
               name={`${visitor.firstName} ${visitor.lastName}`}
+              id={visitor.id}
+              src={"https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="}
               email={visitor?.email}
-              primary_number={visitor?.phone || "123-456-7890"}
+              primary_number={visitor?.phone}
               onClick={() => console.log("Banner clicked")}
-              edit={false}
-              onPicChange={(newPic) => console.log("Picture changed", newPic)}
-              loading={loading}
             />
           )
         )}
@@ -117,7 +80,7 @@ const VisitorDetails = () => {
             ) : (
               <div>
                 {/* Step 2: Conditionally render content based on selectedTab */}
-                {selectedTab === "Visit" && (
+                {/* {selectedTab === "Visit" && (
                   <Visits
                     visits={visitor?.visits}
                     visitorId={visitor?.id}
@@ -134,7 +97,7 @@ const VisitorDetails = () => {
                 {selectedTab === "Prayer Requests" && (
                   <PrayerRequest prayerRequests={visitor?.prayerRequests} />
                 )}
-                {selectedTab === "Note" && <Note notes={visitor?.notes} />}
+                {selectedTab === "Note" && <Note notes={visitor?.notes} />} */}
               </div>
             )}
           </section>
