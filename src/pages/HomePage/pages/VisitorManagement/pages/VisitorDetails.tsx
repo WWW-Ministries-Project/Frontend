@@ -1,21 +1,18 @@
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import { Banner } from "../../Members/Components/Banner";
-import FollowUps from "./FollowUps";
-import Note from "./Notes";
-import PrayerRequest from "./PrayerRequest";
 import Visits from "./Visit";
 // import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
 import HeaderControls from "@/components/HeaderControls";
+import { useFetch } from "@/CustomHooks/useFetch";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
+import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
 
 const VisitorDetails = () => {
   const { visitorId } = useParams(); 
@@ -80,14 +77,14 @@ const VisitorDetails = () => {
             ) : (
               <div>
                 {/* Step 2: Conditionally render content based on selectedTab */}
-                {/* {selectedTab === "Visit" && (
+                 {selectedTab === "Visit" && (
                   <Visits
-                    visits={visitor?.visits}
+                    visits={visitor?.visits ||[]}
                     visitorId={visitor?.id}
-                    fetchVisitorData={fetchVisitorData}
+
                   />
                 )}
-                {selectedTab === "Follow-ups" && (
+                {/*{selectedTab === "Follow-ups" && (
                   <FollowUps
                     followUps={visitor?.followUps}
                     visitorId={visitor?.id}

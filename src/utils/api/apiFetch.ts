@@ -6,7 +6,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { UserStatsType } from "./members/interfaces";
-import { VisitorType } from "./visitors/interfaces";
+import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -46,7 +46,7 @@ export class ApiCalls {
 
   fetchVisitorById = (
     query?: QueryType
-  ): Promise<ApiResponse<VisitorType>> => {
+  ): Promise<ApiResponse<VisitorDetailsType>> => {
     return this.fetchFromApi(`visitor/visitor`, query);
   };
 
