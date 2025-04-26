@@ -3,7 +3,7 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import { Banner } from "../../Members/Components/Banner";
-import Visits from "./Visit";
+import { Visits } from "../Components/Visit";
 // import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
 import HeaderControls from "@/components/HeaderControls";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -15,14 +15,12 @@ import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
 
 const VisitorDetails = () => {
-  const { visitorId } = useParams(); 
+  const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
   const [loading, setLoading] = useState<boolean>(false);
 
-  const {
-    data,
-  } = useFetch(api.fetch.fetchVisitorById, {
-     id:visitorId!,
+  const { data } = useFetch(api.fetch.fetchVisitorById, {
+    id: visitorId!,
   });
   const visitor = useMemo(() => data?.data, [data]);
   console.log(visitor, "visitor", visitorId, "visitorId");
@@ -30,7 +28,6 @@ const VisitorDetails = () => {
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab); // Update the selected tab state
   };
-
 
   return (
     <div className="p-4">
@@ -42,7 +39,9 @@ const VisitorDetails = () => {
             <Banner
               name={`${visitor.firstName} ${visitor.lastName}`}
               id={visitor.id}
-              src={"https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="}
+              src={
+                "https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="
+              }
               email={visitor?.email}
               primary_number={visitor?.phone}
               onClick={() => console.log("Banner clicked")}
@@ -77,11 +76,10 @@ const VisitorDetails = () => {
             ) : (
               <div>
                 {/* Step 2: Conditionally render content based on selectedTab */}
-                 {selectedTab === "Visit" && (
+                {selectedTab === "Visit" && (
                   <Visits
-                    visits={visitor?.visits ||[]}
+                    visits={visitor?.visits || []}
                     visitorId={visitor?.id}
-
                   />
                 )}
                 {/*{selectedTab === "Follow-ups" && (

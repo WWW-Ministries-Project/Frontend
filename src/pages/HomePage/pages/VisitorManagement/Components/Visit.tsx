@@ -9,25 +9,13 @@ import { api, formatDate, VisitType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IVisitForm, VisitForm } from "../Components/VisitForm";
+import { IVisitForm, VisitForm } from "./VisitForm";
 
-interface Visit {
-  id: number | string;
-  visitorId: number | string;
-  date: string;
-  eventName?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const Visits = ({
-  visitorId,
-  visits,
-}: {
+interface IProps {
   visitorId: string;
   visits: Visit[];
-}) => {
+}
+export const Visits = ({ visitorId, visits }: IProps) => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
@@ -119,4 +107,12 @@ const Visits = ({
   );
 };
 
-export default Visits;
+interface Visit {
+  id: number | string;
+  visitorId: number | string;
+  date: string;
+  eventName?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
