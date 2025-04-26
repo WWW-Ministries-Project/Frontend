@@ -2,7 +2,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
-import { VisitorType } from "./visitors/interfaces";
+import { VisitorType, VisitPayloadType } from "./visitors/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -110,7 +110,8 @@ export class ApiUpdateCalls {
     );
   };
 
-  // Visitor Management
+  /* Visitor Management */
+
   updateVisitor = (
     payload: Record<string, any>,
     id?: string
@@ -122,8 +123,7 @@ export class ApiUpdateCalls {
     );
   };
 
-  // Visit Management
-  updateVisit = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateVisit = (payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("visitor/visit", payload);
   };
 

@@ -9,10 +9,11 @@ import { date, object, string } from "yup";
 interface IProps {
   onClose: () => void;
   initialData?: IVisitForm;
-  onSubmit: () => void;
+  onSubmit: (data: IVisitForm) => void;
+  loading: boolean;
 }
 
-const VisitFormComponent = ({ onClose, initialData, onSubmit }: IProps) => {
+const VisitFormComponent = ({ onClose, initialData, onSubmit, loading }: IProps) => {
   const initial: IVisitForm = useMemo(
     () => initialData || initialValues,
     [initialData]
@@ -28,24 +29,24 @@ const VisitFormComponent = ({ onClose, initialData, onSubmit }: IProps) => {
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
-        onSubmit={onSubmit}
+        onSubmit={(values) => onSubmit(values)}
       >
-        {() => (
+        {({ handleSubmit }) => (
           <Form className="flex flex-col gap-4">
             <Field
               component={FormikInputDiv}
+              type="date"
               label="Visit Date *"
               id="date"
               name="date"
-              type="date"
             />
             <Field
               component={FormikSelectField}
               options={eventsOptions}
               label="Event *"
               placeholder="Select an event"
-              id="event"
-              name="event"
+              id="eventId"
+              name="eventId"
             />
             <Field
               component={FormikInputDiv}
@@ -60,9 +61,11 @@ const VisitFormComponent = ({ onClose, initialData, onSubmit }: IProps) => {
                 value="Submit"
                 variant="primary"
                 type="submit"
-                onClick={onSubmit}
+                disabled={loading}
+                loading={loading}
+                onClick={handleSubmit}
               />
-              <Button value="Cancel" variant="secondary" onClick={onClose} />
+              <Button value="Cancel" variant="secondary" onClick={onClose} disabled={loading} />
             </div>
           </Form>
         )}

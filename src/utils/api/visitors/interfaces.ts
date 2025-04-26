@@ -26,6 +26,7 @@ export type VisitorResponseType = {
   data: VisitorType[];
 };
 
+/* Visits */
 export type VisitType = {
   id: number|string;
   visitorId: number|string;
@@ -38,3 +39,10 @@ export type VisitType = {
 export type VisitorDetailsType = VisitorType & {
   visits: VisitType[];
 };
+
+export type VisitPayloadType = {
+  date: string;
+  eventId: string;
+  notes: string;
+  visitorId: string;
+}

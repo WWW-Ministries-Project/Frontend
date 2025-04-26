@@ -1,5 +1,8 @@
 import HeaderControls from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { api, formatDate, VisitType } from "@/utils";
@@ -7,7 +10,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IVisitForm, VisitForm } from "../Components/VisitForm";
-import { usePost } from "@/CustomHooks/usePost";
 
 interface Visit {
   id: number | string;
@@ -22,21 +24,27 @@ interface Visit {
 const Visits = ({
   visitorId,
   visits,
-  fetchVisitorData,
 }: {
   visitorId: string;
   visits: Visit[];
-  fetchVisitorData: () => void;
 }) => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
-  const [loading, setLoading] = useState(true); // Track loading state
   const [selectedVisit, setSelectedVisit] = useState<IVisitForm | undefined>(
     undefined
   ); // Store selected visit for editing
 
-  const {postData: postVisit} = usePost(api.post.createVisit)
+  //API
+  const { postData: postVisit, loading: postLoading } = usePost(
+    api.post.createVisit
+  );
+  const { updateData: updateVisit, loading: putLoading } = usePut(
+    api.put.updateVisit
+  );
+  const { executeDelete, loading: deleteLoading } = useDelete(
+    api.delete.deleteVisit
+  );
 
   // Function to toggle the options menu for each row
   const handleShowOptions = (id: number | string) => {
@@ -44,9 +52,18 @@ const Visits = ({
   };
 
   // Function to delete a visit
-  const deleteVisit = async (id: number) => {};
-  const handleSubmit = async () => {
-    console.log("handled");
+  const deleteVisit = async (id: number) => {
+    executeDelete(id);
+  };
+  const handleSubmit = async (data: IVisitForm) => {
+    const payload = {
+      ...data,
+      visitorId: visitorId,
+    };
+    if (selectedVisit) {
+      await updateVisit(payload, String(selectedId));
+    } else await postVisit(payload);
+    setIsModalOpen(false);
   };
   // Table columns configuration
   const header: ColumnDef<VisitType>[] = [
@@ -66,8 +83,8 @@ const Visits = ({
             onEdit={() => {
               setSelectedVisit({
                 date: row.original.date,
-                eventId: row.original.eventName || "",
-                notes: row.original.notes || "hola",
+                eventId: row.original.eventName || "1",
+                notes: row.original.notes || "",
               });
               setIsModalOpen(true);
             }}
@@ -92,11 +109,10 @@ const Visits = ({
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <VisitForm
-          visitorId={visitorId || ""}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleSubmit}
           initialData={selectedVisit} // Pass the selected visit data for editing
-          fetchVisitorData={fetchVisitorData}
+          loading={postLoading || putLoading}
         />
       </Modal>
     </div>
