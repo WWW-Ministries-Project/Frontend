@@ -1,67 +1,33 @@
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import { Banner } from "../../Members/Components/Banner";
-import FollowUps from "./FollowUps";
-import Note from "./Notes";
-import PrayerRequest from "./PrayerRequest";
-import Visits from "./Visit";
+import { Visits } from "../Components/Visit";
 // import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
 import HeaderControls from "@/components/HeaderControls";
+import { useFetch } from "@/CustomHooks/useFetch";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
+import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
 
 const VisitorDetails = () => {
-  const { visitorId } = useParams(); // Get the visitor id from route params
+  const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
-  const [visitor, setVisitor] = useState<any>(null); // Store visitor data
-  const [loading, setLoading] = useState<boolean>(true); // Handle loading state
-  const [error, setError] = useState<string | null>(null); // Handle error state
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // const apiCalls = new ApiCalls();  // Assuming you have an API utility to fetch data
-
-  // Step 1: Fetch visitor details on component mount using the id from route params
-  const fetchVisitorData = async () => {
-    try {
-      setLoading(true);
-      if (!visitorId) {
-        throw new Error("Visitor ID is undefined.");
-      }
-      // const response = await apiCalls.fetchVisitorById(visitorId);  // Ensure id is a string
-      if (response?.data) {
-        setVisitor(response.data.data);
-      } else {
-        setError("Visitor not found.");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching visitor data.");
-    } finally {
-      setLoading(false);
-      console.log("Fetched visitor data", visitor);
-    }
-  };
-
-  useEffect(() => {
-    if (visitorId) {
-      fetchVisitorData(); // Fetch data only if id exists
-    }
-  }, [visitorId]); // Run this effect when the `id` changes (e.g., when the URL changes)
+  const { data } = useFetch(api.fetch.fetchVisitorById, {
+    id: visitorId!,
+  });
+  const visitor = useMemo(() => data?.data, [data]);
+  console.log(visitor, "visitor", visitorId, "visitorId");
 
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab); // Update the selected tab state
   };
-
-  // if (loading) {
-  //   return <div>Loading visitor data...</div>;  // Show a loading state
-  // }
-
-  if (error) {
-    return <div>{error}</div>; // Show an error message if any
-  }
 
   return (
     <div className="p-4">
@@ -72,12 +38,13 @@ const VisitorDetails = () => {
           visitor && (
             <Banner
               name={`${visitor.firstName} ${visitor.lastName}`}
+              id={visitor.id}
+              src={
+                "https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="
+              }
               email={visitor?.email}
-              primary_number={visitor?.phone || "123-456-7890"}
+              primary_number={visitor?.phone}
               onClick={() => console.log("Banner clicked")}
-              edit={false}
-              onPicChange={(newPic) => console.log("Picture changed", newPic)}
-              loading={loading}
             />
           )
         )}
@@ -111,12 +78,11 @@ const VisitorDetails = () => {
                 {/* Step 2: Conditionally render content based on selectedTab */}
                 {selectedTab === "Visit" && (
                   <Visits
-                    visits={visitor?.visits}
+                    visits={visitor?.visits || []}
                     visitorId={visitor?.id}
-                    fetchVisitorData={fetchVisitorData}
                   />
                 )}
-                {selectedTab === "Follow-ups" && (
+                {/*{selectedTab === "Follow-ups" && (
                   <FollowUps
                     followUps={visitor?.followUps}
                     visitorId={visitor?.id}
@@ -126,7 +92,7 @@ const VisitorDetails = () => {
                 {selectedTab === "Prayer Requests" && (
                   <PrayerRequest prayerRequests={visitor?.prayerRequests} />
                 )}
-                {selectedTab === "Note" && <Note notes={visitor?.notes} />}
+                {selectedTab === "Note" && <Note notes={visitor?.notes} />} */}
               </div>
             )}
           </section>

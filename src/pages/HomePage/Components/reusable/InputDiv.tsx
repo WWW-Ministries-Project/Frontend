@@ -33,7 +33,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   }
 
   function handleBlur(e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) {
-    props.onBlur && props.onBlur(e);
+    if(props.onBlur) props.onBlur(e);
   }
 
   return (

@@ -1,6 +1,7 @@
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
+import { VisitPayloadType } from "./visitors/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -84,13 +85,13 @@ export class ApiCreationCalls {
     return this.postToApi<T>("user/forgot-password", payload);
   };
 
-  // Visitor Management
+
+  /*Visitor Management*/
   createVisitor = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("visitor/visitors", payload);
   };
-
-  // Visit Management
-  createVisit = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  // Visit
+  createVisit = <T>(payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visit", payload);
   };
 

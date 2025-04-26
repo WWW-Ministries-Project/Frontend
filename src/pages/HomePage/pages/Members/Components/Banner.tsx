@@ -11,7 +11,7 @@ interface IProps {
   email: string;
   primary_number: string;
   src: string;
-  status: string;
+  status?: string;
   onClick: (id: string | number) => void;
   membership_type?: string;
 }
@@ -43,9 +43,9 @@ export const Banner = (props: IProps) => {
               <div className="font-bold text-2xl ">
                 {props.name || "No Name"}
               </div>
-              <div className="">{`${props.department} ${
+              <div className="">{`${props.department??""} ${
                 props.department && props.position ? "|" : ""
-              } ${props.position} `}</div>
+              } ${props.position??""} `}</div>
               <div className="">
                 {(props.email || "No Email") +
                   " | " +
@@ -58,7 +58,7 @@ export const Banner = (props: IProps) => {
                     : " In-person church family"}
                 </Badge>
                 <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
-                  {props.status}
+                  {props.status??""}
                 </Badge>
               </div>
             </article>
