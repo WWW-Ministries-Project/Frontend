@@ -45,6 +45,7 @@ const SideBar = ({ className, show, ...props }) => {
   // Handle hover effects with delay
   const handleMouseEnter = () => {
     // Clear any existing timeout to prevent multiple timers
+    console.log(permissions);
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
     }
@@ -115,6 +116,7 @@ const SideBar = ({ className, show, ...props }) => {
         {sideTabs.map((item) => {
           const IconComponent = icons[item.name];
           if (!IconComponent) return null;
+          if (item.isPrivate && !permissions[item.permissionNeeded]) return null
 
           const isActive =
             location.pathname === item.path ||
@@ -189,19 +191,19 @@ const SideBar = ({ className, show, ...props }) => {
           );
         })}
         {/* Logout Section */}
-      <div
-        className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
-        onClick={handleLogOut}
-        aria-label="Logout"
-      >
-        <LogoutIcon className="w-6 h-6 text-gray-600" />
-        {isExpanded && (
-          <span className="transition-opacity duration-200">Logout</span>
-        )}
-      </div>
+        <div
+          className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
+          onClick={handleLogOut}
+          aria-label="Logout"
+        >
+          <LogoutIcon className="w-6 h-6 text-gray-600" />
+          {isExpanded && (
+            <span className="transition-opacity duration-200">Logout</span>
+          )}
+        </div>
       </div>
 
-      
+
     </div>
   );
 };

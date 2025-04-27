@@ -114,7 +114,7 @@ export const routes = [
         name: "Visitors",
         element: <VisitorManagement />,
         isPrivate: true,
-        permissionNeeded: "view_members",
+        permissionNeeded: "view_visitors",
         sideTab: true,
       },
       {
@@ -195,14 +195,14 @@ export const routes = [
         name: "Assets",
         element: <AssetManagement />,
         isPrivate: true,
-        permissionNeeded: "view_assets",
+        permissionNeeded: "view_asset",
         sideTab: true,
       },
       {
         path: "assets/manage-asset",
         element: <ManageAsset />,
         isPrivate: true,
-        permissionNeeded: "view_assets",
+        permissionNeeded: "manage_asset",
       },
       {
         path: "users",
