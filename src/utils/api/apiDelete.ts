@@ -1,4 +1,4 @@
-import type { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { deleteData } from "./apiFunctions";
 
@@ -11,7 +11,7 @@ export class ApiDeletionCalls {
     });
   }
 
-  private deleteFromApi<T>(path: string, query: {}): Promise<ApiResponse<T>> {
+  private deleteFromApi<T>(path: string, query: QueryType): Promise<ApiResponse<T>> {
     return this.apiExecution.deleteData(path, query);
   }
 
@@ -53,19 +53,20 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`program/courses/${id}`, { id });
   };
 
-  // Visitor Management
+  
+  /* Visitor Management */
   deleteVisitor = (id: string | number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`visitor/visitor`, { id });
   };
 
   // Visit Management
   deleteVisit = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`visit/${id}`, { id });
+    return this.deleteFromApi<void>(`visit`, { id });
   };
 
   // Follow-Up Management
   deleteFollowUp = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`followup/${id}`, { id });
+    return this.deleteFromApi<void>(`followup`, { id });
   };
 
   // Prayer Request Management
