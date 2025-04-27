@@ -1,128 +1,24 @@
-import { useState, useEffect } from "react";
-import { Formik, Field, Form } from "formik";
-import * as Yup from "yup";
-import { ApiCreationCalls } from "@/utils/apiPost"; // Assuming you have an API call utility
-import { ApiUpdateCalls } from "@/utils/apiPut"; // Assuming you have an API update utility
-import { ApiCalls } from "@/utils/apiFetch";
+import { Button } from "@/components";
+import FormikInputDiv from "@/components/FormikInput";
+import FormikSelectField from "@/components/FormikSelect";
+import { useStore } from "@/store/useStore";
+import { Field, Form, Formik } from "formik";
+import { date, object, string } from "yup";
 
-interface FollowUpFormProps {
-    visitorId: string;
-    onClose: () => void;
-    initialData?: {
-      id: number;
-      date: string;
-      type: string;
-      status: string;
-      notes: string;
-      assignedTo: string;
-    };
-    selectedFollowUp?: {
-      id: string;
-      date: string;
-      type: string;
-      status: string;
-      notes: string;
-      assignedTo: string;
-    };
-  }
-
-interface Member {
-  id: string;
-  name: string;
+interface IProps {
+  onClose: () => void;
+  initialData?: IFollowUpForm;
+  onSubmit: (data: IFollowUpForm) => void;
+  loading: boolean;
 }
 
-const FollowUpForm: React.FC<FollowUpFormProps> = ({ visitorId, selectedFollowUp, onClose }) => {
-  const [members, setMembers] = useState<Member[]>([]); // State for storing members
-  const [loading, setLoading] = useState<boolean>(false); // Loading state for fetching members
-  const apiCalls = new ApiCreationCalls(); // Assuming you have a class for API calls
-  const apiFetch = new ApiCalls(); // API utility class
-  const apiUpdate = new ApiUpdateCalls(); // API utility class for updates
-
-  // Fetch members from the backend
-  const fetchMembers = async () => {
-    setLoading(true);
-    try {
-      const response = await apiFetch.fetchMembers(); // Replace with your API endpoint
-      if (response.status === 200 && Array.isArray(response.data.data)) {
-        setMembers(
-          response.data.data.map((item: any) => ({
-            id: item.id,
-            name: `${item.user_info?.first_name || ""} ${item.user_info?.last_name || ""}`,
-          }))
-        );
-      } else {
-        console.error("Unexpected response format: data is not an array");
-      }
-    } catch (error) {
-      console.error("Error fetching members:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Validation schema using Yup
-  const validationSchema = Yup.object({
-    date: Yup.date().required("Date is required").typeError("Invalid date format"),
-    type: Yup.string().required("Type is required"),
-    assignedTo: Yup.string().required("Assigned To is required"),
-    notes: Yup.string().required("Notes are required"),
-  });
-
-  // On form submit, we send the selected data
-  const onSubmit = async (values: any) => {
-    setLoading(true);
-    const payload = {
-      visitorId,
-      date: new Date(values.date).toISOString(),
-      type: values.type,
-      assignedTo: parseInt(values.assignedTo), // We send just the id here
-      notes: values.notes,
-    };
-
-    try {
-      let response;
-      if (selectedFollowUp) {
-        // Update existing follow-up
-        response = await apiUpdate.updateFollowUp(selectedFollowUp.id, payload); // Assuming updateFollowUp API method
-        if (response.status === 200) {
-          console.log("Follow-up updated successfully");
-        }
-      } else {
-        // Create new follow-up
-        response = await apiCalls.createFollowUp(payload); // Assuming createFollowUp API method
-        if (response.status === 201) {
-          console.log("Follow-up created successfully");
-        }
-      }
-
-      if (response.status === 200 || response.status === 201) {
-        onClose(); // Close the form on success
-      } else {
-        console.error("Error creating/updating follow-up");
-      }
-    } catch (error) {
-      console.error("Error submitting follow-up", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMembers(); // Fetch members when the component mounts
-  }, []);
-
-  // Pre-fill the form with selectedFollowUp data for editing
-  const initialValues = {
-    date: selectedFollowUp?.date || "",
-    type: selectedFollowUp?.type || "phone", // Default to "phone"
-    assignedTo: selectedFollowUp?.assignedTo || "", // If no assignedTo, default to empty
-    notes: selectedFollowUp?.notes || "",
-  };
+const FollowUpForm = ({ initialData, onSubmit, onClose, loading }: IProps) => {
+  const { membersOptions } = useStore();
 
   return (
     <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto">
       <div className="font-bold text-lg mb-4">
-        {selectedFollowUp ? "Edit Follow-up" : "Record a Follow-up"}
+        {initialData ? "Edit Follow-up" : "Record a Follow-up"}
       </div>
       {loading ? (
         <div>Loading members...</div>
@@ -130,85 +26,58 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ visitorId, selectedFollowUp
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={onSubmit}
+          onSubmit={(values) => onSubmit(values)}
         >
-          {({ values, setFieldValue, errors, touched }) => (
+          {({ handleSubmit }) => (
             <Form>
-              {/* Date */}
-              <div className="mb-4">
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-                  Date *
-                </label>
-                <Field
-                  type="date"
-                  id="date"
-                  name="date"
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
+              <Field
+                component={FormikInputDiv}
+                type="date"
+                label="Visit Date *"
+                placeholder="When did you  visit?"
+                id="date"
+                name="date"
+              />
+              <Field
+                component={FormikSelectField}
+                options={typeOptions}
+                label="Type *"
+                placeholder="how did you reach them?"
+                id="type"
+                name="type"
+              />
+              <Field
+                component={FormikSelectField}
+                options={membersOptions}
+                label="assigned To *"
+                placeholder="assigned To"
+                id="assignedTo"
+                name="assignedTo"
+              />
+              <Field
+                component={FormikInputDiv}
+                type="textarea"
+                label="Note *"
+                placeholder="Enter any notes about the visit"
+                id="notes"
+                name="notes"
+              />
+
+              <div className="flex justify-end gap-4 mt-2">
+                <Button
+                  value="Submit"
+                  variant="primary"
+                  type="submit"
+                  disabled={loading}
+                  loading={loading}
+                  onClick={handleSubmit}
                 />
-                {errors.date && touched.date && <div className="text-red-600 text-xs">{errors.date}</div>}
-              </div>
-
-              {/* Type */}
-              <div className="mb-4">
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                  Type *
-                </label>
-                <Field
-                  as="select"
-                  id="type"
-                  name="type"
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="phone">Phone</option>
-                  <option value="email">Email</option>
-                  <option value="in-person">In-person</option>
-                </Field>
-                {errors.type && touched.type && <div className="text-red-600 text-xs">{errors.type}</div>}
-              </div>
-
-              {/* Assigned To (Member Dropdown) */}
-              <div className="mb-4">
-                <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700">
-                  Assigned To *
-                </label>
-                <Field
-                  as="select"
-                  id="assignedTo"
-                  name="assignedTo"
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">Select a member</option>
-                  {members.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </Field>
-                {errors.assignedTo && touched.assignedTo && (
-                  <div className="text-red-600 text-xs">{errors.assignedTo}</div>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div className="mb-4">
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                  Notes *
-                </label>
-                <Field
-                  as="textarea"
-                  id="notes"
-                  name="notes"
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"
-                  placeholder="Enter notes"
+                <Button
+                  value="Cancel"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={loading}
                 />
-                {errors.notes && touched.notes && <div className="text-red-600 text-xs">{errors.notes}</div>}
-              </div>
-
-              {/* Submit Button */}
-              <div className="mt-4 text-center">
-                <button type="submit" className="bg-primary text-white px-6 py-2 rounded-lg">
-                  {loading ? "Submitting..." : "Submit"}
-                </button>
               </div>
             </Form>
           )}
@@ -218,4 +87,28 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ visitorId, selectedFollowUp
   );
 };
 
+const typeOptions = [
+  { value: "phone", name: "Phone" },
+  { value: "email", name: "Email" },
+  { value: "in-person", name: "In-Person" },
+]
+
+interface IFollowUpForm {
+  date: string;
+  type: string;
+  assignedTo: string;
+  notes: string;
+}
+const initialValues: IFollowUpForm = {
+  date: new Date().toISOString().split("T")[0],
+  type: "phone",
+  assignedTo: "",
+  notes: "",
+};
+const validationSchema = object({
+  date: date().required("Date is required").typeError("Invalid date format"),
+  type: string().required("Type is required"),
+  assignedTo: string().required("Assigned To is required"),
+  notes: string().required("Notes are required"),
+});
 export default FollowUpForm;
