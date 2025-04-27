@@ -13,6 +13,7 @@ import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
+import FollowUps from "../Components/FollowUps";
 
 const VisitorDetails = () => {
   const { visitorId } = useParams();
@@ -23,7 +24,6 @@ const VisitorDetails = () => {
     id: visitorId!,
   });
   const visitor = useMemo(() => data?.data, [data]);
-  console.log(visitor, "visitor", visitorId, "visitorId");
 
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab); // Update the selected tab state
@@ -79,17 +79,17 @@ const VisitorDetails = () => {
                 {selectedTab === "Visit" && (
                   <Visits
                     visits={visitor?.visits || []}
-                    visitorId={visitor?.id}
+                    visitorId={visitorId!}
                   />
                 )}
-                {/*{selectedTab === "Follow-ups" && (
+                {selectedTab === "Follow-ups" && (
                   <FollowUps
-                    followUps={visitor?.followUps}
-                    visitorId={visitor?.id}
-                    fetchVisitorData={fetchVisitorData}
+                    followUps={visitor?.followUps || []}
+                    visitorId={visitorId!}
+                    // fetchVisitorData={fetchVisitorData}
                   />
                 )}
-                {selectedTab === "Prayer Requests" && (
+                {/*{selectedTab === "Prayer Requests" && (
                   <PrayerRequest prayerRequests={visitor?.prayerRequests} />
                 )}
                 {selectedTab === "Note" && <Note notes={visitor?.notes} />} */}

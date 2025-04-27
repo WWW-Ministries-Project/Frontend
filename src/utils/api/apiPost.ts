@@ -1,7 +1,7 @@
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
-import { VisitPayloadType } from "./visitors/interfaces";
+import { FollowUpPayloadType, VisitPayloadType } from "./visitors/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -96,7 +96,7 @@ export class ApiCreationCalls {
   };
 
   // Follow-Up Management
-  createFollowUp = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createFollowUp = <T>(payload: FollowUpPayloadType): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/followup", payload);
   };
 

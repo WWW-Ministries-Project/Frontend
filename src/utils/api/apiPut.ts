@@ -2,7 +2,11 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
-import { VisitorType, VisitPayloadType } from "./visitors/interfaces";
+import {
+  FollowUpPayloadType,
+  VisitorType,
+  VisitPayloadType,
+} from "./visitors/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -128,9 +132,9 @@ export class ApiUpdateCalls {
   };
 
   // Follow-Up Management
-  updateFollowUp = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
+  updateFollowUp = (
+    payload: FollowUpPayloadType
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("visitor/followup", payload);
   };
 

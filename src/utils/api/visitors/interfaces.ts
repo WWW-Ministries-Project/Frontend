@@ -36,13 +36,30 @@ export type VisitType = {
   createdAt: string;
   updatedAt: string;
 };
-export type VisitorDetailsType = VisitorType & {
-  visits: VisitType[];
-};
-
 export type VisitPayloadType = {
   date: string;
   eventId: string;
   notes: string;
   visitorId: string;
 }
+
+export type FollowUpType = {
+  id: string;
+  date: string;
+  type: string;
+  status: string;
+  notes: string;
+  assignedTo: string;
+}
+export type FollowUpPayloadType = {
+  date: string;
+  type: string;
+  assignedTo: string;
+  notes: string;
+  visitorId: string;
+}
+
+export type VisitorDetailsType = VisitorType & {
+  visits: VisitType[];
+  followUps: FollowUpType[]
+};

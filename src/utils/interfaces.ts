@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export type QueryType = Record<string, string>;
+export type QueryType = Record<string, string | number> | string | number;
 export type QueryExecutorType = <T>(
   baseUrl: string,
   path: string,
