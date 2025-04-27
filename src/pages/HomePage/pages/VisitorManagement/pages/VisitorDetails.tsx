@@ -13,7 +13,7 @@ import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
-import FollowUps from "./FollowUps";
+import FollowUps from "../Components/FollowUps";
 
 const VisitorDetails = () => {
   const { visitorId } = useParams();

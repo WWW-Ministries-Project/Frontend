@@ -8,7 +8,7 @@ import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
-import { FollowUpForm, IFollowUpForm } from "../Components/FollowUpForm";
+import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
 
