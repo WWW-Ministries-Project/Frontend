@@ -13,14 +13,15 @@ import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { PhoneIcon } from "@heroicons/react/24/solid";
 import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
-import FollowUps from "../Components/FollowUps";
+import { FollowUps } from "../Components/FollowUps";
+import { Note } from "../Components/Notes";
+import { PrayerRequest } from "../Components/PrayerRequest";
 
 const VisitorDetails = () => {
   const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const { data } = useFetch(api.fetch.fetchVisitorById, {
+  const { data, loading } = useFetch(api.fetch.fetchVisitorById, {
     id: visitorId!,
   });
   const visitor = useMemo(() => data?.data, [data]);
@@ -89,10 +90,8 @@ const VisitorDetails = () => {
                     // fetchVisitorData={fetchVisitorData}
                   />
                 )}
-                {/*{selectedTab === "Prayer Requests" && (
-                  <PrayerRequest prayerRequests={visitor?.prayerRequests} />
-                )}
-                {selectedTab === "Note" && <Note notes={visitor?.notes} />} */}
+                {selectedTab === "Prayer Requests" && <PrayerRequest />}
+                {selectedTab === "Note" && <Note />}
               </div>
             )}
           </section>
@@ -118,12 +117,17 @@ const VisitorDetails = () => {
               <div className=" border rounded-lg p-4 space-y-4">
                 <HeaderControls
                   title="Visitor Details"
-                  subtitle={`Visitor since: ${formatDate(visitor?.visitDate)}`}
+                  subtitle={`Visitor since: ${formatDate(
+                    visitor?.visitDate || ""
+                  )}`}
                   showSubtitle={true}
                 />
                 <div className="space-y-3">
-                  <ListDetailComp icon={<PhoneIcon />} title={visitor?.email} />
-                  <ListDetailComp icon={"s"} title={visitor?.phone} />
+                  <ListDetailComp
+                    icon={<PhoneIcon />}
+                    title={visitor?.email || ""}
+                  />
+                  <ListDetailComp icon={"s"} title={visitor?.phone || ""} />
                   <ListDetailComp
                     icon={"s"}
                     title={`${visitor?.country} - ${visitor?.state}`}

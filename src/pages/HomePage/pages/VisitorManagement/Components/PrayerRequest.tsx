@@ -1,4 +1,4 @@
-const PrayerRequest = () => {
+export const PrayerRequest = () => {
     return ( 
         <div>
             Prayer Request
@@ -6,4 +6,3 @@ const PrayerRequest = () => {
      );
 }
  
-export default PrayerRequest;
