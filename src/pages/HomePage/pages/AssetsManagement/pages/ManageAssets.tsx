@@ -8,8 +8,7 @@ import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import AssetForm from "../Components/AssetForm";
-import { assetType } from "../utils/assetsInterface";
+import { AssetForm, IAssetForm } from "../Components/AssetForm";
 
 export const ManageAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
@@ -33,7 +32,7 @@ export const ManageAsset = () => {
   } = usePut(api.put.updateAsset);
   const isDisabled = location.state?.mode === "view";
   const title = id ? (isDisabled ? "View Asset" : "Update Asset") : "Add Asset";
-  const assetData = useMemo(() => asset?.data || { photo: "" }, [asset]);
+  const assetData = useMemo(() => asset?.data, [asset]);
 
   useEffect(() => {
     if (data) {
@@ -59,7 +58,8 @@ export const ManageAsset = () => {
     if (id) refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-  const handleFormSubmit = async (val: assetType) => {
+  const handleFormSubmit = async (val: IAssetForm) => {
+    const dataToSend: IAssetForm & { photo?: string } = { ...val };
     try {
       if (file) {
         const data = new FormData();
@@ -69,12 +69,12 @@ export const ManageAsset = () => {
         const response = file && (await axiosFile.post(path, data));
         if (file && response.status === 200) {
           const link = response.data.result.link;
-          val = { ...val, photo: link };
+          dataToSend.photo = link;
         }
       }
       if (id) {
-        updateData(val);
-      } else postData(val);
+        updateData(dataToSend);
+      } else postData(dataToSend);
     } catch (error) {
       console.log(error);
     }
@@ -93,14 +93,14 @@ export const ManageAsset = () => {
           <div className="grid md:grid-cols-3 gap-4">
             <ImageUpload
               onFileChange={(file: File) => setFile(file)}
-              src={assetData.photo}
+              src={assetData?.photo}
               disabled={isDisabled}
             />
           </div>
           <AssetForm
             loading={loading || updateLoading}
             onSubmit={handleFormSubmit}
-            initialValues={assetData}
+            assetData={assetData}
             disabled={isDisabled}
           />
         </div>
