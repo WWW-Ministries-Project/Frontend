@@ -26,7 +26,12 @@ import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
+import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
+import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
+import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails.js";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
+import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import Registration from "@/pages/Registration/Registration";
 import HomePage from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
@@ -34,42 +39,53 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
-import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
-import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
-import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
-import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails.js";
 
-export const routes = [
-  // {
-  //   path: "/",
-  //   element: <LandingPage />,
-  //   errorElement: <ErrorPage/>
-  // },
+import { ReactNode } from "react";
+
+// Define a Route type
+export interface AppRoute {
+  path: string;
+  element?: ReactNode;
+  errorElement?: ReactNode;
+  name: string;
+  alias?: string;
+  isPrivate?: boolean;
+  permissionNeeded?: string;
+  sideTab?: boolean;
+  children?: AppRoute[];
+}
+
+// Define the routes
+export const routes: AppRoute[] = [
   {
     path: "/",
     element: <LoginPage />,
+    name: "Landing",
     errorElement: <ErrorPage />,
   },
   {
     path: "/login",
+    name: "Landing",
     element: <LoginPage />,
   },
   {
     path: "/forgot-password",
+    name: "ForgotPassword",
     element: <ForgotPassword />,
   },
   {
     path: "/reset-password",
+    name: "ResetPassword",
     element: <ResetPassword />,
   },
   {
     path: "/home",
     element: <HomePage />,
-    // isPrivate: true,
+    name: "Home",
     children: [
       {
         path: "",
+        name: "Home",
         element: <DashBoardPage />,
         isPrivate: false,
       },
@@ -91,6 +107,7 @@ export const routes = [
       {
         path: "members/add-member",
         element: <ManageMember />,
+        name: "Manage Member",
         isPrivate: true,
         permissionNeeded: "view_members",
       },
@@ -98,6 +115,7 @@ export const routes = [
         path: "members/:id",
         element: <ProfileDetails />,
         isPrivate: true,
+        name: "Profile Details",
         permissionNeeded: "view_members",
         children: [
           {
@@ -123,7 +141,6 @@ export const routes = [
         element: <VisitorDetails />,
         isPrivate: false,
         permissionNeeded: "view_visitors",
-        sideTab: false,
       },
       {
         path: "events",
@@ -136,16 +153,17 @@ export const routes = [
       {
         path: "manage-event",
         element: <CreateEvent />,
+        name: "Manage Event",
         isPrivate: true,
         permissionNeeded: "view_events",
       },
       {
         path: "events/view-event",
         element: <ViewEvent />,
+        name: " View Event",
         isPrivate: true,
         permissionNeeded: "view_events",
       },
-
       {
         path: "requests",
         name: "Requests",
@@ -165,31 +183,28 @@ export const routes = [
             name: "Requests Details",
             element: <RequestDetails />,
             isPrivate: true,
-            sideTab: false,
           },
           {
             path: "request",
             name: "Request",
             element: <Request />,
             isPrivate: true,
-            sideTab: false,
           },
           {
             path: "request/:id",
             name: "Request",
             element: <Request />,
             isPrivate: true,
-            sideTab: false,
           },
           {
             path: "staff_requests",
             name: "Staff Requests",
             element: <Requisitions />,
+            isPrivate: true,
             sideTab: true,
           },
         ],
       },
-
       {
         path: "assets",
         name: "Assets",
@@ -201,6 +216,7 @@ export const routes = [
       {
         path: "assets/manage-asset",
         element: <ManageAsset />,
+        name: "Manage Asset",
         isPrivate: true,
         permissionNeeded: "manage_asset",
       },
@@ -219,7 +235,6 @@ export const routes = [
         isPrivate: true,
         permissionNeeded: "view_events",
       },
-
       {
         path: "ministry-school",
         name: "School of Ministry",
@@ -251,7 +266,6 @@ export const routes = [
         name: "View Certificate",
         element: <ViewCertificate />,
       },
-      
       {
         path: "settings",
         name: "Settings",
@@ -282,85 +296,85 @@ export const routes = [
             element: <CreateAccess />,
             isPrivate: false,
             permissionNeeded: "view_access_rights",
-            sideTab: false,
           },
         ],
       },
       {
         path: "*",
+        name: "UnBuilt",
         element: <UnderConstruction />,
       },
     ],
   },
+  //TODO: figure this out before pushing
   {
     path: "/out",
     element: <LandingPage />,
-    // isPrivate: true,
+    name: "huh",
     children: [
       {
         path: "programs",
         name: "Programs",
         element: <ProgramApply />,
-        sideTab: false,
         isPrivate: false,
       },
       {
         path: "programs/:name",
         name: "Programs",
         element: <ProgramDetails />,
-        sideTab: false,
         isPrivate: false,
       },
       {
         path: "programs/:name/apply",
         name: "Programs",
         element: <ProgramInformation />,
-        sideTab: false,
         isPrivate: false,
       },
       {
         path: "register-member",
         element: <Registration />,
+        name: "MemberRegistration",
         isPrivate: false,
       },
       {
         path: "events/register-event",
         element: <EventRegister />,
+        name: "Event Registration",
         isPrivate: false,
       },
-    ]
+    ],
   },
 
   {
     path: "programs/:name",
     name: "Programs",
     element: <ProgramDetails />,
-    sideTab: false,
     isPrivate: false,
   },
   {
     path: "programs/:name/apply",
     name: "Programs",
     element: <ProgramInformation />,
-    sideTab: false,
     isPrivate: false,
   },
   {
     path: "/register-member",
+    name: "register Member",
     element: <Registration />,
     isPrivate: false,
   },
   {
     path: "events/register-event",
+    name: "Event Register",
     element: <EventRegister />,
     isPrivate: false,
   },
 ];
 
-// const permissions = useUserStore((state) => state.permissions);
-const homePageRoute = routes?.find((route) => route.path === "/home");
+// Now, extract sideTabs
+const homePageRoute = routes.find((route) => route.path === "/home");
 const homePageChildren = homePageRoute?.children || [];
+
 export const sideTabs = homePageChildren.filter(
-  (childRoute) =>
-    childRoute.sideTab && { name: childRoute.name, path: childRoute.path }
+  (childRoute) => childRoute.sideTab
 );

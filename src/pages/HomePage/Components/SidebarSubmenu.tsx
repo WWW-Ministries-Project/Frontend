@@ -3,17 +3,26 @@ import { NavLink, useLocation } from "react-router-dom";
 import NavigationLink from "./NavigationLink";
 
 interface ChildItem {
-  key: string;
-  name: string;
   path: string;
+  element?: ReactNode;
+  errorElement?: ReactNode;
+  name: string;
+  alias?: string;
+  isPrivate?: boolean;
+  permissionNeeded?: string;
   sideTab?: boolean;
 }
+// interface ChildItem {
+//   key: string;
+//   name: string;
+//   path: string;
+//   sideTab?: boolean;
+// }
 
 interface SideBarSubMenuProps {
   item: {
     name: string;
     children: ChildItem[];
-    show: boolean;
     path: string;
   };
   parentPath: string;
