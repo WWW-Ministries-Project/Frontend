@@ -1,5 +1,5 @@
 import EmptyState from "@/components/EmptyState";
-import HeaderControls from "@/components/HeaderControls";
+import {HeaderControls} from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -123,7 +123,6 @@ export function VisitorManagement() {
   ];
 
   return (
-    <div className="p-4">
       <PageOutline>
         {loading ? (
           <div className="space-y-4">
@@ -137,11 +136,10 @@ export function VisitorManagement() {
           <div className="space-y-8">
             <HeaderControls
               title="Visitor Management"
-              showSubtitle={true}
               subtitle="Register, track, and analyze visitor information"
               btnName="Register visitor"
               screenWidth={window.innerWidth}
-              handleNavigation={() => {
+              handleClick={() => {
                 setIsModalOpen(true);
                 setSelectedVisitor(undefined);
               }}
@@ -157,7 +155,6 @@ export function VisitorManagement() {
             </div>
           </div>
         )}
-      </PageOutline>
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <VisitorForm
           onClose={handleModalClose}
@@ -166,6 +163,6 @@ export function VisitorManagement() {
           loading={postLoading || putLoading}
         />
       </Modal>
-    </div>
+      </PageOutline>
   );
 }

@@ -13,7 +13,7 @@ import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
 import EmptyState from "@/components/EmptyState";
-import HeaderControls from "@/components/HeaderControls";
+import {HeaderControls} from "@/components/HeaderControls";
 import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
 
@@ -131,7 +131,6 @@ const EventsManagement = () => {
   }, [events, filterEvents]);
 
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Events "
@@ -140,10 +139,11 @@ const EventsManagement = () => {
           handleViewMode={handleToggleView}
           showFilter={false} // No separate filter needed
           setShowFilter={setShowFilter}
+          hasSearch={true}
+          hasFilter={false}
           showSearch={showSearch} // Search enabled
           setShowSearch={setShowSearch}
-          Filter={false} // Hide filter
-          handleNavigation={() => handleNavigation("/home/manage-event")} // Navigate to Add Event
+          handleClick={() => handleNavigation("/home/manage-event")}
           screenWidth={screenWidth}
           btnName="Add Event" // Added btnName property
         />
@@ -232,7 +232,6 @@ const EventsManagement = () => {
         {/* Loader Component */}
         {(deleteLoading || eventsLoading) && <LoaderComponent />}
       </PageOutline>
-    </div>
   );
 };
 

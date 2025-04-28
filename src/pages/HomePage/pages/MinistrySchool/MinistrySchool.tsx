@@ -1,4 +1,5 @@
-import HeaderControls from "@/components/HeaderControls";
+import EmptyState from "@/components/EmptyState";
+import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
@@ -8,7 +9,6 @@ import AlertComp from "../../Components/reusable/AlertComponent";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import ProgramForm from "./Components/ProgramForm";
 import ProgramsCard from "./Components/ProgramsCard";
-import EmptyState from "@/components/EmptyState";
 
 // Define the Cohort and Program types
 interface Cohort {
@@ -37,7 +37,9 @@ const MinistrySchool = () => {
   const [type, setType] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(undefined);
+  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(
+    undefined
+  );
 
   const apiCalls = new ApiCalls();
   const apiDelete = new ApiDeletionCalls();
@@ -59,7 +61,7 @@ const MinistrySchool = () => {
       setLoading(true);
       setError(null);
       const response = await apiCalls.fetchAllPrograms();
-  
+
       if (response.data && Array.isArray(response.data)) {
         setPrograms(response.data as Program[]);
       } else {
@@ -116,19 +118,21 @@ const MinistrySchool = () => {
     const badgeClasses = {
       Members: "bg-blue-50 text-blue-700 border-blue-200",
       Non_Members: "bg-red-50 text-red-700 border-red-200",
-      Both: "bg-green-50 text-green-700 border-green-200"
+      Both: "bg-green-50 text-green-700 border-green-200",
     };
 
     const badgeText = {
       Members: "Members Only",
       Non_Members: "Non-Members Only",
-      Both: "Open to All"
+      Both: "Open to All",
     };
 
     if (!eligibility || !badgeClasses[eligibility]) return null;
 
     return (
-      <div className={`text-xs rounded-lg py-1 px-2 border ${badgeClasses[eligibility]}`}>
+      <div
+        className={`text-xs rounded-lg py-1 px-2 border ${badgeClasses[eligibility]}`}
+      >
         {badgeText[eligibility]}
       </div>
     );
@@ -138,7 +142,9 @@ const MinistrySchool = () => {
     const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) return [activeCohort];
 
-    const upcomingCohort = cohorts.find((cohort) => cohort.status === "Upcoming");
+    const upcomingCohort = cohorts.find(
+      (cohort) => cohort.status === "Upcoming"
+    );
     if (upcomingCohort) return [upcomingCohort];
 
     return [];
@@ -153,25 +159,26 @@ const MinistrySchool = () => {
 
   const renderContent = () => {
     if (loading) return <SkeletonLoader />;
-    
-    if (error) return (
-      <div className="p-4 text-red-600 bg-red-50 rounded-lg">
-        {error}
-        <button 
-          onClick={fetchPrograms}
-          className="ml-2 text-blue-600 hover:text-blue-800"
-        >
-          Retry
-        </button>
-      </div>
-    );
 
-    if (programs.length === 0) return (
-      <div className="text-center py-8 w-1/4 mx-auto">
-        <EmptyState msg={"No programs found"}/>
-        
-      </div>
-    );
+    if (error)
+      return (
+        <div className="p-4 text-red-600 bg-red-50 rounded-lg">
+          {error}
+          <button
+            onClick={fetchPrograms}
+            className="ml-2 text-blue-600 hover:text-blue-800"
+          >
+            Retry
+          </button>
+        </div>
+      );
+
+    if (programs.length === 0)
+      return (
+        <div className="text-center py-8 w-1/4 mx-auto">
+          <EmptyState msg={"No programs found"} />
+        </div>
+      );
 
     return (
       <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
@@ -193,7 +200,6 @@ const MinistrySchool = () => {
   };
 
   return (
-    <div className="p-4">
       <PageOutline>
         {showFeedback && (
           <AlertComp
@@ -208,20 +214,17 @@ const MinistrySchool = () => {
           showFilter={false}
           totalMembers={programs.length}
           btnName="Create program"
-          handleNavigation={() => setIsModalOpen(true)}
+          handleClick={() => setIsModalOpen(true)}
           tableView={false}
           handleViewMode={() => {}}
           setShowFilter={() => {}}
           setShowSearch={() => {}}
           screenWidth={window.innerWidth}
-          Search={false}
-          Filter={false}
-          Grid={false}
+          hasSearch={false}
+          hasFilter={false}
         />
 
         {renderContent()}
-      </PageOutline>
-
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ProgramForm
           onClose={handleClose}
@@ -240,7 +243,8 @@ const MinistrySchool = () => {
           handleAlert={setShowFeedback}
         />
       </Modal>
-    </div>
+      </PageOutline>
+
   );
 };
 

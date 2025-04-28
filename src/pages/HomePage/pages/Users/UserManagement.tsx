@@ -1,5 +1,5 @@
-import HeaderControls from "@/components/HeaderControls";
-import {ProfilePicture} from "@/components/ProfilePicture";
+import { HeaderControls } from "@/components/HeaderControls";
+import { ProfilePicture } from "@/components/ProfilePicture";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
@@ -115,7 +115,6 @@ const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Users"
@@ -126,9 +125,8 @@ const UserManagement = () => {
           setShowFilter={() => {}}
           showSearch={true}
           setShowSearch={setShowSearch}
-          Filter={false}
-          Grid={false} // No grid view
-          handleNavigation={() => navigate("add-user")} // Navigate to Add User
+          hasFilter={false}
+          handleClick={() => navigate("add-user")} // Navigate to Add User
           screenWidth={window.innerWidth}
           btnName="" // Added missing btnName property
         />
@@ -149,7 +147,6 @@ const UserManagement = () => {
           setColumnFilters={() => {}}
         />
       </PageOutline>
-    </div>
   );
 };
 
