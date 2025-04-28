@@ -131,7 +131,6 @@ const EventsManagement = () => {
   }, [events, filterEvents]);
 
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Events "
@@ -233,7 +232,6 @@ const EventsManagement = () => {
         {/* Loader Component */}
         {(deleteLoading || eventsLoading) && <LoaderComponent />}
       </PageOutline>
-    </div>
   );
 };
 

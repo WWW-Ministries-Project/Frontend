@@ -115,7 +115,6 @@ const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Users"
@@ -148,7 +147,6 @@ const UserManagement = () => {
           setColumnFilters={() => {}}
         />
       </PageOutline>
-    </div>
   );
 };
 

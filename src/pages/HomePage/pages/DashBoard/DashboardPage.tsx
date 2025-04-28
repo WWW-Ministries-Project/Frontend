@@ -20,7 +20,6 @@ const DashBoardPage = () => {
   ];
 
   return (
-    <div className="p-4">
       <PageOutline className="">
         <div>
           <HeaderControls
@@ -49,7 +48,6 @@ const DashBoardPage = () => {
           </section>
         </div>
       </PageOutline>
-    </div>
   );
 };
 

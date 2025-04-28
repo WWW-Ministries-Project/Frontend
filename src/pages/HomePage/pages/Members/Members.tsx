@@ -148,7 +148,6 @@ export function Members() {
   ];
 
   return (
-    <div className="p-4">
       <PageOutline>
         {/* Members Table Section */}
         <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
@@ -239,6 +238,5 @@ export function Members() {
 
         {loading && <LoaderComponent />}
       </PageOutline>
-    </div>
   );
 }

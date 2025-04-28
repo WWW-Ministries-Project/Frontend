@@ -84,7 +84,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
   ];
 
   return (
-    <div>
+    <>
       <HeaderControls
         title="Visitor History"
         subtitle="Record of all visits to services and events"
@@ -102,7 +102,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
           loading={postLoading || putLoading}
         />
       </Modal>
-    </div>
+    </>
   );
 };
 

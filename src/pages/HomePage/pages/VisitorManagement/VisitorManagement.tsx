@@ -123,7 +123,6 @@ export function VisitorManagement() {
   ];
 
   return (
-    <div className="p-4">
       <PageOutline>
         {loading ? (
           <div className="space-y-4">
@@ -156,7 +155,6 @@ export function VisitorManagement() {
             </div>
           </div>
         )}
-      </PageOutline>
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <VisitorForm
           onClose={handleModalClose}
@@ -165,6 +163,6 @@ export function VisitorManagement() {
           loading={postLoading || putLoading}
         />
       </Modal>
-    </div>
+      </PageOutline>
   );
 }

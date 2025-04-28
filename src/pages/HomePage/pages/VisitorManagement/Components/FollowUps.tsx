@@ -80,7 +80,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
     },
   ];
   return (
-    <div>
+    <>
       <HeaderControls
         title="Follow-up History"
         subtitle="Record of all visits to services and events"
@@ -96,7 +96,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
           loading={postLoading || putLoading}
         />
       </Modal>
-    </div>
+    </>
   );
 };
 
