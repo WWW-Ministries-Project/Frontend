@@ -5,7 +5,7 @@ import TableAsset from "@/assets/TableAssets";
 import { Button } from "@/components";
 
 
-//TODO rewrite this
+//TODO
 interface IProps {
   title: string;
   totalMembers?: number;

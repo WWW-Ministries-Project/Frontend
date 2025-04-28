@@ -42,7 +42,7 @@ export const showNotification = (
   notification({ message, show: true, onClose: handleClose, type,title });
 };
 
-export const isArray = function (data: any) {
+export const isArray = function (data: unknown) {
   return Array.isArray(data);
 };
 
@@ -88,6 +88,8 @@ export async function handleDownload(imageSrc: string) {
 }
 
 export const markTouchedFields = (
+  //TODO fix this after fixing events
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors: Record<string, any>,
   touched: Record<string, boolean> = {}
 ) => {
