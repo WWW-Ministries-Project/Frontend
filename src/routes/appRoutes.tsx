@@ -6,7 +6,7 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 // import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
-import ManageAsset from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
+import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";

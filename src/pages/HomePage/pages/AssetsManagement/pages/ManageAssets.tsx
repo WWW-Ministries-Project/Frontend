@@ -11,26 +11,28 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AssetForm from "../Components/AssetForm";
 import { assetType } from "../utils/assetsInterface";
 
-const ManageAsset = () => {
+export const ManageAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
   const navigate = useNavigate();
-  const { postData, loading, error, data } = usePost<{ data: assetType }>(
-    api.post.createAsset
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const id = params.get("asset_id");
+
+  //api
+  const { postData, loading, error, data } = usePost(api.post.createAsset);
+  const { data: asset, refetch } = useFetch(
+    api.fetch.fetchAnAsset,
+    { id: id + "" },
+    true
   );
   const {
     updateData,
     loading: updateLoading,
     error: updateError,
     data: updatedData,
-  } = usePut<{ data: { updatedAsset: assetType } }>(api.put.updateAsset);
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const id = params.get("asset_id");
+  } = usePut(api.put.updateAsset);
   const isDisabled = location.state?.mode === "view";
   const title = id ? (isDisabled ? "View Asset" : "Update Asset") : "Add Asset";
-  const {
-    data: asset,
-  } = useFetch(api.fetch.fetchAnAsset, { id: id + "" });
   const assetData = useMemo(() => asset?.data || { photo: "" }, [asset]);
 
   useEffect(() => {
@@ -50,15 +52,21 @@ const ManageAsset = () => {
         "error"
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error, updatedData, updateError]);
+
+  useEffect(() => {
+    if (id) refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
   const handleFormSubmit = async (val: assetType) => {
     try {
       if (file) {
         const data = new FormData();
         data.append("file", file);
-        const endpoint = "/upload";
+        const endpoint = "upload";
         const path = `${baseUrl}${endpoint}`;
-        const response: any = file && (await axiosFile.post(path, data));
+        const response = file && (await axiosFile.post(path, data));
         if (file && response.status === 200) {
           const link = response.data.result.link;
           val = { ...val, photo: link };
@@ -100,5 +108,3 @@ const ManageAsset = () => {
     </div>
   );
 };
-
-export default ManageAsset;

@@ -10,7 +10,7 @@ import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import AssetCard from "./Components/AssetCard";
+import { AssetCard } from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
 
