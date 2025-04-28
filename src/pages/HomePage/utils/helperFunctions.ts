@@ -1,5 +1,6 @@
 import {
   useDialogStore,
+  useLoaderStore,
   useNotificationStore,
 } from "../store/globalComponentsStore";
 
@@ -41,6 +42,11 @@ export const showNotification = (
   const notification = useNotificationStore.getState().setNotification;
   notification({ message, show: true, onClose: handleClose, type,title });
 };
+
+export const showLoader = (val: boolean) => {
+  const {setLoading} = useLoaderStore.getState();
+  setLoading(val);
+}
 
 export const isArray = function (data: unknown) {
   return Array.isArray(data);

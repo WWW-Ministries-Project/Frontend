@@ -9,11 +9,10 @@ const NotificationCard = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
-      setTimeout(notification.onClose, 300); // Delay removal to allow animation to finish
+      setTimeout(notification.onClose, 300);
     }, 5000); // 5 seconds delay for auto-close
 
     return () => clearTimeout(timer);
-    //@ts-nocheck no-
   }, [notification.onClose]);
 
   const backgroundColor =

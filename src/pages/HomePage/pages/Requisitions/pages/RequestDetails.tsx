@@ -9,7 +9,6 @@ import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import Modal from "@/components/Modal";
 import RequestAttachments from "../components/RequestAttachments";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import AddSignature from "@/components/AddSignature";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
@@ -48,10 +47,7 @@ const RequestDetails = () => {
 
   const requester = requestData?.requester;
 
-  if (loading) return <LoaderComponent />;
-
   return (
-    <div className="p-4">
     <PageOutline>
       {/* Modals */}
       <Modal open={openSignature} onClose={handleOpenSignature}>
@@ -177,7 +173,6 @@ const RequestDetails = () => {
         </section>
       </section>
     </PageOutline>
-    </div>
   );
 };
 

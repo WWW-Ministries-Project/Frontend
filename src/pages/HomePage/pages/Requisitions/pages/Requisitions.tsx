@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../../Components/PageHeader";
 import PageOutline from "../../../Components/PageOutline";
-import LoaderComponent from "../../../Components/reusable/LoaderComponent";
 import TableComponent from "../../../Components/reusable/TableComponent";
 import { tableColumns } from "../utils/tableColums";
 const Requisitions = () => {
@@ -18,24 +17,20 @@ const Requisitions = () => {
   }, [data]);
 
   return (
-    <div className="p-4">
-      <PageOutline>
-        <PageHeader
-          title="Requisitions"
-          buttonValue="Request item"
-          onClick={() => navigate("/home/requests/request")}
+    <PageOutline>
+      <PageHeader
+        title="Requisitions"
+        buttonValue="Request item"
+        onClick={() => navigate("/home/requests/request")}
+      />
+      {!(loading || error) && (
+        <TableComponent
+          columns={tableColumns}
+          data={requests ?? []}
+          displayedCount={10}
         />
-
-        {loading && <LoaderComponent />}
-        {!(loading || error) && (
-          <TableComponent
-            columns={tableColumns}
-            data={requests ?? []}
-            displayedCount={10}
-          />
-        )}
-      </PageOutline>
-    </div>
+      )}
+    </PageOutline>
   );
 };
 

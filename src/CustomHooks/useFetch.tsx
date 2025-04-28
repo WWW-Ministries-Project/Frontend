@@ -40,7 +40,7 @@
 
 //   return { data, loading, error, refetch: fetchData };
 // };
-import { showNotification } from "@/pages/HomePage/utils";
+import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useState } from "react";
 export const useFetch = <T,>(
@@ -55,6 +55,7 @@ export const useFetch = <T,>(
   const fetchData = useCallback(async () => {
     setError(null);
     setLoading(true);
+    showLoader(true);
 
     try {
       const response = await fetchFunction(query);
@@ -71,6 +72,7 @@ export const useFetch = <T,>(
       setError(err instanceof Error ? err : new Error("Unknown error"));
     } finally {
       setLoading(false);
+      showLoader(false);
     }
   }, [fetchFunction]);
 

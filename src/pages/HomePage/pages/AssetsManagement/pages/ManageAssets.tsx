@@ -4,7 +4,6 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
@@ -31,8 +30,6 @@ const ManageAsset = () => {
   const title = id ? (isDisabled ? "View Asset" : "Update Asset") : "Add Asset";
   const {
     data: asset,
-    loading: fetchLoading,
-    error: fetchError,
   } = useFetch(api.fetch.fetchAnAsset, { id: id + "" });
   const assetData = useMemo(() => asset?.data || { photo: "" }, [asset]);
 
@@ -99,7 +96,6 @@ const ManageAsset = () => {
             disabled={isDisabled}
           />
         </div>
-        {fetchLoading && <LoaderComponent />}
       </section>
     </div>
   );

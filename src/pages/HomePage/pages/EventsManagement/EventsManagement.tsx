@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
@@ -36,12 +35,10 @@ const EventsManagement = () => {
   const {
     data,
     refetch,
-    loading: eventsLoading,
   } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
   const {
     executeDelete,
-    loading: deleteLoading,
     success,
     error,
   } = useDelete(api.delete.deleteEvent);
@@ -228,9 +225,6 @@ const EventsManagement = () => {
             showOptions={showOptions}
           />
         )}
-
-        {/* Loader Component */}
-        {(deleteLoading || eventsLoading) && <LoaderComponent />}
       </PageOutline>
   );
 };

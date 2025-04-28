@@ -2,7 +2,7 @@ import { useDialogStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useEffect, useRef } from "react";
 import { Button } from "./Button";
 
-const Dialog = () => {
+export const Dialog = () => {
   const dialog = useRef<HTMLDialogElement>(null);
   const { dialogData } = useDialogStore();
   useEffect(() => {
@@ -38,5 +38,3 @@ const Dialog = () => {
     </div>
   );
 };
-
-export default Dialog;
