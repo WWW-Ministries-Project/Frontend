@@ -1,4 +1,4 @@
-import HeaderControls from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
@@ -84,9 +84,8 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
       <HeaderControls
         title="Follow-up History"
         subtitle="Record of all visits to services and events"
-        showSubtitle={true}
         btnName="Add Follow-up"
-        handleNavigation={() => setIsModalOpen(true)}
+        handleClick={() => setIsModalOpen(true)}
       />
       <TableComponent data={followUps} columns={header} />
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>

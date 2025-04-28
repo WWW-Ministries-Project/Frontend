@@ -1,4 +1,4 @@
-import HeaderControls from "@/components/HeaderControls";
+import {HeaderControls} from "@/components/HeaderControls";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
@@ -62,21 +62,16 @@ const AssetManagement = () => {
   };
 
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Asset Management"
-          totalMembers={assertsData.length} // Number of assets
+          totalMembers={assertsData.length}
           tableView={tableView}
           handleViewMode={handleViewMode}
-          showFilter={false} // No separate filter needed
-          setShowFilter={() => {}}
-          showSearch={showSearch} // Search enabled
+          showSearch={showSearch}
           setShowSearch={setShowSearch}
-          Filter={false} // Hide filter
-          handleNavigation={() => navigate("manage-asset")} // Navigate to Add Asset
-          screenWidth={window.innerWidth}
-          btnName="Add Asset" // Button name added
+          handleClick={() => navigate("manage-asset")}
+          btnName="Add Asset"
         />
         <div className="">
           <section className="mt-   ">
@@ -93,7 +88,7 @@ const AssetManagement = () => {
               </div>
             </div>
             {/* <TableComponent /> */}
-            {tableView ? (
+            {!tableView ? (
               <div className="bg-white">
                 <TableComponent
                   columns={assetsColumns}
@@ -127,7 +122,6 @@ const AssetManagement = () => {
           {(loading || deleteLoading) && <LoaderComponent />}
         </div>
       </PageOutline>
-    </div>
   );
 };
 

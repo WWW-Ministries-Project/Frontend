@@ -1,6 +1,6 @@
 import CalendarAssets from "@/assets/CalendarAsset";
 import { MembersIcon } from "@/assets/sidebar/MembersIcon";
-import HeaderControls from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
 import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils/helperFunctions";
 import { useEffect } from "react";
@@ -21,7 +21,7 @@ const Overview = () => {
   // Log the upcoming events for debugging
   useEffect(() => {
     console.log("Upcoming Events", upcomingEvents);
-    console.log(userStats)
+    console.log(userStats);
   }, [upcomingEvents]);
 
   return (
@@ -32,8 +32,7 @@ const Overview = () => {
             title="Total Members"
             icon={<MembersIcon className={"h-5 "} />}
             quantity={
-              userStats.online?.total_members +
-              userStats.inhouse?.total_members
+              userStats.online?.total_members + userStats.inhouse?.total_members
             }
             increaseDecrease={"5"}
             increase={true}

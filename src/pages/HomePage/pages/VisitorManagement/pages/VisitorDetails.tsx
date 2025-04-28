@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom"; // Import useParams from react-rou
 import { Banner } from "../../Members/Components/Banner";
 import { Visits } from "../Components/Visit";
 // import { ApiCalls } from "@/utils/apiFetch";  // Assuming you have an API utility to fetch data
-import HeaderControls from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
@@ -120,7 +120,6 @@ const VisitorDetails = () => {
                   subtitle={`Visitor since: ${formatDate(
                     visitor?.visitDate || ""
                   )}`}
-                  showSubtitle={true}
                 />
                 <div className="space-y-3">
                   <ListDetailComp

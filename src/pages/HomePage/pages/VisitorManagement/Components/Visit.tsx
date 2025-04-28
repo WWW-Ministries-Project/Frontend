@@ -1,4 +1,4 @@
-import HeaderControls from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
@@ -88,9 +88,8 @@ export const Visits = ({ visitorId, visits }: IProps) => {
       <HeaderControls
         title="Visitor History"
         subtitle="Record of all visits to services and events"
-        showSubtitle={true}
         btnName="Record Visit"
-        handleNavigation={() => setIsModalOpen(true)}
+        handleClick={() => setIsModalOpen(true)}
       />
 
       <TableComponent data={visits} columns={header} />
