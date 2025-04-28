@@ -17,7 +17,7 @@ interface IProps {
   visitorId: string;
 }
 
-const FollowUps = ({ visitorId, followUps }: IProps) => {
+export const FollowUps = ({ visitorId, followUps }: IProps) => {
   const [selectedFollowUp, setSelectedFollowUp] = useState<
     FollowUp | undefined
   >(undefined); // Store selected visit for editing
@@ -109,5 +109,3 @@ interface FollowUp {
   notes: string;
   assignedTo: string;
 }
-
-export default FollowUps;
