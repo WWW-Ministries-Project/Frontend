@@ -3,7 +3,6 @@ import SearchBar from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { api } from "@/utils/api/apiCalls";
 import { useMemo, useState } from "react";
@@ -79,7 +78,6 @@ const AccessRights = () => {
             )}
           </section>
         </section>
-        {loading && <LoaderComponent />}
       </PageOutline>
     </div>
   );

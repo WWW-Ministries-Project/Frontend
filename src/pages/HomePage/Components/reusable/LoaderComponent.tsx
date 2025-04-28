@@ -1,7 +1,7 @@
 import loader from "@/assets/images/main_loader.gif";
 import { useLoaderStore } from "@/pages/HomePage/store/globalComponentsStore";
 
-const LoaderComponent = () => {
+export const LoaderComponent = () => {
   const { loading } = useLoaderStore();
   return (
     <div
@@ -13,5 +13,3 @@ const LoaderComponent = () => {
     </div>
   );
 };
-
-export default LoaderComponent;

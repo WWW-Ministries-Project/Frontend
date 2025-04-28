@@ -8,7 +8,6 @@ import edit from "../../../../assets/edit.svg";
 import SearchBar from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
-import LoaderComponent from "../../Components/reusable/LoaderComponent.tsx";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import FormsComponent from "./Components/FormsComponent";
@@ -35,12 +34,12 @@ function Settings() {
   const settingsStore = useSettingsStore();
   const positionData = settingsStore.positions || [];
   const departmentData = settingsStore.departments || [];
-  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = usePost(api.post.createDepartment);
-  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = usePost(api.post.createPosition);
+  const { postData: postDepartment, data: department, error: departmentError } = usePost(api.post.createDepartment);
+  const { postData: postPosition, data: position, error: positionError } = usePost(api.post.createPosition);
   const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
-  const { executeDelete: deleteDepartment, loading: deleteDepartmentLoading, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
-  const { executeDelete: deletePosition, loading: deletePositionLoading, data: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
+  const { executeDelete: deleteDepartment, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
+  const { executeDelete: deletePosition, data: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
 
 
   // new data
@@ -269,7 +268,6 @@ function Settings() {
   }
 
   return (
-    <div className="p-4">
       <PageOutline>
 
         <div>
@@ -313,8 +311,6 @@ function Settings() {
         </section>
         {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
       </PageOutline>
-      {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
-    </div>
   );
 }
 

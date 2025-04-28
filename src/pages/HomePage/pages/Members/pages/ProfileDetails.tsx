@@ -1,5 +1,4 @@
 import { useFetch } from "@/CustomHooks/useFetch";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect } from "react";
@@ -12,7 +11,7 @@ import { UserType } from "../utils/membersInterfaces";
 export const ProfileDetails = () => {
   const [details, setDetails] = useState<UserType>(initialUser);
   const { id } = useParams();
-  const { data, loading: queryLoading } = useFetch(api.fetch.fetchAMember, {
+  const { data} = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
 
@@ -58,7 +57,6 @@ export const ProfileDetails = () => {
             }}
           />
         </div>
-        {queryLoading && <LoaderComponent />}
       </section>
     </div>
   );

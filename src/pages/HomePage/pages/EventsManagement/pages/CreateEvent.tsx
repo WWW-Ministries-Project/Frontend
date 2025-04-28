@@ -3,7 +3,6 @@ import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
@@ -12,7 +11,7 @@ import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
 
 const CreateEvent = () => {
-  //@ts-ignore
+  //@ts-expect-error handle this error
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
   // const [loading, setLoading] = useState(false);
@@ -91,7 +90,6 @@ const CreateEvent = () => {
             updating={id ? true : false}
           />
         </div>
-        {postLoading && <LoaderComponent />}
       </section>
     </div>
   );

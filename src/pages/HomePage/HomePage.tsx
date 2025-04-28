@@ -13,7 +13,7 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import Breadcrumb from "./Components/BreadCrumb";
 import SideBarMobile from "./Components/SideBarMobile";
-import LoaderComponent from "./Components/reusable/LoaderComponent";
+import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 
 export const navigateRef = {

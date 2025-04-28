@@ -1,11 +1,11 @@
 import { Button } from "@/components";
-import {ProfilePicture} from "@/components/ProfilePicture";
+import { ProfilePicture } from "@/components/ProfilePicture";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -122,8 +122,7 @@ const ViewUser = () => {
   };
 
   return (
-    <div className="p-4">
-      {/* <PageOutline> */}
+    <PageOutline>
       <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
         <h2 className="text-2xl font-semibold ">User Account</h2>
         <div className="flex items-center  gap-8">
@@ -195,11 +194,7 @@ const ViewUser = () => {
 
           <div className="flex items-center justify-between w-2/3">
             <div className="">Reset password?</div>
-            <Button
-              variant={"primary"}
-              value="Reset"
-              onClick={resetPassword}
-            />
+            <Button variant={"primary"} value="Reset" onClick={resetPassword} />
           </div>
 
           {/* <div className="">Last password reset</div>
@@ -214,13 +209,7 @@ const ViewUser = () => {
           />
         }
       </div>
-      {(loadingMember ||
-        allRolesLoading ||
-        roleLoading ||
-        accessLoading ||
-        resetLoading) && <LoaderComponent />}
-      {/* </PageOutline> */}
-    </div>
+    </PageOutline>
   );
 };
 
