@@ -26,6 +26,11 @@ interface DialogSlice {
   dialogDataReset: () => void;
 }
 
+interface LoaderSlice {
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+}
+
 export const useNotificationStore = create<NotificationSlice>((set, get) => ({
   notification: {
     title: "",
@@ -57,4 +62,9 @@ export const useDialogStore = create<DialogSlice>((set, get) => ({
   dialogDataReset: () => {
     set({ dialogData: { ...get().dialogData, showModal: false } });
   },
+}));
+
+export const useLoaderStore = create<LoaderSlice>((set) => ({
+  loading: false,
+  setLoading: (loading) => set({ loading }),
 }));

@@ -1,5 +1,5 @@
 import { useFetch } from "@/CustomHooks/useFetch";
-import Dialog from "@/components/Dialog";
+import { Dialog } from "@/components/Dialog";
 import NotificationCard from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
@@ -135,7 +135,7 @@ function HomePage() {
               >
                 <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
                   <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
-                  <Breadcrumb />
+                    <Breadcrumb />
                   </div>
                   <Outlet
                     context={{
@@ -147,19 +147,18 @@ function HomePage() {
                     }}
                   />
                 </div>
-                {membersLoading || 
+                {membersLoading ||
                   (upcomingEventsLoading && <LoaderComponent />)}
               </div>
             </div>
           </div>
           <NotificationCard />
           <Dialog />
+          <LoaderComponent />
         </main>
       ) : (
         <Navigate to="/login" />
       )}
-      {membersLoading && <LoaderComponent />}
-
     </div>
   );
 }
