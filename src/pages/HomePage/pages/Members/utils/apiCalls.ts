@@ -1,27 +1,17 @@
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 
 export const deleteMember = (id: string | number) => {
+  showLoader(true);
   api.delete
     .deleteMember(id)
     .then(() => {
-      useNotificationStore.getState().setNotification({
-        title: "Success",
-        message: "Member deleted successfully",
-        type: "success",
-        onClose: () => {},
-        show: true,
-      });
+      showNotification("Member Deleted Successfully");
       useStore.getState().removeMember(id);
+      showLoader(false);
     })
     .catch((error) => {
-      useNotificationStore.getState().setNotification({
-        title: "Error",
-        message: error.message,
-        type: "error",
-        onClose: () => {},
-        show: true,
-      });
+      showNotification(error.message, "error");
     });
 };

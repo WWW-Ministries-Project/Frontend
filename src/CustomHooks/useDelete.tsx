@@ -1,3 +1,4 @@
+import { showLoader } from "@/pages/HomePage/utils";
 import { ApiResponse } from "@/utils/interfaces";
 import { useCallback } from "react";
 import useState from "react-usestateref";
@@ -11,6 +12,7 @@ export const useDelete = (
 
   const executeDelete = useCallback(
     async (id: string | number): Promise<void> => {
+      showLoader(true);
       setLoading(true);
       setError(null);
       setSuccess(false);
@@ -20,9 +22,11 @@ export const useDelete = (
       } catch (error) {
         setError(error as Error);
       } finally {
+        showLoader(false);
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [deleteFunction]
   );
 

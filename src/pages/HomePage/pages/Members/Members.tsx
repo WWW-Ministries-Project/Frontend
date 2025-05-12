@@ -41,9 +41,7 @@ export function Members() {
   const [showFilter, setShowFilter] = useState(false);
 
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading, success } = useDelete(
-    api.delete.deleteMember
-  );
+  const { executeDelete, success } = useDelete(api.delete.deleteMember);
   const { refetch: refetchUserStats } = useFetch(
     api.fetch.fetchUserStats,
     undefined,
@@ -147,93 +145,89 @@ export function Members() {
   ];
 
   return (
-      <PageOutline>
-        {/* Members Table Section */}
-        <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
-          {/* ✅ Reusable HeaderControls Component */}
-          <HeaderControls
-            title="Church Memberships"
-            totalMembers={
-              userStats.online?.total_members + userStats.inhouse?.total_members
-            }
-            tableView={tableView}
-            handleViewMode={handleViewMode}
-            hasFilter={true}
-            hasSearch={true}
-            showFilter={showFilter}
-            setShowFilter={setShowFilter}
-            showSearch={showSearch}
-            setShowSearch={setShowSearch}
-            handleClick={handleNavigation}
-            screenWidth={screenWidth}
-            btnName="Add Membership"
+    <PageOutline>
+      {/* Members Table Section */}
+      <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
+        {/* ✅ Reusable HeaderControls Component */}
+        <HeaderControls
+          title="Church Memberships"
+          totalMembers={
+            userStats.online?.total_members + userStats.inhouse?.total_members
+          }
+          tableView={tableView}
+          handleViewMode={handleViewMode}
+          hasFilter={true}
+          hasSearch={true}
+          showFilter={showFilter}
+          setShowFilter={setShowFilter}
+          showSearch={showSearch}
+          setShowSearch={setShowSearch}
+          handleClick={handleNavigation}
+          screenWidth={screenWidth}
+          btnName="Add Membership"
+        />
+
+        {/* Search & Filter Components */}
+        <div className={`${showSearch ? "block" : "hidden"} w-full flex gap-2`}>
+          <SearchBar
+            className="h-10"
+            placeholder="Search members here..."
+            value={filterMembers}
+            onChange={handleSearchChange}
+            id="searchMembers"
           />
+        </div>
 
-          {/* Search & Filter Components */}
-          <div
-            className={`${showSearch ? "block" : "hidden"} w-full flex gap-2`}
-          >
-            <SearchBar
-              className="h-10"
-              placeholder="Search members here..."
-              value={filterMembers}
-              onChange={handleSearchChange}
-              id="searchMembers"
+        <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
+          <MembersFilter onChange={handleFilterChange} />
+        </div>
+
+        {/* Members & Visitors Count */}
+        <div className="hidden gap-4 sm:hidden md:flex lg:flex md:flex-col lg:flex-row xl:flex-row w-full">
+          <MembersCount items={membersCount} />
+          <MembersCount items={visitorsCount} />
+        </div>
+
+        {/* Table or Grid View */}
+        <div
+          className={`w-full mx-auto ${
+            tableView ? "bg-white p-2" : "bg-transparent"
+          } rounded-xl`}
+        >
+          {tableView ? (
+            <TableComponent
+              columns={columns}
+              data={members}
+              displayedCount={12}
+              filter={filterMembers}
+              setFilter={setFilterMembers}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              columnVisibility={columnVisibility}
             />
-          </div>
-
-          <div
-            className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}
-          >
-            <MembersFilter onChange={handleFilterChange} />
-          </div>
-
-          {/* Members & Visitors Count */}
-          <div className="hidden gap-4 sm:hidden md:flex lg:flex md:flex-col lg:flex-row xl:flex-row w-full">
-            <MembersCount items={membersCount} />
-            <MembersCount items={visitorsCount} />
-          </div>
-
-          {/* Table or Grid View */}
-          <div
-            className={`w-full mx-auto ${
-              tableView ? "bg-white p-2" : "bg-transparent"
-            } rounded-xl`}
-          >
-            {tableView ? (
-              <TableComponent
-                columns={columns}
-                data={members}
-                displayedCount={12}
-                filter={filterMembers}
-                setFilter={setFilterMembers}
-                columnFilters={columnFilters}
-                setColumnFilters={setColumnFilters}
-                columnVisibility={columnVisibility}
-              />
-            ) : (
-              <GridComponent
-                columns={columns}
-                data={members}
-                displayedCount={24}
-                filter={filterMembers}
-                setFilter={setFilterMembers}
-                columnFilters={columnFilters}
-                setColumnFilters={setColumnFilters}
-                columnVisibility={columnVisibility}
-                renderRow={(row) => (
-                  <MemberCard
-                    member={row.original}
-                    key={row.id}
-                    showOptions={showOptions === row.original.id}
-                    onShowOptions={() => setShowOptions(row.original.id)}
-                    onDelete={handleDeleteModal}
-                  />
-                )}
-              />
-            )}
-          </div>
-        </section>
-      </PageOutline>
+          ) : (
+            <GridComponent
+              columns={columns}
+              data={members}
+              displayedCount={24}
+              filter={filterMembers}
+              setFilter={setFilterMembers}
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+              columnVisibility={columnVisibility}
+              renderRow={(row) => (
+                <MemberCard
+                  member={row.original}
+                  key={row.id}
+                  showOptions={showOptions === row.original.id}
+                  onShowOptions={() => setShowOptions(row.original.id)}
+                  onDelete={handleDeleteModal}
+                />
+              )}
+            />
+          )}
+        </div>
+      </section>
+    </PageOutline>
   );
 }
