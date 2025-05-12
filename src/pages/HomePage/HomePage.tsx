@@ -1,6 +1,6 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
-import NotificationCard from "@/components/NotificationCard";
+import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";

@@ -2,8 +2,7 @@ import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsSto
 import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/solid"; // Use any icon library you prefer
 import { useEffect } from "react";
 
-const NotificationCard = () => {
-
+export const NotificationCard = () => {
   const { notification, visible, setVisible } = useNotificationStore();
 
   useEffect(() => {
@@ -13,7 +12,7 @@ const NotificationCard = () => {
     }, 5000); // 5 seconds delay for auto-close
 
     return () => clearTimeout(timer);
-  }, [notification.onClose]);
+  }, [notification.onClose, setVisible]);
 
   const backgroundColor =
     notification.type === "error" ? "bg-red-100" : "bg-[#E0F7FA]";
@@ -51,5 +50,3 @@ const NotificationCard = () => {
     </div>
   );
 };
-
-export default NotificationCard;
