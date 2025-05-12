@@ -1,13 +1,13 @@
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
-import { ApiResponse } from "../interfaces";
+import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
+import { AssetPayloadType } from "./assets/interfaces";
 import {
   FollowUpPayloadType,
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { AssetPayloadType } from "./assets/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -19,8 +19,11 @@ export class ApiUpdateCalls {
   }
 
   // Update Event
-  updateEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("event/update-event", payload);
+  updateEvent = <T>(
+    payload: Record<string, any>,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
   // Update Asset
@@ -30,36 +33,50 @@ export class ApiUpdateCalls {
 
   // Update Requisition
   updateRequisition = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       "requisitions/update-requisition",
-      payload
+      payload,
+      query
     );
   };
 
   // Update Position
   updatePosition = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("position/update-position", payload);
+    return this.apiExecution.updateData(
+      "position/update-position",
+      payload,
+      query
+    );
   };
 
   // Update Department
   updateDepartment = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       "department/update-department",
-      payload
+      payload,
+      query
     );
   };
 
   // Update Access Level
   updateAccessRight = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("access/update-access-level", payload);
+    return this.apiExecution.updateData(
+      "access/update-access-level",
+      payload,
+      query
+    );
   };
 
   // Assign Access Level to User
@@ -75,43 +92,60 @@ export class ApiUpdateCalls {
 
   // Update Program
   updateProgram = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       `program/programs/${payload.id}`,
-      payload.payload
+      payload.payload,
+      query
     );
   };
 
   // Update Cohort
-  updateCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateCohort = <T>(
+    payload: Record<string, any>,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       `program/cohorts/${payload.id}`,
-      payload.payload
+      payload.payload,
+      query
     );
   };
 
   // Update Class
-  updateClass = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateClass = <T>(
+    payload: Record<string, any>,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       `program/courses/${payload.id}`,
-      payload
+      payload,
+      query
     );
   };
   // Update Cohort
   updateStudentProgress = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("program/progress-updates", payload);
+    return this.apiExecution.updateData(
+      "program/progress-updates",
+      payload,
+      query
+    );
   };
 
   // Update Enrollment
   updateEnrollment = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       "program/enrollments/update-enrollment",
-      payload
+      payload,
+      query
     );
   };
 
@@ -119,30 +153,35 @@ export class ApiUpdateCalls {
 
   updateVisitor = (
     payload: Record<string, any>,
-    id?: string
+    query: QueryType
   ): Promise<ApiResponse<VisitorType>> => {
-    return this.apiExecution.updateData(
-      `visitor/visitors`,
-      payload,
-      id ? { id } : undefined
-    );
+    return this.apiExecution.updateData(`visitor/visitors`, payload, query);
   };
 
-  updateVisit = (payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData("visitor/visit", payload);
+  updateVisit = (
+    payload: VisitPayloadType,
+    query: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("visitor/visit", payload, query);
   };
 
   // Follow-Up Management
   updateFollowUp = (
-    payload: FollowUpPayloadType
+    payload: FollowUpPayloadType,
+    query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData("visitor/followup", payload);
+    return this.apiExecution.updateData("visitor/followup", payload, query);
   };
 
   // Prayer Request Management
   updatePrayerRequest = <T>(
-    payload: Record<string, any>
+    payload: Record<string, any>,
+    query?: QueryType
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData("visitor/prayerrequest", payload);
+    return this.apiExecution.updateData(
+      "visitor/prayerrequest",
+      payload,
+      query
+    );
   };
 }

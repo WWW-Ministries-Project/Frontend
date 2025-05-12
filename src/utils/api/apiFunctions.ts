@@ -76,7 +76,7 @@ export const updateData = async <T, K>(
   baseUrl: string,
   path: string,
   payload: K,
-  query?: Record<string, string> | string
+  query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
     const queryString = query

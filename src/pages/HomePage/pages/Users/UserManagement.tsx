@@ -58,7 +58,7 @@ const UserManagement = () => {
     },
     {
       header: "Member ID",
-      cell: ({ row }) => <span>SC-24</span>,
+      cell: () => <span>SC-24</span>,
     },
     {
       header: "Email",
