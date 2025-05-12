@@ -1,7 +1,11 @@
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
-import { FollowUpPayloadType, VisitPayloadType } from "./visitors/interfaces";
+import { AssetPayloadType } from "./assets/interfaces";
+import type {
+  FollowUpPayloadType,
+  VisitPayloadType,
+} from "./visitors/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -23,7 +27,7 @@ export class ApiCreationCalls {
   createEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
-  createAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
   createRequisition = <T>(
@@ -85,23 +89,30 @@ export class ApiCreationCalls {
     return this.postToApi<T>("user/forgot-password", payload);
   };
 
-
   /*Visitor Management*/
-  createVisitor = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createVisitor = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("visitor/visitors", payload);
   };
   // Visit
-  createVisit = <T>(payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
+  createVisit = <T>(
+    payload: VisitPayloadType
+  ): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visit", payload);
   };
 
   // Follow-Up Management
-  createFollowUp = <T>(payload: FollowUpPayloadType): Promise<ApiResponse<unknown>> => {
+  createFollowUp = <T>(
+    payload: FollowUpPayloadType
+  ): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/followup", payload);
   };
 
   // Prayer Request Management
-  createPrayerRequest = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createPrayerRequest = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("visitor/prayerrequest", payload);
   };
 }

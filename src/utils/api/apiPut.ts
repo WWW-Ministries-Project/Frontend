@@ -7,6 +7,7 @@ import {
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { AssetPayloadType } from "./assets/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -23,7 +24,7 @@ export class ApiUpdateCalls {
   };
 
   // Update Asset
-  updateAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  updateAsset = (payload: AssetPayloadType): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);
   };
 

@@ -36,8 +36,8 @@ export const showDeleteDialog = <T extends DialogValue>(
 export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
+  handleClose = () => {},
   title?:string,
-  handleClose = () => {}
 ) => {
   const notification = useNotificationStore.getState().setNotification;
   notification({ message, show: true, onClose: handleClose, type,title });

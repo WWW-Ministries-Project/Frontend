@@ -9,14 +9,14 @@ import { assetType } from "../utils/assetsInterface";
 import { handleAction } from "../utils/utils";
 import Elipse from "/src/assets/ellipse.svg";
 
-interface IAssetCard {
+interface IProps {
   onDelete: (asset: assetType) => void;
   onShowOptions: (id: number | string) => void;
   showOptions: boolean;
   assets: assetType;
 }
 
-const AssetCard = (props: IAssetCard) => {
+export const AssetCard = (props: IProps) => {
   const handleDelete = () => {
     props.onDelete(props.assets);
   };
@@ -98,5 +98,3 @@ AssetCard.propTypes = {
     status: PropTypes.string,
   }),
 };
-
-export default AssetCard;
