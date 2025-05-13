@@ -23,9 +23,11 @@ export const navigateRef = {
 };
 
 function HomePage() {
-  const { data: membersData, loading: membersLoading } = useFetch(
-    api.fetch.fetchAllMembers
-  );
+  const {
+    data: membersData,
+    loading: membersLoading,
+    refetch: refetchMembers,
+  } = useFetch(api.fetch.fetchAllMembers);
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
   const { data: upcomingEventsData, loading: upcomingEventsLoading } = useFetch(
     api.fetch.fetchEvents
@@ -140,6 +142,7 @@ function HomePage() {
                   <Outlet
                     context={{
                       members,
+                      refetchMembers,
                       filter,
                       setFilter,
                       handleSearchChange,
