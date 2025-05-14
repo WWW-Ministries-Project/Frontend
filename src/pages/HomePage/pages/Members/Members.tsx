@@ -2,6 +2,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useStore } from "@/store/useStore";
+import { MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
 import { useEffect } from "react";
@@ -14,7 +15,7 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import MemberCard from "./Components/MemberCard";
+import { MemberCard } from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
 import { UserType } from "./utils/membersInterfaces";
@@ -73,6 +74,7 @@ export function Members() {
       }
     };
     handleEffect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
 
   // Show notification after adding a member
@@ -94,10 +96,10 @@ export function Members() {
   const handleDelete = async () => {
     if (!("id" in dataToDeleteRef.current)) return;
     const id = dataToDeleteRef.current.id;
-    await executeDelete(id!);
+    await executeDelete({ id: String(id) });
   };
 
-  const handleDeleteModal = (val?: UserType) => {
+  const handleDeleteModal = (val?: MembersType) => {
     if (val) {
       setDataToDelete(val);
       showDeleteDialog(val, handleDelete);

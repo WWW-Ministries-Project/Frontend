@@ -1,23 +1,23 @@
 import { showLoader } from "@/pages/HomePage/utils";
-import { ApiResponse } from "@/utils/interfaces";
+import { ApiResponse, QueryType } from "@/utils/interfaces";
 import { useCallback } from "react";
 import useState from "react-usestateref";
 
 export const useDelete = (
-  deleteFunction: (id: string | number) => Promise<ApiResponse<void>>
+  deleteFunction: (query: QueryType) => Promise<ApiResponse<void>>
 ) => {
   const [loading, setLoading] = useState(false);
   const [, setError, errorRef] = useState<Error | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
   const executeDelete = useCallback(
-    async (id: string | number): Promise<void> => {
+    async (query: QueryType): Promise<void> => {
       showLoader(true);
       setLoading(true);
       setError(null);
       setSuccess(false);
       try {
-        await deleteFunction(id);
+        await deleteFunction(query);
         setSuccess(true);
       } catch (error) {
         setError(error as Error);

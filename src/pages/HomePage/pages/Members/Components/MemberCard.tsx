@@ -2,22 +2,21 @@ import CardWrapper from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import email from "@/assets/email.svg";
 import phone from "@/assets/phone.svg";
+import { Button, ProfilePicture } from "@/components";
 import Action from "@/components/Action";
-import { Button } from "@/components";
-import {ProfilePicture} from "@/components";
 import { useUserStore } from "@/store/userStore";
+import { MembersType } from "@/utils";
 import { useNavigate } from "react-router-dom";
-import { UserType } from "../utils/membersInterfaces";
 
-interface MemberCardProps {
+interface IProps {
   // userInfo: UserType;
-  member: UserType;
+  member: MembersType;
   showOptions: boolean;
   onShowOptions: () => void;
-  onDelete: (val?: UserType) => void;
+  onDelete: (val?: MembersType) => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = (props) => {
+export const MemberCard = (props: IProps) => {
   const navigate = useNavigate();
   const userStore = useUserStore();
 
@@ -97,5 +96,3 @@ const MemberCard: React.FC<MemberCardProps> = (props) => {
     </CardWrapper>
   );
 };
-
-export default MemberCard;

@@ -5,7 +5,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
-import { UserStatsType } from "./members/interfaces";
+import { MembersType, UserStatsType } from "./members/interfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
@@ -25,7 +25,7 @@ export class ApiCalls {
   }
 
   // Members Management
-  fetchAllMembers = (query?: QueryType): Promise<ApiResponse<UserType[]>> => {
+  fetchAllMembers = (query?: QueryType): Promise<ApiResponse<MembersType[]>> => {
     return this.fetchFromApi("user/list-users", query);
   };
 
