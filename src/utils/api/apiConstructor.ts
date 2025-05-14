@@ -12,6 +12,7 @@ export class ApiExecution {
   deleteExecutor?: QueryExecutorType;
   postExecutor?: PayloadExecutorType;
   updateExecutor?: PayloadExecutorType;
+  patchExecutor?: PayloadExecutorType;
 
   constructor({
     baseUrl = url,
@@ -27,10 +28,7 @@ export class ApiExecution {
     this.updateExecutor = updateExecutor;
   }
 
-  fetchData<T>(
-    path: string,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> {
+  fetchData<T>(path: string, query?: QueryType): Promise<ApiResponse<T>> {
     if (!this.fetchExecutor) throw new Error("Fetch executor not defined");
     return this.fetchExecutor(this.baseUrl, path, query);
   }
@@ -43,10 +41,7 @@ export class ApiExecution {
     return this.deleteExecutor(this.baseUrl, path, query);
   }
 
-  postData<T>(
-    path: string,
-    payload: QueryType
-  ): Promise<ApiResponse<T>> {
+  postData<T>(path: string, payload: QueryType): Promise<ApiResponse<T>> {
     if (!this.postExecutor) throw new Error("Post executor not defined");
     return this.postExecutor(this.baseUrl, path, payload);
   }
@@ -58,5 +53,14 @@ export class ApiExecution {
   ): Promise<ApiResponse<T>> {
     if (!this.updateExecutor) throw new Error("Update executor not defined");
     return this.updateExecutor(this.baseUrl, path, payload, query);
+  }
+
+  patchData<T, K>(
+    path: string,
+    payload: K,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> {
+    if (!this.patchExecutor) throw new Error("Patch executor not defined");
+    return this.patchExecutor(this.baseUrl, path, payload, query);
   }
 }

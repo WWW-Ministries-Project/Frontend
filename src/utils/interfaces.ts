@@ -4,7 +4,7 @@ export interface pictureType {
 }
 
 export interface ApiResponse<T> {
-  success: any;
+  success: unknown;
   error: string;
   status: number;
   data: T;

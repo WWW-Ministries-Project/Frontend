@@ -4,6 +4,10 @@ import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import {
+  activateMemberPayloadType,
+  activateMemberType,
+} from "./members/interfaces";
+import {
   FollowUpPayloadType,
   VisitorType,
   VisitPayloadType,
@@ -180,6 +184,17 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       "visitor/prayerrequest",
+      payload,
+      query
+    );
+  };
+
+  activateMember = (
+    payload: activateMemberPayloadType,
+    query?: QueryType
+  ): Promise<ApiResponse<activateMemberType>> => {
+    return this.apiExecution.updateData(
+      "user/update-user-status",
       payload,
       query
     );
