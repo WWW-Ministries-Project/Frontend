@@ -4,7 +4,6 @@ import email from "@/assets/email.svg";
 import phone from "@/assets/phone.svg";
 import { Button, ProfilePicture } from "@/components";
 import Action from "@/components/Action";
-import { useUserStore } from "@/store/userStore";
 import { MembersType } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -18,14 +17,10 @@ interface IProps {
 
 export const MemberCard = (props: IProps) => {
   const navigate = useNavigate();
-  const userStore = useUserStore();
 
-  const handleClick = () => {
-    const temp = {
-      ...props.member,
-    };
-    userStore.setSelectedMember(temp);
-    navigate(`/home/members/${props.member.id}/info`);
+  const handleClick = (path: string, mode?: "edit") => {
+    if (mode) navigate(path);
+    else navigate(path, { state: { mode } });
   };
 
   const handleDelete = () => {
@@ -52,8 +47,15 @@ export const MemberCard = (props: IProps) => {
                 {props.showOptions && (
                   <Action
                     onDelete={handleDelete}
-                    onView={handleClick}
-                    onEdit={handleClick}
+                    onView={() =>
+                      handleClick(`/home/members/${props.member.id}/info`)
+                    }
+                    onEdit={() =>
+                      handleClick(
+                        `/home/members/manage-member?member_id=${props.member.id}`,
+                        "edit"
+                      )
+                    }
                   />
                 )}
               </div>
@@ -89,7 +91,7 @@ export const MemberCard = (props: IProps) => {
 
         <Button
           value={"View "}
-          onClick={handleClick}
+          onClick={() => handleClick(`/home/members/${props.member.id}/info`)}
           className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-primary"
         />
       </div>

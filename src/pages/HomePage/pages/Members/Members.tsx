@@ -90,7 +90,7 @@ export function Members() {
   };
 
   const handleNavigation = () => {
-    navigate("add-member");
+    navigate("manage-member");
   };
 
   const handleDelete = async () => {

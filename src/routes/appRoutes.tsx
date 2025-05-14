@@ -105,7 +105,7 @@ export const routes: AppRoute[] = [
         sideTab: true,
       },
       {
-        path: "members/add-member",
+        path: "members/manage-member",
         element: <ManageMember />,
         name: "Manage Member",
         isPrivate: true,

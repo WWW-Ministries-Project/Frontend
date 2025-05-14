@@ -10,9 +10,8 @@ import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { act, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { initialUser } from "../../Members/utils/membersHelpers";
 import ActiveAccess from "../../Settings/Components/ActiveAccess";
 const ViewUser = () => {
   const { id } = useParams();
@@ -54,7 +53,7 @@ const ViewUser = () => {
     (state) => state.setNotification
   );
 
-  const user = useMemo(() => responseData?.data || initialUser, [responseData]);
+  const user = useMemo(() => responseData?.data || {}, [responseData]);
   const [isActive, setIsActive] = useState(!!user.is_active);
 
   const role = fetchedRole?.data;
@@ -113,7 +112,11 @@ const ViewUser = () => {
     });
   };
   const toggleAccountStatus = () => {
-    activateUser({ id: +id!, status: user.status, is_active: !!user.is_active });
+    activateUser({
+      id: +id!,
+      status: user.status,
+      is_active: !!user.is_active,
+    });
   };
 
   const resetPassword = () => {

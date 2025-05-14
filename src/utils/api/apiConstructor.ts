@@ -41,7 +41,7 @@ export class ApiExecution {
     return this.deleteExecutor(this.baseUrl, path, query);
   }
 
-  postData<T>(path: string, payload: QueryType): Promise<ApiResponse<T>> {
+  postData<T>(path: string, payload: unknown): Promise<ApiResponse<T>> {
     if (!this.postExecutor) throw new Error("Post executor not defined");
     return this.postExecutor(this.baseUrl, path, payload);
   }

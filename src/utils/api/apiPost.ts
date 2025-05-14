@@ -16,12 +16,12 @@ export class ApiCreationCalls {
   }
   private postToApi<T>(
     path: string,
-    payload: Record<string, any>
+    payload: unknown
   ): Promise<ApiResponse<T>> {
     return this.apiExecution.postData(path, payload);
   }
 
-  createMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
   createEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {

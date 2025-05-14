@@ -122,8 +122,8 @@ export interface IMembersForm extends IChildrenSubForm {
   church_info: {
     member_since?: Date;
     membership_type: membersType;
-    department_id?: number;
-    position_id?: number;
+    department_id?: number | string;
+    position_id?: number | string;
   };
   is_user: boolean;
 }
@@ -151,13 +151,13 @@ const validationSchema = {
   church_info: object().shape({
     member_since: date().max(new Date()),
     membership_type: string().required("Required"),
-    department_id: number().when("is_user", {
+    department_id: string().when("is_user", {
       is: true,
-      then: () => number().required("Required"),
+      then: () => string().required("Required"),
     }),
-    position_id: number().when("is_user", {
+    position_id: string().when("is_user", {
       is: true,
-      then: () => number().required("Required"),
+      then: () => string().required("Required"),
     }),
   }),
   ...ChildrenSubForm.validationSchema,

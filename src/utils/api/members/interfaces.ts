@@ -44,3 +44,39 @@ export type MembersType = {
   title: string;
   photo: string;
 };
+
+export interface IMemberInfo {
+  membership_Id: string;
+  member_id: string;
+  membership_type: "ONLINE" | "IN_HOUSE";
+  title: string;
+  is_active: boolean;
+  first_name: string;
+  last_name: string;
+  other_name?: string;
+  name?: string;
+  date_of_birth: string;
+  nationality: string;
+  gender: string;
+  marital_status: string;
+  primary_number: string;
+  country_code: string;
+  email: string;
+  isMinistryWorker: boolean;
+  department?: number;
+  status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER";
+  position?: number;
+  work_info: {
+    name_of_institution: string;
+    industry: string;
+    position: string;
+  };
+  emergency_contact: {
+    name: string;
+    relation: string;
+    phone_number: string;
+  };
+  children: unknown[];
+  photo: string;
+  country: string;
+}

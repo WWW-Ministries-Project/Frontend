@@ -3,9 +3,7 @@ import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
-import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
@@ -13,25 +11,21 @@ import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
-import { UserType } from "../utils/membersInterfaces";
 
 export function ManageMember() {
   const navigate = useNavigate();
-  const store = useStore();
   const { refetchMembers } = useOutletContext<{ refetchMembers: () => void }>();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
-  const editMode = location.state?.mode === "edit";
+
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
     { user_id: id + "" },
     true
   );
-  const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
-    api.post.createMember
-  );
-  const { updateData, loading: updateLoading } = usePut(api.post.updateMember);
+  const { postData, loading, data } = usePost(api.post.createMember);
+  const { updateData, loading: updateLoading } = usePut(api.put.updateMember);
 
   useEffect(() => {
     if (id) refetch();
@@ -47,12 +41,12 @@ export function ManageMember() {
   }, [member?.data]);
 
   useEffect(() => {
-    if (data) {
+    if (data || member) {
       refetchMembers();
       navigate("/home/members", { state: { new: true } });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data,member]);
 
   const handleCancel = () => {
     navigate(-1);
@@ -84,7 +78,7 @@ export function ManageMember() {
       }
 
       // Send data regardless of whether an image was uploaded
-      if (editMode) await updateData(dataToSend);
+      if (id) await updateData(dataToSend, { user_id: id! });
       else await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);
@@ -118,7 +112,7 @@ export function ManageMember() {
                     variant="primary"
                   />
                   <Button
-                    value={editMode ? "Update" : "Save"}
+                    value={id ? "Update" : "Save"}
                     type="button"
                     // onClick={() => {
                     //   console.log(errors, "errors");

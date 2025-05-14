@@ -5,27 +5,25 @@ import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import useState from "react-usestateref";
 import { Banner } from "../Components/Banner";
-import { initialUser } from "../utils/membersHelpers";
 import { UserType } from "../utils/membersInterfaces";
 
 export const ProfileDetails = () => {
-  const [details, setDetails] = useState<UserType>(initialUser);
+  const [details, setDetails] = useState<UserType>({});
   const { id } = useParams();
-  const { data} = useFetch(api.fetch.fetchAMember, {
+  const { data } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
 
   useEffect(() => {
     if (id) {
-      //@ts-expect-error TODO: fix typescript issue
-      setDetails(data?.data ?? initialUser);
+      setDetails(data?.data ?? {});
     }
   }, [data, id]);
 
   const handleEdit = (id: number | string) => {
     if (navigateRef.current)
       navigateRef.current(
-        `/home/members/add-member?member_id=${encodeURIComponent(id)}`,
+        `/home/members/manage-member?member_id=${encodeURIComponent(id)}`,
         {
           state: { mode: "edit" },
         }
