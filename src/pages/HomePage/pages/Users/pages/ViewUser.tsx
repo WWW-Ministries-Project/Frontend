@@ -8,15 +8,24 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import { showNotification } from "@/pages/HomePage/utils";
+import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { useEffect, useMemo, useState } from "react";
+import { act, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { initialUser } from "../../Members/utils/membersHelpers";
-import { UserType } from "../../Members/utils/membersInterfaces";
 import ActiveAccess from "../../Settings/Components/ActiveAccess";
 const ViewUser = () => {
   const { id } = useParams();
+
+  const { data: responseData } = useFetch(api.fetch.fetchAMember, {
+    user_id: id!,
+  });
+  const {
+    updateData: activateUser,
+    loading: activateLoading,
+    error: updateError,
+    data: activateData,
+  } = usePut(api.put.activateMember);
 
   const {
     refetch: refetchRole,
@@ -26,23 +35,13 @@ const ViewUser = () => {
   const { data: allRoles, loading: allRolesLoading } = useFetch(
     api.fetch.fetchAccessLevels
   );
-  const { data: responseData, loading: loadingMember } = useFetch(
-    api.fetch.fetchAMember,
-    {
-      user_id: id!,
-    }
-  );
+
   const {
     updateData: updateAccess,
     loading: accessLoading,
     data: accessData,
     error: accessError,
   } = usePut(api.put.assignAccessRight);
-  // @ts-expect-error will fix
-  const user: Omit<UserType, "position", "department"> & {
-    position: string;
-    department: string;
-  } = responseData?.data || initialUser;
 
   const {
     postData,
@@ -55,8 +54,8 @@ const ViewUser = () => {
     (state) => state.setNotification
   );
 
-  const [isActive, setIsActive] = useState<boolean>(user?.is_active || false);
-  const [activeRole, setActiveRole] = useState<string | number>("");
+  const user = useMemo(() => responseData?.data || initialUser, [responseData]);
+  const [isActive, setIsActive] = useState(!!user.is_active);
 
   const role = fetchedRole?.data;
   const roleNames = useMemo(
@@ -69,10 +68,13 @@ const ViewUser = () => {
   );
 
   useEffect(() => {
-    if (user.access_level_id) {
-      refetchRole({ id: user.access_level_id });
+    showLoader(activateLoading);
+    if (activateData) {
+      showNotification("User Activated Successfully", "success");
+      user.is_active = activateData.data.is_active;
+      setIsActive((prev) => !prev);
     }
-  }, [responseData]);
+  }, [activateLoading, activateData]);
 
   useEffect(() => {
     if (accessError) {
@@ -85,7 +87,7 @@ const ViewUser = () => {
       });
     }
     if (accessData) {
-      setActiveRole(accessData.data.id);
+      // setActiveRole(accessData.data.id);
       setNotification({
         title: "Success",
         message: "Access level updated successfully",
@@ -111,9 +113,7 @@ const ViewUser = () => {
     });
   };
   const toggleAccountStatus = () => {
-    // TODO: add endpoint
-    alert("remember to take endpoint from BE!");
-    setIsActive((prev) => !prev);
+    activateUser({ id: +id!, status: user.status, is_active: !!user.is_active });
   };
 
   const resetPassword = () => {
@@ -138,10 +138,10 @@ const ViewUser = () => {
                 <div className="font-semibold">{user?.name}</div>
                 <div
                   className={`text-xs font-semibold rounded-full px-2 py-1 ${
-                    isActive ? " bg-green" : "bg-red-300"
+                    user.is_active ? " bg-green" : "bg-red-300"
                   } text-white`}
                 >
-                  {`${isActive ? "Active" : "Inactive"}`}
+                  {`${user.is_active ? "Active" : "Inactive"}`}
                 </div>
               </div>
 
@@ -170,8 +170,8 @@ const ViewUser = () => {
             <div className="">Account status</div>
             <ToggleSwitch
               name="activate"
-              label={`${isActive ? "Deactivate" : "Activate"}`}
-              isChecked={isActive}
+              label={`${user.is_active ? "Deactivate" : "Activate"}`}
+              isChecked={user.is_active}
               onChange={toggleAccountStatus}
               disabled={accessLoading}
             />
@@ -187,7 +187,7 @@ const ViewUser = () => {
                 options={roleNames}
                 onChange={(_, value) => changeAccess(value)}
                 id={"role"}
-                value={activeRole || role?.id}
+                // value={"activeRole" || role?.id}
               />
             </div>
           </div>

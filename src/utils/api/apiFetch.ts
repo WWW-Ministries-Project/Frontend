@@ -29,7 +29,7 @@ export class ApiCalls {
     return this.fetchFromApi("user/list-users", query);
   };
 
-  fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
+  fetchAMember = (query?: QueryType): Promise<ApiResponse<Partial<IMemberInfo>>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 

@@ -76,7 +76,7 @@ export const updateData = async <T, K>(
   baseUrl: string,
   path: string,
   payload: K,
-  query?: Record<string, string> | string
+  query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
     const queryString = query
@@ -92,6 +92,29 @@ export const updateData = async <T, K>(
     };
   } catch (error) {
     // console.error(`Error posting data to ${baseUrl}${path}:`, error);
+    throw ApiErrorHandler.handleError(error);
+  }
+};
+
+export const patchData = async <T, K>(
+  baseUrl: string,
+  path: string,
+  payload: K,
+  query?: QueryType
+): Promise<ApiResponse<T>> => {
+  try {
+    const queryString = query
+      ? `?${new URLSearchParams(query).toString()}`
+      : "";
+    const url = `${baseUrl}${path}${queryString}`;
+    const response: AxiosResponse<T> = await axios.patch(url, payload);
+    return {
+      data: response.data,
+      status: response.status,
+      error: "",
+      success: true,
+    };
+  } catch (error) {
     throw ApiErrorHandler.handleError(error);
   }
 };

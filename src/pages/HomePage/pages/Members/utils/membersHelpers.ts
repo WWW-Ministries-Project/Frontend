@@ -53,9 +53,11 @@ export interface IMemberInfo {
   member_id: string;
   membership_type: membersType;
   title: string;
+  is_active: boolean;
   first_name: string;
   last_name: string;
   other_name?: string;
+  name?: string;
   date_of_birth: string;
   nationality: string;
   gender: string;
@@ -65,6 +67,7 @@ export interface IMemberInfo {
   email: string;
   isMinistryWorker: boolean;
   department?: number;
+  status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER";
   position?: number;
   work_info: {
     name_of_institution: string;

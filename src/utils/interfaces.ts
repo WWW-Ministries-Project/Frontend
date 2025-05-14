@@ -4,13 +4,13 @@ export interface pictureType {
 }
 
 export interface ApiResponse<T> {
-  success: any;
+  success: unknown;
   error: string;
   status: number;
   data: T;
 }
 
-export type QueryType = Record<string, string | number> | string | number;
+export type QueryType = Record<string, string> ;
 export type QueryExecutorType = <T>(
   baseUrl: string,
   path: string,

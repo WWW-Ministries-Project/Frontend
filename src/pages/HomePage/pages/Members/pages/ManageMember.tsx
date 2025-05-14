@@ -8,7 +8,7 @@ import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
@@ -18,6 +18,7 @@ import { UserType } from "../utils/membersInterfaces";
 export function ManageMember() {
   const navigate = useNavigate();
   const store = useStore();
+  const { refetchMembers } = useOutletContext<{ refetchMembers: () => void }>();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get("member_id");
@@ -47,11 +48,7 @@ export function ManageMember() {
 
   useEffect(() => {
     if (data) {
-      const temp = {
-        ...data.data.data,
-        ...data.data.data.user_info,
-      };
-      store.addMember(temp);
+      refetchMembers();
       navigate("/home/members", { state: { new: true } });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +106,7 @@ export function ManageMember() {
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {({ handleSubmit}) => (
+          {({ handleSubmit }) => (
             <>
               <MembersForm />
 
@@ -128,6 +125,7 @@ export function ManageMember() {
                     // }}
                     onClick={handleSubmit}
                     loading={loading || updateLoading}
+                    disabled={loading || updateLoading}
                     variant="default"
                   />
                 </div>
