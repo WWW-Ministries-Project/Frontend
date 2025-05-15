@@ -7,13 +7,11 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { api } from "@/utils/api/apiCalls";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ActiveAccess from "../Components/ActiveAccess";
+import { ActiveAccess } from "../Components/ActiveAccess";
 import { AccessRight } from "../utils/settingsInterfaces";
 
 const AccessRights = () => {
-  const { data, loading } = useFetch(
-    api.fetch.fetchAccessLevels
-  );
+  const { data, loading } = useFetch(api.fetch.fetchAccessLevels);
   const accessRights = useMemo(() => data?.data || [], [data]);
   const [filter, setFilter] = useState("");
   const [selectedAccessRight, setSelectedAccessRight] =

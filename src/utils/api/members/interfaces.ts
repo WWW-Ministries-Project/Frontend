@@ -45,9 +45,17 @@ export type MembersType = {
   photo: string;
 };
 
+export type AccessLevelType = {
+  id: number;
+  name: string;
+  description: string | null;
+  permissions: Record<string, string>;
+};
 export interface IMemberInfo {
   membership_Id: string;
   member_id: string;
+  access_level_id: string | null;
+  access: AccessLevelType | null;
   membership_type: "ONLINE" | "IN_HOUSE";
   title: string;
   is_active: boolean;
@@ -63,9 +71,18 @@ export interface IMemberInfo {
   country_code: string;
   email: string;
   isMinistryWorker: boolean;
-  department?: number;
+  // department?: number;
+  department: {
+    id: number;
+    name: string;
+  };
   status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER";
-  position?: number;
+  // position?: number;
+  position: {
+    id: number;
+    name: string;
+  };
+  work_name?: string;
   work_info: {
     name_of_institution: string;
     industry: string;

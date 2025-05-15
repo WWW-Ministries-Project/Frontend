@@ -78,13 +78,8 @@ export class ApiCreationCalls {
     return this.postToApi<T>("program/unenroll", payload);
   };
 
-  //todo :speak to BE TO UPDATE THIS TO PUT
-  updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("user/update-user", payload);
-  };
-
   forgotPassword = <T>(
-    payload: Record<string, string>
+    payload: Record<string, string>,
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };

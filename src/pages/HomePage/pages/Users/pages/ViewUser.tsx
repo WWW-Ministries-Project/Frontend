@@ -7,12 +7,11 @@ import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import ActiveAccess from "../../Settings/Components/ActiveAccess";
+import { ActiveAccess } from "../../Settings/Components/ActiveAccess";
 const ViewUser = () => {
   const { id } = useParams();
 
@@ -20,27 +19,26 @@ const ViewUser = () => {
     user_id: id!,
   });
 
+  const { data: allRoles } = useFetch(api.fetch.fetchAccessLevels);
+
   const {
     updateData: activateUser,
     loading: activateLoading,
-    error: updateError,
     data: activateData,
   } = usePut(api.put.activateMember);
 
-  const user = useMemo(() => responseData?.data, [responseData]);
-
   const {
-    refetch: refetchRole,
-    data: fetchedRole,
-    loading: roleLoading,
-  } = useFetch(api.fetch.fetchAnAccess, {}, true);
-  const { data: allRoles, loading: allRolesLoading } = useFetch(
-    api.fetch.fetchAccessLevels
+    postData: resetPassword,
+    loading: resetLoading,
+    data: resetData,
+    error: resetError,
+  } = usePost(api.post.forgotPassword);
+
+  const { updateData: updateAccess, loading: accessLoading } = usePut(
+    api.put.assignAccessRight
   );
 
-  const setNotification = useNotificationStore(
-    (state) => state.setNotification
-  );
+  const user = useMemo(() => responseData?.data, [responseData]);
 
   const [isActive, setIsActive] = useState(!!user?.is_active);
 
@@ -59,31 +57,33 @@ const ViewUser = () => {
       is_active: !isActive,
     });
   };
+  
+  // reset password 
+  useEffect(() => {
+    if (resetData) {
+      showNotification("email sent to user", "success");
+    }
+    if (resetError) {
+      showNotification("something went wrong try again", "error");
+    }
+  }, [resetData, resetError]);
 
-  const {
-    updateData: updateAccess,
-    loading: accessLoading,
-    data: accessData,
-    error: accessError,
-  } = usePut(api.put.assignAccessRight);
+  const handlePasswordReset = () => {
+    if (!user) return;
+    resetPassword({ email: user.email });
+  };
 
-  const {
-    postData,
-    loading: resetLoading,
-    data: resetData,
-    error: resetError,
-  } = usePost(api.post.forgotPassword);
 
-  const role = fetchedRole?.data;
-  const roleNames = useMemo(
+  // access level options
+  const rolesOptions = useMemo(
     () =>
       allRoles?.data.map((role) => ({
         name: role.name,
         value: role.id,
       })) || [],
-    [role]
+    [allRoles]
   );
-
+  // activate user 
   useEffect(() => {
     showLoader(activateLoading);
     if (activateData) {
@@ -97,47 +97,13 @@ const ViewUser = () => {
     }
   }, [activateLoading, activateData]);
 
-  useEffect(() => {
-    if (accessError) {
-      setNotification({
-        title: "Error",
-        message: accessError.message,
-        type: "error",
-        onClose: () => {},
-        show: true,
-      });
-    }
-    if (accessData) {
-      // setActiveRole(accessData.data.id);
-      setNotification({
-        title: "Success",
-        message: "Access level updated successfully",
-        type: "success",
-        onClose: () => {},
-        show: true,
-      });
-    }
-  }, [accessError, accessData]);
-  useEffect(() => {
-    if (resetData) {
-      showNotification("email sent to user", "success");
-    }
-    if (resetError) {
-      showNotification("something went wrong try again", "error");
-    }
-  }, [resetData, resetError]);
 
+  // change access
   const changeAccess = (access_level_id: number | string) => {
     updateAccess({
-      user_id: id,
+      user_id: id!,
       access_level_id: access_level_id,
     });
-  };
-
-  const resetPassword = () => {
-    // alert("Password reset initiated!");
-    if (!user) return;
-    postData(user.email);
   };
 
   return (
@@ -203,30 +169,34 @@ const ViewUser = () => {
                 placeholder={"Select Role"}
                 className="w-full"
                 label={""}
-                options={roleNames}
+                disabled={accessLoading}
+                options={rolesOptions}
                 onChange={(_, value) => changeAccess(value)}
                 id={"role"}
-                // value={"activeRole" || role?.id}
+                value={user?.access_level_id?.toString() || ""}
               />
             </div>
           </div>
 
           <div className="flex items-center justify-between w-2/3">
             <div className="">Reset password?</div>
-            <Button variant={"primary"} value="Reset" onClick={resetPassword} />
+            <Button
+              variant={"primary"}
+              value="Reset"
+              onClick={handlePasswordReset}
+              disabled={resetLoading || !isActive}
+              loading={resetLoading}
+            />
           </div>
-
-          {/* <div className="">Last password reset</div>
-              <div className="font-semibold">{new Date().toDateString()}</div> */}
         </section>
         <HorizontalLine />
         <section></section>
-        {
+        {user?.access_level_id && (
           <ActiveAccess
-            permissions={role?.permissions || {}}
-            name={role?.name || ""}
+            permissions={user?.access?.permissions || {}}
+            name={user?.access?.name || ""}
           />
-        }
+        )}
       </div>
     </PageOutline>
   );

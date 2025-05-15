@@ -84,7 +84,7 @@ export class ApiUpdateCalls {
   };
 
   // Assign Access Level to User
-  assignAccessRight = <T>(payload: {
+  assignAccessRight = (payload: {
     user_id: string | number;
     access_level_id: string | number;
   }): Promise<ApiResponse<AccessRight>> => {
