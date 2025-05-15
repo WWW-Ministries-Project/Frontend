@@ -19,12 +19,15 @@ const ViewUser = () => {
   const { data: responseData } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
+
   const {
     updateData: activateUser,
     loading: activateLoading,
     error: updateError,
     data: activateData,
   } = usePut(api.put.activateMember);
+
+  const user = useMemo(() => responseData?.data, [responseData]);
 
   const {
     refetch: refetchRole,
@@ -34,6 +37,28 @@ const ViewUser = () => {
   const { data: allRoles, loading: allRolesLoading } = useFetch(
     api.fetch.fetchAccessLevels
   );
+
+  const setNotification = useNotificationStore(
+    (state) => state.setNotification
+  );
+
+  const [isActive, setIsActive] = useState(!!user?.is_active);
+
+  // activating user
+  useEffect(() => {
+    if (user) {
+      setIsActive(!!user.is_active);
+    }
+  }, [user]);
+
+  const toggleAccountStatus = () => {
+    if (!user) return;
+    activateUser({
+      id: +id!,
+      status: user.status,
+      is_active: !isActive,
+    });
+  };
 
   const {
     updateData: updateAccess,
@@ -49,13 +74,6 @@ const ViewUser = () => {
     error: resetError,
   } = usePost(api.post.forgotPassword);
 
-  const setNotification = useNotificationStore(
-    (state) => state.setNotification
-  );
-
-  const user = useMemo(() => responseData?.data || {}, [responseData]);
-  const [isActive, setIsActive] = useState(!!user.is_active);
-
   const role = fetchedRole?.data;
   const roleNames = useMemo(
     () =>
@@ -69,9 +87,13 @@ const ViewUser = () => {
   useEffect(() => {
     showLoader(activateLoading);
     if (activateData) {
-      showNotification("User Activated Successfully", "success");
-      user.is_active = activateData.data.is_active;
-      setIsActive((prev) => !prev);
+      showNotification(
+        `User ${
+          activateData.data.is_active ? "Activated" : "Deactivated"
+        } Successfully`,
+        "success"
+      );
+      setIsActive(activateData.data.is_active);
     }
   }, [activateLoading, activateData]);
 
@@ -111,16 +133,10 @@ const ViewUser = () => {
       access_level_id: access_level_id,
     });
   };
-  const toggleAccountStatus = () => {
-    activateUser({
-      id: +id!,
-      status: user.status,
-      is_active: !!user.is_active,
-    });
-  };
 
   const resetPassword = () => {
     // alert("Password reset initiated!");
+    if (!user) return;
     postData(user.email);
   };
 
@@ -130,7 +146,7 @@ const ViewUser = () => {
         <h2 className="text-2xl font-semibold ">User Account</h2>
         <div className="flex items-center  gap-8">
           <ProfilePicture
-            src={user.photo}
+            src={user?.photo}
             alt="Profile"
             className={" w-32 h-32 bg-lightGray"}
           />
@@ -141,27 +157,27 @@ const ViewUser = () => {
                 <div className="font-semibold">{user?.name}</div>
                 <div
                   className={`text-xs font-semibold rounded-full px-2 py-1 ${
-                    user.is_active ? " bg-green" : "bg-red-300"
+                    isActive ? " bg-green-300" : "bg-red-300"
                   } text-white`}
                 >
-                  {`${user.is_active ? "Active" : "Inactive"}`}
+                  {isActive ? "Active" : "Inactive"}
                 </div>
               </div>
 
               <div className="flex gap-2">
-                {user.department?.name && (
-                  <div className="">{user.department?.name || "-"}</div>
+                {user?.department?.name && (
+                  <div className="">{user?.department?.name || "-"}</div>
                 )}{" "}
-                {user.department?.name && "|"}
-                {user.position?.name && (
-                  <div className="">{user.position?.name || "-"}</div>
+                {user?.department?.name && "|"}
+                {user?.position?.name && (
+                  <div className="">{user?.position?.name || "-"}</div>
                 )}
               </div>
 
               <div className="flex gap-2">
                 {user?.email && <div className="">{user?.email}</div>} {"|"}
-                {user.primary_number && (
-                  <div className="">{user.primary_number}</div>
+                {user?.primary_number && (
+                  <div className="">{user?.primary_number}</div>
                 )}
               </div>
             </div>
@@ -173,8 +189,8 @@ const ViewUser = () => {
             <div className="">Account status</div>
             <ToggleSwitch
               name="activate"
-              label={`${user.is_active ? "Deactivate" : "Activate"}`}
-              isChecked={user.is_active}
+              label={`${isActive ? "Deactivate" : "Activate"}`}
+              isChecked={isActive}
               onChange={toggleAccountStatus}
               disabled={accessLoading}
             />

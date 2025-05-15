@@ -52,16 +52,16 @@ export const deleteData = async <T>(
   }
 };
 
-export const postData = async <T,K>(
+export const postData = async <T, K>(
   baseUrl: string,
   path: string,
   payload: K
 ): Promise<ApiResponse<T>> => {
   try {
     const url = `${baseUrl}${path}`;
-    const response: AxiosResponse<T> = await axios.post(url, payload);
+    const response: AxiosResponse<{ data: T }> = await axios.post(url, payload);
     return {
-      data: response.data,
+      data: response.data.data,
       status: response.status,
       error: "",
       success: true,
@@ -83,9 +83,9 @@ export const updateData = async <T, K>(
       ? `?${new URLSearchParams(query).toString()}`
       : "";
     const url = `${baseUrl}${path}${queryString}`;
-    const response: AxiosResponse<T> = await axios.put(url, payload);
+    const response: AxiosResponse<{ data: T }> = await axios.put(url, payload);
     return {
-      data: response.data,
+      data: response.data.data,
       status: response.status,
       error: "",
       success: true,

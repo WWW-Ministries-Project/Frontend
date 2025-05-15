@@ -1,11 +1,9 @@
 import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
-import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
-import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
-import { MembersType, UserStatsType } from "./members/interfaces";
+import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
@@ -25,11 +23,15 @@ export class ApiCalls {
   }
 
   // Members Management
-  fetchAllMembers = (query?: QueryType): Promise<ApiResponse<MembersType[]>> => {
+  fetchAllMembers = (
+    query?: QueryType
+  ): Promise<ApiResponse<MembersType[]>> => {
     return this.fetchFromApi("user/list-users", query);
   };
 
-  fetchAMember = (query?: QueryType): Promise<ApiResponse<Partial<IMemberInfo>>> => {
+  fetchAMember = (
+    query?: QueryType
+  ): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 
@@ -97,22 +99,16 @@ export class ApiCalls {
   ): Promise<ApiResponse<AccessRight[]>> => {
     return this.fetchFromApi("access/list-access-levels", query);
   };
-  fetchAnAccess = (
-    query?: QueryType
-  ): Promise<ApiResponse<AccessRight>> => {
+  fetchAnAccess = (query?: QueryType): Promise<ApiResponse<AccessRight>> => {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
   // Requisition Management
-  fetchRequisitions = (
-    query?: QueryType
-  ): Promise<any> => {
+  fetchRequisitions = (query?: QueryType): Promise<any> => {
     return this.fetchFromApi("requisitions/staff-requisition", query);
   };
 
-  fetchRequisitionDetails = (
-    query?: QueryType
-  ): Promise<any> => {
+  fetchRequisitionDetails = (query?: QueryType): Promise<any> => {
     return this.fetchFromApi("requisitions/get-requisition/", query);
   };
 
