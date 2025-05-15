@@ -52,6 +52,7 @@ export type AccessLevelType = {
   permissions: Record<string, string>;
 };
 export interface IMemberInfo {
+  id: string | number;
   membership_Id: string;
   member_id: string;
   access_level_id: string | null;

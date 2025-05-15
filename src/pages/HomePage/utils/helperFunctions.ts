@@ -37,16 +37,16 @@ export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
   handleClose = () => {},
-  title?:string,
+  title?: string
 ) => {
   const notification = useNotificationStore.getState().setNotification;
-  notification({ message, show: true, onClose: handleClose, type,title });
+  notification({ message, show: true, onClose: handleClose, type, title });
 };
 
 export const showLoader = (val: boolean) => {
-  const {setLoading} = useLoaderStore.getState();
+  const { setLoading } = useLoaderStore.getState();
   setLoading(val);
-}
+};
 
 export const isArray = function (data: unknown) {
   return Array.isArray(data);
@@ -101,11 +101,19 @@ export const markTouchedFields = (
 ) => {
   Object.keys(errors).forEach((field) => {
     if (typeof errors[field] === "object" && errors[field] !== null) {
-      markTouchedFields(errors[field], touched); 
+      markTouchedFields(errors[field], touched);
     } else {
       touched[field] = true;
     }
   });
 
   return touched;
+};
+
+export const encodeQuery = (query: string | number) => {
+  return encodeURIComponent(btoa(query + ""));
+};
+
+export const decodeQuery = (query: string) => {
+  return atob(decodeURIComponent(query));
 };

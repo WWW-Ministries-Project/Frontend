@@ -3,6 +3,7 @@ import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
+import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
@@ -17,7 +18,7 @@ export function ManageMember() {
   const { refetchMembers } = useOutletContext<{ refetchMembers: () => void }>();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const id = params.get("member_id");
+  const id = decodeQuery(params.get("member_id") || "");
 
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
@@ -41,12 +42,12 @@ export function ManageMember() {
   }, [member?.data]);
 
   useEffect(() => {
-    if (data || member) {
+    if (data) {
       refetchMembers();
       navigate("/home/members", { state: { new: true } });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data,member]);
+  }, [data, member]);
 
   const handleCancel = () => {
     navigate(-1);

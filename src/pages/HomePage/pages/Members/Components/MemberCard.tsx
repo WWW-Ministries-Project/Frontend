@@ -4,6 +4,7 @@ import email from "@/assets/email.svg";
 import phone from "@/assets/phone.svg";
 import { Button, ProfilePicture } from "@/components";
 import Action from "@/components/Action";
+import { encodeQuery } from "@/pages/HomePage/utils";
 import { MembersType } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -52,7 +53,7 @@ export const MemberCard = (props: IProps) => {
                     }
                     onEdit={() =>
                       handleClick(
-                        `/home/members/manage-member?member_id=${props.member.id}`,
+                        `/home/members/manage-member?member_id=${encodeQuery(props.member.id)}`,
                         "edit"
                       )
                     }
