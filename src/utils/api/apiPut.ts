@@ -73,7 +73,7 @@ export class ApiUpdateCalls {
 
   // Update Access Level
   updateAccessRight = <T>(
-    payload: Record<string, any>,
+    payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(

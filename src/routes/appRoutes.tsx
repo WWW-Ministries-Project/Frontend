@@ -21,7 +21,7 @@ import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
-import CreateAccess from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
+import { CreateAccess } from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";

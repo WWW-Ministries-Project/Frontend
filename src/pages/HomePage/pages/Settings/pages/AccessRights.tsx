@@ -11,7 +11,7 @@ import { ActiveAccess } from "../Components/ActiveAccess";
 import { AccessRight } from "../utils/settingsInterfaces";
 
 const AccessRights = () => {
-  const { data, loading } = useFetch(api.fetch.fetchAccessLevels);
+  const { data } = useFetch(api.fetch.fetchAccessLevels);
   const accessRights = useMemo(() => data?.data || [], [data]);
   const [filter, setFilter] = useState("");
   const [selectedAccessRight, setSelectedAccessRight] =
@@ -22,33 +22,33 @@ const AccessRights = () => {
     setFilter(e.target.value);
   };
   return (
-    <div className="p-4">
-      <PageOutline>
-        <PageHeader
-          title="Access Rights"
-          buttonValue="Create Access"
-          onClick={() => navigate("/home/settings/create-access")}
-        ></PageHeader>
-        <section className="grid gap-24 grid-cols-3">
-          <section>
-            <div>
-              <SearchBar
-                placeholder="Search"
-                className="max-w-[300px] mb-2"
-                onChange={handleSearchChange}
-                value={filter}
-              />
-            </div>
-            <TableComponent
-              columns={accessColumns}
-              data={accessRights}
-              rowClass="even:bg-white odd:bg-[#F2F4F7]"
-              className={" shadow-md"}
-              filter={filter}
-              setFilter={setFilter}
-              onRowClick={(data: AccessRight) => setSelectedAccessRight(data)}
+    <PageOutline>
+      <PageHeader
+        title="Access Rights"
+        buttonValue="Create Access"
+        onClick={() => navigate("/home/settings/create-access")}
+      ></PageHeader>
+      <section className="grid gap-24 grid-cols-3">
+        <section>
+          <div>
+            <SearchBar
+              placeholder="Search"
+              className="max-w-[300px] mb-2"
+              onChange={handleSearchChange}
+              value={filter}
             />
-          </section>
+          </div>
+          <TableComponent
+            columns={accessColumns}
+            data={accessRights}
+            rowClass="even:bg-white odd:bg-[#F2F4F7]"
+            className={" shadow-md"}
+            filter={filter}
+            setFilter={setFilter}
+            onRowClick={(data: AccessRight) => setSelectedAccessRight(data)}
+          />
+        </section>
+        {selectedAccessRight && (
           <section className="col-span-2">
             <div className="space-x-2 flex items-center justify-end">
               <Button
@@ -68,16 +68,15 @@ const AccessRights = () => {
                 variant="secondary"
               />
             </div>
-            {selectedAccessRight && (
-              <ActiveAccess
-                name={selectedAccessRight?.name || ""}
-                permissions={selectedAccessRight?.permissions || {}}
-              />
-            )}
+
+            <ActiveAccess
+              name={selectedAccessRight?.name || ""}
+              permissions={selectedAccessRight?.permissions || {}}
+            />
           </section>
-        </section>
-      </PageOutline>
-    </div>
+        )}
+      </section>
+    </PageOutline>
   );
 };
 

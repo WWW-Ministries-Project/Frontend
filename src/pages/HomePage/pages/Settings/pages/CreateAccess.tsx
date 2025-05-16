@@ -8,12 +8,12 @@ import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
+import { ColumnDef } from "@tanstack/react-table";
 import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
-import { AccessRight } from "../utils/settingsInterfaces";
 
-const CreateAccess = () => {
+export function CreateAccess() {
   const navigate = useNavigate();
   const [name, setName, nameRef] = useState<string>("");
   const query = location.search;
@@ -30,11 +30,12 @@ const CreateAccess = () => {
     Departments: "",
     Access_rights: "",
   });
-  const { data: accessLevel } = useFetch(
+  const { data: accessLevel, refetch } = useFetch(
     api.fetch.fetchAnAccess,
     {
       id: id!,
-    }
+    },
+    true
   );
   const {
     postData,
@@ -45,6 +46,7 @@ const CreateAccess = () => {
   const {
     loading: updateLoading,
     error: updateError,
+    data: updatedData,
     updateData,
   } = usePut(api.put.updateAccessRight);
 
@@ -57,7 +59,7 @@ const CreateAccess = () => {
     [data]
   );
 
-  const columns = [
+  const columns: ColumnDef<(typeof displayedData)[0]>[] = [
     {
       accessorKey: "name",
       header: "Name",
@@ -65,7 +67,7 @@ const CreateAccess = () => {
     {
       accessorKey: "accessLevel",
       header: "Access Level",
-      cell: ({ row }: any) => (
+      cell: ({ row }) => (
         <span>
           <RadioGroup
             selectedValue={row.original.accessLevel}
@@ -80,18 +82,35 @@ const CreateAccess = () => {
   useEffect(() => {
     if (response) {
       showNotification("Access Right created successfully");
+      navigate("/home/settings/access-rights");
     }
-    if (error) {
+    if (updatedData) {
+      showNotification("Access Right updated successfully");
+      navigate("/home/settings/access-rights");
+    }
+    if (error || updateError) {
       showNotification("Something went wrong", "error");
     }
-  }, [response, error]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, error, updateError]);
 
   useEffect(() => {
     if (id) {
-      setData((prev) => ({ ...prev, ...accessLevel?.data.permissions! }));
-      setName(accessLevel?.data.name!);
+      refetch();
     }
-  }, [accessLevel, id]);
+  }, [id]);
+  useEffect(() => {
+    if (id) {
+      setData((prev) =>
+        accessLevel?.data.permissions
+          ? { ...prev, ...accessLevel.data.permissions! }
+          : prev
+      );
+      setName((prev) =>
+        accessLevel?.data.name ? accessLevel.data.name : prev
+      );
+    }
+  }, [accessLevel]);
   const handleAccessLevelChange = (
     moduleName: string,
     newAccessLevel: string
@@ -110,10 +129,11 @@ const CreateAccess = () => {
     if (nameRef.current) {
       const body = {
         name: nameRef.current,
+        id,
         permissions: data,
       };
       if (id) {
-        updateData(body);
+        updateData(body, { id });
       } else {
         postData(body);
       }
@@ -121,51 +141,50 @@ const CreateAccess = () => {
   };
 
   return (
-    <div className="px-4">
-      <PageOutline className="">
-        <PageHeader title={`${id ? "Update" : "Create"} Access Right`} />
-        <div className="text-lighterBlack">
-          Fill in the form below with the rights this access should have
-        </div>
-        <section>
-          <InputDiv
-            label="Role"
-            type="text"
-            id="name"
-            placeholder="Enter name of access"
-            required={true}
-            className="max-w-[450px] my-4"
-            value={name}
-            onChange={(_, val) => {
-              setName(val + "");
+    <PageOutline className="">
+      <PageHeader title={`${id ? "Update" : "Create"} Access Right`} />
+      <div className="text-lighterBlack">
+        Fill in the form below with the rights this access should have
+      </div>
+      <section>
+        <InputDiv
+          label="Role"
+          type="text"
+          id="name"
+          placeholder="Enter name of access"
+          required={true}
+          className="max-w-[450px] my-4"
+          value={name}
+          onChange={(_, val) => {
+            setName(val + "");
+          }}
+        />
+        <TableComponent
+          data={displayedData}
+          columns={columns}
+          rowClass="even:bg-white odd:bg-[#F2F4F7]"
+          className={"shadow-md"}
+        />
+        <div className="flex justify-end gap-x-2 mt-4">
+          <Button
+            value="Cancel"
+            variant="secondary"
+            onClick={() => {
+              navigate(-1);
             }}
           />
-          <TableComponent
-            data={displayedData}
-            columns={columns}
-            rowClass="even:bg-white odd:bg-[#F2F4F7]"
-            className={"shadow-md"}
+          <Button
+            value="Save"
+            variant="primary"
+            disabled={loading || !nameRef.current || updateLoading}
+            loading={loading || updateLoading}
+            onClick={handleSubmit}
           />
-          <div className="flex justify-end gap-x-2 mt-4">
-            <Button
-              value="Cancel"
-              variant="secondary"
-              onClick={() => {
-                navigate(-1);
-              }}
-            />
-            <Button
-              value="Save"
-              variant="primary"
-              disabled={loading || !nameRef.current}
-              onClick={handleSubmit}
-            />
-          </div>
-        </section>
-      </PageOutline>
-    </div>
+        </div>
+      </section>
+    </PageOutline>
   );
-};
+}
 
 interface RadioOption {
   value: string;
@@ -216,5 +235,3 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
     </div>
   );
 };
-
-export default CreateAccess;

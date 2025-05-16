@@ -38,7 +38,7 @@ export class ApiCreationCalls {
     return this.postToApi<T>("requisitions/create-requisition", payload);
   };
   createAccessRight = <T>(
-    payload: Record<string, any>
+    payload: unknown
   ): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
