@@ -27,6 +27,10 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("assets/delete-asset", query);
   };
 
+  deleteAccess = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("access/delete-access-level", query);
+  };
+
   deleteRequest = (query:QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("requisitions/delete-requisition", query);
   };

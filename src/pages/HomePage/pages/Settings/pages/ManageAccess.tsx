@@ -13,7 +13,7 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 
-export function CreateAccess() {
+export function ManageAccess() {
   const navigate = useNavigate();
   const [name, setName, nameRef] = useState<string>("");
   const query = location.search;

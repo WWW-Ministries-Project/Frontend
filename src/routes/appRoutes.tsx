@@ -20,8 +20,8 @@ import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
-import AccessRights from "@/pages/HomePage/pages/Settings/pages/AccessRights";
-import { CreateAccess } from "@/pages/HomePage/pages/Settings/pages/CreateAccess";
+import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
+import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
 // import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
@@ -293,7 +293,7 @@ export const routes: AppRoute[] = [
           {
             path: "create-access",
             name: "Create Access",
-            element: <CreateAccess />,
+            element: <ManageAccess />,
             isPrivate: false,
             permissionNeeded: "view_access_rights",
           },

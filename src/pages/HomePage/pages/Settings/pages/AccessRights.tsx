@@ -1,17 +1,22 @@
 import { Button } from "@/components/Button";
 import SearchBar from "@/components/SearchBar";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ActiveAccess } from "../Components/ActiveAccess";
 import { AccessRight } from "../utils/settingsInterfaces";
 
-const AccessRights = () => {
-  const { data } = useFetch(api.fetch.fetchAccessLevels);
+export function AccessRights() {
+  const { data, refetch } = useFetch(api.fetch.fetchAccessLevels);
+  const { executeDelete: deleteAccess, success: deleteSuccess } = useDelete(
+    api.delete.deleteAccess
+  );
   const accessRights = useMemo(() => data?.data || [], [data]);
   const [filter, setFilter] = useState("");
   const [selectedAccessRight, setSelectedAccessRight] =
@@ -21,6 +26,19 @@ const AccessRights = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
   };
+  const handleDelete = () => {
+    if (!selectedAccessRight) return;
+    showDeleteDialog(selectedAccessRight!, () => {
+      deleteAccess({ id: String(selectedAccessRight.id) });
+    });
+  };
+  useEffect(() => {
+    if (deleteSuccess) {
+      refetch();
+      setSelectedAccessRight(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteSuccess]);
   return (
     <PageOutline>
       <PageHeader
@@ -53,8 +71,8 @@ const AccessRights = () => {
             <div className="space-x-2 flex items-center justify-end">
               <Button
                 type="button"
-                value="Close"
-                onClick={() => alert("Close clicked")}
+                value="Delete"
+                onClick={() => handleDelete()}
                 variant="ghost"
               />
               <Button
@@ -81,5 +99,3 @@ const AccessRights = () => {
 };
 
 const accessColumns = [{ header: "All Access Rights", accessorKey: "name" }];
-
-export default AccessRights;
