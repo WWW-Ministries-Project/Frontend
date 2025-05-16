@@ -15,7 +15,7 @@ import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import FormsComponent from "./Components/FormsComponent";
+import { FormsComponent } from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
@@ -32,8 +32,8 @@ function Settings() {
   const settingsStore = useSettingsStore();
   const positionData = settingsStore.positions || [];
   const departmentData = settingsStore.departments || [];
-  const { postData: postDepartment, data: department, error: departmentError } = usePost(api.post.createDepartment);
-  const { postData: postPosition, data: position, error: positionError } = usePost(api.post.createPosition);
+  const { postData: postDepartment, data: department, error: departmentError, loading: departmentLoading } = usePost(api.post.createDepartment);
+  const { postData: postPosition, data: position, error: positionError, loading: positionLoading } = usePost(api.post.createPosition);
   const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
   const { executeDelete: deleteDepartment, success: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
@@ -61,12 +61,12 @@ function Settings() {
   // updated data
   useEffect(() => {
     if (departmentUpdate) {
-      showNotification(departmentUpdate.data.message, "success");
+      showNotification("Department updated successfully", "success");
       settingsStore.updateDepartment(departmentUpdate.data);
       handleCloseForm();
     }
     if (positionUpdate) {
-      showNotification(positionUpdate.data.message, "success");
+      showNotification("Position updated successfully", "success");
       settingsStore.updatePosition(positionUpdate.data);
       handleCloseForm();
     }
@@ -311,7 +311,7 @@ function Settings() {
           setFilter={setFilter}
         />
       </section>
-      {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
+      {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading || departmentLoading || positionLoading} selectLabel={selectLabel} editMode={editMode} />}
     </PageOutline>
   );
 }

@@ -1,8 +1,9 @@
-import { StateCreator } from 'zustand';
-
 export interface Department {
   id: number;
   name: string;
+  description?: string;
+  department_head?: number;
+  department_head_info?: { id: number; name: string };
 }
 
 export interface DepartmentOption {
@@ -42,7 +43,7 @@ export interface PositionSlice {
 
 export type StoreState = DepartmentSlice & PositionSlice;
 
- //access right
+//access right
 export interface AccessRight {
   id: number;
   name: string;

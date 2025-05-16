@@ -2,6 +2,8 @@ import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import { DepartmentType } from "./settings/departmentInterfaces";
+import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
   VisitPayloadType,
@@ -40,15 +42,15 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
-  createDepartment = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("department/create-department", payload);
+  createDepartment = (
+    payload: unknown
+  ): Promise<ApiResponse<DepartmentType[]>> => {
+    return this.postToApi("department/create-department", payload);
   };
-  createPosition = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("position/create-position", payload);
+  createPosition = (
+    payload: unknown
+  ): Promise<ApiResponse<PositionType[]>> => {
+    return this.postToApi("position/create-position", payload);
   };
 
   // Create Program
@@ -79,7 +81,7 @@ export class ApiCreationCalls {
   };
 
   forgotPassword = <T>(
-    payload: Record<string, string>,
+    payload: Record<string, string>
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };

@@ -49,7 +49,7 @@ export class ApiUpdateCalls {
 
   // Update Position
   updatePosition = <T>(
-    payload: Record<string, any>,
+    payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
@@ -61,7 +61,7 @@ export class ApiUpdateCalls {
 
   // Update Department
   updateDepartment = <T>(
-    payload: Record<string, any>,
+    payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
