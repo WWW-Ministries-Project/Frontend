@@ -291,8 +291,8 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
           {
-            path: "create-access",
-            name: "Create Access",
+            path: "access-rights/manage-access",
+            name: "Manage Access",
             element: <ManageAccess />,
             isPrivate: false,
             permissionNeeded: "view_access_rights",

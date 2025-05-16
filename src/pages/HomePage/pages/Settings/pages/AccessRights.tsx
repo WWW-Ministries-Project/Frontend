@@ -5,7 +5,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { encodeQuery, showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +44,7 @@ export function AccessRights() {
       <PageHeader
         title="Access Rights"
         buttonValue="Create Access"
-        onClick={() => navigate("/home/settings/create-access")}
+        onClick={() => navigate("manage-access")}
       ></PageHeader>
       <section className="grid gap-24 grid-cols-3">
         <section>
@@ -80,7 +80,9 @@ export function AccessRights() {
                 value="Edit"
                 onClick={() =>
                   navigate(
-                    `/home/settings/create-access?access_id=${selectedAccessRight?.id}`
+                    `manage-access?access_id=${encodeQuery(
+                      selectedAccessRight?.id
+                    )}`
                   )
                 }
                 variant="secondary"
@@ -96,6 +98,6 @@ export function AccessRights() {
       </section>
     </PageOutline>
   );
-};
+}
 
 const accessColumns = [{ header: "All Access Rights", accessorKey: "name" }];

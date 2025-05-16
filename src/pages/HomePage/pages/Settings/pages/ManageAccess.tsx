@@ -6,7 +6,10 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
+import {
+  decodeQuery,
+  showNotification,
+} from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import React, { useEffect, useMemo } from "react";
@@ -18,7 +21,7 @@ export function ManageAccess() {
   const [name, setName, nameRef] = useState<string>("");
   const query = location.search;
   const params = new URLSearchParams(query);
-  const id = params.get("access_id");
+  const id = decodeQuery(params.get("access_id") || "");
   const [data, setData] = useState<Record<string, string>>({
     Dashboard: "",
     Members: "",
