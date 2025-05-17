@@ -22,12 +22,12 @@ export const CountryField = ({
 
   // Fetch countries on mount if not already in store
   useEffect(() => {
-    if (!countryStore.countries.length) {
+    if (!countryOptions.length) {
       fetchCountries().then((data) => {
         countryStore.setCountries(data);
       });
     }
-  }, [countryStore]);
+  }, [countryOptions, countryStore]);
 
   return (
     <Field

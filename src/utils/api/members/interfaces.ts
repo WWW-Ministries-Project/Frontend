@@ -92,7 +92,8 @@ export interface IMemberInfo {
   emergency_contact: {
     name: string;
     relation: string;
-    phone_number: string;
+    phone_number?: string;
+    country_code?: string;
   };
   children: unknown[];
   photo: string;

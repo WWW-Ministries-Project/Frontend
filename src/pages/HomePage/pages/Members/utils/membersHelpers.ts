@@ -53,13 +53,19 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       work_position: input.work_info.position,
       // school_name: input.work_info.name_of_institution
     },
-    emergency_contact: input.emergency_contact,
+    emergency_contact: {
+      ...input.emergency_contact,
+      phone: {
+        country_code: input.emergency_contact.country_code || "",
+        number: input.emergency_contact.phone_number || "",
+      },
+    },
     is_user: false,
     church_info: {
       membership_type: input.membership_type,
       department_id: input.department ?? undefined,
       position_id: input.position ?? undefined,
     },
-    children: input.children as IPersonalDetails[] || [],
+    children: (input.children as IPersonalDetails[]) || [],
   };
 };

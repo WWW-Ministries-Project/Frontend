@@ -5,7 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 export const deleteMember = (id: string | number) => {
   showLoader(true);
   api.delete
-    .deleteMember(id)
+    .deleteMember({ id: String(id) })
     .then(() => {
       showNotification("Member Deleted Successfully");
       useStore.getState().removeMember(id);
@@ -13,5 +13,6 @@ export const deleteMember = (id: string | number) => {
     })
     .catch((error) => {
       showNotification(error.message, "error");
+      showLoader(false);
     });
 };
