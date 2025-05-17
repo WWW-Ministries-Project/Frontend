@@ -1,6 +1,6 @@
 import AddSignature from "@/components/AddSignature";
 import { Button } from "@/components/Button";
-import FormikInput from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import Modal from "@/components/Modal";
 import { useAuth } from "@/context/AuthWrapper";
@@ -51,7 +51,7 @@ const Request = () => {
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
-  const { data } = useFetch< {data: IRequisitionDetails}>(
+  const { data } = useFetch<{ data: IRequisitionDetails }>(
     api.fetch.fetchRequisitionDetails,
     { id: decodedId }
   );
@@ -215,7 +215,7 @@ const Request = () => {
                   </Modal>
                   <FormWrapperNew>
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="requester_name"
                       label="Requester"
                       id="requester_name"
@@ -239,7 +239,7 @@ const Request = () => {
                       placeholder="Select program/event"
                     />
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="request_date"
                       label="Date of requisition"
                       id="request_date"
@@ -255,7 +255,7 @@ const Request = () => {
                     />
                     <span> &nbsp;</span>
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="comment"
                       label="Comment"
                       id="comment"

@@ -1,6 +1,6 @@
 import { Field } from "formik";
 import { string } from "yup";
-import { FormikInputDiv } from "../FormikInput";
+import { FormikInputDiv } from "../FormikInputDiv";
 import FormikSelectField from "../FormikSelect";
 
 const NameInfoComponent = ({

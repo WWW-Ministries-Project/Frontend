@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import { Field, Form, Formik } from "formik";

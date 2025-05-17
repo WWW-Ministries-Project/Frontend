@@ -1,4 +1,4 @@
-import { FormikInputDiv } from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field } from "formik";
 
 const ContactDetailsComponent = ({

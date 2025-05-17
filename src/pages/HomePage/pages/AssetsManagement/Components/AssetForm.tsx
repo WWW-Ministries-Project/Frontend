@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Field, Formik } from "formik";

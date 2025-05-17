@@ -1,4 +1,4 @@
-import { FormikInputDiv } from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";

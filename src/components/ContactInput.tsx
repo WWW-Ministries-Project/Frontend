@@ -6,7 +6,7 @@ import { Field, getIn, useFormikContext } from "formik";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { useEffect, useMemo, useState } from "react";
 import { string } from "yup";
-import { FormikInputDiv } from "./FormikInput";
+import { FormikInputDiv } from "./FormikInputDiv";
 
 interface IProps {
   disabled?: boolean;
@@ -92,7 +92,7 @@ const ContactInputComponent = ({
             id={`${prefix}.phone.country_code`}
             value={code}
             disabled={disabled}
-            onChange={(_: string, value: string | number) => {
+            onChange={() => {
               validatePhoneNumber(phone);
             }}
             // onChange={() => null}
