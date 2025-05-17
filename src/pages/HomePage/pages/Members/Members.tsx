@@ -1,11 +1,12 @@
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
+import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
 import { MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
@@ -25,13 +26,20 @@ export function Members() {
   const isNew = location.state?.new;
   const navigate = useNavigate();
 
+  const {
+    user: { permissions },
+  } = useAuth();
+
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
-  const [columnVisibility] = useState({
-    membership_type: false,
-    is_user: false,
-    department_id: false,
-  });
+  const columnVisibility = useMemo(() => {
+    return {
+      membership_type: false,
+      is_user: false,
+      department_id: false,
+      Actions: permissions.manage_members,
+    };
+  }, [permissions]);
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
@@ -166,7 +174,7 @@ export function Members() {
           setShowSearch={setShowSearch}
           handleClick={handleNavigation}
           screenWidth={screenWidth}
-          btnName="Add Membership"
+          btnName={permissions?.manage_members ? "Add Membership" : ""}
         />
 
         {/* Search & Filter Components */}
