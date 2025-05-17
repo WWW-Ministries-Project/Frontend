@@ -8,6 +8,14 @@ export interface countryType {
   flag: string;
 }
 
+export interface RestCountryAPIResponse {
+  name: { common: string };
+  cca2: CountryCode;
+  idd?: { root: string; suffixes: string[] };
+  altSpellings?: string[];
+  flags: { png: string };
+}
+
 export interface Currency {
   name: string;
   currency: string;

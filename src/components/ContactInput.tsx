@@ -25,7 +25,7 @@ const ContactInputComponent = ({
   zipClass,
   prefix,
 }: IProps) => {
-  const { countries } = useCountryStore();
+  const { dialOptions } = useCountryStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { setFieldValue, values, errors, setFieldError } =
@@ -38,8 +38,8 @@ const ContactInputComponent = ({
   }, [values, prefix]);
   const error = getIn(errors, `${prefix}.phone.number`);
   const countryCode = useMemo(() => {
-    return countries.find((c) => c.dialCode === code)?.countryCode || "GH";
-  }, [code, countries]);
+    return dialOptions.find((c) => c.dialCode === code)?.countryCode || "GH";
+  }, [code, dialOptions]);
 
   // Handle country code input change
   // const handleInputChange = (value: string | number) => {
@@ -63,14 +63,15 @@ const ContactInputComponent = ({
   }, []);
 
   useEffect(() => {
-    if (!countries.length) {
+    if (!dialOptions.length) {
       fetchCountries().then((data) => {
         useCountryStore.setState({ countries: data });
       });
     }
-  }, [countries]);
+  }, [dialOptions]);
 
   function validatePhoneNumber(input: string): boolean {
+    if (!input) return false;
     const phoneNumber = parsePhoneNumberFromString(input, countryCode);
     // setFieldValue(`${prefix}.phone.number`,input);
     setFieldError(
@@ -110,14 +111,14 @@ const ContactInputComponent = ({
           />
 
           {/* Country Code Dropdown */}
-          {isDropdownOpen && countries.length > 0 && (
+          {isDropdownOpen && dialOptions.length > 0 && (
             <div
               className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow-lg max-h-60 overflow-y-auto text-sm border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
-              {countries.map((country) => (
+              {dialOptions.map((country) => (
                 <div
-                  key={country.countryCode}
+                  key={country.countryCode + country.dialCode}
                   onClick={() => handleCountrySelect(country)}
                   className="p-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
                 >
@@ -145,6 +146,7 @@ const ContactInputComponent = ({
             supressErrorDisplay={true}
             value={phone}
             validate={(value: string) => {
+              if (!value) return "";
               const phoneNumber = parsePhoneNumberFromString(
                 value,
                 countryCode

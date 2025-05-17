@@ -22,14 +22,14 @@ const ContactInputComponent = ({
   zipClass,
   prefix,
 }: IProps) => {
-  const { countries } = useCountryStore();
+  const { dialOptions } = useCountryStore();
   const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { setFieldValue } = useFormikContext<object>();
 
   // Sort countries alphabetically by name
-  const sortedCountries = [...countries].sort((a, b) =>
+  const sortedCountries = [...dialOptions].sort((a, b) =>
     a.name.localeCompare(b.name)
   );
 
