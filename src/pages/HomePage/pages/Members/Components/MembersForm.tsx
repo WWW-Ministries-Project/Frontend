@@ -1,4 +1,4 @@
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -16,7 +16,7 @@ import {
 } from "@components/subform";
 import { Field, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
-import { boolean, date, number, object, string } from "yup";
+import { boolean, date, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
 

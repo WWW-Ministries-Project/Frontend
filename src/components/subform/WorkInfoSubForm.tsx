@@ -1,4 +1,4 @@
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";

@@ -1,4 +1,4 @@
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
 import { Field, useFormikContext } from "formik";
@@ -58,7 +58,7 @@ export interface IPersonalDetails extends INameInfo {
   nationality: string;
 }
 const initialValues: IPersonalDetails = {
-...NameInfo.initialValues,
+  ...NameInfo.initialValues,
   date_of_birth: "",
   gender: "",
   marital_status: "",

@@ -7,7 +7,7 @@ interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {
   supressErrorDisplay: boolean;
 }
 
-export function fieldToInputDiv({
+function fieldToInputDiv({
   form: { touched, errors },
   field: { onChange: fieldOnChange, ...field },
   ...props
@@ -32,7 +32,7 @@ export function fieldToInputDiv({
   };
 }
 
-export default function FormikInputDiv({ ...props }: FormikInputDivProps) {
+export function FormikInputDiv({ ...props }: FormikInputDivProps) {
   return <InputDiv {...fieldToInputDiv(props)} />;
 }
 

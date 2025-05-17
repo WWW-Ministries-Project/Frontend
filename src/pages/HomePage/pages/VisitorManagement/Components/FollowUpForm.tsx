@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";

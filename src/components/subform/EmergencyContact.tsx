@@ -1,4 +1,4 @@
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
 import { object, string } from "yup";

@@ -1,5 +1,5 @@
 import { ContactInput, IContactInput } from "@/components/ContactInput";
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import { Field } from "formik";
 import { object, string } from "yup";
 import { CountryField } from "../fields/CountryField";

@@ -6,7 +6,7 @@ import { Field, getIn, useFormikContext } from "formik";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { useEffect, useMemo, useState } from "react";
 import { string } from "yup";
-import FormikInputDiv from "./FormikInput";
+import { FormikInputDiv } from "./FormikInput";
 
 interface IProps {
   disabled?: boolean;

@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInput";
 import FormikSelectField from "@/components/FormikSelect";
 import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
@@ -13,7 +13,12 @@ interface IProps {
   loading: boolean;
 }
 
-const VisitFormComponent = ({ onClose, initialData, onSubmit, loading }: IProps) => {
+const VisitFormComponent = ({
+  onClose,
+  initialData,
+  onSubmit,
+  loading,
+}: IProps) => {
   const initial: IVisitForm = useMemo(
     () => initialData || initialValues,
     [initialData]
@@ -65,7 +70,12 @@ const VisitFormComponent = ({ onClose, initialData, onSubmit, loading }: IProps)
                 loading={loading}
                 onClick={handleSubmit}
               />
-              <Button value="Cancel" variant="secondary" onClick={onClose} disabled={loading} />
+              <Button
+                value="Cancel"
+                variant="secondary"
+                onClick={onClose}
+                disabled={loading}
+              />
             </div>
           </Form>
         )}

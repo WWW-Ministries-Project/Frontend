@@ -3,7 +3,7 @@ import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
 import { string } from "yup";
-import FormikInputDiv from "./FormikInput";
+import { FormikInputDiv } from "./FormikInput";
 
 interface IProps {
   disabled?: boolean;
