@@ -1,4 +1,5 @@
-import InputDiv, {
+import {
+  InputDiv,
   InputDivProps,
 } from "@/pages/HomePage/Components/reusable/InputDiv";
 import { FieldProps, getIn } from "formik";

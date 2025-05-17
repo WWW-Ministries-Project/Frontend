@@ -1,4 +1,4 @@
-import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
+import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
 import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";

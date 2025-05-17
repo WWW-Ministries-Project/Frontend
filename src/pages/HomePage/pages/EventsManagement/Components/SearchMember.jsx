@@ -1,4 +1,4 @@
-import {ContactInput} from "@/components/ContactInput";
+import { ContactInput } from "@/components/ContactInput";
 import PropTypes from 'prop-types';
 import { Button } from "/src/components";
 
@@ -6,16 +6,16 @@ const SearchMember = ({ memberDetails, handleChange, loading, handleFindMember, 
     return (
         <div className="space-y-4">
             <div>
-            <h2 className='H400'>Welcome to {name}</h2>
-            <p className='text-sma text-primary'>Fill the form below to capture your attendance</p>
+                <h2 className='H400'>Welcome to {name}</h2>
+                <p className='text-sma text-primary'>Fill the form below to capture your attendance</p>
             </div>
             <div className=' '>
                 {/* <InputDiv label="Phone number" inputClass="border border-2" type="tel" id="phone_number" placeholder="Enter your phone number" value={memberDetails.phone_number} onChange={handleChange} /> */}
-                <ContactInput label="Phone number"   type="tel" id="phone_number" placeholder="Enter your phone number" value={memberDetails.phone_number} onChange={handleChange} />
-                
+                <ContactInput label="Phone number" type="tel" id="phone_number" placeholder="Enter your phone number" value={memberDetails.phone_number} onChange={handleChange} />
+
             </div>
             <div>
-            <Button value="Next" variant="primary" disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
+                <Button value="Next" variant="primary" disabled={!memberDetails.phone_number} onClick={handleFindMember} loading={loading} />
             </div>
         </div>
     );

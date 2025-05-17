@@ -10,7 +10,7 @@ export interface InputDivProps {
   id: string;
   value?: string | number;
   onChange: (name: string, value: string | number) => void;
-  onBlur?: (e: React.FocusEvent<any>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) => void;
   onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   error?: string;
@@ -24,7 +24,7 @@ export interface InputDivProps {
   ariaDescribedBy?: string;
 }
 
-const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
+export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
@@ -109,4 +109,3 @@ InputDiv.propTypes = {
 
 InputDiv.displayName = "InputDiv";
 
-export default InputDiv;

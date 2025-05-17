@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { Button } from "/src/components";
-import InputDiv from "/src/pages/HomePage/Components/reusable/InputDiv";
+import { InputDiv } from "/src/pages/HomePage/Components/reusable/InputDiv";
 
 const MemberConfirmation = ({ memberDetails, handleConfirm, loading }) => {
     return (
