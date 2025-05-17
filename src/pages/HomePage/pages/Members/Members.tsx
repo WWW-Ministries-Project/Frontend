@@ -232,6 +232,7 @@ export function Members() {
                   showOptions={showOptions === row.original.id}
                   onShowOptions={() => setShowOptions(row.original.id)}
                   onDelete={handleDeleteModal}
+                  canManage={permissions?.manage_members}
                 />
               )}
             />

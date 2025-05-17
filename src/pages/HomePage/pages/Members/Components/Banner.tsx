@@ -14,6 +14,7 @@ interface IProps {
   status?: string;
   onClick: (id: string | number) => void;
   membership_type?: string;
+  showButton?: boolean;
 }
 
 export const Banner = (props: IProps) => {
@@ -43,9 +44,9 @@ export const Banner = (props: IProps) => {
               <div className="font-bold text-2xl ">
                 {props.name || "No Name"}
               </div>
-              <div className="">{`${props.department??""} ${
+              <div className="">{`${props.department ?? ""} ${
                 props.department && props.position ? "|" : ""
-              } ${props.position??""} `}</div>
+              } ${props.position ?? ""} `}</div>
               <div className="">
                 {(props.email || "No Email") +
                   " | " +
@@ -58,18 +59,20 @@ export const Banner = (props: IProps) => {
                     : " In-person church family"}
                 </Badge>
                 <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
-                  {props.status??""}
+                  {props.status ?? ""}
                 </Badge>
               </div>
             </article>
           </div>
-          <div>
-            <Button
-              value="Edit Profile"
-              onClick={handleClick}
-              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
-            />
-          </div>
+          {props.showButton && (
+            <div>
+              <Button
+                value="Edit Profile"
+                onClick={handleClick}
+                className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

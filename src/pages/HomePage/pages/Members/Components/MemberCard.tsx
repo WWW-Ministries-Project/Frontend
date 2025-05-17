@@ -14,6 +14,7 @@ interface IProps {
   showOptions: boolean;
   onShowOptions: () => void;
   onDelete: (val?: MembersType) => void;
+  canManage?: boolean;
 }
 
 export const MemberCard = (props: IProps) => {
@@ -40,7 +41,7 @@ export const MemberCard = (props: IProps) => {
         <div className="space-y-5">
           <div>
             <div className="">
-              <div
+              {props.canManage && <div
                 className={`absolute right-0 top-0 flex flex-col items-end  rounded-md w-1/4 `}
                 onClick={props.onShowOptions}
               >
@@ -59,7 +60,7 @@ export const MemberCard = (props: IProps) => {
                     }
                   />
                 )}
-              </div>
+              </div>}
               <div className="flex  w-4/5">
                 <p className="font-bold text-[1rem] truncate text-primary">
                   {props.member?.name}

@@ -109,7 +109,7 @@ export const routes: AppRoute[] = [
         element: <ManageMember />,
         name: "Manage Member",
         isPrivate: true,
-        permissionNeeded: "view_members",
+        permissionNeeded: "manage_members",
       },
       {
         path: "members/:id",
