@@ -11,7 +11,7 @@ export interface InputDivProps {
   value?: string | number;
   onChange: (name: string, value: string | number) => void;
   onBlur?: (e: React.FocusEvent<any>) => void;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   error?: string;
   min?: string;

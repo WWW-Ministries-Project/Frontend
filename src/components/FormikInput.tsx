@@ -3,7 +3,9 @@ import InputDiv, {
 } from "@/pages/HomePage/Components/reusable/InputDiv";
 import { FieldProps, getIn } from "formik";
 
-interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {}
+interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {
+  supressErrorDisplay: boolean;
+}
 
 export function fieldToInputDiv({
   form: { touched, errors },
@@ -26,7 +28,7 @@ export function fieldToInputDiv({
     className: props.className,
     inputClass: props.inputClass,
     placeholder: props.placeholder,
-    error: showError,
+    error: props.supressErrorDisplay ? "" : showError,
   };
 }
 

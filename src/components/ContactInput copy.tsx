@@ -1,10 +1,7 @@
-import InputDiv from "@/pages/HomePage/Components/reusable/InputDiv";
 import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
-import { fetchCountries } from "@/pages/HomePage/utils";
 import { countryType } from "@/pages/HomePage/utils/homeInterfaces";
-import { Field, getIn, useFormikContext } from "formik";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { useEffect, useMemo, useState } from "react";
+import { Field, useFormikContext } from "formik";
+import { useEffect, useState } from "react";
 import { string } from "yup";
 import FormikInputDiv from "./FormikInput";
 
@@ -26,33 +23,38 @@ const ContactInputComponent = ({
   prefix,
 }: IProps) => {
   const { countries } = useCountryStore();
+  const [filteredCountries, setFilteredCountries] = useState<countryType[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { setFieldValue } = useFormikContext<object>();
 
-  const { setFieldValue, values, errors, setFieldError } =
-    useFormikContext<object>();
-  const code = useMemo(() => {
-    return getIn(values, `${prefix}.phone.country_code`) ?? "+233";
-  }, [values, prefix]);
-  const phone = useMemo(() => {
-    return getIn(values, `${prefix}.phone.number`);
-  }, [values, prefix]);
-  const error = getIn(errors, `${prefix}.phone.number`);
-  const countryCode = useMemo(() => {
-    return countries.find((c) => c.dialCode === code)?.countryCode || "GH";
-  }, [code, countries]);
+  // Sort countries alphabetically by name
+  const sortedCountries = [...countries].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
 
   // Handle country code input change
-  // const handleInputChange = (value: string | number) => {
-  //   setFieldValue(`${prefix}.phone.number`, value);
-  //   return validatePhoneNumber(value.toString());
-  // };
+  const handleInputChange = (_: string, value: string) => {
+    const val = value.toString().toLowerCase();
+    setSearchTerm(val);
+    setIsDropdownOpen(true);
+
+    const filtered = sortedCountries.filter(
+      (country) =>
+        country.countryCode.toLowerCase().includes(val) ||
+        country.initials.toLowerCase().includes(val) ||
+        country.name.toLowerCase().includes(val) ||
+        country.dialCode.toLowerCase().includes(val)
+    );
+    setFilteredCountries(filtered);
+  };
 
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
     setFieldValue(`${prefix}.phone.country_code`, country.dialCode);
-    // setCountryCode(country.countryCode);
-    validatePhoneNumber(phone);
+    setFilteredCountries([]);
     setIsDropdownOpen(false);
+    setSearchTerm("");
   };
 
   // Close dropdown when clicking outside
@@ -62,60 +64,43 @@ const ContactInputComponent = ({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!countries.length) {
-      fetchCountries().then((data) => {
-        useCountryStore.setState({ countries: data });
-      });
-    }
-  }, [countries]);
-
-  function validatePhoneNumber(input: string): boolean {
-    const phoneNumber = parsePhoneNumberFromString(input, countryCode);
-    // setFieldValue(`${prefix}.phone.number`,input);
-    setFieldError(
-      `${prefix}.phone.number`,
-      phoneNumber?.isValid()
-        ? undefined
-        : "Invalid phone number for selected country"
-    );
-    return phoneNumber?.isValid() ?? false;
-  }
-
   return (
     <div className="mb-4">
       <label className="text-primary font-semibold block mb-1">{label}</label>
-      <div className="flex items-center w-full relative ">
+      <div className="flex items-center w-full">
         {/* Country Code Input */}
-        <div className="w-24">
-          <InputDiv
+        <div className="relative w-24">
+          <Field
+            component={FormikInputDiv}
             id={`${prefix}.phone.country_code`}
-            value={code}
+            name={`${prefix}.phone.country_code`}
             disabled={disabled}
-            onChange={(_: string, value: string | number) => {
-              validatePhoneNumber(phone);
-            }}
-            // onChange={() => null}
+            onChange={handleInputChange}
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation();
               setIsDropdownOpen(true);
+              if (!searchTerm) {
+                setFilteredCountries(sortedCountries);
+              }
             }}
-            inputClass={`w-full  ${
+            value={searchTerm}
+            inputClass={`w-full ${
               zipClass ||
               "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/30"
-            }  ${error ? "border-error" : "border-primary"}`}
+            }`}
             placeholder="Code"
             aria-describedby="country-code-description"
             aria-label="Country Calling Code"
+            autoComplete="off"
           />
 
           {/* Country Code Dropdown */}
-          {isDropdownOpen && countries.length > 0 && (
+          {isDropdownOpen && filteredCountries.length > 0 && (
             <div
-              className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow-lg max-h-60 overflow-y-auto text-sm border border-gray-200"
+              className="absolute left-0 right-0 z-10 mt-1 bg-white rounded shadow-lg w-full max-h-60 overflow-y-auto text-sm border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
-              {countries.map((country) => (
+              {filteredCountries.map((country) => (
                 <div
                   key={country.countryCode}
                   onClick={() => handleCountrySelect(country)}
@@ -135,33 +120,22 @@ const ContactInputComponent = ({
         </div>
 
         {/* Phone Number Input */}
-        <div className="flex-grow">
+        <div className="flex-grow relative">
           <Field
             component={FormikInputDiv}
-            name={`${prefix}.phone.number`}
             id={`${prefix}.phone.number`}
+            name={`${prefix}.phone.number`}
             aria-label="Phone number"
+            maxLength={10}
             placeholder="Enter phone number"
-            supressErrorDisplay={true}
-            value={phone}
-            validate={(value: string) => {
-              const phoneNumber = parsePhoneNumberFromString(
-                value,
-                countryCode
-              );
-              return phoneNumber?.isValid()
-                ? undefined
-                : "Invalid phone number for selected country";
-            }}
             disabled={disabled}
-            inputClass={`w-full ${className || "rounded-r-lg p-2 border"} ${
-              error ? "border-error" : "border-primary"
+            inputClass={`w-full ${
+              className || "rounded-r-lg p-2 border border-primary"
             }`}
             type="tel"
           />
         </div>
       </div>
-      {error && <p className="text-error text-sm">{error}</p>}
     </div>
   );
 };
@@ -172,12 +146,14 @@ export interface IContactInput {
 }
 
 const initialValues: IContactInput = {
-  country_code: "+233",
+  country_code: "",
   number: "",
 };
 
 const validationSchema = {
-  number: string().required("Phone number is required"),
+  number: string()
+    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+    .required("Phone number is required"),
   country_code: string().required("Country code is required"),
 };
 

@@ -1,6 +1,8 @@
+import { CountryCode } from "libphonenumber-js";
+
 export interface countryType {
   name: string;
-  countryCode: string;
+  countryCode: CountryCode;
   dialCode: string;
   initials: string;
   flag: string;

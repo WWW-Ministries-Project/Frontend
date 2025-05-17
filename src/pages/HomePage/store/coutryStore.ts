@@ -13,8 +13,11 @@ export const useCountryStore = create<CountrySlice>((set, get) => ({
   countries: [],
   countryOptions: [],
   setCountries: (countries) => {
-    set(({ countries })),
-      get().setCountryOptions();
+    const sortCountries = countries.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    set({ countries: sortCountries }), get().setCountryOptions();
   },
 
   setCountryOptions: () => {
