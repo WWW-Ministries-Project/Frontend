@@ -57,7 +57,7 @@ export function ManageMember() {
     let dataToSend = { ...values };
 
     try {
-      const uploadedFile = values.personal_info.picture?.picture;
+      const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();
@@ -68,10 +68,7 @@ export function ManageMember() {
         if (response?.status === 200) {
           dataToSend = {
             ...values,
-            personal_info: {
-              ...values.personal_info,
-              picture: { src: response.data.result.link, picture: null },
-            },
+            picture: { src: response.data.result.link, picture: null },
           };
         } else {
           throw new Error("Image upload failed");

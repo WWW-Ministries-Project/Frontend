@@ -54,6 +54,7 @@ export type AccessLevelType = {
 export interface IMemberInfo {
   id: string | number;
   membership_Id: string;
+  member_since: string;
   member_id: string;
   access_level_id: string | null;
   access: AccessLevelType | null;
@@ -72,13 +73,16 @@ export interface IMemberInfo {
   country_code: string;
   email: string;
   isMinistryWorker: boolean;
-  // department?: number;
+  state_region?:string
+  city?:string;
+  department_id?: number;
+  is_user: boolean;
   department: {
     id: number;
     name: string;
   };
   status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER";
-  // position?: number;
+  position_id?: number;
   position: {
     id: number;
     name: string;

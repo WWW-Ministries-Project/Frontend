@@ -15,10 +15,11 @@ import {
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, getIn, useFormikContext } from "formik";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { boolean, date, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
+import { ProfilePicture } from "@/components";
 
 interface IProps {
   disabled?: boolean;
@@ -28,16 +29,46 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
   const { departmentsOptions } = useSettingsStore();
   const { positionsOptions } = useSettingsStore();
 
-  const { values } = useFormikContext<IMembersForm>();
+  const { values, setFieldValue } = useFormikContext<IMembersForm>();
   const { has_children } = useMemo(
     () => getIn(values, "personal_info") || false,
     [values]
   );
+  useEffect(() => {
+    if (!values.is_user) {
+      setFieldValue("church_info.position_id", "");
+      setFieldValue("church_info.department_id", "");
+    }
+    if (!values.personal_info.has_children) {
+      setFieldValue("children", []);
+    }
+    console.log(values.children);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.is_user, values.personal_info.has_children]);
 
   return (
     <FormLayout>
       <FormHeader>Personal Information</FormHeader>
-      <UserSubForm disabled={disabled} prefix="personal_info" />
+            <FullWidth>
+              <div className="flex flex-col items-center justify-center w-full">
+                <ProfilePicture
+                  className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
+                  id="profile_picture"
+                  name="profile_picture"
+                  src={values.picture.src}
+                  alt="Profile Picture"
+                  editable={true}
+                  onChange={(obj) => {
+                    setFieldValue(`picture`, obj);
+                  }}
+                  textClass={"text-3xl text-primary"}
+                />
+                <p className="text-sm ">
+                  Click on the <strong>pen icon</strong> to upload your profile image{" "}
+                </p>
+              </div>
+            </FullWidth>
+      <UserSubForm prefix="personal_info" />
       <HorizontalLine />
 
       <FormHeader>Contacts Information</FormHeader>
@@ -116,11 +147,15 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 export type membersType = "ONLINE" | "IN_HOUSE";
 export interface IMembersForm extends IChildrenSubForm {
   personal_info: IUserSubForm;
+  picture: {
+    src: string;
+    picture: File | null;
+  };
   emergency_contact: IEmergencyContact;
   contact_info: IContactsSubForm;
   work_info: IWorkInfoSubForm;
   church_info: {
-    member_since?: Date;
+    member_since?: string;
     membership_type: membersType;
     department_id?: number | string;
     position_id?: number | string;
@@ -130,6 +165,10 @@ export interface IMembersForm extends IChildrenSubForm {
 
 const initialValues: IMembersForm = {
   personal_info: UserSubForm.initialValues,
+    picture: {
+    src: "",
+    picture: null,
+  },
   contact_info: ContactsSubForm.initialValues,
   work_info: WorkInfoSubForm.initialValues,
   emergency_contact: EmergencyContact.initialValues,

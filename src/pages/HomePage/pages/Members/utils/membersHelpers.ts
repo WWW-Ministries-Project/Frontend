@@ -34,14 +34,14 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       gender: input.gender || "",
       marital_status: input.marital_status || "",
       nationality: input.nationality || "",
-      picture: { src: input.photo || "", picture: null },
       has_children: input.children.length > 0,
     },
+    picture: { src: input.photo || "", picture: null },
     contact_info: {
       email: input.email,
       resident_country: input.country,
-      state_region: "",
-      city: "",
+      state_region: input.state_region || "",
+      city: input.city || "",
       phone: {
         country_code: input.country_code || "",
         number: formatPhone(input.primary_number),
@@ -60,11 +60,12 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
         number: input.emergency_contact.phone_number || "",
       },
     },
-    is_user: false,
+    is_user: input.is_user,
     church_info: {
       membership_type: input.membership_type,
-      department_id: input.department ?? undefined,
-      position_id: input.position ?? undefined,
+      department_id: input.department_id ?? undefined,
+      position_id: input.position_id ?? undefined,
+      member_since: formatDate(input.member_since),
     },
     children: (input.children as IPersonalDetails[]) || [],
   };
