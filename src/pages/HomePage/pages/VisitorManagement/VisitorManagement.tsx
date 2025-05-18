@@ -2,6 +2,7 @@ import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import SearchBar from "@/components/SearchBar";
+import { useAuth } from "@/context/AuthWrapper";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -19,6 +20,9 @@ import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
 import { mapVisitorToForm } from "./utils";
 
 export function VisitorManagement() {
+  const {
+    user: { permissions },
+  } = useAuth();
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -93,7 +97,8 @@ export function VisitorManagement() {
     {
       accessorKey: "phone",
       header: "Phone",
-      cell: ({ row }) => formatPhoneNumber(row.original.country_code , row.original.phone) || "",
+      cell: ({ row }) =>
+        formatPhoneNumber(row.original.country_code, row.original.phone) || "",
     },
     {
       accessorKey: "visitDate",
@@ -163,7 +168,7 @@ export function VisitorManagement() {
           <HeaderControls
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"
-            btnName="Register visitor"
+            btnName={permissions.manage_visitors ? "Register visitor" : ""}
             screenWidth={window.innerWidth}
             handleClick={() => {
               setIsModalOpen(true);
@@ -189,6 +194,7 @@ export function VisitorManagement() {
                 <TableComponent
                   data={visitors}
                   columns={headings}
+                  columnVisibility={{ actions: permissions.manage_visitors }}
                   filter={filterVisitors}
                   setFilter={setFilterVisitors}
                 />
