@@ -1,3 +1,4 @@
+import { ProfilePicture } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
@@ -19,7 +20,6 @@ import { useEffect, useMemo } from "react";
 import { boolean, date, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
-import { ProfilePicture } from "@/components";
 
 interface IProps {
   disabled?: boolean;
@@ -42,32 +42,31 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     if (!values.personal_info.has_children) {
       setFieldValue("children", []);
     }
-    console.log(values.children);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.is_user, values.personal_info.has_children]);
 
   return (
     <FormLayout>
       <FormHeader>Personal Information</FormHeader>
-            <FullWidth>
-              <div className="flex flex-col items-center justify-center w-full">
-                <ProfilePicture
-                  className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
-                  id="profile_picture"
-                  name="profile_picture"
-                  src={values.picture.src}
-                  alt="Profile Picture"
-                  editable={true}
-                  onChange={(obj) => {
-                    setFieldValue(`picture`, obj);
-                  }}
-                  textClass={"text-3xl text-primary"}
-                />
-                <p className="text-sm ">
-                  Click on the <strong>pen icon</strong> to upload your profile image{" "}
-                </p>
-              </div>
-            </FullWidth>
+      <FullWidth>
+        <div className="flex flex-col items-center justify-center w-full">
+          <ProfilePicture
+            className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
+            id="profile_picture"
+            name="profile_picture"
+            src={values.picture.src}
+            alt="Profile Picture"
+            editable={true}
+            onChange={(obj) => {
+              setFieldValue(`picture`, obj);
+            }}
+            textClass={"text-3xl text-primary"}
+          />
+          <p className="text-sm ">
+            Click on the <strong>pen icon</strong> to upload your profile image{" "}
+          </p>
+        </div>
+      </FullWidth>
       <UserSubForm prefix="personal_info" />
       <HorizontalLine />
 
@@ -165,7 +164,7 @@ export interface IMembersForm extends IChildrenSubForm {
 
 const initialValues: IMembersForm = {
   personal_info: UserSubForm.initialValues,
-    picture: {
+  picture: {
     src: "",
     picture: null,
   },
