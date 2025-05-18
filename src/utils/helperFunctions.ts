@@ -8,16 +8,19 @@ export const getToken = () => {
 };
 export const setToken = (token: string) => {
   return Cookies.set("token", token, {
-    expires: new Date(decodeToken(token)?.exp * 1000),
+    expires: new Date((decodeToken(token)?.exp as number) * 1000),
   });
 };
 export const removeToken = () => {
   return Cookies.remove("token");
 };
 
-export const decodeToken = (value?: string): any => {
+export const decodeToken = (
+  value?: string
+): Record<string, unknown> | undefined => {
   const token = value ? value : getToken();
-  return token && jwtDecode(token);
+  if (!token) return undefined;
+  return jwtDecode(token);
 };
 export const firstLetters = (string = "No Name") => {
   string = string.length > 0 ? string : "No Name";
@@ -70,30 +73,12 @@ export const genderOptions = [
   { name: "Male", value: "Male" },
   { name: "Female", value: "Female" },
 ];
-export const memberValues = {
-  password: "123456",
-  department_id: "",
-  first_name: "",
-  other_name: "",
-  last_name: "",
-  email: "",
-  primary_number: "",
-  date_of_birth: "",
-  gender: "",
-  is_active: true,
-  address: "",
-  work_name: "",
-  work_industry: "",
-  work_position: "",
-  emergency_contact_name: "",
-  emergency_contact_relation: "",
-  emergency_contact_phone_number: "",
-  department_head: "",
-  country: "",
-};
 
-export const getChangedValues = (initialValues: any, currentValues: any) => {
-  const changedValues: any = {};
+export const getChangedValues = (
+  initialValues: Record<string, unknown>,
+  currentValues: Record<string, unknown>
+) => {
+  const changedValues: Record<string, unknown> = {};
   for (const key in currentValues) {
     if (typeof currentValues[key] == "object") continue;
     if (currentValues[key] !== initialValues[key]) {
