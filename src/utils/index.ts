@@ -7,3 +7,6 @@ export * from "./api/members/interfaces";
 export * from "./api/assets/interfaces";
 export * from "./api/settings/departmentInterfaces"
 export * from "./api/settings/positionInterfaces"
+
+//consts
+export * from "./const";

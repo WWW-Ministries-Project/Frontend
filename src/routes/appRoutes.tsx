@@ -16,10 +16,10 @@ import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass
 import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
-import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
-import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+// import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
+// import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
+// import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
+// import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
@@ -40,6 +40,7 @@ import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 
+import { relativePath } from "@/utils/const.js";
 import { ReactNode } from "react";
 
 // Define a Route type
@@ -64,7 +65,7 @@ export const routes: AppRoute[] = [
     errorElement: <ErrorPage />,
   },
   {
-    path: "/login",
+    path: relativePath.login,
     name: "Landing",
     element: <LoginPage />,
   },
@@ -79,7 +80,7 @@ export const routes: AppRoute[] = [
     element: <ResetPassword />,
   },
   {
-    path: "/home",
+    path: relativePath.home.main,
     element: <HomePage />,
     name: "Home",
     children: [
@@ -90,14 +91,14 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: "dashboard",
+        path: relativePath.home.dashboard,
         name: "Dashboard",
         element: <DashBoardPage />,
         isPrivate: false,
         sideTab: true,
       },
       {
-        path: "members",
+        path: relativePath.home.members.main,
         name: "Members",
         element: <Members />,
         isPrivate: true,
@@ -105,7 +106,7 @@ export const routes: AppRoute[] = [
         sideTab: true,
       },
       {
-        path: "members/manage-member",
+        path: relativePath.home.members.manage,
         element: <ManageMember />,
         name: "Manage Member",
         isPrivate: true,
@@ -164,47 +165,47 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_events",
       },
-      {
-        path: "requests",
-        name: "Requests",
-        isPrivate: true,
-        permissionNeeded: "view_events",
-        sideTab: true,
-        children: [
-          {
-            path: "",
-            name: "My Requests",
-            element: <MyRequisitions />,
-            isPrivate: true,
-            sideTab: true,
-          },
-          {
-            path: ":id",
-            name: "Requests Details",
-            element: <RequestDetails />,
-            isPrivate: true,
-          },
-          {
-            path: "request",
-            name: "Request",
-            element: <Request />,
-            isPrivate: true,
-          },
-          {
-            path: "request/:id",
-            name: "Request",
-            element: <Request />,
-            isPrivate: true,
-          },
-          {
-            path: "staff_requests",
-            name: "Staff Requests",
-            element: <Requisitions />,
-            isPrivate: true,
-            sideTab: true,
-          },
-        ],
-      },
+      // {
+      //   path: "requests",
+      //   name: "Requests",
+      //   isPrivate: true,
+      //   permissionNeeded: "view_events",
+      //   sideTab: true,
+      //   children: [
+      //     {
+      //       path: "",
+      //       name: "My Requests",
+      //       element: <MyRequisitions />,
+      //       isPrivate: true,
+      //       sideTab: true,
+      //     },
+      //     {
+      //       path: ":id",
+      //       name: "Requests Details",
+      //       element: <RequestDetails />,
+      //       isPrivate: true,
+      //     },
+      //     {
+      //       path: "request",
+      //       name: "Request",
+      //       element: <Request />,
+      //       isPrivate: true,
+      //     },
+      //     {
+      //       path: "request/:id",
+      //       name: "Request",
+      //       element: <Request />,
+      //       isPrivate: true,
+      //     },
+      //     {
+      //       path: "staff_requests",
+      //       name: "Staff Requests",
+      //       element: <Requisitions />,
+      //       isPrivate: true,
+      //       sideTab: true,
+      //     },
+      //   ],
+      // },
       {
         path: "assets",
         name: "Assets",
