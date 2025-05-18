@@ -5,7 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
-import SearchBar from "../../../../components/SearchBar";
+import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import TableComponent from "../../Components/reusable/TableComponent";

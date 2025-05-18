@@ -10,7 +10,7 @@ import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
-import SearchBar from "../../../../components/SearchBar";
+import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import MembersCount from "../../Components/reusable/MembersCount";

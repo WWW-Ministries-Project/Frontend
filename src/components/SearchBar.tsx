@@ -1,17 +1,17 @@
-import search from "/src/assets/search.svg";
 import PropTypes from "prop-types";
+import search from "/src/assets/search.svg";
 
-interface ISearchBar {
-  id?:string,
-  placeholder?:string,
-  value?:string,
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  className?:string
+interface IProps {
+  id?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
 }
-function SearchBar(props: ISearchBar): JSX.Element {
+export const SearchBar = (props: IProps): JSX.Element => {
   return (
     <>
-      <div className={"flex items-center bg-white  "+props.className}>
+      <div className={"flex items-center bg-white  " + props.className}>
         <form className="w-full text-primary flex items-center   font-normal leading-6">
           <img
             role="submit button"
@@ -21,35 +21,24 @@ function SearchBar(props: ISearchBar): JSX.Element {
           />
 
           <input
-            id={props.id||"search"}
+            id={props.id || "search"}
             type="text"
-            placeholder= {props.placeholder}
+            placeholder={props.placeholder}
             name="search"
             className="bg-inherit rounded-r-lg p-2 border  border-lightGray focus:outline-none w-[25rem]"
             value={props.value}
             onChange={props.onChange}
             autoComplete="off"
-          
           />
         </form>
       </div>
     </>
   );
-}
+};
 SearchBar.propTypes = {
-    // type: PropTypes.string.isRequired,
-    id: PropTypes.string,
-    // name: PropTypes.string.isRequired,
-    value: PropTypes.string,
-    // valid: PropTypes.bool,
-    // isRequired: PropTypes.bool,
-    // inputClass: PropTypes.string,
-    placeholder: PropTypes.string,
-    // label: PropTypes.string.isRequired,
-    // pattern: PropTypes.string,
-    // handleBlur: PropTypes.func,
-    onChange: PropTypes.func,
-    className: PropTypes.string,
-  };
-
-export default SearchBar;
+  id: PropTypes.string,
+  value: PropTypes.string,
+  placeholder: PropTypes.string,
+  onChange: PropTypes.func,
+  className: PropTypes.string,
+};

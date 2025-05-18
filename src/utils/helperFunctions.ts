@@ -2,22 +2,21 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
+import { userType } from "./interfaces";
 
 export const getToken = () => {
   return Cookies.get("token");
 };
 export const setToken = (token: string) => {
   return Cookies.set("token", token, {
-    expires: new Date((decodeToken(token)?.exp as number) * 1000),
+    expires: new Date((decodeToken(token)?.exp ?? 0) * 1000),
   });
 };
 export const removeToken = () => {
   return Cookies.remove("token");
 };
 
-export const decodeToken = (
-  value?: string
-): Record<string, unknown> | undefined => {
+export const decodeToken = (value?: string): userType | undefined => {
   const token = value ? value : getToken();
   if (!token) return undefined;
   return jwtDecode(token);
