@@ -9,9 +9,9 @@ import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
-import Header from "../HomePage/Components/Header";
-import SideBar from "../HomePage/Components/SideBar";
 import Breadcrumb from "./Components/BreadCrumb";
+import { Header } from "./Components/Header";
+import SideBar from "./Components/SideBar";
 import SideBarMobile from "./Components/SideBarMobile";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
@@ -38,7 +38,6 @@ function HomePage() {
   const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
-  //@ts-expect-error this auth dey worry
   const { user } = useAuth();
 
   //side nav
@@ -73,6 +72,7 @@ function HomePage() {
     if (positionsData) {
       settingsStore.setPositions(positionsData.data);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
 
   useEffect(() => {

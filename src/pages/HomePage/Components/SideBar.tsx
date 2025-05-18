@@ -41,7 +41,6 @@ const icons: Record<
 
 const SideBar = ({ className }: IProps) => {
   const {
-    //@ts-expect-error user to be corrected
     user: { permissions },
   } = useAuth();
   const navigate = useNavigate();
