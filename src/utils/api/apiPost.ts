@@ -88,8 +88,8 @@ export class ApiCreationCalls {
 
   /*Visitor Management*/
   createVisitor = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visitors", payload);
   };
   // Visit

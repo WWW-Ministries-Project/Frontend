@@ -1,5 +1,6 @@
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
 
 export const getToken = () => {
@@ -34,9 +35,14 @@ export const formatPhoneNumber = (
 ): string => {
   if (!countryCode || !number) return "-";
 
-  // Format number into groups of 3-4 digits for better readability
-  const formatted = number.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
-  return `${countryCode} ${formatted}`;
+  // // Format number into groups of 3-4 digits for better readability
+  // const formatted = number.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
+  // return `${countryCode} ${formatted}`;
+  const phone = parsePhoneNumber(countryCode + number);
+
+  if (phone?.isValid()) return phone.formatInternational();
+
+  return "-";
 };
 
 export const formatDate = (value: string) => {
