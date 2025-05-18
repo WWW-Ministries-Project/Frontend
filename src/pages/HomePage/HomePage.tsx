@@ -22,7 +22,7 @@ export const navigateRef = {
     | null,
 };
 
-function HomePage() {
+export function HomePage() {
   const {
     data: membersData,
     loading: membersLoading,
@@ -166,4 +166,3 @@ function HomePage() {
   );
 }
 
-export default HomePage;

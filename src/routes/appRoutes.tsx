@@ -33,7 +33,7 @@ import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/Visit
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import Registration from "@/pages/Registration/Registration";
-import HomePage from "../pages/HomePage/HomePage";
+import { HomePage } from "../pages/HomePage/HomePage";
 import AssetManagement from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
