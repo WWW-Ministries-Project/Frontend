@@ -23,7 +23,7 @@ import { UserType } from "./utils/membersInterfaces";
 
 export function Members() {
   const location = useLocation();
-  const isNew = location.state?.new;
+  const task = location.state?.task;
   const navigate = useNavigate();
 
   const {
@@ -87,11 +87,15 @@ export function Members() {
 
   // Show notification after adding a member
   useEffect(() => {
-    if (isNew) {
-      showNotification("Member Added Successfully");
+    if (task) {
+      showNotification(
+        task === "add"
+          ? "Member Added Successfully"
+          : "Member Updated Successfully"
+      );
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [isNew, location.pathname, navigate]);
+  }, [task, location.pathname, navigate]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterMembers(e.target.value);

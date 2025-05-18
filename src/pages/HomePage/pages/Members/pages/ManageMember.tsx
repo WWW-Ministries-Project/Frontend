@@ -26,7 +26,7 @@ export function ManageMember() {
     true
   );
   const { postData, loading, data } = usePost(api.post.createMember);
-  const { updateData, loading: updateLoading } = usePut(api.put.updateMember);
+  const { updateData, loading: updateLoading, data: updatedData } = usePut(api.put.updateMember);
 
   useEffect(() => {
     if (id) refetch();
@@ -42,12 +42,12 @@ export function ManageMember() {
   }, [member?.data]);
 
   useEffect(() => {
-    if (data) {
+    if (data || updatedData) {
       refetchMembers();
-      navigate("/home/members", { state: { new: true } });
+      navigate("/home/members", { state: { task: data ? "add" : "update" } });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, member]);
+  }, [data, member, updatedData]);
 
   const handleCancel = () => {
     navigate(-1);
