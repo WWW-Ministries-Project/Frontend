@@ -20,7 +20,7 @@ const ContactsSubFormComponent = ({
       />
       <Field
         component={FormikInputDiv}
-        label="Email"
+        label="Email *"
         placeholder="Enter email"
         id={`${prefix}.email`}
         name={`${prefix}.email`}
@@ -30,13 +30,13 @@ const ContactsSubFormComponent = ({
       <CountryField
         prefix={prefix}
         disabled={disabled}
-        label="Country"
+        label="Country *"
         placeholder="Enter country of residence"
         name={`${prefix}.resident_country`}
       />
       <Field
         component={FormikInputDiv}
-        label="State/Region"
+        label="State/Region *"
         placeholder="Enter state/region of residence"
         id={`${prefix}.state_region`}
         name={`${prefix}.state_region`}
@@ -45,7 +45,7 @@ const ContactsSubFormComponent = ({
       />
       <Field
         component={FormikInputDiv}
-        label="City"
+        label="City *"
         placeholder="Enter city of residence"
         id={`${prefix}.city`}
         name={`${prefix}.city`}

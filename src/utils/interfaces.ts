@@ -36,4 +36,7 @@ export interface userType {
   email: string;
   name: string;
   permissions: Record<string, boolean>;
+  iat: number;
+  exp: number;
+  profile_img: string;
 }

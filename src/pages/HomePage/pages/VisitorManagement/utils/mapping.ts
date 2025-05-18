@@ -1,7 +1,9 @@
-import { VisitorType } from "@/utils";
+import { formatInputDate, VisitorType } from "@/utils";
 import { IVisitorForm } from "../Components/VisitorForm";
 
-export const mapVisitorToForm = (visitor: VisitorType): IVisitorForm & {id: string} => {
+export const mapVisitorToForm = (
+  visitor: VisitorType
+): IVisitorForm & { id: string } => {
   return {
     id: visitor.id,
     personal_info: {
@@ -15,11 +17,11 @@ export const mapVisitorToForm = (visitor: VisitorType): IVisitorForm & {id: stri
       resident_country: visitor.country,
       state_region: visitor.state,
       city: visitor.city,
-      phone: { country_code: "", number: visitor.phone },
+      phone: { country_code: visitor.country_code, number: visitor.phone },
       address: visitor.address,
     },
     visit: {
-      date: visitor.visitDate,
+      date: formatInputDate(visitor.visitDate) || "",
       howHeard: visitor.howHeard,
       eventId: "", // or handle this if you have a way to get it
     },

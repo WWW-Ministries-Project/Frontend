@@ -54,8 +54,8 @@ export const assetsColumns: ColumnDef<assetType>[] = [
       <div
         className={`text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center ${
           info.getValue() === "ASSIGNED"
-            ? "bg-green text-white"
-            : "bg-neutralGray text-lighterBlack"
+            ? "bg-green-500 text-white"
+            : "bg-gray-400 text-lighterBlack"
         }  `}
       >
         {info.getValue() === "ASSIGNED" ? "Assigned" : "Unassigned"}

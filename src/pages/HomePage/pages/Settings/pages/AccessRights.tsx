@@ -1,5 +1,5 @@
 import { Button } from "@/components/Button";
-import SearchBar from "@/components/SearchBar";
+import { SearchBar } from "@/components/SearchBar";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";

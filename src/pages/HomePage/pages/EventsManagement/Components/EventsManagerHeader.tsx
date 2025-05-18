@@ -1,4 +1,4 @@
-import SearchBar from "@/components/SearchBar";
+import { SearchBar } from "@/components/SearchBar";
 import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
 import React from "react";
 

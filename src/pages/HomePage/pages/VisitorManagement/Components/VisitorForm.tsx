@@ -52,7 +52,7 @@ const VisitorFormComponent = ({
                 component={FormikSelectField}
                 options={eventsOptions}
                 label="Event"
-                placeholder="Event"
+                placeholder="Select event"
                 name="eventId"
                 id="eventId"
               />

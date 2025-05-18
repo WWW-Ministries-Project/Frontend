@@ -7,11 +7,12 @@ export type VisitorType = {
   email: string;
   phone: string;
   country: string;
+  country_code: string;
   address: string;
   city: string;
   state: string;
   zipCode: string | null;
-  visitDate: string;
+  visitDate?: string;
   is_member: boolean;
   howHeard: string;
   consentToContact: boolean;

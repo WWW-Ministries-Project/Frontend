@@ -5,7 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
-import SearchBar from "../../../../components/SearchBar";
+import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import TableComponent from "../../Components/reusable/TableComponent";
@@ -22,7 +22,7 @@ const AssetManagement = () => {
   const [tableView, setTableView] = useState(
     sessionStorage.getItem("assetsTableView") === "false" ? false : true
   );
-  const { data: assets } = useFetch(api.fetch.fetchAssets);
+  const { data: assets, refetch } = useFetch(api.fetch.fetchAssets);
   const { executeDelete, success, error } = useDelete(api.delete.deleteAsset);
 
   const assertsData = useMemo(() => assets?.data || [], [assets]);
@@ -35,10 +35,12 @@ const AssetManagement = () => {
   useEffect(() => {
     if (success) {
       showNotification("Asset deleted successfully");
+      refetch();
     }
     if (error) {
-      showNotification(error.message);
+      showNotification(error.message, "error");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, success]);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value);
@@ -49,7 +51,7 @@ const AssetManagement = () => {
   };
 
   const handleDelete = (id: string | number) => {
-    executeDelete(id);
+    executeDelete({ id: String(id) });
   };
   const showDeleteModal = (val: assetType) => {
     showDeleteDialog(val, handleDelete);

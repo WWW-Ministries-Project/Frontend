@@ -156,10 +156,10 @@ export class ApiUpdateCalls {
   /* Visitor Management */
 
   updateVisitor = (
-    payload: Record<string, any>,
-    query: QueryType
+    payload: unknown,
+    query?: QueryType
   ): Promise<ApiResponse<VisitorType>> => {
-    return this.apiExecution.updateData(`visitor/visitors`, payload, query);
+    return this.apiExecution.updateData(`visitor/visitor`, payload, query);
   };
 
   updateVisit = (

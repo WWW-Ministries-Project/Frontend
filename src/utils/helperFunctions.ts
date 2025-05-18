@@ -1,22 +1,25 @@
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
+import { userType } from "./interfaces";
 
 export const getToken = () => {
   return Cookies.get("token");
 };
 export const setToken = (token: string) => {
   return Cookies.set("token", token, {
-    expires: new Date(decodeToken(token)?.exp * 1000),
+    expires: new Date((decodeToken(token)?.exp ?? 0) * 1000),
   });
 };
 export const removeToken = () => {
   return Cookies.remove("token");
 };
 
-export const decodeToken = (value?: string): any => {
+export const decodeToken = (value?: string): userType | undefined => {
   const token = value ? value : getToken();
-  return token && jwtDecode(token);
+  if (!token) return undefined;
+  return jwtDecode(token);
 };
 export const firstLetters = (string = "No Name") => {
   string = string.length > 0 ? string : "No Name";
@@ -34,9 +37,14 @@ export const formatPhoneNumber = (
 ): string => {
   if (!countryCode || !number) return "-";
 
-  // Format number into groups of 3-4 digits for better readability
-  const formatted = number.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
-  return `${countryCode} ${formatted}`;
+  // // Format number into groups of 3-4 digits for better readability
+  // const formatted = number.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
+  // return `${countryCode} ${formatted}`;
+  const phone = parsePhoneNumber(countryCode + number);
+
+  if (phone?.isValid()) return phone.formatInternational();
+
+  return "-";
 };
 
 export const formatDate = (value: string) => {
@@ -64,30 +72,12 @@ export const genderOptions = [
   { name: "Male", value: "Male" },
   { name: "Female", value: "Female" },
 ];
-export const memberValues = {
-  password: "123456",
-  department_id: "",
-  first_name: "",
-  other_name: "",
-  last_name: "",
-  email: "",
-  primary_number: "",
-  date_of_birth: "",
-  gender: "",
-  is_active: true,
-  address: "",
-  work_name: "",
-  work_industry: "",
-  work_position: "",
-  emergency_contact_name: "",
-  emergency_contact_relation: "",
-  emergency_contact_phone_number: "",
-  department_head: "",
-  country: "",
-};
 
-export const getChangedValues = (initialValues: any, currentValues: any) => {
-  const changedValues: any = {};
+export const getChangedValues = (
+  initialValues: Record<string, unknown>,
+  currentValues: Record<string, unknown>
+) => {
+  const changedValues: Record<string, unknown> = {};
   for (const key in currentValues) {
     if (typeof currentValues[key] == "object") continue;
     if (currentValues[key] !== initialValues[key]) {

@@ -10,7 +10,7 @@ import { useStore } from "@/store/useStore.ts";
 import { decodeToken } from "@/utils/helperFunctions.ts";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
-import SearchBar from "../../../../components/SearchBar";
+import { SearchBar } from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";

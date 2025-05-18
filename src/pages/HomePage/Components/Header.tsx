@@ -1,5 +1,4 @@
 import hamburger from "/src/assets/sidenav.svg";
-// import SearchBar from "../../../components/SearchBar";
 import { ProfilePicture } from "@/components";
 import ChurchLogo from "@/components/ChurchLogo";
 import { MouseEventHandler, useState } from "react";
