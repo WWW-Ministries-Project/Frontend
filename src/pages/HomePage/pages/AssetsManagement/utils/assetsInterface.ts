@@ -3,13 +3,14 @@ export interface assetType {
     name: string;
     status: string;
     id: number | string;
-    start_date: Date;
+    start_date: string;
     end_date: string;
-    start_time: string;
-    end_time: string;
     description: string;
     date_purchased: string;
     department_assigned: string;
+    price: string;
+    supplier: string;
+    assets_id: string;
 }
 
 export interface AssetOptionsType {
@@ -18,7 +19,7 @@ export interface AssetOptionsType {
 }
 export interface AssetSlice {
     assets: assetType[];
-    activeAsset: assetType | {};
+    activeAsset: assetType;
     addAsset: (Asset: assetType) => void;
     removeAsset: (AssetId: number | string) => void;
     updateAsset: (updatedAsset: assetType) => void;

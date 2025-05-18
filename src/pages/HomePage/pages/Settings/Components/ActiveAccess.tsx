@@ -8,7 +8,7 @@ interface IProps {
   name: string;
   permissions: Record<string, string>;
 }
-const ActiveAccess = (props: IProps) => {
+export const ActiveAccess = (props: IProps) => {
   const accessColumns: ColumnDef<AccessRightOption>[] = [
     { header: "Modules / Sub-modules", accessorKey: "name" },
     {
@@ -40,7 +40,7 @@ const ActiveAccess = (props: IProps) => {
         <h2 className="text-lg font-semibold mb-4">{props.name}</h2>
       </div>
       <TableComponent
-      // @ts-ignore
+      //   @ts-expect-error i have no idea what is happening and I wrote the table component myself 🤷🏾‍♂️ good luck
         columns={accessColumns}
         data={modules || []}
         rowClass="even:bg-white odd:bg-lightGray/10"
@@ -49,5 +49,3 @@ const ActiveAccess = (props: IProps) => {
     </>
   );
 };
-
-export default ActiveAccess;

@@ -1,16 +1,12 @@
 import Modal from "@/components/Modal";
 import { ApiCalls } from "@/utils/api/apiFetch";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AllStudents from "../Components/AllStudents";
 import EnrollStudent from "../Components/EnrollStudent";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
 
-interface ViewClassProps {
-  children: ReactNode;
-}
-
-const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
+export function ViewClass () {
   const apiCalls = new ApiCalls();
   const { id: classId } = useParams(); // Get cohort ID from the route
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +22,7 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
       // Fetch cohort details by programId
       const programResponse = await apiCalls.fetchCourseById(classId);
       if (programResponse.status === 200) {
-        setSelectedClass(programResponse.data.data);
+        setSelectedClass(programResponse.data);
       } else {
         setError("Error fetching cohort details");
       }
@@ -48,27 +44,18 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
         onPrimaryButtonClick={() => {
           /* Add appropriate edit click handler here */
         }}
+        secondaryButton=""
+        onSecondaryButtonClick={() => {
+          /* Add appropriate cancel click handler here */
+        }}
+        title="Class Details"
+        description="View detailed information about the selected class."
         showTopic={true}
         loading={loading}
         isGrid={false}
         details={
           <div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
-            {/* <div>
-                  <div className="font-semibold text-small">Start Date</div>
-                  <div>{selectedClass?.startDate}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Duration</div>
-                  <div>{selectedClass?.duration}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Application Deadline</div>
-                  <div>{selectedClass?.applicationDeadline}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-small">Classes</div>
-                  <div>{selectedClass?.classesLength} classes</div>
-                </div> */}
+            
             {selectedClass?.instructor && (
               <div>
                 <div className="font-semibold text-small">Instructor</div>
@@ -128,4 +115,3 @@ const ViewClass: React.FC<ViewClassProps> = ({ children }) => {
   );
 };
 
-export default ViewClass;

@@ -1,14 +1,17 @@
-import ProfilePicture from "@/components/ProfilePicture";
+import {ProfilePicture} from "@/components";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
 import { UserType } from "./membersInterfaces";
 
-const booleanFilter = (row: any, columnId: string, filterValue: boolean) => {
-  // Access the row's column value
-  const rowValue = row.getValue(columnId);  // This gets the value of the row for the given columnId
+const booleanFilter = (
+  row: Row<UserType>,
+  columnId: string,
+  filterValue: boolean
+): boolean => {
+  const rowValue = row.getValue(columnId);
   return Boolean(rowValue) === Boolean(filterValue);
 };
 
@@ -20,7 +23,7 @@ export const membersColumns: ColumnDef<UserType>[] = [
       <div
         className="flex items-center gap-2 cursor-pointer"
         onClick={() => {
-          navigateRef.current &&
+          if (navigateRef.current)
             navigateRef.current(`/home/members/${row.original.id}/info`);
         }}
       >
@@ -37,7 +40,7 @@ export const membersColumns: ColumnDef<UserType>[] = [
       </div>
     ),
   },
-  {header: "User",  accessorKey: "is_user", filterFn: booleanFilter },
+  { header: "User", accessorKey: "is_user", filterFn: booleanFilter },
   {
     header: "Phone number",
     cell: ({ row }) =>
@@ -51,7 +54,7 @@ export const membersColumns: ColumnDef<UserType>[] = [
   //   cell: (info) => (info.getValue() ? info.getValue() + " days ago" : "N/A"),
   // },
   {
-    header: "Created",
+    header: "Date joined",
     accessorKey: "created_at",
     cell: (info) =>
       DateTime.fromISO(info.getValue() as string).toLocaleString(
@@ -87,6 +90,5 @@ export const membersColumns: ColumnDef<UserType>[] = [
     header: "Department",
     accessorKey: "department_id",
     filterFn: booleanFilter,
-    
-  }
+  },
 ];

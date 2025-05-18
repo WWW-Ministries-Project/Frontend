@@ -1,5 +1,5 @@
-import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
+import { Button } from "@/components";
+import {ProfilePicture} from "@/components/ProfilePicture";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -9,7 +9,6 @@ import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import Modal from "@/components/Modal";
 import RequestAttachments from "../components/RequestAttachments";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import AddSignature from "@/components/AddSignature";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
@@ -48,10 +47,7 @@ const RequestDetails = () => {
 
   const requester = requestData?.requester;
 
-  if (loading) return <LoaderComponent />;
-
   return (
-    <div className="p-4">
     <PageOutline>
       {/* Modals */}
       <Modal open={openSignature} onClose={handleOpenSignature}>
@@ -65,7 +61,7 @@ const RequestDetails = () => {
 
       <Modal open={openComment} onClose={closeComment}>
         <div className="p-10 flex flex-col gap-8">
-          <p className="text-center text-dark900 font-bold text-xl ">
+          <p className="text-center text-primary font-bold text-xl ">
             {commentHeader}
           </p>
           <Textarea
@@ -75,19 +71,19 @@ const RequestDetails = () => {
             placeholder="Enter comment..."
           />
           {actionType === "reject" && (
-            <p className="text-dark900 text-sm">
+            <p className="text-primary text-sm">
               By clicking "Submit", you agreed to disapproving this request
             </p>
           )}
           <div className="flex gap-4 justify-end">
             <Button
               value="Cancel"
-              className="tertiary"
+              variant="ghost"
               onClick={closeComment}
             />
             <Button
               value="Submit"
-              className="primary"
+              variant="primary"
               onClick={handleComment}
               disabled={!comment}
               loading={isUpdating}
@@ -102,7 +98,7 @@ const RequestDetails = () => {
           {isEditable && (
             <Button
               value="Edit"
-              className="tertiary"
+              variant="ghost"
               onClick={() => navigate(`/home/requests/request/${id}`)}
             />
           )}
@@ -110,12 +106,12 @@ const RequestDetails = () => {
             <>
               <Button
                 value="Disapprove"
-                className="secondary"
+                variant="secondary"
                 onClick={() => openCommentModal("reject")}
               />
               <Button
                 value="Approve"
-                className="primary"
+                variant="primary"
                 onClick={handleOpenSignature}
               />
             </>
@@ -123,21 +119,21 @@ const RequestDetails = () => {
         </div>
       </PageHeader>
 
-      <section className="grid grid-cols-4 gap-4 text-dark900">
+      <section className="grid grid-cols-4 gap-4 text-primary">
         {/* Left Section */}
         <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
           <div className="flex gap-3">
-            <ProfilePic
+            <ProfilePicture
               alt="profile pic"
               className="w-[7rem] h-[7rem] border shadow-md"
               name={requestData?.requester?.name}
             />
             <div>
               <div className="font-bold">{requestData?.requester?.name}</div>
-              <div className="text-mainGray">
+              <div className="text-primary">
                 {requestData?.requester?.position ?? "N/A"}
               </div>
-              <div className="text-mainGray">
+              <div className="text-primary">
                 {requestData?.requester?.email}
               </div>
             </div>
@@ -177,7 +173,6 @@ const RequestDetails = () => {
         </section>
       </section>
     </PageOutline>
-    </div>
   );
 };
 

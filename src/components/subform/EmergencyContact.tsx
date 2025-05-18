@@ -1,4 +1,4 @@
-import FormikInputDiv from "@/components/FormikInput";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
 import { object, string } from "yup";
@@ -15,7 +15,7 @@ const EmergencyContactComponent = ({
     <>
       <Field
         component={FormikInputDiv}
-        label="Name of Contact"
+        label="Name of Contact *"
         disabled={disabled}
         placeholder="Enter name of contact"
         id={`${prefix}.name`}
@@ -23,7 +23,7 @@ const EmergencyContactComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Relation"
+        label="Relation *"
         disabled={disabled}
         placeholder="Select relation"
         id={`${prefix}.relation`}

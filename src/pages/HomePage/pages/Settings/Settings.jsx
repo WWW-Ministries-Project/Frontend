@@ -1,100 +1,102 @@
 
 import { api } from "@/utils/api/apiCalls";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import useState from "react-usestateref";
+// import useState from "react-usestateref";
+import { useDelete } from "@/CustomHooks/useDelete.tsx";
+import { usePost } from "@/CustomHooks/usePost.tsx";
+import { usePut } from "@/CustomHooks/usePut.tsx";
+import { useStore } from "@/store/useStore.ts";
+import { decodeToken } from "@/utils/helperFunctions.ts";
 import deleteIcon from "../../../../assets/delete.svg";
 import edit from "../../../../assets/edit.svg";
 import SearchBar from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
-import LoaderComponent from "../../Components/reusable/LoaderComponent.tsx";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import FormsComponent from "./Components/FormsComponent";
+import { FormsComponent } from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
-import { useDelete } from "/src/CustomHooks/useDelete.tsx";
-import { usePost } from "/src/CustomHooks/usePost.tsx";
-import { usePut } from "/src/CustomHooks/usePut.tsx";
-import { useStore } from "/src/store/useStore.ts";
-import { decodeToken } from "/src/utils/helperFunctions.ts";
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
   const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const [data, setData, dataRef] = useState([]);
+  const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState({ created_by: decodeToken().id, name: "", description: "" });
   const [selectedId, setSelectedId] = useState("department_head");
   const [selectLabel, setSelectLabel] = useState("Department Head");
   const [editMode, setEditMode] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState({ path: "", id: "", name: "", index: "" });
   const membersOptions = useStore((state) => state.membersOptions);
   const settingsStore = useSettingsStore();
   const positionData = settingsStore.positions || [];
   const departmentData = settingsStore.departments || [];
-  const { postData: postDepartment, loading: departmentLoading, data: department, error: departmentError } = usePost(api.post.createDepartment);
-  const { postData: postPosition, loading: positionLoading, data: position, error: positionError } = usePost(api.post.createPosition);
+  const { postData: postDepartment, data: department, error: departmentError, loading: departmentLoading } = usePost(api.post.createDepartment);
+  const { postData: postPosition, data: position, error: positionError, loading: positionLoading } = usePost(api.post.createPosition);
   const { updateData: updateDepartment, loading: departmentUpdateLoading, error: departmentUpdateError, data: departmentUpdate } = usePut(api.put.updateDepartment);
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
-  const { executeDelete: deleteDepartment, loading: deleteDepartmentLoading, data: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
-  const { executeDelete: deletePosition, loading: deletePositionLoading, data: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
+  const { executeDelete: deleteDepartment, success: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
+  const { executeDelete: deletePosition, success: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
 
 
   // new data
   useEffect(() => {
     if (department) {
-      showNotification(department.data.message, "success");
-      settingsStore.setDepartments(department.data.data);
+      showNotification("Department added successfully", "success");
+      settingsStore.setDepartments(department.data);
       handleCloseForm();
     }
     if (position) {
-      showNotification(position.data.message, "success");
-      settingsStore.setPositions(position.data.data);
+      showNotification("Position added successfully", "success");
+      settingsStore.setPositions(position.data);
       handleCloseForm();
     }
     if (departmentError || positionError) {
       showNotification("Something went wrong", "error");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [department, position, positionError, departmentError]);
 
   // updated data
   useEffect(() => {
     if (departmentUpdate) {
-      showNotification(departmentUpdate.data.message, "success");
-      settingsStore.updateDepartment(departmentUpdate.data.data);
+      showNotification("Department updated successfully", "success");
+      settingsStore.updateDepartment(departmentUpdate.data);
       handleCloseForm();
     }
     if (positionUpdate) {
-      showNotification(positionUpdate.data.message, "success");
-      settingsStore.updatePosition(positionUpdate.data.data);
+      showNotification("Position updated successfully", "success");
+      settingsStore.updatePosition(positionUpdate.data);
       handleCloseForm();
     }
     if (departmentUpdateError || positionUpdateError) {
       showNotification("Something went wrong", "error");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);
   // deleted data
   useEffect(() => {
+
     if (departmentDelete) {
-      showNotification(departmentDelete.data.message, "success");
-      settingsStore.removeDepartment(departmentDelete.data.data);
+      showNotification("Department deleted successfully", "success");
+      // settingsStore.removeDepartment(departmentDelete.data);
     }
     if (positionDelete) {
-      showNotification(positionDelete.data.message, "success");
-      settingsStore.removePosition(positionDelete.data.data);
+      showNotification("Position deleted successfully", "success");
+      // settingsStore.removePosition(positionDelete.data);
     }
     if (departmentDeleteError || positionDeleteError) {
       showNotification("Something went wrong", "error");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentDelete, positionDelete]);
-  const handleDelete = () => {
+  const handleDelete = (itemToDelete) => {
     if (selectedTab === "Department") {
-      deleteDepartment(itemToDelete.id)
+      deleteDepartment({ id: itemToDelete.id })
     }
     if (selectedTab === "Position") {
-      deletePosition(itemToDelete.id)
+      deletePosition({ id: itemToDelete.id })
     }
   }
 
@@ -122,7 +124,7 @@ function Settings() {
         cell: ({ row }) => (
           <div
             className={
-              "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+              "text-sm h-6 flex items-center justify-left gap-2 rounded-lg text-center text-white "
             }>
             <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
               setInputValue(() => ({ id: row.original?.id, name: row.original?.name, description: row.original?.description, department_head: row.original?.department_head_info?.id }))
@@ -131,8 +133,7 @@ function Settings() {
             }} />
 
             <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-              showDeleteDialog(row.original, handleDelete);
-              setItemToDelete({ id: row.original?.id })
+              showDeleteDialog(row.original, () => handleDelete(row.original));
             }} />
           </div>
         )
@@ -166,8 +167,7 @@ function Settings() {
             setDisplayForm(true)
           }} />
           <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-            showDeleteDialog(row.original, handleDelete);
-            setItemToDelete({ id: row.original?.id })
+            showDeleteDialog(row.original, () => handleDelete(row.original));
           }} />
 
         </div>)
@@ -186,6 +186,7 @@ function Settings() {
         return settingsStore.departmentsOptions
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [members, selectedTab])
 
   const handleChange = (name, value) => {
@@ -242,6 +243,7 @@ function Settings() {
 
   useEffect(() => {
     handleDataFetching();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, departmentData, positionData]);
 
 
@@ -268,52 +270,49 @@ function Settings() {
   }
 
   return (
-    <div className="p-4">
-      <PageOutline>
+    <PageOutline>
 
-        <div>
-          <PageHeader title="General configuration" />
-          <p className="P200 text-gray">
-            Manage your departments and positions here...
-          </p>
-          <div className="flex mt-2 mb-6 ">
-            <div className="border border-lightGray flex gap-2 rounded-lg p-1">
-              {
-                tabs.map((tab) => {
-                  return (
-                    <div
-                      className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab ? " bg-lightGray font-semibold" : ""} cursor-pointer w-40`}
+      <div>
+        <PageHeader title="General configuration" />
+        <p className="P200 text-gray">
+          Manage your departments and positions here...
+        </p>
+        <div className="flex mt-2 mb-6 ">
+          <div className="border border-lightGray flex gap-2 rounded-lg p-1">
+            {
+              tabs.map((tab) => {
+                return (
+                  <div
+                    className={` rounded-lg  text-center text-dark900 p-2 flex items-center justify-center ${selectedTab === tab ? " bg-lightGray font-semibold" : ""} cursor-pointer w-40`}
 
-                      onClick={() => handleTabSelect(tab)}
-                      key={tab}
-                    >
-                      {tab}
-                    </div>
-                  );
-                })
-              }
-            </div>
+                    onClick={() => handleTabSelect(tab)}
+                    key={tab}
+                  >
+                    {tab}
+                  </div>
+                );
+              })
+            }
           </div>
         </div>
-        <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
+      </div>
+      <PageHeader className="font-semibold text-xl" title={selectedTab} buttonValue={"Create " + selectedTab} onClick={() => { setDisplayForm(!displayForm); setInputValue({ created_by: decodeToken().id, name: "" }) }} />
 
-        <section className=" bg-white">
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex justify-start gap-2 items-center  w-2/3">
-              <SearchBar className="w-[40.9%] " placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
-            </div>
+      <section className=" bg-white">
+        <div className="flex justify-between items-center mb-5">
+          <div className="flex justify-start gap-2 items-center  w-2/3">
+            <SearchBar className="w-[40.9%] " placeholder={`Search ${selectedTab} here...`} value={filter} onChange={handleSearch} />
           </div>
-          <TableComponent
-            columns={columns}
-            data={data}
-            filter={filter}
-            setFilter={setFilter}
-          />
-        </section>
-        {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading} selectLabel={selectLabel} editMode={editMode} />}
-      </PageOutline>
-      {(positionLoading || departmentLoading || deletePositionLoading || deleteDepartmentLoading) && <LoaderComponent />}
-    </div>
+        </div>
+        <TableComponent
+          columns={columns}
+          data={data}
+          filter={filter}
+          setFilter={setFilter}
+        />
+      </section>
+      {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading || departmentLoading || positionLoading} selectLabel={selectLabel} editMode={editMode} />}
+    </PageOutline>
   );
 }
 

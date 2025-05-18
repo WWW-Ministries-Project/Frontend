@@ -24,15 +24,17 @@ const defaultValue: userType = {
   id: "",
 };
 export const AuthContext = createContext<contextType | null>(null);
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthWrapper");
+  return context;
+};
 
 export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const storedUser = JSON.parse(
     sessionStorage.getItem("user") || JSON.stringify(defaultValue)
   );
-  const [user, setUser] = useState<
-    Omit<userType, "permissions"> & { permissions: Record<string, boolean> }
-  >(storedUser);
+  const [user, setUser] = useState<userType>(storedUser);
 
   const login = ({
     name,

@@ -3,24 +3,52 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      // colors: {
+      //   // primary: "#6539C3",
+      //   primary: "#080D2D",
+      //   primaryGray: "#575F6A",
+      //   mainGray: "#626262",
+      //   wwmBlue: "#080D2D",
+      //   wwwGray: "#62626A",
+      //   errorBG: "#FBEAE6",
+      //   error: "#E97760",
+      //   wwwGrey2: "#6B7B8A",
+      //   primary: "#474D66",
+      //   gray: "#786D8F",
+      //   bgWhite: "#F9F9F9",
+      //   lightGray: "#D8DAE5",
+      //   gold: "#EFBF04",
+      //   blur: "#222222cc",
+      //   // green: "#6FCF97",
+      //   lighterBlack: "#575570",
+      //   neutralGray: "#E8EDFF",
+      lightGray: "#D8DAE5", // Soft gray for secondary backgrounds
+      blur: "#222222cc", // Keeping for transparency effects
+      // },
       colors: {
-        primary: "#6539C3",
-        primaryGray: "#575F6A",
-        mainGray: "#626262",
-        wwmBlue: "#080D2D",
-        wwwGray: "#62626A",
-        errorBG: "#FBEAE6",
-        error: "#E97760",
-        wwwGrey2: "#6B7B8A",
-        dark900: "#474D66",
-        gray: "#786D8F",
-        bgWhite: "#F9F9F9",
-        lightGray: "#D8DAE5",
-        blur: "#222222cc",
-        // green: "#6FCF97",
-        lighterBlack: "#575570",
-        neutralGray: "#E8EDFF",
-      },
+        primary: "#080D2D", // Deep Dark Blue (Main Theme)
+        secondary: "#FFD700", // Gold for Highlights, CTAs, and Accents
+        background: "#FFFFFF", // White for Clean UI and Readability
+    
+        // Grayscale Tones (Adjusted for Contrast & Usability)
+        primaryGray: "#A0A5B1", // Soft Gray for Subtext & Secondary Info
+        mainGray: "#C0C3CC", // Light Gray for Muted UI Elements
+        lightGray: "#D8DAE5", // Soft gray for secondary backgrounds
+        borderGray: "#E0E3EB", // Borders, Dividers & Low Emphasis Elements
+        inputBackground: "#F8F9FC", // Light Input Fields for Accessibility
+    
+        // Supporting Colors
+        success: "#28A745", // Green for Success Messages & Confirmations
+        error: "#DC3545", // Red for Errors, Alerts & Warnings
+        warning: "#FFC107", // Yellow for Cautionary Notes (if needed)
+        
+        // Shadows & Overlays
+        shadow: "#00000026", // Subtle Shadow for Depth
+        blur: "#222222cc", // Keeping for transparency effects
+        modalOverlay: "#080D2D99", // Dark Blue Transparent Overlay for Popups
+        hoverGold: "#E6C200", // Soft Gold Hover for Buttons & Links
+    },
+    
       animation: {
         dounce: "bounce 2s",
         wiggle: "wiggle 1s",

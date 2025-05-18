@@ -10,8 +10,8 @@ export interface InputDivProps {
   id: string;
   value?: string | number;
   onChange: (name: string, value: string | number) => void;
-  onBlur?: (e: React.FocusEvent<any>) => void;
-  onClick?: () => void;
+  onBlur?: (e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) => void;
+  onClick?: (e: React.MouseEvent) => void;
   disabled?: boolean;
   error?: string;
   min?: string;
@@ -24,7 +24,7 @@ export interface InputDivProps {
   ariaDescribedBy?: string;
 }
 
-const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
+export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
@@ -33,12 +33,12 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
   }
 
   function handleBlur(e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) {
-    props.onBlur && props.onBlur(e);
+    if(props.onBlur) props.onBlur(e);
   }
 
   return (
     <div
-      className={`flex text-dark900 flex-col gap-1 ${props.className}`}
+      className={`flex text-primary flex-col gap-1 ${props.className}`}
       ref={ref}
       onClick={props.onClick}
       style={{ cursor: props.onClick ? "pointer" : "default" }}
@@ -63,7 +63,7 @@ const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
           className={`   ${
             props.inputClass
               ? props.inputClass
-              : "rounded-lg p-2 border border-dark900 focus:outline-none"
+              : "rounded-lg p-2 border border-primary focus:outline-none"
           }  ${
             props.error ? "!border-error focus:outline-none !outline-error" : ""
           }`}
@@ -109,4 +109,3 @@ InputDiv.propTypes = {
 
 InputDiv.displayName = "InputDiv";
 
-export default InputDiv;

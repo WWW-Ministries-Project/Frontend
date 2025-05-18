@@ -22,9 +22,11 @@ interface Member {
   id: number;
   name: string;
   email: string;
+  
   user_info: {
     first_name: string;
     last_name: string;
+    primary_number?: string;
   };
 }
 
@@ -70,15 +72,16 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
       const response = await apiFetch.fetchMembers(); // Replace with your API endpoint
       console.log("Fetching members", response.data);
 
-      if (response.status === 200 && Array.isArray(response.data.data)) {
+      if (response.status === 200 && Array.isArray(response.data)) {
         setMembers(
-          response?.data?.data?.map((item: any) => ({
+          response?.data?.map((item: any) => ({
             id: item.id,
             name: item.name,
             email: item.email,
             user_info: {
               first_name: item.user_info?.first_name || "",
               last_name: item.user_info?.last_name || "",
+              primary_number: item.user_info?.primary_number || "0",
             },
           })) as Member[]
         ); // Safely map and validate the response data
@@ -134,12 +137,13 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
       setFieldValue("firstName", member.user_info.first_name);
       setFieldValue("lastName", member.user_info.last_name);
       setFieldValue("email", member.email);
+      setFieldValue("phone", member.user_info.primary_number || "0"); // Assuming phone is part of the member data
     }
   };
 
   // Form UI Rendering
   return (
-    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-dark900 space-y-4 overflow-auto">
+    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4 overflow-auto">
       <div className="text-lg font-bold">
         {selectedClass?.eligibility === "Both"
           ? "Enroll Student"
@@ -155,9 +159,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
             {/* Is Member Question */}
             {selectedClass?.eligibility === "Both" && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-dark900">
-                  Is the student a member?
-                </label>
+                <label className="text-sm font-medium text-primary">Is the student a member?</label>
                 <Field
                   type="radio"
                   name="isMember"
@@ -171,10 +173,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
             {/* Member Dropdown */}
             {selectedClass?.eligibility !== "Non_Members" && (
               <div>
-                <label
-                  htmlFor="member"
-                  className="text-sm font-medium text-dark900"
-                >
+                <label htmlFor="member" className="text-sm font-medium text-primary">
                   Select Member
                 </label>
                 <Select
@@ -193,10 +192,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
 
             {/* First Name, Last Name, Email, Phone (disabled for members) */}
             <div className="space-y-2">
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="firstName" className="block text-sm font-medium text-primary">
                 First Name *
               </label>
               <Field
@@ -216,10 +212,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="lastName" className="block text-sm font-medium text-primary">
                 Last Name *
               </label>
               <Field
@@ -238,10 +231,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
 
             {/* Email */}
             <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-primary">
                 Email *
               </label>
               <Field
@@ -260,10 +250,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
 
             {/* Phone Number */}
             <div className="space-y-2">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-dark900"
-              >
+              <label htmlFor="phone" className="block text-sm font-medium text-primary">
                 Phone Number
               </label>
               <Field
@@ -272,6 +259,7 @@ const EnrollStudent: React.FC<EnrollStudentProps> = ({
                 name="phone"
                 className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
                 placeholder="Enter phone number"
+                value={selectedMember?.user_info.primary_number || values.phone}
               />
               {errors.phone && touched.phone && (
                 <div className="text-red-600 text-xs">{errors.phone}</div>

@@ -10,14 +10,14 @@ export default function MembersCount(props: Readonly<MembersCountProps>) {
           key={item.label}
         >
           <p
-            className={`text-dark900 text-4xl  ${
+            className={`text-primary text-4xl  ${
               index === 0 ? "font-bold " : ""
             }`}
           >
             {item.count}
           </p>
           <p
-            className={`text-dark900 text-sm text-center ${
+            className={`text-primary text-sm text-center ${
               index === 0 ? "font-bold" : ""
             }`}
           >

@@ -2,7 +2,7 @@ import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
 
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
-import MembersIcon from "@/assets/sidebar/MembersIcon";
+import {MembersIcon} from "@/assets";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import PropTypes from "prop-types";
 // import { sideTabs } from "../utils/helperFunctions";
@@ -11,9 +11,11 @@ import SideBarSubMenu from "./SidebarSubmenu";
 import { sideTabs } from "/src/routes/appRoutes";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
+import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 const icons = {
   Dashboard: DashboardIcon,
   Members: MembersIcon,
+  Visitors: VisitorIcon,
   "Users": MembersIcon, // TODO: replace this
   // Attendance: AttendanceIcon,
   Events: ManagementIcon,

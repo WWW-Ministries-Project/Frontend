@@ -1,4 +1,4 @@
-import type { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { deleteData } from "./apiFunctions";
 
@@ -11,45 +11,70 @@ export class ApiDeletionCalls {
     });
   }
 
-  private deleteFromApi<T>(path: string, query: {}): Promise<ApiResponse<T>> {
+  private deleteFromApi<T>(path: string, query: QueryType): Promise<ApiResponse<T>> {
     return this.apiExecution.deleteData(path, query);
   }
 
-  deleteMember = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("user/delete-user", { id });
+  deleteMember = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("user/delete-user", query);
   };
 
-  deleteEvent = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("event/delete-event", { id });
+  deleteEvent = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/delete-event", query);
   };
 
-  deleteAsset = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("assets/delete-asset", { id });
+  deleteAsset = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("assets/delete-asset", query);
   };
 
-  deleteRequest = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("requisitions/delete-requisition", { id });
+  deleteAccess = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("access/delete-access-level", query);
   };
 
-  deletePosition = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("position/delete-position", { id });
+  deleteRequest = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("requisitions/delete-requisition", query);
   };
 
-  deleteDepartment = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("department/delete-department", { id });
+  deletePosition = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("position/delete-position", query);
+  };
+
+  deleteDepartment = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("department/delete-department", query);
   };
 
   // New Delete Methods
 
-  deleteProgram = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/programs/${id}`, { id });
+  deleteProgram = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`program/programs`, query);
   };
 
-  deleteCohort = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/cohorts/${id}`, { id });
+  deleteCohort = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`program/cohorts`, query);
   };
 
-  deleteCourse = (id: string | number): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/courses/${id}`, { id });
+  deleteCourse = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`program/courses`, query);
+  };
+
+  
+  /* Visitor Management */
+  deleteVisitor = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`visitor/visitor`, query);
+  };
+
+  // Visit Management
+  deleteVisit = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`visit`, query);
+  };
+
+  // Follow-Up Management
+  deleteFollowUp = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`followup`, query);
+  };
+
+  // Prayer Request Management
+  deletePrayerRequest = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`prayerrequest`, query);
   };
 }

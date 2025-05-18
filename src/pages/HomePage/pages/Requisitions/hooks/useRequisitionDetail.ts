@@ -22,7 +22,7 @@ export const useRequisitionDetail = () => {
     data,
     loading,
     error: detailsError,
-  } = useFetch<{ data: { data: IRequisitionDetails } }>(
+  } = useFetch(
     api.fetch.fetchRequisitionDetails,
     { id: requisitionId }
   );
@@ -52,8 +52,8 @@ export const useRequisitionDetail = () => {
   const { handleUpload, addingImage } = useImageUpload();
 
   useEffect(() => {
-    setAttachments(data?.data?.data?.attachmentLists ?? []);
-    return setRequestData(data?.data?.data ?? null);
+    setAttachments(data?.data?.attachmentLists ?? []);
+    return setRequestData(data?.data ?? null);
   }, [data]);
 
   const openCommentModal = (type: ActionType) => {

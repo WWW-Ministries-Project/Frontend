@@ -1,9 +1,19 @@
+import { CountryCode } from "libphonenumber-js";
+
 export interface countryType {
   name: string;
-  countryCode: string;
+  countryCode: CountryCode;
   dialCode: string;
   initials: string;
   flag: string;
+}
+
+export interface RestCountryAPIResponse {
+  name: { common: string };
+  cca2: CountryCode;
+  idd?: { root: string; suffixes: string[] };
+  altSpellings?: string[];
+  flags: { png: string };
 }
 
 export interface Currency {

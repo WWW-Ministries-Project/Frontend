@@ -6,14 +6,13 @@ import { useNavigate } from "react-router-dom";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import EventsCard from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
 import EmptyState from "@/components/EmptyState";
-import HeaderControls from "@/components/HeaderControls";
+import {HeaderControls} from "@/components/HeaderControls";
 import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
 
@@ -36,12 +35,10 @@ const EventsManagement = () => {
   const {
     data,
     refetch,
-    loading: eventsLoading,
   } = useFetch(api.fetch.fetchEvents);
   const { screenWidth } = useWindowSize();
   const {
     executeDelete,
-    loading: deleteLoading,
     success,
     error,
   } = useDelete(api.delete.deleteEvent);
@@ -58,8 +55,8 @@ const EventsManagement = () => {
 
   // Update events when data is fetched
   useEffect(() => {
-    if (data?.data?.data) {
-      setEvents(data.data.data);
+    if (data?.data) {
+      setEvents(data.data);
     }
   }, [data]);
 
@@ -131,7 +128,6 @@ const EventsManagement = () => {
   }, [events, filterEvents]);
 
   return (
-    <div className="p-4">
       <PageOutline>
         <HeaderControls
           title="Events "
@@ -140,10 +136,11 @@ const EventsManagement = () => {
           handleViewMode={handleToggleView}
           showFilter={false} // No separate filter needed
           setShowFilter={setShowFilter}
+          hasSearch={true}
+          hasFilter={false}
           showSearch={showSearch} // Search enabled
           setShowSearch={setShowSearch}
-          Filter={false} // Hide filter
-          handleNavigation={() => handleNavigation("/home/manage-event")} // Navigate to Add Event
+          handleClick={() => handleNavigation("/home/manage-event")}
           screenWidth={screenWidth}
           btnName="Add Event" // Added btnName property
         />
@@ -228,11 +225,7 @@ const EventsManagement = () => {
             showOptions={showOptions}
           />
         )}
-
-        {/* Loader Component */}
-        {(deleteLoading || eventsLoading) && <LoaderComponent />}
       </PageOutline>
-    </div>
   );
 };
 

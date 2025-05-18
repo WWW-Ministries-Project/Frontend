@@ -1,11 +1,14 @@
-import InputDiv, {
+import {
+  InputDiv,
   InputDivProps,
 } from "@/pages/HomePage/Components/reusable/InputDiv";
 import { FieldProps, getIn } from "formik";
 
-interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {}
+interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {
+  supressErrorDisplay: boolean;
+}
 
-export function fieldToInputDiv({
+function fieldToInputDiv({
   form: { touched, errors },
   field: { onChange: fieldOnChange, ...field },
   ...props
@@ -26,11 +29,11 @@ export function fieldToInputDiv({
     className: props.className,
     inputClass: props.inputClass,
     placeholder: props.placeholder,
-    error: showError,
+    error: props.supressErrorDisplay ? "" : showError,
   };
 }
 
-export default function FormikInputDiv({ ...props }: FormikInputDivProps) {
+export function FormikInputDiv({ ...props }: FormikInputDivProps) {
   return <InputDiv {...fieldToInputDiv(props)} />;
 }
 

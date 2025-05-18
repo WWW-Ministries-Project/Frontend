@@ -1,12 +1,16 @@
 import { useDialogStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useEffect, useRef } from "react";
-import Button from "./Button";
+import { Button } from "./Button";
 
-const Dialog = () => {
+export const Dialog = () => {
   const dialog = useRef<HTMLDialogElement>(null);
   const { dialogData } = useDialogStore();
   useEffect(() => {
-    dialogData.showModal ? dialog.current?.showModal() : dialog.current?.close();
+    if (dialogData.showModal) {
+      dialog.current?.showModal();
+    } else {
+      dialog.current?.close();
+    }
   }, [dialogData.showModal]);
   function handleShowModal() {
     dialogData.onCancel();
@@ -16,7 +20,7 @@ const Dialog = () => {
   }
   return (
     <div>
-      <dialog ref={dialog} className="rounded p-5 shadow-lg text-dark900">
+      <dialog ref={dialog} className="rounded p-5 shadow-lg text-primary">
         <h1 className="H600">Delete {dialogData.name}</h1>
         <div className="mt-3">
           Are you sure you want to delete {dialogData.name}. <br /> This action
@@ -25,14 +29,12 @@ const Dialog = () => {
         <div className="mt-3 flex justify-between p-2">
           <Button
             value="Cancel"
-            className="tertiary"
+            variant="ghost"
             onClick={handleShowModal}
           />
-          <Button value="Delete" className="primary" onClick={handleDelete} />
+          <Button value="Delete" variant="primary" onClick={handleDelete} />
         </div>
       </dialog>
     </div>
   );
 };
-
-export default Dialog;

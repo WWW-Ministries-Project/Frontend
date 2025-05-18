@@ -1,7 +1,6 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
@@ -16,7 +15,7 @@ const MyRequisitions = () => {
   const { setRequests, requests } = useStore();
 
   useEffect(() => {
-    setRequests(data?.data?.data);
+    setRequests(data?.data);
   }, [data]);
 
   return (
@@ -27,8 +26,6 @@ const MyRequisitions = () => {
           buttonValue="Request item"
           onClick={() => navigate("/home/requests/request")}
         />
-
-        {loading && <LoaderComponent />}
         {!(loading || error) && (
           <TableComponent
             columns={tableColumns}

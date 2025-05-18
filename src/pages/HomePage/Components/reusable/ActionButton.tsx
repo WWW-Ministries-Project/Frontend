@@ -14,7 +14,7 @@ const ActionButton = (props: ActionButtonProps) => {
     <>
       <img src={Elipse} alt="options" className="cursor-pointer" />
       {props.showOptions && (
-        <Action className="absolute right-0 bottom-50%"
+        <Action className="absolute right-10 bottom-50%"
           onDelete={props.onDelete}
           onView={props.onView}
           onEdit={props.onEdit}

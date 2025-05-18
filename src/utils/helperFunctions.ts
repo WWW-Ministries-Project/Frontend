@@ -1,9 +1,6 @@
-import { AxiosResponse } from "axios";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { DateTime } from "luxon";
-import axios from "../axiosInstance";
-import type { ApiResponse } from "./interfaces";
 
 export const getToken = () => {
   return Cookies.get("token");
@@ -31,7 +28,18 @@ export const firstLetters = (string = "No Name") => {
   return initials;
 };
 
-export const formatTime = (value: string) => {
+export const formatPhoneNumber = (
+  countryCode: string,
+  number: string
+): string => {
+  if (!countryCode || !number) return "-";
+
+  // Format number into groups of 3-4 digits for better readability
+  const formatted = number.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3");
+  return `${countryCode} ${formatted}`;
+};
+
+export const formatDate = (value: string) => {
   return DateTime.fromISO(value).toLocaleString(DateTime.DATE_MED);
 };
 export const formatInputDate = (value: string | undefined) => {
@@ -89,14 +97,13 @@ export const getChangedValues = (initialValues: any, currentValues: any) => {
   return changedValues;
 };
 
-
 export function convertPermissions(permissions: Record<string, string>) {
   const result: Record<string, boolean> = {};
 
   const permMapping: Record<string, string> = {
-    "Can_View": "view",
-    "Can_Manage": "manage",
-    "Super_Admin": "admin"
+    Can_View: "view",
+    Can_Manage: "manage",
+    Super_Admin: "admin",
   };
 
   for (const [key, value] of Object.entries(permissions)) {
@@ -123,5 +130,3 @@ export function convertPermissions(permissions: Record<string, string>) {
 
   return result;
 }
-
-

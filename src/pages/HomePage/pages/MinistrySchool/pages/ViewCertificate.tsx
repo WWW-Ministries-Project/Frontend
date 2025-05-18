@@ -3,7 +3,6 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas'; // Import html2canvas
 import { ArrowLeftCircleIcon, PrinterIcon } from '@heroicons/react/24/solid';
 import DownloadIcon from '@/assets/DownloadIcon';
-import Button from '@/components/Button';
 import PageOutline from '@/pages/HomePage/Components/PageOutline';
 import ChurchLogo from '@/components/ChurchLogo';
 
@@ -154,7 +153,7 @@ const ViewCertificate = ({ loading }: any) => {
 
   return (
     <div className="p-4">
-      <PageOutline className="p-0 text-dark900">
+      <PageOutline className="p-0 text-primary">
         <div className="flex items-center p-4 border-b border-lightGray print:hidden">
           <h1 className="text-xl font-semibold ml-2">Certificate of Completion</h1>
           <div className="ml-auto flex gap-2">

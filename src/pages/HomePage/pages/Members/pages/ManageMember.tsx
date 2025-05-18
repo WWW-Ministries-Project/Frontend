@@ -1,74 +1,63 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
-import { useStore } from "@/store/useStore";
+import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { ApiResponse } from "@/utils/interfaces";
 import { Formik } from "formik";
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
-import { UserType } from "../utils/membersInterfaces";
 
-export const ManageMember = () => {
+export function ManageMember() {
   const navigate = useNavigate();
-  const store = useStore();
+  const { refetchMembers } = useOutletContext<{ refetchMembers: () => void }>();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const id = params.get("member_id");
-  const editMode = location.state?.mode === "edit";
-  const {
-    data: member,
-    loading: fetchLoading,
-    refetch,
-  } = useFetch(api.fetch.fetchAMember, { user_id: id + "" }, true);
-  const { postData, loading, data } = usePost<ApiResponse<{ data: UserType }>>(
-    api.post.createMember
+  const id = decodeQuery(params.get("member_id") || "");
+
+  const { data: member, refetch } = useFetch(
+    api.fetch.fetchAMember,
+    { user_id: id + "" },
+    true
   );
-  const { updateData, loading: updateLoading } = usePut<
-    ApiResponse<{ data: UserType }>
-  >(api.post.updateMember);
+  const { postData, loading, data } = usePost(api.post.createMember);
+  const { updateData, loading: updateLoading } = usePut(api.put.updateMember);
 
   useEffect(() => {
-    id && refetch();
+    if (id) refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const initialValue = useMemo(() => {
-    if (member?.data.data) {
-      return mapUserData(member.data.data);
+    if (member?.data) {
+      return mapUserData(member.data);
     } else {
       return initialValues;
     }
-  }, [member?.data.data]);
+  }, [member?.data]);
 
   useEffect(() => {
     if (data) {
-      const temp = {
-        ...data.data.data,
-        ...data.data.data.user_info,
-      };
-      store.addMember(temp);
+      refetchMembers();
       navigate("/home/members", { state: { new: true } });
     }
-  }, [data]);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, member]);
 
   const handleCancel = () => {
     navigate(-1);
   };
 
-  async function handleSubmit(
-    values: IAddMember,
-  ) {
+  async function handleSubmit(values: IMembersForm) {
     let dataToSend = { ...values };
 
     try {
-      let uploadedFile = values.personal_info.picture?.picture;
+      const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();
@@ -79,10 +68,7 @@ export const ManageMember = () => {
         if (response?.status === 200) {
           dataToSend = {
             ...values,
-            personal_info: {
-              ...values.personal_info,
-              picture: { src: response.data.result.link, picture: null },
-            },
+            picture: { src: response.data.result.link, picture: null },
           };
         } else {
           throw new Error("Image upload failed");
@@ -90,7 +76,8 @@ export const ManageMember = () => {
       }
 
       // Send data regardless of whether an image was uploaded
-      editMode ? await updateData(dataToSend) : await postData(dataToSend);
+      if (id) await updateData(dataToSend, { user_id: id! });
+      else await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);
     }
@@ -111,7 +98,7 @@ export const ManageMember = () => {
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {({ handleSubmit, errors }) => (
+          {({ handleSubmit }) => (
             <>
               <MembersForm />
 
@@ -120,17 +107,18 @@ export const ManageMember = () => {
                   <Button
                     value={"Cancel"}
                     onClick={handleCancel}
-                    className="primary "
+                    variant="primary"
                   />
                   <Button
-                    value={editMode ? "Update" : "Save"}
+                    value={id ? "Update" : "Save"}
                     type="button"
                     // onClick={() => {
                     //   console.log(errors, "errors");
                     // }}
                     onClick={handleSubmit}
                     loading={loading || updateLoading}
-                    className="default"
+                    disabled={loading || updateLoading}
+                    variant="default"
                   />
                 </div>
               </section>
@@ -138,13 +126,12 @@ export const ManageMember = () => {
           )}
         </Formik>
       </section>
-      {fetchLoading && <LoaderComponent />}
     </div>
   );
-};
+}
 
-export interface IAddMember extends IMembersForm {}
-const initialValues: IAddMember = {
+// export interface IAddMember extends IMembersForm {}
+const initialValues: IMembersForm = {
   ...MembersForm.initialValues,
 };
 

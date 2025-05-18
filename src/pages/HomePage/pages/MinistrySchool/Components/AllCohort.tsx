@@ -1,8 +1,9 @@
 import ellipse from "@/assets/ellipse.svg";
-import Badge from "@/components/Badge";
-import Button from "@/components/Button";
+import { Button } from "@/components";
+import { Badge } from "@/components/Badge";
+import EmptyState from "@/components/EmptyState";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
-import { formatTime } from "@/utils/helperFunctions";
+import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +12,7 @@ interface AllCohortsPageProps {
   cohorts: any[]; // List of cohorts
   onEdit: (cohort: any) => void; // Function to edit cohort
   onDelete: (id: number) => void;
-  loading: Boolean;
+  loading: boolean;
 }
 
 const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
@@ -86,13 +87,20 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
     };
   }, []);
 
+  // if (cohorts.length === 0) return (
+  //       <div className="text-center py-8 w-1/4 mx-auto">
+  //         <EmptyState msg={"No cohort found"}/>
+
+  //       </div>
+  //     );
+
   return (
     <div className="">
       <div className="p-0">
         <section className="py-4 space-y-2 rounded-t-lg">
           <div className=" flex justify-between">
             <div className="">
-              <h1 className="text-dark900 text-2xl font-bold">All Cohorts</h1>
+              <h1 className="text-primary text-2xl font-bold">All Cohorts</h1>
             </div>
 
             <div>
@@ -105,91 +113,99 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
           </div>
         </section>
 
-        <section className="">
-          <div className=" text-dark900">
-            <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
-              {cohorts?.map((cohort) => (
-                <div
-                  key={cohort.id}
-                  className="border border-lightGray rounded-lg p-4 space-y-3"
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="font-semibold text-lg">{cohort?.name}</div>
-                    <Badge
-                      className={`text-xs border-lightGray ${
-                        cohort?.status === "Active"
-                          ? "bg-primary/20 text-dark900"
-                          : "bg-yellow-100 text-dark900"
-                      }`}
-                    >
-                      {cohort.status}
-                    </Badge>
-                  </div>
-                  <div className="text-md space-y-1">
-                    <p>
-                      <span className="font-semibold">Start Date:</span>{" "}
-                      {formatTime(cohort.startDate)}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Duration:</span>{" "}
-                      {cohort.duration}
-                    </p>
-                    <p>
-                      <span className="font-semibold">
-                        Application Deadline:
-                      </span>{" "}
-                      {formatTime(cohort.applicationDeadline)}
-                    </p>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <Button
-                      value="Manage Cohort"
-                      className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
-                      onClick={() => navigate(`cohort/${cohort.id}`)}
-                    />
-                    <div className="relative">
-                      <button
-                        ref={buttonRef} // Reference to the button
-                        className="text-primary"
-                        onClick={() => toggleMenu(cohort.id)}
+        {cohorts.length === 0 ? (
+          <div className="text-center py-8 w-1/4 mx-auto">
+            <EmptyState msg={"No cohort found"} />
+          </div>
+        ) : (
+          <section className="">
+            <div className=" text-primary">
+              <div className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
+                {cohorts?.map((cohort) => (
+                  <div
+                    key={cohort.id}
+                    className="border border-lightGray rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="font-semibold text-lg">
+                        {cohort?.name}
+                      </div>
+                      <Badge
+                        className={`text-xs border-lightGray ${
+                          cohort?.status === "Active"
+                            ? "bg-primary/20 text-primary"
+                            : "bg-yellow-100 text-primary"
+                        }`}
                       >
-                        <img
-                          src={ellipse}
-                          alt="options"
-                          className="cursor-pointer"
-                        />
-                      </button>
-                      {isMenuOpen === cohort.id && (
-                        <div
-                          ref={menuRef} // Reference to the menu container
-                          className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
-                        >
-                          <ul className="py-1">
-                            <li
-                              className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                              onClick={() => handleEdit(cohort)}
-                            >
-                              Edit Cohort
-                            </li>
+                        {cohort.status}
+                      </Badge>
+                    </div>
+                    <div className="text-md space-y-1">
+                      <p>
+                        <span className="font-semibold">Start Date:</span>{" "}
+                        {formatDate(cohort.startDate)}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Duration:</span>{" "}
+                        {cohort.duration}
+                      </p>
+                      <p>
+                        <span className="font-semibold">
+                          Application Deadline:
+                        </span>{" "}
+                        {formatDate(cohort.applicationDeadline)}
+                      </p>
+                    </div>
 
-                            <hr className="text-lightGray" />
-                            <li
-                              onClick={() => onDelete(cohort.id)}
-                              className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
-                            >
-                              Delete Cohort
-                            </li>
-                          </ul>
-                        </div>
-                      )}
+                    <div className="flex justify-between items-center">
+                      <Button
+                        value="Manage Cohort"
+                        className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
+                        onClick={() => navigate(`cohort/${cohort.id}`)}
+                      />
+                      <div className="relative">
+                        <button
+                          ref={buttonRef} // Reference to the button
+                          className="text-primary"
+                          onClick={() => toggleMenu(cohort.id)}
+                        >
+                          <img
+                            src={ellipse}
+                            alt="options"
+                            className="cursor-pointer"
+                          />
+                        </button>
+                        {isMenuOpen === cohort.id && (
+                          <div
+                            ref={menuRef} // Reference to the menu container
+                            className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
+                          >
+                            <ul className="py-1">
+                              <li
+                                className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                                onClick={() => handleEdit(cohort)}
+                              >
+                                Edit Cohort
+                              </li>
+
+                              <hr className="text-lightGray" />
+                              <li
+                                onClick={() => onDelete(cohort.id)}
+                                className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
+                              >
+                                Delete Cohort
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );

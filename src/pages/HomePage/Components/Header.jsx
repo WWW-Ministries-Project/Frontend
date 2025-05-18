@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
-import ProfilePicture from "/src/components/ProfilePicture";
+import {ProfilePicture} from "@/components";
 import ChurchLogo from "@/components/ChurchLogo";
 
 function Header({ handleShowNav }) {
@@ -29,7 +29,7 @@ function Header({ handleShowNav }) {
                     <div className="">
                     <ChurchLogo show={true} className={'h-3'} />
                     </div>
-                    <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-dark900 lg:hidden" />
+                    <img src={hamburger} alt="" onClick={handleShowNav} className="cursor-pointer inline sm:inline md:inline text-primary lg:hidden" />
                    
                   </div>
         
@@ -40,9 +40,9 @@ function Header({ handleShowNav }) {
           {/* <img src={bell} alt="" /> */}
           {/* <div> */}
           <div className="flex items-center rounded-xl  gap-x-3 cursor-pointer" onClick={handleClick}>
-            <ProfilePicture src={decodeToken()?.profile_img} className={"w-[2rem] h-[2rem] bg-lightGray/50 border  border-dark900 text-dark900 "} name={decodeToken()?.name} alt="profile picture" />
-            <span className="text-dark900 font-semibold">{decodeToken()?.name}</span>
-            {/* <img src={arrowDown} alt="arrow down  text-dark900" onClick={handleClick} /> */}
+            <ProfilePicture src={decodeToken()?.profile_img} className={"w-[2rem] h-[2rem] bg-lightGray/50 border  border-primary text-primary "} name={decodeToken()?.name} alt="profile picture" />
+            <span className="text-primary font-semibold">{decodeToken()?.name}</span>
+            {/* <img src={arrowDown} alt="arrow down  text-primary" onClick={handleClick} /> */}
           </div>
           {showLogOut ? (
             <div onClick={handleLogOut} className="absolute z-100 top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl  items-center hover:bg-neutralGray cursor-pointer ">

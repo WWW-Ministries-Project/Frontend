@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import { Button } from "@/components";
 import {
   IPersonalDetails,
   PersonalDetails,
@@ -29,7 +29,7 @@ const ChildrenSubFormComponent = ({
             <FullWidth $justify={"right"}>
               <Button
                 value="Add Another Child"
-                className="default"
+                variant="default"
                 type="button"
                 onClick={() => unshift(initialValues.children[0])}
               />
@@ -41,7 +41,7 @@ const ChildrenSubFormComponent = ({
                   <FullWidth $justify={"right"}>
                     <Button
                       value="Remove"
-                      className="secondary"
+                      variant="secondary"
                       type="button"
                       onClick={() => remove(index)}
                     />

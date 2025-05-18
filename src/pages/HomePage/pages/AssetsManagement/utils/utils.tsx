@@ -1,13 +1,14 @@
-import ProfilePicture from "@/components/ProfilePicture";
+import { ProfilePicture } from "@/components";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { assetType } from "./assetsInterface";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 
 export const handleAction = (path: string, mode = "edit") => {
-  navigateRef.current && navigateRef.current(path, { state: { mode } });
+  if (navigateRef.current) navigateRef.current(path, { state: { mode } });
 };
 
 export const assetsColumns: ColumnDef<assetType>[] = [
@@ -76,7 +77,7 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           onClick={() =>
             handleAction(
               `/home/Assets/manage-asset?asset_id=${row.original.id}`,
-              "view"
+              "edit"
             )
           }
         />
@@ -84,7 +85,7 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           src={deleteIcon}
           alt="delete icon"
           className="cursor-pointer"
-          onClick={() => {}}
+          onClick={() => {showDeleteDialog(row.original, ()=>{alert("yet to be completed")})}}
         />
       </div>
     ),

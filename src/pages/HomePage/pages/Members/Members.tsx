@@ -1,49 +1,56 @@
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import HeaderControls from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
+import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
+import { MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnFilter } from "@tanstack/react-table";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import SearchBar from "../../../../components/SearchBar";
+import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import LoaderComponent from "../../Components/reusable/LoaderComponent";
 import MembersCount from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import MemberCard from "./Components/MemberCard";
+import { MemberCard } from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
 import { membersColumns } from "./utils";
 import { UserType } from "./utils/membersInterfaces";
 
-function Members() {
+export function Members() {
   const location = useLocation();
   const isNew = location.state?.new;
   const navigate = useNavigate();
 
+  const {
+    user: { permissions },
+  } = useAuth();
+
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
-  const [columnVisibility] = useState({
-    membership_type: false,
-    is_user: false,
-    department_id: false,
-  });
+  const columnVisibility = useMemo(() => {
+    return {
+      membership_type: false,
+      is_user: false,
+      department_id: false,
+      Actions: permissions.manage_members,
+    };
+  }, [permissions]);
   const [tableView, setTableView] = useState(
     localStorage.getItem("membersTableView") === "false" ? false : true
   );
   const [showOptions, setShowOptions] = useState(false);
-  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | {}>({});
+  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | object>({});
 
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
 
   const { screenWidth } = useWindowSize();
-  const { executeDelete, loading, success } = useDelete(
-    api.delete.deleteMember
-  );
+  const { executeDelete, success } = useDelete(api.delete.deleteMember);
   const { refetch: refetchUserStats } = useFetch(
     api.fetch.fetchUserStats,
     undefined,
@@ -71,10 +78,11 @@ function Members() {
         if ("id" in dataToDeleteRef.current)
           removeMember(dataToDeleteRef.current.id);
         const userStatsData = await refetchUserStats();
-        userStatsData && store.setUserStats(userStatsData.data);
+        if (userStatsData) store.setUserStats(userStatsData.data);
       }
     };
     handleEffect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success]);
 
   // Show notification after adding a member
@@ -90,16 +98,16 @@ function Members() {
   };
 
   const handleNavigation = () => {
-    navigate("add-member");
+    navigate("manage-member");
   };
 
   const handleDelete = async () => {
     if (!("id" in dataToDeleteRef.current)) return;
     const id = dataToDeleteRef.current.id;
-    await executeDelete(id!);
+    await executeDelete({ id: String(id) });
   };
 
-  const handleDeleteModal = (val?: UserType) => {
+  const handleDeleteModal = (val?: MembersType) => {
     if (val) {
       setDataToDelete(val);
       showDeleteDialog(val, handleDelete);
@@ -119,46 +127,54 @@ function Members() {
   };
 
   const membersCount = [
-    { count: userStats.members?.total_members, label: "Members" },
-    { count: userStats.members?.stats.adults.Male, label: "Adult male" },
-    { count: userStats.members?.stats.adults.Female, label: "Adult female" },
-    { count: userStats.members?.stats.children.Male, label: "Children male" },
     {
-      count: userStats.members?.stats.children.Female,
+      count: userStats.inhouse.total_members,
+      label: "In person church family",
+    },
+    { count: userStats.inhouse.stats.adults.Male, label: "Adult male" },
+    { count: userStats.inhouse.stats.adults.Female, label: "Adult female" },
+    { count: userStats.inhouse.stats.children.Male, label: "Children male" },
+    {
+      count: userStats.inhouse.stats.children.Female,
       label: "Children female",
     },
   ];
 
   const visitorsCount = [
-    { count: userStats.visitors?.total_members, label: "Visitors" },
-    { count: userStats.visitors?.stats.adults.Male, label: "Adult male" },
-    { count: userStats.visitors?.stats.adults.Female, label: "Adult female" },
-    { count: userStats.visitors?.stats.children.Male, label: "Children male" },
     {
-      count: userStats.visitors?.stats.children.Female,
+      count: userStats.online.total_members,
+      label: "Online e-church family",
+    },
+    { count: userStats.online.stats.adults.Male, label: "Adult male" },
+    { count: userStats.online.stats.adults.Female, label: "Adult female" },
+    { count: userStats.online.stats.children.Male, label: "Children male" },
+    {
+      count: userStats.online.stats.children.Female,
       label: "Children female",
     },
   ];
 
   return (
-    <main className={`p-4`}>
+    <PageOutline>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
         <HeaderControls
           title="Church Memberships"
           totalMembers={
-            userStats.members?.total_members + userStats.visitors?.total_members
+            userStats.online?.total_members + userStats.inhouse?.total_members
           }
           tableView={tableView}
           handleViewMode={handleViewMode}
+          hasFilter={true}
+          hasSearch={true}
           showFilter={showFilter}
           setShowFilter={setShowFilter}
           showSearch={showSearch}
           setShowSearch={setShowSearch}
-          handleNavigation={handleNavigation}
+          handleClick={handleNavigation}
           screenWidth={screenWidth}
-          btnName="Add Membership"
+          btnName={permissions?.manage_members ? "Add Membership" : ""}
         />
 
         {/* Search & Filter Components */}
@@ -216,16 +232,13 @@ function Members() {
                   showOptions={showOptions === row.original.id}
                   onShowOptions={() => setShowOptions(row.original.id)}
                   onDelete={handleDeleteModal}
+                  canManage={permissions?.manage_members}
                 />
               )}
             />
           )}
         </div>
       </section>
-
-      {loading && <LoaderComponent />}
-    </main>
+    </PageOutline>
   );
 }
-
-export default Members;

@@ -1,5 +1,5 @@
 import Action from "@/components/Action";
-import { compareDates, formatTime } from "@/utils/helperFunctions";
+import { compareDates, formatDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
 import PropTypes from "prop-types";
 import { eventTypeColors } from "../utils/eventHelpers";
@@ -106,7 +106,7 @@ const EventsCard = (props: IEventCard) => {
             <div className="flex px-3 gap-1 items-center text-sm">
               <img src={calendar} alt="clock icon" />
               <p>
-                {formatTime(props.event.start_date + "") || "TBD"} |
+                {formatDate(props.event.start_date + "") || "TBD"} |
                 <span className="text-sm">{props.event.start_time}</span>
                 <span className="text-sm">- {props.event.end_time} </span>
               </p>

@@ -1,4 +1,4 @@
-import empty from "/src/assets/images/empty_state.png";
+import empty from "/src/assets/emptyState.svg";
 import PropTypes from 'prop-types';
 
 const EmptyState = (props) => {
@@ -6,7 +6,7 @@ const EmptyState = (props) => {
         <div className={`${props.className}`}>
             {/* <h1>EmptyState</h1> */}
             <img src={empty} alt="" />
-            <div className={`text-center text-dark900 my-5 H400`}>{props.msg}</div>
+            <div className={`text-center text-primary my-5 H400`}>{props.msg}</div>
         </div>
     );
 }

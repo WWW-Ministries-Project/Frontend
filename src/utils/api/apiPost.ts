@@ -1,6 +1,13 @@
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
+import { AssetPayloadType } from "./assets/interfaces";
+import { DepartmentType } from "./settings/departmentInterfaces";
+import { PositionType } from "./settings/positionInterfaces";
+import type {
+  FollowUpPayloadType,
+  VisitPayloadType,
+} from "./visitors/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -11,18 +18,18 @@ export class ApiCreationCalls {
   }
   private postToApi<T>(
     path: string,
-    payload: Record<string, any>
+    payload: unknown
   ): Promise<ApiResponse<T>> {
     return this.apiExecution.postData(path, payload);
   }
 
-  createMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
   createEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
-  createAsset = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
   createRequisition = <T>(
@@ -31,19 +38,19 @@ export class ApiCreationCalls {
     return this.postToApi<T>("requisitions/create-requisition", payload);
   };
   createAccessRight = <T>(
-    payload: Record<string, any>
+    payload: unknown
   ): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
-  createDepartment = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("department/create-department", payload);
+  createDepartment = (
+    payload: unknown
+  ): Promise<ApiResponse<DepartmentType[]>> => {
+    return this.postToApi("department/create-department", payload);
   };
-  createPosition = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("position/create-position", payload);
+  createPosition = (
+    payload: unknown
+  ): Promise<ApiResponse<PositionType[]>> => {
+    return this.postToApi("position/create-position", payload);
   };
 
   // Create Program
@@ -73,14 +80,36 @@ export class ApiCreationCalls {
     return this.postToApi<T>("program/unenroll", payload);
   };
 
-  //todo :speak to BE TO UPDATE THIS TO PUT
-  updateMember = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("user/update-user", payload);
-  };
-
   forgotPassword = <T>(
     payload: Record<string, string>
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
+  };
+
+  /*Visitor Management*/
+  createVisitor = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/visitors", payload);
+  };
+  // Visit
+  createVisit = <T>(
+    payload: VisitPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi<T>("visitor/visit", payload);
+  };
+
+  // Follow-Up Management
+  createFollowUp = <T>(
+    payload: FollowUpPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi<T>("visitor/followup", payload);
+  };
+
+  // Prayer Request Management
+  createPrayerRequest = <T>(
+    payload: Record<string, any>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("visitor/prayerrequest", payload);
   };
 }

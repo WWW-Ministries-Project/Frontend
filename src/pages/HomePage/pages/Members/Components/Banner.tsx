@@ -1,37 +1,39 @@
-import Badge from "@/components/Badge";
-import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
-import coverImage1 from "/src/assets/CoverImage.svg";
+import { ProfilePicture } from "@/components";
+import { Badge } from "@/components/Badge";
+import { Button } from "@/components/Button";
+// import coverImage1 from "/src/assets/CoverImage.svg";
 
 interface IProps {
   id: string | number;
   name?: string;
-  department: string;
-  position: string;
+  department?: string;
+  position?: string;
   email: string;
   primary_number: string;
   src: string;
+  status?: string;
   onClick: (id: string | number) => void;
-  membership_type?: String;
+  membership_type?: string;
+  showButton?: boolean;
 }
 
-const Banner = (props: IProps) => {
+export const Banner = (props: IProps) => {
   const handleClick = () => {
     props.onClick(props.id);
   };
   return (
     <div className="w-full h-36 relative bg-primary text-white rounded-t-lg">
       <div
-        className="absolute bottom-0 rounded-t-lg left-0 w-full h-full flex items-center justify-between px-4 bg-cover"
+        className="p-4 rounded-t-lg left-0 w-full h-full flex items-center justify-between  bg-cover"
         style={{
-          backgroundImage: `url(${coverImage1})`,
+          // backgroundImage: `url(${coverImage1})`,
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
         <div className="flex justify-between items-cente  container mx-auto">
           <div className="flex gap-4 items-center  ">
-            <ProfilePic
+            <ProfilePicture
               className="w-24 h-24 outline outline-white"
               src={props.src}
               alt="cover Image"
@@ -42,34 +44,37 @@ const Banner = (props: IProps) => {
               <div className="font-bold text-2xl ">
                 {props.name || "No Name"}
               </div>
-              <div className="">{`${props.department} ${
+              <div className="">{`${props.department ?? ""} ${
                 props.department && props.position ? "|" : ""
-              } ${props.position} `}</div>
+              } ${props.position ?? ""} `}</div>
               <div className="">
                 {(props.email || "No Email") +
                   " | " +
                   (props.primary_number || "No Phone")}
               </div>
-              <div className="md:w-2/3">
-                <Badge className="text-sm border-primary bg-white border text-primary ">
+              <div className="flex gap-2">
+                <Badge className="text-sm border-primary bg-white border text-primary w-fit ">
                   {props.membership_type
                     ? "Online e-church family"
                     : " In-person church family"}
                 </Badge>
+                <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
+                  {props.status ?? ""}
+                </Badge>
               </div>
             </article>
           </div>
-          <div>
-            <Button
-              value="Edit Profile"
-              onClick={handleClick}
-              className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
-            />
-          </div>
+          {props.showButton && (
+            <div>
+              <Button
+                value="Edit Profile"
+                onClick={handleClick}
+                className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
-export default Banner;

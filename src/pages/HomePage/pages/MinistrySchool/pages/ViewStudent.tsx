@@ -1,4 +1,4 @@
-import Badge from "@/components/Badge";
+import { Badge } from "@/components/Badge";
 import { ApiCalls } from "@/utils/api/apiFetch";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";

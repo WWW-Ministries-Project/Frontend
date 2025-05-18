@@ -1,10 +1,10 @@
 import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
-import { IMemberInfo } from "@/pages/HomePage/pages/Members/utils";
-import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
-import type { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
+import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -17,30 +17,61 @@ export class ApiCalls {
 
   private fetchFromApi<T>(
     endpoint: string,
-    query?: Record<string, any>
+    query?: QueryType
   ): Promise<ApiResponse<T>> {
     return this.apiExecution.fetchData(endpoint, query);
   }
 
-  // User Management
+  // Members Management
   fetchAllMembers = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: UserType[] }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<MembersType[]>> => {
     return this.fetchFromApi("user/list-users", query);
   };
+
   fetchAMember = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: IMemberInfo }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 
-  // Fetch User Stats
-  fetchUserStats = (): Promise<any> => {
+  fetchUserStats = (): Promise<ApiResponse<UserStatsType>> => {
     return this.fetchFromApi("user/stats-users");
   };
 
+  // Visit Management
+  fetchAllVisitors = (
+    query?: QueryType
+  ): Promise<ApiResponse<VisitorType[]>> => {
+    return this.fetchFromApi("visitor/visitors", query);
+  };
+
+  fetchVisitorById = (
+    query?: QueryType
+  ): Promise<ApiResponse<VisitorDetailsType>> => {
+    return this.fetchFromApi(`visitor/visitor`, query);
+  };
+
+  fetchAllVisits = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+    return this.fetchFromApi("visit", query);
+  };
+
+  fetchVisitById = (
+    id: string,
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
+    return this.fetchFromApi(`visit/${id}`, query);
+  };
+
+  fetchAllVisitsByVisitorId = (
+    id: string,
+    query?: QueryType
+  ): Promise<ApiResponse<any[]>> => {
+    return this.fetchFromApi(`visitor/visit/visitor/${id}`, query);
+  };
+
   // Event Management
-  fetchEvents = (query?: Record<string, any>): Promise<any> => {
+  fetchEvents = (query?: QueryType): Promise<any> => {
     return this.fetchFromApi("event/list-events", query);
   };
 
@@ -49,43 +80,36 @@ export class ApiCalls {
     return this.fetchFromApi("position/list-positions");
   };
 
-  // Asset Management
-  fetchAssets = (): Promise<any> => {
-    return this.fetchFromApi("assets/list-assets");
-  };
-  fetchAnAsset = (
-    query?: Record<string, any>
-  ): Promise<{ data: assetType }> => {
-    return this.fetchFromApi("assets/get-asset", query);
-  };
-
   // Department Management
   fetchDepartments = (): Promise<any> => {
     return this.fetchFromApi("department/list-departments");
   };
 
-  // Requisition Management
-  fetchRequisitions = (
-    query?: Record<string, string | number>
-  ): Promise<any> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
+  // Asset Management
+  fetchAssets = (): Promise<any> => {
+    return this.fetchFromApi("assets/list-assets");
   };
-  fetchRequisitionDetails = (
-    query?: Record<string, string | number>
-  ): Promise<any> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
+  fetchAnAsset = (query?: QueryType): Promise<ApiResponse<assetType>> => {
+    return this.fetchFromApi("assets/get-asset", query);
   };
 
   // Access Levels
   fetchAccessLevels = (
-    query?: Record<string, string | number>
-  ): Promise<ApiResponse<{ data: AccessRight[] }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<AccessRight[]>> => {
     return this.fetchFromApi("access/list-access-levels", query);
   };
-  fetchAnAccess = (
-    query?: Record<string, string | number>
-  ): Promise<ApiResponse<{ data: AccessRight }>> => {
+  fetchAnAccess = (query?: QueryType): Promise<ApiResponse<AccessRight>> => {
     return this.fetchFromApi("access/get-access-level", query);
+  };
+
+  // Requisition Management
+  fetchRequisitions = (query?: QueryType): Promise<any> => {
+    return this.fetchFromApi("requisitions/staff-requisition", query);
+  };
+
+  fetchRequisitionDetails = (query?: QueryType): Promise<any> => {
+    return this.fetchFromApi("requisitions/get-requisition/", query);
   };
 
   fetchMyRequests = (query?: Record<string, string | number>): Promise<any> => {
@@ -93,79 +117,107 @@ export class ApiCalls {
   };
 
   // Program Management
-  fetchAllPrograms = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  fetchAllPrograms = (query?: QueryType): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/programs", query);
   };
 
   fetchProgramById = (
     id: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`program/programs/${id}`, query);
+  };
+  // @Jojo please the name is confusing
+  fetchMembers = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+    return this.fetchFromApi("program/users", query);
+  };
+
+  fetchUserByEmailAndCohort = (
+    email: string,
+    cohortId: number,
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
+    return this.fetchFromApi("user/get-user-email", {
+      ...query,
+      email,
+      cohortId,
+    });
   };
 
   // Cohort Management
-  fetchAllCohorts = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  fetchAllCohorts = (query?: QueryType): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/cohorts", query);
   };
 
   fetchCohortById = (
     id: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`program/cohorts/${id}`, query);
   };
 
   fetchCohortsByProgramId = (
     programId: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
   };
 
   // Course Management
-  fetchAllCourses = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+  fetchAllCourses = (query?: QueryType): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/courses", query);
   };
 
   fetchCourseById = (
     id: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`program/courses/${id}`, query);
   };
 
   fetchStudentById = (
     id: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
     return this.fetchFromApi(`program/progress/${id}`, query);
   };
 
   // Enrollment Management
   fetchEnrollmentsByCourse = (
     courseId: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/course-enrollment", query);
   };
 
   fetchEnrollmentsByUser = (
     userId: string,
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
+    query?: QueryType
+  ): Promise<ApiResponse<any[]>> => {
     return this.fetchFromApi("program/user-enrollment", query);
   };
 
-  fetchMembers = (
-    query?: Record<string, any>
-  ): Promise<ApiResponse<{ data: any[] }>> => {
-    return this.fetchFromApi("program/users", query);
+  // Follow-Up Management
+  fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+    return this.fetchFromApi("followup", query);
+  };
+
+  fetchFollowUpById = (
+    id: string,
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
+    return this.fetchFromApi(`followup/${id}`, query);
+  };
+
+  // Prayer Request Management
+  fetchAllPrayerRequests = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+    return this.fetchFromApi("prayerrequest", query);
+  };
+
+  fetchPrayerRequestById = (
+    id: string,
+    query?: QueryType
+  ): Promise<ApiResponse<any>> => {
+    return this.fetchFromApi(`prayerrequest/${id}`, query);
   };
 }

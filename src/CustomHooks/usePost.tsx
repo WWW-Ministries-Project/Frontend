@@ -1,12 +1,12 @@
 import { showNotification } from "@/pages/HomePage/utils";
 import React from "react";
 
-export const usePost = <T,>(postFunction: (payload: any) => Promise<T>) => {
+export const usePost = <T,K>(postFunction: (payload: K) => Promise<T>) => {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
 
-  const postData = React.useCallback(async (payload: any) => {
+  const postData = React.useCallback(async (payload: K) => {
     setError(null);
     setLoading(true);
 

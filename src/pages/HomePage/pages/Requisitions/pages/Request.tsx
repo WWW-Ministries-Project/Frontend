@@ -1,6 +1,6 @@
 import AddSignature from "@/components/AddSignature";
-import Button from "@/components/Button";
-import FormikInput from "@/components/FormikInput";
+import { Button } from "@/components/Button";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import Modal from "@/components/Modal";
 import { useAuth } from "@/context/AuthWrapper";
@@ -51,7 +51,7 @@ const Request = () => {
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
-  const { data } = useFetch<{ data: { data: IRequisitionDetails } }>(
+  const { data } = useFetch<{ data: IRequisitionDetails }>(
     api.fetch.fetchRequisitionDetails,
     { id: decodedId }
   );
@@ -76,10 +76,10 @@ const Request = () => {
   const [initialImages, setInitialImages] = useState<image[]>([]);
 
   useEffect(() => {
-    const response = data?.data?.data;
+    const response = data?.data;
     if (response) {
       setRequestData(response);
-      const products = data?.data?.data?.products?.map((product) => ({
+      const products = data?.data?.products?.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,
@@ -215,7 +215,7 @@ const Request = () => {
                   </Modal>
                   <FormWrapperNew>
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="requester_name"
                       label="Requester"
                       id="requester_name"
@@ -239,7 +239,7 @@ const Request = () => {
                       placeholder="Select program/event"
                     />
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="request_date"
                       label="Date of requisition"
                       id="request_date"
@@ -255,7 +255,7 @@ const Request = () => {
                     />
                     <span> &nbsp;</span>
                     <Field
-                      component={FormikInput}
+                      component={FormikInputDiv}
                       name="comment"
                       label="Comment"
                       id="comment"
@@ -275,7 +275,7 @@ const Request = () => {
                   <div className="w-full flex justify-end gap-x-4 mt-4">
                     <Button
                       value="Cancel"
-                      className="tertiary"
+                      variant="ghost"
                       onClick={() => {
                         window.history.back();
                       }}
@@ -283,7 +283,7 @@ const Request = () => {
                     {!id && (
                       <Button
                         value="Save as Draft"
-                        className="secondary"
+                        variant="secondary"
                         onClick={() => {
                           setValues({
                             ...values,
@@ -299,7 +299,7 @@ const Request = () => {
                     {isNoSignature && (
                       <Button
                         value="Add signature"
-                        className="secondary"
+                        variant="secondary"
                         onClick={() =>
                           handleAddSignature(validateForm, setTouched)
                         }
@@ -307,7 +307,7 @@ const Request = () => {
                     )}
                     <Button
                       value={id ? "Update" : "Send request"}
-                      className="default"
+                      variant="default"
                       loading={
                         !!id && !openSignature && (loading || addingImage)
                       }

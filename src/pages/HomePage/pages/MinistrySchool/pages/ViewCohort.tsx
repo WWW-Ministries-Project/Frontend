@@ -1,13 +1,14 @@
-import Button from "@/components/Button";
+import { Button } from "@/components/Button";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { ApiCalls } from "@/utils/api/apiFetch";
-import { formatTime } from "@/utils/helperFunctions";
+import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ClassCard from "../Components/ClassCard";
 import ClassForm from "../Components/ClassForm";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
+import EmptyState from "@/components/EmptyState";
 
 type ClassItem = {
   id: string;
@@ -50,7 +51,7 @@ const ViewCohort = () => {
       // Fetch cohort details by programId
       const programResponse = await apiCalls.fetchCohortById(cohortId);
       if (programResponse.status === 200) {
-        setCohort(programResponse.data.data);
+        setCohort(programResponse.data);
       } else {
         setError("Error fetching cohort details");
       }
@@ -91,7 +92,7 @@ const ViewCohort = () => {
   };
 
   return (
-    <div className="px-4">
+    <div className="">
       <ViewPageTemplate
         Data={cohort}
         title="Cohort Details"
@@ -107,7 +108,7 @@ const ViewCohort = () => {
           <div className="flex gap-8">
             <div>
               <div className="font-semibold text-small">Start date</div>
-              <div>{formatTime(cohort?.startDate)}</div>
+              <div>{formatDate(cohort?.startDate)}</div>
             </div>
             <div>
               <div className="font-semibold text-small">Duration</div>
@@ -117,7 +118,7 @@ const ViewCohort = () => {
               <div className="font-semibold text-small">
                 Application Deadline
               </div>
-              <div>{formatTime(cohort?.applicationDeadline)}</div>
+              <div>{formatDate(cohort?.applicationDeadline)}</div>
             </div>
             <div>
               <div className="font-semibold text-small">Classes</div>
@@ -142,7 +143,13 @@ const ViewCohort = () => {
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
+              {
+                cohort?.courses.length === 0 ? (
+                  <div className="text-center py-8 w-1/4 mx-auto">
+                    <EmptyState msg={"No class found"} />
+                  </div>
+                ) :
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
                 {cohort?.courses.map((classItem: ClassItem) => (
                   <div key={classItem.id}>
                     <ClassCard
@@ -152,38 +159,12 @@ const ViewCohort = () => {
                     />
                   </div>
                 ))}
-              </div>
+              </div>}
             </div>
           </section>
         }
       />
-      {/* <PageOutline className="p-0">
-        <section className=" sticky top-0">
-        <div className="bg-primary rounded-t-lg text-white">
-                    <div className="container mx-auto p-4 space-y-3">
-                        <div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-4">
-                        <div className=" text-white text-2xl font-bold">
-                        {cohort?.name}
-                        </div>
-                        <Badge className="text-xs bg-primary text-white">{cohort?.status}</Badge>
-                        </div>
-                      <Button value="Edit Cohort" className="p-2 m-1 bg-white min-h-10 max-h-14 text-primary" />
-                      
-                    </div>
-                    <div className="text-sm">
-                      <p>{cohort?.description}</p>
-                    </div>
-                    </div>
-
-                    
-                    </div>
-                </div>
-        
-        </section>
-        
-      </PageOutline> */}
+      
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ClassForm
           onClose={() => setIsModalOpen(false)}

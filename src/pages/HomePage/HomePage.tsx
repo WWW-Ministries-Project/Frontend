@@ -1,6 +1,6 @@
 import { useFetch } from "@/CustomHooks/useFetch";
-import Dialog from "@/components/Dialog";
-import NotificationCard from "@/components/NotificationCard";
+import { Dialog } from "@/components/Dialog";
+import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import Header from "../HomePage/Components/Header";
 import SideBar from "../HomePage/Components/SideBar";
 import Breadcrumb from "./Components/BreadCrumb";
 import SideBarMobile from "./Components/SideBarMobile";
-import LoaderComponent from "./Components/reusable/LoaderComponent";
+import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 
 export const navigateRef = {
@@ -23,9 +23,11 @@ export const navigateRef = {
 };
 
 function HomePage() {
-  const { data: membersData, loading: membersLoading } = useFetch(
-    api.fetch.fetchAllMembers
-  );
+  const {
+    data: membersData,
+    loading: membersLoading,
+    refetch: refetchMembers,
+  } = useFetch(api.fetch.fetchAllMembers);
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
   const { data: upcomingEventsData, loading: upcomingEventsLoading } = useFetch(
     api.fetch.fetchEvents
@@ -36,7 +38,7 @@ function HomePage() {
   const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
-  //@ts-ignore
+  //@ts-expect-error this auth dey worry
   const { user } = useAuth();
 
   //side nav
@@ -57,7 +59,7 @@ function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMembers(membersData.data.data);
+      store.setMembers(membersData.data);
     }
 
     if (userStatsData) {
@@ -65,17 +67,17 @@ function HomePage() {
     }
 
     if (upcomingEventsData) {
-      store.setEvents(upcomingEventsData.data.data);
+      store.setEvents(upcomingEventsData.data);
     }
 
     if (positionsData) {
-      settingsStore.setPositions(positionsData.data.data);
+      settingsStore.setPositions(positionsData.data);
     }
   }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
-      settingsStore.setDepartments(res.data.data);
+      settingsStore.setDepartments(res.data);
     });
   }, []);
 
@@ -112,14 +114,14 @@ function HomePage() {
   navigateRef.current = navigate;
 
   return (
-    <div className=" ">
+    <div className="lg:fixed ">
       {token ? (
-        <main className="h-screen p-3  ">
+        <main className="h-screen w-screen p-3  ">
           <div className="">
             <Header handleShowNav={handleShowNav} />
           </div>
           <div className="flex">
-            <div className={` hidden sm:hidden md:hidden lg:inline `}>
+            <div className={` hidden sm:hidden md:hidden lg:inline  `}>
               <SideBar className="" onClick={handleShowNav} show={show} />
             </div>
 
@@ -133,11 +135,14 @@ function HomePage() {
               <div
                 className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
               >
-                <div className="hideScrollbar lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-                  <Breadcrumb />
+                <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                  <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
+                    <Breadcrumb />
+                  </div>
                   <Outlet
                     context={{
                       members,
+                      refetchMembers,
                       filter,
                       setFilter,
                       handleSearchChange,
@@ -152,11 +157,11 @@ function HomePage() {
           </div>
           <NotificationCard />
           <Dialog />
+          <LoaderComponent />
         </main>
       ) : (
         <Navigate to="/login" />
       )}
-      {membersLoading && <LoaderComponent />}
     </div>
   );
 }

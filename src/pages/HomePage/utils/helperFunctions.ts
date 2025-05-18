@@ -1,5 +1,6 @@
 import {
   useDialogStore,
+  useLoaderStore,
   useNotificationStore,
 } from "../store/globalComponentsStore";
 
@@ -35,14 +36,19 @@ export const showDeleteDialog = <T extends DialogValue>(
 export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
-  title?:string,
-  handleClose = () => {}
+  handleClose = () => {},
+  title?: string
 ) => {
   const notification = useNotificationStore.getState().setNotification;
-  notification({ message, show: true, onClose: handleClose, type,title });
+  notification({ message, show: true, onClose: handleClose, type, title });
 };
 
-export const isArray = function (data: any) {
+export const showLoader = (val: boolean) => {
+  const { setLoading } = useLoaderStore.getState();
+  setLoading(val);
+};
+
+export const isArray = function (data: unknown) {
   return Array.isArray(data);
 };
 
@@ -88,16 +94,26 @@ export async function handleDownload(imageSrc: string) {
 }
 
 export const markTouchedFields = (
+  //TODO fix this after fixing events
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors: Record<string, any>,
   touched: Record<string, boolean> = {}
 ) => {
   Object.keys(errors).forEach((field) => {
     if (typeof errors[field] === "object" && errors[field] !== null) {
-      markTouchedFields(errors[field], touched); 
+      markTouchedFields(errors[field], touched);
     } else {
       touched[field] = true;
     }
   });
 
   return touched;
+};
+
+export const encodeQuery = (query: string | number) => {
+  return encodeURIComponent(btoa(query + ""));
+};
+
+export const decodeQuery = (query: string) => {
+  return atob(decodeURIComponent(query));
 };

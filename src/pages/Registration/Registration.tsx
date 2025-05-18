@@ -1,7 +1,4 @@
-//TODO: UPDATE THIS AFTER DEMO
-
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import ChurchLogo from "@/components/ChurchLogo";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
 import { api } from "@/utils/api/apiCalls";
@@ -20,8 +17,6 @@ import {
   WorkInfoSubForm,
 } from "../../components/subform/WorkInfoSubForm";
 import { baseUrl } from "../Authentication/utils/helpers";
-import { useCountryStore } from "../HomePage/store/coutryStore";
-import { fetchCountries } from "../HomePage/utils";
 import {
   IRegistrationContactSubForm,
   RegistrationContactSubForm,
@@ -29,27 +24,25 @@ import {
 
 const Registration = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
   const { postData, loading, error, data } = usePost<
     ApiResponse<{ data: IRegistration }>
   >(api.post.createMember);
 
-  const countryStore = useCountryStore();
-
-  // Fetch countries on mount if not already in store
   useEffect(() => {
-    if (!countryStore.countries.length) {
-      fetchCountries().then((data) => {
-        countryStore.setCountries(data);
-      });
+    if (registrationSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = "https://worldwidewordministries.org/";
+      }, 10000);
+      return () => clearTimeout(timer);
     }
-  }, [countryStore]);
+  }, [registrationSuccess]);
 
   async function handleSubmit(values: IRegistration) {
-
     let dataToSend: IRegistration = { ...values };
 
     try {
-      let uploadedFile = values.personal_info.picture.picture;
+      const uploadedFile = values.personal_info.picture.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();
@@ -72,70 +65,105 @@ const Registration = () => {
 
       // Send data regardless of whether an image was uploaded
       await postData(dataToSend);
+      setRegistrationSuccess(true);
     } catch (error) {
       console.error("Error during submission:", error);
     }
   }
 
+  if (registrationSuccess) {
+    return (
+      <div className="bg-white w-full md:w-2/3 mx-auto rounded-lg px-8 py-12">
+        <div className="text-center">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-6">
+            <svg
+              className="w-16 h-16 text-green-500 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <h2 className="text-2xl font-bold text-green-800 mb-2">
+              Registration Successful
+            </h2>
+            <p className="text-gray-700">
+              Thank you for registering to be a member of the Worldwide Word Ministries.
+              A contact person from the registry team will reach out to you soon.
+            </p>
+          </div>
+          <p className="text-gray-500 text-sm">
+            You will be redirected to our homepage in 5 seconds...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover h-screen flex items-center">
-      <div className="bg-white w-2/3 max-w-[1000px] h-[90%] mx-auto overflow-y-scroll rounded-lg">
-        <div className="flex flex-col items-center">
-          <ChurchLogo className={" mb-5 "} show={true} />
-          <h2 className="p-1 text-sm md:text-2xl font-bold mb-4">
+    <div className="bg-white w-full md:w-2/3 max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
+      <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
+        <div className="text-center">
+          <h2 className="p-1 text-xl md:text-2xl font-bold">
             Welcome to our registration portal
           </h2>
-          <p className="md:text-2xl mb-4">Let's get started</p>
+          <p className="text-sm md:text-lg">Let's get started with your registration</p>
         </div>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={(values) => handleSubmit(values)}
-          validationSchema={
-            getValidationSchema(initialValues.personal_info.has_children)[
-              currentStep
-            ]
-          }
-        >
-          {(formik: FormikProps<IRegistration>) => {
-            const steps = getSteps(formik.values.personal_info.has_children);
-
-            // Reset 'children' when 'has_children' is false
-            useEffect(() => {
-              if (!formik.values.personal_info.has_children) {
-                formik.setFieldValue("children", undefined);
-              } else if (!formik.values.children) {
-                formik.setFieldValue(
-                  "children",
-                  ChildrenSubForm.initialValues.children
-                );
-              }
-            }, [formik.values.personal_info.has_children]);
-
-            const handleNext = async () => {
-              const errors: any = await formik.validateForm();
-              if (Object.keys(errors).length > 0) {
-                formik.setTouched(errors);
-                return;
-              }
-              setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-              if (currentStep === steps.length - 1) {
-                formik.submitForm();
-              }
-            };
-
-            return (
-              <Stepper
-                steps={steps}
-                currentStep={currentStep}
-                handleNext={handleNext}
-                handleBack={() =>
-                  setCurrentStep((prev) => Math.max(0, prev - 1))
-                }
-              />
-            );
-          }}
-        </Formik>
       </div>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={(values) => handleSubmit(values)}
+        validationSchema={
+          getValidationSchema(initialValues.personal_info.has_children)[
+            currentStep
+          ]
+        }
+      >
+        {(formik: FormikProps<IRegistration>) => {
+          const steps = getSteps(formik.values.personal_info.has_children);
+
+          // Reset 'children' when 'has_children' is false
+          useEffect(() => {
+            if (!formik.values.personal_info.has_children) {
+              formik.setFieldValue("children", undefined);
+            } else if (!formik.values.children) {
+              formik.setFieldValue(
+                "children",
+                ChildrenSubForm.initialValues.children
+              );
+            }
+          }, [formik.values.personal_info.has_children]);
+
+          const handleNext = async () => {
+            const errors: any = await formik.validateForm();
+            if (Object.keys(errors).length > 0) {
+              formik.setTouched(errors);
+              return;
+            }
+            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+            if (currentStep === steps.length - 1) {
+              formik.submitForm();
+            }
+          };
+
+          return (
+            <Stepper
+              steps={steps}
+              currentStep={currentStep}
+              handleNext={handleNext}
+              handleBack={() =>
+                setCurrentStep((prev) => Math.max(0, prev - 1))
+              }
+            />
+          );
+        }}
+      </Formik>
     </div>
   );
 };
@@ -157,10 +185,10 @@ const initialValues: IRegistration = {
 };
 
 const getSteps = (hasChildren: boolean) => [
-  { label: "User Info", content: <UserSubForm prefix="personal_info" /> },
-  { label: "Contact Info", content: <RegistrationContactSubForm /> },
-  ...(hasChildren ? [{ label: "Children", content: <ChildrenSubForm /> }] : []),
-  { label: "Work Info", content: <WorkInfoSubForm prefix="work_info" /> },
+  { label: "Personal Information", content: <UserSubForm prefix="personal_info" /> },
+  { label: "Contact Information", content: <RegistrationContactSubForm /> },
+  ...(hasChildren ? [{ label: "Family Information", content: <ChildrenSubForm /> }] : []),
+  { label: "Work Information", content: <WorkInfoSubForm prefix="work_info" /> },
 ];
 
 const getValidationSchema = (hasChildren: boolean): ObjectSchema<any>[] => [

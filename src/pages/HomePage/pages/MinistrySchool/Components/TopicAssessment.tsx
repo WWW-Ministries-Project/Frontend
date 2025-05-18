@@ -219,11 +219,7 @@ const TopicAssessment: React.FC<{
               </div>
             ) : (
               <button
-                className={`px-6 py-2 rounded-lg ${
-                  isGenerateEnabled
-                    ? "bg-primary text-white"
-                    : "bg-lightGray text-dark900"
-                }`}
+                className={`px-6 py-2 rounded-lg ${isGenerateEnabled ? "bg-primary text-white" : "bg-lightGray text-primary"}`}
                 disabled={!isGenerateEnabled}
                 onClick={handleGenerateCertificate}
               >

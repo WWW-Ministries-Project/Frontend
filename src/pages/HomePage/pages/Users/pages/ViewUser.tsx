@@ -1,100 +1,64 @@
-import Button from "@/components/Button";
-import ProfilePic from "@/components/ProfilePicture";
-import ToggleSwitch from "@/components/ToggleInput";
+import { Button } from "@/components";
+import { ProfilePicture } from "@/components/ProfilePicture";
+import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import LoaderComponent from "@/pages/HomePage/Components/reusable/LoaderComponent";
 import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import { showNotification } from "@/pages/HomePage/utils";
+import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { initialUser } from "../../Members/utils/membersHelpers";
-import { UserType } from "../../Members/utils/membersInterfaces";
-import ActiveAccess from "../../Settings/Components/ActiveAccess";
+import { ActiveAccess } from "../../Settings/Components/ActiveAccess";
 const ViewUser = () => {
   const { id } = useParams();
 
-  const {
-    refetch: refetchRole,
-    data: fetchedRole,
-    loading: roleLoading,
-  } = useFetch(api.fetch.fetchAnAccess, {}, true);
-  const { data: allRoles, loading: allRolesLoading } = useFetch(
-    api.fetch.fetchAccessLevels
-  );
-  const { data: responseData, loading: loadingMember } = useFetch(
-    api.fetch.fetchAMember,
-    {
-      user_id: id!,
-    }
-  );
-  const {
-    updateData: updateAccess,
-    loading: accessLoading,
-    data: accessData,
-    error: accessError,
-  } = usePut(api.put.assignAccessRight);
-  // @ts-ignore
-  const user: Omit<UserType, "position", "department"> & {
-    position: string;
-    department: string;
-  } = responseData?.data.data || initialUser;
+  const { data: responseData } = useFetch(api.fetch.fetchAMember, {
+    user_id: id!,
+  });
+
+  const { data: allRoles } = useFetch(api.fetch.fetchAccessLevels);
 
   const {
-    postData,
+    updateData: activateUser,
+    loading: activateLoading,
+    data: activateData,
+  } = usePut(api.put.activateMember);
+
+  const {
+    postData: resetPassword,
     loading: resetLoading,
     data: resetData,
     error: resetError,
   } = usePost(api.post.forgotPassword);
 
-  const setNotification = useNotificationStore(
-    (state) => state.setNotification
+  const { updateData: updateAccess, loading: accessLoading } = usePut(
+    api.put.assignAccessRight
   );
 
-  const [isActive, setIsActive] = useState<boolean>(user?.is_active || false);
-  const [activeRole, setActiveRole] = useState<string | number>("");
+  const user = useMemo(() => responseData?.data, [responseData]);
 
-  const role = fetchedRole?.data.data;
-  const roleNames = useMemo(
-    () =>
-      allRoles?.data.data.map((role) => ({
-        name: role.name,
-        value: role.id,
-      })) || [],
-    [role]
-  );
+  const [isActive, setIsActive] = useState(!!user?.is_active);
 
+  // activating user
   useEffect(() => {
-    if (user.access_level_id) {
-      refetchRole({ id: user.access_level_id });
+    if (user) {
+      setIsActive(!!user.is_active);
     }
-  }, [responseData]);
+  }, [user]);
 
-  useEffect(() => {
-    if (accessError) {
-      setNotification({
-        title: "Error",
-        message: accessError.message,
-        type: "error",
-        onClose: () => {},
-        show: true,
-      });
-    }
-    if (accessData) {
-      setActiveRole(accessData.data.id);
-      setNotification({
-        title: "Success",
-        message: "Access level updated successfully",
-        type: "success",
-        onClose: () => {},
-        show: true,
-      });
-    }
-  }, [accessError, accessData]);
+  const toggleAccountStatus = () => {
+    if (!user) return;
+    activateUser({
+      id: +id!,
+      status: user.status,
+      is_active: !isActive,
+    });
+  };
+  
+  // reset password 
   useEffect(() => {
     if (resetData) {
       showNotification("email sent to user", "success");
@@ -104,31 +68,51 @@ const ViewUser = () => {
     }
   }, [resetData, resetError]);
 
+  const handlePasswordReset = () => {
+    if (!user) return;
+    resetPassword({ email: user.email });
+  };
+
+
+  // access level options
+  const rolesOptions = useMemo(
+    () =>
+      allRoles?.data.map((role) => ({
+        name: role.name,
+        value: role.id,
+      })) || [],
+    [allRoles]
+  );
+  // activate user 
+  useEffect(() => {
+    showLoader(activateLoading);
+    if (activateData) {
+      showNotification(
+        `User ${
+          activateData.data.is_active ? "Activated" : "Deactivated"
+        } Successfully`,
+        "success"
+      );
+      setIsActive(activateData.data.is_active);
+    }
+  }, [activateLoading, activateData]);
+
+
+  // change access
   const changeAccess = (access_level_id: number | string) => {
     updateAccess({
-      user_id: id,
+      user_id: id!,
       access_level_id: access_level_id,
     });
   };
-  const toggleAccountStatus = () => {
-    // TODO: add endpoint
-    alert("remember to take endpoint from BE!");
-    setIsActive((prev) => !prev);
-  };
-
-  const resetPassword = () => {
-    // alert("Password reset initiated!");
-    postData(user.email);
-  };
 
   return (
-    <div className="p-4">
-      {/* <PageOutline> */}
+    <PageOutline>
       <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
         <h2 className="text-2xl font-semibold ">User Account</h2>
         <div className="flex items-center  gap-8">
-          <ProfilePic
-            src={user.photo}
+          <ProfilePicture
+            src={user?.photo}
             alt="Profile"
             className={" w-32 h-32 bg-lightGray"}
           />
@@ -139,27 +123,27 @@ const ViewUser = () => {
                 <div className="font-semibold">{user?.name}</div>
                 <div
                   className={`text-xs font-semibold rounded-full px-2 py-1 ${
-                    isActive ? " bg-green" : "bg-red-300"
+                    isActive ? " bg-green-300" : "bg-red-300"
                   } text-white`}
                 >
-                  {`${isActive ? "Active" : "Inactive"}`}
+                  {isActive ? "Active" : "Inactive"}
                 </div>
               </div>
 
               <div className="flex gap-2">
-                {user.department?.name && (
-                  <div className="">{user.department?.name || "-"}</div>
+                {user?.department?.name && (
+                  <div className="">{user?.department?.name || "-"}</div>
                 )}{" "}
-                {user.department?.name && "|"}
-                {user.position?.name && (
-                  <div className="">{user.position?.name || "-"}</div>
+                {user?.department?.name && "|"}
+                {user?.position?.name && (
+                  <div className="">{user?.position?.name || "-"}</div>
                 )}
               </div>
 
               <div className="flex gap-2">
                 {user?.email && <div className="">{user?.email}</div>} {"|"}
-                {user.primary_number && (
-                  <div className="">{user.primary_number}</div>
+                {user?.primary_number && (
+                  <div className="">{user?.primary_number}</div>
                 )}
               </div>
             </div>
@@ -185,10 +169,11 @@ const ViewUser = () => {
                 placeholder={"Select Role"}
                 className="w-full"
                 label={""}
-                options={roleNames}
+                disabled={accessLoading}
+                options={rolesOptions}
                 onChange={(_, value) => changeAccess(value)}
                 id={"role"}
-                value={activeRole || role?.id}
+                value={user?.access_level_id?.toString() || ""}
               />
             </div>
           </div>
@@ -196,31 +181,24 @@ const ViewUser = () => {
           <div className="flex items-center justify-between w-2/3">
             <div className="">Reset password?</div>
             <Button
-              className={"primary"}
+              variant={"primary"}
               value="Reset"
-              onClick={resetPassword}
+              onClick={handlePasswordReset}
+              disabled={resetLoading || !isActive}
+              loading={resetLoading}
             />
           </div>
-
-          {/* <div className="">Last password reset</div>
-              <div className="font-semibold">{new Date().toDateString()}</div> */}
         </section>
         <HorizontalLine />
         <section></section>
-        {
+        {user?.access_level_id && (
           <ActiveAccess
-            permissions={role?.permissions || {}}
-            name={role?.name || ""}
+            permissions={user?.access?.permissions || {}}
+            name={user?.access?.name || ""}
           />
-        }
+        )}
       </div>
-      {(loadingMember ||
-        allRolesLoading ||
-        roleLoading ||
-        accessLoading ||
-        resetLoading) && <LoaderComponent />}
-      {/* </PageOutline> */}
-    </div>
+    </PageOutline>
   );
 };
 

@@ -3,17 +3,26 @@ import { NavLink, useLocation } from "react-router-dom";
 import NavigationLink from "./NavigationLink";
 
 interface ChildItem {
-  key: string;
-  name: string;
   path: string;
+  element?: ReactNode;
+  errorElement?: ReactNode;
+  name: string;
+  alias?: string;
+  isPrivate?: boolean;
+  permissionNeeded?: string;
   sideTab?: boolean;
 }
+// interface ChildItem {
+//   key: string;
+//   name: string;
+//   path: string;
+//   sideTab?: boolean;
+// }
 
 interface SideBarSubMenuProps {
   item: {
     name: string;
     children: ChildItem[];
-    show: boolean;
     path: string;
   };
   parentPath: string;
@@ -46,7 +55,7 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
           {/* Main Parent Menu */}
           <div
             onClick={toggleSubMenu} // 🔥 Toggle submenu on click
-            className={`text-dark900 transition z-10  cursor-pointer  ${
+            className={`text-primary transition z-10  cursor-pointer  ${
               (showChildren || isActive) ? "text-primary bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
             }
             ${

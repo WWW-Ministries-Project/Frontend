@@ -1,16 +1,17 @@
-import React from "react";
+import { QueryType } from "@/utils/interfaces";
+import { useState, useCallback } from "react";
 
-export const usePut = <T,>(putFunction: (payload: any) => Promise<T>) => {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<Error | null>(null);
+export const usePut = <T,K>(putFunction: (payload: K,query?:QueryType) => Promise<T>) => {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const updateData = React.useCallback(async (payload: any) => {
+  const updateData = useCallback(async (payload: K,query?:QueryType) => {
     setError(null);
     setLoading(true);
 
     try {
-      const response = await putFunction(payload);
+      const response = await putFunction(payload,query);
       setData(response);
     } catch (error) {
       setError(error instanceof Error ? error : new Error("Unknown error"));

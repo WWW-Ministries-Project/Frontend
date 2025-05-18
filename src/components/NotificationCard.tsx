@@ -2,18 +2,17 @@ import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsSto
 import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/solid"; // Use any icon library you prefer
 import { useEffect } from "react";
 
-const NotificationCard = () => {
-
+export const NotificationCard = () => {
   const { notification, visible, setVisible } = useNotificationStore();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
-      setTimeout(notification.onClose, 300); // Delay removal to allow animation to finish
+      setTimeout(notification.onClose, 300);
     }, 5000); // 5 seconds delay for auto-close
 
     return () => clearTimeout(timer);
-  }, [notification.onClose]);
+  }, [notification.onClose, setVisible]);
 
   const backgroundColor =
     notification.type === "error" ? "bg-red-100" : "bg-[#E0F7FA]";
@@ -24,7 +23,7 @@ const NotificationCard = () => {
 
   return (
     <div
-      className={`flex items-start p-4 border rounded-lg shadow-lg ${backgroundColor} ${borderColor} 
+      className={`flex items-start p-4 border rounded-lg shadow-lg z-10 ${backgroundColor} ${borderColor} 
       transform transition-opacity duration-400 ease-in-out 
       ${
         visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
@@ -51,5 +50,3 @@ const NotificationCard = () => {
     </div>
   );
 };
-
-export default NotificationCard;
