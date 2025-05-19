@@ -6,7 +6,7 @@ interface Option {
   name: string;
 }
 
-interface SelectFieldProps {
+interface IProps {
   type?: string;
   label?: string;
   placeholder?: string;
@@ -20,7 +20,7 @@ interface SelectFieldProps {
   error?: string;
 }
 
-function SelectField(props: SelectFieldProps) {
+export const SelectField = (props: IProps) => {
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     e.preventDefault();
     const name = e.target.name;
@@ -59,7 +59,7 @@ function SelectField(props: SelectFieldProps) {
       </div>
     </div>
   );
-}
+};
 
 SelectField.propTypes = {
   label: PropTypes.string,
@@ -72,5 +72,3 @@ SelectField.propTypes = {
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
 };
-
-export default SelectField;
