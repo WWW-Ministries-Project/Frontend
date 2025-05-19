@@ -48,8 +48,8 @@ const AssetFormComponent = ({
           <Field
             component={FormikInputDiv}
             label="Asset ID"
-            id="assets_id"
-            name="assets_id"
+            id="asset_id"
+            name="asset_id"
             disabled={true}
           />
           <Field
@@ -154,7 +154,7 @@ export interface IAssetForm {
   date_purchased: string;
   price: string;
   supplier: string;
-  assets_id: string;
+  asset_id: string;
 }
 
 const initialValues: IAssetForm = {
@@ -166,7 +166,7 @@ const initialValues: IAssetForm = {
   date_purchased: "",
   price: "",
   supplier: "",
-  assets_id: "",
+  asset_id: "",
 };
 
 const validationSchema = object({
