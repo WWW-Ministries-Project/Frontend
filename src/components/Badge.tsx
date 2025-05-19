@@ -1,11 +1,9 @@
-import React from "react";
-
-interface BadgeProps {
-  children: string;
+interface IProps {
+  children: React.ReactNode;
   className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, className }) => {
+export const Badge = ({ children, className }: IProps) => {
   return (
     <div>
       <div

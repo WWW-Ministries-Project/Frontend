@@ -6,7 +6,7 @@ import { formatInputDate } from "@/utils/helperFunctions";
 import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { UserStats, UserType } from "../../Members/utils/membersInterfaces";
-import ListDetailComp from "../Components/ListDetailComp";
+import { ListDetailComp } from "../Components/ListDetailComp";
 import StatsCard from "../Components/StatsCard";
 
 const Overview = () => {

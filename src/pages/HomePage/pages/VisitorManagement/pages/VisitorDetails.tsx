@@ -11,8 +11,8 @@ import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSke
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import { api } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
-import { PhoneIcon } from "@heroicons/react/24/solid";
-import ListDetailComp from "../../DashBoard/Components/ListDetailComp";
+import { EnvelopeIcon, HomeIcon, PhoneIcon } from "@heroicons/react/24/solid";
+import { ListDetailComp } from "../../DashBoard/Components/ListDetailComp";
 import { FollowUps } from "../Components/FollowUps";
 import { Note } from "../Components/Notes";
 import { PrayerRequest } from "../Components/PrayerRequest";
@@ -45,7 +45,7 @@ const VisitorDetails = () => {
               }
               email={visitor?.email}
               primary_number={visitor?.phone}
-              onClick={() => console.log("Banner clicked")}
+              onClick={() => {}}
             />
           )
         )}
@@ -60,7 +60,7 @@ const VisitorDetails = () => {
                 </div>
               ) : (
                 <TabSelection
-                  tabs={["Visit", "Follow-ups", "Prayer Requests", "Note"]}
+                  tabs={["Visit", "Follow-ups"]}
                   selectedTab={selectedTab} // Pass selectedTab
                   onTabSelect={handleTabSelect} // Pass the function to update selectedTab
                 />
@@ -123,12 +123,15 @@ const VisitorDetails = () => {
                 />
                 <div className="space-y-3">
                   <ListDetailComp
-                    icon={<PhoneIcon />}
+                    icon={EnvelopeIcon}
                     title={visitor?.email || ""}
                   />
-                  <ListDetailComp icon={"s"} title={visitor?.phone || ""} />
                   <ListDetailComp
-                    icon={"s"}
+                    icon={PhoneIcon}
+                    title={visitor?.phone || ""}
+                  />
+                  <ListDetailComp
+                    icon={HomeIcon}
                     title={`${visitor?.country} - ${visitor?.state}`}
                   />
                 </div>
