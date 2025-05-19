@@ -24,12 +24,11 @@ import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import ViewUser from "@/pages/HomePage/pages/Users/pages/ViewUser";
 import UserManagement from "@/pages/HomePage/pages/Users/UserManagement";
-// import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import VisitorDetails from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails.js";
+import {VisitorDetails} from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import Registration from "@/pages/Registration/Registration";
