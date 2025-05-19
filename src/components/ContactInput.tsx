@@ -163,7 +163,7 @@ const ContactInputComponent = ({
           />
         </div>
       </div>
-      {error && <p className="text-error text-sm">{error}</p>}
+      {error && <p className="text-error text-sma">{error}</p>}
     </div>
   );
 };

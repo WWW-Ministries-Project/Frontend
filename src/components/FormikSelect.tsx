@@ -25,7 +25,7 @@ interface FormikSelectFieldProps
   id: string;
 }
 
-export function fieldToSelectField({
+function fieldToSelectField({
   form: { touched, errors },
   field: { onChange: fieldOnChange, ...field },
   ...props
