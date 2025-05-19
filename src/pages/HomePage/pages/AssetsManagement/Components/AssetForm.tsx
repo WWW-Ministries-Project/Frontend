@@ -6,6 +6,7 @@ import { Field, Formik } from "formik";
 import { useMemo } from "react";
 import { object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
+import { formatInputDate } from "@/utils";
 
 interface IProps {
   onSubmit: (val: IAssetForm) => void;
@@ -58,6 +59,7 @@ const AssetFormComponent = ({
             type="date"
             id="date_purchased"
             name="date_purchased"
+            value={formatInputDate(form.values.date_purchased)}
             disabled={disabled}
           />
           <Field
@@ -114,8 +116,9 @@ const AssetFormComponent = ({
             component={FormikInputDiv}
             label="Date of assignment"
             type="date"
-            id="start_date"
-            name="start_date"
+            id="date_assigned"
+            name="date_assigned"
+            value={formatInputDate(form.values.date_assigned)}
             disabled={disabled}
           />
           {!disabled && (
@@ -147,7 +150,7 @@ export interface IAssetForm {
   status: string;
   description: string;
   department_assigned: string;
-  start_date: string;
+  date_assigned: string;
   date_purchased: string;
   price: string;
   supplier: string;
@@ -159,7 +162,7 @@ const initialValues: IAssetForm = {
   status: "",
   description: "",
   department_assigned: "",
-  start_date: "",
+  date_assigned: "",
   date_purchased: "",
   price: "",
   supplier: "",
