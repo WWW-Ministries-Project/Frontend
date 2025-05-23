@@ -6,7 +6,7 @@ import { formatInputDate } from "@/utils/helperFunctions";
 import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { UserStats, UserType } from "../../Members/utils/membersInterfaces";
-import ListDetailComp from "../Components/ListDetailComp";
+import { ListDetailComp } from "../Components/ListDetailComp";
 import StatsCard from "../Components/StatsCard";
 
 const Overview = () => {
@@ -89,7 +89,7 @@ const Overview = () => {
               upcomingEvents.map((event, index) => (
                 <div key={index}>
                   <ListDetailComp
-                    icon={<CalendarAssets />}
+                    icon={CalendarAssets}
                     title={event.name}
                     startDate={formatInputDate(event?.start_date)}
                     startTime={event.start_time}
@@ -109,21 +109,21 @@ const Overview = () => {
           <div className="border border-lightGray rounded-lg p-4  overflow-auto shadow-sm">
             <HeaderControls title="Recent Activities" />
             <ListDetailComp
-              icon={<CalendarAssets />}
+              icon={CalendarAssets}
               title="Event Title"
               startDate="2023-04-06"
               startTime="10:00 AM"
             />
             <hr className="text-lightGray my-4" />
             <ListDetailComp
-              icon={<CalendarAssets />}
+              icon={CalendarAssets}
               title="Event Title"
               startDate="2023-04-06"
               startTime="10:00 AM"
             />
             <hr className="text-lightGray my-4" />
             <ListDetailComp
-              icon={<CalendarAssets />}
+              icon={CalendarAssets}
               title="Event Title"
               startDate="2023-04-06"
               startTime="10:00 AM"

@@ -1,12 +1,12 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
+import React from "react";
 
 interface Option {
   value: string | number;
   name: string;
 }
 
-interface SelectFieldProps {
+interface IProps {
   type?: string;
   label?: string;
   placeholder?: string;
@@ -17,10 +17,10 @@ interface SelectFieldProps {
   onChange: (name: string, value: string | number) => void;
   options: Option[];
   disabled?: boolean;
-  error?:string;
+  error?: string;
 }
 
-function SelectField(props: SelectFieldProps) {
+export const SelectField = (props: IProps) => {
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     e.preventDefault();
     const name = e.target.name;
@@ -30,16 +30,24 @@ function SelectField(props: SelectFieldProps) {
   return (
     <div>
       <div className={"flex text-primary  flex-col gap-1 " + props.className}>
-        <label className='font-semibold' htmlFor={props.id}>{props.label}</label>
+        <label className="font-semibold" htmlFor={props.id}>
+          {props.label}
+        </label>
         <select
           name={props.id}
           id={props.id}
-          className={`p-2.5 rounded-lg border border-primary  ${props.inputClass} ${props.error? " !border-error !outline-error": " "}` }
+          className={`p-2.5 rounded-lg border border-primary  ${
+            props.inputClass
+          } ${props.error ? " !border-error !outline-error" : " "} ${
+            props.disabled
+              ? "bg-gray-100 border-none text-gray-500 cursor-not-allowed"
+              : ""
+          }`}
           onChange={handleChange}
           value={props.value}
           disabled={props.disabled}
         >
-          <option  value="">{props.placeholder}</option>
+          <option value="">{props.placeholder}</option>
           {props.options.map((option, index) => (
             <option key={index} value={option.value}>
               {option.name}
@@ -51,7 +59,7 @@ function SelectField(props: SelectFieldProps) {
       </div>
     </div>
   );
-}
+};
 
 SelectField.propTypes = {
   label: PropTypes.string,
@@ -64,5 +72,3 @@ SelectField.propTypes = {
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
 };
-
-export default SelectField;

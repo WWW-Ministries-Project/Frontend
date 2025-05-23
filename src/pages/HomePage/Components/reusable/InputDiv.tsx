@@ -24,71 +24,83 @@ export interface InputDivProps {
   ariaDescribedBy?: string;
 }
 
-export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>((props, ref) => {
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) {
-    const name = e.target.name;
-    props.onChange(name, e.target.value);
-  }
+export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
+  (props, ref) => {
+    function handleChange(
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) {
+      const name = e.target.name;
+      props.onChange(name, e.target.value);
+    }
 
-  function handleBlur(e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) {
-    if(props.onBlur) props.onBlur(e);
-  }
+    function handleBlur(
+      e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>
+    ) {
+      if (props.onBlur) props.onBlur(e);
+    }
 
-  return (
-    <div
-      className={`flex text-primary flex-col gap-1 ${props.className}`}
-      ref={ref}
-      onClick={props.onClick}
-      style={{ cursor: props.onClick ? "pointer" : "default" }}
-    >
-      <label className="font-semibold " htmlFor={props.id}>
-        {props.label}
-      </label>
-      {props.type === "textarea" ? (
-        <textarea
-          className={`input rounded-xl !h-[150px] ${props.inputClass} ${
-            props.error ? "!border-error !outline-error" : ""
-          }`}
-          id={props.id}
-          name={props.id}
-          value={props.value}
-          onChange={handleChange}
-          placeholder={props.placeholder}
-          disabled={props.disabled}
-        />
-      ) : (
-        <input
-          className={`   ${
-            props.inputClass
-              ? props.inputClass
-              : "rounded-lg p-2 border border-primary focus:outline-none"
-          }  ${
-            props.error ? "!border-error focus:outline-none !outline-error" : ""
-          }`}
-          id={props.id}
-          name={props.id}
-          type={props.type || "text"}
-          value={props.value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          placeholder={props.placeholder}
-          disabled={props.disabled}
-          min={props.min}
-          max={props.max}
-          autoComplete={props.autocomplete || "off"}
-          aria-label={props.ariaLabel}
-          required={props.required}
-          pattern={props.pattern}
-          aria-labelledby={props.ariaLabelledBy}
-          aria-describedby={props.ariaDescribedBy}
-        />
-      )}
-      {props.error && <div className="text-error text-sma">{props.error}</div>}
-    </div>
-  );
-});
+    return (
+      <div
+        className={`flex text-primary flex-col gap-1 ${props.className}`}
+        ref={ref}
+        onClick={props.onClick}
+        style={{ cursor: props.onClick ? "pointer" : "default" }}
+      >
+        <label className="font-semibold " htmlFor={props.id}>
+          {props.label}
+        </label>
+        {props.type === "textarea" ? (
+          <textarea
+            className={`input rounded-xl !h-[150px] ${props.inputClass} ${
+              props.error ? "!border-error !outline-error" : ""
+            }`}
+            id={props.id}
+            name={props.id}
+            value={props.value}
+            onChange={handleChange}
+            placeholder={props.placeholder}
+            disabled={props.disabled}
+          />
+        ) : (
+          <input
+            className={`   ${
+              props.inputClass
+                ? props.inputClass
+                : "rounded-lg p-2 border border-primary focus:outline-none"
+            }  ${
+              props.error
+                ? "!border-error focus:outline-none !outline-error"
+                : ""
+            }  ${
+              props.disabled
+                ? "bg-gray-100 border-none text-gray-500 cursor-not-allowed"
+                : ""
+            }`}
+            id={props.id}
+            name={props.id}
+            type={props.type || "text"}
+            value={props.value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder={props.placeholder}
+            disabled={props.disabled}
+            min={props.min}
+            max={props.max}
+            autoComplete={props.autocomplete || "off"}
+            aria-label={props.ariaLabel}
+            required={props.required}
+            pattern={props.pattern}
+            aria-labelledby={props.ariaLabelledBy}
+            aria-describedby={props.ariaDescribedBy}
+          />
+        )}
+        {props.error && (
+          <div className="text-error text-sma">{props.error}</div>
+        )}
+      </div>
+    );
+  }
+);
 
 InputDiv.propTypes = {
   type: PropTypes.string,
@@ -108,4 +120,3 @@ InputDiv.propTypes = {
 };
 
 InputDiv.displayName = "InputDiv";
-

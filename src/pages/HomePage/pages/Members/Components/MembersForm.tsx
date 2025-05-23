@@ -15,8 +15,8 @@ import {
   UserSubForm,
   WorkInfoSubForm,
 } from "@components/subform";
-import { Field, getIn, useFormikContext } from "formik";
-import { useEffect, useMemo } from "react";
+import { Field, useFormikContext } from "formik";
+import { useEffect } from "react";
 import { boolean, date, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
@@ -26,24 +26,26 @@ interface IProps {
 }
 
 const MembersFormComponent = ({ disabled = false }: IProps) => {
-  const { departmentsOptions } = useSettingsStore();
-  const { positionsOptions } = useSettingsStore();
+  const { departmentsOptions, positionsOptions } = useSettingsStore();
 
   const { values, setFieldValue } = useFormikContext<IMembersForm>();
-  const { has_children } = useMemo(
-    () => getIn(values, "personal_info") || false,
-    [values]
-  );
+  const has_children = values.personal_info?.has_children ?? false;
+
   useEffect(() => {
     if (!values.is_user) {
       setFieldValue("church_info.position_id", "");
       setFieldValue("church_info.department_id", "");
     }
-    if (!values.personal_info.has_children) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.is_user]);
+  useEffect(() => {
+    if (has_children) {
+      setFieldValue("children", initialValues.children);
+    } else {
       setFieldValue("children", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.is_user, values.personal_info.has_children]);
+  }, [has_children]);
 
   return (
     <FormLayout>
@@ -56,7 +58,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
             name="profile_picture"
             src={values.picture.src}
             alt="Profile Picture"
-            editable={true}
+            editable={!disabled}
             onChange={(obj) => {
               setFieldValue(`picture`, obj);
             }}

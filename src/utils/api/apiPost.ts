@@ -32,14 +32,12 @@ export class ApiCreationCalls {
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
-  createRequisition = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("requisitions/create-requisition", payload);
-  };
-  createAccessRight = <T>(
-    payload: unknown
-  ): Promise<ApiResponse<T>> =>
+  // createRequisition = <T>(
+  //   payload: Record<string, any>
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("requisitions/create-requisition", payload);
+  // };
+  createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
   createDepartment = (
@@ -47,9 +45,7 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.postToApi("department/create-department", payload);
   };
-  createPosition = (
-    payload: unknown
-  ): Promise<ApiResponse<PositionType[]>> => {
+  createPosition = (payload: unknown): Promise<ApiResponse<PositionType[]>> => {
     return this.postToApi("position/create-position", payload);
   };
 
@@ -87,16 +83,12 @@ export class ApiCreationCalls {
   };
 
   /*Visitor Management*/
-  createVisitor = <T>(
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
+  createVisitor = <T>(payload: unknown): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visitors", payload);
   };
   // Visit
-  createVisit = <T>(
-    payload: VisitPayloadType
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi<T>("visitor/visit", payload);
+  createVisit = (payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("visitor/visit", payload);
   };
 
   // Follow-Up Management
@@ -107,9 +99,9 @@ export class ApiCreationCalls {
   };
 
   // Prayer Request Management
-  createPrayerRequest = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("visitor/prayerrequest", payload);
-  };
+  // createPrayerRequest = <T>(
+  //   payload: Record<string, any>
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("visitor/prayerrequest", payload);
+  // };
 }

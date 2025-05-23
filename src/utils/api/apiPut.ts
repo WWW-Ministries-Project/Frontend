@@ -36,16 +36,16 @@ export class ApiUpdateCalls {
   };
 
   // Update Requisition
-  updateRequisition = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      "requisitions/update-requisition",
-      payload,
-      query
-    );
-  };
+  // updateRequisition = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     "requisitions/update-requisition",
+  //     payload,
+  //     query
+  //   );
+  // };
 
   // Update Position
   updatePosition = <T>(
@@ -164,7 +164,7 @@ export class ApiUpdateCalls {
 
   updateVisit = (
     payload: VisitPayloadType,
-    query: QueryType
+    query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("visitor/visit", payload, query);
   };
@@ -178,16 +178,16 @@ export class ApiUpdateCalls {
   };
 
   // Prayer Request Management
-  updatePrayerRequest = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      "visitor/prayerrequest",
-      payload,
-      query
-    );
-  };
+  // updatePrayerRequest = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     "visitor/prayerrequest",
+  //     payload,
+  //     query
+  //   );
+  // };
 
   updateMember = <T>(
     payload: unknown,
