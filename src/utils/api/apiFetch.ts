@@ -59,17 +59,15 @@ export class ApiCalls {
   fetchVisitById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<unknown> => {
     return this.fetchFromApi(`visit/${id}`, query);
   };
 
   fetchAllVisitsByVisitorId = (
-    id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any[]>> => {
-    return this.fetchFromApi(`visitor/visit/visitor/${id}`, query);
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi(`visitor/visit/visitor`, query);
   };
-
   // Event Management
   fetchEvents = (query?: QueryType): Promise<any> => {
     return this.fetchFromApi("event/list-events", query);
@@ -103,18 +101,18 @@ export class ApiCalls {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
-  // Requisition Management
-  fetchRequisitions = (query?: QueryType): Promise<any> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
-  };
+  // // Requisition Management
+  // fetchRequisitions = (query?: QueryType): Promise<any> => {
+  //   return this.fetchFromApi("requisitions/staff-requisition", query);
+  // };
 
-  fetchRequisitionDetails = (query?: QueryType): Promise<any> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
-  };
+  // fetchRequisitionDetails = (query?: QueryType): Promise<any> => {
+  //   return this.fetchFromApi("requisitions/get-requisition/", query);
+  // };
 
-  fetchMyRequests = (query?: Record<string, string | number>): Promise<any> => {
-    return this.fetchFromApi("requisitions/my-requisitions", query);
-  };
+  // fetchMyRequests = (query?: Record<string, string | number>): Promise<any> => {
+  //   return this.fetchFromApi("requisitions/my-requisitions", query);
+  // };
 
   // Program Management
   fetchAllPrograms = (query?: QueryType): Promise<ApiResponse<any[]>> => {
