@@ -19,7 +19,7 @@ export const relativePath = {
     events: {
       main: "events",
       manage: "manage-event",
-      view: "events/view-event",
+      view: "view-event",
     },
     assets: {
       main: "assets",

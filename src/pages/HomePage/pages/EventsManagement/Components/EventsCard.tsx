@@ -7,6 +7,7 @@ import calendar from "/src/assets/calendar.svg";
 import Elipse from "/src/assets/ellipse.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
+import { relativePath } from "@/utils";
 
 interface IProps {
   showOptions: boolean;
@@ -65,7 +66,7 @@ export const EventsCard = (props: IProps) => {
           className="flex px-3 gap-1 text-sm"
           onClick={() =>
             handleNavigation(
-              `/home/events/view-event?event_id=${props.event.id}`
+              `${relativePath.home.events.view}?event_id=${props.event.id}`
             )
           }
         >
@@ -84,7 +85,7 @@ export const EventsCard = (props: IProps) => {
               className="flex px-3  items-center font-bold cursor-pointer"
               onClick={() =>
                 handleNavigation(
-                  `/home/events/view-event?event_id=${props.event.id}`
+                  `${relativePath.home.events.view}?event_id=${props.event.id}`
                 )
               }
             >
@@ -121,7 +122,7 @@ export const EventsCard = (props: IProps) => {
               onDelete={() => props.onDelete(props.event)}
               onView={() =>
                 handleNavigation(
-                  `/home/events/view-event?event_id=${props.event.id}`
+                  `${relativePath.home.events.view}?event_id=${props.event.id}`
                 )
               }
               onEdit={() =>
