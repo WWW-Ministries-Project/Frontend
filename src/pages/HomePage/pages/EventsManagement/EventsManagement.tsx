@@ -8,7 +8,7 @@ import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { EventsCard } from "./Components/EventsCard";
-import EventsManagerHeader from "./Components/EventsManagerHeader";
+import { EventsManagerHeader } from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
 import EmptyState from "@/components/EmptyState";
@@ -23,7 +23,7 @@ const EventsManagement = () => {
   /*api calls */
   const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
   const { screenWidth } = useWindowSize();
-  const { executeDelete} = useDelete(api.delete.deleteEvent);
+  const { executeDelete } = useDelete(api.delete.deleteEvent);
 
   // const [events, setEvents] = useState<eventType[]>([]);
   const { events, setEvents } = useStore((state) => ({
@@ -62,14 +62,14 @@ const EventsManagement = () => {
   );
 
   // Filter handler
-  const handleFilter = () => {};
-  // const handleFilter = useCallback(
-  //   (val: { year: number; month: number; date: Date }) => {
-  //     setFilterDate(val.date);
-  //     refetch({ month: val.month, year: val.year });
-  //   },
-  //   [refetch]
-  // );
+  // const handleFilter = () => {};
+  const handleFilter = useCallback(
+    (val: { year: number; month: number; date: Date }) => {
+      setFilterDate(val.date);
+      refetch({ month: val.month + "", year: val.year + "" });
+    },
+    [refetch]
+  );
 
   // Search handler
   const handleSearchChange = useCallback((val: string) => {
@@ -123,35 +123,33 @@ const EventsManagement = () => {
 
   return (
     <PageOutline>
-      {/* <HeaderControls
+      <HeaderControls
         title="Events "
         totalMembers={filteredEvents.length} // Number of events
         tableView={tableView}
         handleViewMode={handleToggleView}
-        showFilter={false} // No separate filter needed
+        showFilter={showFilter}
         setShowFilter={setShowFilter}
         hasSearch={true}
-        hasFilter={false}
-        showSearch={showSearch} // Search enabled
+        hasFilter={!tableView}
+        showSearch={showSearch}
         setShowSearch={setShowSearch}
         handleClick={() => handleNavigation("/home/manage-event")}
         screenWidth={screenWidth}
         btnName="Add Event"
-      /> */}
+      />
       <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
         {/* Events Manager Header */}
-        {/* <div className="w-full">
-          <EventsManagerHeader
-            onNavigate={handleNavigation}
-            onFilter={handleFilter}
-            viewfilter={!tableView}
-            filterEvents={filterEvents}
-            filterDate={filterDate}
-            onSearch={handleSearchChange}
-            showSearch={showSearch}
-            showFilter={showFilter}
-          />
-        </div> */}
+        <EventsManagerHeader
+          onNavigate={handleNavigation}
+          onFilter={handleFilter}
+          viewfilter={!tableView}
+          filterEvents={filterEvents}
+          filterDate={filterDate}
+          onSearch={handleSearchChange}
+          showSearch={showSearch}
+          showFilter={showFilter}
+        />
       </div>
 
       {/* Conditional Rendering of Events */}
