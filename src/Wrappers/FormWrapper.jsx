@@ -3,8 +3,8 @@ import ChurchLogo from '/src/components/ChurchLogo';
 
 const FormWrapper = (props) => {
     return (
-        <div className='flex items-center justify-center min-h-screen rounded-lg'>
-            <div className='w-[400px] bg-neutralGray/90 mx-auto  rounded-lg'> 
+        <div className='flex justify-center min-h-screen'>
+            <div className='w-[400px] bg-neutralGray/90 mx-auto my-4 rounded-lg border  shadow-lg'> 
                 <div className="w-full h-15 bg-white p-2 border-b border-lightGray  rounded-t-lg">
                 <ChurchLogo show={true} className="w-36 " />
                 </div>
