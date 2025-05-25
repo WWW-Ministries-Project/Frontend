@@ -21,9 +21,9 @@ const EventsManagement = () => {
   const navigate = useNavigate();
 
   /*api calls */
-  const { data, refetch } = useFetch(api.fetch.fetchEvents, {},true);
+  const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
   const { screenWidth } = useWindowSize();
-  const { executeDelete, success, error } = useDelete(api.delete.deleteEvent);
+  const { executeDelete} = useDelete(api.delete.deleteEvent);
 
   // const [events, setEvents] = useState<eventType[]>([]);
   const { events, setEvents } = useStore((state) => ({
@@ -44,32 +44,14 @@ const EventsManagement = () => {
   });
 
   // Handle screen width changes
-  // useEffect(() => {
-  //   if (screenWidth <= 540) {
-  //     setTableView(false);
-  //     document.getElementById("switch")?.classList.add("hidden");
-  //   } else {
-  //     document.getElementById("switch")?.classList.remove("hidden");
-  //   }
-  // }, [screenWidth, tableView]);
-
-  // Update events when data is fetched
-  // useEffect(() => {
-  //   if (data?.data) {
-  //     setEvents(data.data);
-  //   }
-  // }, [data]);
-
-  // Handle success/error notifications for deletion
   useEffect(() => {
-    if (success) {
-      showNotification("Event deleted successfully");
-      refetch(); // Refetch events after deletion
+    if (screenWidth <= 540) {
+      setTableView(false);
+      document.getElementById("switch")?.classList.add("hidden");
+    } else {
+      document.getElementById("switch")?.classList.remove("hidden");
     }
-    if (error) {
-      showNotification("Something went wrong. Please try again.");
-    }
-  }, [success, error, refetch]);
+  }, [screenWidth, tableView]);
 
   // Navigation handler
   const handleNavigation = useCallback(
@@ -108,8 +90,19 @@ const EventsManagement = () => {
   // Delete handler
   const handleDelete = useCallback(
     async (id: string | number) => {
-      await executeDelete({ id: String(id) });
+      await executeDelete({ id: String(id) })
+        .then(() => {
+          showNotification("Event deleted successfully");
+          return refetch();
+        })
+        .then((response) => {
+          setEvents(response?.data || []);
+        })
+        .catch((error) => {
+          showNotification("Event could not be deleted", "error");
+        });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [executeDelete]
   );
 
@@ -130,7 +123,7 @@ const EventsManagement = () => {
 
   return (
     <PageOutline>
-      <HeaderControls
+      {/* <HeaderControls
         title="Events "
         totalMembers={filteredEvents.length} // Number of events
         tableView={tableView}
@@ -144,10 +137,10 @@ const EventsManagement = () => {
         handleClick={() => handleNavigation("/home/manage-event")}
         screenWidth={screenWidth}
         btnName="Add Event"
-      />
+      /> */}
       <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
         {/* Events Manager Header */}
-        <div className="w-full">
+        {/* <div className="w-full">
           <EventsManagerHeader
             onNavigate={handleNavigation}
             onFilter={handleFilter}
@@ -158,7 +151,7 @@ const EventsManagement = () => {
             showSearch={showSearch}
             showFilter={showFilter}
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Conditional Rendering of Events */}
