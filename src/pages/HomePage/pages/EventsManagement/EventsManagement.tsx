@@ -7,7 +7,7 @@ import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import EventsCard from "./Components/EventsCard";
+import { EventsCard } from "./Components/EventsCard";
 import EventsManagerHeader from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
@@ -21,7 +21,7 @@ const EventsManagement = () => {
   const navigate = useNavigate();
 
   /*api calls */
-  const { data, refetch } = useFetch(api.fetch.fetchEvents);
+  const { data, refetch } = useFetch(api.fetch.fetchEvents, {},true);
   const { screenWidth } = useWindowSize();
   const { executeDelete, success, error } = useDelete(api.delete.deleteEvent);
 

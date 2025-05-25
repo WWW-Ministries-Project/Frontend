@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import EventsCard from './EventsCard';
-import { useNavigate } from 'react-router-dom';
 import { isArray } from '@/pages/HomePage/utils';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { EventsCard } from './EventsCard';
 
-const Calendar = ({ events,...props }) => {
+const Calendar = ({ events, ...props }) => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -152,7 +152,7 @@ const Calendar = ({ events,...props }) => {
     for (let i = prevMonthDays - 1; i >= 0; i--) {
       const day = daysInPrevMonth - i;
       const date = new Date(prevMonthYear, prevMonth, day).toISOString().split('T')[0];
-      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)) : [];
       days.push(
         <div key={`prev-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc]" style={{ height: '15vh', cursor: 'pointer' }}>
           {day}
@@ -175,7 +175,7 @@ const Calendar = ({ events,...props }) => {
     // Current month's days
     for (let day = 1; day <= daysInCurrentMonth; day++) {
       const date = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
-      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)) : [];
       const isToday = date === todayString;
 
       days.push(
@@ -198,8 +198,8 @@ const Calendar = ({ events,...props }) => {
             </div>
           ))}
           {dayEvents.length > eventsToShow && (
-            <div className="text-primary text-xs font-bold" 
-            onClick={(e) => handleDayClick(e, dayEvents)}>
+            <div className="text-primary text-xs font-bold"
+              onClick={(e) => handleDayClick(e, dayEvents)}>
               {dayEvents.length - eventsToShow} more event{dayEvents.length - eventsToShow > 1 ? 's' : ''}
             </div>
           )}
@@ -214,9 +214,9 @@ const Calendar = ({ events,...props }) => {
 
     for (let day = 1; day <= nextMonthDays; day++) {
       const date = new Date(nextMonthYear, nextMonth, day).toISOString().split('T')[0];
-      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)):[];
+      const dayEvents = isArray(events) ? events?.filter(event => event.start_date.startsWith(date)) : [];
       days.push(
-        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '15vh',  cursor: 'pointer' }}>
+        <div key={`next-${day}`} className="border border-[#dcdcdc] p-2 text-[#dcdcdc] " style={{ height: '15vh', cursor: 'pointer' }}>
           {day}
           {dayEvents.slice(0, eventsToShow).map((event, index) => (
             <div key={index} className="flex text-xs gap-1 my-1 items-center " onClick={(e) => handleEventClick(e, event)}>
@@ -245,7 +245,7 @@ const Calendar = ({ events,...props }) => {
           <button className='px-4 py-1 border border-primary rounded-lg' onClick={handlePrevMonth}>&lt;</button>
           <h2 className="text-lg font-sm ms-4">{months[currentMonth]} {currentYear}</h2>
           <button className='px-4 py-1 ms-4 border border-primary rounded-lg' onClick={handleNextMonth}>&gt;</button>
-          
+
         </div>
       </div>
       <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5] hideScrollbar  overflow-y-auto  ">
@@ -291,7 +291,7 @@ const Calendar = ({ events,...props }) => {
           </div>
         </div>
       )}
-      {eventModalOpen && 
+      {eventModalOpen &&
         <div className="z-1 inset-0 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">

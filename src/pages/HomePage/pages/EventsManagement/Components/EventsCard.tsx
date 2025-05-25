@@ -17,7 +17,7 @@ interface IProps {
   onShowOptions: (id: number) => void;
 }
 
-const EventsCard = (props: IProps) => {
+export const EventsCard = (props: IProps) => {
   const handleNavigation = (path: string) => {
     props.onNavigate(path);
   };
@@ -136,5 +136,3 @@ const EventsCard = (props: IProps) => {
     </div>
   );
 };
-
-export default EventsCard;
