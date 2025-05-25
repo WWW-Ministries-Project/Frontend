@@ -25,11 +25,10 @@ export const navigateRef = {
 export function HomePage() {
   const {
     data: membersData,
-    loading: membersLoading,
     refetch: refetchMembers,
   } = useFetch(api.fetch.fetchAllMembers);
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
-  const { data: upcomingEventsData, loading: upcomingEventsLoading } = useFetch(
+  const { data: eventsData } = useFetch(
     api.fetch.fetchEvents
   );
   const { data: positionsData } = useFetch(api.fetch.fetchPositions);
@@ -65,15 +64,15 @@ export function HomePage() {
       store.setUserStats(userStatsData.data);
     }
 
-    if (upcomingEventsData) {
-      store.setEvents(upcomingEventsData.data);
+    if (eventsData) {
+      store.setEvents(eventsData.data);
     }
 
     if (positionsData) {
       settingsStore.setPositions(positionsData.data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userStatsData, positionsData, upcomingEventsData, membersData]);
+  }, [user, userStatsData, positionsData, eventsData, membersData]);
 
   useEffect(() => {
     api.fetch.fetchDepartments().then((res) => {
@@ -150,8 +149,6 @@ export function HomePage() {
                     }}
                   />
                 </div>
-                {membersLoading ||
-                  (upcomingEventsLoading && <LoaderComponent />)}
               </div>
             </div>
           </div>

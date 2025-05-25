@@ -86,16 +86,16 @@ export const routes: AppRoute[] = [
       {
         path: "",
         name: "Home",
-        element: <DashBoardPage />,
+        element: <Members />,
         isPrivate: false,
       },
-      {
-        path: relativePath.home.dashboard,
-        name: "Dashboard",
-        element: <DashBoardPage />,
-        isPrivate: false,
-        sideTab: true,
-      },
+      // {
+      //   path: relativePath.home.dashboard,
+      //   name: "Dashboard",
+      //   element: <DashBoardPage />,
+      //   isPrivate: false,
+      //   sideTab: true,
+      // },
       {
         path: relativePath.home.members.main,
         name: "Members",
