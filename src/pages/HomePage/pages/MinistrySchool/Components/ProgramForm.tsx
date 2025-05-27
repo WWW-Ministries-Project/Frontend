@@ -3,6 +3,7 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { Field, FieldArray, Form, Formik } from "formik";
+import { object } from "yup";
 
 interface IProps {
   onClose: () => void;
@@ -12,25 +13,27 @@ interface IProps {
   loading?: boolean;
 }
 
-const ProgramForm = ({
+const ProgramFormComponent = ({
   onClose,
   program,
   prerequisitesDropdown,
   loading,
   handleSubmit,
 }: IProps) => {
-
-  const initial: IProgramForm = program ? {
-    title: program.title,
-    description: program.description,
-    eligibility: program.eligibility,
-    member_required: program.member_required,
-    leader_required: program.leader_required,
-    ministry_required: program.ministry_required,
-    topics: program.topics.map(topic => topic.name),
-    prerequisites: program.prerequisitePrograms.map(prerequisite => prerequisite.title),
-    isPrerequisitesChecked: program.prerequisitePrograms.length > 0
-  } : initialValues
+  const initial: IProgramForm = program
+    ? {
+        title: program.title,
+        description: program.description,
+        member_required: program.member_required,
+        leader_required: program.leader_required,
+        ministry_required: program.ministry_required,
+        topics: program.topics.map((topic) => topic.name),
+        prerequisites: program.prerequisitePrograms.map(
+          (prerequisite) => prerequisite.title
+        ),
+        isPrerequisitesChecked: program.prerequisitePrograms.length > 0,
+      }
+    : initialValues;
 
   return (
     <div className="bg-white p-4 rounded-lg md:w-[45rem] max-h-[90vh] text-primary space-y-4">
@@ -64,7 +67,7 @@ const ProgramForm = ({
               id="description"
             />
             {/* Eligibility */}
-            <div className="mb-4 space-y-2">
+            {/* <div className="mb-4 space-y-2">
               <label className="block text-sm font-medium text-primary">
                 Eligibility *
               </label>
@@ -100,7 +103,7 @@ const ProgramForm = ({
                   Both Members and Non Members
                 </label>
               </div>
-            </div>
+            </div> */}
 
             {/* Completion Requirement */}
             <div className="mb-4 space-y-2">
@@ -163,30 +166,28 @@ const ProgramForm = ({
                           <button
                             type="button"
                             onClick={() => remove(index)}
-                            className="bg-red-500 text-white w-4 h-4 p-4 flex items-center justify-center rounded-full"
+                            title="Remove Topic"
+                            className="bg-red-500 text-white w-4 h-4 p-4 flex items-center justify-center rounded-full tooltip"
                           >
                             X
                           </button>
                         )}
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      // onClick={() => {
-                      //   if (values.newTopic) {
-                      //     push(values.newTopic); // Add the topic as an object
-                      //     setFieldValue("newTopic", "");
-                      //   }
-                      // }}
-                      onClick={() => push("")}
-                      variant="primary"
-                      value="Add"
-                    />
-
-                    {/* <p className="text-xs">
-                      Press Enter or click Add Topic to add a new topic to the
-                      program
-                    </p> */}
+                    <div className="w-full flex justify-end">
+                      <Button
+                        type="button"
+                        // onClick={() => {
+                        //   if (values.newTopic) {
+                        //     push(values.newTopic); // Add the topic as an object
+                        //     setFieldValue("newTopic", "");
+                        //   }
+                        // }}
+                        onClick={() => push("")}
+                        variant="primary"
+                        value="Add"
+                      />
+                    </div>
                   </div>
                 )}
               />
@@ -241,7 +242,6 @@ const ProgramForm = ({
 export interface IProgramForm {
   title: string;
   description: string;
-  eligibility: string;
   member_required: boolean;
   leader_required: boolean;
   ministry_required: boolean;
@@ -252,7 +252,6 @@ export interface IProgramForm {
 const initialValues: IProgramForm = {
   title: "",
   description: "",
-  eligibility: "",
   member_required: false,
   leader_required: false,
   ministry_required: false,
@@ -260,5 +259,9 @@ const initialValues: IProgramForm = {
   prerequisites: [],
   isPrerequisitesChecked: false,
 };
+const validationSchema = object().shape({});
 
-export default ProgramForm;
+export const ProgramForm = Object.assign(ProgramFormComponent, {
+  initialValues,
+  validationSchema,
+});

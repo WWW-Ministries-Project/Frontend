@@ -46,7 +46,7 @@ export class ApiDeletionCalls {
   // New Delete Methods
 
   deleteProgram = (query:QueryType): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/programs`, query);
+    return this.deleteFromApi<void>(`program/program`, query);
   };
 
   deleteCohort = (query:QueryType): Promise<ApiResponse<void>> => {

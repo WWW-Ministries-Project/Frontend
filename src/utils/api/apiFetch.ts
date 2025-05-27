@@ -124,7 +124,7 @@ export class ApiCalls {
     id: string,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi(`program/programs/${id}`, query);
+    return this.fetchFromApi(`program/program`, query);
   };
   // @Jojo please the name is confusing
   fetchMembers = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {

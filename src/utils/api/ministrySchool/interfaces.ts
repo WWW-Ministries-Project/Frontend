@@ -1,7 +1,6 @@
 export type ProgramsPayloadType = {
   title: string;
   description: string;
-  eligibility: string;
   topics: string[];
   prerequisites: string[];
   member_required: boolean;
@@ -42,4 +41,6 @@ export type Cohort = {
   programId: number;
   createdAt: string; 
   updatedAt: string; 
+//   classes: number;
+//   enrolledCount: number;
 };

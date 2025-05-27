@@ -96,10 +96,10 @@ export class ApiUpdateCalls {
   };
 
   // Update Program
-  updateProgram = <T>(
+  updateProgram =(
     payload: ProgramsPayloadType,
     query?: QueryType
-  ): Promise<ApiResponse<T>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(`program/program`, payload, query);
   };
 
