@@ -7,6 +7,7 @@ import {
   activateMemberPayloadType,
   activateMemberType,
 } from "./members/interfaces";
+import { ProgramsPayloadType } from "./ministrySchool/interfaces";
 import {
   FollowUpPayloadType,
   VisitorType,
@@ -96,14 +97,10 @@ export class ApiUpdateCalls {
 
   // Update Program
   updateProgram = <T>(
-    payload: Record<string, any>,
+    payload: ProgramsPayloadType,
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      `program/programs/${payload.id}`,
-      payload.payload,
-      query
-    );
+    return this.apiExecution.updateData(`program/program`, payload, query);
   };
 
   // Update Cohort

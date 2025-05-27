@@ -1,13 +1,13 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
+import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { Field, FieldArray, Form, Formik } from "formik";
 
 interface IProps {
   onClose: () => void;
-  program?: IProgramForm & { id: number };
+  program?: ProgramResponse;
   prerequisitesDropdown: { label: string; value: string }[]; // Add prerequisitesDropdown property
-  fetchPrograms: () => void; // Add fetchPrograms property
   handleSubmit: (value: IProgramForm) => void; // Add setFeedback property
   loading?: boolean;
 }
@@ -19,6 +19,19 @@ const ProgramForm = ({
   loading,
   handleSubmit,
 }: IProps) => {
+
+  const initial: IProgramForm = program ? {
+    title: program.title,
+    description: program.description,
+    eligibility: program.eligibility,
+    member_required: program.member_required,
+    leader_required: program.leader_required,
+    ministry_required: program.ministry_required,
+    topics: program.topics.map(topic => topic.name),
+    prerequisites: program.prerequisitePrograms.map(prerequisite => prerequisite.title),
+    isPrerequisitesChecked: program.prerequisitePrograms.length > 0
+  } : initialValues
+
   return (
     <div className="bg-white p-4 rounded-lg md:w-[45rem] max-h-[90vh] text-primary space-y-4">
       <div className="sticky top-0 bg-white p-4 border-b border-lightGray z-10">
@@ -31,7 +44,7 @@ const ProgramForm = ({
         </p>
       </div>
 
-      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+      <Formik initialValues={initial} onSubmit={handleSubmit}>
         {({ values, setFieldValue, handleSubmit }) => (
           <Form>
             <Field

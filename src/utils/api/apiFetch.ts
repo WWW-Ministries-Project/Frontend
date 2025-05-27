@@ -5,6 +5,7 @@ import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { EventResponseType } from "./events/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import { ProgramResponse } from "./ministrySchool/interfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
@@ -113,7 +114,9 @@ export class ApiCalls {
   // };
 
   // Program Management
-  fetchAllPrograms = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
+  fetchAllPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<ProgramResponse[]>> => {
     return this.fetchFromApi("program/programs", query);
   };
 
@@ -206,7 +209,9 @@ export class ApiCalls {
   };
 
   // Prayer Request Management
-  fetchAllPrayerRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
+  fetchAllPrayerRequests = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("prayerrequest", query);
   };
 

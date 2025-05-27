@@ -2,6 +2,7 @@ import CardWrappers from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
+import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +27,7 @@ interface Program {
 }
 
 interface ProgramsCardProps {
-  program: Program;
+  program: Partial<ProgramResponse>;
   cohorts?: Cohort[];
   handleCopyLink?: (programId: number) => void;
   onOpen?: () => void;
@@ -187,11 +188,11 @@ const ProgramsCard = ({
       )}
 
       {/* Actions */}
-      {applyCard ? (
+      {applyCard && program.cohorts.length ? (
         <div className="flex justify-between items-center pt-2">
           <Button
             onClick={() => {
-              program.cohorts.length > 0 && handleApply(program.cohorts[0]);
+              handleApply(program.cohorts[0]);
             }}
             value="Apply"
             className="bg-primary text-white px-6 py-2 w-full hover:bg-primary/90 transition-colors"

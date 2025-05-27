@@ -52,7 +52,7 @@ export class ApiCreationCalls {
 
   // Create Program
   createProgram = (payload: ProgramsPayloadType): Promise<unknown> => {
-    return this.postToApi("program/programs", payload);
+    return this.postToApi("program/program", payload);
   };
 
   // Create Cohort

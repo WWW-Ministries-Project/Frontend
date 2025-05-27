@@ -1,16 +1,19 @@
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
-import { ApiDeletionCalls } from "@/utils/api/apiDelete";
-import { ApiCalls } from "@/utils/api/apiFetch";
-import { ProgramsPayloadType } from "@/utils/api/ministrySchool/interfaces";
-import { useEffect, useMemo, useState } from "react";
+import {
+  ProgramResponse,
+  ProgramsPayloadType,
+} from "@/utils/api/ministrySchool/interfaces";
+import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
-import { showNotification } from "../../utils";
+import { showDeleteDialog, showNotification } from "../../utils";
 import ProgramForm from "./Components/ProgramForm";
 import ProgramsCard from "./Components/ProgramsCard";
 
@@ -35,24 +38,22 @@ interface Program {
 
 const MinistrySchool = () => {
   //api
-  const { data } = useFetch(api.fetch.fetchAllPrograms);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllPrograms);
 
   const { postData: postProgram } = usePost(api.post.createProgram);
+  const { updateData: updateProgram } = usePut(api.put.updateProgram);
+  const { executeDelete } = useDelete(api.delete.deleteProgram);
 
   const programsData = useMemo(() => data?.data || [], [data]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(
-    undefined
-  );
-
-  const apiCalls = new ApiCalls();
-  const apiDelete = new ApiDeletionCalls();
+  const [selectedProgram, setSelectedProgram] = useState<
+    ProgramResponse | undefined
+  >(undefined);
 
   interface DropdownProgram {
     value: number;
@@ -66,53 +67,16 @@ const MinistrySchool = () => {
     }));
   };
 
-  const fetchPrograms = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiCalls.fetchAllPrograms();
-
-      if (response.data && Array.isArray(response.data)) {
-        setPrograms(response.data as Program[]);
-      } else {
-        setError("Invalid data format received.");
-      }
-    } catch (err) {
-      setError("Failed to fetch programs. Please try again later.");
-      console.error("Fetch programs error:", err);
-    } finally {
-      setLoading(false);
-    }
+  const deleteProgram = async (programId: number | string) => {
+    await executeDelete({
+      id: String(programId),
+    }).then(() => {
+      showNotification("Program deleted successfully", "success");
+      refetch();
+    });
   };
 
-  const deleteProgram = async (programId: number) => {
-    try {
-      setLoading(true);
-      const response = await apiDelete.deleteProgram(programId);
-      if (response.status === 200) {
-        setPrograms((prevPrograms) =>
-          prevPrograms.filter((program) => program.id !== programId)
-        );
-        setFeedback("Program deleted successfully");
-        setType("success");
-      } else {
-        setError("Failed to delete the program.");
-      }
-    } catch (err) {
-      setError("An error occurred while deleting the program.");
-      console.error("Delete program error:", err);
-    } finally {
-      setLoading(false);
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 5000);
-    }
-  };
-
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  const handleEdit = (program: Program): void => {
+  const handleEdit = (program): void => {
     setSelectedProgram(program);
     setIsModalOpen(true);
   };
@@ -160,32 +124,26 @@ const MinistrySchool = () => {
     return [];
   };
 
-  const handleFeedback = (value: ProgramsPayloadType): void => {
-    postProgram(value)
-      .then(() => {
-        return fetchPrograms();
-      })
-      .then(() => {
-        setIsModalOpen(false);
-        showNotification("Program Created Successfully");
-      });
+  const handleSubmit = (value: ProgramsPayloadType): void => {
+    if (selectedProgram) {
+      updateProgram(value, { id: String(selectedProgram.id) });
+    } else {
+      postProgram(value)
+        .then(() => {
+          return refetch();
+        })
+        .then(() => {
+          setIsModalOpen(false);
+          showNotification("Program Created Successfully");
+        })
+        .catch((error) => {
+          showNotification(error.message, "error");
+        });
+    }
   };
 
   const renderContent = () => {
     if (loading) return <SkeletonLoader />;
-
-    if (error)
-      return (
-        <div className="p-4 text-red-600 bg-red-50 rounded-lg">
-          {error}
-          <button
-            onClick={fetchPrograms}
-            className="ml-2 text-blue-600 hover:text-blue-800"
-          >
-            Retry
-          </button>
-        </div>
-      );
 
     if (!programsData.length)
       return (
@@ -206,7 +164,12 @@ const MinistrySchool = () => {
             handleCopyLink={() => {}}
             onOpen={() => handleEdit(program)}
             onClose={handleClose}
-            onDelete={() => deleteProgram(program.id)}
+            onDelete={() =>
+              showDeleteDialog(
+                { name: program.title, id: program.id },
+                deleteProgram
+              )
+            }
           />
         ))}
       </section>
@@ -231,18 +194,9 @@ const MinistrySchool = () => {
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ProgramForm
           onClose={handleClose}
-          program={
-            selectedProgram || {
-              title: "",
-              description: "",
-              eligibility: "",
-              topics: [],
-              prerequisites: [],
-            }
-          }
+          program={selectedProgram}
           prerequisitesDropdown={getProgramsForDropdown(programsData)}
-          fetchPrograms={fetchPrograms}
-          handleSubmit={handleFeedback}
+          handleSubmit={handleSubmit}
           handleAlert={setShowFeedback}
         />
       </Modal>
