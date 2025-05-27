@@ -2,6 +2,7 @@ import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import { ProgramsPayloadType } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
@@ -50,10 +51,8 @@ export class ApiCreationCalls {
   };
 
   // Create Program
-  createProgram = <T>(
-    payload: Record<string, any>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("program/programs", payload);
+  createProgram = (payload: ProgramsPayloadType): Promise<unknown> => {
+    return this.postToApi("program/programs", payload);
   };
 
   // Create Cohort

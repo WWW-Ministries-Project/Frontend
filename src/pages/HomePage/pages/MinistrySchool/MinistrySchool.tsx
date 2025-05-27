@@ -1,12 +1,16 @@
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { usePost } from "@/CustomHooks/usePost";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { api } from "@/utils";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { ApiCalls } from "@/utils/api/apiFetch";
-import { useEffect, useState } from "react";
-import AlertComp from "../../Components/reusable/AlertComponent";
+import { ProgramsPayloadType } from "@/utils/api/ministrySchool/interfaces";
+import { useEffect, useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
+import { showNotification } from "../../utils";
 import ProgramForm from "./Components/ProgramForm";
 import ProgramsCard from "./Components/ProgramsCard";
 
@@ -30,6 +34,12 @@ interface Program {
 }
 
 const MinistrySchool = () => {
+  //api
+  const { data } = useFetch(api.fetch.fetchAllPrograms);
+
+  const { postData: postProgram } = usePost(api.post.createProgram);
+
+  const programsData = useMemo(() => data?.data || [], [data]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -150,11 +160,15 @@ const MinistrySchool = () => {
     return [];
   };
 
-  const handleFeedback = (message: string, type: string): void => {
-    setFeedback(message);
-    setType(type);
-    setShowFeedback(true);
-    setTimeout(() => setShowFeedback(false), 5000);
+  const handleFeedback = (value: ProgramsPayloadType): void => {
+    postProgram(value)
+      .then(() => {
+        return fetchPrograms();
+      })
+      .then(() => {
+        setIsModalOpen(false);
+        showNotification("Program Created Successfully");
+      });
   };
 
   const renderContent = () => {
@@ -173,7 +187,7 @@ const MinistrySchool = () => {
         </div>
       );
 
-    if (programs.length === 0)
+    if (!programsData.length)
       return (
         <div className="text-center py-8 w-1/4 mx-auto">
           <EmptyState msg={"No programs found"} />
@@ -182,7 +196,7 @@ const MinistrySchool = () => {
 
     return (
       <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
-        {programs.map((program) => (
+        {programsData.map((program) => (
           <ProgramsCard
             key={program.id}
             program={program}
@@ -200,31 +214,20 @@ const MinistrySchool = () => {
   };
 
   return (
-      <PageOutline>
-        {showFeedback && (
-          <AlertComp
-            message={feedback || ""}
-            type={type || "success"}
-            onClose={() => setShowFeedback(false)}
-          />
-        )}
-        <HeaderControls
-          title="School of Ministry"
-          showSearch={false}
-          showFilter={false}
-          totalMembers={programs.length}
-          btnName="Create program"
-          handleClick={() => setIsModalOpen(true)}
-          tableView={false}
-          handleViewMode={() => {}}
-          setShowFilter={() => {}}
-          setShowSearch={() => {}}
-          screenWidth={window.innerWidth}
-          hasSearch={false}
-          hasFilter={false}
-        />
+    <PageOutline>
+      <HeaderControls
+        title="School of Ministry"
+        showSearch={false}
+        showFilter={false}
+        totalMembers={programsData.length}
+        btnName="Create program"
+        handleClick={() => setIsModalOpen(true)}
+        screenWidth={window.innerWidth}
+        hasSearch={false}
+        hasFilter={false}
+      />
 
-        {renderContent()}
+      {renderContent()}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ProgramForm
           onClose={handleClose}
@@ -237,14 +240,13 @@ const MinistrySchool = () => {
               prerequisites: [],
             }
           }
-          prerequisitesDropdown={getProgramsForDropdown(programs)}
+          prerequisitesDropdown={getProgramsForDropdown(programsData)}
           fetchPrograms={fetchPrograms}
-          handleFeedback={handleFeedback}
+          handleSubmit={handleFeedback}
           handleAlert={setShowFeedback}
         />
       </Modal>
-      </PageOutline>
-
+    </PageOutline>
   );
 };
 
