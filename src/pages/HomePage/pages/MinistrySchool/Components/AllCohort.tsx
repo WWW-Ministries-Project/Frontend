@@ -2,6 +2,7 @@ import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
+import { Cohort } from "@/utils";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
@@ -9,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 
 interface AllCohortsPageProps {
   onCreate: () => void;
-  cohorts: any[]; // List of cohorts
-  onEdit: (cohort: any) => void; // Function to edit cohort
+  cohorts: Cohort[]; // List of cohorts
+  onEdit: (cohort: Cohort) => void; // Function to edit cohort
   onDelete: (id: number) => void;
   loading: boolean;
 }

@@ -121,9 +121,8 @@ export class ApiCalls {
   };
 
   fetchProgramById = (
-    id: string,
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<ProgramResponse>> => {
     return this.fetchFromApi(`program/program`, query);
   };
   // @Jojo please the name is confusing
