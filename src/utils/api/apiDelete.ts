@@ -50,7 +50,7 @@ export class ApiDeletionCalls {
   };
 
   deleteCohort = (query:QueryType): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/cohorts`, query);
+    return this.deleteFromApi<void>(`program/cohort`, query);
   };
 
   deleteCourse = (query:QueryType): Promise<ApiResponse<void>> => {

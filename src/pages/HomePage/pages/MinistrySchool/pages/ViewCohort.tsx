@@ -23,14 +23,6 @@ type ClassItem = {
   meetingLink?: string;
 };
 
-type Cohort = {
-  id: number;
-  description: string;
-  startDate: string;
-  duration: string;
-  applicationDeadline: string;
-  courses: ClassItem[];
-};
 
 const ViewCohort = () => {
   const apiCalls = new ApiCalls();
