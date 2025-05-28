@@ -6,6 +6,8 @@ import { fetchData } from "./apiFunctions";
 import { EventResponseType } from "./events/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import { ProgramResponse } from "./ministrySchool/interfaces";
+import { DepartmentType } from "./settings/departmentInterfaces";
+import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
@@ -73,12 +75,12 @@ export class ApiCalls {
   };
 
   // Position Management
-  fetchPositions = (): Promise<unknown> => {
+  fetchPositions = (): Promise<ApiResponse<PositionType[]>> => {
     return this.fetchFromApi("position/list-positions");
   };
 
   // Department Management
-  fetchDepartments = (): Promise<unknown> => {
+  fetchDepartments = (): Promise<ApiResponse<DepartmentType[]>> => {
     return this.fetchFromApi("department/list-departments");
   };
 

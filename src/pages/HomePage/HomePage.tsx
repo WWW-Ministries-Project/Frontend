@@ -31,7 +31,7 @@ export function HomePage() {
   const { data: eventsData } = useFetch(
     api.fetch.fetchEvents
   );
-  const { data: positionsData } = useFetch(api.fetch.fetchPositions);
+  const { data: positionsData, refetch: refetchPositions } = useFetch(api.fetch.fetchPositions);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -146,6 +146,7 @@ export function HomePage() {
                       setFilter,
                       handleSearchChange,
                       userStats,
+                      refetchPositions,
                     }}
                   />
                 </div>

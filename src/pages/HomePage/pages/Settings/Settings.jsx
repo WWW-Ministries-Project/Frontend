@@ -18,7 +18,7 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import { FormsComponent } from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
 function Settings() {
-  const { filter, setFilter, handleSearchChange, members, } = useOutletContext();
+  const { filter, setFilter, handleSearchChange, members, refetchPositions } = useOutletContext();
   const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData] = useState([]);
@@ -62,12 +62,14 @@ function Settings() {
   useEffect(() => {
     if (departmentUpdate) {
       showNotification("Department updated successfully", "success");
-      settingsStore.updateDepartment(departmentUpdate.data);
+      // settingsStore.updateDepartment(departmentUpdate.data);
+
       handleCloseForm();
     }
     if (positionUpdate) {
       showNotification("Position updated successfully", "success");
-      settingsStore.updatePosition(positionUpdate.data);
+      // settingsStore.updatePosition(positionUpdate.data);
+      refetchPositions();
       handleCloseForm();
     }
     if (departmentUpdateError || positionUpdateError) {
