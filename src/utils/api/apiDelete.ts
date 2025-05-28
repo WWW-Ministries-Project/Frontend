@@ -54,7 +54,7 @@ export class ApiDeletionCalls {
   };
 
   deleteCourse = (query:QueryType): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`program/courses`, query);
+    return this.deleteFromApi<void>(`program/course`, query);
   };
 
   

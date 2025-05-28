@@ -6,7 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import * as Yup from "yup";
 
-interface CohortFormProps {
+interface IProps {
   onClose: () => void;
   cohort?: {
     id: number;
@@ -21,18 +21,19 @@ interface CohortFormProps {
   fetchProgramData: () => void; //
 }
 
-const CohortForm: React.FC<CohortFormProps> = ({
+const CohortForm= ({
   onClose,
   cohort,
   programId,
   fetchProgramData,
-}) => {
+}: IProps) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [applicationDeadline, setApplicationDeadline] = useState<Date | null>(
     null
   );
   const [loading, setLoading] = useState(false);
 
+  
   const apiCreate = new ApiCreationCalls(); // For creating new cohort
   const apiUpdate = new ApiUpdateCalls(); // For updating existing cohort
 
@@ -48,20 +49,6 @@ const CohortForm: React.FC<CohortFormProps> = ({
     status: cohort?.status || "Upcoming",
   };
 
-  const validationSchema = Yup.object({
-    name: Yup.string().required("Cohort name is required"),
-    duration: Yup.string().required("Duration is required"),
-    description: Yup.string().required("Description is required"),
-    startDate: Yup.date().required("Start date is required"),
-    applicationDeadline: Yup.date()
-      .required("Application deadline is required")
-      .max(
-        Yup.ref("startDate"),
-        "Application deadline must be before the cohort start date"
-      ),
-    status: Yup.string().required("Status is required"),
-  });
-
   const onSubmit = async (values: any) => {
     setLoading(true); // Show loading state
 
@@ -74,8 +61,6 @@ const CohortForm: React.FC<CohortFormProps> = ({
       status: values.status,
       programId, // Associate the cohort with a specific program
     };
-
-    console.log("onSubmit", payload);
 
     try {
       if (cohort?.id) {
@@ -97,7 +82,7 @@ const CohortForm: React.FC<CohortFormProps> = ({
         // Create new cohort if no ID is provided
         const response = await apiCreate.createCohort(payload);
         if (response.success) {
-          console.log("Cohort created successfully:", response.data);
+
           onClose(); // Close the form
         } else {
           console.error(
@@ -136,7 +121,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
             {/* Cohort Name */}
             <div className="flex gap-4">
               <div className="w-full">
-                <label htmlFor="name" className="block text-sm font-medium text-primary">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-primary"
+                >
                   Cohort Name *
                 </label>
                 <Field
@@ -154,7 +142,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
             {/* Description */}
             <div className="w-full">
-              <label htmlFor="description" className="block text-sm font-medium text-primary">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-primary"
+              >
                 Description *
               </label>
               <Field
@@ -172,7 +163,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
             <div className="grid lg:grid-cols-2">
               {/* Start Date */}
               <div className="w-full">
-                <label htmlFor="startDate" className="block text-sm font-medium text-primary">
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-primary"
+                >
                   Start Date *
                 </label>
                 <DatePicker
@@ -192,7 +186,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
               {/* Duration */}
               <div className="w-full">
-                <label htmlFor="duration" className="block text-sm font-medium text-primary">
+                <label
+                  htmlFor="duration"
+                  className="block text-sm font-medium text-primary"
+                >
                   Duration *
                 </label>
                 <Field
@@ -211,7 +208,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
             {/* Application Deadline */}
             <div className="grid lg:grid-cols-2">
               <div className="w-full">
-                <label htmlFor="applicationDeadline" className="block text-sm font-medium text-primary">
+                <label
+                  htmlFor="applicationDeadline"
+                  className="block text-sm font-medium text-primary"
+                >
                   Application Deadline *
                 </label>
                 <DatePicker
@@ -234,7 +234,10 @@ const CohortForm: React.FC<CohortFormProps> = ({
 
               {/* Status */}
               <div className="w-full">
-                <label htmlFor="status" className="block text-sm font-medium text-primary">
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-primary"
+                >
                   Status *
                 </label>
                 <Field
@@ -279,5 +282,18 @@ const CohortForm: React.FC<CohortFormProps> = ({
     </div>
   );
 };
+const validationSchema = Yup.object({
+  name: Yup.string().required("Cohort name is required"),
+  duration: Yup.string().required("Duration is required"),
+  description: Yup.string().required("Description is required"),
+  startDate: Yup.date().required("Start date is required"),
+  applicationDeadline: Yup.date()
+    .required("Application deadline is required")
+    .max(
+      Yup.ref("startDate"),
+      "Application deadline must be before the cohort start date"
+    ),
+  status: Yup.string().required("Status is required"),
+});
 
 export default CohortForm;

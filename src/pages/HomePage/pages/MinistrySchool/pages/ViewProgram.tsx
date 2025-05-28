@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import AllCohortsPage from "../Components/AllCohort";
 import CohortForm from "../Components/CohortForm";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 
 const ViewProgram = () => {
   //api
@@ -26,20 +27,18 @@ const ViewProgram = () => {
   }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
 
   const handleEdit = (cohort: Cohort): void => {
-    console.log("handleEdit");
-
     setSelectedCohort(cohort);
     setIsModalOpen(true);
   };
 
   const handleClose = () => {
     setSelectedCohort(undefined);
-    console.log("Program selected", selectedCohort);
-
     setIsModalOpen(false);
   };
 
-  const deleteCohort = async (cohortId: number) => {};
+  const deleteCohort = async (cohortId: number) => {
+    showDeleteDialog({ name: "Cohort", id: cohortId }, async () => {});
+  };
 
   return (
     //   <div>Loading...</div> // Show loading text while data is being fetched

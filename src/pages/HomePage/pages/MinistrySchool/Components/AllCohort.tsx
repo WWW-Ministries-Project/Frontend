@@ -2,13 +2,15 @@ import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
-import { Cohort } from "@/utils";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { api, Cohort } from "@/utils";
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface AllCohortsPageProps {
+interface IProps {
   onCreate: () => void;
   cohorts: Cohort[]; // List of cohorts
   onEdit: (cohort: Cohort) => void; // Function to edit cohort
@@ -16,15 +18,16 @@ interface AllCohortsPageProps {
   loading: boolean;
 }
 
-const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
+const AllCohortsPage = ({
   onCreate,
   cohorts,
   onEdit,
   onDelete,
   loading,
-}) => {
+}: IProps) => {
   const navigate = useNavigate();
   const apiDelete = new ApiDeletionCalls();
+  const { executeDelete } = useDelete(api.delete.deleteCohort);
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
   const buttonRef = useRef<HTMLButtonElement | null>(null); // Reference for the button that toggles the menu
@@ -40,33 +43,18 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
     }
   };
 
-  const handleEdit = (cohort: any) => {
-    console.log("edit mode", cohort);
-
-    onEdit(cohort); // Pass selected cohort back to parent component
+  const handleEdit = (cohort: Cohort) => {
+    onEdit(cohort);
   };
 
-  // const deleteCohort = async (cohortId: number) => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await apiDelete.deleteProgram(cohortId);
-  //     if (response.status === 200) {
-  //       setPrograms((prevPrograms) =>
-  //         prevPrograms.filter((cohort) => cohort.id !== cohortId)
-  //       );
-  //       console.log("Program deleted successfully");
-  //     } else {
-  //       setError("Failed to delete the program.");
-  //     }
-  //   } catch (err) {
-  //     setError("An error occurred while deleting the program.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const handleDelete = (cohortId: number) => {
+    showDeleteDialog(
+      { name: "Cohort", id: cohortId },
+      () => executeDelete({ id: String(cohortId) })
+    );
+  };
 
-  // Close menu if clicked outside
-  useEffect(() => {
+ useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Check if the click is outside the menu container and the button
       if (
@@ -87,13 +75,6 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  // if (cohorts.length === 0) return (
-  //       <div className="text-center py-8 w-1/4 mx-auto">
-  //         <EmptyState msg={"No cohort found"}/>
-
-  //       </div>
-  //     );
 
   return (
     <div className="">
@@ -191,7 +172,7 @@ const AllCohortsPage: React.FC<AllCohortsPageProps> = ({
 
                               <hr className="text-lightGray" />
                               <li
-                                onClick={() => onDelete(cohort.id)}
+                                onClick={() => handleDelete(cohort.id)}
                                 className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                               >
                                 Delete Cohort

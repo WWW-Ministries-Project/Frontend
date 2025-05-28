@@ -35,28 +35,6 @@ const ClassForm: React.FC<ClassFormProps> = ({
     cohortId: cohortId || "", // Add cohortId here
   };
 
-  const validationSchema = Yup.object({
-    name: Yup.string().required("Class name is required"),
-    instructor: Yup.string().required("Instructor name is required"),
-    capacity: Yup.number()
-      .required("Capacity is required")
-      .positive()
-      .integer(),
-    schedule: Yup.string().required("Schedule is required"),
-    classFormat: Yup.string().required("Class format is required"),
-    location: Yup.string().when("classFormat", {
-      is: (value: any) => value === "In_Person" || value === "Hybrid",
-      then: (schema) =>
-        schema.required("Location is required for in-person or hybrid classes"),
-    }),
-    meetingLink: Yup.string().when("classFormat", {
-      is: (value: any) => value === "Online" || value === "Hybrid",
-      then: (schema) =>
-        schema.required(
-          "Meeting link is required for online or hybrid classes"
-        ),
-    }),
-  });
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
@@ -298,4 +276,27 @@ const ClassForm: React.FC<ClassFormProps> = ({
   );
 };
 
+  const validationSchema = Yup.object({
+    name: Yup.string().required("Class name is required"),
+    instructor: Yup.string().required("Instructor name is required"),
+    capacity: Yup.number()
+      .required("Capacity is required")
+      .positive()
+      .integer(),
+    schedule: Yup.string().required("Schedule is required"),
+    classFormat: Yup.string().required("Class format is required"),
+    location: Yup.string().when("classFormat", {
+      is: (value: any) => value === "In_Person" || value === "Hybrid",
+      then: (schema) =>
+        schema.required("Location is required for in-person or hybrid classes"),
+    }),
+    meetingLink: Yup.string().when("classFormat", {
+      is: (value: any) => value === "Online" || value === "Hybrid",
+      then: (schema) =>
+        schema.required(
+          "Meeting link is required for online or hybrid classes"
+        ),
+    }),
+  });
+  
 export default ClassForm;
