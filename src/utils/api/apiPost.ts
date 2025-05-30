@@ -91,10 +91,10 @@ export class ApiCreationCalls {
   };
 
   // Follow-Up Management
-  createFollowUp = <T>(
+  createFollowUp = (
     payload: FollowUpPayloadType
   ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi<T>("visitor/followup", payload);
+    return this.postToApi("visitor/followup", payload);
   };
 
   // Prayer Request Management

@@ -21,7 +21,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
   const [selectedVisit, setSelectedVisit] = useState<
-    (IVisitForm & { id: string|number }) | undefined
+    (IVisitForm & { id: string | number }) | undefined
   >(undefined); // Store selected visit for editing
 
   //API
@@ -74,13 +74,13 @@ export const Visits = ({ visitorId, visits }: IProps) => {
             showOptions={row.original.id == selectedId}
             hideDelete={true}
             onView={() => {
-              navigate(`/visitor/${row.original.id}`);
+              navigate(`visitor/${row.original.id}`);
             }}
             onEdit={() => {
               setSelectedVisit({
                 id: row.original.id,
                 date: row.original.date,
-                eventId: row.original.eventName || "1",
+                eventId: row.original.eventId || "1",
                 notes: row.original.notes || "",
               });
               setIsModalOpen(true);
@@ -120,6 +120,7 @@ interface Visit {
   visitorId: number | string;
   date: string;
   eventName?: string;
+  eventId?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

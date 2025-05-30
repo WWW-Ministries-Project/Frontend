@@ -91,6 +91,9 @@ export function VisitorManagement() {
       cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
     },
     {
+      accessorKey: "firstName",
+    },
+    {
       accessorKey: "email",
       header: "Email",
     },
@@ -155,7 +158,7 @@ export function VisitorManagement() {
 
   return (
     <PageOutline>
-      {loading ? (
+      {loading && visitors.length === 0 ? (
         <div className="space-y-4">
           <div className="animate-pulse space-y-2  w-[40rem] ">
             <div className="h-8 bg-lightGray rounded w-2/6"></div>
@@ -194,7 +197,10 @@ export function VisitorManagement() {
                 <TableComponent
                   data={visitors}
                   columns={headings}
-                  columnVisibility={{ actions: permissions.manage_visitors }}
+                  columnVisibility={{
+                    actions: permissions.manage_visitors,
+                    firstName: false,
+                  }}
                   filter={filterVisitors}
                   setFilter={setFilterVisitors}
                 />

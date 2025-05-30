@@ -123,7 +123,7 @@ export const VisitorDetails = () => {
                 <ListDetailComp icon={PhoneIcon} title={visitor?.phone || ""} />
                 <ListDetailComp
                   icon={HomeIcon}
-                  title={`${visitor?.country} - ${visitor?.state}`}
+                  title={`${visitor?.country || ""} - ${visitor?.state || ""}`}
                 />
               </div>
               <HorizontalLine />

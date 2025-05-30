@@ -4,12 +4,10 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
-import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
 
 interface IProps {
@@ -37,7 +35,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
       visitorId: visitorId,
     };
     if (selectedFollowUp)
-      await updateFollowUp(payload, String(selectedFollowUp.id));
+      await updateFollowUp(payload, { id: String(selectedFollowUp.id) });
     else await postFollowUp(payload);
     setIsModalOpen(false);
   };
@@ -60,11 +58,11 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
             alt="edit icon"
             className="cursor-pointer"
             onClick={() => {
-              setSelectedFollowUp(row.original);
+              // setSelectedFollowUp(row.original);
               setIsModalOpen(true);
             }}
           />
-          <img
+          {/* <img
             src={deleteIcon}
             alt="delete icon"
             className="cursor-pointer"
@@ -74,7 +72,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
                 executeDelete
               );
             }}
-          />
+          /> */}
         </div>
       ),
     },
@@ -85,10 +83,18 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
         title="Follow-up History"
         subtitle="Record of all visits to services and events"
         btnName="Add Follow-up"
-        handleClick={() => setIsModalOpen(true)}
+        handleClick={() => {
+          setIsModalOpen(true);
+        }}
       />
       <TableComponent data={followUps} columns={header} />
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedFollowUp(undefined);
+        }}
+      >
         <FollowUpForm
           onSubmit={handleSubmit}
           onClose={() => setIsModalOpen(false)}

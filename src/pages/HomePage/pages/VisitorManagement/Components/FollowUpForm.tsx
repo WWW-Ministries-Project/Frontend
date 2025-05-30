@@ -1,8 +1,9 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
+import { FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
-import { Field, Form, Formik } from "formik";
+import { Field, Formik } from "formik";
 import { useMemo } from "react";
 import { date, object, string } from "yup";
 
@@ -28,7 +29,7 @@ const FollowUpFormComponent = ({
   return (
     <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto">
       <div className="font-bold text-lg mb-4">
-        {initial ? "Edit Follow-up" : "Record a Follow-up"}
+        {initialData ? "Edit Follow-up" : "Record a Follow-up"}
       </div>
       <Formik
         initialValues={initial}
@@ -36,7 +37,7 @@ const FollowUpFormComponent = ({
         onSubmit={(values) => onSubmit(values)}
       >
         {({ handleSubmit }) => (
-          <Form>
+          <FormLayout $columns={1}>
             <Field
               component={FormikInputDiv}
               type="date"
@@ -86,7 +87,7 @@ const FollowUpFormComponent = ({
                 disabled={loading}
               />
             </div>
-          </Form>
+          </FormLayout>
         )}
       </Formik>
     </div>
