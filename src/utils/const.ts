@@ -8,6 +8,7 @@ export const relativePath = {
     dashboard: "dashboard",
     members: {
       main: "members",
+      mainNew: "/home/members",
       manage: "members/manage-member",
       details: "members/:id",
       info: "members/:id/info",

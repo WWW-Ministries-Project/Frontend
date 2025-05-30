@@ -40,7 +40,7 @@ function LoginPage() {
         setToken(token);
         // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        if (response.status === 200) navigate(relativePath.home.members.main);
+        if (response.status === 200) navigate(relativePath.home.members.mainNew);
       } catch (error) {
         console.log(error, "error");
         setResponse(error.response);
