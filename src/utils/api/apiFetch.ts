@@ -85,7 +85,7 @@ export class ApiCalls {
   };
 
   // Asset Management
-  fetchAssets = (): Promise<unknown> => {
+  fetchAssets = (): Promise<ApiResponse<assetType[]>> => {
     return this.fetchFromApi("assets/list-assets");
   };
   fetchAnAsset = (query?: QueryType): Promise<ApiResponse<assetType>> => {
@@ -133,15 +133,9 @@ export class ApiCalls {
   };
 
   fetchUserByEmailAndCohort = (
-    email: string,
-    cohortId: number,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi("user/get-user-email", {
-      ...query,
-      email,
-      cohortId,
-    });
+    return this.fetchFromApi("user/get-user-email", query);
   };
 
   // Cohort Management

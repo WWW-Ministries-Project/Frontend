@@ -86,7 +86,7 @@ const AssetFormComponent = ({
               { name: "Out of repairs", value: "OUT_OF_REPAIRS" },
               { name: "Lost/Stolen", value: "LOST_OR_STOLEN" },
             ]}
-            label="Status"
+            label="Status *"
             id="status"
             name="status"
             disabled={disabled}
