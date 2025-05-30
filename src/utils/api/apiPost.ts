@@ -76,7 +76,7 @@ export class ApiCreationCalls {
   };
 
   forgotPassword = <T>(
-    payload: Record<string, string>
+    payload: unknown
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };

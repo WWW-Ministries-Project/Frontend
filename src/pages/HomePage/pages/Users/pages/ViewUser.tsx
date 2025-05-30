@@ -12,21 +12,18 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ActiveAccess } from "../../Settings/Components/ActiveAccess";
-const ViewUser = () => {
+export const ViewUser = () => {
   const { id } = useParams();
-
-  const { data: responseData } = useFetch(api.fetch.fetchAMember, {
+  //api
+  const { data: responseData, refetch } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
-
   const { data: allRoles } = useFetch(api.fetch.fetchAccessLevels);
-
   const {
     updateData: activateUser,
     loading: activateLoading,
     data: activateData,
   } = usePut(api.put.activateMember);
-
   const {
     postData: resetPassword,
     loading: resetLoading,
@@ -101,7 +98,14 @@ const ViewUser = () => {
     updateAccess({
       user_id: id!,
       access_level_id: access_level_id,
-    });
+    })
+      .then(() => {
+        refetch();
+        showNotification("Access level updated successfully", "success");
+      })
+      .catch(() => {
+        showNotification("Failed to update access level", "error");
+      });
   };
 
   return (
@@ -200,4 +204,3 @@ const ViewUser = () => {
   );
 };
 
-export default ViewUser;

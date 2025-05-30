@@ -85,7 +85,7 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           src={deleteIcon}
           alt="delete icon"
           className="cursor-pointer"
-          onClick={() => {showDeleteDialog(row.original, ()=>{alert("yet to be completed")})}}
+          onClick={() => {showDeleteDialog(row.original, ()=>{alert("yet to be completed use grid mode")})}}
         />
       </div>
     ),

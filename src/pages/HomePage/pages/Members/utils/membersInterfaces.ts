@@ -1,5 +1,5 @@
 export interface UserType {
-    id: number;
+  id: number;
   name: string;
   email: string;
   member_id: string;
@@ -9,7 +9,7 @@ export interface UserType {
   department_id: number | null;
   membership_type: string;
   status: string;
-  // department: any | null;
+  department: { id: number | string; name: string };
   // position: any | null;
   // access: any | null;
   country_code: string;
@@ -90,5 +90,3 @@ export interface MemberSlice {
 }
 
 export type StoreState = MemberSlice;
-
-

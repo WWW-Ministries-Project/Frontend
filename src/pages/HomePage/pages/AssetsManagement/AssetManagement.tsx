@@ -14,7 +14,7 @@ import { AssetCard } from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
 
-const AssetManagement = () => {
+export const AssetManagement = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showSearch, setShowSearch] = useState(true);
@@ -119,5 +119,3 @@ const AssetManagement = () => {
     </PageOutline>
   );
 };
-
-export default AssetManagement;
