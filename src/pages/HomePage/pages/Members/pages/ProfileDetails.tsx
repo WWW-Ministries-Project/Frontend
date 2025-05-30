@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { navigateRef } from "@/pages/HomePage/HomePage";
-import { encodeQuery } from "@/pages/HomePage/utils";
+import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { IMemberInfo } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect } from "react";
@@ -12,18 +12,19 @@ import { Banner } from "../Components/Banner";
 export const ProfileDetails = () => {
   const {
     user: { permissions },
-  } = useAuth ();
+  } = useAuth();
   const [details, setDetails] = useState<IMemberInfo | undefined>();
   const { id } = useParams();
+  const user_id = id ? decodeQuery(id) : undefined;
   const { data } = useFetch(api.fetch.fetchAMember, {
-    user_id: id!,
+    user_id: user_id!,
   });
 
   useEffect(() => {
-    if (id) {
+    if (user_id) {
       setDetails(data?.data);
     }
-  }, [data, id]);
+  }, [data, user_id]);
 
   const handleEdit = (id: number | string) => {
     if (navigateRef.current)
