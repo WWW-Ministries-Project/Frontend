@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export type QueryType = Record<string, string> ;
+export type QueryType = Record<string, string>;
 export type QueryExecutorType = <T>(
   baseUrl: string,
   path: string,
@@ -36,7 +36,9 @@ export interface userType {
   email: string;
   name: string;
   permissions: Record<string, boolean>;
+  profile_img?: string;
+}
+export interface userTypeWithToken extends userType {
   iat: number;
   exp: number;
-  profile_img: string;
 }

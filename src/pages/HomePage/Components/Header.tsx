@@ -62,7 +62,7 @@ export const Header = ({ handleShowNav }: IProps) => {
           {showLogOut && (
             <div
               onClick={handleLogOut}
-              className="absolute z-20 top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl items-center hover:bg-neutralGray cursor-pointer"
+              className="absolute z-50 top-16 lg:right-8 p-5 rounded-lg bg-white flex shadow-xl items-center hover:bg-neutralGray cursor-pointer"
             >
               LogOut
             </div>
