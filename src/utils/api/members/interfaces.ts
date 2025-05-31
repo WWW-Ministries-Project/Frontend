@@ -34,6 +34,7 @@ export type MembersType = {
   is_active: boolean;
   is_user: boolean;
   department_id: number | null;
+  department_name: string;
   membership_type: string;
   status: string;
   // department: any | null;

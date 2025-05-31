@@ -92,8 +92,11 @@ export const FormsComponent = (props: IProps) => {
                 value={props.editMode ? "Update" : "Save"}
                 className="p-3 bg-primary text-white disabled:opacity-50"
                 onClick={onSubmit}
+                disabled={
+                  props.loading ||
+                  !props.inputValue.name
+                }
                 loading={props.loading}
-                disabled={!props.inputValue.name}
               />
             </div>
           </form>

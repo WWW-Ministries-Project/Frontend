@@ -9,7 +9,8 @@ export interface UserType {
   department_id: number | null;
   membership_type: string;
   status: string;
-  department: { id: number | string; name: string };
+  // department: { id: number | string; name: string };
+  department_name: string;
   // position: any | null;
   // access: any | null;
   country_code: string;

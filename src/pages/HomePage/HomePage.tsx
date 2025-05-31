@@ -32,6 +32,7 @@ export function HomePage() {
     api.fetch.fetchEvents
   );
   const { data: positionsData, refetch: refetchPositions } = useFetch(api.fetch.fetchPositions);
+  const {data: departmentsData, refetch: refetchDepartments} = useFetch(api.fetch.fetchDepartments);
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -71,14 +72,17 @@ export function HomePage() {
     if (positionsData) {
       settingsStore.setPositions(positionsData.data);
     }
+    if (departmentsData) {
+      settingsStore.setDepartments(departmentsData.data);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userStatsData, positionsData, eventsData, membersData]);
+  }, [user, userStatsData, positionsData, eventsData, membersData, departmentsData]);
 
-  useEffect(() => {
-    api.fetch.fetchDepartments().then((res) => {
-      settingsStore.setDepartments(res.data);
-    });
-  }, []);
+  // useEffect(() => {
+  //   api.fetch.fetchDepartments().then((res) => {
+  //     settingsStore.setDepartments(res.data);
+  //   });
+  // }, []);
 
   //table manipulation
   const [filter, setFilter] = useState("");
@@ -147,6 +151,7 @@ export function HomePage() {
                       handleSearchChange,
                       userStats,
                       refetchPositions,
+                      refetchDepartments,
                     }}
                   />
                 </div>
