@@ -2,11 +2,11 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import { formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
 import { useMemo } from "react";
 import { object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
-import { formatInputDate } from "@/utils";
 
 interface IProps {
   onSubmit: (val: IAssetForm) => void;
@@ -134,6 +134,7 @@ const AssetFormComponent = ({
                   type={"submit"}
                   variant="primary"
                   loading={loading}
+                  disabled={loading}
                   onClick={form.submitForm}
                 />
               </div>
