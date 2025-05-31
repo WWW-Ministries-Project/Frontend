@@ -3,7 +3,11 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
+import { EventResponseType } from "./events/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import { ProgramResponse } from "./ministrySchool/interfaces";
+import { DepartmentType } from "./settings/departmentInterfaces";
+import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 
 export class ApiCalls {
@@ -29,9 +33,7 @@ export class ApiCalls {
     return this.fetchFromApi("user/list-users", query);
   };
 
-  fetchAMember = (
-    query?: QueryType
-  ): Promise<ApiResponse<IMemberInfo>> => {
+  fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
   };
 
@@ -52,41 +54,38 @@ export class ApiCalls {
     return this.fetchFromApi(`visitor/visitor`, query);
   };
 
-  fetchAllVisits = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllVisits = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("visit", query);
   };
 
-  fetchVisitById = (
-    id: string,
-    query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  fetchVisitById = (id: string, query?: QueryType): Promise<unknown> => {
     return this.fetchFromApi(`visit/${id}`, query);
   };
 
   fetchAllVisitsByVisitorId = (
-    id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any[]>> => {
-    return this.fetchFromApi(`visitor/visit/visitor/${id}`, query);
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi(`visitor/visit/visitor`, query);
   };
-
   // Event Management
-  fetchEvents = (query?: QueryType): Promise<any> => {
+  fetchEvents = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType[]>> => {
     return this.fetchFromApi("event/list-events", query);
   };
 
   // Position Management
-  fetchPositions = (): Promise<any> => {
+  fetchPositions = (): Promise<ApiResponse<PositionType[]>> => {
     return this.fetchFromApi("position/list-positions");
   };
 
   // Department Management
-  fetchDepartments = (): Promise<any> => {
+  fetchDepartments = (): Promise<ApiResponse<DepartmentType[]>> => {
     return this.fetchFromApi("department/list-departments");
   };
 
   // Asset Management
-  fetchAssets = (): Promise<any> => {
+  fetchAssets = (): Promise<ApiResponse<assetType[]>> => {
     return this.fetchFromApi("assets/list-assets");
   };
   fetchAnAsset = (query?: QueryType): Promise<ApiResponse<assetType>> => {
@@ -103,82 +102,77 @@ export class ApiCalls {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
-  // Requisition Management
-  fetchRequisitions = (query?: QueryType): Promise<any> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
-  };
+  // // Requisition Management
+  // fetchRequisitions = (query?: QueryType): Promise<unknown> => {
+  //   return this.fetchFromApi("requisitions/staff-requisition", query);
+  // };
 
-  fetchRequisitionDetails = (query?: QueryType): Promise<any> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
-  };
+  // fetchRequisitionDetails = (query?: QueryType): Promise<unknown> => {
+  //   return this.fetchFromApi("requisitions/get-requisition/", query);
+  // };
 
-  fetchMyRequests = (query?: Record<string, string | number>): Promise<any> => {
-    return this.fetchFromApi("requisitions/my-requisitions", query);
-  };
+  // fetchMyRequests = (query?: Record<string, string | number>): Promise<unknown> => {
+  //   return this.fetchFromApi("requisitions/my-requisitions", query);
+  // };
 
   // Program Management
-  fetchAllPrograms = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<ProgramResponse[]>> => {
     return this.fetchFromApi("program/programs", query);
   };
 
   fetchProgramById = (
-    id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
-    return this.fetchFromApi(`program/programs/${id}`, query);
+  ): Promise<ApiResponse<ProgramResponse>> => {
+    return this.fetchFromApi(`program/program`, query);
   };
   // @Jojo please the name is confusing
-  fetchMembers = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchMembers = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/users", query);
   };
 
   fetchUserByEmailAndCohort = (
-    email: string,
-    cohortId: number,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
-    return this.fetchFromApi("user/get-user-email", {
-      ...query,
-      email,
-      cohortId,
-    });
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("user/get-user-email", query);
   };
 
   // Cohort Management
-  fetchAllCohorts = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllCohorts = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/cohorts", query);
   };
 
   fetchCohortById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`program/cohorts/${id}`, query);
   };
 
   fetchCohortsByProgramId = (
     programId: string,
     query?: QueryType
-  ): Promise<ApiResponse<any[]>> => {
+  ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
   };
 
   // Course Management
-  fetchAllCourses = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllCourses = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/courses", query);
   };
 
   fetchCourseById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`program/courses/${id}`, query);
   };
 
   fetchStudentById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`program/progress/${id}`, query);
   };
 
@@ -186,38 +180,40 @@ export class ApiCalls {
   fetchEnrollmentsByCourse = (
     courseId: string,
     query?: QueryType
-  ): Promise<ApiResponse<any[]>> => {
+  ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/course-enrollment", query);
   };
 
   fetchEnrollmentsByUser = (
     userId: string,
     query?: QueryType
-  ): Promise<ApiResponse<any[]>> => {
+  ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/user-enrollment", query);
   };
 
   // Follow-Up Management
-  fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("followup", query);
   };
 
   fetchFollowUpById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`followup/${id}`, query);
   };
 
   // Prayer Request Management
-  fetchAllPrayerRequests = (query?: QueryType): Promise<ApiResponse<any[]>> => {
+  fetchAllPrayerRequests = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("prayerrequest", query);
   };
 
   fetchPrayerRequestById = (
     id: string,
     query?: QueryType
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`prayerrequest/${id}`, query);
   };
 }

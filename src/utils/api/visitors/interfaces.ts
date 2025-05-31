@@ -33,6 +33,7 @@ export type VisitType = {
   visitorId: number|string;
   date: string;
   eventName?: string;
+  eventId?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

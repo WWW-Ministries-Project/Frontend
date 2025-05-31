@@ -19,13 +19,13 @@ const EventRegister = () => {
     const id = params.get('event_id')
     const handleFindMember = () => {
         setLoading(true)
-        axios.get(`${baseUrl}/event/search-user?phone=${memberDetails.phone_number}&country_code=${memberDetails.country_code}`).then((res) => {
+        axios.get(`${baseUrl}event/search-user?phone=${memberDetails.phone_number}&country_code=${memberDetails.country_code}`).then((res) => {
             setLoading(false)
             if (res.status == 200) {
                 setMemberDetails(res.data.data)
                 setMemberFound("found");
-            }else if(res.status==204){
-                setMemberDetails({phone_number:"",first_name:"",last_name:"",other_name:"",gender:"",new_member:true})
+            } else if (res.status == 204) {
+                setMemberDetails({ phone_number: "", first_name: "", last_name: "", other_name: "", gender: "", new_member: true })
                 setMemberFound("not_found")
             }
         }).catch(() => {
@@ -35,7 +35,7 @@ const EventRegister = () => {
     }
     const handleConfirm = () => {
         setLoading(true)
-        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number,country_code:memberDetails.country_code, new_member: false }).then(() => {
+        axios.post(`${baseUrl}event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number, country_code: memberDetails.country_code, new_member: false }).then(() => {
             setLoading(false)
             setMemberFound("confirmed");
         }).catch(() => { setLoading(false) })
@@ -44,9 +44,9 @@ const EventRegister = () => {
     const handleChange = (name, value) => {
         setMemberDetails((prev) => ({ ...prev, [name]: value }));
     }
-    const handleNewAttendee = () => {
+    const handleNewAttendee = (value) => {
         setLoading(true);
-        axios.post(`${baseUrl}/event/sign-attendance?event_id=${id}`, memberDetails).then(() => {
+        axios.post(`${baseUrl}event/sign-attendance?event_id=${id}`, value).then(() => {
             setLoading(false)
             setMemberFound('confirmed')
         }).catch(() => {
@@ -56,21 +56,21 @@ const EventRegister = () => {
 
     return (
         <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
-    <div className="relative h-screen bg-primary/60 overflow-hidden">
-        <FormWrapper >
-            {!memberFound && <>
-                <SearchMember memberDetails={memberDetails} handleFindMember={handleFindMember} handleChange={handleChange} loading={loading} name={name} />
-            </>}
-            {memberFound == "found" &&
-                <MemberConfirmation memberDetails={memberDetails} handleConfirm={handleConfirm} loading={loading} />}
-            {memberFound == "not_found" &&
-                <RegisterMember memberDetails={memberDetails} loading={loading} name={name} handleChange={handleChange} onSubmit={handleNewAttendee} />}
-            {memberFound == "confirmed" &&
-                <MemberConfirmed />}
+            <div className="relative h-screen bg-primary/60 overflow-hidden">
+                <FormWrapper >
+                    {!memberFound && <>
+                        <SearchMember memberDetails={memberDetails} handleFindMember={handleFindMember} handleChange={handleChange} loading={loading} name={name} />
+                    </>}
+                    {memberFound == "found" &&
+                        <MemberConfirmation memberDetails={memberDetails} handleConfirm={handleConfirm} loading={loading} />}
+                    {memberFound == "not_found" &&
+                        <RegisterMember memberDetails={memberDetails} loading={loading} name={name} onSubmit={handleNewAttendee} />}
+                    {memberFound == "confirmed" &&
+                        <MemberConfirmed />}
 
 
-        </FormWrapper>
-        </div>
+                </FormWrapper>
+            </div>
         </div>
     );
 }

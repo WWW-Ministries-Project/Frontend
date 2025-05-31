@@ -1,8 +1,7 @@
 import { SearchBar } from "@/components/SearchBar";
 import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
-import React from "react";
 
-interface EventsManagerHeaderProps {
+interface IProps {
   onNavigate: (path: string) => void;
   onFilter: (val: { year: number; month: number; date: Date }) => void;
   onSearch: (value: string) => void;
@@ -13,7 +12,7 @@ interface EventsManagerHeaderProps {
   showFilter: boolean;
 }
 
-const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
+export const EventsManagerHeader = (props: IProps) => {
   const handleFilter = (val: { year: number; month: number; date: Date }) => {
     props.onFilter(val);
   };
@@ -23,32 +22,33 @@ const EventsManagerHeader: React.FC<EventsManagerHeaderProps> = (props) => {
   };
 
   return (
-    <div className="flex w-full justify-between items-center ">
-      <div className="flex gap-4">
-        {props.viewfilter && props.showFilter && (
+    <div className="flex w-full justify-start gap-4 items-end ">
+      {/* <div className="flex gap-4"> */}
+      {props.viewfilter && props.showFilter && (
+        <div>
+          <div className="text-primary text-lg font-bold">Filter events</div>
           <DateFilter onChange={handleFilter} value={props.filterDate} />
-        )}
+        </div>
+      )}
 
-        {props.viewfilter && props.showSearch && (
-          <SearchBar
-            className="max-w-[40.9%] min-w-[100px] h-10"
-            placeholder="Search events here..."
-            value={props.filterEvents}
-            onChange={handleSearchChange}
-            id="searchMembers"
-          />
-        )}
-      </div>
-
-      {/* <Button
-        value="Create Event"
-        className={"primary"}
-        onClick={() => {
-          props.onNavigate("/home/manage-event");
-        }}
-      /> */}
+      {props.viewfilter && props.showSearch && (
+        <SearchBar
+          className="max-w-[40.9%] min-w-[100px] h-10 "
+          placeholder="Search events here..."
+          value={props.filterEvents}
+          onChange={handleSearchChange}
+          id="searchMembers"
+        />
+      )}
     </div>
+
+    // <Button
+    //   value="Create Event"
+    //   className={"primary"}
+    //   onClick={() => {
+    //     props.onNavigate("/home/manage-event");
+    //   }}
+    // />
+    // </div>
   );
 };
-
-export default EventsManagerHeader;

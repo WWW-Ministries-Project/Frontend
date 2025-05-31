@@ -81,7 +81,7 @@ const ViewEvents = () => {
                                     <h1 className="text-2xl font-semibold text-white">{eventdetails.name}</h1>
                                     <p className=" text-white">{formatDate(eventdetails.start_date)} | {eventdetails.start_time} - {eventdetails.end_time}</p>
                                     <p className=" text-white"></p>
-                                    <p className=" text-white ">
+                                    {/* <p className=" text-white ">
                                         <a
                                             href={`${window.location.origin}/events/register-event?event_id=${id}&event_name=${eventdetails.name}`}
                                             target="_blank"
@@ -89,11 +89,11 @@ const ViewEvents = () => {
                                         >
                                             event registration link
                                         </a>
-                                    </p>
+                                    </p> */}
                                     <p className=" text-white">{eventdetails.description}</p>
                                 </div>
                                 <div className="gap-x-4 flex">
-                                    <div>
+                                    {/* <div>
                                         <Button
                                             value="Generate QR code"
                                             className="px-4 py-2 border text-white border-lightGray rounded-lg"
@@ -101,7 +101,7 @@ const ViewEvents = () => {
                                                 handleQRCodeModal();
                                             }}
                                         />
-                                    </div>
+                                    </div> */}
                                     <div>
                                         <Button
                                             value="Edit"

@@ -1,108 +1,51 @@
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { ApiDeletionCalls } from "@/utils/api/apiDelete";
-import { ApiCalls } from "@/utils/api/apiFetch";
-import { useEffect, useState } from "react";
-import AlertComp from "../../Components/reusable/AlertComponent";
+import { api } from "@/utils";
+import { Cohort, ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
-import ProgramForm from "./Components/ProgramForm";
-import ProgramsCard from "./Components/ProgramsCard";
+import { showDeleteDialog, showNotification } from "../../utils";
+import { ProgramsCardManagement } from "./Components/ProgramCard";
+import { IProgramForm, ProgramForm } from "./Components/ProgramForm";
 
-// Define the Cohort and Program types
-interface Cohort {
-  id: number;
-  name: string;
-  startDate: string;
-  status: "Ongoing" | "Upcoming" | "Completed";
-  classes: number;
-  enrolledCount: number;
-}
+export const MinistrySchool = () => {
+  //api
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllPrograms);
+  const { postData: postProgram } = usePost(api.post.createProgram);
+  const { updateData: updateProgram } = usePut(api.put.updateProgram);
+  const { executeDelete } = useDelete(api.delete.deleteProgram);
 
-interface Program {
-  id: number;
-  title: string;
-  description: string;
-  eligibility: "Members" | "Non_Members" | "Both";
-  topics: string[];
-  cohorts: Cohort[];
-}
-
-const MinistrySchool = () => {
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const programsData = useMemo(() => data?.data || [], [data]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [type, setType] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<Program | undefined>(
-    undefined
-  );
+  const [selectedProgram, setSelectedProgram] = useState<
+    ProgramResponse | undefined
+  >(undefined);
 
-  const apiCalls = new ApiCalls();
-  const apiDelete = new ApiDeletionCalls();
-
-  interface DropdownProgram {
-    value: number;
-    label: string;
-  }
-
-  const getProgramsForDropdown = (data: Program[]): DropdownProgram[] => {
+  const getProgramsForDropdown = (
+    data: ProgramResponse[]
+  ): DropdownProgram[] => {
     return data.map((program) => ({
-      value: program.id,
+      value: String(program.id),
       label: program.title,
     }));
   };
 
-  const fetchPrograms = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await apiCalls.fetchAllPrograms();
-
-      if (response.data && Array.isArray(response.data)) {
-        setPrograms(response.data as Program[]);
-      } else {
-        setError("Invalid data format received.");
-      }
-    } catch (err) {
-      setError("Failed to fetch programs. Please try again later.");
-      console.error("Fetch programs error:", err);
-    } finally {
-      setLoading(false);
-    }
+  const deleteProgram = async (programId: number | string) => {
+    await executeDelete({
+      id: String(programId),
+    }).then(() => {
+      showNotification("Program deleted successfully", "success");
+      refetch();
+    });
   };
 
-  const deleteProgram = async (programId: number) => {
-    try {
-      setLoading(true);
-      const response = await apiDelete.deleteProgram(programId);
-      if (response.status === 200) {
-        setPrograms((prevPrograms) =>
-          prevPrograms.filter((program) => program.id !== programId)
-        );
-        setFeedback("Program deleted successfully");
-        setType("success");
-      } else {
-        setError("Failed to delete the program.");
-      }
-    } catch (err) {
-      setError("An error occurred while deleting the program.");
-      console.error("Delete program error:", err);
-    } finally {
-      setLoading(false);
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 5000);
-    }
-  };
-
-  useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  const handleEdit = (program: Program): void => {
+  const handleEdit = (program: ProgramResponse): void => {
     setSelectedProgram(program);
     setIsModalOpen(true);
   };
@@ -112,33 +55,7 @@ const MinistrySchool = () => {
     setIsModalOpen(false);
   };
 
-  const getEligibilityBadge = (
-    eligibility: Program["eligibility"]
-  ): JSX.Element | null => {
-    const badgeClasses = {
-      Members: "bg-blue-50 text-blue-700 border-blue-200",
-      Non_Members: "bg-red-50 text-red-700 border-red-200",
-      Both: "bg-green-50 text-green-700 border-green-200",
-    };
-
-    const badgeText = {
-      Members: "Members Only",
-      Non_Members: "Non-Members Only",
-      Both: "Open to All",
-    };
-
-    if (!eligibility || !badgeClasses[eligibility]) return null;
-
-    return (
-      <div
-        className={`text-xs rounded-lg py-1 px-2 border ${badgeClasses[eligibility]}`}
-      >
-        {badgeText[eligibility]}
-      </div>
-    );
-  };
-
-  const getCohortToShow = (cohorts: Cohort[] = []): Cohort[] => {
+  const getCohortToShow = (cohorts: Cohort[] = []): Cohort[] | undefined => {
     const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) return [activeCohort];
 
@@ -147,33 +64,31 @@ const MinistrySchool = () => {
     );
     if (upcomingCohort) return [upcomingCohort];
 
-    return [];
+    return undefined;
   };
 
-  const handleFeedback = (message: string, type: string): void => {
-    setFeedback(message);
-    setType(type);
-    setShowFeedback(true);
-    setTimeout(() => setShowFeedback(false), 5000);
+  const handleSubmit = (value: IProgramForm): void => {
+    if (selectedProgram) {
+      updateProgram(value, { id: String(selectedProgram.id) });
+    } else {
+      postProgram(value)
+        .then(() => {
+          return refetch();
+        })
+        .then(() => {
+          setIsModalOpen(false);
+          showNotification("Program Created Successfully");
+        })
+        .catch((error) => {
+          showNotification(error.message, "error");
+        });
+    }
   };
 
   const renderContent = () => {
     if (loading) return <SkeletonLoader />;
 
-    if (error)
-      return (
-        <div className="p-4 text-red-600 bg-red-50 rounded-lg">
-          {error}
-          <button
-            onClick={fetchPrograms}
-            className="ml-2 text-blue-600 hover:text-blue-800"
-          >
-            Retry
-          </button>
-        </div>
-      );
-
-    if (programs.length === 0)
+    if (!programsData.length)
       return (
         <div className="text-center py-8 w-1/4 mx-auto">
           <EmptyState msg={"No programs found"} />
@@ -182,17 +97,36 @@ const MinistrySchool = () => {
 
     return (
       <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
-        {programs.map((program) => (
-          <ProgramsCard
+        {programsData.map((program) => (
+          // <ProgramsCard
+          //   key={program.id}
+          //   program={program}
+          //   toggleMenu={() => {}}
+          //   isMenuOpen={null}
+          //   cohorts={getCohortToShow(program.cohorts)}
+          //   handleCopyLink={() => {}}
+          //   onOpen={() => handleEdit(program)}
+          //   onClose={handleClose}
+          //   onDelete={() =>
+          //     showDeleteDialog(
+          //       { name: program.title, id: program.id },
+          //       deleteProgram
+          //     )
+          //   }
+          // />
+
+          <ProgramsCardManagement
             key={program.id}
             program={program}
-            toggleMenu={() => {}}
-            isMenuOpen={null}
             cohorts={getCohortToShow(program.cohorts)}
+            onEdit={() => handleEdit(program)}
             handleCopyLink={() => {}}
-            onOpen={() => handleEdit(program)}
-            onClose={handleClose}
-            onDelete={() => deleteProgram(program.id)}
+            onDelete={() =>
+              showDeleteDialog(
+                { name: program.title, id: program.id },
+                deleteProgram
+              )
+            }
           />
         ))}
       </section>
@@ -200,52 +134,33 @@ const MinistrySchool = () => {
   };
 
   return (
-      <PageOutline>
-        {showFeedback && (
-          <AlertComp
-            message={feedback || ""}
-            type={type || "success"}
-            onClose={() => setShowFeedback(false)}
-          />
-        )}
-        <HeaderControls
-          title="School of Ministry"
-          showSearch={false}
-          showFilter={false}
-          totalMembers={programs.length}
-          btnName="Create program"
-          handleClick={() => setIsModalOpen(true)}
-          tableView={false}
-          handleViewMode={() => {}}
-          setShowFilter={() => {}}
-          setShowSearch={() => {}}
-          screenWidth={window.innerWidth}
-          hasSearch={false}
-          hasFilter={false}
-        />
+    <PageOutline>
+      <HeaderControls
+        title="School of Ministry"
+        showSearch={false}
+        showFilter={false}
+        totalMembers={programsData.length}
+        btnName="Create program"
+        handleClick={() => setIsModalOpen(true)}
+        screenWidth={window.innerWidth}
+        hasSearch={false}
+        hasFilter={false}
+      />
 
-        {renderContent()}
+      {renderContent()}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ProgramForm
           onClose={handleClose}
-          program={
-            selectedProgram || {
-              title: "",
-              description: "",
-              eligibility: "",
-              topics: [],
-              prerequisites: [],
-            }
-          }
-          prerequisitesDropdown={getProgramsForDropdown(programs)}
-          fetchPrograms={fetchPrograms}
-          handleFeedback={handleFeedback}
-          handleAlert={setShowFeedback}
+          program={selectedProgram}
+          prerequisitesDropdown={getProgramsForDropdown(programsData)}
+          handleSubmit={handleSubmit}
         />
       </Modal>
-      </PageOutline>
-
+    </PageOutline>
   );
 };
 
-export default MinistrySchool;
+interface DropdownProgram {
+  value: string;
+  label: string;
+}

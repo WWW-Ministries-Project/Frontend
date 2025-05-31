@@ -7,41 +7,41 @@ import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
-import EventsCard from "./Components/EventsCard";
-import EventsManagerHeader from "./Components/EventsManagerHeader";
+import { EventsCard } from "./Components/EventsCard";
+import { EventsManagerHeader } from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
 // import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
 import EmptyState from "@/components/EmptyState";
-import {HeaderControls} from "@/components/HeaderControls";
+import { HeaderControls } from "@/components/HeaderControls";
+import { useStore } from "@/store/useStore";
 import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
-  const [events, setEvents] = useState<eventType[]>([]);
+
+  /*api calls */
+  const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
+  const { screenWidth } = useWindowSize();
+  const { executeDelete } = useDelete(api.delete.deleteEvent);
+
+  // const [events, setEvents] = useState<eventType[]>([]);
+  const { events, setEvents } = useStore((state) => ({
+    events: state.events,
+    setEvents: state.setEvents,
+  }));
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [filterDate, setFilterDate] = useState<Date>(new Date());
   const [filterEvents, setFilterEvents] = useState<string>("");
-  const [showOptions, setShowOptions] = useState<string | null>(null); // Use null for no options shown
+  const [showOptions, setShowOptions] = useState<string | null>(null);
   const [tableView, setTableView] = useState<boolean>(() => {
     try {
       return JSON.parse(localStorage.getItem("tableView") || "false");
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   });
-
-  const {
-    data,
-    refetch,
-  } = useFetch(api.fetch.fetchEvents);
-  const { screenWidth } = useWindowSize();
-  const {
-    executeDelete,
-    success,
-    error,
-  } = useDelete(api.delete.deleteEvent);
 
   // Handle screen width changes
   useEffect(() => {
@@ -53,24 +53,6 @@ const EventsManagement = () => {
     }
   }, [screenWidth, tableView]);
 
-  // Update events when data is fetched
-  useEffect(() => {
-    if (data?.data) {
-      setEvents(data.data);
-    }
-  }, [data]);
-
-  // Handle success/error notifications for deletion
-  useEffect(() => {
-    if (success) {
-      showNotification("Event deleted successfully");
-      refetch(); // Refetch events after deletion
-    }
-    if (error) {
-      showNotification("Something went wrong. Please try again.");
-    }
-  }, [success, error, refetch]);
-
   // Navigation handler
   const handleNavigation = useCallback(
     (path: string) => {
@@ -80,10 +62,11 @@ const EventsManagement = () => {
   );
 
   // Filter handler
+  // const handleFilter = () => {};
   const handleFilter = useCallback(
     (val: { year: number; month: number; date: Date }) => {
       setFilterDate(val.date);
-      refetch({ month: val.month, year: val.year });
+      refetch({ month: val.month + "", year: val.year + "" });
     },
     [refetch]
   );
@@ -107,8 +90,19 @@ const EventsManagement = () => {
   // Delete handler
   const handleDelete = useCallback(
     async (id: string | number) => {
-      await executeDelete(id);
+      await executeDelete({ id: String(id) })
+        .then(() => {
+          showNotification("Event deleted successfully");
+          return refetch();
+        })
+        .then((response) => {
+          setEvents(response?.data || []);
+        })
+        .catch((error) => {
+          showNotification("Event could not be deleted", "error");
+        });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [executeDelete]
   );
 
@@ -128,104 +122,73 @@ const EventsManagement = () => {
   }, [events, filterEvents]);
 
   return (
-      <PageOutline>
-        <HeaderControls
-          title="Events "
-          totalMembers={filteredEvents.length} // Number of events
-          tableView={tableView}
-          handleViewMode={handleToggleView}
-          showFilter={false} // No separate filter needed
-          setShowFilter={setShowFilter}
-          hasSearch={true}
-          hasFilter={false}
-          showSearch={showSearch} // Search enabled
-          setShowSearch={setShowSearch}
-          handleClick={() => handleNavigation("/home/manage-event")}
-          screenWidth={screenWidth}
-          btnName="Add Event" // Added btnName property
+    <PageOutline>
+      <HeaderControls
+        title="Events "
+        totalMembers={filteredEvents.length} // Number of events
+        tableView={tableView}
+        handleViewMode={handleToggleView}
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
+        hasSearch={true}
+        hasFilter={!tableView}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        handleClick={() => handleNavigation("/home/manage-event")}
+        screenWidth={screenWidth}
+        btnName="Add Event"
+      />
+      <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
+        {/* Events Manager Header */}
+        <EventsManagerHeader
+          onNavigate={handleNavigation}
+          onFilter={handleFilter}
+          viewfilter={!tableView}
+          filterEvents={filterEvents}
+          filterDate={filterDate}
+          onSearch={handleSearchChange}
+          showSearch={showSearch}
+          showFilter={showFilter}
         />
-        <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
-          {/* Toggle View Buttons */}
-          {/* <div
-            className="flex gap-1 bg-lightGray p-1 rounded-md max-w-[5rem] cursor-pointer"
-            id="switch"
-            role="group"
-            aria-label="Toggle view"
-          >
-            <button
-              onClick={() => handleToggleView(true)}
-              aria-label="Switch to calendar view"
-            >
-              <CalendarAssets
-                stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                className={tableView ? "bg-white rounded-md" : ""}
-              />
-            </button>
-            <button
-              onClick={() => handleToggleView(false)}
-              aria-label="Switch to grid view"
-            >
-              <GridAsset
-                stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                className={
-                  tableView ? "bg-lightGray rounded-md" : "bg-white rounded-md"
-                }
-              />
-            </button>
-          </div> */}
+      </div>
 
-          {/* Events Manager Header */}
-          <div className="w-full">
-            <EventsManagerHeader
-              onNavigate={handleNavigation}
-              onFilter={handleFilter}
-              viewfilter={!tableView}
-              filterEvents={filterEvents}
-              filterDate={filterDate}
-              onSearch={handleSearchChange}
-              showSearch={showSearch}
-              showFilter={showFilter}
-            />
-          </div>
-        </div>
-
-        {/* Conditional Rendering of Events */}
-        {!tableView ? (
-          filteredEvents.length > 0 ? (
-            <GridComponent
-              columns={eventColumns}
-              data={filteredEvents}
-              displayedCount={screenWidth <= 540 ? 10 : 24} // Dynamic count based on screen size
-              columnFilters={[]}
-              setColumnFilters={() => {}}
-              renderRow={(row) => (
-                <EventsCard
-                  event={row.original}
-                  key={row.original.id}
-                  onNavigate={handleNavigation}
-                  onDelete={handleDeleteModal}
-                  showOptions={showOptions === row.original.id}
-                  onShowOptions={() => handleShowOptions(row.original.id)}
-                />
-              )}
-              filter={filterEvents}
-              setFilter={setFilterEvents}
-            />
-          ) : (
-            <EmptyState
-              className="w-[20rem] mx-auto"
-              msg="😞 Sorry, No events yet"
-            />
-          )
-        ) : (
-          <Calendar
-            events={filteredEvents}
-            onDelete={handleDeleteModal}
-            onShowOptions={handleShowOptions}
-            showOptions={showOptions}
+      {/* Conditional Rendering of Events */}
+      {!tableView ? (
+        filteredEvents.length > 0 ? (
+          <GridComponent
+            columns={eventColumns}
+            data={filteredEvents}
+            displayedCount={screenWidth <= 540 ? 10 : 24} // Dynamic count based on screen size
+            columnFilters={[]}
+            setColumnFilters={() => {}}
+            renderRow={(row) => (
+              <EventsCard
+                event={row.original}
+                key={row.original.id}
+                onNavigate={handleNavigation}
+                onDelete={handleDeleteModal}
+                showOptions={showOptions === row.original.id}
+                onShowOptions={() => handleShowOptions(row.original.id)}
+              />
+            )}
+            filter={filterEvents}
+            setFilter={setFilterEvents}
           />
-        )}
-      </PageOutline>
+        ) : (
+          <EmptyState
+            className="w-[20rem] mx-auto"
+            msg="😞 Sorry, No events yet"
+          />
+        )
+      ) : (
+        <Calendar
+          events={filteredEvents}
+          onDelete={handleDeleteModal}
+          onShowOptions={handleShowOptions}
+          showOptions={showOptions}
+        />
+      )}
+    </PageOutline>
   );
 };
 

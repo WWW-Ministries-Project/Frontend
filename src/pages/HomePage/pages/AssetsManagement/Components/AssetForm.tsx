@@ -2,6 +2,7 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import { formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
 import { useMemo } from "react";
 import { object, string } from "yup";
@@ -47,8 +48,8 @@ const AssetFormComponent = ({
           <Field
             component={FormikInputDiv}
             label="Asset ID"
-            id="assets_id"
-            name="assets_id"
+            id="asset_id"
+            name="asset_id"
             disabled={true}
           />
           <Field
@@ -58,6 +59,7 @@ const AssetFormComponent = ({
             type="date"
             id="date_purchased"
             name="date_purchased"
+            value={formatInputDate(form.values.date_purchased)}
             disabled={disabled}
           />
           <Field
@@ -84,7 +86,7 @@ const AssetFormComponent = ({
               { name: "Out of repairs", value: "OUT_OF_REPAIRS" },
               { name: "Lost/Stolen", value: "LOST_OR_STOLEN" },
             ]}
-            label="Status"
+            label="Status *"
             id="status"
             name="status"
             disabled={disabled}
@@ -114,8 +116,9 @@ const AssetFormComponent = ({
             component={FormikInputDiv}
             label="Date of assignment"
             type="date"
-            id="start_date"
-            name="start_date"
+            id="date_assigned"
+            name="date_assigned"
+            value={formatInputDate(form.values.date_assigned)}
             disabled={disabled}
           />
           {!disabled && (
@@ -131,6 +134,7 @@ const AssetFormComponent = ({
                   type={"submit"}
                   variant="primary"
                   loading={loading}
+                  disabled={loading}
                   onClick={form.submitForm}
                 />
               </div>
@@ -147,11 +151,11 @@ export interface IAssetForm {
   status: string;
   description: string;
   department_assigned: string;
-  start_date: string;
+  date_assigned: string;
   date_purchased: string;
   price: string;
   supplier: string;
-  assets_id: string;
+  asset_id: string;
 }
 
 const initialValues: IAssetForm = {
@@ -159,11 +163,11 @@ const initialValues: IAssetForm = {
   status: "",
   description: "",
   department_assigned: "",
-  start_date: "",
+  date_assigned: "",
   date_purchased: "",
   price: "",
   supplier: "",
-  assets_id: "",
+  asset_id: "",
 };
 
 const validationSchema = object({

@@ -1,6 +1,7 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import Modal from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
@@ -19,11 +20,16 @@ export const Visits = ({ visitorId, visits }: IProps) => {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
-  const [selectedVisit, setSelectedVisit] = useState<IVisitForm | undefined>(
-    undefined
-  ); // Store selected visit for editing
+  const [selectedVisit, setSelectedVisit] = useState<
+    (IVisitForm & { id: string | number }) | undefined
+  >(undefined); // Store selected visit for editing
 
   //API
+  const { refetch: fetchVisits } = useFetch(
+    api.fetch.fetchAllVisitsByVisitorId,
+    { id: visitorId },
+    true
+  );
   const { postData: postVisit, loading: postLoading } = usePost(
     api.post.createVisit
   );
@@ -41,7 +47,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
 
   // Function to delete a visit
   const deleteVisit = async (id: number) => {
-    executeDelete(id);
+    executeDelete({ id: String(id) });
   };
   const handleSubmit = async (data: IVisitForm) => {
     const payload = {
@@ -49,8 +55,10 @@ export const Visits = ({ visitorId, visits }: IProps) => {
       visitorId: visitorId,
     };
     if (selectedVisit) {
-      await updateVisit(payload, String(selectedId));
-    } else await postVisit(payload);
+      await updateVisit(payload, { id: String(selectedVisit.id) }).then(() =>
+        fetchVisits()
+      );
+    } else await postVisit(payload).then(() => fetchVisits());
     setIsModalOpen(false);
   };
   // Table columns configuration
@@ -66,12 +74,13 @@ export const Visits = ({ visitorId, visits }: IProps) => {
             showOptions={row.original.id == selectedId}
             hideDelete={true}
             onView={() => {
-              navigate(`/visitor/${row.original.id}`);
+              navigate(`visitor/${row.original.id}`);
             }}
             onEdit={() => {
               setSelectedVisit({
+                id: row.original.id,
                 date: row.original.date,
-                eventId: row.original.eventName || "1",
+                eventId: row.original.eventId || "1",
                 notes: row.original.notes || "",
               });
               setIsModalOpen(true);
@@ -111,6 +120,7 @@ interface Visit {
   visitorId: number | string;
   date: string;
   eventName?: string;
+  eventId?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

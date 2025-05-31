@@ -1,9 +1,10 @@
 // import axios from "axios";
+import { relativePath } from "@/utils";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios, { pictureInstance } from "../../../../axiosInstance";
-import {Button} from "../../../../components";
+import { Button } from "../../../../components";
 import Input from "../../../../components/Input";
 import InputPassword from "../../../../components/Password";
 import { useAuth } from "../../../../context/AuthWrapper";
@@ -39,7 +40,7 @@ function LoginPage() {
         setToken(token);
         // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        response.status == 200 && navigate('/home/dashboard')
+        if (response.status === 200) navigate(relativePath.home.members.mainNew);
       } catch (error) {
         console.log(error, "error");
         setResponse(error.response);
@@ -52,7 +53,7 @@ function LoginPage() {
     const name = e.target.name;
     const isValid = validate(name, loginValues);
     setError((prev) => ({ ...prev, [name]: !isValid }));
-    !isValid && e.target.setCustomValidity("Invalid format");
+    if (!isValid) e.target.setCustomValidity("Invalid format");
     // console.log(e.target, "tag");
     // console.log(error, "err", validate(name, loginValues));
   }
@@ -71,71 +72,71 @@ function LoginPage() {
   }
   return (
     <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
-    <div className="relative h-screen bg-primary/60 overflow-hidden">
-      <OuterDiv>
-        <AuthenticationForm
-          response={response}
-          header={"Welcome back!"}
-          text={"Login to your account to continue."}
-          buttonValue={"Login"}>
-          {/* <div className="gap-4"> */}
+      <div className="relative h-screen bg-primary/60 overflow-hidden">
+        <OuterDiv>
+          <AuthenticationForm
+            response={response}
+            header={"Welcome back!"}
+            text={"Login to your account to continue."}
+            buttonValue={"Login"}>
+            {/* <div className="gap-4"> */}
 
-          <Input
-            label="Email"
-            type="email "
-            id="mail"
-            name="email"
-            value={loginValues.email}
-            isRequired={error?.status && !loginValues.email}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            placeholder={"Enter email address"}
-            inputClass={
-              error.status
-                ? "  rounded-md px-4 mt-2 border-error"
-                : "  rounded-md px-4 mt-2"
-            }
-            className="my-4 !p-0"
-          />
-          <InputPassword
-            label="Password"
-            id="password"
-            name="password"
-            value={loginValues.password}
-            isRequired={error.status && !loginValues.password}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            placeholder={"Enter password"}
-            inputClass={
-              error.status
-                ? " rounded-md px-4 mt-2 border-error"
-                : "  rounded-md px-4 mt-2"
-            }
-            className=" !p-0"
-          />
-          <Button
-            value={"Login"}
-            loading={loading}
-            disabled={loading}
-            onClick={handleSubmit}
-            className={"w-full  bg-primary my-8 text-white"}
-          />
-          <div className="text-lightGray text-sm">
-            <div className="mb-4">
-              Forgot Password?{" "}
-              <Link to="/forgot-password" className="text-primary">
-                Reset
-              </Link>
-            </div>
-            {/* <div className="">
+            <Input
+              label="Email"
+              type="email "
+              id="mail"
+              name="email"
+              value={loginValues.email}
+              isRequired={error?.status && !loginValues.email}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              placeholder={"Enter email address"}
+              inputClass={
+                error.status
+                  ? "  rounded-md px-4 mt-2 border-error"
+                  : "  rounded-md px-4 mt-2"
+              }
+              className="my-4 !p-0"
+            />
+            <InputPassword
+              label="Password"
+              id="password"
+              name="password"
+              value={loginValues.password}
+              isRequired={error.status && !loginValues.password}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              placeholder={"Enter password"}
+              inputClass={
+                error.status
+                  ? " rounded-md px-4 mt-2 border-error"
+                  : "  rounded-md px-4 mt-2"
+              }
+              className=" !p-0"
+            />
+            <Button
+              value={"Login"}
+              loading={loading}
+              disabled={loading}
+              onClick={handleSubmit}
+              className={"w-full  bg-primary my-8 text-white"}
+            />
+            <div className="text-lightGray text-sm">
+              <div className="mb-4">
+                Forgot Password?{" "}
+                <Link to="/forgot-password" className="text-primary">
+                  Reset
+                </Link>
+              </div>
+              {/* <div className="">
               Don't have an account?{" "}
               <span className="text-primary">Register</span>
             </div> */}
-          </div>
+            </div>
 
-          {/* </div> */}
-        </AuthenticationForm>
-      </OuterDiv>
+            {/* </div> */}
+          </AuthenticationForm>
+        </OuterDiv>
       </div>
     </div>
   );

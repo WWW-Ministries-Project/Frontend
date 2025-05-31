@@ -50,7 +50,7 @@ const GridComponent: React.FC<GridComponentProps> = ({
         pageSize: displayedCount || 12,
       },
     },
-    //@ts-expect-error
+    //@ts-expect-error will have to check this out
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
     onColumnFiltersChange: props.setColumnFilters,

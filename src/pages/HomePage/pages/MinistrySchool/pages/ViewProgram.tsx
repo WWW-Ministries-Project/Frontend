@@ -1,101 +1,43 @@
 import Modal from "@/components/Modal";
-import { ApiDeletionCalls } from "@/utils/api/apiDelete";
-import { ApiCalls } from "@/utils/api/apiFetch";
-import { useEffect, useState } from "react";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api, Cohort } from "@/utils";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import AllCohortsPage from "../Components/AllCohort";
 import CohortForm from "../Components/CohortForm";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
-
-// Define the Topic type
-type Topic = {
-  name: string;
-};
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 
 const ViewProgram = () => {
+  //api
   const { id: programId } = useParams(); // Get program ID from the route
-  const apiCalls = new ApiCalls();
-  const apiDelete = new ApiDeletionCalls();
+  const { data, loading } = useFetch(api.fetch.fetchProgramById, {
+    id: programId!,
+  });
+
+  const program = useMemo(() => data?.data, [data]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [program, setProgram] = useState<any>(null); // Stores the program details
   const [selectedCohort, setSelectedCohort] = useState<Cohort | undefined>(
     undefined
   );
 
-  const fetchProgramData = async () => {
-    if (!programId) return; // Ensure we have the programId before making the API call
-
-    try {
-      setLoading(true);
-      // Fetch program details by programId
-      const programResponse = await apiCalls.fetchProgramById(programId);
-      if (programResponse.status === 200) {
-        setProgram(programResponse.data);
-      } else {
-        setError("Error fetching program details");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching program details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchProgramData = async () => {};
   useEffect(() => {
     fetchProgramData(); // Call the function when programId changes
   }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
 
-  const handleErrorDisplay = () => {
-    if (error) {
-      return <div className="text-red-600">{error}</div>;
-    }
-    return null;
-  };
-
-  interface Cohort {
-    id: number;
-    name: string;
-    description: string;
-    startDate: string;
-    applicationDeadline: string;
-    duration: string;
-    status: string;
-    [key: string]: any; // Add additional properties as needed
-  }
-
   const handleEdit = (cohort: Cohort): void => {
-    console.log("handleEdit");
-
     setSelectedCohort(cohort);
     setIsModalOpen(true);
   };
 
   const handleClose = () => {
     setSelectedCohort(undefined);
-    console.log("Program selected", selectedCohort);
-
     setIsModalOpen(false);
   };
 
   const deleteCohort = async (cohortId: number) => {
-    try {
-      setLoading(true);
-      const response = await apiDelete.deleteCohort(cohortId);
-      if (response.status === 200) {
-        fetchProgramData();
-        // setProgram((prevPrograms: any) =>
-        //   prevPrograms.filter((program: any) => program.cohort.id !== cohortId)
-        // );
-        console.log("Program deleted successfully");
-      } else {
-        setError("Failed to delete the program.");
-      }
-    } catch (err) {
-      setError("An error occurred while deleting the program.");
-    } finally {
-      setLoading(false);
-    }
+    showDeleteDialog({ name: "Cohort", id: cohortId }, async () => {});
   };
 
   return (
@@ -106,25 +48,18 @@ const ViewProgram = () => {
         title="Program Details" // Add the title property
         description="View and manage program details" // Add the description property
         Data={program}
-        primaryButton=""
-        secondaryButton=""
         showTopic={true}
-        isGrid={true} // Add the required isGrid property
-        onPrimaryButtonClick={() => console.log("Primary button clicked")}
-        onSecondaryButtonClick={() => console.log("Secondary button clicked")}
+        isGrid={true}
         details={""}
         loading={loading}
       >
-        {/* Show cohorts for this program */}
-        {handleErrorDisplay() || (
-          <AllCohortsPage
-            loading={loading}
-            cohorts={program?.cohorts}
-            onCreate={() => setIsModalOpen(true)}
-            onEdit={handleEdit}
-            onDelete={(cohortId) => deleteCohort(cohortId)}
-          />
-        )}
+        <AllCohortsPage
+          loading={loading}
+          cohorts={program?.cohorts || []}
+          onCreate={() => setIsModalOpen(true)}
+          onEdit={handleEdit}
+          onDelete={(cohortId) => deleteCohort(cohortId)}
+        />
       </ViewPageTemplate>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>

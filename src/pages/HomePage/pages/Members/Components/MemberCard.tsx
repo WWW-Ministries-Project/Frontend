@@ -31,7 +31,7 @@ export const MemberCard = (props: IProps) => {
   return (
     <CardWrapper className=" grid grid-cols-4  gap-x-1 p-3 rounded-xl border border-[#D8DAE5] ">
       <ProfilePicture
-        className="w-[6rem] h-[6rem]  border border-[#D8DAE5] "
+        className="w-[6rem] h-[6rem] md:w-16 md:h-16 lg:w-20 lg:h-20  border border-[#D8DAE5] "
         textClass={" font-bold bg-lightGray overflow-hidden opacity-70"}
         src={props.member?.photo}
         alt="profile pic"
@@ -41,26 +41,32 @@ export const MemberCard = (props: IProps) => {
         <div className="space-y-5">
           <div>
             <div className="">
-              {props.canManage && <div
-                className={`absolute right-0 top-0 flex flex-col items-end  rounded-md w-1/4 `}
-                onClick={props.onShowOptions}
-              >
-                <img src={ellipse} alt="options" className="cursor-pointer" />
-                {props.showOptions && (
-                  <Action
-                    onDelete={handleDelete}
-                    onView={() =>
-                      handleClick(`/home/members/${props.member.id}/info`)
-                    }
-                    onEdit={() =>
-                      handleClick(
-                        `/home/members/manage-member?member_id=${encodeQuery(props.member.id)}`,
-                        "edit"
-                      )
-                    }
-                  />
-                )}
-              </div>}
+              {props.canManage && (
+                <div
+                  className={`absolute right-0 top-0 flex flex-col items-end  rounded-md w-1/4 `}
+                  onClick={props.onShowOptions}
+                >
+                  <img src={ellipse} alt="options" className="cursor-pointer" />
+                  {props.showOptions && (
+                    <Action
+                      onDelete={handleDelete}
+                      onView={() =>
+                        handleClick(
+                          `/home/members/${encodeQuery(props.member.id)}/info`
+                        )
+                      }
+                      onEdit={() =>
+                        handleClick(
+                          `/home/members/manage-member?member_id=${encodeQuery(
+                            props.member.id
+                          )}`,
+                          "edit"
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              )}
               <div className="flex  w-4/5">
                 <p className="font-bold text-[1rem] truncate text-primary">
                   {props.member?.name}
@@ -93,7 +99,9 @@ export const MemberCard = (props: IProps) => {
 
         <Button
           value={"View "}
-          onClick={() => handleClick(`/home/members/${props.member.id}/info`)}
+          onClick={() =>
+            handleClick(`/home/members/${encodeQuery(props.member.id)}/info`)
+          }
           className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-primary"
         />
       </div>

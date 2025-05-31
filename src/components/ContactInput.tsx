@@ -15,7 +15,7 @@ interface IProps {
   placeholder?: string;
   zipClass?: string;
   required?: boolean;
-  prefix: string;
+  prefix?: string;
 }
 
 const ContactInputComponent = ({
@@ -31,12 +31,12 @@ const ContactInputComponent = ({
   const { setFieldValue, values, errors, setFieldError } =
     useFormikContext<object>();
   const code = useMemo(() => {
-    return getIn(values, `${prefix}.phone.country_code`) ?? "+233";
+    return getIn(values, `${prefix ? `${prefix}.phone.country_code` : "phone.country_code"}`) ?? "+233";
   }, [values, prefix]);
   const phone = useMemo(() => {
-    return getIn(values, `${prefix}.phone.number`);
+    return getIn(values, `${prefix ? `${prefix}.phone.number` : "phone.number"}`);
   }, [values, prefix]);
-  const error = getIn(errors, `${prefix}.phone.number`);
+  const error = getIn(errors, `${prefix ? `${prefix}.phone.number` : "phone.number"}`);
   const countryCode = useMemo(() => {
     return dialOptions.find((c) => c.dialCode === code)?.countryCode || "GH";
   }, [code, dialOptions]);
@@ -49,7 +49,7 @@ const ContactInputComponent = ({
 
   // Handle country selection
   const handleCountrySelect = (country: countryType) => {
-    setFieldValue(`${prefix}.phone.country_code`, country.dialCode);
+    setFieldValue(`${prefix ? `${prefix}.phone.country_code` : "phone.country_code"}`, country.dialCode);
     // setCountryCode(country.countryCode);
     validatePhoneNumber(phone);
     setIsDropdownOpen(false);
@@ -75,7 +75,7 @@ const ContactInputComponent = ({
     const phoneNumber = parsePhoneNumberFromString(input, countryCode);
     // setFieldValue(`${prefix}.phone.number`,input);
     setFieldError(
-      `${prefix}.phone.number`,
+      `${prefix ? `${prefix}.phone.number` : "phone.number"}`,
       phoneNumber?.isValid()
         ? undefined
         : "Invalid phone number for selected country"
@@ -90,7 +90,7 @@ const ContactInputComponent = ({
         {/* Country Code Input */}
         <div className="w-24">
           <InputDiv
-            id={`${prefix}.phone.country_code`}
+            id={`${prefix ? `${prefix}.phone.country_code` : "phone.country_code"}`}
             value={code}
             disabled={disabled}
             onChange={() => {
@@ -139,8 +139,8 @@ const ContactInputComponent = ({
         <div className="flex-grow">
           <Field
             component={FormikInputDiv}
-            name={`${prefix}.phone.number`}
-            id={`${prefix}.phone.number`}
+            name={`${prefix ? `${prefix}.phone.number` : "phone.number"}`}
+            id={`${prefix ? `${prefix}.phone.number` : "phone.number"}`}
             aria-label="Phone number"
             placeholder="Enter phone number"
             supressErrorDisplay={true}
@@ -163,7 +163,7 @@ const ContactInputComponent = ({
           />
         </div>
       </div>
-      {error && <p className="text-error text-sm">{error}</p>}
+      {error && <p className="text-error text-sma">{error}</p>}
     </div>
   );
 };

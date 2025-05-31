@@ -6,27 +6,24 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectFields";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ActiveAccess } from "../../Settings/Components/ActiveAccess";
-const ViewUser = () => {
+export const ViewUser = () => {
   const { id } = useParams();
-
-  const { data: responseData } = useFetch(api.fetch.fetchAMember, {
+  //api
+  const { data: responseData, refetch } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
   });
-
   const { data: allRoles } = useFetch(api.fetch.fetchAccessLevels);
-
   const {
     updateData: activateUser,
     loading: activateLoading,
     data: activateData,
   } = usePut(api.put.activateMember);
-
   const {
     postData: resetPassword,
     loading: resetLoading,
@@ -57,8 +54,8 @@ const ViewUser = () => {
       is_active: !isActive,
     });
   };
-  
-  // reset password 
+
+  // reset password
   useEffect(() => {
     if (resetData) {
       showNotification("email sent to user", "success");
@@ -73,7 +70,6 @@ const ViewUser = () => {
     resetPassword({ email: user.email });
   };
 
-
   // access level options
   const rolesOptions = useMemo(
     () =>
@@ -83,7 +79,7 @@ const ViewUser = () => {
       })) || [],
     [allRoles]
   );
-  // activate user 
+  // activate user
   useEffect(() => {
     showLoader(activateLoading);
     if (activateData) {
@@ -97,13 +93,19 @@ const ViewUser = () => {
     }
   }, [activateLoading, activateData]);
 
-
   // change access
   const changeAccess = (access_level_id: number | string) => {
     updateAccess({
       user_id: id!,
       access_level_id: access_level_id,
-    });
+    })
+      .then(() => {
+        refetch();
+        showNotification("Access level updated successfully", "success");
+      })
+      .catch(() => {
+        showNotification("Failed to update access level", "error");
+      });
   };
 
   return (
@@ -202,4 +204,3 @@ const ViewUser = () => {
   );
 };
 
-export default ViewUser;

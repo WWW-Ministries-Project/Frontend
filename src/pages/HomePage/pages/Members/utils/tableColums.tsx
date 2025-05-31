@@ -1,6 +1,6 @@
 import {ProfilePicture} from "@/components";
 import { navigateRef } from "@/pages/HomePage/HomePage";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { encodeQuery, showDeleteDialog } from "@/pages/HomePage/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { deleteMember } from "./apiCalls";
@@ -24,7 +24,7 @@ export const membersColumns: ColumnDef<UserType>[] = [
         className="flex items-center gap-2 cursor-pointer"
         onClick={() => {
           if (navigateRef.current)
-            navigateRef.current(`/home/members/${row.original.id}/info`);
+            navigateRef.current(`/home/members/${encodeQuery(row.original.id)}/info`);
         }}
       >
         <ProfilePicture

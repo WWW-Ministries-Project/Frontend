@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import EmptyState from "@/components/EmptyState";
 import Modal from "@/components/Modal"; // Adjust the path based on your project structure
 import { ApiDeletionCalls } from "@/utils/api/apiDelete";
 import { ApiCalls } from "@/utils/api/apiFetch";
@@ -8,7 +9,6 @@ import { useParams } from "react-router-dom";
 import ClassCard from "../Components/ClassCard";
 import ClassForm from "../Components/ClassForm";
 import ViewPageTemplate from "../Components/ViewPageTemplate";
-import EmptyState from "@/components/EmptyState";
 
 type ClassItem = {
   id: string;
@@ -23,14 +23,6 @@ type ClassItem = {
   meetingLink?: string;
 };
 
-type Cohort = {
-  id: number;
-  description: string;
-  startDate: string;
-  duration: string;
-  applicationDeadline: string;
-  courses: ClassItem[];
-};
 
 const ViewCohort = () => {
   const apiCalls = new ApiCalls();
@@ -74,7 +66,7 @@ const ViewCohort = () => {
   const deleteClass = async (classId: string) => {
     try {
       setLoading(true);
-      const response = await apiDelete.deleteCourse(classId);
+      const response = await apiDelete.deleteCourse({ id: String(classId) });
       if (response.status === 200) {
         // setProgram((prevPrograms: any) =>
         //   prevPrograms.filter((class: any) => class.cohort.id !== cohortId)
@@ -143,28 +135,28 @@ const ViewCohort = () => {
                 />
               </div>
 
-              {
-                cohort?.courses.length === 0 ? (
-                  <div className="text-center py-8 w-1/4 mx-auto">
-                    <EmptyState msg={"No class found"} />
-                  </div>
-                ) :
+              {cohort?.courses.length === 0 ? (
+                <div className="text-center py-8 w-1/4 mx-auto">
+                  <EmptyState msg={"No class found"} />
+                </div>
+              ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
-                {cohort?.courses.map((classItem: ClassItem) => (
-                  <div key={classItem.id}>
-                    <ClassCard
-                      classItem={classItem}
-                      onEdit={handleEdit}
-                      onDelete={() => deleteClass(classItem.id)}
-                    />
-                  </div>
-                ))}
-              </div>}
+                  {cohort?.courses.map((classItem: ClassItem) => (
+                    <div key={classItem.id}>
+                      <ClassCard
+                        classItem={classItem}
+                        onEdit={handleEdit}
+                        onDelete={() => deleteClass(classItem.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         }
       />
-      
+
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ClassForm
           onClose={() => setIsModalOpen(false)}

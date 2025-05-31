@@ -40,6 +40,11 @@
 
 //   return { data, loading, error, refetch: fetchData };
 // };
+
+/*
+ **overrideParams: Record<string, string | number> enables us to override the params especially when refetching
+ */
+
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useState } from "react";
@@ -52,29 +57,32 @@ export const useFetch = <T,>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    showLoader(true);
+  const fetchData = useCallback(
+    async (overrideQuery?: QueryType) => {
+      setError(null);
+      setLoading(true);
+      showLoader(true);
 
-    try {
-      const response = await fetchFunction(query);
-      setData(response);
-      return response;
-    } catch (err) {
-      if (!navigator.onLine)
-        showNotification(
-          "You are offline. Please check your internet connection.",
-          "error"
-        );
-      else
-        setError(error instanceof Error ? error : new Error("Unknown error"));
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-    } finally {
-      setLoading(false);
-      showLoader(false);
-    }
-  }, [fetchFunction]);
+      try {
+        const response = await fetchFunction(overrideQuery || query);
+        setData(response);
+        return response;
+      } catch (err) {
+        if (!navigator.onLine)
+          showNotification(
+            "You are offline. Please check your internet connection.",
+            "error"
+          );
+        else
+          setError(error instanceof Error ? error : new Error("Unknown error"));
+        setError(err instanceof Error ? err : new Error("Unknown error"));
+      } finally {
+        setLoading(false);
+        showLoader(false);
+      }
+    },
+    [fetchFunction]
+  );
 
   useEffect(() => {
     if (!lazy) fetchData();

@@ -1,31 +1,26 @@
 import Action from "@/components/Action";
 import { compareDates, formatDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
-import PropTypes from "prop-types";
 import { eventTypeColors } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
 import calendar from "/src/assets/calendar.svg";
 import Elipse from "/src/assets/ellipse.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
+import { relativePath } from "@/utils";
 
-interface IEventCard {
-  showOptions: any;
+interface IProps {
+  showOptions: boolean;
   event: eventType;
   indicatorClass?: string;
   onNavigate: (path: string) => void;
-  onDelete: (event: any) => void;
+  onDelete: (event: eventType) => void;
   onShowOptions: (id: number) => void;
 }
 
-const EventsCard = (props: IEventCard) => {
+export const EventsCard = (props: IProps) => {
   const handleNavigation = (path: string) => {
     props.onNavigate(path);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    props.onDelete(props.event);
   };
 
   const handleShowOptions = (e: React.MouseEvent) => {
@@ -71,7 +66,7 @@ const EventsCard = (props: IEventCard) => {
           className="flex px-3 gap-1 text-sm"
           onClick={() =>
             handleNavigation(
-              `/home/events/view-event?event_id=${props.event.id}`
+              `${relativePath.home.events.view}?event_id=${props.event.id}`
             )
           }
         >
@@ -90,7 +85,7 @@ const EventsCard = (props: IEventCard) => {
               className="flex px-3  items-center font-bold cursor-pointer"
               onClick={() =>
                 handleNavigation(
-                  `/home/events/view-event?event_id=${props.event.id}`
+                  `${relativePath.home.events.view}?event_id=${props.event.id}`
                 )
               }
             >
@@ -124,10 +119,10 @@ const EventsCard = (props: IEventCard) => {
           <img src={Elipse} alt="options" className="cursor-pointer" />
           {props.showOptions && (
             <Action
-              onDelete={handleDelete}
+              onDelete={() => props.onDelete(props.event)}
               onView={() =>
                 handleNavigation(
-                  `/home/events/view-event?event_id=${props.event.id}`
+                  `${relativePath.home.events.view}?event_id=${props.event.id}`
                 )
               }
               onEdit={() =>
@@ -142,24 +137,3 @@ const EventsCard = (props: IEventCard) => {
     </div>
   );
 };
-
-EventsCard.propTypes = {
-  className: PropTypes.string,
-  indicatorClass: PropTypes.string,
-  event: PropTypes.shape({
-    name: PropTypes.string,
-    start_date: PropTypes.string,
-    end_date: PropTypes.string,
-    location: PropTypes.string,
-    description: PropTypes.string,
-    id: PropTypes.number,
-    start_time: PropTypes.string,
-    end_time: PropTypes.string,
-  }),
-  onNavigate: PropTypes.func,
-  calendarView: PropTypes.bool,
-  showOptions: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
-  onShowOptions: PropTypes.func,
-};
-
-export default EventsCard;

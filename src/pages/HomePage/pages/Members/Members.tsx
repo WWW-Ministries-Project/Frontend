@@ -125,8 +125,11 @@ export function Members() {
 
   const handleFilterChange = (val: string, id: string) => {
     setColumnFilters((prev) => {
-      const temp = !val ? prev.filter((obj) => obj.id !== id) : prev;
-      return [...temp, { id, value: val }];
+      if (!val) return prev.filter((f) => f.id !== id);
+      const exists = prev.some((f) => f.id === id);
+      return exists
+        ? prev.map((f) => (f.id === id ? { id, value: val } : f))
+        : [...prev, { id, value: val }];
     });
   };
 

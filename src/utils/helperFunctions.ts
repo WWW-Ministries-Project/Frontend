@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
-import { userType } from "./interfaces";
+import { userTypeWithToken } from "./interfaces";
 
 export const getToken = () => {
   return Cookies.get("token");
@@ -16,7 +16,7 @@ export const removeToken = () => {
   return Cookies.remove("token");
 };
 
-export const decodeToken = (value?: string): userType | undefined => {
+export const decodeToken = (value?: string): userTypeWithToken | undefined => {
   const token = value ? value : getToken();
   if (!token) return undefined;
   return jwtDecode(token);

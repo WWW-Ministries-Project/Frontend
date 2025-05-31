@@ -1,4 +1,4 @@
-import SelectField from "@/pages/HomePage/Components/reusable/SelectFields";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectFields";
 import { FieldProps, getIn } from "formik";
 
 interface Option {
@@ -25,7 +25,7 @@ interface FormikSelectFieldProps
   id: string;
 }
 
-export function fieldToSelectField({
+function fieldToSelectField({
   form: { touched, errors },
   field: { onChange: fieldOnChange, ...field },
   ...props
