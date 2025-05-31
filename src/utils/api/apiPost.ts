@@ -27,7 +27,7 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
-  createEvent = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  createEvent = <T>(payload: Record<string, string>): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
@@ -56,24 +56,24 @@ export class ApiCreationCalls {
   };
 
   // Create Cohort
-  createCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("program/cohorts", payload);
-  };
+  // createCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("program/cohorts", payload);
+  // };
 
   // Create Course
-  createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("program/courses", payload);
-  };
+  // createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("program/courses", payload);
+  // };
 
   // Enroll User
-  enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("program/enroll", payload);
-  };
+  // enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("program/enroll", payload);
+  // };
 
   // Unenroll User
-  unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("program/unenroll", payload);
-  };
+  // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  //   return this.postToApi<T>("program/unenroll", payload);
+  // };
 
   forgotPassword = <T>(
     payload: unknown

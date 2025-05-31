@@ -25,7 +25,7 @@ export class ApiUpdateCalls {
 
   // Update Event
   updateEvent = <T>(
-    payload: Record<string, any>,
+    payload: Record<string, string>,
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("event/update-event", payload, query);
@@ -104,51 +104,51 @@ export class ApiUpdateCalls {
   };
 
   // Update Cohort
-  updateCohort = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      `program/cohorts/${payload.id}`,
-      payload.payload,
-      query
-    );
-  };
+  // updateCohort = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     `program/cohorts/${payload.id}`,
+  //     payload.payload,
+  //     query
+  //   );
+  // };
 
   // Update Class
-  updateClass = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      `program/courses/${payload.id}`,
-      payload,
-      query
-    );
-  };
+  // updateClass = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     `program/courses/${payload.id}`,
+  //     payload,
+  //     query
+  //   );
+  // };
   // Update Cohort
-  updateStudentProgress = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      "program/progress-updates",
-      payload,
-      query
-    );
-  };
+  // updateStudentProgress = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     "program/progress-updates",
+  //     payload,
+  //     query
+  //   );
+  // };
 
   // Update Enrollment
-  updateEnrollment = <T>(
-    payload: Record<string, any>,
-    query?: QueryType
-  ): Promise<ApiResponse<T>> => {
-    return this.apiExecution.updateData(
-      "program/enrollments/update-enrollment",
-      payload,
-      query
-    );
-  };
+  // updateEnrollment = <T>(
+  //   payload: Record<string, any>,
+  //   query?: QueryType
+  // ): Promise<ApiResponse<T>> => {
+  //   return this.apiExecution.updateData(
+  //     "program/enrollments/update-enrollment",
+  //     payload,
+  //     query
+  //   );
+  // };
 
   /* Visitor Management */
 

@@ -1,28 +1,13 @@
-import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
-import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
-import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
-import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
-import ErrorPage from "../pages/ErrorPage.jsx";
-// import LandingPage from "./pages/LandingPage/LandingPage.jsx";
 import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
 import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
-import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
-import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
-import ViewCohort from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
-import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
-import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
-// import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-// import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
-// import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
-// import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
-import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
+import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
+import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import { ViewUser } from "@/pages/HomePage/pages/Users/pages/ViewUser";
@@ -31,6 +16,10 @@ import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/V
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import Registration from "@/pages/Registration/Registration";
+import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
+import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
+import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
+import ErrorPage from "../pages/ErrorPage.jsx";
 import { HomePage } from "../pages/HomePage/HomePage";
 import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
@@ -234,37 +223,37 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_events",
       },
-      {
-        path: "ministry-school",
-        name: "School of Ministry",
-        element: <MinistrySchool />,
-        sideTab: true,
-      },
-      {
-        path: "ministry-school/programs/:id",
-        name: "View Program",
-        element: <ViewProgram />,
-      },
-      {
-        path: "ministry-school/programs/:id/cohort/:id",
-        name: "View Cohort",
-        element: <ViewCohort />,
-      },
+      // {
+      //   path: "ministry-school",
+      //   name: "School of Ministry",
+      //   element: <MinistrySchool />,
+      //   sideTab: true,
+      // },
+      // {
+      //   path: "ministry-school/programs/:id",
+      //   name: "View Program",
+      //   element: <ViewProgram />,
+      // },
+      // {
+      //   path: "ministry-school/programs/:id/cohort/:id",
+      //   name: "View Cohort",
+      //   element: <ViewCohort />,
+      // },
       {
         path: "ministry-school/programs/:id/cohort/:id/class/:id",
         name: "View Class",
         element: <ViewClass />,
       },
-      {
-        path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
-        name: "View Student",
-        element: <ViewStudent />,
-      },
-      {
-        path: "ministry-school/programs/cohort/class/student/certificate",
-        name: "View Certificate",
-        element: <ViewCertificate />,
-      },
+      // {
+      //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
+      //   name: "View Student",
+      //   element: <ViewStudent />,
+      // },
+      // {
+      //   path: "ministry-school/programs/cohort/class/student/certificate",
+      //   name: "View Certificate",
+      //   element: <ViewCertificate />,
+      // },
       {
         path: "settings",
         name: "Settings",
@@ -311,24 +300,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "huh",
     children: [
-      {
-        path: "programs",
-        name: "Programs",
-        element: <ProgramApply />,
-        isPrivate: false,
-      },
-      {
-        path: "programs/:name",
-        name: "Programs",
-        element: <ProgramDetails />,
-        isPrivate: false,
-      },
-      {
-        path: "programs/:name/apply",
-        name: "Programs",
-        element: <ProgramInformation />,
-        isPrivate: false,
-      },
+      // {
+      //   path: "programs",
+      //   name: "Programs",
+      //   element: <ProgramApply />,
+      //   isPrivate: false,
+      // },
+      // {
+      //   path: "programs/:name",
+      //   name: "Programs",
+      //   element: <ProgramDetails />,
+      //   isPrivate: false,
+      // },
+      // {
+      //   path: "programs/:name/apply",
+      //   name: "Programs",
+      //   element: <ProgramInformation />,
+      //   isPrivate: false,
+      // },
       {
         path: "register-member",
         element: <Registration />,
