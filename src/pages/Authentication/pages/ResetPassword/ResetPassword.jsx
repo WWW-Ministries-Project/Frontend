@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {Button} from "../../../../components";
+import { Button } from "../../../../components";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import NotificationCard from "../../components/NotificationCard";
@@ -25,7 +25,7 @@ function ResetPassword() {
       const body = { newpassword: passwordValues.password1 };
       (async () => {
         try {
-          const endpoint = `${baseUrl}/user/reset-password?id=${id}&token=${token}`;
+          const endpoint = `${baseUrl}user/reset-password?id=${id}&token=${token}`;
           const response = await axios.post(endpoint, body);
           setResponse(response);
         } catch (error) {
@@ -41,7 +41,7 @@ function ResetPassword() {
     const name = e.target.name;
     const isValid = validate(name, passwordValues);
     setError((prev) => ({ ...prev, [name]: !isValid }));
-    !isValid && e.target.setCustomValidity("Invalid format");
+    if (!isValid) e.target.setCustomValidity("Invalid format");
     // console.log(e.target, "tag");
     // console.log(error, name, "err", validate(name, passwordValues));
 
