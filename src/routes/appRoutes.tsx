@@ -27,6 +27,7 @@ import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
 
+import { NoAccess } from "@/components/NoAccess.js";
 import { relativePath } from "@/utils/const.js";
 import { ReactNode } from "react";
 
@@ -286,6 +287,11 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_access_rights",
           },
         ],
+      },
+      {
+        path: "access-denied",
+        name: "Access Denied",
+        element: <NoAccess />,
       },
       {
         path: "*",
