@@ -41,7 +41,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) =
   }
 
   return (
-    <div className="  py-2 container text-primary rounded-lg z-10 cursor-pointer ">
+    <div className="  py-2 container text-primary rounded-lg z-10 ">
       {breadcrumbItems.length > 1 ? (
         <nav aria-label="breadcrumb" className=" px-5 rounded">
           <ol className="flex space-x-2 items-center">
@@ -56,7 +56,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ separator = <AngleRight /> }) =
                     </li>
                   ) : (
                     <li className="text-primary hover:text-bold">
-                      <Link to={item.path}>{item.label}</Link>
+                      <div>{item.label}</div>
                     </li>
                   )}
                 </React.Fragment>
