@@ -224,4 +224,11 @@ export class ApiCalls {
   ): Promise<ApiResponse<LifeCenterType[]>> => {
     return this.fetchFromApi(`lifecenter/get-lifecenters`, query);
   }
+
+  fetchLifeCenterById = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
+  };
+
 }
