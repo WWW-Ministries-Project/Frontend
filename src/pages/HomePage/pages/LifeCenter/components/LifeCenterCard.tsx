@@ -8,20 +8,8 @@ import { api } from "@/utils";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useNavigate } from "react-router-dom";
 
-interface Props {
-  item: LifeCenterType;
-  handleEdit: (item: LifeCenterType) => void;
-  handleDelete: (id: string) => void;
-}
 
-const InfoRow = ({ icon, label }: { icon: string; label: React.ReactNode }) => (
-  <div className="flex items-center gap-1">
-    <img src={icon} className="size-5" />
-    <p>{label}</p>
-  </div>
-);
-
-const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => {
+export const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => {
   const [showActions, setShowActions] = useState(false);
   const toggleActions = () => setShowActions((prev) => !prev);
 
@@ -29,7 +17,7 @@ const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => 
   const navigate = useNavigate();
 
   const handleView = () =>
-    navigate(`/home/members/${encodeQuery(String(item?.id))}/info`);
+    navigate(`life-center/${encodeQuery(String(item?.id))}`);
 
   const deleteLifeCenter = () => {
     showDeleteDialog({ id: item.id as string, name: item.name }, async () => {
@@ -51,7 +39,7 @@ const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => 
       </div>
       <div className="space-y-4">
         <p className="mb-3">{item.description}</p>
-        <InfoRow icon="/src/assets/location.svg" label={item.location} />
+        <InfoRow icon="/src/assets/location.svg" label={item.location} name="location_icon" />
         {!!item.meeting_dates?.length && (
           <InfoRow
             icon="/src/assets/calendar.svg"
@@ -64,14 +52,28 @@ const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => 
                 ))}
               </ul>
             }
+            name="calendarIcon"
           />
         )}
-        <InfoRow icon="/src/assets/member.svg" label={`${item.num_of_members || 0} Members`} />
-        <InfoRow icon="/src/assets/user-profile.svg" label={`${item.num_of_souls_won || 0} Souls won`} />
+        <InfoRow icon="/src/assets/member.svg" label={`${item.num_of_members || 0} Members`} name="member_icon" />
+        <InfoRow icon="/src/assets/user-profile.svg" label={`${item.num_of_souls_won || 0} Souls won`} name="user_icon" />
       </div>
       <Dialog />
     </div>
   );
 };
 
-export default LifeCenterCard;
+const InfoRow = ({ icon, label,name }: { icon: string; label: React.ReactNode,name:string }) => (
+  <div className="flex items-center gap-1">
+    <img src={icon} alt={name} className="size-5" />
+    <p>{label}</p>
+  </div>
+);
+
+
+interface Props {
+  item: LifeCenterType;
+  handleEdit: (item: LifeCenterType) => void;
+  handleDelete: (id: string) => void;
+}
+

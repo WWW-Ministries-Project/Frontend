@@ -4,71 +4,14 @@ import * as Yup from "yup";
 import { LifeCenterType } from "../LifeCenter";
 import MultiSelect from "@/components/MultiSelect";
 import { Button } from "@/components";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import { api } from "@/utils/api/apiCalls";
-import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import { useEffect } from "react";
 
-const lifeCenterSchema = Yup.object().shape({
-  name: Yup.string()
-    .required("Life center name is required")
-    .min(3, "Name must be at least 3 characters"),
-  location: Yup.string().required("Location is required"),
-  description: Yup.string().optional(),
-  meeting_dates: Yup.array().min(1)
-    .of(Yup.string().required("Each meeting date must be a string"))
-    .optional(),
-});
-
-const meetingDays = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday"
-];
-
-type Props = {
-  closeModal: () => void;
-  addToList: (item: LifeCenterType) => void;
-  initialValues: LifeCenterType;
-  editItem: (item: LifeCenterType) => void;
-};
-export default function LifeCenterForm({
+export function LifeCenterForm({
   closeModal,
-  addToList,
   initialValues,
-  editItem,
+  handleMutate,
+  loading,
+  is_updating,
 }: Props) {
-  const postFunction = initialValues?.id
-    ? api.put.updateLifeCenter
-    : api.post.createLifeCenter;
-
-  const { postData, data, loading } = usePost(postFunction);
-  const {
-    updateData,
-    loading: is_updating,
-  } = usePut(api.put.updateLifeCenter);
-  
-  const succesMessage = initialValues?.id
-    ? "Life center updated successfully"
-    : "Life center created successfully";
-
-  useEffect(() => {
-    if (data?.data) {
-      addToList(data.data as LifeCenterType);
-      showNotification(succesMessage, "success");
-
-      if (initialValues.id) {
-        editItem(data.data as LifeCenterType);
-        showNotification(succesMessage, "success");
-      }
-    }
-  }, [addToList, data, editItem, initialValues.id, succesMessage]);
-
   return (
     <div className="w-[80vw] sm:w-[70vw] xl:w-[40vw] p-6">
       <h3 className="text-[#101840] font-semibold text-2xl  mb-4">
@@ -78,17 +21,11 @@ export default function LifeCenterForm({
         initialValues={initialValues}
         validationSchema={lifeCenterSchema}
         onSubmit={async (values) => {
-          if (initialValues.id) {
-            await updateData(values, { id: String(values.id) });
-            editItem(values);
-            showNotification(succesMessage, "success");
-          } else {
-            await postData(values);
-          }
+          await handleMutate(values);
         }}
         enableReinitialize
       >
-        {({ setFieldValue, values, handleSubmit }) => (
+        {({ setFieldValue, values, handleSubmit,errors }) => (
           <Form className="space-y-4">
             <Field
               component={FormikInputDiv}
@@ -132,6 +69,7 @@ export default function LifeCenterForm({
                   emptyMsg="No day(s) selected"
                   placeholder="day(s)"
                 />
+              { errors.meeting_dates &&  <p className="text-xs text-error">{errors.meeting_dates}</p>}
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -151,3 +89,37 @@ export default function LifeCenterForm({
     </div>
   );
 }
+
+const meetingDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+type Props = {
+  closeModal: () => void;
+  addToList: (item: LifeCenterType) => void;
+  initialValues: LifeCenterType;
+  editItem: (item: LifeCenterType) => void;
+  handleMutate: (value: LifeCenterType) => Promise<void>;
+  loading: boolean;
+  is_updating: boolean;
+};
+
+const lifeCenterSchema = Yup.object().shape({
+  name: Yup.string()
+    .required("Life center name is required")
+    .min(3, "Name must be at least 3 characters"),
+  location: Yup.string().required("Location is required"),
+  description: Yup.string().optional(),
+  meeting_dates: Yup.array()
+  .min(1, "Select at least one meeting day")
+  .of(Yup.string().required("Select one item"))
+  .required("Meeting dates are required"),
+
+    
+});
