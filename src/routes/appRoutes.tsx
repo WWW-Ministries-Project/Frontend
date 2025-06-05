@@ -26,6 +26,7 @@ import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import LifeCenter from "@/pages/HomePage/pages/LifeCenter/LifeCenter.js";
 
 import { NoAccess } from "@/components/NoAccess.js";
 import { relativePath } from "@/utils/const.js";
@@ -223,6 +224,12 @@ export const routes: AppRoute[] = [
         element: <ViewUser />,
         isPrivate: true,
         permissionNeeded: "view_events",
+      },
+       {
+        path:relativePath.home.lifeCenter.main,
+        name:"Life Center",
+        element:<LifeCenter/>,
+        sideTab: true,
       },
       // {
       //   path: "ministry-school",

@@ -77,4 +77,10 @@ export class ApiDeletionCalls {
   deletePrayerRequest = (query:QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`prayerrequest`, query);
   };
+
+  //life center
+
+   deleteLifeCenter = (query:QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`lifecenter/delete-lifecenter`, query);
+  };
 }
