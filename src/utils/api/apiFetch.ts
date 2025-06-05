@@ -9,7 +9,7 @@ import { ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
-import { LifeCenterType } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
+import { LifeCenterType } from "./lifeCenter/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;

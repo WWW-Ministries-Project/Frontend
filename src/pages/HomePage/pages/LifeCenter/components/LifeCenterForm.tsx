@@ -1,9 +1,9 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field, Formik, Form } from "formik";
 import * as Yup from "yup";
-import { LifeCenterType } from "../LifeCenter";
 import MultiSelect from "@/components/MultiSelect";
 import { Button } from "@/components";
+import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
 
 export function LifeCenterForm({
   closeModal,

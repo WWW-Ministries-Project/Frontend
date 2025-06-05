@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { LifeCenterType } from "../LifeCenter";
 import Action from "@/components/Action";
 import ellipse from "@/assets/ellipse.svg";
 import { Dialog } from "@/components/Dialog";
@@ -7,6 +6,7 @@ import { encodeQuery, showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useNavigate } from "react-router-dom";
+import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
 
 
 export const LifeCenterCard: React.FC<Props> = ({ item, handleEdit, handleDelete }) => {

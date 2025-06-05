@@ -4,7 +4,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
-import { LifeCenterType } from "../LifeCenter";
+import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
 
 
 
