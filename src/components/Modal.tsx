@@ -3,6 +3,7 @@ interface ModalProps {
   persist?: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  overFlowY?:boolean
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -10,6 +11,7 @@ const Modal: React.FC<ModalProps> = ({
   persist = true,
   onClose,
   children,
+  overFlowY=true
 }) => {
   const closeModal = () => {
     if (!persist) {
@@ -30,7 +32,7 @@ const Modal: React.FC<ModalProps> = ({
       className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50 closeModal backdrop-blur-sm"
       onClick={closeModalOutside}
     >
-      <div className="rounded-2xl shadow-md max-h-full m-10 bg-white overflow-y-scroll ">
+      <div className={`rounded-2xl shadow-md max-h-full m-10 bg-white ${overFlowY && 'overflow-y-scroll'}`}>
         {children}
       </div>
     </div>
