@@ -4,7 +4,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { api } from "@/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog } from "../../utils";
@@ -54,19 +54,23 @@ export function LifeCenter() {
     setOpenModal(true);
   };
 
-  const editItem = (item: LifeCenterType) => {
+  const editItem = useCallback((item: LifeCenterType) => {
     setLifeCenters((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
     setOpenModal(false);
-  };
+  },[])
 
-  const handleMutate = async (data: LifeCenterType) => {
+ const handleMutate = async (data: LifeCenterType) => {
+  try {
     if (currentData) {
-      await updateData(data, { id: currentData.id });
+      await updateData(data, { idrrr: currentData.id });
       setCurrentData(data);
     } else {
       await postData(data);
     }
-  };
+  } catch (error) {
+    showNotification("Something went wrong", "error");
+  }
+};
 
   const addToList = (item: LifeCenterType) => {
     setLifeCenters((prev) => [item, ...prev]);
