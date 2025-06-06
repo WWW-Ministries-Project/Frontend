@@ -16,7 +16,7 @@ export const RenderRoutes = () => {
           path={route.path}
           element={
             route.isPrivate && !permissions[route.permissionNeeded] ? (
-              <Navigate to="/login" />
+              <Navigate to="/home/access-denied" />
             ) : (
               route.element
             )
@@ -31,7 +31,7 @@ export const RenderRoutes = () => {
                 element={
                   childRoute.isPrivate &&
                   !permissions[childRoute.permissionNeeded] ? (
-                    <Navigate to="/login" />
+                    <Navigate to="/home/access-denied" />
                   ) : (
                     childRoute.element
                   )
@@ -46,7 +46,7 @@ export const RenderRoutes = () => {
                       element={
                         grandChildRoute.isPrivate &&
                         !permissions[grandChildRoute.permissionNeeded] ? (
-                          <Navigate to="/login" />
+                          <Navigate to="/home/access-denied" />
                         ) : (
                           grandChildRoute.element
                         )
