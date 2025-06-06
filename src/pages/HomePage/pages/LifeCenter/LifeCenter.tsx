@@ -62,7 +62,7 @@ export function LifeCenter() {
  const handleMutate = async (data: LifeCenterType) => {
   try {
     if (currentData) {
-      await updateData(data, { idrrr: currentData.id });
+      await updateData(data, { id: currentData.id });
       setCurrentData(data);
     } else {
       await postData(data);

@@ -1,17 +1,17 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field, Formik, Form } from "formik";
-import * as Yup from "yup";
 import MultiSelect from "@/components/MultiSelect";
 import { Button } from "@/components";
 import { LifeCenterType } from "@/utils";
 import { useMemo } from "react";
+import { object, string, array } from "yup";
 
-type IProps = {
+interface IProps {
   closeModal: () => void;
   handleMutate: (value: LifeCenterType) => Promise<void>;
   loading: boolean;
   editData: LifeCenterType | null;
-};
+}
 export function LifeCenterForm({
   closeModal,
   handleMutate,
@@ -19,7 +19,7 @@ export function LifeCenterForm({
   editData,
 }: IProps) {
   const initial: LifeCenterType = useMemo(
-    () => editData || emptyLifeCenter,
+    () => editData || initialValues,
     [editData]
   );
   return (
@@ -29,7 +29,7 @@ export function LifeCenterForm({
       </h3>
       <Formik
         initialValues={initial}
-        validationSchema={lifeCenterSchema}
+        validationSchema={validationSchema}
         onSubmit={async (values) => {
           await handleMutate(values);
         }}
@@ -112,7 +112,7 @@ const meetingDays = [
   "Sunday",
 ];
 
-const emptyLifeCenter: LifeCenterType = {
+const initialValues: LifeCenterType = {
   description: "",
   location: "",
   meeting_dates: [],
@@ -122,14 +122,14 @@ const emptyLifeCenter: LifeCenterType = {
   id: "",
 };
 
-const lifeCenterSchema = Yup.object().shape({
-  name: Yup.string()
+const validationSchema = object().shape({
+  name: string()
     .required("Life center name is required")
     .min(3, "Name must be at least 3 characters"),
-  location: Yup.string().required("Location is required"),
-  description: Yup.string().optional(),
-  meeting_dates: Yup.array()
+  location: string().required("Location is required"),
+  description: string().optional(),
+  meeting_dates: array()
     .min(1, "Select at least one meeting day")
-    .of(Yup.string().required("Select one item"))
+    .of(string().required("Select one item"))
     .required("Meeting dates are required"),
 });
