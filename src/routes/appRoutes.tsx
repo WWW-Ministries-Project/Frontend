@@ -30,6 +30,7 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx"
 import { NoAccess } from "@/components/NoAccess.js";
 import { relativePath } from "@/utils/const.js";
 import { ReactNode } from "react";
+import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -223,6 +224,12 @@ export const routes: AppRoute[] = [
         element: <ViewUser />,
         isPrivate: true,
         permissionNeeded: "view_events",
+      },
+      {
+        path: relativePath.home.lifeCenter.main,
+        name: "Life Centers",
+        element: <LifeCenter />,
+        sideTab: true,
       },
       // {
       //   path: "ministry-school",
