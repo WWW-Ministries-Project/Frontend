@@ -16,7 +16,6 @@ export function LifeCenterForm({
   closeModal,
   handleMutate,
   loading,
-
   editData,
 }: IProps) {
   const initial: LifeCenterType = useMemo(
