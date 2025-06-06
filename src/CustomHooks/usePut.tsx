@@ -19,5 +19,5 @@ export const usePut = <T,K>(putFunction: (payload: K,query?:QueryType) => Promis
       setLoading(false);
     }
   }, [putFunction]);
-  return { data, loading, error, updateData };
+  return { data, loading, error, updateData,setData };
 };

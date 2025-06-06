@@ -1,3 +1,4 @@
+import { LifeCenterType } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
@@ -103,4 +104,10 @@ export class ApiCreationCalls {
   // ): Promise<ApiResponse<T>> => {
   //   return this.postToApi<T>("visitor/prayerrequest", payload);
   // };
+
+  createLifeCenter = (
+    payload: LifeCenterType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.postToApi("lifecenter/create-lifecenter", payload);
+  };
 }

@@ -21,5 +21,5 @@ export const usePost = <T,K>(postFunction: (payload: K) => Promise<T>) => {
     }
   }, [postFunction]);
 
-  return { data, loading, error, postData };
+  return { data, loading, error, postData, setData };
 };

@@ -203,4 +203,11 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+   updateLifeCenter = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("lifecenter/update-lifecenter", payload, query);
+  };
 }
