@@ -4,7 +4,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { api } from "@/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog } from "../../utils";
@@ -28,7 +28,7 @@ export function LifeCenter() {
   const {
     updateData,
     data: update_value,
-    loading: is_upating,
+    loading: isUpdating,
   } = usePut(api.put.updateLifeCenter);
 
   useEffect(() => {
@@ -54,10 +54,10 @@ export function LifeCenter() {
     setOpenModal(true);
   };
 
-  const editItem = useCallback((item: LifeCenterType) => {
+  const editItem = (item: LifeCenterType) => {
     setLifeCenters((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
     setOpenModal(false);
-  }, []);
+  };
 
   const handleMutate = async (data: LifeCenterType) => {
     if (currentData) {
@@ -65,7 +65,6 @@ export function LifeCenter() {
       setCurrentData(data);
     } else {
       await postData(data);
-      showNotification("Life center created successfully", "success");
     }
   };
 
@@ -93,6 +92,16 @@ export function LifeCenter() {
     }
   }, [update_value?.data, editItem]);
 
+  const closeModal = () => {
+    setOpenModal(false);
+    setCurrentData(null);
+  };
+
+  const handleModalOpenForCreate = () => {
+  setCurrentData(null);
+  setOpenModal(true);
+};
+
   return (
     <PageOutline>
       <div>
@@ -101,7 +110,7 @@ export function LifeCenter() {
           subtitle="Manage your church's life centers and track souls won"
           screenWidth={window.innerWidth}
           btnName="Create Life Center"
-          handleClick={() => setOpenModal(true)}
+          handleClick={handleModalOpenForCreate}
         />
         <div className="flex items-center justify-between gap-3 mt-7">
           <TabSelection
@@ -127,13 +136,12 @@ export function LifeCenter() {
           />
         )}
       />
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      <Modal open={openModal} onClose={closeModal}>
         <LifeCenterForm
-          closeModal={() => setOpenModal(false)}
+          closeModal={closeModal}
           editData={currentData}
           handleMutate={handleMutate}
-          is_updating={loading}
-          loading={is_upating}
+          loading={isUpdating || loading}
         />
       </Modal>
     </PageOutline>

@@ -10,14 +10,13 @@ type IProps = {
   closeModal: () => void;
   handleMutate: (value: LifeCenterType) => Promise<void>;
   loading: boolean;
-  is_updating: boolean;
   editData: LifeCenterType | null;
 };
 export function LifeCenterForm({
   closeModal,
   handleMutate,
   loading,
-  is_updating,
+
   editData,
 }: IProps) {
   const initial: LifeCenterType = useMemo(
@@ -92,8 +91,8 @@ export function LifeCenterForm({
                 variant="primary"
                 type="submit"
                 onClick={handleSubmit}
-                loading={loading || is_updating}
-                disabled={loading || is_updating}
+                loading={loading}
+                disabled={loading}
               />
               <Button value="Cancel" variant="secondary" onClick={closeModal} />
             </div>
