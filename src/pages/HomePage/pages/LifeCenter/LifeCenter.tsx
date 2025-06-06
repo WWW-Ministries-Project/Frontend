@@ -4,18 +4,32 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { api } from "@/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog } from "../../utils";
 import { LifeCenterCard } from "./components/LifeCenterCard";
+import Modal from "@/components/Modal";
+import { LifeCenterForm } from "./components/LifeCenterForm";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 
 export function LifeCenter() {
   const [selectedTab, setSelectedTab] = useState("Life Center");
 
   const [lifeCenters, setLifeCenters] = useState<LifeCenterType[]>([]);
+  const [openModal, setOpenModal] = useState(false);
+  const [currentData, setCurrentData] = useState<LifeCenterType | null>(null);
+
   const { data: lcData } = useFetch(api.fetch.fetchAllLifeCenters);
   const { executeDelete } = useDelete(api.delete.deleteLifeCenter);
+  const { postData, data, loading } = usePost(api.post.createLifeCenter);
+  const {
+    updateData,
+    data: update_value,
+    loading: is_upating,
+  } = usePut(api.put.updateLifeCenter);
 
   useEffect(() => {
     if (lcData?.data?.length) {
@@ -31,8 +45,53 @@ export function LifeCenter() {
     showDeleteDialog({ id, name }, async () => {
       await executeDelete({ id: id });
       handleDelete(id);
+      showNotification("Life center deleted successfully", "success");
     });
   };
+
+  const handleEdit = (value: LifeCenterType) => {
+    setCurrentData(value);
+    setOpenModal(true);
+  };
+
+  const editItem = useCallback((item: LifeCenterType) => {
+    setLifeCenters((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
+    setOpenModal(false);
+  }, []);
+
+  const handleMutate = async (data: LifeCenterType) => {
+    if (currentData) {
+      await updateData(data, { id: currentData.id });
+      setCurrentData(data);
+    } else {
+      await postData(data);
+      showNotification("Life center created successfully", "success");
+    }
+  };
+
+  const addToList = (item: LifeCenterType) => {
+    setLifeCenters((prev) => [item, ...prev]);
+    setOpenModal(false);
+  };
+
+  useEffect(() => {
+    if (data?.data) {
+      addToList(data?.data);
+      showNotification("Life center created successfully", "success");
+      setCurrentData(null);
+    }
+  }, [data?.data]);
+
+  useEffect(() => {
+    if (update_value?.data && currentData?.id) {
+      editItem({
+        ...update_value.data,
+        id: currentData?.id,
+      });
+      showNotification("Life center updated successfully", "success");
+      setCurrentData(null);
+    }
+  }, [update_value?.data, editItem]);
 
   return (
     <PageOutline>
@@ -42,7 +101,7 @@ export function LifeCenter() {
           subtitle="Manage your church's life centers and track souls won"
           screenWidth={window.innerWidth}
           btnName="Create Life Center"
-          handleClick={() => {}}
+          handleClick={() => setOpenModal(true)}
         />
         <div className="flex items-center justify-between gap-3 mt-7">
           <TabSelection
@@ -63,11 +122,20 @@ export function LifeCenter() {
           <LifeCenterCard
             item={row.original}
             key={row.original.id}
-            handleEdit={() => {}}
+            handleEdit={handleEdit}
             deleteLifeCenter={deleteLifeCenter}
           />
         )}
       />
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <LifeCenterForm
+          closeModal={() => setOpenModal(false)}
+          editData={currentData}
+          handleMutate={handleMutate}
+          is_updating={loading}
+          loading={is_upating}
+        />
+      </Modal>
     </PageOutline>
   );
 }

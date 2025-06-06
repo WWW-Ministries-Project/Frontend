@@ -2,6 +2,7 @@ import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import { LifeCenterType } from "./lifeCenter/interfaces";
 import { ProgramsPayloadType } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
@@ -27,7 +28,9 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
-  createEvent = <T>(payload: Record<string, string>): Promise<ApiResponse<T>> => {
+  createEvent = <T>(
+    payload: Record<string, string>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
@@ -75,9 +78,7 @@ export class ApiCreationCalls {
   //   return this.postToApi<T>("program/unenroll", payload);
   // };
 
-  forgotPassword = <T>(
-    payload: unknown
-  ): Promise<ApiResponse<T>> => {
+  forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };
 
@@ -103,4 +104,10 @@ export class ApiCreationCalls {
   // ): Promise<ApiResponse<T>> => {
   //   return this.postToApi<T>("visitor/prayerrequest", payload);
   // };
+
+  createLifeCenter = (
+    payload: LifeCenterType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.postToApi("lifecenter/create-lifecenter", payload);
+  };
 }
