@@ -5,7 +5,7 @@ import { LifeCenterForm } from "./components/LifeCenterForm";
 import { LifeCenterCard } from "./components/LifeCenterCard";
 import GridComponent from "../../Components/reusable/GridComponent";
 
-import { useLifeCenter } from "./hooks/useLifeCenter";
+import { useLifeCenter } from "../../../../CustomHooks/useLifeCenter";
 
 export function LifeCenter() {
   const {
