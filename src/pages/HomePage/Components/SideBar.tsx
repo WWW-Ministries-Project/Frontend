@@ -37,7 +37,7 @@ const icons: Record<
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
-  "Life Centers":UsersIcon
+  "Life Centers": UsersIcon,
 };
 
 const SideBar = ({ className }: IProps) => {

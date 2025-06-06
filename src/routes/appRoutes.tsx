@@ -226,9 +226,9 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_events",
       },
       {
-        path:relativePath.home.lifeCenter.main,
-        name:"Life Centers",
-        element:<LifeCenter/>,
+        path: relativePath.home.lifeCenter.main,
+        name: "Life Centers",
+        element: <LifeCenter />,
         sideTab: true,
       },
       // {

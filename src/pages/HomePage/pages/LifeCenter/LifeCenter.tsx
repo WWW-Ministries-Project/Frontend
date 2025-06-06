@@ -5,13 +5,17 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import { useEffect, useState } from "react";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils/api/apiCalls";
+import { api } from "@/utils";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { showDeleteDialog } from "../../utils";
+import PageOutline from "../../Components/PageOutline";
 
 export function LifeCenter() {
   const [selectedTab, setSelectedTab] = useState("Life Center");
 
   const [lifeCenters, setLifeCenters] = useState<LifeCenterType[]>([]);
   const { data: lcData } = useFetch(api.fetch.fetchAllLifeCenters);
+  const { executeDelete } = useDelete(api.delete.deleteLifeCenter);
 
   useEffect(() => {
     if (lcData?.data?.length) {
@@ -19,14 +23,19 @@ export function LifeCenter() {
     }
   }, [lcData]);
 
-
   const handleTabSelect = (tab: string) => setSelectedTab(tab);
   const handleDelete = (id: string) => {
     setLifeCenters((prev) => prev.filter((item) => item.id !== id));
   };
+  const deleteLifeCenter = (id: string, name: string) => {
+    showDeleteDialog({ id, name }, async () => {
+      await executeDelete({ id: id });
+      handleDelete(id);
+    });
+  };
 
   return (
-    <div className="bg-white rounded-xl flex flex-col gap-4 m-4 p-4 min-h-[100vh] h-fit">
+    <PageOutline>
       <div>
         <HeaderControls
           title="Life Center Management"
@@ -54,11 +63,11 @@ export function LifeCenter() {
           <LifeCenterCard
             item={row.original}
             key={row.original.id}
-            handleEdit={()=>{}}
-            handleDelete={handleDelete}
+            handleEdit={() => {}}
+            deleteLifeCenter={deleteLifeCenter}
           />
         )}
       />
-    </div>
+    </PageOutline>
   );
 }
