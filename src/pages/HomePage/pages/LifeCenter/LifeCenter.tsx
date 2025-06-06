@@ -1,14 +1,14 @@
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { HeaderControls } from "@/components/HeaderControls";
-import { LifeCenterCard } from "./components/LifeCenterCard";
-import GridComponent from "../../Components/reusable/GridComponent";
-import { useEffect, useState } from "react";
-import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { showDeleteDialog } from "../../utils";
+import { useFetch } from "@/CustomHooks/useFetch";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import { api } from "@/utils";
+import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
+import { useEffect, useState } from "react";
 import PageOutline from "../../Components/PageOutline";
+import GridComponent from "../../Components/reusable/GridComponent";
+import { showDeleteDialog } from "../../utils";
+import { LifeCenterCard } from "./components/LifeCenterCard";
 
 export function LifeCenter() {
   const [selectedTab, setSelectedTab] = useState("Life Center");

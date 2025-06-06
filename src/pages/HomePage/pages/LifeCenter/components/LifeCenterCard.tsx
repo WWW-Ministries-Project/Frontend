@@ -1,16 +1,15 @@
-import { useState, ReactNode } from "react";
-import Action from "@/components/Action";
 import ellipse from "@/assets/ellipse.svg";
-import { Dialog } from "@/components/Dialog";
-import { encodeQuery } from "@/pages/HomePage/utils";
-import { useNavigate } from "react-router-dom";
-import { LifeCenterType } from "@/utils/api/lifeCenter/interface";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
+import Action from "@/components/Action";
+import { encodeQuery } from "@/pages/HomePage/utils";
+import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
+import { ReactNode, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface IProps {
   item: LifeCenterType;
   handleEdit: (item: LifeCenterType) => void;
-  deleteLifeCenter: (id: string, nmae: string) => void;
+  deleteLifeCenter: (id: string, name: string) => void;
 }
 export const LifeCenterCard = ({
   item,
@@ -80,7 +79,6 @@ export const LifeCenterCard = ({
           name="user_icon"
         />
       </div>
-      <Dialog />
     </div>
   );
 };
