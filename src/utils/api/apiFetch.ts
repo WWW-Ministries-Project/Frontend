@@ -9,6 +9,7 @@ import { ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import { LifeCenterType } from "./lifeCenter/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -216,4 +217,12 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`prayerrequest/${id}`, query);
   };
+
+  //life center
+  fetchAllLifeCenters= (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterType[]>> => {
+    return this.fetchFromApi(`lifecenter/get-lifecenters`, query);
+  }
+
 }
