@@ -13,6 +13,7 @@ import {
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { LifeCenterType } from "./lifeCenter/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -96,7 +97,7 @@ export class ApiUpdateCalls {
   };
 
   // Update Program
-  updateProgram =(
+  updateProgram = (
     payload: ProgramsPayloadType,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
@@ -199,6 +200,17 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<activateMemberType>> => {
     return this.apiExecution.updateData(
       "user/update-user-status",
+      payload,
+      query
+    );
+  };
+
+  updateLifeCenter = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/update-lifecenter",
       payload,
       query
     );
