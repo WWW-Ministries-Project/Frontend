@@ -25,7 +25,7 @@ export const tableColumns: ColumnDef<SoulsWonType>[] = [
   },
   {
     header: "WON BY",
-    accessorKey: "won_by",
+    accessorKey: "wonByName",
   },
   {
     header: "Action",
