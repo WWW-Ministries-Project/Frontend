@@ -8,14 +8,19 @@ export type LifeCenterType = {
   id: string;
 };
 
-export type SoulsWon = {
+export type SoulsWonType = {
   first_name: string;
   last_name: string;
-  contact: string;
-  location: string;
+  contact_number: string;
+  contact_email: string;
+  country: string;
+  city: string;
   date_won: string;
   won_by: string;
-  city: string;
-  life_center_name: string;
   id: string;
 };
+
+export interface LifeCenterDetailsType extends LifeCenterType{
+  members:{name:string; role:string}[]
+  soulsWon:SoulsWonType[]
+}

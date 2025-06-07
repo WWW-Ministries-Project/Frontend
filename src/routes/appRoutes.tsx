@@ -31,6 +31,7 @@ import { NoAccess } from "@/components/NoAccess.js";
 import { relativePath } from "@/utils/const.js";
 import { ReactNode } from "react";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter.js";
+import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -230,6 +231,11 @@ export const routes: AppRoute[] = [
         name: "Life Centers",
         element: <LifeCenter />,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.lifeCenter.detail,
+        name: "Life Center",
+        element: <ViewLifeCenter />,
       },
       // {
       //   path: "ministry-school",
