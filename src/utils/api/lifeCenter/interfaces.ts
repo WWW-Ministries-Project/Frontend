@@ -3,8 +3,8 @@ export type LifeCenterType = {
   description: string;
   location: string;
   meeting_dates: string[];
-  num_of_members: number;
-  num_of_souls_won: number;
+  totalMembers: number;
+  totalSoulsWon: number;
   id: string;
 };
 
