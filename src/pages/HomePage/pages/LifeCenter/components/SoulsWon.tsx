@@ -65,7 +65,6 @@ export function SoulsWon({ soulsWon, setSoulsWon }: Props) {
                 showOptions={row.original.id === selectedId}
                 onDelete={() => deleteSoul(row.original.id, name)}
                 onEdit={() => {}}
-                onView={() => {}}
               />
             </div>
           );
