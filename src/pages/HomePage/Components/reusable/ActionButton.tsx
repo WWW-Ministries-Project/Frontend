@@ -19,6 +19,8 @@ const ActionButton = (props: ActionButtonProps) => {
           onView={props.onView}
           onEdit={props.onEdit}
           hideDelete={props.hideDelete}
+          isEditable={props.onEdit !== undefined}
+          isDeletable={props.onDelete !== undefined}         
         />
       )}
     </>

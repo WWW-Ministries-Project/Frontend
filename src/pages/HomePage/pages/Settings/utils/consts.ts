@@ -1,3 +1,5 @@
+import { AccessState } from "./settingsInterfaces";
+
 const membersAccess = {
   personal_information: {
     title: true,
@@ -14,10 +16,7 @@ const membersAccess = {
     resident_country: true,
     state_region: true,
     city: true,
-    phone: {
-      country_code: true,
-      number: true,
-    },
+    phone_number: true,
   },
   work_information: {
     employment_status: true,
@@ -33,26 +32,14 @@ const membersAccess = {
     position_id: true,
   },
 };
-const visitAccess = {
-  visitor: {
-    title: false,
-    first_name: false,
-    other_name: false,
-    last_name: false,
-    date_of_birth: false,
-    gender: false,
-    marital_status: false,
-    nationality: false,
-  },
-  visit: {
-    visit_date: true,
-    how_heard: true,
-    consent_to_contact: true,
-    membership_wish: true,
-  },
-};
 
-export const initialMembersAccess = [
-  { name: "Members", access: membersAccess },
-  { name: "Visitors", access: visitAccess },
+
+export const initialAccess = [
+  { name: "Members", access: membersAccess, topPermission: "Can_View", },
+  { name: "Visitors", topPermission: "Can_View", },
+  { name: "Positions", topPermission: "Can_View", },
+  { name: "Departments", topPermission: "Can_View", },
+  { name: "Access Rights", topPermission: "Super_Admin", },
+  { name: "Settings", topPermission: "Can_Manage", },
+
 ];
