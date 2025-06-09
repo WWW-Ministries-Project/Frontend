@@ -5,16 +5,17 @@ import { usePut } from "@/CustomHooks/usePut";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import {
   decodeQuery,
   showNotification,
 } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
-import { ColumnDef } from "@tanstack/react-table";
-import React, { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useState from "react-usestateref";
+import { ModuleAccessAccordion } from "../Components/ModuleAccessAccordion";
+import { initialAccess } from "../utils/consts";
+import { AccessState } from "../utils/settingsInterfaces";
 
 export function ManageAccess() {
   const navigate = useNavigate();
@@ -22,16 +23,17 @@ export function ManageAccess() {
   const query = location.search;
   const params = new URLSearchParams(query);
   const id = decodeQuery(params.get("access_id") || "");
-  const [data, setData] = useState<Record<string, string>>({
-    Dashboard: "",
-    Members: "",
-    Events: "",
-    Requests: "",
-    Asset: "",
-    Users: "",
-    Positions: "",
-    Departments: "",
-    Access_rights: "",
+  const [accessState, setAccessState] = useState<AccessState>(() => {
+    const state: AccessState = {};
+    initialAccess.forEach((module) => {
+      state[module.name] = {
+        topPermission: module.topPermission ?? "Can_View",
+        access: module.access
+          ? JSON.parse(JSON.stringify(module.access))
+          : undefined,
+      };
+    });
+    return state;
   });
   const { data: accessLevel, refetch } = useFetch(
     api.fetch.fetchAnAccess,
@@ -53,34 +55,36 @@ export function ManageAccess() {
     updateData,
   } = usePut(api.put.updateAccessRight);
 
-  const displayedData = useMemo(
-    () =>
-      Object.entries(data).map(([name, accessLevel]) => ({
-        name: name.replace(/_/g, " "),
-        accessLevel,
-      })),
-    [data]
-  );
+  const handleTopPermissionChange = (moduleName: string, value: string) => {
+    setAccessState((prev) => ({
+      ...prev,
+      [moduleName]: {
+        ...prev[moduleName],
+        topPermission: value,
+      },
+    }));
+  };
 
-  const columns: ColumnDef<(typeof displayedData)[0]>[] = [
-    {
-      accessorKey: "name",
-      header: "Name",
-    },
-    {
-      accessorKey: "accessLevel",
-      header: "Access Level",
-      cell: ({ row }) => (
-        <span>
-          <RadioGroup
-            selectedValue={row.original.accessLevel}
-            onChange={(val) => handleAccessLevelChange(row.original.name, val)}
-            moduleName={row.original.name}
-          />
-        </span>
-      ),
-    },
-  ];
+  const handleToggleChange = (
+    moduleName: string,
+    subModule: string,
+    field: string,
+    value: boolean
+  ) => {
+    setAccessState((prev) => ({
+      ...prev,
+      [moduleName]: {
+        ...prev[moduleName],
+        access: {
+          ...prev[moduleName].access,
+          [subModule]: {
+            ...prev[moduleName].access?.[subModule],
+            [field]: value,
+          },
+        },
+      },
+    }));
+  };
 
   useEffect(() => {
     if (response) {
@@ -102,38 +106,39 @@ export function ManageAccess() {
       refetch();
     }
   }, [id]);
+
   useEffect(() => {
-    if (id) {
-      setData((prev) =>
-        accessLevel?.data.permissions
-          ? { ...prev, ...accessLevel.data.permissions! }
-          : prev
-      );
-      setName((prev) =>
-        accessLevel?.data.name ? accessLevel.data.name : prev
-      );
+    if (id && accessLevel?.data) {
+      const { name: fetchedName, permissions } = accessLevel.data;
+
+      setName(fetchedName || "");
+
+      if (permissions && typeof permissions === "object") {
+        //TODO once once BE is ready CHANGE returned data to A PROPER TYPE accessType
+        // @ts-expect-error type assertion to AccessState needs to update BE
+        const typedPermissions = permissions as AccessState;
+        const newAccessState: AccessState = {};
+
+        for (const [moduleName, moduleData] of Object.entries(
+          typedPermissions
+        )) {
+          newAccessState[moduleName] = {
+            topPermission: moduleData.topPermission || "Can_View",
+            access: moduleData.access,
+          };
+        }
+
+        setAccessState(newAccessState);
+      }
     }
   }, [accessLevel]);
-  const handleAccessLevelChange = (
-    moduleName: string,
-    newAccessLevel: string
-  ) => {
-    const module = moduleName.split(" ").join("_");
-    setData((prevData) => {
-      const currentAccessLevel = prevData[module];
-      return {
-        ...prevData,
-        [module]: currentAccessLevel === newAccessLevel ? "" : newAccessLevel,
-      };
-    });
-  };
 
   const handleSubmit = () => {
     if (nameRef.current) {
       const body = {
         name: nameRef.current,
         id,
-        permissions: data,
+        permissions: accessState,
       };
       if (id) {
         updateData(body, { id });
@@ -162,11 +167,10 @@ export function ManageAccess() {
             setName(val + "");
           }}
         />
-        <TableComponent
-          data={displayedData}
-          columns={columns}
-          rowClass="even:bg-white odd:bg-[#F2F4F7]"
-          className={"shadow-md"}
+        <ModuleAccessAccordion
+          onTopPermissionChange={handleTopPermissionChange}
+          accessLevels={accessState}
+          onAccessChange={handleToggleChange}
         />
         <div className="flex justify-end gap-x-2 mt-4">
           <Button
@@ -188,53 +192,3 @@ export function ManageAccess() {
     </PageOutline>
   );
 }
-
-interface RadioOption {
-  value: string;
-  label: string;
-}
-
-interface RadioGroupProps {
-  selectedValue: string;
-  moduleName: string;
-  onChange: (value: string) => void;
-}
-
-const RadioGroup: React.FC<RadioGroupProps> = ({
-  selectedValue,
-  onChange,
-  moduleName,
-}) => {
-  const options: RadioOption[] = [
-    { value: "Can_View", label: "Can View" },
-    { value: "Can_Manage", label: "Can Manage" },
-    { value: "Super_Admin", label: "Admin" },
-  ];
-
-  const handleChange = (value: string) => {
-    onChange(value);
-  };
-
-  return (
-    <div className="flex items-center space-x-6">
-      {options.map((option, index) => (
-        <label
-          key={option.value + index}
-          className="flex items-center cursor-pointer"
-        >
-          <input
-            type="radio"
-            name={moduleName}
-            value={selectedValue}
-            checked={selectedValue === option.value}
-            onClick={() => handleChange(option.value)}
-            onChange={() => {}}
-            className="hidden peer"
-          />
-          <div className="w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center peer-checked:border-red-500 peer-checked:before:bg-red-500 peer-checked:before:w-3 peer-checked:before:h-3 peer-checked:before:rounded-full peer-checked:before:block"></div>
-          <span className="ml-2 text-gray-600">{option.label}</span>
-        </label>
-      ))}
-    </div>
-  );
-};

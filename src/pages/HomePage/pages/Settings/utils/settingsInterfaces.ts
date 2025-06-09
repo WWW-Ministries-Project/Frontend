@@ -54,3 +54,29 @@ export interface AccessRightOption {
   name: string;
   accessLevel: "Can View" | "Can Manage" | "Super Admin";
 }
+
+// type IsPlainObject<T> = T extends object
+//   ? // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+//     T extends Function | File | Date | Blob | RegExp
+//     ? false
+//     : T extends Array<unknown>
+//     ? false
+//     : true
+//   : false;
+
+// type Accessify<T> = {
+//   [K in keyof T]: IsPlainObject<T[K]> extends true ? Accessify<T[K]> : boolean;
+// };
+
+// export type IMembersFormAccess = Accessify<IMembersForm>;
+
+export type AccessState = {
+  [moduleName: string]: {
+    topPermission: string;
+    access?: {
+      [subModule: string]: {
+        [field: string]: boolean;
+      };
+    };
+  };
+};

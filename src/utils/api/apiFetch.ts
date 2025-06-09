@@ -98,6 +98,7 @@ export class ApiCalls {
   ): Promise<ApiResponse<AccessRight[]>> => {
     return this.fetchFromApi("access/list-access-levels", query);
   };
+  //TODO once once BE is ready CHANGE THIS TO A PROPER TYPE accessType
   fetchAnAccess = (query?: QueryType): Promise<ApiResponse<AccessRight>> => {
     return this.fetchFromApi("access/get-access-level", query);
   };
