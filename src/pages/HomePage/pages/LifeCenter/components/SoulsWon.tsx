@@ -1,43 +1,103 @@
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { HeaderControls } from "@/components/HeaderControls";
-import { SoulsWonType } from "@/utils/api/lifeCenter/interfaces";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
+
+import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
-import { useMemo, useState } from "react";
+import { HeaderControls } from "@/components/HeaderControls";
+import Modal from "@/components/Modal";
+
 import { useDelete } from "@/CustomHooks/useDelete";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+
 import { api } from "@/utils/api/apiCalls";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import {
+  decodeQuery,
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils";
+
+import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
 
 interface Props {
-  soulsWon: SoulsWonType[];
-  setSoulsWon: React.Dispatch<React.SetStateAction<SoulsWonType[]>>;
+  soulsWon: ISoulsWonForm[];
+  setSoulsWon: React.Dispatch<React.SetStateAction<ISoulsWonForm[]>>;
+  addToSoul: (soul: ISoulsWonForm) => void;
+  editSoul: (soul: ISoulsWonForm) => void;
 }
 
-export function SoulsWon({ soulsWon, setSoulsWon }: Props) {
+export function SoulsWon({
+  soulsWon,
+  setSoulsWon,
+  addToSoul,
+  editSoul,
+}: Props) {
   const [selectedId, setSelectedId] = useState<number | string>("");
+  const [openModal, setOpenModal] = useState(false);
+  const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);
+
+  const { id } = useParams();
+  const lifeCenterId = decodeQuery(String(id));
 
   const { executeDelete } = useDelete(api.delete.deleteSoulWon);
+  const {
+    postData,
+    data: postResponse,
+    loading: isPosting,
+  } = usePost(api.post.createSoul);
+  const {
+    updateData,
+    data: updateResponse,
+    loading: isUpdating,
+  } = usePut(api.put.updateSoul);
 
-  const handleShowOptions = (id: number | string) => {
+  const handleShowOptions = useCallback((id: number | string) => {
     setSelectedId((prev) => (prev === id ? "" : id));
+  }, []);
+
+  const handleDeleteSoul = useCallback(
+    (id: string, name: string) => {
+      showDeleteDialog({ id, name }, async () => {
+        await executeDelete({ id });
+        setSoulsWon((prev) => prev.filter((soul) => soul.id !== id));
+        showNotification("Soul deleted successfully", "success");
+      });
+    },
+    [executeDelete, setSoulsWon]
+  );
+
+  const handleSave = async (formData: ISoulsWonForm) => {
+    setSoulWon(formData);
+
+    try {
+      if (formData.id) {
+        updateData({ ...formData, lifeCenterId }, { id: formData.id });
+      } else {
+        await postData({ ...formData, lifeCenterId });
+      }
+    } catch {
+      showNotification("Something went wrong", "error");
+    }
   };
 
-  const deleteSoul = (id: string, name: string) => {
-    showDeleteDialog({ id, name }, async () => {
-      await executeDelete({ id });
-      setSoulsWon((prev) => prev.filter((soul) => soul.id !== id));
-      showNotification("Soul deleted successfully", "success");
-    });
+  const handleEdit = (soul: ISoulsWonForm) => {
+    setSoulWon(soul);
+    setOpenModal(true);
   };
 
-  const tableColumns: ColumnDef<SoulsWonType>[] = useMemo(
+  const handleAddSoul = () => {
+    setSoulWon(null);
+    setOpenModal(true);
+  };
+
+  const tableColumns: ColumnDef<ISoulsWonForm>[] = useMemo(
     () => [
       {
         header: "NAME",
-        cell: ({ row }) => {
-          const name = `${row.original.first_name} ${row.original.last_name}`;
-          return <div>{name}</div>;
-        },
+        cell: ({ row }) => (
+          <div>{`${row.original.first_name} ${row.original.last_name}`}</div>
+        ),
       },
       {
         header: "CONTACT",
@@ -56,23 +116,42 @@ export function SoulsWon({ soulsWon, setSoulsWon }: Props) {
         accessorKey: "wonByName",
       },
       {
-        header: "Action",
+        header: "ACTION",
         cell: ({ row }) => {
-          const name = `${row.original.first_name} ${row.original.last_name}`;
+          const { id, first_name, last_name } = row.original;
+          const name = `${first_name} ${last_name}`;
           return (
-            <div onClick={() => handleShowOptions(row.original.id)}>
+            <div onClick={() => handleShowOptions(id)}>
               <ActionButton
-                showOptions={row.original.id === selectedId}
-                onDelete={() => deleteSoul(row.original.id, name)}
-                onEdit={() => {}}
+                showOptions={id === selectedId}
+                onDelete={() => handleDeleteSoul(id, name)}
+                onEdit={() => handleEdit(row.original)}
               />
             </div>
           );
         },
       },
     ],
-    [deleteSoul]
+    [selectedId, handleDeleteSoul, handleShowOptions]
   );
+
+  useEffect(() => {
+    if (postResponse?.data) {
+      addToSoul(postResponse.data);
+      showNotification("Soul added successfully", "success");
+      setSoulWon(null);
+      setOpenModal(false);
+    }
+  }, [postResponse?.data, addToSoul]);
+
+  useEffect(() => {
+    if (updateResponse && soulWon) {
+      editSoul(soulWon);
+      showNotification("Soul updated successfully", "success");
+      setSoulWon(null);
+      setOpenModal(false);
+    }
+  }, [updateResponse, soulWon, editSoul]);
 
   return (
     <>
@@ -81,7 +160,7 @@ export function SoulsWon({ soulsWon, setSoulsWon }: Props) {
         subtitle=""
         screenWidth={window.innerWidth}
         btnName="Add Record"
-        handleClick={() => {}}
+        handleClick={handleAddSoul}
       />
 
       <TableComponent
@@ -89,6 +168,15 @@ export function SoulsWon({ soulsWon, setSoulsWon }: Props) {
         data={soulsWon}
         displayedCount={10}
       />
+
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <SoulsWonForm
+          onSubmit={handleSave}
+          onClose={() => setOpenModal(false)}
+          editData={soulWon}
+          loading={isPosting || isUpdating}
+        />
+      </Modal>
     </>
   );
 }

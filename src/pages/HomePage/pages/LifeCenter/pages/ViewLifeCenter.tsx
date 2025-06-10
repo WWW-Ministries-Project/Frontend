@@ -5,8 +5,8 @@ import { useParams } from "react-router-dom";
 import { SoulsWon } from "../components/SoulsWon";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
-import { useEffect, useState } from "react";
-import { SoulsWonType } from "@/utils/api/lifeCenter/interfaces";
+import { useCallback, useEffect, useState } from "react";
+import { ISoulsWonForm } from "../components/SoulsWonForm";
 
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
@@ -15,13 +15,23 @@ export function ViewLifeCenter() {
 
   const lifeCenterData = data?.data;
 
-  const [souls, setSouls] = useState<SoulsWonType[]>([]);
+  const [souls, setSouls] = useState<ISoulsWonForm[]>([]);
 
   useEffect(() => {
     if (lifeCenterData?.soulsWon) {
       setSouls(lifeCenterData.soulsWon);
     }
   }, [lifeCenterData?.soulsWon]);
+
+  const addSoul = (data: ISoulsWonForm) => {
+    const soulExist = souls.find((soul) => soul.id === data.id);
+    if (soulExist) return;
+    setSouls((prevSouls) => [data, ...prevSouls]);
+  };
+
+  const editSoul = useCallback((item: ISoulsWonForm) => {
+    setSouls((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
+  }, []);
 
   return (
     <PageOutline>
@@ -61,7 +71,12 @@ export function ViewLifeCenter() {
         </div>
 
         <div className="border border-lightGray rounded-lg p-4">
-          <SoulsWon soulsWon={souls} setSoulsWon={setSouls} />
+          <SoulsWon
+            soulsWon={souls}
+            setSoulsWon={setSouls}
+            addToSoul={addSoul}
+            editSoul={editSoul}
+          />
         </div>
       </div>
     </PageOutline>
