@@ -10,9 +10,9 @@ export function MemberInformation() {
 
   // Derive membership status for display
   const membershipType =
-    user.membership_type === "MEMBER"
+    user.membership_type === "ONLINE"
       ? "Online e-church family"
-      : "In-person church family";
+      : user.membership_type === "IN_HOUSE"? "In-person church family" :"";
 
   return (
     <div className="bg-white rounded-b-lg shadow-sm p-6 mx-auto text-gray-800 ">
@@ -88,30 +88,38 @@ export function MemberInformation() {
 
       {/* Church Information */}
       <Section title="Church Information">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 mt-4">
+          <InfoField
+          label="Date Joined"
+          value={
+            formatDate(user.member_since)
+          }
+        />
         <InfoField
           label="Ministry Worker Status"
           value={
             <span
               className={`px-3 py-1 rounded-full text-sm ${
-                user.isMinistryWorker
+                user.is_user
                   ? "bg-green-100 text-green-800"
                   : "bg-gray-100 text-gray-800"
               }`}
             >
-              {user.isMinistryWorker
+              {user.is_user
                 ? "Active Ministry Worker"
                 : "Not a Ministry Worker"}
             </span>
           }
         />
+        </div>
 
-        {user.isMinistryWorker && (
+        {user?.is_user && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 mt-4">
             <InfoField
               label="Ministry/Department"
-              value={user.ministryDepartment}
+              value={user?.department?.name}
             />
-            <InfoField label="Position" value={user.position} />
+            <InfoField label="Position" value={user?.position?.name} />
           </div>
         )}
       </Section>
@@ -165,9 +173,14 @@ interface IMemberInfo {
   primary_number: string;
   country_code: string;
   email: string;
-  isMinistryWorker: boolean;
-  ministryDepartment?: string;
-  position?: string;
+  is_user: boolean;
+  member_since: string;
+  department?: {
+    name:string
+  };
+  position?: {
+    name:string
+  };
   work_info: {
     name_of_institution: string;
     industry: string;
