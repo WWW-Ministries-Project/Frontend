@@ -117,8 +117,8 @@ const initialValues: LifeCenterType = {
   location: "",
   meeting_dates: [],
   name: "",
-  num_of_members: 0,
-  num_of_souls_won: 0,
+  totalMembers: 0,
+  totalSoulsWon: 0,
   id: "",
 };
 

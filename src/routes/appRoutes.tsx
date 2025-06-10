@@ -25,12 +25,13 @@ import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetM
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
-import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
-import { NoAccess } from "@/components/NoAccess.js";
-import { relativePath } from "@/utils/const.js";
+import { NoAccess } from "@/components/NoAccess";
+import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter.js";
+import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
+import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
 
 // Define a Route type
 export interface AppRoute {
@@ -230,6 +231,11 @@ export const routes: AppRoute[] = [
         name: "Life Centers",
         element: <LifeCenter />,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.lifeCenter.detail,
+        name: "Life Center",
+        element: <ViewLifeCenter />,
       },
       // {
       //   path: "ministry-school",

@@ -66,14 +66,14 @@ export const LifeCenterCard = ({
         )}
         <InfoRow
           icon="/src/assets/member.svg"
-          label={`${item.num_of_members || 0} Members`}
+          label={`${item.totalMembers || 0} Members`}
           name="member_icon"
         />
         <InfoRow
           label={
             <div className="flex">
               <VisitorIcon fillColor="red" className="text-[#786D8F]" />
-              <p>{`${item.num_of_souls_won || 0} Souls won`}</p>
+              <p>{`${item.totalSoulsWon || 0} Souls won`}</p>
             </div>
           }
           name="user_icon"
