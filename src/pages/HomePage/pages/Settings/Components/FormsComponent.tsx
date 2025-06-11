@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "../../../../../components";
 import { InputDiv } from "../../../Components/reusable/InputDiv";
-import SelectField from "../../../Components/reusable/SelectField";
+import { SelectField } from "../../../Components/reusable/SelectField";
 import TextField from "../../../Components/reusable/TextField";
 
 interface IProps {
@@ -92,10 +92,7 @@ export const FormsComponent = (props: IProps) => {
                 value={props.editMode ? "Update" : "Save"}
                 className="p-3 bg-primary text-white disabled:opacity-50"
                 onClick={onSubmit}
-                disabled={
-                  props.loading ||
-                  !props.inputValue.name
-                }
+                disabled={props.loading || !props.inputValue.name}
                 loading={props.loading}
               />
             </div>
