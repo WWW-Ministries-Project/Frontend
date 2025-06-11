@@ -6,6 +6,9 @@ import { object, string } from "yup";
 import FormikSelectField from "@/components/FormikSelect";
 import { useStore } from "@/store/useStore";
 import { useMemo } from "react";
+import { ContactInput, IContactInput } from "@/components/ContactInput";
+import { INameInfo, NameInfo } from "@/components/subform";
+import { CountryField } from "@/components/fields/CountryField";
 
 interface IProps {
   onSubmit: (values: ISoulsWonForm) => void;
@@ -35,34 +38,16 @@ export const SoulsWonForm = ({
       initialValues={initial}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        onSubmit(values);
+        // onSubmit(values);
+        console.log(values)
       }}
     >
       {({ handleSubmit }) => (
         <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw] p-6">
           <FormLayout>
             <FormHeader>{initial.id ? "Update" : "Add"} a Soul</FormHeader>
-            <Field
-              name="first_name"
-              component={FormikInputDiv}
-              label="First Name"
-              id="first_name"
-              placeholder="Enter first name"
-            />
-            <Field
-              name="last_name"
-              component={FormikInputDiv}
-              label="Last Name"
-              id="last_name"
-              placeholder="Enter last name"
-            />
-            <Field
-              name="contact_number"
-              component={FormikInputDiv}
-              label="Contact"
-              id="contact_number"
-              placeholder="Enter phone number"
-            />
+            <NameInfo prefix="name_info"/>
+            <ContactInput />
             <Field
               name="contact_email"
               component={FormikInputDiv}
@@ -70,13 +55,14 @@ export const SoulsWonForm = ({
               id="contact_email"
               placeholder="Email"
             />
-            <Field
+            {/* <Field
               name="country"
               component={FormikInputDiv}
               label="Country"
               id="country"
               placeholder="Enter country"
-            />
+            /> */}
+            <CountryField name="country"/>
             <Field
               name="city"
               component={FormikInputDiv}
@@ -124,12 +110,13 @@ export const SoulsWonForm = ({
     </Formik>
   );
 };
-export interface ISoulsWonForm {
-  first_name: string;
-  last_name: string;
-  contact_number: string;
+export interface ISoulsWonForm extends INameInfo {
+  // first_name: string;
+  // last_name: string;
+  
   contact_email: string;
   country: string;
+  phone: IContactInput
   city: string;
   date_won: string;
   wonById: string;
@@ -137,9 +124,10 @@ export interface ISoulsWonForm {
   lifeCenterId: string;
 }
 const initialValues: ISoulsWonForm = {
-  first_name: "",
-  last_name: "",
-  contact_number: "",
+  // first_name: "",
+  // last_name: "",
+  ...NameInfo.initialValues,
+  phone:ContactInput.initialValues,
   contact_email: "",
   country: "",
   city: "",
@@ -150,12 +138,14 @@ const initialValues: ISoulsWonForm = {
 };
 
 const validationSchema = object().shape({
-  first_name: string().required("required"),
-  last_name: string().required("required"),
-  contact_email: string().email().required("required"),
-  contact_number: string().required("required"),
-  country: string().required("required"),
-  city: string().required("required"),
-  date_won: string().required("required"),
-  wonById: string().required("required"),
+  // first_name: string().required("required"),
+  // last_name: string().required("required"),
+  // contact_email: string().email().required("required"),
+  // contact_number: string().required("required"),
+  // country: string().required("required"),
+  // city: string().required("required"),
+  // date_won: string().required("required"),
+  // wonById: string().required("required"),
+  // ...ContactInput.validationSchema
+  // ...NameInfo.validationSchema
 });

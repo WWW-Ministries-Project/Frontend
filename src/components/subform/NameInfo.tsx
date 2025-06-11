@@ -8,7 +8,7 @@ const NameInfoComponent = ({
   prefix,
 }: {
   disabled?: boolean;
-  prefix: string;
+  prefix?: string;
 }) => {
   return (
     <>
@@ -17,8 +17,8 @@ const NameInfoComponent = ({
         label="Title *"
         disabled={disabled}
         placeholder="Select title"
-        id={`${prefix}.title`}
-        name={`${prefix}.title`}
+        id={prefix ? `${prefix}.title` : "title"}
+        name={prefix ? `${prefix}.title` : "title"}
         options={titleOptions}
       />
       <Field
@@ -26,24 +26,24 @@ const NameInfoComponent = ({
         label="First Name"
         disabled={disabled}
         placeholder="Enter first name"
-        id={`${prefix}.first_name`}
-        name={`${prefix}.first_name`}
+        id={prefix ? `${prefix}.first_name` : "first_name"}
+        name={prefix ? `${prefix}.first_name` : "first_name"}
       />
       <Field
         component={FormikInputDiv}
         label="Other Name"
         placeholder="Enter other name"
         disabled={disabled}
-        id={`${prefix}.other_name`}
-        name={`${prefix}.other_name`}
+        id={prefix ? `${prefix}.other_name` : "other_name"}
+        name={prefix ? `${prefix}.other_name` : "other_name"}
       />
       <Field
         component={FormikInputDiv}
         label="Last Name *"
         placeholder="Enter last name"
         disabled={disabled}
-        id={`${prefix}.last_name`}
-        name={`${prefix}.last_name`}
+        id={prefix ? `${prefix}.last_name` : "last_name"}
+        name={prefix ? `${prefix}.last_name` : "last_name"}
       />
     </>
   );
