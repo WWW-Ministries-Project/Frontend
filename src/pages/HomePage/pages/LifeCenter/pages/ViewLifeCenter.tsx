@@ -23,14 +23,17 @@ export function ViewLifeCenter() {
     }
   }, [lifeCenterData?.soulsWon]);
 
-  const addSoul = (data: ISoulsWonForm) => {
-    const soulExist = souls.find((soul) => soul.id === data.id);
-    if (soulExist) return;
-    setSouls((prevSouls) => [data, ...prevSouls]);
-  };
+  const addSoul = useCallback((data: ISoulsWonForm) => {
+    setSouls((prevSouls) => {
+      if (prevSouls.find((soul) => soul.id === data.id)) return prevSouls;
+      return [data, ...prevSouls];
+    });
+  }, []);
 
   const editSoul = useCallback((item: ISoulsWonForm) => {
-    setSouls((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
+    setSouls((prevSouls) =>
+      prevSouls.map((soul) => (soul.id === item.id ? item : soul))
+    );
   }, []);
 
   return (
