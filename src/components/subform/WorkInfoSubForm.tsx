@@ -30,7 +30,7 @@ const WorkInfoSubFormComponent = ({
         options={employmentOptions}
         disabled={disabled}
       />
-      {employmentStatus === "employed" && (
+      {["employed", "self_employed", "retired"].includes(employmentStatus) && (
         <>
           <Field
             component={FormikInputDiv}
@@ -75,11 +75,13 @@ const WorkInfoSubFormComponent = ({
 const employmentOptions: OptionsType[] = [
   { name: "Student", value: "student" },
   { name: "Employed", value: "employed" },
+  { name: "Self employed", value: "self_employed" },
   { name: "Unemployed", value: "unemployed" },
+  { name: "Retired", value: "retired" },
 ];
 
 export interface IWorkInfoSubForm {
-  employment_status?: "student" | "employed" | "unemployed";
+  employment_status?: "student" | "employed" | "self_employed"| "unemployed"| "retired";
   work_name?: string;
   work_industry?: string;
   work_position?: string;
@@ -87,16 +89,16 @@ export interface IWorkInfoSubForm {
 }
 
 const initialValues: IWorkInfoSubForm = {
-  employment_status: "employed",
+  employment_status: "employed" ,
   work_name: "",
   work_industry: "",
   work_position: "",
   school_name: "",
 };
 const validationSchema = {
-  employment_status: string().oneOf(["student", "employed", "unemployed"]),
+  employment_status: string().oneOf(["student", "employed", "self_employed", "unemployed", "retired"]),
   work_name: string().when("employment_status", {
-    is: "employed",
+    is: (val: string) => ["employed", "self_employed", "retired"].includes(val),
     then: () => string().required("Required"),
   }),
   work_industry: string(),
