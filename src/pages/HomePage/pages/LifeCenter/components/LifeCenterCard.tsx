@@ -72,7 +72,7 @@ export const LifeCenterCard = ({
         <InfoRow
           label={
             <div className="flex">
-              <VisitorIcon fillColor="red" className="text-[#786D8F]" />
+              <VisitorIcon  className="text-[#786D8F]" />
               <p>{`${item.totalSoulsWon || 0} Souls won`}</p>
             </div>
           }
@@ -94,6 +94,6 @@ const InfoRow = ({
 }) => (
   <div className="flex items-center gap-1">
     {icon && <img src={icon} alt={name} className="size-5" />}
-    <p>{label}</p>
+    <div>{label}</div>
   </div>
 );
