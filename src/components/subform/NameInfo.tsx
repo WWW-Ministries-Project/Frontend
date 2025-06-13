@@ -1,3 +1,4 @@
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field } from "formik";
 import { string } from "yup";
 import { FormikInputDiv } from "../FormikInputDiv";
@@ -49,13 +50,13 @@ const NameInfoComponent = ({
   );
 };
 
-const titleOptions = [
-  { name: "Mr", value: "Mr" },
-  { name: "Mrs", value: "Mrs" },
-  { name: "Miss", value: "Miss" },
-  { name: "Doc", value: "Doc" },
-  { name: "Prof", value: "Prof" },
-  { name: "Pastor", value: "Pastor" },
+const titleOptions: ISelectOption[] = [
+  { label: "Mr", value: "Mr" },
+  { label: "Mrs", value: "Mrs" },
+  { label: "Miss", value: "Miss" },
+  { label: "Doc", value: "Doc" },
+  { label: "Prof", value: "Prof" },
+  { label: "Pastor", value: "Pastor" },
 ];
 
 export interface INameInfo {

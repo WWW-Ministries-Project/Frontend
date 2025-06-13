@@ -8,7 +8,7 @@ import { FormHeader, FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
-import { object } from "yup";
+import { object, string } from "yup";
 
 interface IProps {
   onSubmit: (values: ISoulsWonForm) => void;
@@ -30,15 +30,14 @@ export const SoulsWonForm = ({
       initialValues={initial}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        // onSubmit(values);
-        console.log(values);
+        onSubmit(values);
       }}
     >
       {({ handleSubmit }) => (
         <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw] p-6">
           <FormLayout>
             <FormHeader>{initial.id ? "Update" : "Add"} a Soul</FormHeader>
-            <NameInfo prefix="name_info" />
+            <NameInfo />
             <ContactInput />
             <Field
               name="contact_email"
@@ -51,7 +50,7 @@ export const SoulsWonForm = ({
             <Field
               name="city"
               component={FormikInputDiv}
-              label="City"
+              label="City *"
               id="city"
               placeholder="Enter city"
             />
@@ -59,7 +58,7 @@ export const SoulsWonForm = ({
               type="date"
               name="date_won"
               component={FormikInputDiv}
-              label="Date Won"
+              label="Date Won *"
               id="date_won"
               placeholder="Select date"
             />
@@ -67,7 +66,7 @@ export const SoulsWonForm = ({
               name="wonById"
               component={FormikSelectField}
               options={membersOptions}
-              label="Won By"
+              label="Won Byc *"
               id="wonById"
               placeholder="Soul won by"
             />
@@ -96,9 +95,6 @@ export const SoulsWonForm = ({
   );
 };
 export interface ISoulsWonForm extends INameInfo {
-  // first_name: string;
-  // last_name: string;
-
   contact_email: string;
   country: string;
   phone: IContactInput;
@@ -109,8 +105,6 @@ export interface ISoulsWonForm extends INameInfo {
   lifeCenterId: string;
 }
 const initialValues: ISoulsWonForm = {
-  // first_name: "",
-  // last_name: "",
   ...NameInfo.initialValues,
   phone: ContactInput.initialValues,
   contact_email: "",
@@ -123,14 +117,11 @@ const initialValues: ISoulsWonForm = {
 };
 
 const validationSchema = object().shape({
-  // first_name: string().required("required"),
-  // last_name: string().required("required"),
-  // contact_email: string().email().required("required"),
-  // contact_number: string().required("required"),
-  // country: string().required("required"),
-  // city: string().required("required"),
-  // date_won: string().required("required"),
-  // wonById: string().required("required"),
-  // ...ContactInput.validationSchema
-  // ...NameInfo.validationSchema
+  ...NameInfo.validationSchema,
+  contact_email: string().email(),
+  country: string().required("required"),
+  city: string().required("required"),
+  date_won: string().required("required"),
+  wonById: string().required("required"),
+  phone: object(ContactInput.validationSchema),
 });
