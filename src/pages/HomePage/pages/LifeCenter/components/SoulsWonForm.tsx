@@ -1,14 +1,14 @@
 import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import { FormHeader, FormLayout } from "@/components/ui";
-import { Field, Form, Formik } from "formik";
-import { object, string } from "yup";
-import FormikSelectField from "@/components/FormikSelect";
-import { useStore } from "@/store/useStore";
-import { useMemo } from "react";
 import { ContactInput, IContactInput } from "@/components/ContactInput";
-import { INameInfo, NameInfo } from "@/components/subform";
 import { CountryField } from "@/components/fields/CountryField";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
+import { INameInfo, NameInfo } from "@/components/subform";
+import { FormHeader, FormLayout } from "@/components/ui";
+import { useStore } from "@/store/useStore";
+import { Field, Form, Formik } from "formik";
+import { useMemo } from "react";
+import { object } from "yup";
 
 interface IProps {
   onSubmit: (values: ISoulsWonForm) => void;
@@ -22,15 +22,7 @@ export const SoulsWonForm = ({
   editData,
   loading,
 }: IProps) => {
-  const { members: allMembers } = useStore();
-  const members = useMemo(() => {
-    return Array.isArray(allMembers)
-      ? allMembers.map((event) => ({
-          name: event?.name,
-          value: event?.id,
-        }))
-      : [];
-  }, [allMembers]);
+  const { membersOptions } = useStore();
 
   const initial = useMemo(() => editData || initialValues, [editData]);
   return (
@@ -39,14 +31,14 @@ export const SoulsWonForm = ({
       validationSchema={validationSchema}
       onSubmit={(values) => {
         // onSubmit(values);
-        console.log(values)
+        console.log(values);
       }}
     >
       {({ handleSubmit }) => (
         <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw] p-6">
           <FormLayout>
             <FormHeader>{initial.id ? "Update" : "Add"} a Soul</FormHeader>
-            <NameInfo prefix="name_info"/>
+            <NameInfo prefix="name_info" />
             <ContactInput />
             <Field
               name="contact_email"
@@ -55,14 +47,7 @@ export const SoulsWonForm = ({
               id="contact_email"
               placeholder="Email"
             />
-            {/* <Field
-              name="country"
-              component={FormikInputDiv}
-              label="Country"
-              id="country"
-              placeholder="Enter country"
-            /> */}
-            <CountryField name="country"/>
+            <CountryField name="country" />
             <Field
               name="city"
               component={FormikInputDiv}
@@ -81,7 +66,7 @@ export const SoulsWonForm = ({
             <Field
               name="wonById"
               component={FormikSelectField}
-              options={members}
+              options={membersOptions}
               label="Won By"
               id="wonById"
               placeholder="Soul won by"
@@ -113,10 +98,10 @@ export const SoulsWonForm = ({
 export interface ISoulsWonForm extends INameInfo {
   // first_name: string;
   // last_name: string;
-  
+
   contact_email: string;
   country: string;
-  phone: IContactInput
+  phone: IContactInput;
   city: string;
   date_won: string;
   wonById: string;
@@ -127,7 +112,7 @@ const initialValues: ISoulsWonForm = {
   // first_name: "",
   // last_name: "",
   ...NameInfo.initialValues,
-  phone:ContactInput.initialValues,
+  phone: ContactInput.initialValues,
   contact_email: "",
   country: "",
   city: "",

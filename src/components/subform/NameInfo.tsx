@@ -72,10 +72,10 @@ const initialValues: INameInfo = {
   last_name: "",
 };
 const validationSchema = {
-  title: string().required("Title is required"),
+  title: string().required("required"),
   first_name: string(),
   other_name: string(),
-  last_name: string().required("Last name is required"),
+  last_name: string().required(" required"),
 };
 export const NameInfo = Object.assign(NameInfoComponent, {
   initialValues,

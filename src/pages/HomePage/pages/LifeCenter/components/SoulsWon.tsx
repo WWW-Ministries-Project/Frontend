@@ -20,7 +20,7 @@ import {
 
 import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
 
-interface Props {
+interface IProps {
   soulsWon: ISoulsWonForm[];
   setSoulsWon: React.Dispatch<React.SetStateAction<ISoulsWonForm[]>>;
   addToSoul: (soul: ISoulsWonForm) => void;
@@ -32,7 +32,7 @@ export function SoulsWon({
   setSoulsWon,
   addToSoul,
   editSoul,
-}: Props) {
+}: IProps) {
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [openModal, setOpenModal] = useState(false);
   const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);

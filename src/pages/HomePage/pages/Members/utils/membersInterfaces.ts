@@ -1,3 +1,5 @@
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+
 export interface UserType {
   id: number;
   name: string;
@@ -73,20 +75,16 @@ export type UserStats = {
   online: statsType;
   inhouse: statsType;
 };
-export interface OptionsType {
-  name: string;
-  value: string;
-}
 
 export interface MemberSlice {
   members: UserType[];
-  membersOptions: OptionsType[];
+  membersOptions: ISelectOption[];
   userStats: UserStats;
   addMember: (member: UserType) => void;
   removeMember: (memberId: number | string) => void;
   updateMember: (updatedMember: UserType) => void;
   setMembers: (members: UserType[]) => void;
-  setMemberOptions: (memberOptions: OptionsType[]) => void;
+  setMemberOptions: (memberOptions: ISelectOption[]) => void;
   setUserStats: (userStats: UserStats) => void;
 }
 
