@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { countryType, ISelectOption, RestCountryAPIResponse } from "../utils/homeInterfaces";
+import {
+  countryType,
+  ISelectOption,
+  RestCountryAPIResponse,
+} from "../utils/homeInterfaces";
 
 interface CountrySlice {
   countries: RestCountryAPIResponse[];
@@ -56,12 +60,13 @@ export const useCountryStore = create<CountrySlice>()(
     }),
 
     {
-      name: "country-storage_v2",
+      name: "country-storage",
       partialize: (state) => ({
         // countries: state.countries,
         dialOptions: state.dialOptions,
         countryOptions: state.countryOptions,
       }),
+      version: 2,
       // storage: createJSONStorage(() => sessionStorage), // Uncomment to use sessionStorage
     }
   )
