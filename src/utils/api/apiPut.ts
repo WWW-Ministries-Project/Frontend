@@ -14,6 +14,7 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { LifeCenterType } from "./lifeCenter/interfaces";
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -211,6 +212,17 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<LifeCenterType>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-lifecenter",
+      payload,
+      query
+    );
+  };
+
+  updateSoul = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<ISoulsWonForm>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/soulwon",
       payload,
       query
     );

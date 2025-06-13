@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { countryType, RestCountryAPIResponse } from "../utils/homeInterfaces";
+import { countryType, ISelectOption, RestCountryAPIResponse } from "../utils/homeInterfaces";
 
 interface CountrySlice {
   countries: RestCountryAPIResponse[];
   dialOptions: countryType[];
   setCountries: (country: RestCountryAPIResponse[]) => void;
-  countryOptions: Array<{ name: string; value: string }>;
+  countryOptions: ISelectOption[];
   setCountryOptions: () => void;
   setDialOptions: () => void;
 }
@@ -28,7 +28,7 @@ export const useCountryStore = create<CountrySlice>()(
       setCountryOptions: () => {
         set(({ countries }) => ({
           countryOptions: countries.map((country: RestCountryAPIResponse) => ({
-            name: country.name?.common ?? "Unknown",
+            label: country.name?.common ?? "Unknown",
             value: country.name?.common ?? "Unknown",
           })),
         }));
@@ -56,7 +56,7 @@ export const useCountryStore = create<CountrySlice>()(
     }),
 
     {
-      name: "country-storage",
+      name: "country-storage_v2",
       partialize: (state) => ({
         // countries: state.countries,
         dialOptions: state.dialOptions,

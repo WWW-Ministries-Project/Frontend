@@ -24,6 +24,8 @@ const icons = {
   Settings: SettingsIcon,
   Requests: RequestIcon,
   "School of Ministry": MinistrySchoolIcon,
+  "Life Centers": VisitorIcon,
+
 };
 
 const SideBarMobile = ({ show, ...props }) => {

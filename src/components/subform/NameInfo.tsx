@@ -1,3 +1,4 @@
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field } from "formik";
 import { string } from "yup";
 import { FormikInputDiv } from "../FormikInputDiv";
@@ -8,7 +9,7 @@ const NameInfoComponent = ({
   prefix,
 }: {
   disabled?: boolean;
-  prefix: string;
+  prefix?: string;
 }) => {
   return (
     <>
@@ -17,8 +18,8 @@ const NameInfoComponent = ({
         label="Title *"
         disabled={disabled}
         placeholder="Select title"
-        id={`${prefix}.title`}
-        name={`${prefix}.title`}
+        id={prefix ? `${prefix}.title` : "title"}
+        name={prefix ? `${prefix}.title` : "title"}
         options={titleOptions}
       />
       <Field
@@ -26,36 +27,36 @@ const NameInfoComponent = ({
         label="First Name"
         disabled={disabled}
         placeholder="Enter first name"
-        id={`${prefix}.first_name`}
-        name={`${prefix}.first_name`}
+        id={prefix ? `${prefix}.first_name` : "first_name"}
+        name={prefix ? `${prefix}.first_name` : "first_name"}
       />
       <Field
         component={FormikInputDiv}
         label="Other Name"
         placeholder="Enter other name"
         disabled={disabled}
-        id={`${prefix}.other_name`}
-        name={`${prefix}.other_name`}
+        id={prefix ? `${prefix}.other_name` : "other_name"}
+        name={prefix ? `${prefix}.other_name` : "other_name"}
       />
       <Field
         component={FormikInputDiv}
         label="Last Name *"
         placeholder="Enter last name"
         disabled={disabled}
-        id={`${prefix}.last_name`}
-        name={`${prefix}.last_name`}
+        id={prefix ? `${prefix}.last_name` : "last_name"}
+        name={prefix ? `${prefix}.last_name` : "last_name"}
       />
     </>
   );
 };
 
-const titleOptions = [
-  { name: "Mr", value: "Mr" },
-  { name: "Mrs", value: "Mrs" },
-  { name: "Miss", value: "Miss" },
-  { name: "Doc", value: "Doc" },
-  { name: "Prof", value: "Prof" },
-  { name: "Pastor", value: "Pastor" },
+const titleOptions: ISelectOption[] = [
+  { label: "Mr", value: "Mr" },
+  { label: "Mrs", value: "Mrs" },
+  { label: "Miss", value: "Miss" },
+  { label: "Doc", value: "Doc" },
+  { label: "Prof", value: "Prof" },
+  { label: "Pastor", value: "Pastor" },
 ];
 
 export interface INameInfo {
@@ -72,10 +73,10 @@ const initialValues: INameInfo = {
   last_name: "",
 };
 const validationSchema = {
-  title: string().required("Title is required"),
+  title: string().required("required"),
   first_name: string(),
   other_name: string(),
-  last_name: string().required("Last name is required"),
+  last_name: string().required(" required"),
 };
 export const NameInfo = Object.assign(NameInfoComponent, {
   initialValues,

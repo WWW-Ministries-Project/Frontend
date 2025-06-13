@@ -1,3 +1,4 @@
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
@@ -109,5 +110,11 @@ export class ApiCreationCalls {
     payload: LifeCenterType
   ): Promise<ApiResponse<LifeCenterType>> => {
     return this.postToApi("lifecenter/create-lifecenter", payload);
+  };
+
+ createSoul = (
+    payload: ISoulsWonForm
+  ): Promise<ApiResponse<undefined>> => {
+    return this.postToApi("lifecenter/soulwon", payload);
   };
 }

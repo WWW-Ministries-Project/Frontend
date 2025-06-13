@@ -1,3 +1,5 @@
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
+
 export type LifeCenterType = {
   name: string;
   description: string;
@@ -22,5 +24,5 @@ export type SoulsWonType = {
 
 export interface LifeCenterDetailsType extends LifeCenterType{
   members:{name:string; role:string}[]
-  soulsWon:SoulsWonType[]
+  soulsWon:ISoulsWonForm[]
 }

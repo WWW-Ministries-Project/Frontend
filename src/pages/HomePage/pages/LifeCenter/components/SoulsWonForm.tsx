@@ -1,66 +1,56 @@
 import { Button } from "@/components";
+import { ContactInput, IContactInput } from "@/components/ContactInput";
+import { CountryField } from "@/components/fields/CountryField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
+import { INameInfo, NameInfo } from "@/components/subform";
 import { FormHeader, FormLayout } from "@/components/ui";
+import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
+import { useMemo } from "react";
 import { object, string } from "yup";
 
 interface IProps {
   onSubmit: (values: ISoulsWonForm) => void;
   onClose: () => void;
+  editData: ISoulsWonForm | null;
+  loading: boolean;
 }
-export const SoulsWonForm = ({ onSubmit, onClose }: IProps) => {
+export const SoulsWonForm = ({
+  onSubmit,
+  onClose,
+  editData,
+  loading,
+}: IProps) => {
+  const { membersOptions } = useStore();
+
+  const initial = useMemo(() => editData || initialValues, [editData]);
   return (
     <Formik
-      initialValues={initialValues}
+      initialValues={initial}
       validationSchema={validationSchema}
-      onSubmit={(values, { resetForm }) => {
+      onSubmit={(values) => {
         onSubmit(values);
-        resetForm();
       }}
     >
-      {({ isSubmitting, handleSubmit }) => (
+      {({ handleSubmit }) => (
         <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw] p-6">
           <FormLayout>
-            <FormHeader>Add a Soul</FormHeader>
-            <Field
-              name="first_name"
-              component={FormikInputDiv}
-              label="First Name"
-              id="first_name"
-              placeholder="Enter first name"
-            />
-            <Field
-              name="last_name"
-              component={FormikInputDiv}
-              label="Last Name"
-              id="last_name"
-              placeholder="Enter last name"
-            />
-            <Field
-              name="contact_number"
-              component={FormikInputDiv}
-              label="Contact"
-              id="contact"
-              placeholder="Enter phone number"
-            />
+            <FormHeader>{initial.id ? "Update" : "Add"} a Soul</FormHeader>
+            <NameInfo />
+            <ContactInput />
             <Field
               name="contact_email"
               component={FormikInputDiv}
               label="Email"
-              id="email"
+              id="contact_email"
               placeholder="Email"
             />
-            <Field
-              name="country"
-              component={FormikInputDiv}
-              label="Country"
-              id="location"
-              placeholder="Enter country"
-            />
+            <CountryField name="country" />
             <Field
               name="city"
               component={FormikInputDiv}
-              label="City"
+              label="City *"
               id="city"
               placeholder="Enter city"
             />
@@ -68,30 +58,32 @@ export const SoulsWonForm = ({ onSubmit, onClose }: IProps) => {
               type="date"
               name="date_won"
               component={FormikInputDiv}
-              label="Date Won"
+              label="Date Won *"
               id="date_won"
               placeholder="Select date"
             />
             <Field
-              name="won_by"
-              component={FormikInputDiv}
-              label="Won By"
-              id="won_by"
-              placeholder="Enter name of person who won the soul"
+              name="wonById"
+              component={FormikSelectField}
+              options={membersOptions}
+              label="Won Byc *"
+              id="wonById"
+              placeholder="Soul won by"
             />
           </FormLayout>
 
           <div className="flex items-center justify-end gap-3">
             <Button
               type="submit"
-              disabled={isSubmitting}
-              value="Save"
+              disabled={loading}
+              value={initial.id ? "Update" : "Save"}
               variant="primary"
               onClick={handleSubmit}
+              loading={loading}
             />
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={loading}
               value="Cancel"
               variant="secondary"
               onClick={onClose}
@@ -102,36 +94,34 @@ export const SoulsWonForm = ({ onSubmit, onClose }: IProps) => {
     </Formik>
   );
 };
-export interface ISoulsWonForm {
-  first_name: string;
-  last_name: string;
-  contact_number: string;
+export interface ISoulsWonForm extends INameInfo {
   contact_email: string;
   country: string;
+  phone: IContactInput;
   city: string;
   date_won: string;
-  won_by: string;
-  id?: string;
+  wonById: string;
+  id: string;
+  lifeCenterId: string;
 }
 const initialValues: ISoulsWonForm = {
-  first_name: "",
-  last_name: "",
-  contact_number: "",
+  ...NameInfo.initialValues,
+  phone: ContactInput.initialValues,
   contact_email: "",
   country: "",
   city: "",
   date_won: "",
-  won_by: "",
+  wonById: "",
   id: "",
+  lifeCenterId: "",
 };
 
 const validationSchema = object().shape({
-  first_name: string().required("required"),
-  last_name: string().required("required"),
-  contact_email: string().email().required("required"),
-  contact_number: string().required("required"),
+  ...NameInfo.validationSchema,
+  contact_email: string().email(),
   country: string().required("required"),
   city: string().required("required"),
   date_won: string().required("required"),
-  won_by: string().required("required"),
+  wonById: string().required("required"),
+  phone: object(ContactInput.validationSchema),
 });
