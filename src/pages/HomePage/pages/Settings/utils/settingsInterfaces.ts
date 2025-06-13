@@ -7,7 +7,7 @@ export interface Department {
 }
 
 export interface DepartmentOption {
-  name: string;
+  label: string;
   value: number;
 }
 
@@ -27,7 +27,7 @@ export interface Position {
 }
 
 export interface PositionOption {
-  title: string;
+  label: string;
   value: number;
 }
 
@@ -35,7 +35,7 @@ export interface PositionSlice {
   positions: Position[];
   positionsOptions: PositionOption[];
   addPosition: (position: Position) => void;
-  removePosition: (positionId: number) => void;
+  removePosition: (positionId: number | string) => void;
   updatePosition: (updatedPosition: Position) => void;
   setPositions: (positions: Position[]) => void;
   setPositionsOptions: () => void;
