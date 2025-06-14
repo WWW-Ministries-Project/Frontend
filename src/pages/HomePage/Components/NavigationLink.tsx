@@ -1,25 +1,21 @@
-import React from "react";
+import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 
-interface INavigationLinkProps {
+interface IProps {
   item: { path: string; name: string };
   show: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   justifyCenter?: boolean;
 }
 
-
-
-export default function NavigationLink({
+export function NavigationLink({
   item,
   show,
   children,
   justifyCenter = true,
-}: INavigationLinkProps) {
+}: IProps) {
   return (
     <div>
-      
-
       <NavLink
         to={item.path}
         key={item.path + item.name}
@@ -31,7 +27,6 @@ export default function NavigationLink({
       >
         {children}
       </NavLink>
-      
     </div>
   );
 }
