@@ -1,7 +1,11 @@
 import { HeaderControls } from "@/components/HeaderControls";
+import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
 import { useCallback, useEffect, useState } from "react";
@@ -9,11 +13,7 @@ import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog } from "../../utils";
 import { LifeCenterCard } from "./components/LifeCenterCard";
-import Modal from "@/components/Modal";
 import { LifeCenterForm } from "./components/LifeCenterForm";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 
 export function LifeCenter() {
   const [selectedTab, setSelectedTab] = useState("Life Center");
@@ -57,20 +57,20 @@ export function LifeCenter() {
   const editItem = useCallback((item: LifeCenterType) => {
     setLifeCenters((prev) => prev.map((lc) => (lc.id === item.id ? item : lc)));
     setOpenModal(false);
-  },[])
+  }, []);
 
- const handleMutate = async (data: LifeCenterType) => {
-  try {
-    if (currentData) {
-      await updateData(data, { id: currentData.id });
-      setCurrentData(data);
-    } else {
-      await postData(data);
+  const handleMutate = async (data: LifeCenterType) => {
+    try {
+      if (currentData) {
+        await updateData(data, { id: currentData.id });
+        setCurrentData(data);
+      } else {
+        await postData(data);
+      }
+    } catch (error) {
+      showNotification("Something went wrong", "error");
     }
-  } catch (error) {
-    showNotification("Something went wrong", "error");
-  }
-};
+  };
 
   const addToList = (item: LifeCenterType) => {
     setLifeCenters((prev) => [item, ...prev]);
@@ -102,9 +102,9 @@ export function LifeCenter() {
   };
 
   const handleModalOpenForCreate = () => {
-  setCurrentData(null);
-  setOpenModal(true);
-};
+    setCurrentData(null);
+    setOpenModal(true);
+  };
 
   return (
     <PageOutline>

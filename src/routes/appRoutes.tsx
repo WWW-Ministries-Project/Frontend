@@ -7,7 +7,6 @@ import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberIn
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import { ViewUser } from "@/pages/HomePage/pages/Users/pages/ViewUser";
@@ -28,10 +27,10 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
-import { relativePath } from "@/utils/const";
-import { ReactNode } from "react";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
+import { relativePath } from "@/utils/const";
+import { ReactNode } from "react";
 
 // Define a Route type
 export interface AppRoute {
@@ -253,11 +252,11 @@ export const routes: AppRoute[] = [
       //   name: "View Cohort",
       //   element: <ViewCohort />,
       // },
-      {
-        path: "ministry-school/programs/:id/cohort/:id/class/:id",
-        name: "View Class",
-        element: <ViewClass />,
-      },
+      // {
+      //   path: "ministry-school/programs/:id/cohort/:id/class/:id",
+      //   name: "View Class",
+      //   element: <ViewClass />,
+      // },
       // {
       //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
       //   name: "View Student",

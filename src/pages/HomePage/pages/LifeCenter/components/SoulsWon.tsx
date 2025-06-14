@@ -1,22 +1,22 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import { HeaderControls } from "@/components/HeaderControls";
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
+import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
+import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 
-import { api } from "@/utils/api/apiCalls";
 import {
   decodeQuery,
   showDeleteDialog,
   showNotification,
 } from "@/pages/HomePage/utils";
+import { api } from "@/utils/api/apiCalls";
 
 import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
 
