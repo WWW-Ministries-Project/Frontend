@@ -1,4 +1,4 @@
-import { ProfilePicture } from "@/components";
+import { Button, ProfilePicture } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
@@ -15,14 +15,19 @@ import {
   UserSubForm,
   WorkInfoSubForm,
 } from "@components/subform";
-import { Field, useFormikContext } from "formik";
+import { Field, FieldArray, useFormikContext } from "formik";
 import { useEffect } from "react";
-import { boolean, date, object, string } from "yup";
+import { array, boolean, date, object, string } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { RadioInput } from "./RadioInput";
 
 interface IProps {
   disabled?: boolean;
+}
+
+interface IDepartmentPosition {
+  department_name: string;
+  position_name: string;
 }
 
 const MembersFormComponent = ({ disabled = false }: IProps) => {
@@ -33,11 +38,16 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
   useEffect(() => {
     if (!values.is_user) {
-      setFieldValue("church_info.position_id", "");
-      setFieldValue("church_info.department_id", "");
+      setFieldValue("department_positions", []);
+    } else {
+      // Ensure at least one department-position entry exists when user becomes a ministry worker
+      if (!values.department_positions || values.department_positions.length === 0) {
+        setFieldValue("department_positions", [{ department_name: "", position_name: "" }]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.is_user]);
+
   useEffect(() => {
     if (has_children) {
       setFieldValue("children", initialValues.children);
@@ -46,6 +56,20 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [has_children]);
+
+  const addDepartmentPosition = () => {
+    const currentDepartmentPositions = values.department_positions || [];
+    setFieldValue("department_positions", [
+      ...currentDepartmentPositions,
+      { department_name: "", position_name: "" }
+    ]);
+  };
+
+  const removeDepartmentPosition = (index: number) => {
+    const currentDepartmentPositions = values.department_positions || [];
+    const updated = currentDepartmentPositions.filter((_, i) => i !== index);
+    setFieldValue("department_positions", updated);
+  };
 
   return (
     <FormLayout>
@@ -93,39 +117,6 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         ]}
         disabled={disabled}
       />
-      <FullWidth>
-        <div className="flex flex-col">
-          <p className="text-dark900 leading-5 mb-2">
-            Is this member a ministry worker?
-          </p>
-          <RadioInput name="is_user" />
-        </div>
-      </FullWidth>
-
-      {values.is_user && (
-        <Field
-          component={FormikSelectField}
-          label="Ministry/Department"
-          id="church_info.department_id"
-          name="church_info.department_id"
-          placeholder="Select department"
-          options={departmentsOptions || []}
-          disabled={disabled}
-        />
-      )}
-
-      {values.is_user && (
-        <Field
-          component={FormikSelectField}
-          label="Position"
-          id="church_info.position_id"
-          name="church_info.position_id"
-          placeholder="Select position"
-          options={positionsOptions || []}
-          disabled={disabled}
-          parse={(value: string) => parseInt(value, 10)}
-        />
-      )}
       <Field
         component={FormikInputDiv}
         label="Date joined"
@@ -136,6 +127,93 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         max={new Date().toISOString().split("T")[0]}
         disabled={disabled}
       />
+      <FullWidth>
+        <div className="flex flex-col">
+          <p className="text-dark900 leading-5 mb-2">
+            Is this member a ministry worker?
+          </p>
+          <RadioInput name="is_user" />
+        </div>
+      </FullWidth>
+
+      {values.is_user && (
+        <>
+          <FormHeader>Ministry/Department & Positions</FormHeader>
+          {/* <FullWidth> */}
+          <FieldArray name="department_positions">
+            {({ push, remove }) => (
+              <FullWidth>
+              <div className="space-y-4   w-full">
+                <div className="space-y-4">
+                  {values.department_positions?.map((_, index) => (
+                  <div key={index} className="border  rounded-lg p-3 relative w-full">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-700">
+                        {/* Ministry/Department {index + 1} */}
+                      </h4>
+                      {values.department_positions!.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            remove(index);
+                            removeDepartmentPosition(index);
+                          }}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                          disabled={disabled}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field
+                        component={FormikSelectField}
+                        label="Ministry/Department"
+                        id={`department_positions.${index}.department_name`}
+                        name={`department_positions.${index}.department_name`}
+                        placeholder="Select department"
+                        options={departmentsOptions || []}
+                        disabled={disabled}
+                      />
+                      
+                      <Field
+                        component={FormikSelectField}
+                        label="Position"
+                        id={`department_positions.${index}.position_name`}
+                        name={`department_positions.${index}.position_name`}
+                        placeholder="Select position"
+                        options={positionsOptions || []}
+                        disabled={disabled}
+                      />
+                    </div>
+                  </div>
+                ))}
+                </div>
+                
+              
+                  <div className="flex justify-end w-full">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        push({ department_name: "", position_name: "" });
+                        addDepartmentPosition();
+                      }}
+                      className="hover:underline"
+                      disabled={disabled}
+                    >
+                      Add Another Ministry/Department & Position
+                    </button>
+                  </div>
+                
+              </div>
+              </FullWidth>
+            )}
+          </FieldArray>
+          {/* </FullWidth> */}
+        </>
+      )}
+      
       <HorizontalLine />
 
       <WorkInfoSubForm disabled={disabled} prefix="work_info" />
@@ -158,10 +236,9 @@ export interface IMembersForm extends IChildrenSubForm {
   church_info: {
     member_since?: string;
     membership_type: membersType;
-    department_id?: number | string;
-    position_id?: number | string;
   };
   is_user: boolean;
+  department_positions: IDepartmentPosition[];
 }
 
 const initialValues: IMembersForm = {
@@ -177,11 +254,11 @@ const initialValues: IMembersForm = {
   church_info: {
     member_since: undefined,
     membership_type: "IN_HOUSE",
-    department_id: undefined,
-    position_id: undefined,
   },
+  department_positions: [{ department_name: "", position_name: "" }],
   ...ChildrenSubForm.initialValues,
 };
+
 const validationSchema = {
   personal_info: object(UserSubForm.validationSchema),
   contact_info: object(ContactsSubForm.validationSchema),
@@ -191,14 +268,18 @@ const validationSchema = {
   church_info: object().shape({
     member_since: date().max(new Date()),
     membership_type: string().required("Required"),
-    department_id: string().when("is_user", {
-      is: true,
-      then: () => string().required("Required"),
-    }),
-    position_id: string().when("is_user", {
-      is: true,
-      then: () => string().required("Required"),
-    }),
+  }),
+  department_positions: array().when("is_user", {
+    is: true,
+    then: () => array()
+      .of(
+        object().shape({
+          department_name: string().required("Department is required"),
+          position_name: string().required("Position is required"),
+        })
+      )
+      .min(1, "At least one department and position is required"),
+    otherwise: () => array(),
   }),
   ...ChildrenSubForm.validationSchema,
 };

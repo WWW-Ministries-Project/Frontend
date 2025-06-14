@@ -54,9 +54,24 @@ const titleOptions: ISelectOption[] = [
   { label: "Mr", value: "Mr" },
   { label: "Mrs", value: "Mrs" },
   { label: "Miss", value: "Miss" },
-  { label: "Doc", value: "Doc" },
+  { label: "Ms", value: "Ms" },
+  { label: "Dr", value: "Dr" },
   { label: "Prof", value: "Prof" },
   { label: "Pastor", value: "Pastor" },
+  { label: "Apostle", value: "Apostle" },
+  { label: "Prophet", value: "Prophet" },
+  { label: "Evangelist", value: "Evangelist" },
+  { label: "Teacher", value: "Teacher" },
+  { label: "Bishop", value: "Bishop" },
+  { label: "Rev", value: "Rev" },
+  { label: "Elder", value: "Elder" },
+  { label: "Deacon", value: "Deacon" },
+  { label: "Deaconess", value: "Deaconess" },
+  { label: "Minister", value: "Minister" },
+  { label: "Hon", value: "Hon" },
+  { label: "Sir", value: "Sir" },
+  { label: "Lady", value: "Lady" },
+  { label: "Dame", value: "Dame" }
 ];
 
 export interface INameInfo {
