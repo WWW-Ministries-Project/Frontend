@@ -3,6 +3,7 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 // import useState from "react-usestateref";
+import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete.tsx";
 import { usePost } from "@/CustomHooks/usePost.tsx";
 import { usePut } from "@/CustomHooks/usePut.tsx";
@@ -315,7 +316,25 @@ function Settings() {
           setFilter={setFilter}
         />
       </section>
-      {displayForm && <FormsComponent className={`  ${displayForm ? "translate-x-0" : "translate-x-full"}`} selectOptions={selectOptions} selectId={selectedId} inputValue={inputValue} inputId={"name"} inputLabel={selectedTab} onChange={handleChange} CloseForm={handleCloseForm} onSubmit={handleFormSubmit} loading={departmentUpdateLoading || positionUpdateLoading || departmentLoading || positionLoading} selectLabel={selectLabel} editMode={editMode} />}
+      <Modal open={displayForm} persist={false} onClose={handleCloseForm}>
+        <FormsComponent
+          selectOptions={selectOptions}
+          selectId={selectedId}
+          inputValue={inputValue}
+          inputLabel={selectedTab}
+          onChange={handleChange}
+          CloseForm={handleCloseForm}
+          onSubmit={handleFormSubmit}
+          loading={
+            departmentUpdateLoading ||
+            positionUpdateLoading ||
+            departmentLoading ||
+            positionLoading
+          }
+          selectLabel={selectLabel}
+          editMode={editMode}
+        />
+      </Modal>
     </PageOutline>
   );
 }
