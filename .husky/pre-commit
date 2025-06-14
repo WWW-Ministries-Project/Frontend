@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!"C:/Program Files/Git/bin/bash.exe"
 . "$(dirname -- "$0")/_/husky.sh"
 
 echo "checking staged files"

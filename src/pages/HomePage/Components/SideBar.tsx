@@ -1,7 +1,7 @@
 import { logOut } from "@/pages/Authentication/utils/helpers";
 import { sideTabs } from "@/routes/appRoutes";
 import { removeToken } from "@/utils/helperFunctions";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
 import NavigationLink from "./NavigationLink";
@@ -17,6 +17,7 @@ import RequestIcon from "@/assets/sidebar/RequestIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
+import LifeCenterIcon from "@/assets/sidebar/LifeCenterIcon";
 
 interface IProps {
   className?: string;
@@ -37,7 +38,7 @@ const icons: Record<
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
-  "Life Centers": UsersIcon,
+  "Life Centers": LifeCenterIcon,
 };
 
 const SideBar = ({ className }: IProps) => {
@@ -51,23 +52,41 @@ const SideBar = ({ className }: IProps) => {
   const hoverTimerRef = useRef<number | null>(null);
   const hoverDelayMs = 300;
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
     }
     hoverTimerRef.current = setTimeout(() => {
       setIsExpanded(true);
     }, hoverDelayMs);
-  };
+  }, [hoverDelayMs]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
     setIsExpanded(false);
-  };
+  }, []);
 
+  const handleLogOut = useCallback(() => {
+    removeToken();
+    logOut();
+    navigate("/login");
+  }, [navigate]);
+
+  const toggleSubMenu = useCallback((menuName: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [menuName]: !prev[menuName],
+    }));
+  }, []);
+
+  const closeAllSubMenus = useCallback(() => {
+    setOpenMenus({});
+  }, []);
+
+  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (hoverTimerRef.current) {
@@ -76,77 +95,72 @@ const SideBar = ({ className }: IProps) => {
     };
   }, []);
 
-  const handleLogOut = () => {
-    removeToken();
-    logOut();
-    navigate("/login");
-  };
-
-  const toggleSubMenu = (menuName: string) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [menuName]: !prev[menuName],
-    }));
-  };
-
-  const closeAllSubMenus = () => {
-    setOpenMenus({});
-  };
-
+  // Close submenus when location changes
   useEffect(() => {
     closeAllSubMenus();
+  }, [location.pathname, closeAllSubMenus]);
+
+  // Set active menu as open
+  useEffect(() => {
+    sideTabs.forEach((item) => {
+      const isActive =
+        location.pathname === item.path ||
+        location.pathname.startsWith(item.path + "/") ||
+        (item.path !== "/" && location.pathname.includes(item.path));
+
+      if (isActive && item.children && item.name) {
+        setOpenMenus((prev) => ({
+          ...prev,
+          [item.name!]: true,
+        }));
+      }
+    });
   }, [location.pathname]);
 
   return (
     <div
-      className={`h-screen flex flex-col justify-between transition-all duration-300 ${
+      className={`h-screen flex flex-col justify-between transition-all duration-300 bg-white  ${
         isExpanded ? "w-64" : "w-16"
       } ${className || ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex flex-col space-y-2 py-4">
-        {sideTabs.map(
-          (item) => {
-            const IconComponent = icons[item.name!];
-            if (!IconComponent) return null;
-            if (item.isPrivate && !permissions[item.permissionNeeded])
-              return null;
+      <div className="flex flex-col space-y-2 py-4 flex-1 overflow-y-auto">
+        {sideTabs
+          .filter((item) => {
+            // Filter out items that don't have required permissions
+            if (item.isPrivate && !permissions?.[item.permissionNeeded]) {
+              return false;
+            }
+            return true;
+          })
+          .map((item) => {
+            const IconComponent = item.name ? icons[item.name] : null;
+            if (!IconComponent || !item.name) return null;
 
             const isActive =
               location.pathname === item.path ||
-              location.pathname.startsWith(item.path) ||
-              location.pathname.includes(item.path);
-
-            useEffect(() => {
-              if (isActive && item.children) {
-                setOpenMenus((prev) => ({
-                  ...prev,
-                  [item.name]: true,
-                }));
-              }
-            }, [isActive, item.name, item.children]);
+              location.pathname.startsWith(item.path + "/") ||
+              (item.path !== "/" && location.pathname.includes(item.path));
 
             return (
               <div key={item.name} className="cursor-pointer">
                 {item.children ? (
                   <div>
-                    {(isActive || openMenus[item.name!]) && (
+                    {(isActive || openMenus[item.name]) && (
                       <div className="flex justify-end">
                         <div className="shape"></div>
                       </div>
                     )}
-                    {/* TODO: fix this before production */}
                     <SideBarSubMenu
                       item={item}
                       parentPath={item.path}
                       show={isExpanded}
                       showChildren={openMenus[item.name] || false}
-                      toggleSubMenu={() => toggleSubMenu(item.name)}
+                      toggleSubMenu={() => toggleSubMenu(item.name!)}
                     >
                       <IconComponent className="w-6 h-6 text-gray-600" />
                     </SideBarSubMenu>
-
                     {(isActive || openMenus[item.name]) && (
                       <div className="flex justify-end">
                         <div className="Bshape"></div>
@@ -160,7 +174,6 @@ const SideBar = ({ className }: IProps) => {
                         <div className="shape"></div>
                       </div>
                     )}
-
                     <NavigationLink item={item} show={isExpanded}>
                       <IconComponent className="w-6 h-6 text-gray-600" />
                       {isExpanded && (
@@ -169,7 +182,6 @@ const SideBar = ({ className }: IProps) => {
                         </span>
                       )}
                     </NavigationLink>
-
                     {isActive && (
                       <div className="flex justify-end">
                         <div className="Bshape"></div>
@@ -179,18 +191,29 @@ const SideBar = ({ className }: IProps) => {
                 )}
               </div>
             );
-          }
-        )}
+          })}
+      </div>
 
-        {/* Logout Section */}
+      {/* Logout Section - Fixed positioning */}
+      <div className="border-t border-gray-200 p-2">
         <div
-          className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
+          className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100 rounded-md transition-colors duration-200"
           onClick={handleLogOut}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleLogOut();
+            }
+          }}
+          role="button"
+          tabIndex={0}
           aria-label="Logout"
         >
           <LogoutIcon className="w-6 h-6 text-gray-600" />
           {isExpanded && (
-            <span className="transition-opacity duration-200">Logout</span>
+            <span className="transition-opacity duration-200 text-gray-700">
+              Logout
+            </span>
           )}
         </div>
       </div>
