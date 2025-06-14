@@ -20,7 +20,6 @@ interface IProps {
   inputLabel: string;
   selectLabel: string;
   selectId: string;
-  inputId: string;
   className?: string;
   selectOptions: { label: string; value: string | number }[];
 }
@@ -41,47 +40,45 @@ export const FormsComponent = (props: IProps) => {
   }
 
   return (
-    <>
-      <form className="mt-5 px-5 pb-5">
-        <FormLayout $columns={1}>
-          <FormHeader>
-            {props.editMode ? "Edit " : "Create "} {props.inputLabel}
-          </FormHeader>
-          <InputDiv
-            onChange={handleChange}
-            type="text"
-            id={props.inputId}
-            label={props.inputLabel}
-            value={props.inputValue.name}
-            placeholder="Enter department name"
-            className="w-full"
-          />
-          <SelectField
-            onChange={handleChange}
-            label={props.selectLabel}
-            id={props.selectId}
-            options={props.selectOptions}
-            placeholder="Select head of department"
-            value={
-              props.inputValue.department_head || props.inputValue.department_id
-            }
-          />
-          <TextField
-            onChange={handleChange}
-            value={props.inputValue.description || ""}
-          />
-        </FormLayout>
-        <div className="flex gap-2 justify-end">
-          <Button value="Close" variant="ghost" onClick={props.CloseForm} />
-          <Button
-            value={props.editMode ? "Update" : "Save"}
-            variant="primary"
-            onClick={onSubmit}
-            disabled={props.loading || !props.inputValue.name}
-            loading={props.loading}
-          />
-        </div>
-      </form>
-    </>
+    <form className="mt-5 px-5 pb-5">
+      <FormLayout $columns={1}>
+        <FormHeader>
+          {props.editMode ? "Edit " : "Create "} {props.inputLabel}
+        </FormHeader>
+        <InputDiv
+          onChange={handleChange}
+          type="text"
+          id={"name"}
+          label={props.inputLabel}
+          value={props.inputValue.name}
+          placeholder={`Enter ${props.inputLabel} name`}
+          className="w-full"
+        />
+        <SelectField
+          onChange={handleChange}
+          label={props.selectLabel}
+          id={props.selectId}
+          options={props.selectOptions}
+          placeholder={`Select ${props.selectLabel}`}
+          value={
+            props.inputValue.department_head || props.inputValue.department_id
+          }
+        />
+        <TextField
+          onChange={handleChange}
+          value={props.inputValue.description || ""}
+        />
+      </FormLayout>
+      <div className="flex gap-2 justify-end">
+        <Button value="Close" variant="ghost" onClick={props.CloseForm} />
+        <Button
+          value={props.editMode ? "Update" : "Save"}
+          variant="primary"
+          onClick={onSubmit}
+          disabled={props.loading || !props.inputValue.name}
+          loading={props.loading}
+        />
+      </div>
+    </form>
   );
 };

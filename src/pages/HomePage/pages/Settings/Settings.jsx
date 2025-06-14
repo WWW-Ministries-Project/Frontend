@@ -318,11 +318,9 @@ function Settings() {
       </section>
       <Modal open={displayForm} persist={false} onClose={handleCloseForm}>
         <FormsComponent
-          className="max-w-lg w-full"
           selectOptions={selectOptions}
           selectId={selectedId}
           inputValue={inputValue}
-          inputId={"name"}
           inputLabel={selectedTab}
           onChange={handleChange}
           CloseForm={handleCloseForm}
