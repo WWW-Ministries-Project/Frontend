@@ -193,17 +193,17 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
                 
               
                   <div className="flex justify-end w-full">
-                    <button
+                    <Button
+                    variant="ghost"
                       type="button"
                       onClick={() => {
                         push({ department_name: "", position_name: "" });
                         addDepartmentPosition();
                       }}
-                      className="hover:underline"
                       disabled={disabled}
-                    >
-                      Add Another Ministry/Department & Position
-                    </button>
+                      value=" Add Another Ministry/Department & Position"
+                    />
+                     
                   </div>
                 
               </div>

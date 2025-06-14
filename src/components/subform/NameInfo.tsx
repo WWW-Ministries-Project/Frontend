@@ -71,7 +71,6 @@ const titleOptions: ISelectOption[] = [
   { label: "Hon", value: "Hon" },
   { label: "Sir", value: "Sir" },
   { label: "Lady", value: "Lady" },
-  { label: "Dame", value: "Dame" }
 ];
 
 export interface INameInfo {
