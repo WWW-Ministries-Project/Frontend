@@ -230,4 +230,10 @@ export class ApiCalls {
   ): Promise<ApiResponse<LifeCenterDetailsType>> => {
     return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
   };
+
+  fetchLifCenterRoles = (
+    query?: QueryType
+  ): Promise<ApiResponse<{name:string,id:string}[]>> => {
+    return this.fetchFromApi(`lifecenter/get-roles/`, query);
+  };
 }

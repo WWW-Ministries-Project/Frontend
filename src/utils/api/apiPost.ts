@@ -112,9 +112,13 @@ export class ApiCreationCalls {
     return this.postToApi("lifecenter/create-lifecenter", payload);
   };
 
- createSoul = (
-    payload: ISoulsWonForm
-  ): Promise<ApiResponse<undefined>> => {
+  createSoul = (payload: ISoulsWonForm): Promise<ApiResponse<undefined>> => {
     return this.postToApi("lifecenter/soulwon", payload);
+  };
+
+  createLifeCenterRole = (
+    payload: {name: string, id?: string}
+  ): Promise<ApiResponse<{id:string,name:string}>> => {
+    return this.postToApi("lifecenter/create-role", payload);
   };
 }
