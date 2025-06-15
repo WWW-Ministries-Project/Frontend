@@ -13,7 +13,7 @@ import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import MembersCount from "../../Components/reusable/MembersCount";
+import {MembersCount} from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { MemberCard } from "./Components/MemberCard";

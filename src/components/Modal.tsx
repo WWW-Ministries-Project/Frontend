@@ -1,40 +1,33 @@
-interface ModalProps {
+import * as Dialog from "@radix-ui/react-dialog";
+
+interface IProps {
   open: boolean;
   persist?: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({
-  open,
-  persist = true,
-  onClose,
-  children,
-}) => {
-  const closeModal = () => {
-    if (!persist) {
-      onClose();
-    }
-  };
-
-  const closeModalOutside = (event: React.MouseEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).classList.contains("closeModal")) {
-      closeModal();
-    }
-  };
-
-  if (!open) return null;
-
+export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
   return (
-    <div
-      className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50 closeModal backdrop-blur-sm"
-      onClick={closeModalOutside}
+    <Dialog.Root
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="rounded-2xl shadow-md max-h-full m-10 bg-white overflow-y-scroll ">
-        {children}
-      </div>
-    </div>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+          style={{ animation: "fadeIn 0.2s" }}
+        />
+        <Dialog.Content
+          className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-auto max-w-xlg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-md m-4 overflow-y-auto"
+          onPointerDownOutside={persist ? (e) => e.preventDefault() : undefined}
+          onEscapeKeyDown={persist ? (e) => e.preventDefault() : undefined}
+        >
+          {children}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
-
-export default Modal;

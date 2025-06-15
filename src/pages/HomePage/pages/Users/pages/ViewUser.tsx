@@ -6,7 +6,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { SelectField } from "@/pages/HomePage/Components/reusable/SelectFields";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
@@ -203,4 +203,3 @@ export const ViewUser = () => {
     </PageOutline>
   );
 };
-

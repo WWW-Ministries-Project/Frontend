@@ -11,8 +11,8 @@ import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
 import Breadcrumb from "./Components/BreadCrumb";
 import { Header } from "./Components/Header";
-import SideBar from "./Components/SideBar";
-import SideBarMobile from "./Components/SideBarMobile";
+import { MobileSideBar } from "./Components/MobileSideBar";
+import { SideBar } from "./Components/SideBar";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 
@@ -23,16 +23,17 @@ export const navigateRef = {
 };
 
 export function HomePage() {
-  const {
-    data: membersData,
-    refetch: refetchMembers,
-  } = useFetch(api.fetch.fetchAllMembers);
-  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
-  const { data: eventsData } = useFetch(
-    api.fetch.fetchEvents
+  const { data: membersData, refetch: refetchMembers } = useFetch(
+    api.fetch.fetchAllMembers
   );
-  const { data: positionsData, refetch: refetchPositions } = useFetch(api.fetch.fetchPositions);
-  const {data: departmentsData, refetch: refetchDepartments} = useFetch(api.fetch.fetchDepartments);
+  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
+  const { data: eventsData } = useFetch(api.fetch.fetchEvents);
+  const { data: positionsData, refetch: refetchPositions } = useFetch(
+    api.fetch.fetchPositions
+  );
+  const { data: departmentsData, refetch: refetchDepartments } = useFetch(
+    api.fetch.fetchDepartments
+  );
   const settingsStore = useSettingsStore();
   const store = useStore();
   const members = store.members;
@@ -76,7 +77,14 @@ export function HomePage() {
       settingsStore.setDepartments(departmentsData.data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userStatsData, positionsData, eventsData, membersData, departmentsData]);
+  }, [
+    user,
+    userStatsData,
+    positionsData,
+    eventsData,
+    membersData,
+    departmentsData,
+  ]);
 
   // useEffect(() => {
   //   api.fetch.fetchDepartments().then((res) => {
@@ -129,7 +137,7 @@ export function HomePage() {
             </div>
 
             <div className="inline lg:hidden">
-              <SideBarMobile show={show} onClick={handleShowNav} />
+              <MobileSideBar show={show} onClick={handleShowNav} />
             </div>
             <div className="w-full ">
               <div className="">
@@ -168,4 +176,3 @@ export function HomePage() {
     </div>
   );
 }
-

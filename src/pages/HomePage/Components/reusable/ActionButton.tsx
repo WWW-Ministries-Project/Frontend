@@ -3,9 +3,9 @@ import Elipse from "/src/assets/ellipse.svg";
 
 interface ActionButtonProps {
   showOptions: boolean;
-  onDelete: () => void;
-  onView: () => void;
-  onEdit: () => void;
+  onDelete?: () => void;
+  onView?: () => void;
+  onEdit?: () => void;
   hideDelete?: boolean;
 }
 
@@ -19,6 +19,7 @@ const ActionButton = (props: ActionButtonProps) => {
           onView={props.onView}
           onEdit={props.onEdit}
           hideDelete={props.hideDelete}
+
         />
       )}
     </>

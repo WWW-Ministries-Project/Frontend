@@ -1,5 +1,5 @@
 import { HeaderControls } from "@/components/HeaderControls";
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";

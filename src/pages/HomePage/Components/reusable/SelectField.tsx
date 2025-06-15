@@ -1,9 +1,6 @@
-import PropTypes from "prop-types";
-import React from "react";
-
 interface Option {
   value: string | number;
-  name: string;
+  label: string;
 }
 
 interface IProps {
@@ -50,7 +47,7 @@ export const SelectField = (props: IProps) => {
           <option value="">{props.placeholder}</option>
           {props.options.map((option, index) => (
             <option key={index} value={option.value}>
-              {option.name}
+              {option.label}
             </option>
           ))}
         </select>
@@ -59,16 +56,4 @@ export const SelectField = (props: IProps) => {
       </div>
     </div>
   );
-};
-
-SelectField.propTypes = {
-  label: PropTypes.string,
-  className: PropTypes.string,
-  inputClass: PropTypes.string,
-  id: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  onChange: PropTypes.func.isRequired,
-  options: PropTypes.array.isRequired,
-  placeholder: PropTypes.string,
-  disabled: PropTypes.bool,
 };

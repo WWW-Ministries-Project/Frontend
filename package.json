@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@tanstack/react-table": "^8.9.7",
     "@types/react-datepicker": "^6.2.0",
     "axios": "^1.4.0",

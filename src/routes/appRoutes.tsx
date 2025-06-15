@@ -7,7 +7,6 @@ import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberIn
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import { ViewUser } from "@/pages/HomePage/pages/Users/pages/ViewUser";
@@ -25,10 +24,12 @@ import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetM
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
-import UnderConstruction from "../pages/UnderConstruction/UnderConstruction.jsx";
+import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
-import { NoAccess } from "@/components/NoAccess.js";
-import { relativePath } from "@/utils/const.js";
+import { NoAccess } from "@/components/NoAccess";
+import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
+import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
+import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 
 // Define a Route type
@@ -224,6 +225,17 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_events",
       },
+      {
+        path: relativePath.home.lifeCenter.main,
+        name: "Life Centers",
+        element: <LifeCenter />,
+        sideTab: true,
+      },
+      {
+        path: relativePath.home.lifeCenter.detail,
+        name: "Life Center",
+        element: <ViewLifeCenter />,
+      },
       // {
       //   path: "ministry-school",
       //   name: "School of Ministry",
@@ -240,11 +252,11 @@ export const routes: AppRoute[] = [
       //   name: "View Cohort",
       //   element: <ViewCohort />,
       // },
-      {
-        path: "ministry-school/programs/:id/cohort/:id/class/:id",
-        name: "View Class",
-        element: <ViewClass />,
-      },
+      // {
+      //   path: "ministry-school/programs/:id/cohort/:id/class/:id",
+      //   name: "View Class",
+      //   element: <ViewClass />,
+      // },
       // {
       //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
       //   name: "View Student",
@@ -366,9 +378,16 @@ export const routes: AppRoute[] = [
 ];
 
 // Now, extract sideTabs
-const homePageRoute = routes.find((route) => route.path === "/home");
+// ...existing code...
+
+// Now, extract sideTabs
+const homePageRoute = routes.find(
+  (route) => route.path === relativePath.home.main
+);
 const homePageChildren = homePageRoute?.children || [];
 
 export const sideTabs = homePageChildren.filter(
   (childRoute) => childRoute.sideTab
 );
+
+// ...existing code...

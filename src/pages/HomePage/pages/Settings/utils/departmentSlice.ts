@@ -1,37 +1,42 @@
-import { Department, DepartmentSlice } from "./settingsInterfaces";
-const createDepartmentSlice = (set: any, get: any): DepartmentSlice => ({
+import { StateCreator } from "zustand";
+import { Department, DepartmentSlice, StoreState } from "./settingsInterfaces";
+
+const createDepartmentSlice: StateCreator<
+  StoreState,
+  [["zustand/devtools", never]],
+  [],
+  DepartmentSlice
+> = (set, get) => ({
   departments: [],
   departmentsOptions: [],
-  addDepartment: (department) => {
-    set((state: any) => ({
+  addDepartment: (department: Department) => {
+    set((state) => ({
       departments: [...state.departments, department],
     }));
     get().setDepartmentsOptions();
   },
   removeDepartment: (departmentId) => {
-    set((state: any) => ({
-      departments: state.departments.filter(
-        (dept: Department) => dept.id !== departmentId
-      ),
+    set((state) => ({
+      departments: state.departments.filter((dept) => dept.id !== departmentId),
     }));
     get().setDepartmentsOptions();
   },
-  updateDepartment: (updatedDepartment) => {
-    set((state: any) => ({
-      departments: state.departments.map((dept: Department) =>
+  updateDepartment: (updatedDepartment: Department) => {
+    set((state) => ({
+      departments: state.departments.map((dept) =>
         dept.id === updatedDepartment.id ? updatedDepartment : dept
       ),
     }));
     get().setDepartmentsOptions();
   },
-  setDepartments: (departments) => {
+  setDepartments: (departments: Department[]) => {
     set({ departments });
     get().setDepartmentsOptions();
   },
   setDepartmentsOptions: () => {
-    set((state: any) => ({
-      departmentsOptions: state.departments.map((department: Department) => ({
-        name: department.name,
+    set((state) => ({
+      departmentsOptions: state.departments.map((department) => ({
+        label: department.name,
         value: department.id,
       })),
     }));

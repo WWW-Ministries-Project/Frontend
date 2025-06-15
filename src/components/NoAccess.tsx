@@ -8,7 +8,7 @@ import { Button } from "./Button";
 export const NoAccess = () => {
   const navigate = useNavigate();
   return (
-    <div className=" flex flex-col items-center justify-center gap-4">
+    <div className=" flex flex-col items-center justify-center gap-4 h-[calc(100vh-4rem)]">
       <h1 className="text-2xl font-bold text-error">No Access</h1>
       <p className="text-lg text-center w-[30rem]">
         You do not have permission to access this page. Please contact your administrator if you believe this is an error.
