@@ -88,4 +88,8 @@ export class ApiDeletionCalls {
   deleteSoulWon = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("lifecenter/soulwon", query);
   };
+
+  deleteLifeCenterRole = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("lifecenter/delete-role", query);
+  };
 }

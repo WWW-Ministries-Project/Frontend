@@ -227,4 +227,15 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+  updateLifeCenterRole = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<[id:string, name:string]>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/update-role",
+      payload,
+      query
+    );
+  };
 }
