@@ -7,6 +7,10 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 import { useCallback, useEffect, useState } from "react";
 import { ISoulsWonForm } from "../components/SoulsWonForm";
+import { InfoRow } from "../components/LifeCenterCard";
+import { LocationIcon } from "@/assets/LocationIcon";
+import { MemberIcon } from "@/assets/MemberIcon";
+import { CalendarIcon } from "@/assets/CalendarIcon";
 
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
@@ -48,28 +52,33 @@ export function ViewLifeCenter() {
           </div>
 
           <div className="flex gap-5 items-center justify-between mt-3 pr-5">
+            <InfoRow
+              icon={<LocationIcon />}
+              label={lifeCenterData?.location || "No location"}
+            />
+
             <div className="flex items-center gap-2">
-              <img src="/src/assets/location.svg" className="size-5" />
-              <p>{lifeCenterData?.location || "No location"}</p>
+              <InfoRow
+                icon={<CalendarIcon />}
+                label={
+                  <ul className="border flex divide-x-[1px] w-fit">
+                    {lifeCenterData?.meeting_dates.map((date, index) => (
+                      <li key={index} className="px-2">
+                        {date.slice(0, 2)}
+                      </li>
+                    ))}
+                  </ul>
+                }
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <img src="/src/assets/calendar.svg" className="size-5" />
-              <ul className="border flex divide-x-[1px] w-fit">
-                {lifeCenterData?.meeting_dates?.map((date, index) => (
-                  <li key={index} className="px-2">
-                    {date.slice(0, 3)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex items-center gap-2">
-              <img src="/src/assets/member.svg" className="size-5" />
-              <p>{lifeCenterData?.totalMembers || 0} Members</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <VisitorIcon />
-              <p>{souls.length} Souls won</p>
-            </div>
+            <InfoRow
+              icon={<MemberIcon />}
+              label={`${lifeCenterData?.totalMembers || 0} Members`}
+            />
+            <InfoRow
+              icon={<VisitorIcon />}
+              label={`${lifeCenterData?.totalSoulsWon || 0} Souls won`}
+            />
           </div>
         </div>
 
