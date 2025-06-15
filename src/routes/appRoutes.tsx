@@ -378,9 +378,16 @@ export const routes: AppRoute[] = [
 ];
 
 // Now, extract sideTabs
-const homePageRoute = routes.find((route) => route.path === "/home");
+// ...existing code...
+
+// Now, extract sideTabs
+const homePageRoute = routes.find(
+  (route) => route.path === relativePath.home.main
+);
 const homePageChildren = homePageRoute?.children || [];
 
 export const sideTabs = homePageChildren.filter(
   (childRoute) => childRoute.sideTab
 );
+
+// ...existing code...
