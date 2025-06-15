@@ -79,13 +79,13 @@ export const LifeCenterCard = ({
 };
 
 interface InfoRowProps {
-  icon?: ReactNode;
+  icon: ReactNode;
   label: ReactNode;
 }
 
 export const InfoRow = ({ icon, label }: InfoRowProps) => (
-  <div className="flex items-center gap-4">
-    {icon && <span className="size-5">{icon}</span>}
+  <div className="flex items-center gap-3">
+    {icon && <span>{icon}</span>}
     <div>{label}</div>
   </div>
 );
