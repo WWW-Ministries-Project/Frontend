@@ -108,7 +108,6 @@ function Settings() {
       showNotification("Role deleted successfully", "success");
       setData(prev => prev.filter(item => item.id !== selectedId));
       setSelectedId("");
-   
     }
     if (departmentDeleteError || positionDeleteError || roleDeleteError) {
       showNotification("Something went wrong", "error");
