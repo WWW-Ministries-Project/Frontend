@@ -17,8 +17,11 @@ import {
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
 import { useEffect } from "react";
-import { boolean, date, object, string } from "yup";
-import useSettingsStore from "../../Settings/utils/settingsStore";
+import { array, boolean, date, object, string } from "yup";
+import {
+  DepartmentPositionSubForm,
+  IDepartmentPositionSubForm,
+} from "./DepartmentPosition";
 import { RadioInput } from "./RadioInput";
 
 interface IProps {
@@ -26,18 +29,18 @@ interface IProps {
 }
 
 const MembersFormComponent = ({ disabled = false }: IProps) => {
-  const { departmentsOptions, positionsOptions } = useSettingsStore();
-
   const { values, setFieldValue } = useFormikContext<IMembersForm>();
   const has_children = values.personal_info?.has_children ?? false;
 
   useEffect(() => {
     if (!values.is_user) {
-      setFieldValue("church_info.position_id", "");
-      setFieldValue("church_info.department_id", "");
+      setFieldValue("department_positions", []);
+    } else {
+      setFieldValue("department_positions", initialValues.department_positions);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.is_user]);
+
   useEffect(() => {
     if (has_children) {
       setFieldValue("children", initialValues.children);
@@ -88,9 +91,19 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         id="church_info.membership_type"
         name="church_info.membership_type"
         options={[
-          { name: "Online e-church family", value: "ONLINE" },
-          { name: "In-person church family", value: "IN_HOUSE" },
+          { label: "Online e-church family", value: "ONLINE" },
+          { label: "In-person church family", value: "IN_HOUSE" },
         ]}
+        disabled={disabled}
+      />
+      <Field
+        component={FormikInputDiv}
+        label="Date joined"
+        id="church_info.member_since"
+        name="church_info.member_since"
+        placeholder="Select date joined"
+        type="date"
+        max={new Date().toISOString().split("T")[0]}
         disabled={disabled}
       />
       <FullWidth>
@@ -103,39 +116,15 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
       </FullWidth>
 
       {values.is_user && (
-        <Field
-          component={FormikSelectField}
-          label="Ministry/Department"
-          id="church_info.department_id"
-          name="church_info.department_id"
-          placeholder="Select department"
-          options={departmentsOptions || []}
-          disabled={disabled}
-        />
+        <>
+          <FormHeader>Ministry/Department & Positions</FormHeader>
+          <DepartmentPositionSubForm
+            disabled={disabled}
+            prefix="department_positions"
+          />
+        </>
       )}
 
-      {values.is_user && (
-        <Field
-          component={FormikSelectField}
-          label="Position"
-          id="church_info.position_id"
-          name="church_info.position_id"
-          placeholder="Select position"
-          options={positionsOptions || []}
-          disabled={disabled}
-          parse={(value: string) => parseInt(value, 10)}
-        />
-      )}
-      <Field
-        component={FormikInputDiv}
-        label="Date joined"
-        id="church_info.member_since"
-        name="church_info.member_since"
-        placeholder="Select date joined"
-        type="date"
-        max={new Date().toISOString().split("T")[0]}
-        disabled={disabled}
-      />
       <HorizontalLine />
 
       <WorkInfoSubForm disabled={disabled} prefix="work_info" />
@@ -158,10 +147,9 @@ export interface IMembersForm extends IChildrenSubForm {
   church_info: {
     member_since?: string;
     membership_type: membersType;
-    department_id?: number | string;
-    position_id?: number | string;
   };
   is_user: boolean;
+  department_positions: IDepartmentPositionSubForm[];
 }
 
 const initialValues: IMembersForm = {
@@ -177,11 +165,11 @@ const initialValues: IMembersForm = {
   church_info: {
     member_since: undefined,
     membership_type: "IN_HOUSE",
-    department_id: undefined,
-    position_id: undefined,
   },
+  department_positions: DepartmentPositionSubForm.initialValues,
   ...ChildrenSubForm.initialValues,
 };
+
 const validationSchema = {
   personal_info: object(UserSubForm.validationSchema),
   contact_info: object(ContactsSubForm.validationSchema),
@@ -191,19 +179,15 @@ const validationSchema = {
   church_info: object().shape({
     member_since: date().max(new Date()),
     membership_type: string().required("Required"),
-    department_id: string().when("is_user", {
-      is: true,
-      then: () => string().required("Required"),
-    }),
-    position_id: string().when("is_user", {
-      is: true,
-      then: () => string().required("Required"),
-    }),
+  }),
+  department_positions: array().when("is_user", {
+    is: true,
+    then: () => DepartmentPositionSubForm.validationSchema,
+    otherwise: () => array(),
   }),
   ...ChildrenSubForm.validationSchema,
 };
 
-// export default MembersForm;
 export const MembersForm = Object.assign(MembersFormComponent, {
   initialValues: initialValues,
   validationSchema,

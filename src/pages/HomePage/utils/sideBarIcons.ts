@@ -1,6 +1,7 @@
 import { MembersIcon } from "@/assets";
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
+import LifeCenterIcon from "@/assets/sidebar/LifeCenterIcon";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
@@ -21,5 +22,5 @@ export const sidebarIcons: Record<
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,
-  "Life Centers": UsersIcon,
+  "Life Centers": LifeCenterIcon,
 };
