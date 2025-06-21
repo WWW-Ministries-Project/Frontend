@@ -18,13 +18,6 @@ export function MemberInformation() {
 
   return (
     <div className="bg-white rounded-b-lg shadow-sm p-6 pt-0 mx-auto text-gray-800 ">
-      {/* <div className="flex  mb-6">
-        <TabSelection
-        tabs={["Member information", "Family information", "Enrolled programs"]}
-        selectedTab="Member information"
-        onTabSelect={() => {}}
-      />
-      </div> */}
       
       {/* Membership Status */}
       <Section title="Membership Status">

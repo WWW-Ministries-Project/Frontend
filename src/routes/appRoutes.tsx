@@ -31,7 +31,7 @@ import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import {FamilyInformation} from "@/pages/HomePage/pages/Members/pages/FamilyInformation.js";
+import {FamilyInformation} from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 
 // Define a Route type
 export interface AppRoute {

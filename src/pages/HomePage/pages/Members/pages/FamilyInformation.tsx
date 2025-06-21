@@ -1,4 +1,5 @@
 import { useOutletContext } from "react-router-dom";
+//TODO : Correct interface to have the same source of truth as source once the API is ready
 
 interface IChild {
   name: string;
