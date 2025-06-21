@@ -1,11 +1,17 @@
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils/api/apiCalls";
-import { decodeQuery } from "@/pages/HomePage/utils";
-import { useParams } from "react-router-dom";
-import { SoulsWon } from "../components/SoulsWon";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import VisitorIcon from "@/assets/sidebar/VisitorIcon";
+import { useFetch } from "@/CustomHooks/useFetch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { decodeQuery } from "@/pages/HomePage/utils";
+import { api } from "@/utils/api/apiCalls";
+import {
+  CalendarIcon,
+  MapPinIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { InfoRow } from "../components/LifeCenterCard";
+import { SoulsWon } from "../components/SoulsWon";
 import { ISoulsWonForm } from "../components/SoulsWonForm";
 
 export function ViewLifeCenter() {
@@ -48,28 +54,33 @@ export function ViewLifeCenter() {
           </div>
 
           <div className="flex gap-5 items-center justify-between mt-3 pr-5">
+            <InfoRow
+              icon={<MapPinIcon className="h-6 w-6 text-gray-600" />}
+              label={lifeCenterData?.location || "No location"}
+            />
+
             <div className="flex items-center gap-2">
-              <img src="/src/assets/location.svg" className="size-5" />
-              <p>{lifeCenterData?.location || "No location"}</p>
+              <InfoRow
+                icon={<CalendarIcon className="h-6 w-6 text-gray-600" />}
+                label={
+                  <ul className="border flex divide-x-[1px] w-fit">
+                    {lifeCenterData?.meeting_dates.map((date, index) => (
+                      <li key={index} className="px-2">
+                        {date.slice(0, 2)}
+                      </li>
+                    ))}
+                  </ul>
+                }
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <img src="/src/assets/calendar.svg" className="size-5" />
-              <ul className="border flex divide-x-[1px] w-fit">
-                {lifeCenterData?.meeting_dates?.map((date, index) => (
-                  <li key={index} className="px-2">
-                    {date.slice(0, 3)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex items-center gap-2">
-              <img src="/src/assets/member.svg" className="size-5" />
-              <p>{lifeCenterData?.totalMembers || 0} Members</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <VisitorIcon />
-              <p>{souls.length} Souls won</p>
-            </div>
+            <InfoRow
+              icon={<UserIcon className="h-6 w-6 text-gray-600" />}
+              label={`${lifeCenterData?.totalMembers || 0} Members`}
+            />
+            <InfoRow
+              icon={<VisitorIcon />}
+              label={`${lifeCenterData?.totalSoulsWon || 0} Souls won`}
+            />
           </div>
         </div>
 
