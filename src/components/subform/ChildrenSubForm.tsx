@@ -26,14 +26,7 @@ const ChildrenSubFormComponent = ({
       <FieldArray name="children">
         {({ unshift, remove }) => (
           <>
-            <FullWidth $justify={"right"}>
-              <Button
-                value="Add Another Child"
-                variant="default"
-                type="button"
-                onClick={() => unshift(initialValues.children[0])}
-              />
-            </FullWidth>
+            
             {children.map((_, index) => (
               <Fragment key={index}>
                 {index > 0 && <HorizontalLine />}
@@ -54,6 +47,14 @@ const ChildrenSubFormComponent = ({
                 />
               </Fragment>
             ))}
+            <FullWidth $justify={"right"}>
+              <Button
+                value="Add Another Child"
+                variant="ghost"
+                type="button"
+                onClick={() => unshift(initialValues.children[0])}
+              />
+            </FullWidth>
           </>
         )}
       </FieldArray>

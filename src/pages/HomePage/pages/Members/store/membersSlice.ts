@@ -1,6 +1,12 @@
+import { StateCreator } from "zustand";
 import { MemberSlice, UserType } from "../utils/membersInterfaces";
 
-const createMemberSlice = (set: any, get: any): MemberSlice => ({
+export const createMemberSlice: StateCreator<
+  MemberSlice,
+  [],
+  [],
+  MemberSlice
+> = (set, get) => ({
   members: [],
   membersOptions: [],
   userStats: {
@@ -40,19 +46,19 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
     },
   },
   addMember: (member) => {
-    set((state: any) => ({
+    set((state) => ({
       members: [...state.members, member],
     }));
     get().setMemberOptions();
   },
   removeMember: (memberId) => {
-    set((state: any) => ({
+    set((state) => ({
       members: state.members.filter((pos: UserType) => pos.id !== memberId),
     }));
     get().setMemberOptions();
   },
   updateMember: (updatedMember) => {
-    set((state: any) => ({
+    set((state) => ({
       members: state.members.map((pos: UserType) =>
         pos.id === updatedMember.id ? updatedMember : pos
       ),
@@ -67,13 +73,11 @@ const createMemberSlice = (set: any, get: any): MemberSlice => ({
     set({ userStats });
   },
   setMemberOptions: () => {
-    set((state: any) => ({
+    set((state) => ({
       membersOptions: state.members.map((member: UserType) => ({
-        name: member.name,
-        value: member.id,
+        label: member.name,
+        value: String(member.id),
       })),
     }));
   },
 });
-
-export default createMemberSlice;

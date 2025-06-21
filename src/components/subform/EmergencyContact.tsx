@@ -3,6 +3,7 @@ import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
 import { object, string } from "yup";
 import { ContactInput, IContactInput } from "../ContactInput";
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
 const EmergencyContactComponent = ({
   disabled = false,
@@ -42,16 +43,16 @@ const EmergencyContactComponent = ({
   );
 };
 
-const relationOptions = [
-  { name: "Brother", value: "brother" },
-  { name: "Sister", value: "sister" },
-  { name: "Father", value: "father" },
-  { name: "Mother", value: "mother" },
-  { name: "Husband", value: "husband" },
-  { name: "Wife", value: "wife" },
-  { name: "Son", value: "son" },
-  { name: "Daughter", value: "daughter" },
-  { name: "Other", value: "other" },
+const relationOptions:ISelectOption[] = [
+  { label: "Brother", value: "brother" },
+  { label: "Sister", value: "sister" },
+  { label: "Father", value: "father" },
+  { label: "Mother", value: "mother" },
+  { label: "Husband", value: "husband" },
+  { label: "Wife", value: "wife" },
+  { label: "Son", value: "son" },
+  { label: "Daughter", value: "daughter" },
+  { label: "Other", value: "other" },
 ];
 
 export interface IEmergencyContact {

@@ -53,10 +53,10 @@ export const Banner = (props: IProps) => {
                   (props.primary_number || "No Phone")}
               </div>
               <div className="flex gap-2">
-                <Badge className="text-sm border-primary bg-white border text-primary w-fit ">
-                  {props.membership_type
-                    ? "Online e-church family"
-                    : " In-person church family"}
+                <Badge className="text-sm  border-primary bg-white border text-primary w-fit ">
+                  {props.membership_type === "ONLINE"
+      ? "Online e-church family"
+      : props.membership_type === "IN_HOUSE"? "In-person church family" :""}
                 </Badge>
                 <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
                   {props.status ?? ""}

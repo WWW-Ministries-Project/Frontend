@@ -1,24 +1,12 @@
-import { ProfilePicture } from "@/components";
 import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/components/subform/PersonalDetails";
 import { FullWidth } from "@/components/ui";
 import { RadioInput } from "@/pages/HomePage/pages/Members/Components/RadioInput";
-import { getIn, useFormikContext } from "formik";
-import { useMemo } from "react";
 import { boolean } from "yup";
 
-const UserSubFormComponent = ({
-  prefix,
-}: {
-  prefix: string;
-}) => {
-  const { values: entire, setFieldValue } = useFormikContext<object>();
-  const values: IUserSubForm = useMemo(
-    () => getIn(entire, prefix) || initialValues,
-    [entire, prefix]
-  );
+const UserSubFormComponent = ({ prefix }: { prefix: string }) => {
   return (
     <>
       <PersonalDetails prefix={prefix} />

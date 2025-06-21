@@ -1,52 +1,57 @@
-import { ReactNode } from "react";
+import { AppRoute } from "@/routes/appRoutes";
+import { ReactNode, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import NavigationLink from "./NavigationLink";
+import { useAuth } from "../../../context/AuthWrapper";
+import { NavigationLink } from "./NavigationLink";
 
-interface ChildItem {
-  path: string;
-  element?: ReactNode;
-  errorElement?: ReactNode;
-  name: string;
-  alias?: string;
-  isPrivate?: boolean;
-  permissionNeeded?: string;
-  sideTab?: boolean;
-}
-// interface ChildItem {
-//   key: string;
-//   name: string;
-//   path: string;
-//   sideTab?: boolean;
-// }
-
-interface SideBarSubMenuProps {
+interface IProps {
   item: {
     name: string;
-    children: ChildItem[];
+    children: AppRoute[];
     path: string;
   };
   parentPath: string;
   children: ReactNode;
   show: boolean;
   showChildren: boolean;
-  toggleSubMenu: () => void; // 🔥 Toggle function passed from `SideBar`
+  toggleSubMenu: () => void;
 }
 
-const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggleSubMenu }: SideBarSubMenuProps) => {
+export const SideBarSubMenu = ({
+  item,
+  parentPath,
+  children,
+  show,
+  showChildren,
+  toggleSubMenu,
+}: IProps) => {
   const location = useLocation();
+  const {
+    user: { permissions },
+  } = useAuth();
 
-  const returnChild = (child: ChildItem) => {
-    return {
-      path: `${parentPath}${child.path ? "/" + child.path : ""}`,
-      name: child.name,
-    };
-  };
-
-  // ✅ Corrected Active Route Detection
+  // Compute active state for parent
   const isActive =
     location.pathname === item.path ||
     location.pathname.startsWith(item.path) ||
     location.pathname.includes(item.path);
+
+  // Filter children by permissions and sideTab
+  const filteredChildren = useMemo(
+    () =>
+      item.children.filter(
+        (child) =>
+          child.sideTab &&
+          (!child.isPrivate ||
+            !child.permissionNeeded ||
+            permissions[child.permissionNeeded])
+      ),
+    [item.children, permissions]
+  );
+
+  // Build child route path
+  const getChildPath = (child: AppRoute) =>
+    `${parentPath}${child.path ? "/" + child.path : ""}`;
 
   return (
     <div>
@@ -54,15 +59,17 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
         <div>
           {/* Main Parent Menu */}
           <div
-            onClick={toggleSubMenu} // 🔥 Toggle submenu on click
-            className={`text-primary transition z-10  cursor-pointer  ${
-              (showChildren || isActive) ? "text-primary bg-lightGray transition rounded-tl-xl" : "rounded-s-xl"
+            onClick={toggleSubMenu}
+            className={`text-primary transition z-10 cursor-pointer ${
+              showChildren || isActive
+                ? "text-primary bg-lightGray rounded-tl-xl"
+                : "rounded-s-xl"
             }
             ${
-              (!showChildren && isActive) ? "text-primary bg-lightGray transition rounded-s-xl" : ""
-            }
-            
-            `}
+              !showChildren && isActive
+                ? "text-primary bg-lightGray rounded-s-xl"
+                : ""
+            }`}
           >
             <div className="flex items-center mx-2 justify-between gap-1">
               <div className="flex items-center gap-2 transition py-4 rounded-xl">
@@ -70,7 +77,11 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
                 <p className="cursor-pointer">{item.name}</p>
               </div>
               {/* Dropdown Arrow */}
-              <p className={`${showChildren ? "rotate-180" : "rotate-0"} transition-transform`}>
+              <span
+                className={`${
+                  showChildren ? "rotate-180" : "rotate-0"
+                } transition-transform`}
+              >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path
                     fillRule="evenodd"
@@ -79,22 +90,33 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
                     fill="currentColor"
                   />
                 </svg>
-              </p>
+              </span>
             </div>
           </div>
 
-          {/* 🔥 Submenu Items (Only Show When `showChildren` is true) */}
-          {showChildren && (
-            <div className={`  pl-3 ${(showChildren ) ? "rounded-bl-xl bg-lightGray" : ""}
-            ${(showChildren && isActive) ? "rounded-bl-xl" : ""}
-            `}>
-              {item.children.map((child) => (
-                child.sideTab ? (
-                  <NavigationLinks
-                    key={child.name + child.path}
-                    item={returnChild(child)}
-                  />
-                ) : null
+          {/* Submenu Items */}
+          {showChildren && filteredChildren.length > 0 && (
+            <div
+              className={`pl-3 ${
+                showChildren ? "rounded-bl-xl bg-lightGray" : ""
+              } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
+            >
+              {filteredChildren.map((child) => (
+                <div key={child.name + child.path}>
+                  <NavLink
+                    end
+                    to={getChildPath(child)}
+                    className={({ isActive }) =>
+                      `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
+                        isActive
+                          ? "bg-[#6539C310] text-primary transition"
+                          : "hover:text-primary"
+                      }`
+                    }
+                  >
+                    {child.name}
+                  </NavLink>
+                </div>
               ))}
             </div>
           )}
@@ -104,26 +126,6 @@ const SideBarSubMenu = ({ item, parentPath, children, show, showChildren, toggle
           {children}
         </NavigationLink>
       )}
-    </div>
-  );
-};
-
-export default SideBarSubMenu;
-
-const NavigationLinks = ({ item }: { item: { path: string; name: string } }) => {
-  return (
-    <div key={item.path + item.name}>
-      <NavLink
-        end
-        to={item.path}
-        className={({ isActive }) =>
-          `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
-            isActive ? "bg-[#6539C310] text-primary transition" : "hover:text-primary"
-          }`
-        }
-      >
-        {item.name}
-      </NavLink>
     </div>
   );
 };

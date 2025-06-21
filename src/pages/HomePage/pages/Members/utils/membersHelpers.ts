@@ -11,13 +11,6 @@ export const titleOptions = [
   { name: "Pastor", value: "Pastor" },
 ];
 
-export const maritalOptions = [
-  { name: "Single", value: "SINGLE" },
-  { name: "Married", value: "MARRIED" },
-  { name: "Divorced", value: "DIVORCED" },
-  { name: "Widow", value: "WIDOW" },
-  { name: "Widower", value: "WIDOWER" },
-];
 
 export const mapUserData = (input: IMemberInfo): IMembersForm => {
   const formatDate = (date: string) => (date ? date.split("T")[0] : "");

@@ -30,7 +30,7 @@ export const Button = (props: IProps) => {
       className = "border border-primary text-primary";
       break;
     case "ghost":
-      className = " text-primary ";
+      className = " text-primary hover:underline";
       break;
     case "default":
       className = " text-white bg-primary ";

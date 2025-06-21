@@ -28,9 +28,9 @@ const ActionButton = React.memo(({ text, onClick }) => {
 ActionButton.displayName = "ActionButton";
 
 const Action = ({ isEditable = true, ...props }) => {
-  const handleEdit = () => props.onEdit();
-  const handleView = () => props.onView();
-  const handleDelete = () => props.onDelete();
+  const handleEdit = props.onEdit;
+  const handleView = props.onView;
+  const handleDelete = props.onDelete;
 
   return (
     <div
@@ -40,9 +40,9 @@ const Action = ({ isEditable = true, ...props }) => {
       }
     >
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-2">
-        {isEditable && <ActionButton onClick={handleEdit} text="Edit" />}
-        <ActionButton onClick={handleView} text="View" />
-        {!props.hideDelete && (
+        {handleEdit && <ActionButton onClick={handleEdit} text="Edit" />}
+        {handleView && <ActionButton onClick={handleView} text="View" />}
+        {handleDelete && (
           <>
             <hr className="border-[#D8DAE5]" />
             <ActionButton onClick={handleDelete} text="Delete" />
