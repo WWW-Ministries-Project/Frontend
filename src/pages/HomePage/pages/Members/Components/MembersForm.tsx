@@ -1,4 +1,4 @@
-import { Button, ProfilePicture } from "@/components";
+import { ProfilePicture } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
@@ -15,24 +15,20 @@ import {
   UserSubForm,
   WorkInfoSubForm,
 } from "@components/subform";
-import { Field, FieldArray, useFormikContext } from "formik";
+import { Field, useFormikContext } from "formik";
 import { useEffect } from "react";
 import { array, boolean, date, object, string } from "yup";
-import useSettingsStore from "../../Settings/utils/settingsStore";
+import {
+  DepartmentPositionSubForm,
+  IDepartmentPositionSubForm,
+} from "./DepartmentPosition";
 import { RadioInput } from "./RadioInput";
 
 interface IProps {
   disabled?: boolean;
 }
 
-interface IDepartmentPosition {
-  department_name: string;
-  position_name: string;
-}
-
 const MembersFormComponent = ({ disabled = false }: IProps) => {
-  const { departmentsOptions, positionsOptions } = useSettingsStore();
-
   const { values, setFieldValue } = useFormikContext<IMembersForm>();
   const has_children = values.personal_info?.has_children ?? false;
 
@@ -40,10 +36,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     if (!values.is_user) {
       setFieldValue("department_positions", []);
     } else {
-      // Ensure at least one department-position entry exists when user becomes a ministry worker
-      if (!values.department_positions || values.department_positions.length === 0) {
-        setFieldValue("department_positions", [{ department_name: "", position_name: "" }]);
-      }
+      setFieldValue("department_positions", initialValues.department_positions);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.is_user]);
@@ -56,20 +49,6 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [has_children]);
-
-  const addDepartmentPosition = () => {
-    const currentDepartmentPositions = values.department_positions || [];
-    setFieldValue("department_positions", [
-      ...currentDepartmentPositions,
-      { department_name: "", position_name: "" }
-    ]);
-  };
-
-  const removeDepartmentPosition = (index: number) => {
-    const currentDepartmentPositions = values.department_positions || [];
-    const updated = currentDepartmentPositions.filter((_, i) => i !== index);
-    setFieldValue("department_positions", updated);
-  };
 
   return (
     <FormLayout>
@@ -112,8 +91,8 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
         id="church_info.membership_type"
         name="church_info.membership_type"
         options={[
-          { name: "Online e-church family", value: "ONLINE" },
-          { name: "In-person church family", value: "IN_HOUSE" },
+          { label: "Online e-church family", value: "ONLINE" },
+          { label: "In-person church family", value: "IN_HOUSE" },
         ]}
         disabled={disabled}
       />
@@ -139,81 +118,13 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
       {values.is_user && (
         <>
           <FormHeader>Ministry/Department & Positions</FormHeader>
-          {/* <FullWidth> */}
-          <FieldArray name="department_positions">
-            {({ push, remove }) => (
-              <FullWidth>
-              <div className="space-y-4   w-full">
-                <div className="space-y-4">
-                  {values.department_positions?.map((_, index) => (
-                  <div key={index} className="border  rounded-lg p-3 relative w-full">
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium text-gray-700">
-                        {/* Ministry/Department {index + 1} */}
-                      </h4>
-                      {values.department_positions!.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            remove(index);
-                            removeDepartmentPosition(index);
-                          }}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                          disabled={disabled}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Field
-                        component={FormikSelectField}
-                        label="Ministry/Department"
-                        id={`department_positions.${index}.department_name`}
-                        name={`department_positions.${index}.department_name`}
-                        placeholder="Select department"
-                        options={departmentsOptions || []}
-                        disabled={disabled}
-                      />
-                      
-                      <Field
-                        component={FormikSelectField}
-                        label="Position"
-                        id={`department_positions.${index}.position_name`}
-                        name={`department_positions.${index}.position_name`}
-                        placeholder="Select position"
-                        options={positionsOptions || []}
-                        disabled={disabled}
-                      />
-                    </div>
-                  </div>
-                ))}
-                </div>
-                
-              
-                  <div className="flex justify-end w-full">
-                    <Button
-                    variant="ghost"
-                      type="button"
-                      onClick={() => {
-                        push({ department_name: "", position_name: "" });
-                        addDepartmentPosition();
-                      }}
-                      disabled={disabled}
-                      value=" Add Another Ministry/Department & Position"
-                    />
-                     
-                  </div>
-                
-              </div>
-              </FullWidth>
-            )}
-          </FieldArray>
-          {/* </FullWidth> */}
+          <DepartmentPositionSubForm
+            disabled={disabled}
+            prefix="department_positions"
+          />
         </>
       )}
-      
+
       <HorizontalLine />
 
       <WorkInfoSubForm disabled={disabled} prefix="work_info" />
@@ -238,7 +149,7 @@ export interface IMembersForm extends IChildrenSubForm {
     membership_type: membersType;
   };
   is_user: boolean;
-  department_positions: IDepartmentPosition[];
+  department_positions: IDepartmentPositionSubForm[];
 }
 
 const initialValues: IMembersForm = {
@@ -255,7 +166,7 @@ const initialValues: IMembersForm = {
     member_since: undefined,
     membership_type: "IN_HOUSE",
   },
-  department_positions: [{ department_name: "", position_name: "" }],
+  department_positions: DepartmentPositionSubForm.initialValues,
   ...ChildrenSubForm.initialValues,
 };
 
@@ -271,20 +182,12 @@ const validationSchema = {
   }),
   department_positions: array().when("is_user", {
     is: true,
-    then: () => array()
-      .of(
-        object().shape({
-          department_name: string().required("Department is required"),
-          position_name: string().required("Position is required"),
-        })
-      )
-      .min(1, "At least one department and position is required"),
+    then: () => DepartmentPositionSubForm.validationSchema,
     otherwise: () => array(),
   }),
   ...ChildrenSubForm.validationSchema,
 };
 
-// export default MembersForm;
 export const MembersForm = Object.assign(MembersFormComponent, {
   initialValues: initialValues,
   validationSchema,

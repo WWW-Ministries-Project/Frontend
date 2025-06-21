@@ -68,10 +68,6 @@ export const compareDates = (date1: string, date2 = "") => {
   //     return 0;
   // }
 };
-export const genderOptions = [
-  { name: "Male", value: "Male" },
-  { name: "Female", value: "Female" },
-];
 
 export const getChangedValues = (
   initialValues: Record<string, unknown>,

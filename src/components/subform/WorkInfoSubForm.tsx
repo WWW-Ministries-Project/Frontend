@@ -3,8 +3,8 @@ import FormikSelectField from "@/components/FormikSelect";
 import { Field, getIn, useFormikContext } from "formik";
 import { useMemo } from "react";
 import { string } from "yup";
-import { OptionsType } from "../../pages/HomePage/pages/Members/utils/membersInterfaces";
 import { FormHeader } from "../ui";
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
 const WorkInfoSubFormComponent = ({
   disabled = false,
@@ -72,12 +72,12 @@ const WorkInfoSubFormComponent = ({
   );
 };
 
-const employmentOptions: OptionsType[] = [
-  { name: "Student", value: "student" },
-  { name: "Employed", value: "employed" },
-  { name: "Self employed", value: "self_employed" },
-  { name: "Unemployed", value: "unemployed" },
-  { name: "Retired", value: "retired" },
+const employmentOptions: ISelectOption[] = [
+  { label: "Student", value: "student" },
+  { label: "Employed", value: "employed" },
+  { label: "Self employed", value: "self_employed" },
+  { label: "Unemployed", value: "unemployed" },
+  { label: "Retired", value: "retired" },
 ];
 
 export interface IWorkInfoSubForm {
