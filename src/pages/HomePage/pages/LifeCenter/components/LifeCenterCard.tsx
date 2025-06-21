@@ -1,13 +1,15 @@
 import ellipse from "@/assets/ellipse.svg";
-import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 import Action from "@/components/Action";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
+import {
+  CalendarIcon,
+  IdentificationIcon,
+  MapPinIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LocationIcon } from "@/assets/LocationIcon";
-import { CalendarIcon } from "@/assets/CalendarIcon";
-import { MemberIcon } from "@/assets/MemberIcon";
 
 interface IProps {
   item: LifeCenterType;
@@ -48,12 +50,12 @@ export const LifeCenterCard = ({
       <div className="space-y-4">
         <p className="mb-3">{item.description}</p>
         <InfoRow
-          icon={<LocationIcon color="black" fill="none" />}
+          icon={<MapPinIcon className="h-6 w-6 text-gray-600" />}
           label={item.location}
         />
         {!!item.meeting_dates?.length && (
           <InfoRow
-            icon={<CalendarIcon />}
+            icon={<CalendarIcon className="h-6 w-6 text-gray-600" />}
             label={
               <ul className="border flex divide-x-[1px] w-fit">
                 {item.meeting_dates.map((date, index) => (
@@ -66,11 +68,11 @@ export const LifeCenterCard = ({
           />
         )}
         <InfoRow
-          icon={<MemberIcon />}
+          icon={<IdentificationIcon className="h-6 w-6 text-gray-600" />}
           label={`${item.totalMembers || 0} Members`}
         />
         <InfoRow
-          icon={<VisitorIcon />}
+          icon={<UserIcon className="h-6 w-6 text-gray-600" />}
           label={`${item.totalSoulsWon || 0} Souls won`}
         />
       </div>
