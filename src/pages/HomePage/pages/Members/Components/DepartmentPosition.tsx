@@ -110,21 +110,21 @@ const DepartmentPositionSubFormComponent = ({
 };
 
 export interface IDepartmentPositionSubForm {
-  department_name: string;
-  position_name: string;
+  department_id: string;
+  position_id: string;
 }
 const initialValues: IDepartmentPositionSubForm[] = [
   {
-    department_name: "",
-    position_name: "",
+    department_id: "",
+    position_id: "",
   },
 ];
 
 const validationSchema = array()
   .of(
     object().shape({
-      department_name: string().required("Department is required"),
-      position_name: string().required("Position is required"),
+      department_id: string().required("Department is required"),
+      position_id: string().required("Position is required"),
     })
   )
   .min(1);
