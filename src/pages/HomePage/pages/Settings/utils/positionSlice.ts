@@ -1,6 +1,7 @@
 import { StateCreator } from "zustand";
 import { Position, PositionSlice } from "./settingsInterfaces";
 
+//TODO: Delete position store and fetch positions directly in settings page
 const createPositionSlice: StateCreator<
   PositionSlice,
   [["zustand/devtools", never]],
@@ -8,18 +9,18 @@ const createPositionSlice: StateCreator<
   PositionSlice
 > = (set, get) => ({
   positions: [],
-  positionsOptions: [],
+  // positionsOptions: [],
   addPosition: (position: Position) => {
     set((state) => ({
       positions: [...state.positions, position],
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
   removePosition: (positionId: string | number) => {
     set((state) => ({
       positions: state.positions.filter((pos) => pos.id !== positionId),
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
   updatePosition: (updatedPosition: Position) => {
     set((state) => ({
@@ -27,20 +28,20 @@ const createPositionSlice: StateCreator<
         pos.id === updatedPosition.id ? updatedPosition : pos
       ),
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
   setPositions: (positions: Position[]) => {
     set({ positions });
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
-  setPositionsOptions: () => {
-    set((state) => ({
-      positionsOptions: state.positions.map((position) => ({
-        label: position.name,
-        value: position.id,
-      })),
-    }));
-  },
+  // setPositionsOptions: () => {
+  //   set((state) => ({
+  //     positionsOptions: state.positions.map((position) => ({
+  //       label: position.name,
+  //       value: position.id,
+  //     })),
+  //   }));
+  // },
 });
 
 export default createPositionSlice;
