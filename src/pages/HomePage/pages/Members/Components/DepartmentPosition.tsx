@@ -20,15 +20,19 @@ const DepartmentPositionSubFormComponent = ({
     [entire, prefix]
   );
 
-  const { departmentsOptions, positionsOptions } = useSettingsStore();
+  const { departmentsOptions, positionOptions } = useSettingsStore();
 
   return (
     <FieldArray name={prefix || "department_positions"}>
       {({ push, remove }) => (
         <>
-          {values.map((_, index) => (
-            <Fragment key={index}>
-              <>
+          {values.map((_, index) => {
+            const optionsAvailable = !(
+              values[index].department_id &&
+              positionOptions[Number(values[index].department_id)]?.length === 0
+            );
+            return (
+              <Fragment key={index}>
                 {values.length > 1 && (
                   <FullWidth $justify="right">
                     <button
@@ -43,32 +47,45 @@ const DepartmentPositionSubFormComponent = ({
                     </button>
                   </FullWidth>
                 )}
-              </>
 
-              <>
-                <Field
-                  component={FormikSelectField}
-                  label="Ministry/Department"
-                  id={`department_positions.${index}.department_id`}
-                  name={`department_positions.${index}.department_id`}
-                  placeholder="Select department"
-                  options={departmentsOptions || []}
-                  disabled={disabled}
-                />
-
-                <Field
-                  component={FormikSelectField}
-                  label="Position"
-                  id={`department_positions.${index}.position_id`}
-                  name={`department_positions.${index}.position_id`}
-                  placeholder="Select position"
-                  options={positionsOptions || []}
-                  disabled={disabled}
-                />
-                {index !== values.length - 1 && <HorizontalLine />}
-              </>
-            </Fragment>
-          ))}
+                <>
+                  <Field
+                    component={FormikSelectField}
+                    label="Ministry/Department"
+                    id={`department_positions.${index}.department_id`}
+                    name={`department_positions.${index}.department_id`}
+                    placeholder="Select department"
+                    options={departmentsOptions || []}
+                    disabled={disabled}
+                  />
+                  <div>
+                    <Field
+                      component={FormikSelectField}
+                      label="Position"
+                      id={`department_positions.${index}.position_id`}
+                      name={`department_positions.${index}.position_id`}
+                      placeholder="Please select department first"
+                      options={
+                        positionOptions[Number(values[index].department_id)] ||
+                        []
+                      }
+                      disabled={
+                        disabled ||
+                        !optionsAvailable ||
+                        !values[index].department_id
+                      }
+                    />
+                    {!optionsAvailable && (
+                      <p className="text-sm text-mainGray pl-1">
+                        No position available for selected department
+                      </p>
+                    )}
+                  </div>
+                  {index !== values.length - 1 && <HorizontalLine />}
+                </>
+              </Fragment>
+            );
+          })}
 
           <FullWidth $justify="right">
             <Button

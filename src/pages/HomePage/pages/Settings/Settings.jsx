@@ -51,6 +51,7 @@ function Settings() {
     if (position) {
       showNotification("Position added successfully", "success");
       settingsStore.setPositions(position.data);
+      refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
     if (departmentError || positionError) {
@@ -71,6 +72,7 @@ function Settings() {
       showNotification("Position updated successfully", "success");
       // settingsStore.updatePosition(positionUpdate.data);
       refetchPositions();
+      refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
     if (departmentUpdateError || positionUpdateError) {
