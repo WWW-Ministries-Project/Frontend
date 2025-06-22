@@ -1,8 +1,13 @@
 import ellipse from "@/assets/ellipse.svg";
-import VisitorIcon from "@/assets/sidebar/VisitorIcon";
 import Action from "@/components/Action";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
+import {
+  CalendarIcon,
+  IdentificationIcon,
+  MapPinIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -45,13 +50,12 @@ export const LifeCenterCard = ({
       <div className="space-y-4">
         <p className="mb-3">{item.description}</p>
         <InfoRow
-          icon="/src/assets/location.svg"
+          icon={<MapPinIcon className="h-6 w-6 text-gray-600" />}
           label={item.location}
-          name="location_icon"
         />
         {!!item.meeting_dates?.length && (
           <InfoRow
-            icon="/src/assets/calendar.svg"
+            icon={<CalendarIcon className="h-6 w-6 text-gray-600" />}
             label={
               <ul className="border flex divide-x-[1px] w-fit">
                 {item.meeting_dates.map((date, index) => (
@@ -61,39 +65,29 @@ export const LifeCenterCard = ({
                 ))}
               </ul>
             }
-            name="calendarIcon"
           />
         )}
         <InfoRow
-          icon="/src/assets/member.svg"
+          icon={<IdentificationIcon className="h-6 w-6 text-gray-600" />}
           label={`${item.totalMembers || 0} Members`}
-          name="member_icon"
         />
         <InfoRow
-          label={
-            <div className="flex">
-              <VisitorIcon  className="text-[#786D8F]" />
-              <p>{`${item.totalSoulsWon || 0} Souls won`}</p>
-            </div>
-          }
-          name="user_icon"
+          icon={<UserIcon className="h-6 w-6 text-gray-600" />}
+          label={`${item.totalSoulsWon || 0} Souls won`}
         />
       </div>
     </div>
   );
 };
 
-const InfoRow = ({
-  icon,
-  label,
-  name,
-}: {
-  icon?: string;
+interface InfoRowProps {
+  icon: ReactNode;
   label: ReactNode;
-  name: string;
-}) => (
-  <div className="flex items-center gap-1">
-    {icon && <img src={icon} alt={name} className="size-5" />}
+}
+
+export const InfoRow = ({ icon, label }: InfoRowProps) => (
+  <div className="flex items-center gap-3">
+    {icon && <span>{icon}</span>}
     <div>{label}</div>
   </div>
 );

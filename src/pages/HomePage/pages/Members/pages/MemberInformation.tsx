@@ -1,4 +1,6 @@
+
 import { formatDate, formatPhoneNumber } from "@/utils";
+
 import { useOutletContext } from "react-router-dom";
 
 //TODO: TAKE A SECOND LOOK AT INFOFIELD AND SECTION
@@ -15,7 +17,8 @@ export function MemberInformation() {
       : user.membership_type === "IN_HOUSE"? "In-person church family" :"";
 
   return (
-    <div className="bg-white rounded-b-lg shadow-sm p-6 mx-auto text-gray-800 ">
+    <div className="bg-white rounded-b-lg shadow-sm p-6 pt-0 mx-auto text-gray-800 ">
+      
       {/* Membership Status */}
       <Section title="Membership Status">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
@@ -191,6 +194,7 @@ interface IMemberInfo {
     relation: string;
     phone_number: string;
   };
+  
 }
 const InfoField = ({
   label,
