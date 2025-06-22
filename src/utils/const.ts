@@ -46,7 +46,7 @@ export const relativePath = {
     },
     lifeCenter:{
       main:"life-centers",
-      detail:"life-centers/life-center/:id"
+      detail:"life-center/:id"
     },
     fallback: "*",
   },

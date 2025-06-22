@@ -6,7 +6,7 @@ import { object, string } from "yup";
 
 interface IProps {
   closeModal: () => void;
-  handleMutate: (value: { name: string }) => Promise<void>;
+  handleMutate: (value: { name: string; id: string }) => Promise<void>;
   loading: boolean;
   editData: { name: string; id: string } | null;
 }
@@ -64,5 +64,5 @@ const initialValues = {
 };
 
 const validationSchema = object().shape({
-  name: string().required("Role name is required"),
+  name: string().required(),
 });

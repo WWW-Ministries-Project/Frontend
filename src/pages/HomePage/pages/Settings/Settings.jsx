@@ -18,12 +18,9 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { FormsComponent } from "./Components/FormsComponent";
 import useSettingsStore from "./utils/settingsStore.ts";
-import { RolesForm } from "../LifeCenter/components/RolesForm";
-import { useFetch } from "@/CustomHooks/useFetch";
-
 function Settings() {
   const { filter, setFilter, handleSearchChange, members, refetchPositions, refetchDepartments } = useOutletContext();
-  const tabs = ["Department", "Position","Role"];
+  const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -42,10 +39,6 @@ function Settings() {
   const { updateData: updatePosition, loading: positionUpdateLoading, error: positionUpdateError, data: positionUpdate } = usePut(api.put.updatePosition);
   const { executeDelete: deleteDepartment, success: departmentDelete, error: departmentDeleteError } = useDelete(api.delete.deleteDepartment);
   const { executeDelete: deletePosition, success: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
-  const { postData: postRole, data: role, error: roleError, loading: creatingRole } = usePost(api.post.createLifeCenterRole);
-  const { updateData: updateRole,data: updateRoleData } = usePut(api.put.updateLifeCenterRole);     
-  const {executeDelete: deleteRole, success: roleDelete, error: roleDeleteError } = useDelete(api.delete.deleteLifeCenterRole);
-  const { data: rolesData } = useFetch(api.fetch.fetchLifCenterRoles); //NB: Fetch roles data on roles tab selection
 
 
   // new data
@@ -58,19 +51,14 @@ function Settings() {
     if (position) {
       showNotification("Position added successfully", "success");
       settingsStore.setPositions(position.data);
+      refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
-
-    if(role){
-      showNotification("Role added successfully", "success");
-      setData(prev=> [...prev, role.data]);
-      handleCloseForm();
-    }
-    if (departmentError || positionError || roleError) {
+    if (departmentError || positionError) {
       showNotification("Something went wrong", "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [department, position, positionError, departmentError, role, roleError]);
+  }, [department, position, positionError, departmentError]);
 
   // updated data
   useEffect(() => {
@@ -84,6 +72,7 @@ function Settings() {
       showNotification("Position updated successfully", "success");
       // settingsStore.updatePosition(positionUpdate.data);
       refetchPositions();
+      refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
     if (departmentUpdateError || positionUpdateError) {
@@ -104,25 +93,17 @@ function Settings() {
       refetchPositions();
       // settingsStore.removePosition(positionDelete.data);
     }
-    if (roleDelete) {
-      showNotification("Role deleted successfully", "success");
-      setData(prev => prev.filter(item => item.id !== selectedId));
-      setSelectedId("");
-    }
-    if (departmentDeleteError || positionDeleteError || roleDeleteError) {
+    if (departmentDeleteError || positionDeleteError) {
       showNotification("Something went wrong", "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [departmentDelete, positionDelete,roleDelete]);
+  }, [departmentDelete, positionDelete]);
   const handleDelete = (itemToDelete) => {
     if (selectedTab === "Department") {
       deleteDepartment({ id: itemToDelete.id })
     }
     if (selectedTab === "Position") {
       deletePosition({ id: itemToDelete.id })
-    }
-    if( selectedTab === "Role") {
-      deleteRole({id:itemToDelete.id});
     }
   }
 
@@ -201,30 +182,6 @@ function Settings() {
   ]
 
 
-  const roleColumn = [
-     {
-      header: "Role Name",
-      accessorKey: "name",
-    },
-    {
-      header: "Action",
-      cell: ({ row }) => (
-        <div
-          className={
-            "text-sm h-6 flex items-center justify-start gap-2 rounded-lg text-center text-white  "
-          }>
-          <img src={edit} alt="edit icon" className="cursor-pointer" onClick={() => {
-            setInputValue(() => ({ id: row.original?.id, name: row.original?.name }))
-            setEditMode(true)
-            setDisplayForm(true)
-          }} />
-          <img src={deleteIcon} alt="delete icon" className="cursor-pointer" onClick={() => {
-            setSelectedId(row.original?.id);
-            showDeleteDialog(row.original, () => handleDelete(row.original));
-          }} />
-        </div>)
-    },
-  ]
 
   //Forms Component
   const selectOptions = useMemo(() => {
@@ -286,10 +243,7 @@ function Settings() {
         setData(positionData);
         break;
       }
-      default: 
-      setColumns(roleColumn);
-      setData(rolesData.data || []);
-      break;
+      default: break
     }
 
   }
@@ -322,14 +276,6 @@ function Settings() {
     setInputValue({ created_by: decodeToken().id, name: "" });
   }
 
-  const handleMutateRole = (data) => {
-    if(data.id){
-  updateRole(data,{id:data.id});
-}
-else{
-  postRole(data);
-}
-  }
   return (
     <PageOutline>
 
@@ -373,16 +319,6 @@ else{
         />
       </section>
       <Modal open={displayForm} persist={false} onClose={handleCloseForm}>
-        { selectedTab ==="Role" ? 
-        <div className="p-5">
-          <RolesForm 
-          closeModal={handleCloseForm} 
-          editData={inputValue} 
-          handleMutate={handleMutateRole}
-          loading={creatingRole}
-          />
-          </div> :
-        
         <FormsComponent
           selectOptions={selectOptions}
           selectId={selectedId}
@@ -399,7 +335,7 @@ else{
           }
           selectLabel={selectLabel}
           editMode={editMode}
-        />}
+        />
       </Modal>
     </PageOutline>
   );
