@@ -15,6 +15,7 @@ import {
 } from "./visitors/interfaces";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -229,9 +230,9 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterRole = (
-    payload: unknown,
+    payload: ILifeCernterRoles ,
     query?: QueryType
-  ): Promise<ApiResponse<[id:string, name:string]>> => {
+  ): Promise<ApiResponse<ILifeCernterRoles>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-role",
       payload,

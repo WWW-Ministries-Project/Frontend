@@ -6,9 +6,9 @@ import { object, string } from "yup";
 
 interface IProps {
   closeModal: () => void;
-  handleMutate: (value: { name: string; id: string }) => Promise<void>;
+  handleMutate: (value:ILifeCernterRoles) => Promise<void>;
   loading: boolean;
-  editData: { name: string; id: string } | null;
+  editData:ILifeCernterRoles | null;
 }
 export function RolesForm({
   closeModal,
@@ -35,7 +35,7 @@ export function RolesForm({
             <Field
               component={FormikInputDiv}
               name="name"
-              label="Role name"
+              label="Role name *"
               id="name"
               placeholder="Enter role name"
             />
@@ -58,7 +58,11 @@ export function RolesForm({
   );
 }
 
-const initialValues = {
+export interface ILifeCernterRoles{
+  name:string,
+  id:string
+}
+const initialValues:ILifeCernterRoles = {
   name: "",
   id: "",
 };

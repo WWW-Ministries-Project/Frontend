@@ -11,6 +11,7 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -117,7 +118,7 @@ export class ApiCreationCalls {
   };
 
   createLifeCenterRole = (
-    payload: {name: string, id?: string}
+    payload:ILifeCernterRoles
   ): Promise<ApiResponse<{id:string,name:string}>> => {
     return this.postToApi("lifecenter/create-role", payload);
   };

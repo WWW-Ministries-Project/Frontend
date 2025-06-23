@@ -9,19 +9,15 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { Modal } from "@/components/Modal";
-import { RolesForm } from "../components/RolesForm";
+import { ILifeCernterRoles, RolesForm } from "../components/RolesForm";
 import { api } from "@/utils/api/apiCalls";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 
-interface Role {
-  id: string;
-  name: string;
-}
 
 export function LifeCenterRoles() {
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editRole, setEditRole] = useState<Role | null>(null);
+  const [editRole, setEditRole] = useState<ILifeCernterRoles | null>(null);
 
   const { data: roles, refetch } = useFetch(api.fetch.fetchLifCenterRoles);
 
@@ -52,7 +48,7 @@ export function LifeCenterRoles() {
     [executeDelete]
   );
 
-  const handleSubmitRole = async (role: Role) => {
+  const handleSubmitRole = async (role: ILifeCernterRoles) => {
     if (editRole) {
       await updateRole(role, { id: role.id });
     } else {
@@ -93,7 +89,7 @@ export function LifeCenterRoles() {
     }
   }, [isDeleted, refetch]);
 
-  const columns = useMemo<ColumnDef<Role>[]>(
+  const columns = useMemo<ColumnDef<ILifeCernterRoles>[]>(
     () => [
       {
         header: "Role Name",
