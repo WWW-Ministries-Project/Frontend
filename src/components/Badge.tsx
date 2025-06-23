@@ -13,7 +13,7 @@ export const Badge = ({ children, className }: IProps) => {
             : "bg-blue-50  text-blue-700 border-blue-200 text-xs"
         }  font-semibold  rounded-full  px-2 border inline-flex items-center justify-center`}
       >
-        <div className="lowercas">{children}</div>
+        <div className="">{children}</div>
       </div>
     </div>
   );
