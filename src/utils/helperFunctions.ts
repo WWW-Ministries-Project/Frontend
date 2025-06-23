@@ -116,3 +116,57 @@ export function convertPermissions(permissions: Record<string, string>) {
 
   return result;
 }
+export const currentYear = new Date().getFullYear()
+
+// Helper function to get years (5 years backwards from current)
+export const getYearOptions = () => {
+  const years = []
+  for (let i = 0; i < 5; i++) {
+    const year = currentYear - i
+    years.push({ label: year.toString(), value: year.toString() })
+  }
+  return [{ label: "All Years", value: "all" }, ...years]
+}
+
+// Helper function to get month options
+export const getMonthOptions = () => {
+  const months = [
+    { label: "All Months", value: "all" },
+    { label: "January", value: "1" },
+    { label: "February", value: "2" },
+    { label: "March", value: "3" },
+    { label: "April", value: "4" },
+    { label: "May", value: "5" },
+    { label: "June", value: "6" },
+    { label: "July", value: "7" },
+    { label: "August", value: "8" },
+    { label: "September", value: "9" },
+    { label: "October", value: "10" },
+    { label: "November", value: "11" },
+    { label: "December", value: "12" },
+  ]
+  return months
+}
+
+// Helper function to get weeks based on selected month and year
+export const getWeekOptions = (month: string, year: string) => {
+  if (month === "all") {
+    return [{ label: "All Weeks", value: "all" }]
+  }
+
+  const selectedYear = year === "all" ? currentYear : Number.parseInt(year)
+  const selectedMonth = Number.parseInt(month)
+
+  // Get the number of days in the selected month
+  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
+
+  // Calculate number of weeks (rounded up)
+  const numberOfWeeks = Math.ceil(daysInMonth / 7)
+
+  const weeks = [{ label: "All Weeks", value: "all" }]
+  for (let i = 1; i <= numberOfWeeks; i++) {
+    weeks.push({ label: `Week ${i}`, value: i.toString() })
+  }
+
+  return weeks
+}
