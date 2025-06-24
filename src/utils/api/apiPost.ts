@@ -11,6 +11,7 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -112,9 +113,13 @@ export class ApiCreationCalls {
     return this.postToApi("lifecenter/create-lifecenter", payload);
   };
 
- createSoul = (
-    payload: ISoulsWonForm
-  ): Promise<ApiResponse<undefined>> => {
+  createSoul = (payload: ISoulsWonForm): Promise<ApiResponse<undefined>> => {
     return this.postToApi("lifecenter/soulwon", payload);
+  };
+
+  createLifeCenterRole = (
+    payload:ILifeCernterRoles
+  ): Promise<ApiResponse<{id:string,name:string}>> => {
+    return this.postToApi("lifecenter/create-role", payload);
   };
 }
