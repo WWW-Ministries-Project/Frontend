@@ -4,7 +4,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { EventResponseType } from "./events/interfaces";
-import { LifeCenterDetailsType, LifeCenterType } from "./lifeCenter/interfaces";
+import { LifeCenterDetailsType, LifeCenterStatsType, LifeCenterType } from "./lifeCenter/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import { ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
@@ -230,6 +230,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterDetailsType>> => {
     return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
+  };
+
+  fetchLifeCenterStats = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterStatsType>> => {
+    return this.fetchFromApi(`lifecenter/stats`, query);
   };
 
   fetchLifCenterRoles = (

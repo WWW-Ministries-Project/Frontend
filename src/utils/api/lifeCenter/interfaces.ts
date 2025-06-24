@@ -22,6 +22,16 @@ export type SoulsWonType = {
   id: string;
 };
 
+export type LifeCenterStatsType = {
+  life_center_name: string;
+  leader_name: string;
+  soul_name: string;
+  contact: string;
+  location: string;
+  date_won: string
+  won_by: string
+}
+
 export interface LifeCenterDetailsType extends LifeCenterType{
   members:{name:string; role:string}[]
   soulsWon:ISoulsWonForm[]
