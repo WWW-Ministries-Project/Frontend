@@ -28,11 +28,11 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
+import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
+import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import {FamilyInformation} from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
-import LifeCenterAnalytics  from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
 
 // Define a Route type
 export interface AppRoute {
@@ -241,24 +241,23 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
-             path: "",
-        name: "Life Centers",
-        element: <LifeCenter />,
-        sideTab: true,
+            path: "",
+            name: "Life Centers",
+            element: <LifeCenter />,
+            sideTab: true,
           },
           {
-             path: "life-center-analytics",
-        name: "Life Centers Analytic",
-        element: <LifeCenterAnalytics />,
-        sideTab: true,
+            path: "life-center-analytics",
+            name: "Life Centers Analytic",
+            element: <LifeCenterAnalytics />,
+            sideTab: true,
           },
-        ]
+        ],
       },
       {
         path: relativePath.home.lifeCenter.detail,
         name: "Life Center",
         element: <ViewLifeCenter />,
-        
       },
       // {
       //   path: "ministry-school",
