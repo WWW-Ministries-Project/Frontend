@@ -29,7 +29,6 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 import { NoAccess } from "@/components/NoAccess";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
-import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
@@ -254,11 +253,7 @@ export const routes: AppRoute[] = [
           },
         ],
       },
-      {
-        path: relativePath.home.lifeCenter.detail,
-        name: "Life Center",
-        element: <ViewLifeCenter />,
-      },
+
       // {
       //   path: "ministry-school",
       //   name: "School of Ministry",
@@ -290,6 +285,7 @@ export const routes: AppRoute[] = [
       //   name: "View Certificate",
       //   element: <ViewCertificate />,
       // },
+
       {
         path: "settings",
         name: "Settings",

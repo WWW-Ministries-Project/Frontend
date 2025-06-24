@@ -10,6 +10,7 @@ import { ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -235,5 +236,11 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterStatsType>> => {
     return this.fetchFromApi(`lifecenter/stats`, query);
+  };
+
+  fetchLifCenterRoles = (
+    query?: QueryType
+  ): Promise<ApiResponse<ILifeCernterRoles[]>> => {
+    return this.fetchFromApi(`lifecenter/get-roles`, query);
   };
 }
