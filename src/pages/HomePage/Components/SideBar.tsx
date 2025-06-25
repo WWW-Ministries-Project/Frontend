@@ -54,6 +54,7 @@ export const SideBar = ({ className }: IProps) => {
       hoverTimerRef.current = null;
     }
     setIsExpanded(false);
+    setOpenMenus({})
   };
 
   // Close all submenus when route changes
