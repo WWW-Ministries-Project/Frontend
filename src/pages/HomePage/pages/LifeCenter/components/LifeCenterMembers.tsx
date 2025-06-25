@@ -131,6 +131,11 @@ export function LifeCenterMembers({
     refetchData();
   }, [success, refetchData]);
 
+  const addMember = ()=>{
+    setOpenForm(true);
+    setEditData(null)
+  }
+
   return (
     <div className="p-6 text-[#474D66] font-medium text-xl h-fit">
       <div className="flex items-center justify-between">
@@ -139,7 +144,7 @@ export function LifeCenterMembers({
           value={screenWidth <= 700 ? "+" : "+ Add"}
           className="text-[#474D66]"
           variant="secondary"
-          onClick={() => setOpenForm(true)}
+          onClick={addMember}
         />
       </div>
 
