@@ -33,6 +33,7 @@ import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLife
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
+import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -144,10 +145,28 @@ export const routes: AppRoute[] = [
       {
         path: "events",
         name: "Events",
-        element: <EventsManagement />,
+        // element: <EventsManagement />,
         isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
+        children:[
+          {
+          path: "all-events",
+          name: "Events",
+          element: <AllEvent />,
+          isPrivate: true,
+          permissionNeeded: "view_events",
+          sideTab: true,
+          },
+          {
+          path: "events",
+          name: "Events Schedule",
+          element: <EventsManagement />,
+          isPrivate: true,
+          permissionNeeded: "view_events",
+          sideTab: true,
+          },
+        ]
       },
       {
         path: "manage-event",
@@ -157,7 +176,7 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_events",
       },
       {
-        path: "events/view-event",
+        path: "events/events/view-event",
         element: <ViewEvent />,
         name: " View Event",
         isPrivate: true,
