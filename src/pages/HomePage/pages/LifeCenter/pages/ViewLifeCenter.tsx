@@ -18,7 +18,7 @@ import { LifeCenterMembers } from "../components/LifeCenterMembers";
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
   const id = decodeQuery(String(lifeCenterId));
-  const { data,refetch } = useFetch(api.fetch.fetchLifeCenterById, { id });
+  const { data, refetch } = useFetch(api.fetch.fetchLifeCenterById, { id });
 
   const lifeCenterData = data?.data;
 
@@ -87,16 +87,16 @@ export function ViewLifeCenter() {
 
         <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  ">
           <div className="border border-lightGray rounded-lg xs:w-full p-4 w-[75%] sm:w-full md:w-1/2 lg:w-[75%]">
-          <SoulsWon
-            soulsWon={souls}
-            setSoulsWon={setSouls}
-            addToSoul={addSoul}
-            editSoul={editSoul}
-          />
-        </div>
-        <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
-        <LifeCenterMembers refetchLifeCenter={refetch}/>
-        </div>
+            <SoulsWon
+              soulsWon={souls}
+              setSoulsWon={setSouls}
+              addToSoul={addSoul}
+              editSoul={editSoul}
+            />
+          </div>
+          <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
+            <LifeCenterMembers refetchLifeCenter={refetch} />
+          </div>
         </div>
       </div>
     </PageOutline>
