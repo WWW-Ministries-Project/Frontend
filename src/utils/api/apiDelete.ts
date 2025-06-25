@@ -92,4 +92,8 @@ export class ApiDeletionCalls {
   deleteLifeCenterRole = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("lifecenter/delete-role", query);
   };
+
+  deleteLifeCenterMember = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("lifecenter/remove-lifecenter-member", query);
+  };
 }

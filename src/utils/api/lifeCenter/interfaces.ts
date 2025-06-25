@@ -28,11 +28,18 @@ export type LifeCenterStatsType = {
   soul_name: string;
   contact: string;
   location: string;
-  date_won: string
-  won_by: string
-}
+  date_won: string;
+  won_by: string;
+};
 
-export interface LifeCenterDetailsType extends LifeCenterType{
-  members:{name:string; role:string}[]
-  soulsWon:ISoulsWonForm[]
+export interface LifeCenterMember {
+  name: string;
+  role: { name: string; id: string };
+  id: string;
+  lifeCenterId: string;
+  user: { name: string; id: string };
+}
+export interface LifeCenterDetailsType extends LifeCenterType {
+  members: LifeCenterMember[];
+  soulsWon: ISoulsWonForm[];
 }
