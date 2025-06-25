@@ -27,12 +27,7 @@ interface Event {
 
 interface EventDetailsModalProps {
   event: Event | null;
-  isOpen: boolean;
   onClose: () => void;
-  position: {
-    top: string;
-    left: string;
-  };
   modalRef: React.RefObject<HTMLDivElement>;
   onDelete?: (eventId: string | number) => void;
   onEdit?: (event: Event) => void;
@@ -42,16 +37,14 @@ interface EventDetailsModalProps {
 
 const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ 
   event, 
-  isOpen, 
   onClose, 
-  position, 
   modalRef, 
   onDelete, 
   onEdit, 
   onShowOptions, 
   showOptions 
 }) => {
-  if (!isOpen || !event) return null;
+  if (!event) return null;
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -111,24 +104,23 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
-        <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+    <div className=" overflow-y-auto">
+      {/* <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center"> */}
+        {/* <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} /> */}
         
         <div
-          className="relative bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all max-w-md w-full"
-          style={{ position: 'absolute', ...position }}
+          className="relative bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all max-w-md w-full"
           ref={modalRef}
         >
           {/* Header with gradient background */}
           <div className="bg-gradient-to-r from-primary to-primary px-6 py-8 relative">
-            <button
+            {/* <button
               className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors rounded-full p-1 hover:bg-white hover:bg-opacity-20"
               onClick={onClose}
               type="button"
             >
               <XMarkIcon className="w-5 h-5" />
-            </button>
+            </button> */}
             
             <div className="text-white">
               <h1 className="text-xl font-bold mb-2 pr-8">{event.name}</h1>
@@ -212,51 +204,12 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
             )}
           </div>
 
-          {/* Action Buttons */}
-          {/* <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-2">
-                {onEdit && (
-                  <button
-                    onClick={handleEdit}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-                    type="button"
-                  >
-                    <PencilSquareIcon className="w-4 h-4 mr-2" />
-                    Edit
-                  </button>
-                )}
-                
-                {onShowOptions && (
-                  <button
-                    onClick={handleShowOptions}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    type="button"
-                  >
-                    More Options
-                  </button>
-                )}
-              </div>
-
-              {onDelete && (
-                <button
-                  onClick={handleDelete}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                  type="button"
-                >
-                  <TrashIcon className="w-4 h-4 mr-2" />
-                  Delete
-                </button>
-              )}
-            </div>
-          </div> */}
-
           {/* Status Indicator */}
           <div className="absolute top-4 left-4">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
           </div>
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };

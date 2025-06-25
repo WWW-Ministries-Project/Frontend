@@ -69,19 +69,19 @@ const getWeekDates = (date) => {
   return week;
 };
 
-const calculateModalPosition = (rect, dimensions) => {
-  let top = rect.top + window.scrollY;
-  let left = rect.left + window.scrollX;
+// const calculateModalPosition = (rect, dimensions) => {
+//   let top = rect.top + window.scrollY;
+//   let left = rect.left + window.scrollX;
 
-  if (rect.bottom + dimensions.height > window.innerHeight) {
-    top = rect.bottom + window.scrollY - dimensions.height;
-  }
-  if (rect.right + dimensions.width > window.innerWidth) {
-    left = rect.right + window.scrollX - dimensions.width;
-  }
+//   if (rect.bottom + dimensions.height > window.innerHeight) {
+//     top = rect.bottom + window.scrollY - dimensions.height;
+//   }
+//   if (rect.right + dimensions.width > window.innerWidth) {
+//     left = rect.right + window.scrollX - dimensions.width;
+//   }
 
-  return { top: `${top}px`, left: `${left}px` };
-};
+//   return { top: `${top}px`, left: `${left}px` };
+// };
 
 // Custom hooks
 const useResponsiveEventsToShow = () => {
@@ -573,7 +573,10 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedDayEvents, setSelectedDayEvents] = useState([]);
-  const [modalPosition, setModalPosition] = useState({ top: '50%', left: '50%' });
+  
+  // Store trigger elements for better positioning
+  const [dayModalTrigger, setDayModalTrigger] = useState(null);
+  const [eventModalTrigger, setEventModalTrigger] = useState(null);
   
   // Refs
   const modalRef = useRef();
@@ -676,17 +679,16 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
   }, []);
 
   const handleModalOpen = useCallback((event, data, isEventModal = false) => {
-    const rect = event.target.getBoundingClientRect();
-    const position = calculateModalPosition(rect, MODAL_DIMENSIONS);
-    
-    setModalPosition(position);
+    event.stopPropagation(); // Prevent event bubbling
     
     if (isEventModal) {
       setSelectedEvent(data);
+      setEventModalTrigger(event.target);
       setModalIsOpen(false);
       setEventModalOpen(true);
     } else {
       setSelectedDayEvents(data);
+      setDayModalTrigger(event.target);
       setEventModalOpen(false);
       setModalIsOpen(true);
     }
@@ -913,12 +915,13 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
         />
       )}
 
-      {/* Day Events EnhancedModal */}
+      {/* Day Events Modal */}
       <EnhancedModal
         isOpen={modalIsOpen}
         onClose={() => setModalIsOpen(false)}
-        position={modalPosition}
+        triggerElement={dayModalTrigger}
         modalRef={modalRef}
+        dimensions={{ width: 320, height: Math.min(400, selectedDayEvents.length * 60 + 100) }}
       >
         <div className="bg-white p-6 min-w-[300px]">
           <h2 className="text-lg font-bold text-center mb-4">Events</h2>
@@ -926,7 +929,7 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
             {selectedDayEvents.map(event => (
               <li key={event.id}>
                 <div 
-                  className="flex text-sm gap-2 cursor-pointer hover:text-primary items-center p-2 rounded hover:bg-gray-50"
+                  className="flex text-sm gap-2 cursor-pointer hover:text-primary items-center p-2 rounded hover:bg-gray-50 transition-colors"
                   onClick={(e) => handleEventClick(e, event)}
                 >
                   <div className="h-3 w-3 border rounded-full border-primary bg-primary flex-shrink-0" />
@@ -944,11 +947,27 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
       </EnhancedModal>
 
       {/* Event Details EnhancedModal */}
-      <EventDetailsModal
-      event={selectedEvent}
-      isOpen={eventModalOpen}
+      <EnhancedModal
+        isOpen={eventModalOpen}
         onClose={handleCloseEventModal}
-        position={modalPosition}
+        triggerElement={eventModalTrigger}
+        modalRef={eventModalRef}
+        dimensions={{ width: 350, height: 400 }}
+      >
+        <div className="w-full">
+          {/* <EventsCard 
+            event={selectedEvent}
+            onNavigate={handleNavigation}
+            calendarView={true}
+            onDelete={onDelete}
+            onShowOptions={onShowOptions}
+            showOptions={showOptions}
+          /> */}
+          <EventDetailsModal
+      event={selectedEvent}
+      isOpen={true}
+        onClose={handleCloseEventModal}
+        // position={modalPosition}
         modalRef={eventModalRef}
         onNavigate={handleNavigation}
             calendarView={true}
@@ -956,6 +975,8 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
             onShowOptions={onShowOptions}
             showOptions={showOptions}
       />
+        </div>
+      </EnhancedModal>
       {/* <EnhancedModal
         isOpen={eventModalOpen}
         onClose={handleCloseEventModal}
