@@ -13,11 +13,12 @@ import { useParams } from "react-router-dom";
 import { InfoRow } from "../components/LifeCenterCard";
 import { SoulsWon } from "../components/SoulsWon";
 import { ISoulsWonForm } from "../components/SoulsWonForm";
+import { LifeCenterMembers } from "../components/LifeCenterMembers";
 
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
   const id = decodeQuery(String(lifeCenterId));
-  const { data } = useFetch(api.fetch.fetchLifeCenterById, { id });
+  const { data, refetch } = useFetch(api.fetch.fetchLifeCenterById, { id });
 
   const lifeCenterData = data?.data;
 
@@ -75,22 +76,27 @@ export function ViewLifeCenter() {
             </div>
             <InfoRow
               icon={<UserIcon className="h-6 w-6 text-gray-600" />}
-              label={`${lifeCenterData?.totalMembers || 0} Members`}
+              label={`${lifeCenterData?.members?.length || 0} Members`}
             />
             <InfoRow
               icon={<VisitorIcon />}
-              label={`${lifeCenterData?.totalSoulsWon || 0} Souls won`}
+              label={`${lifeCenterData?.soulsWon?.length || 0} Souls won`}
             />
           </div>
         </div>
 
-        <div className="border border-lightGray rounded-lg p-4">
-          <SoulsWon
-            soulsWon={souls}
-            setSoulsWon={setSouls}
-            addToSoul={addSoul}
-            editSoul={editSoul}
-          />
+        <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  ">
+          <div className="border border-lightGray rounded-lg xs:w-full p-4 w-[75%] sm:w-full md:w-1/2 lg:w-[75%]">
+            <SoulsWon
+              soulsWon={souls}
+              setSoulsWon={setSouls}
+              addToSoul={addSoul}
+              editSoul={editSoul}
+            />
+          </div>
+          <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
+            <LifeCenterMembers refetchLifeCenter={refetch} />
+          </div>
         </div>
       </div>
     </PageOutline>
