@@ -35,6 +35,13 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
+
+  createAllEvent = <T>(
+    payload: unknown
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("event/create-event-type", payload);
+  };
+
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };

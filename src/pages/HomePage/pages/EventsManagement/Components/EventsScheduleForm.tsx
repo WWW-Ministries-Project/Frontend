@@ -3,22 +3,25 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import { Field, Form, Formik } from "formik";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   formatInputDate,
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import { eventFormValidator } from "../utils/eventHelpers";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api, EventType } from "@/utils";
 
 interface EventsFormProps {
-  inputValue: any;
-  handleMultiSelectChange?: any;
-  onSubmit: (val: any) => void;
+  inputValue: unknown;
+  handleMultiSelectChange?: unknown;
+  onSubmit: (val: unknown) => void;
   loading?: boolean;
   updating?: boolean;
 }
 
 const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
+  const [allEvents, setAllEvents] = useState<EventType[]>([]);
   const handleMultiSelectChange = (name: string, value: Array<string>) => {
     const values = value;
     const index = values.indexOf(name);
@@ -29,6 +32,15 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     }
     return values;
   };
+
+  const { data: lcData } = useFetch(api.fetch.fetchAllEvents);
+
+    // Initialize events from API data
+    useEffect(() => {
+      if (lcData?.data?.length) {
+        setAllEvents([...lcData.data]);
+      }
+    }, [lcData]);
 
   return (
     <Formik
@@ -49,6 +61,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
+              // options={[
+              //   { label: "Activity", value: "ACTIVITY" },
+              //   { label: "Program", value: "PROGRAM" },
+              //   { label: "Service", value: "SERVICE" },
+              //   { label: "Other", value: "other" },
+              // ]}
               label="Event Name"
               id="name"
               name="name"
@@ -57,15 +75,26 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
             <Field
               component={FormikSelectField}
               options={[
-                { name: "Activity", value: "ACTIVITY" },
-                { name: "Program", value: "PROGRAM" },
-                { name: "Service", value: "SERVICE" },
-                { name: "Other", value: "other" },
+                { label: "Activity", value: "ACTIVITY" },
+                { label: "Program", value: "PROGRAM" },
+                { label: "Service", value: "SERVICE" },
+                { label: "Other", value: "other" },
               ]}
               label="Event Type"
               id="event_type"
               name="event_type"
               value={form.values.event_type || props.inputValue.event_type}
+            />
+          </div>
+          <div className="grid md:grid-cols-1 gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Event Description"
+              id="description"
+              name="description"
+              type="textarea"
+              inputClass=" !h-48 resize-none"
+              value={form.values.description || props.inputValue.description}
             />
           </div>
           <h2 className="text-primary H600 font-extrabold ">
@@ -218,18 +247,9 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.location || props.inputValue.location}
             />
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Event Description"
-              id="description"
-              name="description"
-              type="textarea"
-              inputClass=" !h-48 resize-none"
-              value={form.values.description || props.inputValue.description}
-            />
-          </div>
-          <div className="flex gap-4 justify-end mt-4">
+          
+          <div className="sticky bottom-0 border-t">
+          <div className="flex gap-4 justify-end  py-4">
             <Button
               value="Cancel"
               variant="ghost"
@@ -257,6 +277,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 }
               }}
             />
+          </div>
           </div>
         </Form>
       )}

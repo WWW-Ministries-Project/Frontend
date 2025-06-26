@@ -4,176 +4,78 @@ import { Modal } from "@/components/Modal";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import EventForm from "../Components/EventsForm";
+import { api, EventType } from "@/utils";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { AllEventCard } from "../Components/AllEventCard";
+import { getBadgeColor } from "../utils/eventHelpers";
 
-const events = [
-  {
-    "id": 1,
-    "event_name": "Over wrong nor indeed capital",
-    "event_type": "Activities",
-    "event_description": "Environment present establish table cause area nothing institution."
-  },
-  {
-    "id": 2,
-    "event_name": "Process anything program",
-    "event_type": "Others",
-    "event_description": "American study interview factor action beyond local entire radio."
-  },
-  {
-    "id": 3,
-    "event_name": "Little hand culture",
-    "event_type": "Services",
-    "event_description": "Lot painting here arrive edge sign question however treatment."
-  },
-  {
-    "id": 4,
-    "event_name": "Watch employee garden state",
-    "event_type": "Activities",
-    "event_description": "Can without speak across provide must follow even financial entire represent state skin to face."
-  },
-  {
-    "id": 5,
-    "event_name": "Fall how toward child",
-    "event_type": "Programs",
-    "event_description": "Not Democrat its team be approach ok go order season individual accept fall."
-  },
-  {
-    "id": 6,
-    "event_name": "Short against with the",
-    "event_type": "Programs",
-    "event_description": "Oil authority cold trial outside because event according art economic doctor very."
-  },
-  {
-    "id": 7,
-    "event_name": "Camera son parent executive",
-    "event_type": "Programs",
-    "event_description": "During hope charge necessary out science somebody rock style culture property ability none."
-  },
-  {
-    "id": 8,
-    "event_name": "Look everybody take",
-    "event_type": "Services",
-    "event_description": "Clearly positive spend impact sister room will miss summer against everything drop note watch begin."
-  },
-  {
-    "id": 9,
-    "event_name": "I action social",
-    "event_type": "Programs",
-    "event_description": "Debate language agency middle more hundred likely offer and central hour."
-  },
-  {
-    "id": 10,
-    "event_name": "Guy than age green",
-    "event_type": "Programs",
-    "event_description": "Job if with concern thought wall base choice final growth meeting why."
-  },
-  {
-    "id": 11,
-    "event_name": "Last college occur know develop",
-    "event_type": "Services",
-    "event_description": "Season tax know all man hotel ask charge report kitchen operation."
-  },
-  {
-    "id": 12,
-    "event_name": "Life second class model",
-    "event_type": "Programs",
-    "event_description": "Than say money school bring yeah take stay economy serve."
-  },
-  {
-    "id": 13,
-    "event_name": "Across down college",
-    "event_type": "Services",
-    "event_description": "Account sea enjoy catch space remember fear government class religious almost common article probably whether."
-  },
-  {
-    "id": 14,
-    "event_name": "None suddenly and statement skin",
-    "event_type": "Others",
-    "event_description": "Idea up be record thought everything plan create get scene manager professional."
-  },
-  {
-    "id": 15,
-    "event_name": "Worry knowledge within",
-    "event_type": "Others",
-    "event_description": "Center pull first turn far add environment political nearly attack bar thus region."
-  },
-  {
-    "id": 16,
-    "event_name": "Describe although agency",
-    "event_type": "Programs",
-    "event_description": "Suddenly world occur operation hand ready head test alone image hundred bank add."
-  },
-  {
-    "id": 17,
-    "event_name": "Fill soon before necessary",
-    "event_type": "Services",
-    "event_description": "Catch able ball woman budget mind look result describe stop do worry western customer so."
-  },
-  {
-    "id": 18,
-    "event_name": "Laugh describe garden although",
-    "event_type": "Programs",
-    "event_description": "Attention heart individual run page although focus his eye mother role these prevent eye technology."
-  },
-  {
-    "id": 19,
-    "event_name": "Keep other teach before out",
-    "event_type": "Activities",
-    "event_description": "Money since billion son down catch course."
-  },
-  {
-    "id": 20,
-    "event_name": "Far people product catch",
-    "event_type": "Services",
-    "event_description": "Main there ability significant space else rest modern."
-  },
-];
-
-// Badge color mapping
-interface Event {
-    id: number;
-    event_name: string;
-    event_type: string;
-    event_description: string;
-}
+// Tab to event type mapping
+const TAB_TO_EVENT_TYPE = {
+  "All": null,
+  "ACTIVITY": "ACTIVITY", 
+  "PROGRAM": "PROGRAM",
+  "SERVICE": "SERVICE", 
+  "OTHER": "OTHER",
+};
 
 interface BadgeColors {
     [key: string]: string;
 }
 
-const getBadgeColor = (eventType: string): string => {
-    const colors: BadgeColors = {
-        "Activities": "#FF6B4D",
-        "Programs": "#00CFC1", 
-        "Services": "#FFD700",
-        "Others": "#C1BFFF",
-    };
-    return colors[eventType] || "#A8E10C";
-};
+
 
 const AllEvent = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [currentData, setCurrentData] = useState(null);
-  const [selectedTab, setSelectedTab] = useState("All");
+  const [currentData, setCurrentData] = useState<EventType | null>(null);
+  const [selectedTab, setSelectedTab] = useState<keyof typeof TAB_TO_EVENT_TYPE>("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Single source of truth for events
+  const [allEvents, setAllEvents] = useState<EventType[]>([]);
+
+  const { data: lcData } = useFetch(api.fetch.fetchAllEvents);
+  const { executeDelete } = useDelete(api.delete.deleteAllEvent);
+  const { postData, data, loading } = usePost(api.post.createAllEvent);
+  const {
+    updateData,
+    data: update_value,
+    loading: isUpdating,
+  } = usePut(api.put.updateAllEvent);
+
+
+
+  // Initialize events from API data
+  useEffect(() => {
+    if (lcData?.data?.length) {
+      setAllEvents([...lcData.data]);
+    }
+  }, [lcData]);
 
   const handleModalOpenForCreate = () => {
     setCurrentData(null);
     setOpenModal(true);
   };
 
-  const handleTabSelect = (tab) => {
+  const handleTabSelect = (tab: keyof typeof TAB_TO_EVENT_TYPE) => {
     setSelectedTab(tab);
   };
 
   // Filter events based on selected tab and search query
   const filteredEvents = useMemo(() => {
-    let filtered = events;
+    let filtered = allEvents; // Use allEvents instead of lcData?.data
 
     // Filter by tab
     if (selectedTab !== "All") {
-      filtered = filtered.filter(event => event.event_type === selectedTab);
+      const eventType = TAB_TO_EVENT_TYPE[selectedTab];
+      if (eventType) {
+        filtered = filtered.filter(event => event.event_type === eventType);
+      }
     }
 
     // Filter by search query
@@ -187,14 +89,84 @@ const AllEvent = () => {
     }
 
     return filtered;
-  }, [selectedTab, searchQuery]);
+  }, [allEvents, selectedTab, searchQuery]); // Added allEvents as dependency
+
+  const handleDelete = (id: string) => {
+      setAllEvents((prev) => prev.filter((item) => item.id !== id));
+    };
+    const deleteAllEvent = (id: string, name: string) => {
+      showDeleteDialog({ id, name }, async () => {
+        await executeDelete({ id: id });
+        handleDelete(id);
+        showNotification("Event deleted successfully", "success");
+      });
+    };
+  
+    const handleEdit = (value: EventType) => {
+      setCurrentData(value);
+      setOpenModal(true);
+    };
+
+  
+
+  const editItem = useCallback((item: EventType) => {
+    setAllEvents((prev) => prev.map((event) => (event.id === item.id ? item : event)));
+    setOpenModal(false);
+  }, []);
+
+  const handleMutate = async (data: EventType) => {
+    try {
+      if (currentData) {
+        await updateData(data, { id: currentData?.id });
+        setCurrentData(data);
+      } else {
+        await postData(data);
+      }
+    } catch {
+      showNotification("Something went wrong", "error");
+    }
+  };
+
+  const addToList = (item: EventType) => {
+    setAllEvents((prev) => [item, ...prev]); // Add to allEvents
+    setOpenModal(false);
+  };
+
+  useEffect(() => {
+    const event = data?.data as EventType | undefined;
+    if (
+      event &&
+      typeof event.id === "number" &&
+      typeof event.event_name === "string" &&
+      typeof event.event_type === "string" &&
+      typeof event.event_description === "string"
+    ) {
+      addToList(event);
+      showNotification("Events created successfully", "success");
+      setCurrentData(null);
+    }
+  }, [data?.data]);
+
+  useEffect(() => {
+    if (update_value?.data && currentData?.id) {
+      const updatedData = update_value.data as EventType;
+      editItem({
+        id: currentData?.id,
+        event_name: updatedData.event_name,
+        event_type: updatedData.event_type,
+        event_description: updatedData.event_description,
+      });
+      showNotification("Event updated successfully", "success");
+      setCurrentData(null);
+    }
+  }, [update_value?.data, editItem]);
 
   return ( 
     <PageOutline>
       <div>
         <HeaderControls
           title="Events"
-          totalMembers={filteredEvents.length}
+          totalMembers={filteredEvents?.length}
           subtitle="Create and manage your events"
           screenWidth={window.innerWidth}
           btnName="Create Event"
@@ -222,7 +194,7 @@ const AllEvent = () => {
 
       <div className="flex mb-6">
         <TabSelection
-          tabs={["All", "Activities", "Programs", "Services", "Others"]}
+          tabs={["All", "ACTIVITY", "PROGRAM", "SERVICE", "OTHER"]}
           selectedTab={selectedTab}
           onTabSelect={handleTabSelect}
         />
@@ -231,31 +203,38 @@ const AllEvent = () => {
       {/* Results summary */}
       <div className="mb-4">
         <p className="text-gray-600">
-          Showing {filteredEvents.length} of {events.length} events
-          {selectedTab !== "All" && ` in ${selectedTab}`}
+          Showing {filteredEvents?.length} of {allEvents.length} events
+          {selectedTab !== "All" && ` in ${selectedTab.toLowerCase()}`}
           {searchQuery && ` matching "${searchQuery}"`}
         </p>
       </div>
 
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map((event) => (
-            <div key={event.id} className="border rounded-xl p-4 space-y-2 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start">
-                <div className="font-semibold text-gray-900 flex-1 mr-2">
-                  {event?.event_name}
-                </div>
-                <div className="flex-shrink-0">
-                  <Badge className={`bg-[${getBadgeColor(event.event_type)}] text-xs`} >
-                    {event.event_type}
-                  </Badge>
-                </div>
-              </div>
-              <div className="text-gray-600 text-sm leading-relaxed">
-                {event.event_description}
-              </div>
-            </div>
+        {(filteredEvents?.length ?? 0) > 0 ? (
+          (filteredEvents ?? []).map((event) => (
+            <AllEventCard
+            key={event.id}
+                item={event}
+                handleEdit={handleEdit}
+                deleteAllEvent={deleteAllEvent}
+              />
+            // <div key={event.id} className="border rounded-xl p-4 space-y-2 hover:shadow-md transition-shadow">
+            //   <div className="flex justify-between items-start">
+            //     <div className="font-semibold text-gray-900 flex-1 mr-2">
+            //       {event?.event_name}
+            //     </div>
+            //     <div className="flex-shrink-0">
+            //       <Badge className={`bg-[${getBadgeColor(event.event_type)}] text-xs`} >
+            //         {event.event_type}
+            //       </Badge>
+            //     </div>
+            //   </div>
+            //   <div className="text-gray-600 text-sm leading-relaxed">
+            //     {event.event_description}
+            //   </div>
+              
+            // </div>
           ))
         ) : (
           <div className="col-span-full text-center py-12">
@@ -288,7 +267,7 @@ const AllEvent = () => {
         <EventForm
           editData={currentData}
           closeModal={() => setOpenModal(false)}
-          handleMutate={() => { /* TODO: implement mutation logic */ }}
+          handleMutate={handleMutate}
           loading={false}
         />
       </Modal>

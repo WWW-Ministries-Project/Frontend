@@ -15,10 +15,11 @@ interface IProps {
 }
 
 const EventTypeOptions: ISelectOption[] = [
-  { label: "Activities", value: "Activities" },
-  { label: "Programs", value: "Programs" },
-  { label: "Services", value: "Services" },
-  { label: "Others", value: "Others" },
+  
+  { label: "Activity", value: "ACTIVITY" },
+    { label: "Program", value: "PROGRAM" },
+    { label: "Service", value: "SERVICE" },
+    { label: "Other", value: "OTHER" },
 ];
 const EventForm = ({
   closeModal,
@@ -54,7 +55,7 @@ const EventForm = ({
                                 component={FormikInputDiv}
                                 name="event_name"
                                 label="Event name*"
-                                id="name"
+                                id="event_name"
                                 placeholder="Enter the name of the event"
                                 className="w-full "
                             />
@@ -77,19 +78,14 @@ const EventForm = ({
                                 type="textarea"
                                 col={50}
                             />
-                        </Form>)
-                        }
-                        </Formik>
-            </div>
-
-            <div className="sticky bottom-0 border-t">
-                <div className="p-4 px-6 flex justify-end gap-2">
+                            <div className="sticky bottom-0 border-t">
+                <div className="py-4 flex justify-end gap-2">
                    
                     <Button
                     value={editData?.id ? "Update" : "Save"}
                     variant="primary"
                     type="submit"
-                //    onClick={handleSubmit}
+                   onClick={handleSubmit}
                     loading={loading}
                     disabled={loading}
                     />
@@ -97,6 +93,13 @@ const EventForm = ({
                                
                 </div>
             </div>
+                        </Form>)
+                        }
+                        
+                        </Formik>
+            </div>
+
+            
         </div>
      );
 }
