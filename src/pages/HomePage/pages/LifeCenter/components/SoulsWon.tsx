@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
@@ -11,34 +10,25 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 
-import {
-  decodeQuery,
-  showDeleteDialog,
-  showNotification,
-} from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 
 import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
 
 interface IProps {
   soulsWon: ISoulsWonForm[];
-  setSoulsWon: React.Dispatch<React.SetStateAction<ISoulsWonForm[]>>;
-  addToSoul: (soul: ISoulsWonForm) => void;
-  editSoul: (soul: ISoulsWonForm) => void;
+  lifeCenterId: string;
+  handleSuccess: () => void;
 }
 
-export function SoulsWon({
+export const SoulsWon = ({
   soulsWon,
-  setSoulsWon,
-  addToSoul,
-  editSoul,
-}: IProps) {
+  lifeCenterId,
+  handleSuccess,
+}: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [openModal, setOpenModal] = useState(false);
   const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);
-
-  const { id } = useParams();
-  const lifeCenterId = decodeQuery(String(id));
 
   const { executeDelete } = useDelete(api.delete.deleteSoulWon);
   const {
@@ -60,16 +50,14 @@ export function SoulsWon({
     (id: string, name: string) => {
       showDeleteDialog({ id, name }, async () => {
         await executeDelete({ id });
-        setSoulsWon((prev) => prev.filter((soul) => soul.id !== id));
+        handleSuccess();
         showNotification("Soul deleted successfully", "success");
       });
     },
-    [executeDelete, setSoulsWon]
+    [executeDelete]
   );
 
   const handleSave = async (formData: ISoulsWonForm) => {
-    setSoulWon(formData);
-
     try {
       if (formData.id) {
         updateData({ ...formData, lifeCenterId }, { id: formData.id });
@@ -137,21 +125,18 @@ export function SoulsWon({
 
   useEffect(() => {
     if (postResponse?.data) {
-      addToSoul(postResponse.data);
+      handleSuccess();
       showNotification("Soul added successfully", "success");
       setSoulWon(null);
       setOpenModal(false);
     }
-  }, [postResponse?.data, addToSoul]);
-
-  useEffect(() => {
     if (updateResponse && soulWon) {
-      editSoul(soulWon);
+      handleSuccess();
       showNotification("Soul updated successfully", "success");
       setSoulWon(null);
       setOpenModal(false);
     }
-  }, [updateResponse, soulWon, editSoul]);
+  }, [postResponse?.data, updateResponse]);
 
   return (
     <>
@@ -179,4 +164,4 @@ export function SoulsWon({
       </Modal>
     </>
   );
-}
+};

@@ -24,7 +24,20 @@ export const SoulsWonForm = ({
 }: IProps) => {
   const { membersOptions } = useStore();
 
-  const initial = useMemo(() => editData || initialValues, [editData]);
+  const initial = useMemo(
+    () => ({
+      ...(editData || initialValues),
+
+      phone: {
+        //todo: check the data and correct this
+        // @ts-expect-error error from BE
+        number: editData?.contact_number ?? "",
+        country_code: ContactInput.initialValues.country_code,
+      },
+    }),
+    [editData, initialValues]
+  );
+
   return (
     <Formik
       initialValues={initial}

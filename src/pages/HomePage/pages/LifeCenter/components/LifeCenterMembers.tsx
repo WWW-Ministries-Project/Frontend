@@ -1,42 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import { LifeCenterMemberForm } from "./LifeCenterMemberForm";
 
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { useDelete } from "@/CustomHooks/useDelete";
 
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import {
-  decodeQuery,
-  showDeleteDialog,
-  showNotification,
-} from "@/pages/HomePage/utils";
 
 import DeleteIcon from "@/assets/DeleteIcon";
 import EditIcon from "@/assets/EditIcon";
 import useWindowSize from "@/CustomHooks/useWindowSize";
+import { LifeCenterMemberType } from "@/utils/api/lifeCenter/interfaces";
 
-export function LifeCenterMembers({
+export const LifeCenterMembers = ({
   refetchLifeCenter,
+  lifeCenterId,
+  members,
 }: {
   refetchLifeCenter: () => void;
-}) {
-  const { id: lifeCenterParam } = useParams();
-  const lifeCenterId = decodeQuery(String(lifeCenterParam));
-
+  lifeCenterId: string;
+  members: LifeCenterMemberType[];
+}) => {
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState<LifeCenterMemberForm | null>(null);
 
   const { data: roleResponse } = useFetch(api.fetch.fetchLifCenterRoles);
-  const { data: memberResponse, refetch } = useFetch(
-    api.fetch.fetchLifCenterMembers,
-    { id: lifeCenterId }
-  );
   const { screenWidth } = useWindowSize();
 
   const {
@@ -62,23 +55,6 @@ export function LifeCenterMembers({
     [roleResponse?.data]
   );
 
-  const members = useMemo(
-    () =>
-      memberResponse?.data.map((member) => ({
-        id: member.id,
-        userId: member.user.id,
-        name: member.user.name,
-        role: member.role.name,
-        roleId: member.role.id,
-        lifeCenterId: member.lifeCenterId,
-      })) || [],
-    [memberResponse?.data]
-  );
-
-  const refetchData = useCallback(() => {
-    refetch();
-    refetchLifeCenter();
-  }, [refetch, refetchLifeCenter]);
 
   const handleFormSubmit = async (formData: LifeCenterMemberForm) => {
     try {
@@ -112,29 +88,28 @@ export function LifeCenterMembers({
     if (newMember) {
       showNotification("Member added successfully", "success");
       setOpenForm(false);
-      refetchData();
     }
-  }, [newMember, refetchData]);
+  }, [newMember]);
 
   useEffect(() => {
     if (updatedMember) {
       showNotification("Member role updated successfully", "success");
       setOpenForm(false);
-      refetch();
+      refetchLifeCenter();
     }
-  }, [updatedMember, refetch]);
+  }, [updatedMember, refetchLifeCenter]);
 
   useEffect(() => {
     if (success) {
       showNotification("Member deleted successfully", "success");
+      refetchLifeCenter();
     }
-    refetchData();
-  }, [success, refetchData]);
+  }, [success, refetchLifeCenter]);
 
-  const addMember = ()=>{
+  const addMember = () => {
     setOpenForm(true);
-    setEditData(null)
-  }
+    setEditData(null);
+  };
 
   return (
     <div className="p-6 text-[#474D66] font-medium text-xl h-fit">
@@ -155,10 +130,19 @@ export function LifeCenterMembers({
             className="text-base flex justify-between  py-2 "
           >
             <p>
-              {member.name} ({member.role})
+              {member.name} ({member.role.name})
             </p>
             <div className="flex items-center gap-1 cursor-pointer">
-              <div onClick={() => handleEdit(member)}>
+              <div
+                onClick={() =>
+                  handleEdit({
+                    ...member,
+                    role: member.role.name,
+                    roleId: member.role.id,
+                    lifeCenterId
+                  })
+                }
+              >
                 <EditIcon />
               </div>
               <DeleteIcon
@@ -180,4 +164,4 @@ export function LifeCenterMembers({
       </Modal>
     </div>
   );
-}
+};

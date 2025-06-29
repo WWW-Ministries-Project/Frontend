@@ -32,14 +32,15 @@ export type LifeCenterStatsType = {
   won_by: string;
 };
 
-export interface LifeCenterMember {
+export interface LifeCenterMemberType {
   name: string;
   role: { name: string; id: string };
   id: string;
+  userId: string;
   lifeCenterId: string;
   user: { name: string; id: string };
 }
 export interface LifeCenterDetailsType extends LifeCenterType {
-  members: LifeCenterMember[];
+  members: LifeCenterMemberType[];
   soulsWon: ISoulsWonForm[];
 }

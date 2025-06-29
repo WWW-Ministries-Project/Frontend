@@ -4,7 +4,6 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
@@ -16,7 +15,6 @@ import { LifeCenterCard } from "./components/LifeCenterCard";
 import { LifeCenterForm } from "./components/LifeCenterForm";
 
 export function LifeCenter() {
-  const [selectedTab, setSelectedTab] = useState("Life Center");
 
   const [lifeCenters, setLifeCenters] = useState<LifeCenterType[]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -37,7 +35,6 @@ export function LifeCenter() {
     }
   }, [lcData]);
 
-  const handleTabSelect = (tab: string) => setSelectedTab(tab);
   const handleDelete = (id: string) => {
     setLifeCenters((prev) => prev.filter((item) => item.id !== id));
   };
@@ -108,22 +105,13 @@ export function LifeCenter() {
 
   return (
     <PageOutline>
-      <div>
-        <HeaderControls
-          title="Life Center Management"
-          subtitle="Manage your church's life centers and track souls won"
-          screenWidth={window.innerWidth}
-          btnName="Create Life Center"
-          handleClick={handleModalOpenForCreate}
-        />
-        <div className="flex items-center justify-between gap-3 mt-7">
-          <TabSelection
-            tabs={["Life Center", "Analytics"]}
-            selectedTab={selectedTab}
-            onTabSelect={handleTabSelect}
-          />
-        </div>
-      </div>
+      <HeaderControls
+        title="Life Center Management"
+        subtitle="Manage your church's life centers and track souls won"
+        screenWidth={window.innerWidth}
+        btnName="Create Life Center"
+        handleClick={handleModalOpenForCreate}
+      />
 
       <GridComponent
         columns={[]}
