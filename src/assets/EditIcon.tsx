@@ -1,4 +1,4 @@
-export default function EditIcon({ fill }: { fill: string }) {
+export default function EditIcon({ fill }: { fill?: string }) {
   return (
     <div>
       <svg

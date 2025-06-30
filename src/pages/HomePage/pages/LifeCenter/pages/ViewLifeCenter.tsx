@@ -8,39 +8,17 @@ import {
   MapPinIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
-import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { InfoRow } from "../components/LifeCenterCard";
+import { LifeCenterMembers } from "../components/LifeCenterMembers";
 import { SoulsWon } from "../components/SoulsWon";
-import { ISoulsWonForm } from "../components/SoulsWonForm";
 
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
   const id = decodeQuery(String(lifeCenterId));
-  const { data } = useFetch(api.fetch.fetchLifeCenterById, { id });
+  const { data, refetch } = useFetch(api.fetch.fetchLifeCenterById, { id });
 
   const lifeCenterData = data?.data;
-
-  const [souls, setSouls] = useState<ISoulsWonForm[]>([]);
-
-  useEffect(() => {
-    if (lifeCenterData?.soulsWon) {
-      setSouls(lifeCenterData.soulsWon);
-    }
-  }, [lifeCenterData?.soulsWon]);
-
-  const addSoul = useCallback((data: ISoulsWonForm) => {
-    setSouls((prevSouls) => {
-      if (prevSouls.find((soul) => soul.id === data.id)) return prevSouls;
-      return [data, ...prevSouls];
-    });
-  }, []);
-
-  const editSoul = useCallback((item: ISoulsWonForm) => {
-    setSouls((prevSouls) =>
-      prevSouls.map((soul) => (soul.id === item.id ? item : soul))
-    );
-  }, []);
 
   return (
     <PageOutline>
@@ -75,22 +53,30 @@ export function ViewLifeCenter() {
             </div>
             <InfoRow
               icon={<UserIcon className="h-6 w-6 text-gray-600" />}
-              label={`${lifeCenterData?.totalMembers || 0} Members`}
+              label={`${lifeCenterData?.members?.length || 0} Members`}
             />
             <InfoRow
               icon={<VisitorIcon />}
-              label={`${lifeCenterData?.totalSoulsWon || 0} Souls won`}
+              label={`${lifeCenterData?.soulsWon?.length || 0} Souls won`}
             />
           </div>
         </div>
 
-        <div className="border border-lightGray rounded-lg p-4">
-          <SoulsWon
-            soulsWon={souls}
-            setSoulsWon={setSouls}
-            addToSoul={addSoul}
-            editSoul={editSoul}
-          />
+        <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  ">
+          <div className="border border-lightGray rounded-lg xs:w-full p-4 w-[75%] sm:w-full md:w-1/2 lg:w-[75%]">
+            <SoulsWon
+              soulsWon={lifeCenterData?.soulsWon || []}
+              handleSuccess={refetch}
+              lifeCenterId={id}
+            />
+          </div>
+          <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
+            <LifeCenterMembers
+              refetchLifeCenter={refetch}
+              lifeCenterId={id}
+              members={lifeCenterData?.members || []}
+            />
+          </div>
         </div>
       </div>
     </PageOutline>

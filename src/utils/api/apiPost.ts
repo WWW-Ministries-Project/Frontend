@@ -12,6 +12,7 @@ import type {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -125,8 +126,14 @@ export class ApiCreationCalls {
   };
 
   createLifeCenterRole = (
-    payload:ILifeCernterRoles
-  ): Promise<ApiResponse<{id:string,name:string}>> => {
+    payload: ILifeCernterRoles
+  ): Promise<ApiResponse<{ id: string; name: string }>> => {
     return this.postToApi("lifecenter/create-role", payload);
+  };
+
+  createLifeCenterMember = (
+    payload: LifeCenterMemberForm
+  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+    return this.postToApi("lifecenter/add-lifecenter-member", payload);
   };
 }

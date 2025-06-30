@@ -34,6 +34,7 @@ import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyIn
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent.js";
+import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -269,6 +270,12 @@ export const routes: AppRoute[] = [
             path: relativePath.home.lifeCenter.detail,
             name: "Life Center",
             element: <ViewLifeCenter />,
+          },
+          {
+            path: "roles",
+            name: "Life Center Roles",
+            element: <LifeCenterRoles />,
+            sideTab: true,
           },
           {
             path: "life-center-analytics",
