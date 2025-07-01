@@ -33,7 +33,8 @@ import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLife
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
+import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
+import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 
 // Define a Route type
 export interface AppRoute {
@@ -269,12 +270,12 @@ export const routes: AppRoute[] = [
         ],
       },
 
-      // {
-      //   path: "ministry-school",
-      //   name: "School of Ministry",
-      //   element: <MinistrySchool />,
-      //   sideTab: true,
-      // },
+      {
+        path: "ministry-school",
+        name: "School of Ministry",
+        element: <MinistrySchool />,
+        sideTab: true,
+      },
       // {
       //   path: "ministry-school/programs/:id",
       //   name: "View Program",

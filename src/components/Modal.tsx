@@ -25,6 +25,9 @@ export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
           onPointerDownOutside={persist ? (e) => e.preventDefault() : undefined}
           onEscapeKeyDown={persist ? (e) => e.preventDefault() : undefined}
         >
+          <Dialog.Title className="hidden p-4 ">
+            title
+          </Dialog.Title>
           {children}
         </Dialog.Content>
       </Dialog.Portal>
