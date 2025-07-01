@@ -1,6 +1,6 @@
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
 import { SearchBar } from "@/components/SearchBar";
 import { useAuth } from "@/context/AuthWrapper";
 import { useDelete } from "@/CustomHooks/useDelete";

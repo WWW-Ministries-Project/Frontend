@@ -1,3 +1,5 @@
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+
 export interface eventType {
   id: number;
   name: string;
@@ -13,14 +15,9 @@ export interface eventType {
   end_time: string; // Format: "HH:mm"
   //   event_attendance: [];
 }
-
-export interface eventOptionsType {
-  name: string;
-  value: number;
-}
 export interface EventSlice {
   events: eventType[];
-  eventsOptions: eventOptionsType[];
+  eventsOptions: ISelectOption[];
   upcomingEvents: eventType[];
   addEvent: (event: eventType) => void;
   removeEvent: (eventId: number) => void;

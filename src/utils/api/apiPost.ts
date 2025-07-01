@@ -1,7 +1,9 @@
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import { LifeCenterType } from "./lifeCenter/interfaces";
 import { ProgramsPayloadType } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
@@ -9,6 +11,8 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -27,7 +31,9 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
-  createEvent = <T>(payload: Record<string, string>): Promise<ApiResponse<T>> => {
+  createEvent = <T>(
+    payload: Record<string, string>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
@@ -75,9 +81,7 @@ export class ApiCreationCalls {
   //   return this.postToApi<T>("program/unenroll", payload);
   // };
 
-  forgotPassword = <T>(
-    payload: unknown
-  ): Promise<ApiResponse<T>> => {
+  forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
   };
 
@@ -103,4 +107,26 @@ export class ApiCreationCalls {
   // ): Promise<ApiResponse<T>> => {
   //   return this.postToApi<T>("visitor/prayerrequest", payload);
   // };
+
+  createLifeCenter = (
+    payload: LifeCenterType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.postToApi("lifecenter/create-lifecenter", payload);
+  };
+
+  createSoul = (payload: ISoulsWonForm): Promise<ApiResponse<undefined>> => {
+    return this.postToApi("lifecenter/soulwon", payload);
+  };
+
+  createLifeCenterRole = (
+    payload: ILifeCernterRoles
+  ): Promise<ApiResponse<{ id: string; name: string }>> => {
+    return this.postToApi("lifecenter/create-role", payload);
+  };
+
+  createLifeCenterMember = (
+    payload: LifeCenterMemberForm
+  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+    return this.postToApi("lifecenter/add-lifecenter-member", payload);
+  };
 }

@@ -73,7 +73,10 @@ const initialValues: IContactsSubForm = {
   // ...EmergencyContact.initialValues,
 };
 const validationSchema = {
-  email: string().email("Invalid email format").required("Email is required"),
+  email: string()
+    .email("Invalid email format")
+    .required("Email is required")
+    .transform((value) => (value ? value.trim() : "")),
   resident_country: string().required("Resident country is required"),
   state_region: string().required("State/Region is required"),
   city: string().required("City is required"),

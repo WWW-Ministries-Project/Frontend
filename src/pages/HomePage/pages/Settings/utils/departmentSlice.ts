@@ -1,39 +1,67 @@
-import { Department, DepartmentSlice } from "./settingsInterfaces";
-const createDepartmentSlice = (set: any, get: any): DepartmentSlice => ({
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+import { StateCreator } from "zustand";
+import { Department, DepartmentSlice, StoreState } from "./settingsInterfaces";
+
+const createDepartmentSlice: StateCreator<
+  StoreState,
+  [["zustand/devtools", never]],
+  [],
+  DepartmentSlice
+> = (set, get) => ({
   departments: [],
   departmentsOptions: [],
-  addDepartment: (department) => {
-    set((state: any) => ({
+  positionOptions: {},
+
+  addDepartment: (department: Department) => {
+    set((state) => ({
       departments: [...state.departments, department],
     }));
     get().setDepartmentsOptions();
+    get().setPositionOptions();
   },
+
   removeDepartment: (departmentId) => {
-    set((state: any) => ({
-      departments: state.departments.filter(
-        (dept: Department) => dept.id !== departmentId
-      ),
+    set((state) => ({
+      departments: state.departments.filter((dept) => dept.id !== departmentId),
     }));
     get().setDepartmentsOptions();
+    get().setPositionOptions();
   },
-  updateDepartment: (updatedDepartment) => {
-    set((state: any) => ({
-      departments: state.departments.map((dept: Department) =>
+
+  updateDepartment: (updatedDepartment: Department) => {
+    set((state) => ({
+      departments: state.departments.map((dept) =>
         dept.id === updatedDepartment.id ? updatedDepartment : dept
       ),
     }));
     get().setDepartmentsOptions();
+    get().setPositionOptions();
   },
-  setDepartments: (departments) => {
+
+  setDepartments: (departments: Department[]) => {
     set({ departments });
     get().setDepartmentsOptions();
+    get().setPositionOptions();
   },
+
   setDepartmentsOptions: () => {
-    set((state: any) => ({
-      departmentsOptions: state.departments.map((department: Department) => ({
-        name: department.name,
+    set((state) => ({
+      departmentsOptions: state.departments.map((department) => ({
+        label: department.name,
         value: department.id,
       })),
+    }));
+  },
+
+  setPositionOptions: () => {
+    set((state) => ({
+      positionOptions: state.departments.reduce((acc, department) => {
+        acc[department.id] = (department.position || []).map((position) => ({
+          label: position.name,
+          value: String(position.id),
+        }));
+        return acc;
+      }, {} as Record<number, ISelectOption[]>),
     }));
   },
 });

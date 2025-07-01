@@ -13,6 +13,10 @@ import {
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { LifeCenterMember, LifeCenterType } from "./lifeCenter/interfaces";
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -96,7 +100,7 @@ export class ApiUpdateCalls {
   };
 
   // Update Program
-  updateProgram =(
+  updateProgram = (
     payload: ProgramsPayloadType,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
@@ -199,6 +203,50 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<activateMemberType>> => {
     return this.apiExecution.updateData(
       "user/update-user-status",
+      payload,
+      query
+    );
+  };
+
+  updateLifeCenter = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterType>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/update-lifecenter",
+      payload,
+      query
+    );
+  };
+
+  updateSoul = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<ISoulsWonForm>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/soulwon",
+      payload,
+      query
+    );
+  };
+
+  updateLifeCenterRole = (
+    payload: ILifeCernterRoles ,
+    query?: QueryType
+  ): Promise<ApiResponse<ILifeCernterRoles>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/update-role",
+      payload,
+      query
+    );
+  };
+
+  updateLifeCenterMember = (
+    payload: LifeCenterMemberForm ,
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+    return this.apiExecution.updateData(
+      "lifecenter/update-member-role",
       payload,
       query
     );

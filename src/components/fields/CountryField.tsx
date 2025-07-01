@@ -12,7 +12,7 @@ export const CountryField = ({
   placeholder,
 }: {
   disabled?: boolean;
-  prefix: string;
+  prefix?: string;
   name?: string;
   label?: string;
   placeholder?: string;

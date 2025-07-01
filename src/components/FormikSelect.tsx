@@ -1,4 +1,4 @@
-import { SelectField } from "@/pages/HomePage/Components/reusable/SelectFields";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { FieldProps, getIn } from "formik";
 
 interface Option {

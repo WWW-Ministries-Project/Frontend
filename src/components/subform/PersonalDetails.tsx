@@ -1,9 +1,10 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { formatInputDate, genderOptions } from "@/utils/helperFunctions";
-import { Field, useFormikContext } from "formik";
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+import { formatInputDate } from "@/utils/helperFunctions";
+import { Field, getIn, useFormikContext } from "formik";
+import { useMemo } from "react";
 import { date, string } from "yup";
-import { maritalOptions } from "../../pages/HomePage/pages/Members/utils";
 import { CountryField } from "../fields/CountryField";
 import { INameInfo, NameInfo } from "./NameInfo";
 
@@ -14,7 +15,12 @@ const PersonalDetailsComponent = ({
   disabled?: boolean;
   prefix: string;
 }) => {
-  const { values } = useFormikContext<IPersonalDetails>();
+  const { values: entire } = useFormikContext<IPersonalDetails>();
+  const values: IPersonalDetails = useMemo(
+    () => getIn(entire, prefix) || initialValues,
+    [entire, prefix]
+  );
+
   return (
     <>
       <NameInfo disabled={disabled} prefix={prefix} />
@@ -24,6 +30,7 @@ const PersonalDetailsComponent = ({
         placeholder="Enter date of birth"
         value={formatInputDate(values.date_of_birth)}
         disabled={disabled}
+        max={new Date().toISOString().split("T")[0]}
         id={`${prefix}.date_of_birth`}
         name={`${prefix}.date_of_birth`}
         type="date"
@@ -51,6 +58,18 @@ const PersonalDetailsComponent = ({
   );
 };
 
+const genderOptions: ISelectOption[] = [
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+];
+const maritalOptions: ISelectOption[] = [
+  { label: "Single", value: "SINGLE" },
+  { label: "Married", value: "MARRIED" },
+  { label: "Divorced", value: "DIVORCED" },
+  { label: "Widow", value: "WIDOW" },
+  { label: "Widower", value: "WIDOWER" },
+];
+
 export interface IPersonalDetails extends INameInfo {
   date_of_birth: string;
   gender: string;
@@ -66,7 +85,7 @@ const initialValues: IPersonalDetails = {
 };
 const validationSchema = {
   ...NameInfo.validationSchema,
-  date_of_birth: date().max(new Date()),
+  date_of_birth: date().max(new Date()).required("required"),
   gender: string().required("Gender is required"),
   marital_status: string().required("Marital status is required"),
   nationality: string().required("Nationality is required"),

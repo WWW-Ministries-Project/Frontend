@@ -4,11 +4,13 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { EventResponseType } from "./events/interfaces";
+import { LifeCenterDetailsType, LifeCenterMemberType, LifeCenterStatsType, LifeCenterType } from "./lifeCenter/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import { ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -215,5 +217,36 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`prayerrequest/${id}`, query);
+  };
+
+  //life center
+  fetchAllLifeCenters = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterType[]>> => {
+    return this.fetchFromApi(`lifecenter/get-lifecenters`, query);
+  };
+
+  fetchLifeCenterById = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterDetailsType>> => {
+    return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
+  };
+
+  fetchLifeCenterStats = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterStatsType>> => {
+    return this.fetchFromApi(`lifecenter/stats`, query);
+  };
+
+  fetchLifCenterRoles = (
+    query?: QueryType
+  ): Promise<ApiResponse<ILifeCernterRoles[]>> => {
+    return this.fetchFromApi(`lifecenter/get-roles`, query);
+  };
+
+   fetchLifCenterMembers = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterMemberType[]>> => {
+    return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
   };
 }

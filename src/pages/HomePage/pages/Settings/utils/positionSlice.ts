@@ -1,40 +1,47 @@
-import { PositionSlice, Position, PositionOption } from "./settingsInterfaces";
+import { StateCreator } from "zustand";
+import { Position, PositionSlice } from "./settingsInterfaces";
 
-const createPositionSlice = (set: any, get: any): PositionSlice => ({
+//TODO: Delete position store and fetch positions directly in settings page
+const createPositionSlice: StateCreator<
+  PositionSlice,
+  [["zustand/devtools", never]],
+  [],
+  PositionSlice
+> = (set, get) => ({
   positions: [],
-  positionsOptions: [],
-  addPosition: (position) => {
-    set((state: any) => ({
+  // positionsOptions: [],
+  addPosition: (position: Position) => {
+    set((state) => ({
       positions: [...state.positions, position],
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
-  removePosition: (positionId) => {
-    set((state: any) => ({
-      positions: state.positions.filter((pos: Position) => pos.id !== positionId),
+  removePosition: (positionId: string | number) => {
+    set((state) => ({
+      positions: state.positions.filter((pos) => pos.id !== positionId),
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
-  updatePosition: (updatedPosition) => {
-    set((state: any) => ({
-      positions: state.positions.map((pos: Position) =>
+  updatePosition: (updatedPosition: Position) => {
+    set((state) => ({
+      positions: state.positions.map((pos) =>
         pos.id === updatedPosition.id ? updatedPosition : pos
       ),
     }));
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
-  setPositions: (positions) => {
+  setPositions: (positions: Position[]) => {
     set({ positions });
-    get().setPositionsOptions();
+    // get().setPositionsOptions();
   },
-  setPositionsOptions: () => {
-    set((state: any) => ({
-      positionsOptions: state.positions.map((position: Position) => ({
-        name: position.name,
-        value: position.id,
-      })),
-    }));
-  },
+  // setPositionsOptions: () => {
+  //   set((state) => ({
+  //     positionsOptions: state.positions.map((position) => ({
+  //       label: position.name,
+  //       value: position.id,
+  //     })),
+  //   }));
+  // },
 });
 
 export default createPositionSlice;
