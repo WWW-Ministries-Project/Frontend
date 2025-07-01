@@ -15,7 +15,7 @@ const NameInfoComponent = ({
     <>
       <Field
         component={FormikSelectField}
-        label="Title *"
+        label="Title"
         disabled={disabled}
         placeholder="Select title"
         id={prefix ? `${prefix}.title` : "title"}
@@ -87,7 +87,7 @@ const initialValues: INameInfo = {
   last_name: "",
 };
 const validationSchema = {
-  title: string().required("required"),
+  title: string(),
   first_name: string(),
   other_name: string(),
   last_name: string().required(" required"),
