@@ -2,7 +2,8 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import { formatInputDate } from "@/utils/helperFunctions";
-import { Field, useFormikContext } from "formik";
+import { Field, getIn, useFormikContext } from "formik";
+import { useMemo } from "react";
 import { date, string } from "yup";
 import { CountryField } from "../fields/CountryField";
 import { INameInfo, NameInfo } from "./NameInfo";
@@ -14,7 +15,12 @@ const PersonalDetailsComponent = ({
   disabled?: boolean;
   prefix: string;
 }) => {
-  const { values } = useFormikContext<IPersonalDetails>();
+  const { values: entire } = useFormikContext<IPersonalDetails>();
+  const values: IPersonalDetails = useMemo(
+    () => getIn(entire, prefix) || initialValues,
+    [entire, prefix]
+  );
+
   return (
     <>
       <NameInfo disabled={disabled} prefix={prefix} />

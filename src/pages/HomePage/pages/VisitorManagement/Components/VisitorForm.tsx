@@ -118,10 +118,10 @@ const VisitorFormComponent = ({
 };
 
 const howHeardOptions = [
-  { name: "Friend", value: "friend" },
-  { name: "Advertisement", value: "advertisement" },
-  { name: "Social Media", value: "social_media" },
-  { name: "Other", value: "other" },
+  { label: "Friend", value: "friend" },
+  { label: "Advertisement", value: "advertisement" },
+  { label: "Social Media", value: "social_media" },
+  { label: "Other", value: "other" },
 ];
 
 export interface IVisitorForm {

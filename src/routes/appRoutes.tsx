@@ -258,6 +258,8 @@ export const routes: AppRoute[] = [
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
         // element: <LifeCenter />,
+        isPrivate: true,
+        permissionNeeded: "view_life_center",
         sideTab: true,
         children: [
           {
@@ -429,9 +431,6 @@ export const routes: AppRoute[] = [
 ];
 
 // Now, extract sideTabs
-// ...existing code...
-
-// Now, extract sideTabs
 const homePageRoute = routes.find(
   (route) => route.path === relativePath.home.main
 );
@@ -441,4 +440,3 @@ export const sideTabs = homePageChildren.filter(
   (childRoute) => childRoute.sideTab
 );
 
-// ...existing code...

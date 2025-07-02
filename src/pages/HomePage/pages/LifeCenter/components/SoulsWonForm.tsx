@@ -74,6 +74,7 @@ export const SoulsWonForm = ({
               label="Date Won *"
               id="date_won"
               placeholder="Select date"
+              max={new Date().toISOString().split("T")[0]}
             />
             <Field
               name="wonById"
