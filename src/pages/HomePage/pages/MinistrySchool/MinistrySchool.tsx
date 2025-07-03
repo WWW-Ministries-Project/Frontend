@@ -7,7 +7,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
-import { Cohort, ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { CohortType, ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "../../utils";
@@ -55,7 +55,7 @@ export const MinistrySchool = () => {
     setIsModalOpen(false);
   };
 
-  const getCohortToShow = (cohorts: Cohort[] = []): Cohort[] | undefined => {
+  const getCohortToShow = (cohorts: CohortType[] = []): CohortType[] | undefined => {
     const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) return [activeCohort];
 

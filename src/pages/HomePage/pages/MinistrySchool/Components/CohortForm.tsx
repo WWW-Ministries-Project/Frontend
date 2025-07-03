@@ -1,104 +1,27 @@
-import { ApiCreationCalls } from "@/utils/api/apiPost"; // for creating
-import { ApiUpdateCalls } from "@/utils/api/apiPut"; // for updating
-import { Field, Form, Formik } from "formik";
-import { useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import * as Yup from "yup";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
+import { FormLayout, FullWidth } from "@/components/ui";
+import { Actions } from "@/components/ui/form/Actions";
+import { formatInputDate } from "@/utils";
+import { Field, Formik } from "formik";
+import { useMemo } from "react";
+import { date, object, ref, string } from "yup";
 
 interface IProps {
   onClose: () => void;
-  cohort?: {
-    id: number;
-    name: string;
-    description: string;
-    startDate: Date;
-    applicationDeadline: string;
-    duration: string;
-    status: string;
-  }; // Cohort object to edit (optional)
-  programId: number; // Program ID for the cohort
-  fetchProgramData: () => void; //
+  onSubmit: (values: ICohortForm) => void;
+  loading: boolean;
+  cohort?: ICohortForm;
 }
 
-const CohortForm= ({
-  onClose,
-  cohort,
-  programId,
-  fetchProgramData,
-}: IProps) => {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [applicationDeadline, setApplicationDeadline] = useState<Date | null>(
-    null
+export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
+  const initial = useMemo(
+    () => ({
+      ...initialValues,
+      ...cohort,
+    }),
+    [cohort]
   );
-  const [loading, setLoading] = useState(false);
-
-  
-  const apiCreate = new ApiCreationCalls(); // For creating new cohort
-  const apiUpdate = new ApiUpdateCalls(); // For updating existing cohort
-
-  // Set initial values with the cohort's values if provided
-  const initialValues = {
-    name: cohort?.name || "",
-    duration: cohort?.duration || "",
-    description: cohort?.description || "",
-    startDate: cohort?.startDate ? new Date(cohort.startDate) : null, // Convert to Date if exists
-    applicationDeadline: cohort?.applicationDeadline
-      ? new Date(cohort.applicationDeadline)
-      : null, // Convert to Date if exists
-    status: cohort?.status || "Upcoming",
-  };
-
-  const onSubmit = async (values: any) => {
-    setLoading(true); // Show loading state
-
-    const payload = {
-      name: values.name,
-      duration: values.duration,
-      description: values.description,
-      startDate: values.startDate,
-      applicationDeadline: values.applicationDeadline,
-      status: values.status,
-      programId, // Associate the cohort with a specific program
-    };
-
-    try {
-      if (cohort?.id) {
-        // Update existing cohort if ID is provided
-        const response = await apiUpdate.updateCohort({
-          id: cohort.id,
-          payload,
-        });
-        if (response.success) {
-          console.log("Cohort updated successfully:", response.data);
-          onClose(); // Close the form
-        } else {
-          console.error(
-            "Error updating cohort:",
-            response?.error || "Unknown error"
-          );
-        }
-      } else {
-        // Create new cohort if no ID is provided
-        const response = await apiCreate.createCohort(payload);
-        if (response.success) {
-
-          onClose(); // Close the form
-        } else {
-          console.error(
-            "Error creating cohort:",
-            response?.error || "Unknown error"
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error submitting cohort:", error);
-    } finally {
-      setLoading(false); // Stop loading
-      fetchProgramData();
-      onClose(); // Close the form
-    }
-  };
 
   return (
     <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4">
@@ -112,188 +35,115 @@ const CohortForm= ({
       </div>
 
       <Formik
-        initialValues={initialValues}
+        initialValues={initial}
         validationSchema={validationSchema}
         onSubmit={onSubmit}
       >
-        {({ setFieldValue, errors, touched, values, handleChange }) => (
-          <Form className="space-y-4">
+        {({ values }) => (
+          <FormLayout>
             {/* Cohort Name */}
-            <div className="flex gap-4">
-              <div className="w-full">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-primary"
-                >
-                  Cohort Name *
-                </label>
-                <Field
-                  type="text"
-                  id="name"
-                  name="name"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="e.g., Spring 2023, Cohort #5"
-                />
-                {errors.name && touched.name && (
-                  <div className="text-red-600 text-xs">{errors.name}</div>
-                )}
-              </div>
-            </div>
+            <FullWidth>
+              <Field
+                component={FormikInputDiv}
+                label="Cohort Name *"
+                id="name"
+                name="name"
+                className="flex-1"
+                placeholder="e.g., Spring 2023, Cohort #5"
+              />
+            </FullWidth>
 
             {/* Description */}
-            <div className="w-full">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-primary"
-              >
-                Description *
-              </label>
+            <FullWidth>
               <Field
-                as="textarea"
+                component={FormikInputDiv}
+                label="Description *"
+                type="textarea"
                 id="description"
                 name="description"
-                className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
+                className="flex-1"
                 placeholder="Enter cohort description"
               />
-              {errors.description && touched.description && (
-                <div className="text-red-600 text-xs">{errors.description}</div>
-              )}
-            </div>
+            </FullWidth>
+            <Field
+              component={FormikInputDiv}
+              label="Start Date *"
+              type="date"
+              value={formatInputDate(values?.startDate)}
+              placeholderText="Pick a date"
+              id="startDate"
+              name="startDate"
+            />
+            <Field
+              component={FormikInputDiv}
+              label="Duration *"
+              id="duration"
+              name="duration"
+              placeholder="e.g., 8 weeks, 3 months"
+            />
 
-            <div className="grid lg:grid-cols-2">
-              {/* Start Date */}
-              <div className="w-full">
-                <label
-                  htmlFor="startDate"
-                  className="block text-sm font-medium text-primary"
-                >
-                  Start Date *
-                </label>
-                <DatePicker
-                  selected={values.startDate || startDate} // Set initial value
-                  onChange={(date) => {
-                    setStartDate(date);
-                    setFieldValue("startDate", date);
-                  }}
-                  dateFormat="yyyy-MM-dd"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholderText="Pick a date"
-                />
-                {errors.startDate && touched.startDate && (
-                  <div className="text-red-600 text-xs">{errors.startDate}</div>
-                )}
-              </div>
+            <Field
+              component={FormikInputDiv}
+              label="Application Deadline *"
+              type="date"
+              value={formatInputDate(values?.applicationDeadline)}
+              placeholderText="Pick a date"
+              id="applicationDeadline"
+              name="applicationDeadline"
+            />
 
-              {/* Duration */}
-              <div className="w-full">
-                <label
-                  htmlFor="duration"
-                  className="block text-sm font-medium text-primary"
-                >
-                  Duration *
-                </label>
-                <Field
-                  type="text"
-                  id="duration"
-                  name="duration"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="e.g., 8 weeks, 3 months"
-                />
-                {errors.duration && touched.duration && (
-                  <div className="text-red-600 text-xs">{errors.duration}</div>
-                )}
-              </div>
-            </div>
-
-            {/* Application Deadline */}
-            <div className="grid lg:grid-cols-2">
-              <div className="w-full">
-                <label
-                  htmlFor="applicationDeadline"
-                  className="block text-sm font-medium text-primary"
-                >
-                  Application Deadline *
-                </label>
-                <DatePicker
-                  selected={values.applicationDeadline || applicationDeadline} // Set initial value
-                  onChange={(date) => {
-                    setApplicationDeadline(date);
-                    setFieldValue("applicationDeadline", date);
-                  }}
-                  dateFormat="yyyy-MM-dd"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholderText="Pick a date"
-                  maxDate={values.startDate || startDate}
-                />
-                {errors.applicationDeadline && touched.applicationDeadline && (
-                  <div className="text-red-600 text-xs">
-                    {errors.applicationDeadline}
-                  </div>
-                )}
-              </div>
-
-              {/* Status */}
-              <div className="w-full">
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-primary"
-                >
-                  Status *
-                </label>
-                <Field
-                  as="select"
-                  id="status"
-                  name="status"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                >
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Ongoing">Ongoing</option>
-                  <option value="Completed">Completed</option>
-                </Field>
-                {errors.status && touched.status && (
-                  <div className="text-red-600 text-xs">{errors.status}</div>
-                )}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex gap-4 mt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="border border-primaryViolet text-primaryViolet px-6 py-2 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-primary text-white px-6 py-2 rounded-lg"
-              >
-                {loading
-                  ? "Submitting..."
-                  : cohort?.id
-                  ? "Update Cohort"
-                  : "Create Cohort"}
-              </button>
-            </div>
-          </Form>
+            <Field
+              component={FormikSelectField}
+              label="Status *"
+              options={[
+                { value: "Upcoming", label: "Upcoming" },
+                { value: "Ongoing", label: "Ongoing" },
+                { value: "Completed", label: "Completed" },
+              ]}
+              id="status"
+              name="status"
+              placeholder="e.g., Upcoming, Ongoing, Completed"
+            />
+            <Actions
+              onCancel={onClose}
+              onSubmit={() => {
+                onSubmit(values);
+              }}
+              loading={loading}
+            />
+          </FormLayout>
         )}
       </Formik>
     </div>
   );
 };
-const validationSchema = Yup.object({
-  name: Yup.string().required("Cohort name is required"),
-  duration: Yup.string().required("Duration is required"),
-  description: Yup.string().required("Description is required"),
-  startDate: Yup.date().required("Start date is required"),
-  applicationDeadline: Yup.date()
+export interface ICohortForm {
+  id?: number;
+  name: string;
+  duration: string;
+  description: string;
+  startDate: string;
+  applicationDeadline: string;
+  status: string;
+}
+const initialValues: ICohortForm = {
+  name: "",
+  duration: "",
+  description: "",
+  startDate: "",
+  applicationDeadline: "",
+  status: "Upcoming",
+};
+const validationSchema = object({
+  name: string().required("Cohort name is required"),
+  duration: string().required("Duration is required"),
+  description: string().required("Description is required"),
+  startDate: date().required("Start date is required"),
+  applicationDeadline: date()
     .required("Application deadline is required")
     .max(
-      Yup.ref("startDate"),
+      ref("startDate"),
       "Application deadline must be before the cohort start date"
     ),
-  status: Yup.string().required("Status is required"),
+  status: string().required("Status is required"),
 });
-
-export default CohortForm;
