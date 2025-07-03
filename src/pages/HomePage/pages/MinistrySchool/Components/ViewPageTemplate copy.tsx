@@ -4,8 +4,6 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableSkeleton from "@/pages/HomePage/Components/TableSkeleton";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { ReactNode } from "react";
-import { Outlet } from "react-router-dom";
-import { useViewPage, ViewPageProvider } from "../customHooks/ViewPageContext";
 
 interface Data {
   name: string;
@@ -26,6 +24,7 @@ interface Data {
   capacity: number; // Added capacity property
   firstName?: string; // Added firstName property
   lastName?: string; // Added lastName property
+  eligibility?: string; // Added
 }
 
 interface ViewPageTemplateProps {
@@ -37,21 +36,24 @@ interface ViewPageTemplateProps {
   primaryButton: string;
   secondaryButton: string;
   showTopic: boolean;
+  loading: boolean;
   isGrid: boolean;
   title: string;
   description: string;
 }
 
-const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
+const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
+  Data,
   onPrimaryButtonClick,
   onSecondaryButtonClick,
+  children,
   details,
   primaryButton,
   secondaryButton,
   showTopic,
+  loading,
   isGrid = true,
 }) => {
-  const { loading, data: Data } = useViewPage();
   return (
     <PageOutline className="p-0">
       <section className="sticky top-0">
@@ -71,9 +73,9 @@ const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
                         {Data?.title || Data?.name} {Data?.firstName}{" "}
                         {Data?.lastName}
                       </div>
-                      {Data?.status && (
+                      {(Data?.status || Data?.eligibility) && (
                         <Badge className="text-xs bg-primary text-white">
-                          {String(Data?.status)}
+                          {String(Data?.status || Data?.eligibility)}
                         </Badge>
                       )}
                     </div>
@@ -141,10 +143,7 @@ const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
                     <div className="h-4 bg-lightGray rounded w-20"></div>
                     <div className="flex gap-2">
                       {Array.from({ length: 9 }).map((_, index) => (
-                        <div
-                          className="h-4 bg-lightGray rounded-full w-20"
-                          key={index}
-                        ></div>
+                        <div className="h-4 bg-lightGray rounded-full w-20" key={index}></div>
                       ))}
                     </div>
                   </div>
@@ -180,18 +179,11 @@ const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
             {isGrid ? <SkeletonLoader no={6} /> : <TableSkeleton />}
           </div>
         ) : (
-          // <div className="container">{children}</div>
-          <Outlet context={{ load: "some" }} />
+          <div className="container">{children}</div>
         )}
       </section>
     </PageOutline>
   );
 };
-
-const ViewPageTemplate: React.FC<ViewPageTemplateProps> = (props) => (
-  <ViewPageProvider>
-    <ViewPageTemplateInner {...props} />
-  </ViewPageProvider>
-);
 
 export default ViewPageTemplate;

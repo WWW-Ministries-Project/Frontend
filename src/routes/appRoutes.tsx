@@ -29,12 +29,14 @@ import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 import { NoAccess } from "@/components/NoAccess";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
+import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
+import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
+import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram.js";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
-import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 
 // Define a Route type
 export interface AppRoute {
@@ -271,37 +273,54 @@ export const routes: AppRoute[] = [
       },
 
       {
-        path: "ministry-school",
+        path: relativePath.home.ministrySchool.main,
         name: "School of Ministry",
-        element: <MinistrySchool />,
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Ministry School",
+            element: <MinistrySchool />,
+          },
+          {
+            path: relativePath.home.ministrySchool.program,
+            name: "View Template",
+            element: <ViewPageTemplate />,
+            children: [
+              {
+                path: ":id",
+                name: "View Program",
+                element: <ViewProgram />,
+              },
+            ],
+            // {
+            //   path: "ministry-school/programs/:id/cohort/:id",
+            //   name: "View Cohort",
+            //   element: <ViewCohort />,
+            // },
+          },
+        ],
+        // {
+        //   path: "ministry-school/programs/:id/cohort/:id",
+        //   name: "View Cohort",
+        //   element: <ViewCohort />,
+        // },
+        // {
+        //   path: "ministry-school/programs/:id/cohort/:id/class/:id",
+        //   name: "View Class",
+        //   element: <ViewClass />,
+        // },
+        // {
+        //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
+        //   name: "View Student",
+        //   element: <ViewStudent />,
+        // },
+        // {
+        //   path: "ministry-school/programs/cohort/class/student/certificate",
+        //   name: "View Certificate",
+        //   element: <ViewCertificate />,
+        // },
       },
-      // {
-      //   path: "ministry-school/programs/:id",
-      //   name: "View Program",
-      //   element: <ViewProgram />,
-      // },
-      // {
-      //   path: "ministry-school/programs/:id/cohort/:id",
-      //   name: "View Cohort",
-      //   element: <ViewCohort />,
-      // },
-      // {
-      //   path: "ministry-school/programs/:id/cohort/:id/class/:id",
-      //   name: "View Class",
-      //   element: <ViewClass />,
-      // },
-      // {
-      //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
-      //   name: "View Student",
-      //   element: <ViewStudent />,
-      // },
-      // {
-      //   path: "ministry-school/programs/cohort/class/student/certificate",
-      //   name: "View Certificate",
-      //   element: <ViewCertificate />,
-      // },
-
       {
         path: "settings",
         name: "Settings",
@@ -421,4 +440,3 @@ const homePageChildren = homePageRoute?.children || [];
 export const sideTabs = homePageChildren.filter(
   (childRoute) => childRoute.sideTab
 );
-

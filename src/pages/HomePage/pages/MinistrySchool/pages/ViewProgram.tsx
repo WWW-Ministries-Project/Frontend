@@ -1,30 +1,43 @@
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api, Cohort } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import AllCohortsPage from "../Components/AllCohort";
 import CohortForm from "../Components/CohortForm";
-import ViewPageTemplate from "../Components/ViewPageTemplate";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { useViewPage } from "../customHooks/ViewPageContext";
 
-const ViewProgram = () => {
+export const ViewProgram = () => {
   //api
   const { id: programId } = useParams(); // Get program ID from the route
   const { data, loading } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
-
   const program = useMemo(() => data?.data, [data]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCohort, setSelectedCohort] = useState<Cohort | undefined>(
     undefined
   );
 
+  const { setLoading, setData } = useViewPage();
+  useEffect(() => {
+    setData?.({
+      title: program?.title || "",
+      description: program?.description || "",
+      showTopic: true,
+      topics: program?.topics || [],
+    });
+  }, [setData, program]);
+  // useEffect(() => {
+  //   setLoading(loading);
+  //   console.log(loading,"loading")
+  // }, [loading, setLoading]);
+
   const fetchProgramData = async () => {};
   useEffect(() => {
-    fetchProgramData(); // Call the function when programId changes
-  }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
+    fetchProgramData();
+  }, [programId]);
 
   const handleEdit = (cohort: Cohort): void => {
     setSelectedCohort(cohort);
@@ -41,26 +54,14 @@ const ViewProgram = () => {
   };
 
   return (
-    //   <div>Loading...</div> // Show loading text while data is being fetched
-    // ) : (
     <div className="">
-      <ViewPageTemplate
-        title="Program Details" // Add the title property
-        description="View and manage program details" // Add the description property
-        Data={program}
-        showTopic={true}
-        isGrid={true}
-        details={""}
+      <AllCohortsPage
         loading={loading}
-      >
-        <AllCohortsPage
-          loading={loading}
-          cohorts={program?.cohorts || []}
-          onCreate={() => setIsModalOpen(true)}
-          onEdit={handleEdit}
-          onDelete={(cohortId) => deleteCohort(cohortId)}
-        />
-      </ViewPageTemplate>
+        cohorts={program?.cohorts || []}
+        onCreate={() => setIsModalOpen(true)}
+        onEdit={handleEdit}
+        onDelete={(cohortId) => deleteCohort(cohortId)}
+      />
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <CohortForm
@@ -85,4 +86,3 @@ const ViewProgram = () => {
   );
 };
 
-export default ViewProgram;
