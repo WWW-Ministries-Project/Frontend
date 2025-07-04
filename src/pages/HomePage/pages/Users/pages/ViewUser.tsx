@@ -74,7 +74,7 @@ export const ViewUser = () => {
   const rolesOptions = useMemo(
     () =>
       allRoles?.data.map((role) => ({
-        name: role.name,
+        label: role.name,
         value: role.id,
       })) || [],
     [allRoles]

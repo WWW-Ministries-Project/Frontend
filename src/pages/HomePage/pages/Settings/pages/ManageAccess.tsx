@@ -32,6 +32,8 @@ export function ManageAccess() {
     Positions: "",
     Departments: "",
     Access_rights: "",
+    Life_Center: "",
+    Visitors:""
   });
   const { data: accessLevel, refetch } = useFetch(
     api.fetch.fetchAnAccess,

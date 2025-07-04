@@ -1,3 +1,4 @@
+import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
@@ -15,7 +16,6 @@ import { LifeCenterCard } from "./components/LifeCenterCard";
 import { LifeCenterForm } from "./components/LifeCenterForm";
 
 export function LifeCenter() {
-
   const [lifeCenters, setLifeCenters] = useState<LifeCenterType[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [currentData, setCurrentData] = useState<LifeCenterType | null>(null);
@@ -128,6 +128,7 @@ export function LifeCenter() {
           />
         )}
       />
+      {lifeCenters.length === 0 && <EmptyState msg={"No life centers found"} />}
       <Modal open={openModal} onClose={closeModal}>
         <LifeCenterForm
           closeModal={closeModal}
