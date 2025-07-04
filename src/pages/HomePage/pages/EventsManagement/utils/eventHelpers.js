@@ -123,8 +123,13 @@ export const eventFormValidator = Yup.object().shape({
 });
 
 export const eventTypeColors = {
-  ACTIVITY: "#FF5765",
-  PROGRAM: "#FF5765", // This is already correct
-  SERVICE: "#8A6FDF",
-  other: "#A8E10C",
+  ACTIVITY: "#FF6B4D",
+  PROGRAM: "#00CFC1", // This is already correct
+  SERVICE: "#FFD700",
+  other: "#C1BFFF",
+};
+
+export const getBadgeColor = (eventType) => {
+    const colors = eventTypeColors;
+    return colors[eventType] || "#A8E10C";
 };

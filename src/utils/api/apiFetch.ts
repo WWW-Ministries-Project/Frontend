@@ -3,7 +3,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
-import { EventResponseType } from "./events/interfaces";
+import { EventResponseType, EventType } from "./events/interfaces";
 import { LifeCenterDetailsType, LifeCenterMemberType, LifeCenterStatsType, LifeCenterType } from "./lifeCenter/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import { ProgramResponse } from "./ministrySchool/interfaces";
@@ -244,6 +244,11 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-roles`, query);
   };
 
+  fetchAllEvents = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventType[]>> => {
+    return this.fetchFromApi(`event/get-event-types`, query);
+  };
    fetchLifCenterMembers = (
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterMemberType[]>> => {

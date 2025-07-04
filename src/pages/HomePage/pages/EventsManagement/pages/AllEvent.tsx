@@ -1,0 +1,278 @@
+import { Badge } from "@/components/Badge";
+import { HeaderControls } from "@/components/HeaderControls";
+import { Modal } from "@/components/Modal";
+import { ToggleSwitch } from "@/components/ToggleSwitch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import EventForm from "../Components/EventsForm";
+import { api, EventType } from "@/utils";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { AllEventCard } from "../Components/AllEventCard";
+import { getBadgeColor } from "../utils/eventHelpers";
+
+// Tab to event type mapping
+const TAB_TO_EVENT_TYPE = {
+  "All": null,
+  "ACTIVITY": "ACTIVITY", 
+  "PROGRAM": "PROGRAM",
+  "SERVICE": "SERVICE", 
+  "OTHER": "OTHER",
+};
+
+interface BadgeColors {
+    [key: string]: string;
+}
+
+
+
+const AllEvent = () => {
+  const [openModal, setOpenModal] = useState(false);
+  const [currentData, setCurrentData] = useState<EventType | null>(null);
+  const [selectedTab, setSelectedTab] = useState<keyof typeof TAB_TO_EVENT_TYPE>("All");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Single source of truth for events
+  const [allEvents, setAllEvents] = useState<EventType[]>([]);
+
+  const { data: lcData } = useFetch(api.fetch.fetchAllEvents);
+  const { executeDelete } = useDelete(api.delete.deleteAllEvent);
+  const { postData, data, loading } = usePost(api.post.createAllEvent);
+  const {
+    updateData,
+    data: update_value,
+    loading: isUpdating,
+  } = usePut(api.put.updateAllEvent);
+
+
+
+  // Initialize events from API data
+  useEffect(() => {
+    if (lcData?.data?.length) {
+      setAllEvents([...lcData.data]);
+    }
+  }, [lcData]);
+
+  const handleModalOpenForCreate = () => {
+    setCurrentData(null);
+    setOpenModal(true);
+  };
+
+  const handleTabSelect = (tab: keyof typeof TAB_TO_EVENT_TYPE) => {
+    setSelectedTab(tab);
+  };
+
+  // Filter events based on selected tab and search query
+  const filteredEvents = useMemo(() => {
+    let filtered = allEvents; // Use allEvents instead of lcData?.data
+
+    // Filter by tab
+    if (selectedTab !== "All") {
+      const eventType = TAB_TO_EVENT_TYPE[selectedTab];
+      if (eventType) {
+        filtered = filtered.filter(event => event.event_type === eventType);
+      }
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(event => 
+        event.event_name.toLowerCase().includes(query) ||
+        event.event_description.toLowerCase().includes(query) ||
+        event.event_type.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [allEvents, selectedTab, searchQuery]); // Added allEvents as dependency
+
+  const handleDelete = (id: string) => {
+      setAllEvents((prev) => prev.filter((item) => item.id !== id));
+    };
+    const deleteAllEvent = (id: string, name: string) => {
+      showDeleteDialog({ id, name }, async () => {
+        await executeDelete({ id: id });
+        handleDelete(id);
+        showNotification("Event deleted successfully", "success");
+      });
+    };
+  
+    const handleEdit = (value: EventType) => {
+      setCurrentData(value);
+      setOpenModal(true);
+    };
+
+  
+
+  const editItem = useCallback((item: EventType) => {
+    setAllEvents((prev) => prev.map((event) => (event.id === item.id ? item : event)));
+    setOpenModal(false);
+  }, []);
+
+  const handleMutate = async (data: EventType) => {
+    try {
+      if (currentData) {
+        await updateData(data, { id: currentData?.id });
+        setCurrentData(data);
+      } else {
+        await postData(data);
+      }
+    } catch {
+      showNotification("Something went wrong", "error");
+    }
+  };
+
+  const addToList = (item: EventType) => {
+    setAllEvents((prev) => [item, ...prev]); // Add to allEvents
+    setOpenModal(false);
+  };
+
+  useEffect(() => {
+    const event = data?.data as EventType | undefined;
+    if (
+      event &&
+      typeof event.id === "number" &&
+      typeof event.event_name === "string" &&
+      typeof event.event_type === "string" &&
+      typeof event.event_description === "string"
+    ) {
+      addToList(event);
+      showNotification("Events created successfully", "success");
+      setCurrentData(null);
+    }
+  }, [data?.data]);
+
+  useEffect(() => {
+    if (update_value?.data && currentData?.id) {
+      const updatedData = update_value.data as EventType;
+      editItem({
+        id: currentData?.id,
+        event_name: updatedData.event_name,
+        event_type: updatedData.event_type,
+        event_description: updatedData.event_description,
+      });
+      showNotification("Event updated successfully", "success");
+      setCurrentData(null);
+    }
+  }, [update_value?.data, editItem]);
+
+  return ( 
+    <PageOutline>
+      <div>
+        <HeaderControls
+          title="Events"
+          totalMembers={filteredEvents?.length}
+          subtitle="Create and manage your events"
+          screenWidth={window.innerWidth}
+          btnName="Create Event"
+          handleClick={handleModalOpenForCreate}
+        />
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative w-1/3">
+          <input
+            type="text"
+            placeholder="Search events by name, description, or type..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex mb-6">
+        <TabSelection
+          tabs={["All", "ACTIVITY", "PROGRAM", "SERVICE", "OTHER"]}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+        />
+      </div>
+
+      {/* Results summary */}
+      <div className="mb-4">
+        <p className="text-gray-600">
+          Showing {filteredEvents?.length} of {allEvents.length} events
+          {selectedTab !== "All" && ` in ${selectedTab.toLowerCase()}`}
+          {searchQuery && ` matching "${searchQuery}"`}
+        </p>
+      </div>
+
+      {/* Events Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {(filteredEvents?.length ?? 0) > 0 ? (
+          (filteredEvents ?? []).map((event) => (
+            <AllEventCard
+            key={event.id}
+                item={event}
+                handleEdit={handleEdit}
+                deleteAllEvent={deleteAllEvent}
+              />
+            // <div key={event.id} className="border rounded-xl p-4 space-y-2 hover:shadow-md transition-shadow">
+            //   <div className="flex justify-between items-start">
+            //     <div className="font-semibold text-gray-900 flex-1 mr-2">
+            //       {event?.event_name}
+            //     </div>
+            //     <div className="flex-shrink-0">
+            //       <Badge className={`bg-[${getBadgeColor(event.event_type)}] text-xs`} >
+            //         {event.event_type}
+            //       </Badge>
+            //     </div>
+            //   </div>
+            //   <div className="text-gray-600 text-sm leading-relaxed">
+            //     {event.event_description}
+            //   </div>
+              
+            // </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-500">
+              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchQuery 
+                  ? `No events match your search "${searchQuery}"`
+                  : `No events found in ${selectedTab} category`
+                }
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-blue-600 hover:text-blue-500 font-medium"
+                >
+                  Clear search
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Event form */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <EventForm
+          editData={currentData}
+          closeModal={() => setOpenModal(false)}
+          handleMutate={handleMutate}
+          loading={false}
+        />
+      </Modal>
+    </PageOutline>
+  );
+};
+
+export default AllEvent;
