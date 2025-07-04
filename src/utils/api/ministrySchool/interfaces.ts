@@ -20,8 +20,8 @@ export type ProgramResponse = {
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   topics: Topic[];
-  cohorts: Cohort[];
-  prerequisitePrograms: { id: number; title: string }[];//possibly wrong check it
+  cohorts: CohortType[];
+  prerequisitePrograms: { id: number; title: string }[]; //possibly wrong check it
 };
 
 export type Topic = {
@@ -30,17 +30,25 @@ export type Topic = {
   programId: number;
 };
 
-export type Cohort = {
+export type CohortType = {
   id: number;
   name: string;
-  startDate: string; 
+  startDate: string;
   status: string;
   description: string;
   duration: string;
-  applicationDeadline: string; 
+  applicationDeadline: string;
   programId: number;
-  createdAt: string; 
-  updatedAt: string; 
-//   classes: number;
-//   enrolledCount: number;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  courses:[]
+};
+export type CohortPayloadType = {
+  name: string;
+  startDate: string;
+  status: string;
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
 };

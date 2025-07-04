@@ -2,38 +2,24 @@ import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
-import { useDelete } from "@/CustomHooks/useDelete";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
-import { api, Cohort } from "@/utils";
-import { ApiDeletionCalls } from "@/utils/api/apiDelete";
+import type { CohortType } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface IProps {
   onCreate: () => void;
-  cohorts: Cohort[]; // List of cohorts
-  onEdit: (cohort: Cohort) => void; // Function to edit cohort
+  cohorts: CohortType[];
+  onEdit: (cohort: CohortType) => void; 
   onDelete: (id: number) => void;
-  loading: boolean;
 }
 
-const AllCohortsPage = ({
-  onCreate,
-  cohorts,
-  onEdit,
-  onDelete,
-  loading,
-}: IProps) => {
+export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
   const navigate = useNavigate();
-  const apiDelete = new ApiDeletionCalls();
-  const { executeDelete } = useDelete(api.delete.deleteCohort);
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
   const buttonRef = useRef<HTMLButtonElement | null>(null); // Reference for the button that toggles the menu
   const [isMenuOpen, setIsMenuOpen] = useState<number | null>(null); // State to track which menu is open
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const toggleMenu = (id: number) => {
     if (isMenuOpen === id) {
@@ -43,18 +29,11 @@ const AllCohortsPage = ({
     }
   };
 
-  const handleEdit = (cohort: Cohort) => {
+  const handleEdit = (cohort: CohortType) => {
     onEdit(cohort);
   };
 
-  const handleDelete = (cohortId: number) => {
-    showDeleteDialog(
-      { name: "Cohort", id: cohortId },
-      () => executeDelete({ id: String(cohortId) })
-    );
-  };
-
- useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Check if the click is outside the menu container and the button
       if (
@@ -159,8 +138,8 @@ const AllCohortsPage = ({
                         </button>
                         {isMenuOpen === cohort.id && (
                           <div
-                            ref={menuRef} // Reference to the menu container
-                            className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
+                            ref={menuRef}
+                            className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
                           >
                             <ul className="py-1">
                               <li
@@ -172,7 +151,7 @@ const AllCohortsPage = ({
 
                               <hr className="text-lightGray" />
                               <li
-                                onClick={() => handleDelete(cohort.id)}
+                                onClick={() => onDelete(cohort.id)}
                                 className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                               >
                                 Delete Cohort
@@ -192,5 +171,3 @@ const AllCohortsPage = ({
     </div>
   );
 };
-
-export default AllCohortsPage;

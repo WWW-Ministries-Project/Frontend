@@ -13,7 +13,7 @@ interface IProps {
   onDelete: () => void;
 }
 
-export const ProgramsCardManagement = ({
+export const ProgramsCard = ({
   program,
   cohorts = [],
   handleCopyLink,
@@ -57,7 +57,7 @@ export const ProgramsCardManagement = ({
 
           {isMenuOpen && (
             <div
-              className="absolute right-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
+              className="absolute right-0 bottom-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
               role="menu"
             >
               <ul className="py-1">
