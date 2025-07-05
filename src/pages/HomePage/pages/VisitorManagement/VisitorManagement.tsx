@@ -180,9 +180,7 @@ export function VisitorManagement() {
           />
           <div>
             {visitors.length === 0 ? (
-              <div className="text-center py-8 w-1/4 mx-auto">
-                <EmptyState msg={"No visitor found"} />
-              </div>
+              <EmptyState msg={"No visitor found"} />
             ) : (
               <>
                 <div className={`w-full flex gap-2`}>
