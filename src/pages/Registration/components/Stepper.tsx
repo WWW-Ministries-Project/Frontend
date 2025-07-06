@@ -20,7 +20,7 @@ export const Stepper = ({
   return (
     <div className="mx-auto relative">
       {/* Step Indicators */}
-      <div className="hidden md:flex justify-between  items-center mb-2 sticky top-24 bg-white py-4 px-4 border-b border-gray-200  z-10 ">
+      <div className="hidden md:flex justify-between overflow-x-auto  items-center mb-2 sticky top-24 bg-white py-4 px-4 border-b border-gray-200  z-10 ">
         {steps.map((step, index) => (
           <Fragment key={index+step.label}>
           <div  className="flex items-center ">
@@ -30,7 +30,7 @@ export const Stepper = ({
               }`}
             >
               <span
-                className={`w-8 h-8 flex items-center justify-center rounded-full border ${
+                className={`min-w-8 min-h-8 flex items-center justify-center rounded-full border ${
                   index === currentStep ? "bg-primary text-white" : ""
                 }`}
               >
