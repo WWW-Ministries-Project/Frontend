@@ -73,7 +73,7 @@ const Registration = () => {
 
   if (registrationSuccess) {
     return (
-      <div className="bg-error w-full md:w-2/3 mx-auto rounded-lg px-8 py-12">
+      <div className="bg-white w-full md:w-2/3 mx-auto rounded-lg px-8 py-12">
         <div className="text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-6">
             <svg
