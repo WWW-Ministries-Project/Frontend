@@ -42,7 +42,7 @@ const Registration = () => {
     let dataToSend: IRegistration = { ...values };
 
     try {
-      const uploadedFile = values.personal_info.picture.picture;
+      const uploadedFile = values.personal_info?.picture?.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();
@@ -73,7 +73,7 @@ const Registration = () => {
 
   if (registrationSuccess) {
     return (
-      <div className="bg-white w-full md:w-2/3 mx-auto rounded-lg px-8 py-12">
+      <div className="bg-error w-full md:w-2/3 mx-auto rounded-lg px-8 py-12">
         <div className="text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-8 mb-6">
             <svg
@@ -157,6 +157,7 @@ const Registration = () => {
               steps={steps}
               currentStep={currentStep}
               handleNext={handleNext}
+              loading={loading}
               handleBack={() =>
                 setCurrentStep((prev) => Math.max(0, prev - 1))
               }
