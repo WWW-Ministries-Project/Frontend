@@ -1,15 +1,17 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
+import earthImg from '@/assets/images/earth.jpg';
+import { ProfilePicture } from "@/components";
+import { FullWidth } from "@/components/ui";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
 import { api } from "@/utils/api/apiCalls";
-import { ApiResponse } from "@/utils/interfaces";
 import {
   ChildrenSubForm,
   IChildrenSubForm,
   IUserSubForm,
   UserSubForm,
 } from "@components/subform";
-import { Formik, FormikProps } from "formik";
+import { Formik, FormikProps, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
 import { object, ObjectSchema } from "yup";
 import {
@@ -22,12 +24,12 @@ import {
   RegistrationContactSubForm,
 } from "./components/subform/ContactSubForm";
 
-const Registration = () => {
+export const Registration = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
-  const { postData, loading, error, data } = usePost<
-    ApiResponse<{ data: IRegistration }>
-  >(api.post.createMember);
+
+  const [registrationSuccess, setRegistrationSuccess] =
+    useState<boolean>(false);
+  const { postData, loading, error, data } = usePost(api.post.createMember);
 
   useEffect(() => {
     if (registrationSuccess) {
@@ -42,7 +44,7 @@ const Registration = () => {
     let dataToSend: IRegistration = { ...values };
 
     try {
-      const uploadedFile = values.personal_info?.picture?.picture;
+      const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
         const formData = new FormData();
@@ -53,17 +55,12 @@ const Registration = () => {
         if (response?.status === 200) {
           dataToSend = {
             ...values,
-            personal_info: {
-              ...values.personal_info,
-              picture: { src: response.data.result.link, picture: null },
-            },
+            picture: { src: response.data.result.link, picture: null },
           };
         } else {
           throw new Error("Image upload failed");
         }
       }
-
-      // Send data regardless of whether an image was uploaded
       await postData(dataToSend);
       setRegistrationSuccess(true);
     } catch (error) {
@@ -94,8 +91,9 @@ const Registration = () => {
               Registration Successful
             </h2>
             <p className="text-gray-700">
-              Thank you for registering to be a member of the Worldwide Word Ministries.
-              A contact person from the registry team will reach out to you soon.
+              Thank you for registering to be a member of the Worldwide Word
+              Ministries. A contact person from the registry team will reach out
+              to you soon.
             </p>
           </div>
           <p className="text-gray-500 text-sm">
@@ -107,96 +105,153 @@ const Registration = () => {
   }
 
   return (
-    <div className="bg-white w-full md:w-2/3 max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
-      <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
-        <div className="text-center">
-          <h2 className="p-1 text-xl md:text-2xl font-bold">
-            Welcome to our registration portal
-          </h2>
-          <p className="text-sm md:text-lg">Let's get started with your registration</p>
+    <main className=" min-h-screen py-8" style={{ backgroundImage: `url(${earthImg})` }}>
+      <div className="bg-white w-full md:w-2/3 h-full sm:max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
+        <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
+          <div className="text-center">
+            <h2 className="p-1 text-xl md:text-2xl font-bold">
+              Welcome to our registration portal
+            </h2>
+            <p className="text-sm md:text-lg">
+              Let&apos;s get started with your registration
+            </p>
+          </div>
         </div>
-      </div>
-      <Formik
-        initialValues={initialValues}
-        onSubmit={(values) => handleSubmit(values)}
-        validationSchema={
-          getValidationSchema(initialValues.personal_info.has_children)[
-            currentStep
-          ]
-        }
-      >
-        {(formik: FormikProps<IRegistration>) => {
-          const steps = getSteps(formik.values.personal_info.has_children);
-
-          // Reset 'children' when 'has_children' is false
-          useEffect(() => {
-            if (!formik.values.personal_info.has_children) {
-              formik.setFieldValue("children", undefined);
-            } else if (!formik.values.children) {
-              formik.setFieldValue(
-                "children",
-                ChildrenSubForm.initialValues.children
-              );
-            }
-          }, [formik.values.personal_info.has_children]);
-
-          const handleNext = async () => {
-            const errors: any = await formik.validateForm();
-            if (Object.keys(errors).length > 0) {
-              formik.setTouched(errors);
-              return;
-            }
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-            if (currentStep === steps.length - 1) {
-              formik.submitForm();
-            }
-          };
-
-          return (
-            <Stepper
-              steps={steps}
-              currentStep={currentStep}
-              handleNext={handleNext}
-              loading={loading}
-              handleBack={() =>
-                setCurrentStep((prev) => Math.max(0, prev - 1))
+        <Formik
+          initialValues={initialValues}
+          onSubmit={(values) => handleSubmit(values)}
+          validationSchema={
+            getValidationSchema(initialValues.personal_info.has_children)[
+              currentStep
+            ]
+          }
+        >
+          {(formik: FormikProps<IRegistration>) => {
+            const steps = getSteps(formik.values.personal_info.has_children);
+            const handleNext = async () => {
+              const errors: object = await formik.validateForm();
+              if (Object.keys(errors).length > 0) {
+                formik.setTouched(errors);
+                return;
               }
-            />
-          );
-        }}
-      </Formik>
-    </div>
+              setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+              if (currentStep === steps.length - 1) {
+                formik.submitForm();
+              }
+            };
+            return (
+              <>
+                <ChildrenResetWatcher />
+                <Stepper
+                  steps={steps}
+                  currentStep={currentStep}
+                  handleNext={handleNext}
+                  loading={loading}
+                  handleBack={() =>
+                    setCurrentStep((prev) => Math.max(0, prev - 1))
+                  }
+                />
+              </>
+            );
+          }}
+        </Formik>
+      </div>
+    </main>
   );
 };
 
 interface IRegistration extends IChildrenSubForm, IRegistrationContactSubForm {
   personal_info: IUserSubForm;
   work_info: IWorkInfoSubForm;
+  picture: {
+    src: string;
+    picture: File | null;
+  };
   status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
+  church_info: {
+    membership_type: "ONLINE" | "IN_HOUSE";
+  };
 }
 
 const initialValues: IRegistration = {
   personal_info: UserSubForm.initialValues,
   work_info: WorkInfoSubForm.initialValues,
   status: "UNCONFIRMED",
+  picture: {
+    src: "",
+    picture: null,
+  },
   church_info: { membership_type: "ONLINE" },
-  //@ts-expect-error
-  children: undefined,
+  ...ChildrenSubForm.initialValues,
   ...RegistrationContactSubForm.initialValues,
 };
 
 const getSteps = (hasChildren: boolean) => [
-  { label: "Personal Information", content: <UserSubForm prefix="personal_info" /> },
+  {
+    label: "Personal Information",
+    content: <FirstStep />,
+  },
   { label: "Contact Information", content: <RegistrationContactSubForm /> },
-  ...(hasChildren ? [{ label: "Family Information", content: <ChildrenSubForm /> }] : []),
-  { label: "Work Information", content: <WorkInfoSubForm prefix="work_info" /> },
+  ...(hasChildren
+    ? [{ label: "Family Information", content: <ChildrenSubForm /> }]
+    : []),
+  {
+    label: "Work Information",
+    content: <WorkInfoSubForm prefix="work_info" />,
+  },
 ];
 
-const getValidationSchema = (hasChildren: boolean): ObjectSchema<any>[] => [
+const getValidationSchema = (
+  hasChildren: boolean
+): ObjectSchema<typeof getSteps>[] => [
   object({ personal_info: object(UserSubForm.validationSchema) }),
   object({ ...RegistrationContactSubForm.validationSchema }),
   ...(hasChildren ? [object({ ...ChildrenSubForm.validationSchema })] : []),
   object({ work_info: object(WorkInfoSubForm.validationSchema) }),
 ];
 
-export default Registration;
+const useChildrenFieldReset = () => {
+  const formik = useFormikContext<IRegistration>();
+
+  useEffect(() => {
+    if (!formik.values.personal_info.has_children) {
+      formik.setFieldValue("children", []);
+    } else {
+      formik.setFieldValue("children", initialValues.children);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values.personal_info.has_children]);
+};
+
+const ChildrenResetWatcher = () => {
+  useChildrenFieldReset();
+  return null;
+};
+
+const FirstStep = () => {
+  const { values, setFieldValue } = useFormikContext<IRegistration>();
+  return (
+    <>
+      <FullWidth>
+        <div className="">
+          <ProfilePicture
+            className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
+            id="profile_picture"
+            name="profile_picture"
+            src={values.picture.src}
+            editable={true}
+            alt="Profile Picture"
+            onChange={(obj) => {
+              setFieldValue(`picture`, obj);
+            }}
+            textClass={"text-3xl text-primary"}
+          />
+          <p className="text-sm ">
+            Click on the <strong>pen icon</strong> to upload your profile image{" "}
+          </p>
+        </div>
+      </FullWidth>
+      <UserSubForm prefix="personal_info" />
+    </>
+  );
+};
