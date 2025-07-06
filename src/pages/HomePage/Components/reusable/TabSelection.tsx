@@ -15,7 +15,10 @@ interface TabSelectionProps {
             onClick={() => onTabSelect(tab)}
             key={tab}
           >
-            {tab}
+            <div className="capitalize">
+              {tab.toLowerCase()}
+            </div>
+            
           </div>
         ))}
       </div>
