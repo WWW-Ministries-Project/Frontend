@@ -119,16 +119,12 @@ export class ApiUpdateCalls {
   };
 
   // Update Class
-  // updateClass = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     `program/courses/${payload.id}`,
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateClass = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/courses`, payload, query);
+  };
   // Update Cohort
   // updateStudentProgress = <T>(
   //   payload: Record<string, any>,

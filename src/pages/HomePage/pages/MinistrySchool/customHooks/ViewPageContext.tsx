@@ -2,16 +2,18 @@ import { Topic } from "@/utils";
 import React, { createContext, useContext, useState } from "react";
 
 type Data = {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   showTopic?: boolean; // Optional property
   topics?: Topic[]; // Optional property
 };
 interface ViewPageContextProps {
   loading: boolean;
   setLoading: (loading: boolean) => void;
-  data?: Data; // Optional data property
-  setData?: (data: Data) => void; // Optional setter for data
+  data?: Data;
+  setData?: (data: Data) => void; 
+  details?: React.ReactNode; 
+  setDetails?: (details: React.ReactNode) => void; 
 }
 
 const ViewPageContext = createContext<ViewPageContextProps | undefined>(
@@ -31,9 +33,10 @@ export const ViewPageProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<Data | undefined>(undefined);
+  const [details, setDetails] = useState<React.ReactNode>(null);
 
   return (
-    <ViewPageContext.Provider value={{ loading, setLoading, data, setData }}>
+    <ViewPageContext.Provider value={{ loading, setLoading, data, setData, details, setDetails }}>
       {children}
     </ViewPageContext.Provider>
   );

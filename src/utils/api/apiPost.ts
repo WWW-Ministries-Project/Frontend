@@ -66,13 +66,13 @@ export class ApiCreationCalls {
 
   // Create Cohort
   createCohort = (payload: CohortPayloadType): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("program/cohorts", payload);
+    return this.postToApi("program/cohort", payload);
   };
 
   // Create Course
-  // createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/courses", payload);
-  // };
+  createCourse = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/course", payload);
+  };
 
   // Enroll User
   // enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {

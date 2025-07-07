@@ -34,6 +34,7 @@ import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLife
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort.js";
 import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram.js";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
@@ -283,14 +284,20 @@ export const routes: AppRoute[] = [
             element: <MinistrySchool />,
           },
           {
-            path: relativePath.home.ministrySchool.program,
+            path: `${relativePath.home.ministrySchool.program}/:id`,
             name: "View Template",
             element: <ViewPageTemplate />,
             children: [
               {
-                path: ":id",
+                path: "",
                 name: "View Program",
                 element: <ViewProgram />,
+              },
+              {
+                path: relativePath.home.ministrySchool.cohort,
+                // path: "ministry-school/programs/:id/cohort/:id",
+                name: "View Cohort",
+                element: <ViewCohort />,
               },
             ],
             // {

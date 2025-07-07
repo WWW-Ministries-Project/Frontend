@@ -15,7 +15,7 @@ import { useViewPage } from "../customHooks/ViewPageContext";
 export const ViewProgram = () => {
   //api
   const { id: programId } = useParams();
-  const { data, loading, refetch } = useFetch(api.fetch.fetchProgramById, {
+  const { data, refetch } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
   //cohort api

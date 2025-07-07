@@ -4,26 +4,13 @@ import { Badge } from "@/components/Badge";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface ClassItem {
-  id: string;
-  name: string;
-  format: string;
-  instructor: string;
-  schedule: string;
-  classFormat: string;
-  enrolled: number;
-  capacity: number;
-  location?: string;
-  meetingLink?: string;
-}
-
-const ClassCard = ({
+export const ClassCard = ({
   classItem,
   onEdit,
   onDelete,
 }: {
-  classItem: ClassItem;
-  onEdit?: (course: ClassItem) => void;
+  classItem: ClassItemType;
+  onEdit?: (course: ClassItemType) => void;
   onDelete: () => void;
 }) => {
   const navigate = useNavigate();
@@ -59,37 +46,8 @@ const ClassCard = ({
       document.removeEventListener("mousedown", handleClickOutside); // Cleanup the event listener
     };
   }, []);
-
-  // Badge for displaying capacity status
-  const getCapacityBadge = (
-    enrolled: number,
-    capacity: number
-  ): JSX.Element => {
-    const percentage = (enrolled / capacity) * 100;
-    if (percentage >= 100) {
-      return (
-        <Badge className="bg-red-50 text-xs text-red-700 border-lightGray">
-          Full
-        </Badge>
-      );
-    } else if (percentage >= 75) {
-      return (
-        <Badge className="bg-amber-50 text-xs text-amber-700 border-lightGray">
-          Almost Full
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge className="bg-green/50 text-xs text-green-700 border-lightGray">
-          Available
-        </Badge>
-      );
-    }
-  };
-
   return (
     <div
-      key={classItem.id}
       className="border border-lightGray shadow-sm rounded-lg p-4 space-y-2 flex flex-col justify-between"
     >
       <div className="space-y-2 flex-grow">
@@ -102,7 +60,7 @@ const ClassCard = ({
 
         <div className="flex justify-between items-center">
           <div>Instructor</div>
-          <div className="font-medium">{classItem.instructor}</div>
+          <div className="font-medium">{classItem.instructor.name}</div>
         </div>
 
         <div className="flex justify-between items-center">
@@ -181,5 +139,41 @@ const ClassCard = ({
     </div>
   );
 };
+export interface ClassItemType {
+  id: number;
+  name: string;
+  instructor: { name: string, id: number };
+  schedule: string;
+  classFormat: string;
+  enrolled: number;
+  capacity: number;
+  location?: string;
+  meetingLink?: string;
+}
 
-export default ClassCard;
+
+  const getCapacityBadge = (
+    enrolled: number,
+    capacity: number
+  ): JSX.Element => {
+    const percentage = (enrolled / capacity) * 100;
+    if (percentage >= 100) {
+      return (
+        <Badge className="bg-red-50 text-xs text-red-700 border-lightGray">
+          Full
+        </Badge>
+      );
+    } else if (percentage >= 75) {
+      return (
+        <Badge className="bg-amber-50 text-xs text-amber-700 border-lightGray">
+          Almost Full
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-green/50 text-xs text-green-700 border-lightGray">
+          Available
+        </Badge>
+      );
+    }
+  };

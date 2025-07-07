@@ -1,13 +1,13 @@
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
-import { Cohort, ProgramResponse, relativePath } from "@/utils";
+import { CohortType, ProgramResponse, relativePath } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProgramBaseCard } from "./ProgramBaseCard";
 
 interface IProps {
   program: Partial<ProgramResponse>;
-  cohorts?: Cohort[];
+  cohorts?: CohortType[];
   handleCopyLink: (id?: number) => void;
   onEdit: () => void;
   onDelete: () => void;

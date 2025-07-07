@@ -45,13 +45,11 @@ interface ViewPageTemplateProps {
 const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
   onPrimaryButtonClick,
   onSecondaryButtonClick,
-  details,
   primaryButton,
   secondaryButton,
-  showTopic,
   isGrid = true,
 }) => {
-  const { loading, data: Data } = useViewPage();
+  const { loading, data: Data, details } = useViewPage();
   return (
     <PageOutline className="p-0">
       <section className="sticky top-0">
@@ -136,7 +134,7 @@ const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
             {/* Topics */}
             {loading
               ? Data?.topics &&
-                showTopic && (
+                Data?.showTopic && (
                   <div className="space-y-2 animate-pulse">
                     <div className="h-4 bg-lightGray rounded w-20"></div>
                     <div className="flex gap-2">
@@ -150,7 +148,7 @@ const ViewPageTemplateInner: React.FC<ViewPageTemplateProps> = ({
                   </div>
                 )
               : Data?.topics &&
-                showTopic && (
+                Data?.showTopic && (
                   <div className="space-y-1">
                     <p className="text-white text-lg font-semibold">Topics</p>
                     <div className="flex flex-wrap gap-2">

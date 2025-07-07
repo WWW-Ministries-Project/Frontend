@@ -1,16 +1,21 @@
 import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import { EventResponseType } from "./events/interfaces";
-import { LifeCenterDetailsType, LifeCenterMemberType, LifeCenterStatsType, LifeCenterType } from "./lifeCenter/interfaces";
+import {
+  LifeCenterDetailsType,
+  LifeCenterMemberType,
+  LifeCenterStatsType,
+  LifeCenterType,
+} from "./lifeCenter/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
-import { ProgramResponse } from "./ministrySchool/interfaces";
+import { DetailedCohortType, ProgramResponse } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -145,11 +150,8 @@ export class ApiCalls {
     return this.fetchFromApi("program/cohorts", query);
   };
 
-  fetchCohortById = (
-    id: string,
-    query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi(`program/cohorts/${id}`, query);
+  fetchCohortById = (query?: QueryType): Promise<ApiResponse<DetailedCohortType>> => {
+    return this.fetchFromApi(`program/cohort`, query);
   };
 
   fetchCohortsByProgramId = (
@@ -244,7 +246,7 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-roles`, query);
   };
 
-   fetchLifCenterMembers = (
+  fetchLifCenterMembers = (
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterMemberType[]>> => {
     return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
