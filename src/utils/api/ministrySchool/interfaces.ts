@@ -92,3 +92,16 @@ export type DetailedCohortType = {
   courses: CourseType[];
   isDeadlinePassed: boolean;
 };
+export type DetailedCourseType = {
+  id: number;
+  name: string;
+  capacity: number;
+  enrolled: number;
+  schedule: string;
+  classFormat: string;
+  location?: string;
+  meetingLink: string;
+  instructor: { name: string; id: number };
+  cohortId: number;
+  enrollments: []
+};

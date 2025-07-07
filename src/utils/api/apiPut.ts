@@ -138,16 +138,16 @@ export class ApiUpdateCalls {
   // };
 
   // Update Enrollment
-  // updateEnrollment = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "program/enrollments/update-enrollment",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateEnrollment = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/enrollments/update-enrollment",
+      payload,
+      query
+    );
+  };
 
   /* Visitor Management */
 
