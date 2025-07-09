@@ -92,9 +92,7 @@ const AllStudents = ({
       </div>
 
       {Data?.length === 0 ? (
-        <div className="text-center py-8 w-1/4 mx-auto">
           <EmptyState msg={"No students found"} />
-        </div>
       ) : (
         <div className="bg-white border border-lightGray p-4 rounded-lg">
           <div className="overflow-x-auto">

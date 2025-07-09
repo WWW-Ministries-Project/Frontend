@@ -7,18 +7,18 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
-import { Cohort, ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { CohortType, ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "../../utils";
-import { ProgramsCardManagement } from "./Components/ProgramCard";
+import { ProgramsCard } from "./Components/ProgramCard";
 import { IProgramForm, ProgramForm } from "./Components/ProgramForm";
 
 export const MinistrySchool = () => {
   //api
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllPrograms);
-  const { postData: postProgram } = usePost(api.post.createProgram);
-  const { updateData: updateProgram } = usePut(api.put.updateProgram);
+  const { postData: postProgram, loading: postLoading } = usePost(api.post.createProgram);
+  const { updateData: updateProgram, loading: updateLoading } = usePut(api.put.updateProgram);
   const { executeDelete } = useDelete(api.delete.deleteProgram);
 
   const programsData = useMemo(() => data?.data || [], [data]);
@@ -55,7 +55,7 @@ export const MinistrySchool = () => {
     setIsModalOpen(false);
   };
 
-  const getCohortToShow = (cohorts: Cohort[] = []): Cohort[] | undefined => {
+  const getCohortToShow = (cohorts: CohortType[] = []): CohortType[] | undefined => {
     const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
     if (activeCohort) return [activeCohort];
 
@@ -98,24 +98,7 @@ export const MinistrySchool = () => {
     return (
       <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
         {programsData.map((program) => (
-          // <ProgramsCard
-          //   key={program.id}
-          //   program={program}
-          //   toggleMenu={() => {}}
-          //   isMenuOpen={null}
-          //   cohorts={getCohortToShow(program.cohorts)}
-          //   handleCopyLink={() => {}}
-          //   onOpen={() => handleEdit(program)}
-          //   onClose={handleClose}
-          //   onDelete={() =>
-          //     showDeleteDialog(
-          //       { name: program.title, id: program.id },
-          //       deleteProgram
-          //     )
-          //   }
-          // />
-
-          <ProgramsCardManagement
+          <ProgramsCard
             key={program.id}
             program={program}
             cohorts={getCohortToShow(program.cohorts)}
@@ -154,6 +137,7 @@ export const MinistrySchool = () => {
           program={selectedProgram}
           prerequisitesDropdown={getProgramsForDropdown(programsData)}
           handleSubmit={handleSubmit}
+          loading={loading || postLoading || updateLoading}
         />
       </Modal>
     </PageOutline>

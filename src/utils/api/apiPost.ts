@@ -1,18 +1,21 @@
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import { LifeCenterType } from "./lifeCenter/interfaces";
-import { ProgramsPayloadType } from "./ministrySchool/interfaces";
+import {
+  CohortPayloadType,
+  ProgramsPayloadType,
+} from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -62,19 +65,21 @@ export class ApiCreationCalls {
   };
 
   // Create Cohort
-  // createCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/cohorts", payload);
-  // };
+  createCohort = (
+    payload: CohortPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/cohort", payload);
+  };
 
   // Create Course
-  // createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/courses", payload);
-  // };
+  createCourse = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/course", payload);
+  };
 
   // Enroll User
-  // enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/enroll", payload);
-  // };
+  enrollUser = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/enroll", payload);
+  };
 
   // Unenroll User
   // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {

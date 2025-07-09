@@ -26,7 +26,7 @@ export const SidebarItem = ({
 }: IProps) => {
   return (
     <div className="cursor-pointer">
-      {item.children ? (
+      {item.children && item.children.some((child) => child.sideTab) ? (
         <div>
           {/* Submenu rendering */}
           <SideBarSubMenu

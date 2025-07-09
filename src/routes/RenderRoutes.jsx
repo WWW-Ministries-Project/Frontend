@@ -2,63 +2,28 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../context/AuthWrapper";
 import { routes } from "./appRoutes";
 
+const renderRoutes = (routes, permissions) =>
+  routes.map((route, i) => {
+    const isForbidden =
+      route.isPrivate && !permissions[route.permissionNeeded];
+
+    return (
+      <Route
+        key={i}
+        path={route.path}
+        element={isForbidden ? <Navigate to="/home/access-denied" /> : route.element}
+      >
+        {route.children && renderRoutes(route.children, permissions)}
+      </Route>
+    );
+  });
+
 export const RenderRoutes = () => {
   const {
     user: { permissions },
   } = useAuth();
 
-
-  return (
-    <Routes>
-      {routes.map((route, i) => (
-        <Route
-          key={i}
-          path={route.path}
-          element={
-            route.isPrivate && !permissions[route.permissionNeeded] ? (
-              <Navigate to="/home/access-denied" />
-            ) : (
-              route.element
-            )
-          }
-        >
-          {/* Render child routes */}
-          {route.children &&
-            route.children.map((childRoute, j) => (
-              <Route
-                key={j}
-                path={childRoute.path}
-                element={
-                  childRoute.isPrivate &&
-                  !permissions[childRoute.permissionNeeded] ? (
-                    <Navigate to="/home/access-denied" />
-                  ) : (
-                    childRoute.element
-                  )
-                }
-              >
-                {/* Render child routes */}
-                {childRoute.children &&
-                  childRoute.children.map((grandChildRoute, k) => (
-                    <Route
-                      key={k}
-                      path={grandChildRoute.path}
-                      element={
-                        grandChildRoute.isPrivate &&
-                        !permissions[grandChildRoute.permissionNeeded] ? (
-                          <Navigate to="/home/access-denied" />
-                        ) : (
-                          grandChildRoute.element
-                        )
-                      }
-                    />
-                  ))}
-              </Route>
-            ))}
-        </Route>
-      ))}
-    </Routes>
-  );
+  return <Routes>{renderRoutes(routes, permissions)}</Routes>;
 };
 
 export default RenderRoutes;
