@@ -1,7 +1,7 @@
 import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
+import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -12,17 +12,15 @@ import { useViewPage } from "../customHooks/ViewPageContext";
 export function ViewClass() {
   const { id: classId } = useParams();
   // API calls
-  const { data } = useFetch(api.fetch.fetchCourseById, {
+  const { data, refetch } = useFetch(api.fetch.fetchCourseById, {
     id: classId!,
   });
   const {
     postData: postStudent,
     loading: postLoading,
+    data: postedData,
+    error: postError,
   } = usePost(api.post.enrollUser);
-  const {
-    updateData: updateStudent,
-    loading: updateLoading,
-  } = usePut(api.put.updateEnrollment);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const classData = data?.data || null;
 
@@ -77,24 +75,21 @@ export function ViewClass() {
     setLoading?.(false);
   }, [setDetails, classData, setData, setLoading]);
 
-  // useEffect(() => {
-  //   fetchCohortData(); // Call the function when programId changes
-  // }, [classId]);
+  useEffect(() => {
+    if (postedData) {
+      setIsModalOpen(false);
+      refetch();
+      showNotification("Student enrolled successfully", "success");
+    }
+    if (postError) {
+      showNotification(postError.message, "error");
+    }
+  }, [postedData, refetch, postError]);
 
   const handleSubmit = (values: IStudentForm) => {
     if (!classId || isNaN(parseInt(classId, 10))) return;
-    // if (selectedClass?.id) {
-    //   updateStudent(
-    //     {
-    //       ...values,
-    //       id: Number(selectedClass.id),
-    //       // cohortId: Number(cohortId),
-    //     },
-    //     { id: String(selectedClass.id) }
-    //   );
-    // } else {
-    postStudent({ ...values, classId: Number(classId) });
-    // }
+
+    postStudent({ user_id: values.user_id, course_id: Number(classId) });
   };
 
   return (
@@ -109,7 +104,7 @@ export function ViewClass() {
         <StudentForm
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleSubmit}
-          loading={postLoading || updateLoading}
+          loading={postLoading}
         />
       </Modal>
     </div>
