@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import EmptyState from "@/components/EmptyState";
+import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -8,11 +8,11 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { Modal } from "@/components/Modal";
-import { ILifeCernterRoles, RolesForm } from "../components/RolesForm";
-import { api } from "@/utils/api/apiCalls";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-
+import { api } from "@/utils/api/apiCalls";
+import { ColumnDef } from "@tanstack/react-table";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ILifeCernterRoles, RolesForm } from "../components/RolesForm";
 
 export function LifeCenterRoles() {
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
@@ -131,6 +131,10 @@ export function LifeCenterRoles() {
         data={roles?.data || []}
         displayedCount={10}
       />
+
+      {roles?.data?.length === 0 && (
+        <EmptyState msg={"No roles found"}/>
+      )}
 
       <Modal open={isModalOpen} persist={false} onClose={closeModal}>
         <RolesForm

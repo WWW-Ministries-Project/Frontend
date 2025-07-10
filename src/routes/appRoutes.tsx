@@ -14,7 +14,7 @@ import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
-import Registration from "@/pages/Registration/Registration";
+import {Registration} from "@/pages/Registration/Registration";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";

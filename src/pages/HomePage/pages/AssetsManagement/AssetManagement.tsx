@@ -1,3 +1,4 @@
+import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -116,6 +117,7 @@ export const AssetManagement = () => {
           )}
         </section>
       </div>
+      {assertsData.length === 0 && <EmptyState msg={"No assets found"} />}
     </PageOutline>
   );
 };

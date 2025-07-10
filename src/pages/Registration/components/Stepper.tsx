@@ -1,11 +1,13 @@
 import { FormLayout } from "@/components/ui";
 import { Button } from "@/components";
+import { Fragment } from "react/jsx-runtime";
 
 interface IProps {
   steps: IStep[];
   currentStep: number;
   handleNext: () => void;
   handleBack: () => void;
+  loading?: boolean;
 }
 
 export const Stepper = ({
@@ -13,21 +15,22 @@ export const Stepper = ({
   currentStep,
   handleNext,
   handleBack,
+  loading = false,
 }: IProps) => {
   return (
     <div className="mx-auto relative">
       {/* Step Indicators */}
-      <div className="hidden md:flex justify-between  items-center mb-2 sticky top-24 bg-white py-4 px-4 border-b border-gray-200  z-10 ">
+      <div className="hidden md:flex justify-between overflow-x-auto  items-center mb-2 sticky top-24 bg-white py-4 px-4 border-b border-gray-200  z-10 ">
         {steps.map((step, index) => (
-          <>
-          <div key={index} className="flex items-center ">
+          <Fragment key={index+step.label}>
+          <div  className="flex items-center ">
             <div
               className={`flex items-center gap-2 ${
                 index === currentStep ? "font-bold text-primary" : ""
               }`}
             >
               <span
-                className={`w-8 h-8 flex items-center justify-center rounded-full border ${
+                className={`min-w-8 min-h-8 flex items-center justify-center rounded-full border ${
                   index === currentStep ? "bg-primary text-white" : ""
                 }`}
               >
@@ -41,7 +44,7 @@ export const Stepper = ({
           {index < steps.length - 1 && (
               <div id="seperator" className="h-0.5  bg-gray-300 mx-2"></div>
             )}
-          </>
+          </Fragment>
           
         ))}
         
@@ -68,6 +71,7 @@ export const Stepper = ({
           onClick={handleNext}
           className="px-4 py-2 bg-primary text-white rounded"
           value={currentStep === steps.length - 1 ? "Submit" : "Next"}
+          loading={loading}
         />
       </div>
     </div>
