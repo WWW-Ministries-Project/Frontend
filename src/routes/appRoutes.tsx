@@ -14,7 +14,7 @@ import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
-import {Registration} from "@/pages/Registration/Registration";
+import { Registration } from "@/pages/Registration/Registration";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -34,6 +34,7 @@ import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyIn
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
+import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -268,6 +269,12 @@ export const routes: AppRoute[] = [
           },
         ],
       },
+      {
+        path: relativePath.home.marketPlace.main,
+        name: "Market Place",
+        element: <MarketPlace />,
+        sideTab: true,
+      },
 
       // {
       //   path: "ministry-school",
@@ -420,4 +427,3 @@ const homePageChildren = homePageRoute?.children || [];
 export const sideTabs = homePageChildren.filter(
   (childRoute) => childRoute.sideTab
 );
-

@@ -23,4 +23,5 @@ export const sidebarIcons: Record<
   Settings: SettingsIcon,
   Requests: RequestIcon,
   "Life Centers": LifeCenterIcon,
+  "Market Place": LifeCenterIcon,
 };
