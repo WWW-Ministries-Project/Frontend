@@ -44,9 +44,12 @@ export const relativePath = {
       accessRights: "settings/access-rights",
       manageAccess: "settings/access-rights/manage-access",
     },
-    lifeCenter:{
-      main:"life-centers",
-      detail:"life-center/:id"
+    lifeCenter: {
+      main: "life-centers",
+      detail: "life-center/:id",
+    },
+    marketPlace: {
+      main: "market-place",
     },
     fallback: "*",
   },
