@@ -14,7 +14,7 @@ import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
-import Registration from "@/pages/Registration/Registration";
+import { Registration } from "@/pages/Registration/Registration";
 import ForgotPassword from "../pages/Authentication/pages/ForgotPassword/ForgotPassword.jsx";
 import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
@@ -40,6 +40,7 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
+import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -273,6 +274,12 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
         ],
+      },
+      {
+        path: relativePath.home.marketPlace.main,
+        name: "Market Place",
+        element: <MarketPlace />,
+        sideTab: true,
       },
 
       {
