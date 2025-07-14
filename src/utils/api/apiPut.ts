@@ -126,16 +126,16 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData(`program/courses`, payload, query);
   };
   // Update Cohort
-  // updateStudentProgress = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "program/progress-updates",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateStudentProgress = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/progress-updates",
+      payload,
+      query
+    );
+  };
 
   // Update Enrollment
   updateEnrollment = (
@@ -203,7 +203,7 @@ export class ApiUpdateCalls {
     );
   };
 
-  updateLifeCenter = <T>(
+  updateLifeCenter = (
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterType>> => {
@@ -214,7 +214,7 @@ export class ApiUpdateCalls {
     );
   };
 
-  updateSoul = <T>(
+  updateSoul = (
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<ISoulsWonForm>> => {

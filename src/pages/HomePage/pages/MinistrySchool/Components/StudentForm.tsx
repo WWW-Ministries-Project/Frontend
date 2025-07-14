@@ -56,7 +56,6 @@ export const StudentForm = ({ onClose, onSubmit, loading = false }: IProps) => {
               options={membersOptions}
               onChange={(_: string, selectedOption: string) => {
                 fetchAMembers({ user_id: selectedOption });
-                // setFieldValue("user_id", selectedOption);
               }}
               name="user_id"
               id="user_id"

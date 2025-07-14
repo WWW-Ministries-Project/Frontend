@@ -24,11 +24,11 @@ export type ProgramResponse = {
   prerequisitePrograms: { id: number; title: string }[];
 };
 
-export type Topic = {
-  id: number;
-  name: string;
-  programId: number;
-};
+// export type Topic = {
+//   id: number;
+//   name: string;
+//   programId: number;
+// };
 
 export type CohortType = {
   id: number;
@@ -42,6 +42,8 @@ export type CohortType = {
   createdAt: string;
   updatedAt: string;
   courses: [];
+  program: DetailedProgramType;
+  
 };
 export type CohortPayloadType = {
   name: string;
@@ -63,6 +65,7 @@ type CourseType = {
   location?: string;
   meetingLink: string;
   instructor: { name: string, id: number };
+  cohort: CohortType;
 };
 
 type Program = {
@@ -105,3 +108,67 @@ export type DetailedCourseType = {
   cohortId: number;
   enrollments: []
 };
+export type Topic ={
+  id: number;
+  name: string;
+  programId: number;
+  score: number;
+  progressId: number;
+  status: "PENDING" | "PASS" | "FAIL";
+  completedAt: string | null;
+  notes?: string;
+}
+
+type DetailedProgramType = {
+  id: number;
+  title: string;
+  description: string;
+  member_required: boolean;
+  leader_required: boolean;
+  ministry_required: boolean;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+  topics: Topic[];
+}
+
+// type CohortType = {
+//   id: number;
+//   name: string;
+//   startDate: string;
+//   status: string;
+//   description: string;
+//   duration: string;
+//   applicationDeadline: string;
+//   programId: number;
+//   createdAt: string;
+//   updatedAt: string;
+//   program: DetailedProgramType;
+// }
+
+// interface Course {
+//   id: number;
+//   name: string;
+//   instructorId: number;
+//   capacity: number;
+//   enrolled: number;
+//   schedule: string;
+//   cohortId: number;
+//   classFormat: string;
+//   location: string;
+//   meetingLink: string | null;
+//   createdAt: string;
+//   updatedAt: string;
+//   cohort: CohortType;
+// }
+
+export type EnrollmentDataType = {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  course: CourseType;
+  phone: string;
+  email: string;
+}
+

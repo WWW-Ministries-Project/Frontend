@@ -81,10 +81,10 @@ export function ViewClass() {
       refetch();
       showNotification("Student enrolled successfully", "success");
     }
-    if (postError) {
-      showNotification(postError.message, "error");
-    }
-  }, [postedData, refetch, postError]);
+    // if (postError) {
+    //   showNotification(postError.message, "error");
+    // }
+  }, [postedData, refetch]);
 
   const handleSubmit = (values: IStudentForm) => {
     if (!classId || isNaN(parseInt(classId, 10))) return;

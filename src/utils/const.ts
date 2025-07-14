@@ -35,7 +35,7 @@ export const relativePath = {
       program: "programs",
       cohort: "cohort/:id",
       class: "class/:id",
-      student: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
+      student: "student/:id",
       certificate: "ministry-school/programs/cohort/class/student/certificate",
     },
     settings: {

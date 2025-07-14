@@ -35,10 +35,11 @@ import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyIn
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
-import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort.js";
-import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram.js";
+import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
+import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
+import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 
 // Define a Route type
 export interface AppRoute {
@@ -304,15 +305,15 @@ export const routes: AppRoute[] = [
                 name: "View Class",
                 element: <ViewClass />,
               },
+              {
+                path: `${relativePath.home.ministrySchool.cohort}/${relativePath.home.ministrySchool.class}/student/:id`,
+                name: "View Student",
+                element: <ViewStudent />,
+              },
             ],
           },
         ],
 
-        // {
-        //   path: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
-        //   name: "View Student",
-        //   element: <ViewStudent />,
-        // },
         // {
         //   path: "ministry-school/programs/cohort/class/student/certificate",
         //   name: "View Certificate",

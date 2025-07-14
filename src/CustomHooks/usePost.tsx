@@ -27,13 +27,13 @@ export const usePost = <T, K>(postFunction: (payload: K) => Promise<T>) => {
         ) {
           const err = error as { response?: { data?: { message?: string } } };
           const message = err.response?.data?.message || "Server error";
-          showNotification(`Request failed: ${message}`, "error");
+          // showNotification(`Request failed: ${message}`, "error");
           setError(new Error(message));
         } else if (error instanceof Error) {
-          showNotification(error.message, "error");
+          // showNotification(error.message, "error");
           setError(error);
         } else {
-          showNotification("An unknown error occurred.", "error");
+          // showNotification("An unknown error occurred.", "error");
           setError(new Error("Unknown error"));
         }
       } finally {

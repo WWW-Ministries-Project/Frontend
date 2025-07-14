@@ -12,7 +12,12 @@ import {
   LifeCenterType,
 } from "./lifeCenter/interfaces";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
-import { DetailedCohortType, DetailedCourseType, ProgramResponse } from "./ministrySchool/interfaces";
+import {
+  DetailedCohortType,
+  DetailedCourseType,
+  EnrollmentDataType,
+  ProgramResponse,
+} from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
@@ -150,7 +155,9 @@ export class ApiCalls {
     return this.fetchFromApi("program/cohorts", query);
   };
 
-  fetchCohortById = (query?: QueryType): Promise<ApiResponse<DetailedCohortType>> => {
+  fetchCohortById = (
+    query?: QueryType
+  ): Promise<ApiResponse<DetailedCohortType>> => {
     return this.fetchFromApi(`program/cohort`, query);
   };
 
@@ -172,11 +179,8 @@ export class ApiCalls {
     return this.fetchFromApi(`program/course`, query);
   };
 
-  fetchStudentById = (
-    id: string,
-    query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi(`program/progress/${id}`, query);
+  fetchStudentById = (query?: QueryType): Promise<ApiResponse<EnrollmentDataType>> => {
+    return this.fetchFromApi(`program/progress`, query);
   };
 
   // Enrollment Management
