@@ -1,6 +1,7 @@
-import { Badge } from "@/components/Badge";
 import EmptyState from "@/components/EmptyState";
-import { useRef, useState } from "react";
+import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Student {
@@ -17,7 +18,7 @@ interface Student {
   userId?: string; // Added userId property
 }
 
-const AllStudents = ({
+export const AllStudents = ({
   Data,
   onOpen,
 }: {
@@ -25,9 +26,6 @@ const AllStudents = ({
   onOpen: () => void;
 }) => {
   const navigate = useNavigate();
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const [selectedTab, setSelectedTab] = useState("Active");
   const [searchQuery, setSearchQuery] = useState("");
 
   // const filterStudents = () => {
@@ -39,9 +37,46 @@ const AllStudents = ({
   //   );
   // };
 
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prevId) => (prevId === id ? null : id));
-  };
+  const columns: ColumnDef<Student>[] = [
+    {
+      header: "First Name",
+      accessorKey: "first_name",
+    },
+    {
+      header: "Last Name",
+      accessorKey: "last_name",
+    },
+    {
+      header: "Email",
+      accessorKey: "email",
+    },
+    {
+      header: "Phone",
+      accessorKey: "primary_number",
+    },
+    {
+      header: "Progress",
+      cell: ({ row }) => (
+        <div className="h-2 bg-lightGray rounded-full">
+          <div
+            className="h-2 bg-primaryViolet rounded-full"
+            style={{ width: `${row.original?.progress}%` }}
+          ></div>
+        </div>
+      ),
+    },
+    {
+      header: "Actions",
+      cell: ({ row }) => (
+        <button
+          className="text-primary"
+          onClick={() => navigate(`student/${row.original?.id}`)}
+        >
+          View
+        </button>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4 py-4">
@@ -92,73 +127,15 @@ const AllStudents = ({
       </div>
 
       {Data?.length === 0 ? (
-        <div className="text-center py-8 w-1/4 mx-auto">
-          <EmptyState msg={"No students found"} />
-        </div>
+        <EmptyState msg={"No students found"} />
       ) : (
-        <div className="bg-white border border-lightGray p-4 rounded-lg">
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto">
-              <thead className="text-primary">
-                <tr>
-                  <th className="px-4 py-2 text-left">First Name</th>
-                  <th className="px-4 py-2 text-left">Last Name</th>
-                  <th className="px-4 py-2 text-left">Email</th>
-                  <th className="px-4 py-2 text-left">Phone Number</th>
-                  {/* <th className="px-4 py-2 text-left">Attendance</th> */}
-                  <th className="px-4 py-2 text-left">Progress</th>
-                  <th className="px-4 py-2 text-left">Member</th>
-                  <th className="px-4 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Data?.map((student, index) => (
-                  <tr key={index} className="border-t border-lightGray">
-                    <td className="px-4 py-2">{student?.firstName}</td>
-                    <td className="px-4 py-2">{student?.lastName}</td>
-                    <td className="px-4 py-2">{student?.email}</td>
-                    <td className="px-4 py-2">{student?.phone}</td>
-                    {/* <td className="px-4 py-2">{student?.attendance}%</td> */}
-                    <td className="px-4 py-2">
-                      <div className="relative w-full">
-                        <div className="h-2 bg-lightGray rounded-full">
-                          <div
-                            className="h-2 bg-primaryViolet rounded-full"
-                            style={{ width: `${student?.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <Badge className="md:w-2/3 text-xs border border-lightGray text-primary ">
-                        {student?.userId ? "Member" : "Non-member"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="relative " ref={menuRef}>
-                        <button
-                          className="text-primary"
-                          onClick={() => navigate(`student/${student?.id}`)}
-                        >
-                          {/* <img src={ellipse} alt="options" className="cursor-pointer" /> */}
-                          View
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination (if needed) */}
-          <div className="mt-4 text-center">
-            Showing {Data?.length} of {Data?.length} students
-          </div>
-        </div>
+        <TableComponent
+          data={Data}
+          columns={columns}
+          filter={searchQuery}
+          setFilter={setSearchQuery}
+        />
       )}
     </div>
   );
 };
-
-export default AllStudents;

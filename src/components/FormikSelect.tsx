@@ -3,7 +3,7 @@ import { FieldProps, getIn } from "formik";
 
 interface Option {
   value: string | number;
-  name: string;
+  label: string;
 }
 
 interface SelectFieldProps {
