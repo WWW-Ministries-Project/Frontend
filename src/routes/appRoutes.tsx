@@ -35,6 +35,8 @@ import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
+import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetails.js";
+import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -272,8 +274,33 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.marketPlace.main,
         name: "Market Place",
-        element: <MarketPlace />,
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Markets",
+            element: <MarketPlace />,
+            sideTab: true,
+          },
+          {
+            path: ":id",
+            name: "view-market",
+            element: <MarketDetails />,
+            sideTab: false,
+          },
+          {
+            path: ":marketId/create-product",
+            name: "view-market",
+            element: <AddProduct />,
+            sideTab: false,
+          },
+          {
+            path: ":marketId/update-product/:productId",
+            name: "view-market",
+            element: <AddProduct />,
+            sideTab: false,
+          },
+        ],
       },
 
       // {
