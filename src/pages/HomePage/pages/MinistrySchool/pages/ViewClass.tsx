@@ -2,10 +2,10 @@ import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { showNotification } from "@/pages/HomePage/utils";
-import { api } from "@/utils";
+import { api, DetailedCourseType } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import AllStudents from "../Components/AllStudents";
+import { AllStudents } from "../Components/AllStudents";
 import { IStudentForm, StudentForm } from "../Components/StudentForm";
 import { useViewPage } from "../customHooks/ViewPageContext";
 
@@ -19,55 +19,14 @@ export function ViewClass() {
     postData: postStudent,
     loading: postLoading,
     data: postedData,
-    error: postError,
   } = usePost(api.post.enrollUser);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const classData = data?.data || null;
 
   const { setLoading, setDetails, setData } = useViewPage();
   useEffect(() => {
-    setDetails?.(
-      <div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
-        {classData?.instructor && (
-          <div>
-            <div className="font-semibold text-small">Instructor</div>
-            <div>{classData?.instructor.name}</div>
-          </div>
-        )}
-        {classData?.schedule && (
-          <div>
-            <div className="font-semibold text-small">Schedule</div>
-            <div>{classData?.schedule}</div>
-          </div>
-        )}
-        {classData?.classFormat && (
-          <div>
-            <div className="font-semibold text-small">Format</div>
-            <div>{classData?.classFormat}</div>
-          </div>
-        )}
-        {classData?.location && (
-          <div>
-            <div className="font-semibold text-small">Location</div>
-            <div>{classData?.location} </div>
-          </div>
-        )}
-        {classData?.meetingLink && (
-          <div>
-            <div className="font-semibold text-small">MeetingLink</div>
-            <div>{classData?.meetingLink} </div>
-          </div>
-        )}
-        {
-          <div>
-            <div className="font-semibold text-small">Enrollment</div>
-            <div>
-              {classData?.enrolled}/ {classData?.capacity} students
-            </div>
-          </div>
-        }
-      </div>
-    );
+    if (classData === null) return;
+    setDetails?.(<Details classData={classData} />);
     setData?.({
       showTopic: true,
       title: classData?.name || "",
@@ -110,3 +69,48 @@ export function ViewClass() {
     </div>
   );
 }
+
+const Details = ({ classData }: { classData: DetailedCourseType }) => {
+  return (
+    <div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
+      {classData?.instructor && (
+        <div>
+          <div className="font-semibold text-small">Instructor</div>
+          <div>{classData?.instructor.name}</div>
+        </div>
+      )}
+      {classData?.schedule && (
+        <div>
+          <div className="font-semibold text-small">Schedule</div>
+          <div>{classData?.schedule}</div>
+        </div>
+      )}
+      {classData?.classFormat && (
+        <div>
+          <div className="font-semibold text-small">Format</div>
+          <div>{classData?.classFormat.replace("_", " ")}</div>
+        </div>
+      )}
+      {classData?.location && (
+        <div>
+          <div className="font-semibold text-small">Location</div>
+          <div>{classData?.location} </div>
+        </div>
+      )}
+      {classData?.meetingLink && (
+        <div>
+          <div className="font-semibold text-small">MeetingLink</div>
+          <div>{classData?.meetingLink} </div>
+        </div>
+      )}
+      {
+        <div>
+          <div className="font-semibold text-small">Enrollment</div>
+          <div>
+            {classData?.enrolled}/ {classData?.capacity} students
+          </div>
+        </div>
+      }
+    </div>
+  );
+};
