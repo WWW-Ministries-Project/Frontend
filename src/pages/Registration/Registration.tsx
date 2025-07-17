@@ -105,8 +105,8 @@ export const Registration = () => {
   }
 
   return (
-    <main className=" min-h-screen py-8" style={{ backgroundImage: `url(${earthImg})` }}>
-      <div className="bg-white w-full md:w-2/3 h-full sm:max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
+    <main className="  py-8" >
+      <div className="bg-white w-full h-full sm:max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
         <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
           <div className="text-center">
             <h2 className="p-1 text-xl md:text-2xl font-bold">
