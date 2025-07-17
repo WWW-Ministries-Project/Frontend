@@ -33,9 +33,9 @@ export const relativePath = {
     ministrySchool: {
       main: "ministry-school",
       program: "programs",
-      cohort: "ministry-school/programs/:id/cohort/:id",
-      class: "ministry-school/programs/:id/cohort/:id/class/:id",
-      student: "ministry-school/programs/:id/cohort/:id/class/:id/student/:id",
+      cohort: "cohort/:id",
+      class: "class/:id",
+      student: "student/:id",
       certificate: "ministry-school/programs/cohort/class/student/certificate",
     },
     settings: {
@@ -44,9 +44,12 @@ export const relativePath = {
       accessRights: "settings/access-rights",
       manageAccess: "settings/access-rights/manage-access",
     },
-    lifeCenter:{
-      main:"life-centers",
-      detail:"life-center/:id"
+    lifeCenter: {
+      main: "life-centers",
+      detail: "life-center/:id",
+    },
+    marketPlace: {
+      main: "market-place",
     },
     fallback: "*",
   },

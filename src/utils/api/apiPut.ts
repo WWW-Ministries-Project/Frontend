@@ -1,22 +1,25 @@
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
+import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
   activateMemberPayloadType,
   activateMemberType,
 } from "./members/interfaces";
-import { ProgramsPayloadType } from "./ministrySchool/interfaces";
+import {
+  CohortPayloadType,
+  ProgramsPayloadType,
+} from "./ministrySchool/interfaces";
 import {
   FollowUpPayloadType,
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { LifeCenterMember, LifeCenterType } from "./lifeCenter/interfaces";
-import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -108,51 +111,43 @@ export class ApiUpdateCalls {
   };
 
   // Update Cohort
-  // updateCohort = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     `program/cohorts/${payload.id}`,
-  //     payload.payload,
-  //     query
-  //   );
-  // };
+  updateCohort = (
+    payload: CohortPayloadType & { id: number },
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/cohorts`, payload, query);
+  };
 
   // Update Class
-  // updateClass = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     `program/courses/${payload.id}`,
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateClass = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/courses`, payload, query);
+  };
   // Update Cohort
-  // updateStudentProgress = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "program/progress-updates",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateStudentProgress = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/progress-updates",
+      payload,
+      query
+    );
+  };
 
   // Update Enrollment
-  // updateEnrollment = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "program/enrollments/update-enrollment",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateEnrollment = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/enrollments/update-enrollment",
+      payload,
+      query
+    );
+  };
 
   /* Visitor Management */
 
@@ -208,7 +203,7 @@ export class ApiUpdateCalls {
     );
   };
 
-  updateLifeCenter = <T>(
+  updateLifeCenter = (
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterType>> => {
@@ -219,19 +214,15 @@ export class ApiUpdateCalls {
     );
   };
 
-  updateSoul = <T>(
+  updateSoul = (
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<ISoulsWonForm>> => {
-    return this.apiExecution.updateData(
-      "lifecenter/soulwon",
-      payload,
-      query
-    );
+    return this.apiExecution.updateData("lifecenter/soulwon", payload, query);
   };
 
   updateLifeCenterRole = (
-    payload: ILifeCernterRoles ,
+    payload: ILifeCernterRoles,
     query?: QueryType
   ): Promise<ApiResponse<ILifeCernterRoles>> => {
     return this.apiExecution.updateData(
@@ -242,7 +233,7 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterMember = (
-    payload: LifeCenterMemberForm ,
+    payload: LifeCenterMemberForm,
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterMemberForm>> => {
     return this.apiExecution.updateData(

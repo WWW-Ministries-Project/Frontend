@@ -74,7 +74,7 @@ const titleOptions: ISelectOption[] = [
 ];
 
 export interface INameInfo {
-  title: string;
+  title?: string;
   first_name: string;
   other_name?: string;
   last_name: string;
