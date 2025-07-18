@@ -1,4 +1,6 @@
-export function MarketIcon() {
+import { SVGProps } from "react";
+
+export function MarketIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <div>
       <svg
@@ -11,6 +13,7 @@ export function MarketIcon() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        {...props}
       >
         <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
