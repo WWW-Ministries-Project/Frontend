@@ -21,7 +21,7 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
-import { IMarket } from "./marketPlace/interface";
+import type { IMarket } from "./marketPlace/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;

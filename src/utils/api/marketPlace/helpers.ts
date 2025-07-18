@@ -1,4 +1,4 @@
-import { MarketStatus } from "./interface";
+import type { MarketStatus } from "./interface";
 
 
 export const getMarketStatus = (

@@ -1,6 +1,6 @@
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components";
-import { IMarket } from "@/utils/api/marketPlace/interface";
+import type { IMarket } from "@/utils/api/marketPlace/interface";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import { useState } from "react";
 import { MarketStatusChip } from "../chips/MarketStatusChip";
