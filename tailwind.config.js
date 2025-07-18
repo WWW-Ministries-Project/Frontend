@@ -47,6 +47,11 @@ export default {
         blur: "#222222cc", // Keeping for transparency effects
         modalOverlay: "#080D2D99", // Dark Blue Transparent Overlay for Popups
         hoverGold: "#E6C200", // Soft Gold Hover for Buttons & Links
+
+        lighter: '#1A2255',
+        lightest: '#2C3877',
+        accent: '#3D4B99',
+        pale: '#4E5FBB'
     },
     
       animation: {
