@@ -13,8 +13,8 @@ import Breadcrumb from "./Components/BreadCrumb";
 import { Header } from "./Components/Header";
 import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
-import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import Loader from "./Components/reusable/Loader";
 
 export const navigateRef = {
   current: null as
@@ -168,7 +168,7 @@ export function HomePage() {
           </div>
           <NotificationCard />
           <Dialog />
-          <LoaderComponent />
+          <Loader/>
         </main>
       ) : (
         <Navigate to="/login" />
