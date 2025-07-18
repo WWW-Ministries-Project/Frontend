@@ -14,7 +14,7 @@ const ImageUpload = ({ onFileChange, src, disabled=false }) => {
   } = useFileUpload(onFileChange);
   return (
     <div
-      className={`flex justify-center items-center  overflow-hidden  w-[20rem] h-[10rem] border border-dashed rounded-xl cursor-pointer focus:outline-none ${isDragActive ? "border-gray-500" : "border-gray-300"
+      className={`flex justify-center items-center  overflow-hidden   h-[10rem] border border-dashed rounded-xl cursor-pointer focus:outline-none ${isDragActive ? "border-gray-500" : "border-gray-300"
         }`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
