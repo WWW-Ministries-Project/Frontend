@@ -24,19 +24,19 @@ export const Button = (props: IProps) => {
 
   switch (props.variant) {
     case "primary":
-      className = "border p-2 text-white bg-primary ";
+      className = "border p-2 text-white bg-primary min-w-[5rem]";
       break;
     case "secondary":
-      className = "border border-primary text-primary";
+      className = "border border-primary text-primary min-w-[5rem]";
       break;
     case "ghost":
-      className = " text-primary hover:underline";
+      className = " text-primary hover:underline min-w-[5rem]";
       break;
     case "default":
-      className = " text-white bg-primary ";
+      className = " text-white bg-primary min-w-[5rem]";
       break;
     default:
-      className = props.className || "";
+      className = props.className || "min-w-[5rem]";
       break;
   }
 

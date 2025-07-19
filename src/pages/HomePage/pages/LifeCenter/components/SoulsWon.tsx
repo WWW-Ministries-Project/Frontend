@@ -19,12 +19,14 @@ interface IProps {
   soulsWon: ISoulsWonForm[];
   lifeCenterId: string;
   handleSuccess: () => void;
+  hasMembers:boolean
 }
 
 export const SoulsWon = ({
   soulsWon,
   lifeCenterId,
   handleSuccess,
+  hasMembers
 }: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [openModal, setOpenModal] = useState(false);
@@ -139,29 +141,46 @@ export const SoulsWon = ({
   }, [postResponse?.data, updateResponse]);
 
   return (
-    <>
-      <HeaderControls
-        title={`Souls won (${soulsWon.length})`}
-        subtitle=""
-        screenWidth={window.innerWidth}
-        btnName="Add Record"
-        handleClick={handleAddSoul}
-      />
+    <div className="space-y-6">
+  <HeaderControls
+    title={`Souls won (${soulsWon.length})`}
+    subtitle=""
+    screenWidth={window.innerWidth}
+    btnName={hasMembers?"Add Record":""}
+    handleClick={handleAddSoul}
+  />
+  {!hasMembers&&<p>
+    <span className="font-semibold">Notice:</span> Please add a leader to this center first. Once a leader is assigned, the <span className="font-medium">Add Soul</span> button will appear.
+  </p>}
 
-      <TableComponent
-        columns={tableColumns}
-        data={soulsWon}
-        displayedCount={10}
-      />
+  <hr/>
 
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
-        <SoulsWonForm
-          onSubmit={handleSave}
-          onClose={() => setOpenModal(false)}
-          editData={soulWon}
-          loading={isPosting || isUpdating}
-        />
-      </Modal>
-    </>
+  {soulsWon.length > 0 ? (
+    <TableComponent
+      columns={tableColumns}
+      data={soulsWon}
+      displayedCount={10}
+    />
+  ) : (
+    <div className=" flex flex-col items-center justify-center py-12rounded-lg ">
+      <h3 className="text-xl font-medium text-gray-500 mb-2">
+        No Souls Records Yet
+      </h3>
+      <p className="text-gray-400 mb-6 max-w-md text-center">
+        You haven&apos;t recorded any souls yet. Start by adding your first record.
+      </p>
+      
+    </div>
+  )}
+
+  <Modal open={openModal} onClose={() => setOpenModal(false)}>
+    <SoulsWonForm
+      onSubmit={handleSave}
+      onClose={() => setOpenModal(false)}
+      editData={soulWon}
+      loading={isPosting || isUpdating}
+    />
+  </Modal>
+</div>
   );
 };

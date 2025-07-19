@@ -31,16 +31,20 @@ export function LifeCenterMemberForm({
       }}
     >
       {({ handleSubmit }) => (
-        <Form className="space-y-6 w-[60vw] sm:w-[50vw] xl:w-[30vw] p-6">
-          <FormHeader>{initial.id ? "Update" : "Add"} a Member</FormHeader>
+        <Form className="space-y-6 w-[60vw] sm:w-[50vw] xl:w-[40vw] ">
+          <FormHeader >
+            <p className="text-lg font-semibold">{initial.id ? "Update" : "Assign"} a Leader</p>
+            <p className="text-sm">Select a member you’d like to appoint as a leader for this center.</p>
+          </FormHeader>
 
-          <Field
+          <div className="px-6 space-y-6">
+            <Field
             name="userId"
             component={FormikSelectField}
             options={membersOptions}
-            label="Select memebr *"
+            label="Select Leader *"
             id="userId"
-            placeholder="Select a member"
+            placeholder="Select a leader"
             disabled={initial.userId}
           />
           <Field
@@ -51,8 +55,11 @@ export function LifeCenterMemberForm({
             id="roleId"
             placeholder="Select a role"
           />
+          </div>
 
-          <div className="flex items-center justify-end gap-3">
+          <hr/>
+
+          <div className="flex items-center justify-end gap-3 px-6 pb-6">
             <Button
               type="submit"
               disabled={loading}
