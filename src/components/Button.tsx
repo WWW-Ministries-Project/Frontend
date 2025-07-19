@@ -24,16 +24,16 @@ export const Button = (props: IProps) => {
 
   switch (props.variant) {
     case "primary":
-      className = "border p-2 text-white bg-primary min-w-[6vw]";
+      className = "border p-2 text-white bg-primary ";
       break;
     case "secondary":
-      className = "border border-primary text-primary min-w-[6vw]";
+      className = "border border-primary text-primary ";
       break;
     case "ghost":
-      className = " text-primary hover:underline min-w-[6vw]";
+      className = " text-primary hover:underline ";
       break;
     case "default":
-      className = " text-white bg-primary min-w-[6vw]";
+      className = " text-white bg-primary ";
       break;
     default:
       className = props.className || "";
@@ -44,7 +44,7 @@ export const Button = (props: IProps) => {
     <>
       <button
         className={
-          "leading-5 rounded-lg text-center text-black disabled:bg-lightGray p-2 " +
+          "leading-5 rounded-lg text-center text-black disabled:bg-lightGray p-2 min-w-[6vw] " +
           className
         }
         disabled={props.disabled || false}
