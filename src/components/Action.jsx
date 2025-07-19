@@ -1,6 +1,7 @@
 import DeleteIcon from "@/assets/DeleteIcon";
 import EditIcon from "@/assets/EditIcon";
 import ViewIcon from "@/assets/ViewIcon";
+import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import PropTypes from "prop-types";
 import React, { useState } from "react";
 
@@ -9,18 +10,18 @@ const ActionButton = React.memo(({ text, onClick }) => {
   return (
     <li
       onClick={onClick}
-      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-base hover:bg-[#E0D7F3] hover:text-primary`}
+      className={`cursor-pointer flex items-center gap-2 px-4 py-2 w-full text-sm hover:bg-lightGray/30 hover:text-primary`}
       onMouseOver={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {text === "Edit" ? (
-        <EditIcon fill={hovered && "#6539c3"} />
+        <PencilSquareIcon width={20} />
       ) : text === "View" ? (
-        <ViewIcon fill={hovered && "#6539c3"} />
+        <EyeIcon width={20}/>
       ) : (
-        <DeleteIcon fill={hovered && "#6539c3"} />
+        <TrashIcon width={20} className="text-red-500" />
       )}
-      <span>{text}</span>
+      <span className={`${text==="Delete"?"text-red-500":""}`}>{text}</span>
     </li>
   );
 });
@@ -39,7 +40,7 @@ const Action = ({ isEditable = true, ...props }) => {
         props.className
       }
     >
-      <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-2">
+      <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
         {handleEdit && <ActionButton onClick={handleEdit} text="Edit" />}
         {handleView && <ActionButton onClick={handleView} text="View" />}
         {handleDelete && (

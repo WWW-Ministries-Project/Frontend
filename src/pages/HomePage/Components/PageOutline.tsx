@@ -7,7 +7,7 @@ const PageOutline = ({ children, className = "" }: PageOutlineProps): JSX.Elemen
   return (
     <section
       role="main"
-      className={`p-4 bg-white w-[calc(100%-2rem)] rounded-xl min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4 mx-auto ${className}`}
+      className={` bg-white w-[calc(100%-2rem)] rounded-xl min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4 mx-auto ${className?className:"p-8"}`}
     >
       {children}
     </section>
