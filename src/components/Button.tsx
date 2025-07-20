@@ -31,7 +31,7 @@ export const Button = (props: IProps) => {
       break;
     case "ghost":
       className = " text-primary hover:underline ";
-      break;
+      break;  
     case "default":
       className = " text-white bg-primary ";
       break;
@@ -44,7 +44,7 @@ export const Button = (props: IProps) => {
     <>
       <button
         className={
-          "leading-5 rounded-lg text-center text-black disabled:bg-lightGray p-2 min-w-[6vw] " +
+          "leading-5 rounded-lg text-center text-black disabled:bg-lightGray p-2 " +
           className
         }
         disabled={props.disabled || false}
