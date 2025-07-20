@@ -47,63 +47,79 @@ export const SoulsWonForm = ({
       }}
     >
       {({ handleSubmit }) => (
-        <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw] p-6">
-          <FormLayout>
-            <FormHeader>{initial.id ? "Update" : "Add"} a Soul</FormHeader>
-            <NameInfo />
-            <ContactInput />
-            <Field
-              name="contact_email"
-              component={FormikInputDiv}
-              label="Email"
-              id="contact_email"
-              placeholder="Email"
-            />
-            <CountryField name="country" />
-            <Field
-              name="city"
-              component={FormikInputDiv}
-              label="City *"
-              id="city"
-              placeholder="Enter city"
-            />
-            <Field
-              type="date"
-              name="date_won"
-              component={FormikInputDiv}
-              label="Date Won *"
-              id="date_won"
-              placeholder="Select date"
-              max={new Date().toISOString().split("T")[0]}
-            />
-            <Field
-              name="wonById"
-              component={FormikSelectField}
-              options={membersOptions}
-              label="Won Byc *"
-              id="wonById"
-              placeholder="Soul won by"
-            />
-          </FormLayout>
+        <Form className="flex flex-col h-[80vh] w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+  {/* Sticky Header */}
+  <div className="sticky top-0 z-10">
+    <FormHeader>
+      <p className="text-lg font-semibold">{initial.id ? "Update" : "Add"} a Soul</p>
+      <p className="text-sm text-white">
+        Provide the details of the new soul you&apos;ve connected with.
+      </p>
+    </FormHeader>
+    
+  </div>
 
-          <div className="flex items-center justify-end gap-3">
-            <Button
-              type="submit"
-              disabled={loading}
-              value={initial.id ? "Update" : "Save"}
-              variant="primary"
-              onClick={handleSubmit}
-              loading={loading}
-            />
-            <Button
-              type="submit"
-              disabled={loading}
-              value="Cancel"
-              variant="secondary"
-              onClick={onClose}
-            />
-          </div>
-        </Form>
+  {/* Scrollable Content */}
+  <div className="flex-1 overflow-y-auto px-6 py-4">
+    <FormLayout >
+      <NameInfo />
+      <ContactInput />
+      <Field
+        name="contact_email"
+        component={FormikInputDiv}
+        label="Email"
+        id="contact_email"
+        placeholder="Email"
+      />
+      <CountryField name="country" />
+      <Field
+        name="city"
+        component={FormikInputDiv}
+        label="City *"
+        id="city"
+        placeholder="Enter city"
+      />
+      <Field
+        type="date"
+        name="date_won"
+        component={FormikInputDiv}
+        label="Date Won *"
+        id="date_won"
+        placeholder="Select date"
+        max={new Date().toISOString().split("T")[0]}
+      />
+      <Field
+        name="wonById"
+        component={FormikSelectField}
+        options={membersOptions}
+        label="Won By *"
+        id="wonById"
+        placeholder="Soul won by"
+      />
+    </FormLayout>
+  </div>
+
+  {/* Sticky Footer */}
+  <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+    <div className="flex items-center justify-end gap-3">
+      <Button
+        type="button"
+        disabled={loading}
+        value="Cancel"
+        variant="secondary"
+        onClick={onClose}
+      />
+      <Button
+        type="submit"
+        disabled={loading}
+        value={initial.id ? "Update" : "Save"}
+        variant="primary"
+        onClick={handleSubmit}
+        loading={loading}
+      />
+    </div>
+  </div>
+</Form>
       )}
     </Formik>
   );
