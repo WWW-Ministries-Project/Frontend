@@ -33,7 +33,7 @@ export const SelectField = (props: IProps) => {
         <select
           name={props.id}
           id={props.id}
-          className={`p-2.5 rounded-lg border   ${
+          className={`p-2.5 rounded-lg border  ${
             props.inputClass
           } ${props.error ? " !border-error !outline-error" : " "} ${
             props.disabled

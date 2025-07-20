@@ -1,13 +1,23 @@
+import { ReactNode } from "react";
+
+import { cn } from "@/utils/cn";
+
 interface PageOutlineProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
-const PageOutline = ({ children, className = "" }: PageOutlineProps): JSX.Element => {
+const PageOutline = ({
+  children,
+  className,
+}: PageOutlineProps): JSX.Element => {
   return (
     <section
       role="main"
-      className={`p-4 bg-white w-[calc(100%-2rem)] rounded-xl min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4 mx-auto ${className}`}
+      className={cn(
+        "bg-white w-[calc(100%-2rem)] rounded-xl min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4 mx-auto p-8",
+        className
+      )}
     >
       {children}
     </section>

@@ -16,6 +16,7 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import type { IMarket } from "./marketPlace/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -253,5 +254,11 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterMemberType[]>> => {
     return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
+  };
+
+  fetchMarkets = (
+    query?: QueryType
+  ): Promise<ApiResponse<IMarket[]>> => {
+    return this.fetchFromApi(`market/list-markets`, query);
   };
 }

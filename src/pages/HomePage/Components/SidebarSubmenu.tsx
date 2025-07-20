@@ -143,10 +143,10 @@ export const SideBarSubMenu = ({
               <div className="shape"></div>
             </div>
           )}
-        <NavigationLink item={item} show={show}>
-          {children}
-        </NavigationLink>
-        {isActive && (
+          <NavigationLink item={item} show={show}>
+            {children}
+          </NavigationLink>
+          {isActive && (
             <div className="flex justify-end">
               <div className="Bshape"></div>
             </div>

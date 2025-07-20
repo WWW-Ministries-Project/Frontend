@@ -3,7 +3,7 @@ import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { Button } from "@/components";
-
+import { cn } from "@/utils/cn";
 
 //TODO
 interface IProps {
@@ -95,10 +95,10 @@ export const HeaderControls = ({
           {btnName && (
             <Button
               value={screenWidth <= 700 ? "+" : btnName}
-              className={
-                "text-white px-5 min-h-12 max-h-14 p-3 bg-primary whitespace-nowrap" +
-                (screenWidth <= 540 ? " w-12 px-3" : "")
-              }
+              className={cn(
+                "text-white min-h-12 max-h-14 bg-primary whitespace-nowrap",
+                screenWidth <= 540 ? "px-3" : "px-5"
+              )}
               onClick={handleClick}
             />
           )}
@@ -107,4 +107,3 @@ export const HeaderControls = ({
     </div>
   );
 };
-
