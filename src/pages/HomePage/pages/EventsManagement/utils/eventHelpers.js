@@ -55,7 +55,7 @@ export const eventColumns = [
 ];
 export const eventInput = {
   name: "",
-  event_type: "",
+  event_name_id: "",
   start_date: "",
   // end_date: "",
   // start_time: "",
@@ -79,8 +79,8 @@ export const eventInput = {
   },
 };
 export const eventFormValidator = Yup.object().shape({
-  name: Yup.string().required("Required"),
-  event_type: Yup.string().required("Required"),
+  // name: Yup.string().required("Required"),
+  event_name_id: Yup.string().required("Required"),
   start_date: Yup.date("invalid date").required("Required"),
   start_time: Yup.string().required("Required"),
   day_event: Yup.string()

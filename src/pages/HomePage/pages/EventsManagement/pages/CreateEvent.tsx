@@ -39,14 +39,12 @@ const CreateEvent = () => {
     }
   }, [id, user]);
 
+  
+  
   useEffect(() => {
-    if (postedData) {
-      showNotification("Event created successfully", "success");
-    }
-    if (postError) {
-      showNotification("Something went wrong", "error");
-    }
-  });
+   console.log("Input Value", inputValue);
+   
+  }, []);
 
   const handleSubmit = async (val: eventType) => {
     // setLoading(true);

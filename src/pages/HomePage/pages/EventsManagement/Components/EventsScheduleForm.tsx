@@ -59,32 +59,26 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
             Event Information
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <Field
+            {/* <Field
               component={FormikInputDiv}
-              // options={[
-              //   { label: "Activity", value: "ACTIVITY" },
-              //   { label: "Program", value: "PROGRAM" },
-              //   { label: "Service", value: "SERVICE" },
-              //   { label: "Other", value: "other" },
-              // ]}
               label="Event Name"
               id="name"
               name="name"
               value={form.values.name || props.inputValue.name}
-            />
+            /> */}
             <Field
-              component={FormikSelectField}
-              options={[
-                { label: "Activity", value: "ACTIVITY" },
-                { label: "Program", value: "PROGRAM" },
-                { label: "Service", value: "SERVICE" },
-                { label: "Other", value: "other" },
-              ]}
-              label="Event Type"
-              id="event_type"
-              name="event_type"
-              value={form.values.event_type || props.inputValue.event_type}
-            />
+  component={FormikSelectField}
+  options={
+    allEvents.map(event => ({
+      label: event.event_name,
+      value: event.id
+    }))
+  }
+  label="Event Name"
+  id="event_name_id"
+  name="event_name_id"
+  value={form.values.event_name_id || props.inputValue.event_name_id}
+/>
           </div>
           <div className="grid md:grid-cols-1 gap-4">
             <Field
@@ -262,7 +256,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               loading={props.loading}
               onClick={async () => {
                 const errors = await form.validateForm();
-                // console.log(errors,"values",form.values);
+                console.log(errors,"values",form.values);
                 const touchedFields = Object.keys(errors).reduce(
                   (acc, field) => {
                     acc[field] = true;
@@ -275,6 +269,8 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 if (!Object.keys(errors).length) {
                   form.handleSubmit();
                 }
+                console.log("TEst", form.values);
+                
               }}
             />
           </div>
