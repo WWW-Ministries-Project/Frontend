@@ -51,7 +51,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
         </label>
         {props.type === "textarea" ? (
           <textarea
-            className={`input rounded-xl !h-[150px] ${props.inputClass} ${
+            className={`input rounded-xl  !h-[150px] ${props.inputClass} ${
               props.error ? "!border-error !outline-error" : ""
             }`}
             id={props.id}
@@ -66,7 +66,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
             className={`   ${
               props.inputClass
                 ? props.inputClass
-                : "rounded-lg p-2 border border-primary focus:outline-none"
+                : "rounded-lg p-2 border focus:border-primary focus:outline-none"
             }  ${
               props.error
                 ? "!border-error focus:outline-none !outline-error"
