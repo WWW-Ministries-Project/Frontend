@@ -47,6 +47,11 @@ export default {
         blur: "#222222cc", // Keeping for transparency effects
         modalOverlay: "#080D2D99", // Dark Blue Transparent Overlay for Popups
         hoverGold: "#E6C200", // Soft Gold Hover for Buttons & Links
+
+        lighter: '#1A2255',
+        lightest: '#2C3877',
+        accent: '#3D4B99',
+        pale: '#4E5FBB'
     },
     
       animation: {
@@ -54,8 +59,48 @@ export default {
         wiggle: "wiggle 1s",
         fadeIn: "fadeIn 1s",
         fadeOut: "fadeOut 1s",
+        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
+        'divine-glow': 'divine-glow 3s ease-in-out infinite',
+        'flame-flicker': 'flame-flicker 2s ease-in-out infinite',
+        'logo-breathe': 'logo-breathe 3s ease-in-out infinite',
+        'flame-dance': 'flame-dance 8s linear infinite',
+        'float': 'float 4s ease-in-out infinite',
       },
       keyframes: {
+        'accordion-down': {
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
+				},
+				'accordion-up': {
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'flame-dance': {
+					'0%, 100%': { transform: 'scale(1) rotate(0deg)', opacity: '0.8' },
+					'25%': { transform: 'scale(1.1) rotate(2deg)', opacity: '1' },
+					'50%': { transform: 'scale(0.95) rotate(-1deg)', opacity: '0.9' },
+					'75%': { transform: 'scale(1.05) rotate(1deg)', opacity: '1' }
+				},
+				'divine-glow': {
+					'0%, 100%': { boxShadow: '0 0 20px rgb(245 158 11 / 0.4)' },
+					'50%': { boxShadow: '0 0 40px rgb(245 158 11 / 0.8)' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'pulse-ring': {
+					'0%': { transform: 'scale(0.8)', opacity: '1' },
+					'100%': { transform: 'scale(2)', opacity: '0' }
+				},
+				'flame-flicker': {
+					'0%, 100%': { opacity: '0.7', transform: 'scaleY(1)' },
+					'50%': { opacity: '1', transform: 'scaleY(1.1)' }
+				},
+				'logo-breathe': {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.05)' }
+				},
         wiggle: {
           "0%, 100%": {
             transform: "matrix(1, 0, 0, 1, 0, 0)",
