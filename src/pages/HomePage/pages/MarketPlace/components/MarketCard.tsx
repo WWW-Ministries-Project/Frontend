@@ -1,12 +1,13 @@
 import { CalendarIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components";
-import type { IMarket } from "@/utils/api/marketPlace/interface";
-import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import { useState } from "react";
-import { MarketStatusChip } from "../chips/MarketStatusChip";
-import { DateTime } from "luxon";
 
-interface IMarketCard {
+import { Button } from "@/components";
+import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
+import { formatDate } from "@/utils";
+import type { IMarket } from "@/utils/api/marketPlace/interface";
+import { MarketStatusChip } from "./chips/MarketStatusChip";
+
+interface IProps {
   market: IMarket;
   handleEdit: (market: IMarket) => void;
   handleDelete: (id: string, name: string) => void;
@@ -18,13 +19,9 @@ export function MarketCard({
   handleDelete,
   handleEdit,
   openMarket,
-}: IMarketCard) {
+}: IProps) {
   const { name, description, event_name, start_date, end_date, id } = market;
-
   const [showOptions, setShowOptions] = useState(false);
-
-  const editMarket = () => handleEdit(market);
-  const deleteMarket = () => handleDelete(market.id, name);
 
   return (
     <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white relative">
@@ -43,8 +40,8 @@ export function MarketCard({
             <div onClick={() => setShowOptions((prev) => !prev)}>
               <ActionButton
                 showOptions={showOptions}
-                onDelete={deleteMarket}
-                onEdit={editMarket}
+                onDelete={() => handleDelete(market.id, name)}
+                onEdit={() => handleEdit(market)}
               />
             </div>
           </div>
@@ -55,7 +52,7 @@ export function MarketCard({
         <div className="flex items-center gap-2 text-[#101840]">
           <CalendarIcon className="h-5 w-5 text-black" />
           <span>
-            {readable(start_date)} to {readable(end_date)}
+            {formatDate(start_date)} to {formatDate(end_date)}
           </span>
         </div>
       </div>
@@ -71,7 +68,3 @@ export function MarketCard({
     </div>
   );
 }
-
-const readable = (isoDate: string) => {
-  return DateTime.fromISO(isoDate).toLocaleString(DateTime.DATE_MED);
-};

@@ -8,4 +8,4 @@ export interface IMarket {
   event_name:string
 }
 
-export type MarketStatus = "upcoming" | "active" | "ended";
+export type MarketStatusType = "upcoming" | "active" | "ended";
