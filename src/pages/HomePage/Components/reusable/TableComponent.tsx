@@ -24,7 +24,7 @@ interface TableComponentProps<TData> {
   rowClass?: string;
   headClass?: string;
   className?: string;
-  onRowClick?: (data: any) => void;
+  onRowClick?: (data: unknown) => void;
 }
 
 function TableComponent<TData>({
@@ -117,7 +117,8 @@ function TableComponent<TData>({
         </div>
       </div>
       {data.length > displayedCount ? (
-        <PaginationComponent
+        <div className="sticky bottom-0 bg-white">
+          <PaginationComponent
           canGoBack={table.getCanPreviousPage()}
           goBack={table.previousPage}
           canGoForward={table.getCanNextPage()}
@@ -126,6 +127,7 @@ function TableComponent<TData>({
           goFirst={() => table.setPageIndex(0)}
           totalPages={table.getPageCount()}
         />
+        </div>
       ) : null}
     </div>
   );

@@ -143,7 +143,7 @@ const EventsManagement = () => {
         screenWidth={screenWidth}
         btnName="Add Event"
       />
-      <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
+      <div className={`flex gap-4  ${!tableView ? "" : ""}`}>
         {/* Events Manager Header */}
         <EventsManagerHeader
           onNavigate={handleNavigation}

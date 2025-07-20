@@ -6,9 +6,9 @@ import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
-import EventsForm from "../Components/EventsForm";
 import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
+import EventsScheduleForm from "../Components/EventsScheduleForm";
 
 const CreateEvent = () => {
   //@ts-expect-error handle this error
@@ -83,7 +83,7 @@ const CreateEvent = () => {
         </p>
         <div className="hideScrollbar overflow-y-auto">
           <ImageUpload onFileChange={(file: File) => setFile(file)} src={""} />
-          <EventsForm
+          <EventsScheduleForm
             inputValue={inputValue}
             onSubmit={handleSubmit}
             loading={postLoading}

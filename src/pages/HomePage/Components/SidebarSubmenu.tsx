@@ -57,6 +57,13 @@ export const SideBarSubMenu = ({
     <div>
       {show ? (
         <div>
+          {/* Active indicator shape - top */}
+          {(isActive || showChildren) && (
+            <div className="flex justify-end">
+              <div className="shape"></div>
+            </div>
+          )}
+
           {/* Main Parent Menu */}
           <div
             onClick={toggleSubMenu}
@@ -107,9 +114,9 @@ export const SideBarSubMenu = ({
                     end
                     to={getChildPath(child)}
                     className={({ isActive }) =>
-                      `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
+                      ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
                         isActive
-                          ? "bg-[#6539C310] text-primary transition"
+                          ? "font-extrabold text-primary transition"
                           : "hover:text-primary"
                       }`
                     }
@@ -120,11 +127,31 @@ export const SideBarSubMenu = ({
               ))}
             </div>
           )}
+
+          {/* Active indicator shape - bottom */}
+          {(isActive || showChildren) && (
+            <div className="flex justify-end">
+              <div className="Bshape"></div>
+            </div>
+          )}
         </div>
       ) : (
+        <div>
+          {/* Navigation link rendering */}
+          {isActive && (
+            <div className="flex justify-end">
+              <div className="shape"></div>
+            </div>
+          )}
         <NavigationLink item={item} show={show}>
           {children}
         </NavigationLink>
+        {isActive && (
+            <div className="flex justify-end">
+              <div className="Bshape"></div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
