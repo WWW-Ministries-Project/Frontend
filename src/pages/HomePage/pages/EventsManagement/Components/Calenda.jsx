@@ -3,85 +3,12 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventsCard } from './EventsCard';
 import EventDetailsModal from './EventDetailsModal';
+import { BREAKPOINTS, calculateEventPosition, DAYS_OF_WEEK, DAYS_OF_WEEK_SHORT, formatDate, formatTime, getDaysInMonth, getEventsToShow, getFirstDayOfMonth, getWeekDates, MONTHS, parseTimeToMinutes, resolveEventOverlaps, VIEW_TYPES } from '@/components/calenda/utils/CalendaHelpers';
+import DayCell from '@/components/calenda/components/DayCell';
+import MoreEventsIndicator from '@/components/calenda/components/MoreEventsIndicator';
+import EventItem from '@/components/calenda/components/EventItem';
 
-// Constants
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const DAYS_OF_WEEK_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const MODAL_DIMENSIONS = {
-  height: 300,
-  width: 300
-};
-
-const BREAKPOINTS = {
-  sm: 600,
-  md: 900,
-  lg: 1600,
-  xl: 1900
-};
-
-const VIEW_TYPES = {
-  MONTH: 'month',
-  WEEK: 'week',
-  DAY: 'day'
-};
-
-// Utility functions
-const getEventsToShow = (width) => {
-  if (width < BREAKPOINTS.sm) return 1;
-  if (width < BREAKPOINTS.md) return 2;
-  if (width < BREAKPOINTS.lg) return 3;
-  if (width < BREAKPOINTS.xl) return 3;
-  return 4;
-};
-
-const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
-const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
-
-const formatDate = (year, month, day) => 
-  new Date(year, month, day).toISOString().split('T')[0];
-
-const formatTime = (timeString) => {
-  if (!timeString) return '';
-  const [hours, minutes] = timeString.split(':');
-  const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minutes} ${ampm}`;
-};
-
-const getWeekDates = (date) => {
-  const week = [];
-  const startOfWeek = new Date(date);
-  startOfWeek.setDate(date.getDate() - date.getDay());
-  
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(startOfWeek);
-    day.setDate(startOfWeek.getDate() + i);
-    week.push(day);
-  }
-  
-  return week;
-};
-
-// const calculateModalPosition = (rect, dimensions) => {
-//   let top = rect.top + window.scrollY;
-//   let left = rect.left + window.scrollX;
-
-//   if (rect.bottom + dimensions.height > window.innerHeight) {
-//     top = rect.bottom + window.scrollY - dimensions.height;
-//   }
-//   if (rect.right + dimensions.width > window.innerWidth) {
-//     left = rect.right + window.scrollX - dimensions.width;
-//   }
-
-//   return { top: `${top}px`, left: `${left}px` };
-// };
 
 // Custom hooks
 const useResponsiveEventsToShow = () => {
@@ -115,87 +42,9 @@ const useClickOutside = (refs, callbacks) => {
   }, [refs, callbacks]);
 };
 
-// Event components
-const EventItem = ({ event, onClick, showTime = true, className = "" }) => (
-  <div 
-    className={`flex text-xs gap-1 my-1 items-center cursor-pointer hover:opacity-80 ${className}`}
-    onClick={onClick}
-  >
-    <div className="h-2 w-2 border rounded-full border-primary bg-primary flex-shrink-0" />
-    {showTime && <span className="text-gray-600">{event.start_time}</span>}
-    <span className="truncate">{event.name}</span>
-  </div>
-);
 
-const TimeSlotEvent = ({ event, onClick }) => (
-  <div
-    className="bg-primary text-white text-xs p-1 rounded mb-1 cursor-pointer hover:bg-opacity-80 transition-colors"
-    onClick={onClick}
-  >
-    <div className="font-medium truncate">{event.name}</div>
-    <div className="text-xs opacity-90">
-      {formatTime(event.start_time)} - {formatTime(event.end_time)}
-    </div>
-  </div>
-);
 
-const MoreEventsIndicator = ({ count, onClick }) => (
-  <div 
-    className="text-primary text-xs font-bold cursor-pointer hover:underline" 
-    onClick={onClick}
-  >
-    {count} more event{count > 1 ? 's' : ''}
-  </div>
-);
-
-// Day cell component for month view
-const DayCell = ({ 
-  day, 
-  date, 
-  dayEvents, 
-  isToday, 
-  isCurrentMonth, 
-  eventsToShow, 
-  onEventClick, 
-  onDayClick 
-}) => {
-  const visibleEvents = dayEvents.slice(0, eventsToShow);
-  const remainingEventsCount = dayEvents.length - eventsToShow;
-
-  return (
-    <div
-      className={`border border-[#dcdcdc] p-2 overflow-hidden ${
-        isCurrentMonth ? '' : 'text-[#dcdcdc]'
-      } ${isToday ? 'relative' : ''}`}
-      style={{ height: '15vh', cursor: 'pointer' }}
-    >
-      {isToday ? (
-        <div className="h-6 w-6 border rounded-full border-primary flex items-center justify-center text-primary">
-          {day}
-        </div>
-      ) : (
-        day
-      )}
-      
-      {visibleEvents.map((event, index) => (
-        <EventItem
-          key={`${event.id}-${index}`}
-          event={event}
-          onClick={(e) => onEventClick(e, event)}
-        />
-      ))}
-      
-      {remainingEventsCount > 0 && (
-        <MoreEventsIndicator
-          count={remainingEventsCount}
-          onClick={(e) => onDayClick(e, dayEvents)}
-        />
-      )}
-    </div>
-  );
-};
-
-// Week view component
+// Enhanced Week view component with overlap handling
 const WeekView = ({ 
   currentDate, 
   eventsByDate, 
@@ -211,6 +60,31 @@ const WeekView = ({
     }
     return slots;
   }, []);
+
+  const slotHeight = 60; // Height of each hour slot
+
+  // Group events by day and calculate positions with overlap handling
+  const eventsWithPositions = useMemo(() => {
+    const result = {};
+    
+    weekDates.forEach((date, dayIndex) => {
+      const dateString = date.toISOString().split('T')[0];
+      const dayEvents = eventsByDate[dateString] || [];
+      
+      // Filter events with valid times and add base positioning
+      const validEvents = dayEvents
+        .filter(event => event.start_time && event.end_time)
+        .map(event => ({
+          ...event,
+          ...calculateEventPosition(event.start_time, event.end_time, slotHeight)
+        }));
+      
+      // Resolve overlaps
+      result[dateString] = resolveEventOverlaps(validEvents);
+    });
+    
+    return result;
+  }, [weekDates, eventsByDate, slotHeight]);
 
   return (
     <div className="bg-white shadow-lg rounded-xl overflow-hidden">
@@ -234,47 +108,86 @@ const WeekView = ({
         })}
       </div>
 
-      {/* Time slots */}
+      {/* Time slots with spanning events */}
       <div className="max-h-[70vh] overflow-y-auto">
-        {timeSlots.map((time, timeIndex) => (
-          <div key={time} className="grid grid-cols-8 border-b min-h-[60px]">
-            <div className="p-2 text-xs text-gray-500 border-r bg-gray-50 flex items-center">
-              {formatTime(time)}
+        <div className="relative">
+          {/* Time slots grid */}
+          {timeSlots.map((time, timeIndex) => (
+            <div key={time} className="grid grid-cols-8 border-b relative" style={{ height: `${slotHeight}px` }}>
+              <div className="p-2 text-xs text-gray-500 border-r bg-gray-50 flex items-center">
+                {formatTime(time)}
+              </div>
+              {weekDates.map((date, dayIndex) => {
+                const dateString = date.toISOString().split('T')[0];
+                const dayEvents = eventsByDate[dateString] || [];
+                
+                return (
+                  <div 
+                    key={`${dateString}-${time}`}
+                    className="border-r hover:bg-gray-50 cursor-pointer relative"
+                    style={{ height: `${slotHeight}px` }}
+                    onClick={(e) => dayEvents.length > 0 && onDayClick(e, dayEvents)}
+                  />
+                );
+              })}
             </div>
-            {weekDates.map((date, dayIndex) => {
-              const dateString = date.toISOString().split('T')[0];
-              const dayEvents = eventsByDate[dateString] || [];
-              const timeEvents = dayEvents.filter(event => 
-                event.start_time && event.start_time.startsWith(time.substring(0, 2))
-              );
+          ))}
+          
+          {/* Absolutely positioned spanning events with overlap handling */}
+          {weekDates.map((date, dayIndex) => {
+            const dateString = date.toISOString().split('T')[0];
+            const dayEventsWithPositions = eventsWithPositions[dateString] || [];
+            
+            return dayEventsWithPositions.map((event, eventIndex) => {
+              const columnWidth = (1 / 8) * 100; // Base column width
+              const eventWidth = (columnWidth * event.overlapGroup.width) / 100;
+              const leftOffset = (columnWidth * event.overlapGroup.left) / 100;
+              const leftPosition = ((dayIndex + 1) / 8) * 100 + leftOffset; // +1 to account for time column
               
               return (
-                <div 
-                  key={`${dateString}-${time}`}
-                  className="p-1 border-r hover:bg-gray-50 cursor-pointer min-h-[60px]"
-                  onClick={(e) => dayEvents.length > 0 && onDayClick(e, dayEvents)}
+                <div
+                  key={`spanning-${event.id}-${eventIndex}`}
+                  className="absolute"
+                  style={{
+                    left: `${leftPosition}%`,
+                    width: `${eventWidth}%`,
+                    top: `${event.startHour * slotHeight + event.top}px`,
+                    height: `${event.height}px`,
+                    zIndex: 20 + event.overlapGroup.index // Higher z-index for later events
+                  }}
                 >
-                  {timeEvents.map((event, eventIndex) => (
-                    <TimeSlotEvent
-                      key={`${event.id}-${eventIndex}`}
-                      event={event}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEventClick(e, event);
-                      }}
-                    />
-                  ))}
+                  <div
+                    className={`mx-1 h-full bg-primary text-white text-xs p-1 rounded cursor-pointer hover:bg-opacity-80 transition-colors overflow-hidden
+                      ${event.overlapGroup.size > 1 ? 'border border-white' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick(e, event);
+                    }}
+                    title={`${event.event_name} (${formatTime(event.start_time)} - ${formatTime(event.end_time)})`}
+                  >
+                    <div className="font-medium truncate">{event.event_name}</div>
+                    {event.height > 30 && (
+                      <div className="text-xs opacity-90 truncate">
+                        {formatTime(event.start_time)} - {formatTime(event.end_time)}
+                      </div>
+                    )}
+                    {event.height > 50 && event.description && (
+                      <div className="text-xs opacity-80 mt-1 line-clamp-2">
+                        {event.description}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
-            })}
-          </div>
-        ))}
+            });
+          })}
+        </div>
       </div>
     </div>
   );
 };
 
-// Day view component
+// Enhanced Day view component with overlap handling
 const DayView = ({ 
   currentDate, 
   eventsByDate, 
@@ -284,6 +197,9 @@ const DayView = ({
   const dateString = currentDate.toISOString().split('T')[0];
   const dayEvents = eventsByDate[dateString] || [];
   const isToday = dateString === todayString;
+  const slotHeight = 80; // Taller slots for day view
+  const timeColumnWidth = 96; // Fixed width for time column
+  
   const timeSlots = useMemo(() => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
@@ -291,6 +207,18 @@ const DayView = ({
     }
     return slots;
   }, []);
+
+  // Events with calculated positions and overlap handling
+  const eventsWithPositions = useMemo(() => {
+    const validEvents = dayEvents
+      .filter(event => event.start_time && event.end_time)
+      .map(event => ({
+        ...event,
+        ...calculateEventPosition(event.start_time, event.end_time, slotHeight)
+      }));
+    
+    return resolveEventOverlaps(validEvents);
+  }, [dayEvents, slotHeight]);
 
   return (
     <div className="bg-white shadow-lg rounded-xl overflow-hidden">
@@ -307,40 +235,65 @@ const DayView = ({
         )}
       </div>
 
-      {/* Time slots */}
+      {/* Time slots with spanning events */}
       <div className="max-h-[70vh] overflow-y-auto">
-        {timeSlots.map((time) => {
-          const timeEvents = dayEvents.filter(event => 
-            event.start_time && event.start_time.startsWith(time.substring(0, 2))
-          );
-          
-          return (
-            <div key={time} className="flex border-b min-h-[80px]">
+        <div className="relative">
+          {/* Time slots grid */}
+          {timeSlots.map((time, timeIndex) => (
+            <div key={time} className="flex border-b relative" style={{ height: `${slotHeight}px` }}>
               <div className="w-24 p-4 text-sm text-gray-500 border-r bg-gray-50 flex items-center">
                 {formatTime(time)}
               </div>
-              <div className="flex-1 p-2 hover:bg-gray-50">
-                {timeEvents.map((event, index) => (
+              <div 
+                className="flex-1 hover:bg-gray-50 relative"
+                style={{ height: `${slotHeight}px` }}
+              />
+            </div>
+          ))}
+          
+          {/* Absolutely positioned spanning events with overlap handling */}
+          <div className="absolute inset-0" style={{ left: `${timeColumnWidth}px` }}>
+            {eventsWithPositions.map((event, index) => {
+              // Calculate positioning within the available event area
+              const eventLeftPercent = event.overlapGroup.left;
+              const eventWidthPercent = event.overlapGroup.width;
+              const margin = 4; // Margin between overlapping events
+              
+              return (
+                <div
+                  key={`spanning-${event.id}-${index}`}
+                  className="absolute"
+                  style={{
+                    left: `${eventLeftPercent}%`,
+                    width: `${eventWidthPercent}%`,
+                    top: `${event.startHour * slotHeight + event.top}px`,
+                    height: `${event.height}px`,
+                    zIndex: 20 + event.overlapGroup.index,
+                    paddingLeft: event.overlapGroup.index > 0 ? `${margin}px` : '0',
+                    paddingRight: event.overlapGroup.index < event.overlapGroup.size - 1 ? `${margin}px` : '0'
+                  }}
+                >
                   <div
-                    key={`${event.id}-${index}`}
-                    className="bg-primary text-white p-3 rounded-lg mb-2 cursor-pointer hover:bg-opacity-80 transition-colors"
+                    className={`h-full w-full bg-primary text-white p-3 rounded-lg cursor-pointer hover:bg-opacity-80 transition-colors overflow-hidden
+                      ${event.overlapGroup.size > 1 ? 'border border-white' : ''}`}
                     onClick={(e) => onEventClick(e, event)}
+                    title={`${event.event_name} (${formatTime(event.start_time)} - ${formatTime(event.end_time)})`}
                   >
-                    <div className="font-medium">{event.name}</div>
-                    <div className="text-sm opacity-90 mt-1">
+                    <div className="font-medium truncate">{event.event_name}</div>
+                    <div className="text-sm opacity-90 mt-1 truncate">
                       {formatTime(event.start_time)} - {formatTime(event.end_time)}
                     </div>
-                    {event.description && (
+                    {event.height > 60 && event.description && (
                       <div className="text-sm opacity-80 mt-2 line-clamp-2">
                         {event.description}
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -601,7 +554,7 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
     if (!isArray(events)) return {};
     
     return events.reduce((acc, event) => {
-      const date = event.start_date.split('T')[0];
+      const date = event?.start_date.split('T')[0];
       if (!acc[date]) acc[date] = [];
       acc[date].push(event);
       return acc;
@@ -772,6 +725,19 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
           eventsToShow={eventsToShow}
           onEventClick={handleEventClick}
           onDayClick={handleDayClick}
+          renderEvent={
+            (event, onClick) =><EventItem
+            label={event.event_name}
+          event={event}
+          onClick={onClick}
+        />
+          }
+          renderMoreEvents={
+            (count, onClick) =><MoreEventsIndicator
+          count={count}
+          onClick={onClick}
+        />
+          }
         />
       );
     }
@@ -781,7 +747,6 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
       const date = formatDate(currentYear, currentMonth, day);
       const dayEvents = eventsByDate[date] || [];
       const isToday = date === todayString;
-      
       days.push(
         <DayCell
           key={day}
@@ -793,6 +758,19 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
           eventsToShow={eventsToShow}
           onEventClick={handleEventClick}
           onDayClick={handleDayClick}
+          renderEvent={
+            (event, onClick) =><EventItem
+            label={event.event_name}
+          event={event}
+          onClick={onClick}
+        />
+          }
+          renderMoreEvents={
+            (count, onClick) =><MoreEventsIndicator
+          count={count}
+          onClick={onClick}
+        />
+          }
         />
       );
     }
@@ -815,9 +793,22 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
             eventsToShow={eventsToShow}
             onEventClick={handleEventClick}
             onDayClick={handleDayClick}
-          />
-        );
-      }
+           renderEvent={
+            (event, onClick) =><EventItem
+            label={event.event_name}
+          event={event}
+          onClick={onClick}
+        />
+          }
+          renderMoreEvents={
+            (count, onClick) =><MoreEventsIndicator
+          count={count}
+          onClick={onClick}
+        />
+          }
+        />
+      );
+    }
     }
 
     return days;
@@ -934,7 +925,7 @@ const Calendar = ({ events = [], onDelete, onShowOptions, showOptions, ...props 
                 >
                   <div className="h-3 w-3 border rounded-full border-primary bg-primary flex-shrink-0" />
                   <div className="flex-1">
-                    <div className="font-medium">{event.name}</div>
+                    <div className="font-medium">{event.event_name}</div>
                     <div className="text-xs text-gray-500">
                       {formatTime(event.start_time)} - {formatTime(event.end_time)}
                     </div>

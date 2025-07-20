@@ -14,6 +14,7 @@ import {
 interface Event {
   id: string | number;
   name: string;
+  event_name: string;
   start_date: string;
   end_date?: string;
   start_time?: string;
@@ -123,7 +124,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
             </button> */}
             
             <div className="text-white">
-              <h1 className="text-xl font-bold mb-2 pr-8">{event.name}</h1>
+              <h1 className="text-xl font-bold mb-2 pr-8">{event.event_name}</h1>
               <div className="flex items-center text-white text-opacity-90">
                 <CalendarDaysIcon className="w-4 h-4 mr-2" />
                 <span className="text-sm">{formatDate(event.start_date)}</span>

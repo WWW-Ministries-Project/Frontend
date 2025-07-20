@@ -117,9 +117,14 @@ const EventsManagement = () => {
   // Filtered events based on search
   const filteredEvents = useMemo(() => {
     return events.filter((event) =>
-      event.name.toLowerCase().includes(filterEvents.toLowerCase())
+      event?.event_name?.toLowerCase().includes(filterEvents.toLowerCase())
     );
   }, [events, filterEvents]);
+
+  useEffect(() => {
+    console.log("Filtered events", events);
+    
+  }, [])
 
   return (
     <PageOutline>
