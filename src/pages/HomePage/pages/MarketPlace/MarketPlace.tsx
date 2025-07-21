@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { api } from "@/utils";
-import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
+import { showNotification } from "@/pages/HomePage/utils";
 import { MarketCard } from "./components/MarketCard";
 import { AddMarketForm } from "./components/forms/AddMarketForm";
 import { IMarket } from "@/utils/api/marketPlace/interface";
@@ -13,7 +14,6 @@ import GridComponent from "../../Components/reusable/GridComponent";
 
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
-
   const { data: markets, refetch } = useFetch(api.fetch.fetchMarkets);
   const {
     postData,
