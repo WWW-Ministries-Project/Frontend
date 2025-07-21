@@ -38,6 +38,13 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
+  updateAllEvent = <T>(
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("event/update-event-type", payload, query);
+  };
+  
   // Update Asset
   updateAsset = (payload: AssetPayloadType): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);

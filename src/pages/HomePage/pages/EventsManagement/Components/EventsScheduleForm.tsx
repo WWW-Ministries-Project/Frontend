@@ -3,22 +3,44 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import { Field, Form, Formik } from "formik";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   formatInputDate,
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import { eventFormValidator } from "../utils/eventHelpers";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api, EventType } from "@/utils";
+
+interface EventsFormValues {
+  event_name_id?: string;
+  name?: string;
+  description?: string;
+  start_date?: string;
+  start_time?: string;
+  end_time?: string;
+  day_event?: string;
+  recurring?: {
+    daysOfWeek?: number;
+    interval?: number;
+    frequency?: string;
+  };
+  repetitive?: string;
+  end_date?: string;
+  location?: string;
+  [key: string]: unknown; // Use 'unknown' for safer typing
+}
 
 interface EventsFormProps {
-  inputValue: any;
-  handleMultiSelectChange?: any;
-  onSubmit: (val: any) => void;
+  inputValue: EventsFormValues;
+  handleMultiSelectChange?: (name: string, value: Array<string>) => void;
+  onSubmit: (val: EventsFormValues) => void;
   loading?: boolean;
   updating?: boolean;
 }
 
-const EventsForm: React.FC<EventsFormProps> = (props) => {
+const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
+  const [allEvents, setAllEvents] = useState<EventType[]>([]);
   const handleMultiSelectChange = (name: string, value: Array<string>) => {
     const values = value;
     const index = values.indexOf(name);
@@ -29,6 +51,15 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     }
     return values;
   };
+
+  const { data: lcData } = useFetch(api.fetch.fetchAllEvents);
+
+    // Initialize events from API data
+    useEffect(() => {
+      if (lcData?.data?.length) {
+        setAllEvents([...lcData.data]);
+      }
+    }, [lcData]);
 
   return (
     <Formik
@@ -47,25 +78,36 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
             Event Information
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <Field
+            {/* <Field
               component={FormikInputDiv}
               label="Event Name"
               id="name"
               name="name"
               value={form.values.name || props.inputValue.name}
-            />
+            /> */}
             <Field
-              component={FormikSelectField}
-              options={[
-                { name: "Activity", value: "ACTIVITY" },
-                { name: "Program", value: "PROGRAM" },
-                { name: "Service", value: "SERVICE" },
-                { name: "Other", value: "other" },
-              ]}
-              label="Event Type"
-              id="event_type"
-              name="event_type"
-              value={form.values.event_type || props.inputValue.event_type}
+  component={FormikSelectField}
+  options={
+    allEvents.map(event => ({
+      label: event.event_name,
+      value: event.id
+    }))
+  }
+  label="Event Name"
+  id="event_name_id"
+  name="event_name_id"
+  value={form.values.event_name_id || props.inputValue.event_name_id}
+/>
+          </div>
+          <div className="grid md:grid-cols-1 gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Event Description"
+              id="description"
+              name="description"
+              type="textarea"
+              inputClass=" !h-48 resize-none"
+              value={form.values.description || props.inputValue.description}
             />
           </div>
           <h2 className="text-primary H600 font-extrabold ">
@@ -218,18 +260,9 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.location || props.inputValue.location}
             />
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Event Description"
-              id="description"
-              name="description"
-              type="textarea"
-              inputClass=" !h-48 resize-none"
-              value={form.values.description || props.inputValue.description}
-            />
-          </div>
-          <div className="flex gap-4 justify-end mt-4">
+          
+          <div className="sticky bottom-0 border-t">
+          <div className="flex gap-4 justify-end  py-4">
             <Button
               value="Cancel"
               variant="ghost"
@@ -242,7 +275,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               loading={props.loading}
               onClick={async () => {
                 const errors = await form.validateForm();
-                // console.log(errors,"values",form.values);
+                console.log(errors,"values",form.values);
                 const touchedFields = Object.keys(errors).reduce(
                   (acc, field) => {
                     acc[field] = true;
@@ -255,8 +288,11 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 if (!Object.keys(errors).length) {
                   form.handleSubmit();
                 }
+                console.log("TEst", form.values);
+                
               }}
             />
+          </div>
           </div>
         </Form>
       )}
@@ -264,4 +300,4 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
   );
 };
 
-export default EventsForm;
+export default EventsScheduleForm;

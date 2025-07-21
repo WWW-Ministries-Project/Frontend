@@ -13,6 +13,8 @@ export interface eventType {
   event_type: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other";
   start_time: string; // Format: "HH:mm"
   end_time: string; // Format: "HH:mm"
+  event_name: string;
+  event_name_id: number;
   //   event_attendance: [];
 }
 export interface EventSlice {
