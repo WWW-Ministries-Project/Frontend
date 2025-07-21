@@ -12,9 +12,9 @@ interface ActionButtonProps {
 const ActionButton = (props: ActionButtonProps) => {
   return (
     <>
-      <img src={Elipse} alt="options" className="cursor-pointer" />
+      <img src={Elipse} alt="options" className="cursor-pointer w-5 h-5" />
       {props.showOptions && (
-        <Action className="absolute right bottom-50%"
+        <Action className="absolute right-0 bottom-50%"
           onDelete={props.onDelete}
           onView={props.onView}
           onEdit={props.onEdit}
