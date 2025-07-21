@@ -138,7 +138,7 @@ export class ApiCreationCalls {
 
   //marketPlace
   createMarket = (
-    payload: Omit<IMarket, "id"|"event_name">
+    payload: Omit<IMarket, "id" | "event_name">
   ): Promise<ApiResponse<IMarket>> => {
     return this.postToApi("market/create-market", payload);
   };

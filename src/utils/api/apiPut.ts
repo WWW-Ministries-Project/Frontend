@@ -20,7 +20,7 @@ import {
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { IMarket } from "./marketPlace/interface";
+import type { IMarket } from "./marketPlace/interface";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -245,13 +245,9 @@ export class ApiUpdateCalls {
   };
 
   updateMarket = (
-    payload: Omit<IMarket,"event_name">,
+    payload: Omit<IMarket, "event_name">,
     query?: QueryType
   ): Promise<ApiResponse<IMarket>> => {
-    return this.apiExecution.updateData(
-      "market/update-market",
-      payload,
-      query
-    );
+    return this.apiExecution.updateData("market/update-market", payload, query);
   };
 }
