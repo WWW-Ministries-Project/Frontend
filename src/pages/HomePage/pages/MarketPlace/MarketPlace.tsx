@@ -14,11 +14,13 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import { usePut } from "@/CustomHooks/usePut";
 import { useDelete } from "@/CustomHooks/useDelete";
 import EmptyState from "@/components/EmptyState";
+import useWindowSize from "@/CustomHooks/useWindowSize";
 
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
   const [editData, setEditData] = useState<IMarket | null>(null);
   const { data: markets, refetch } = useFetch(api.fetch.fetchMarkets);
+  const {screenWidth} = useWindowSize()
   const {
     postData,
     data: newMarket,
@@ -90,7 +92,7 @@ export function MarketPlace() {
       <HeaderControls
         title="Marketplace Management"
         subtitle="Manage your market here"
-        screenWidth={window.innerWidth}
+        screenWidth={screenWidth}
         btnName="Create market"
         handleClick={handleOpenModal}
       />
