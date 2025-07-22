@@ -1,4 +1,5 @@
 import React from 'react';
+import { CalendarEvent } from '../utils/CalendaHelpers';
 
 interface Event {
   id: string;
@@ -13,8 +14,8 @@ interface DayCellProps {
   isToday: boolean;
   isCurrentMonth: boolean;
   eventsToShow?: number;
-  onEventClick?: (e: React.MouseEvent, event: Event) => void;
-  onDayClick?: (e: React.MouseEvent, events: Event[]) => void;
+  onEventClick: (e: React.MouseEvent<HTMLElement>, event: CalendarEvent) => void;
+  onDayClick?: (e: React.MouseEvent<HTMLElement>, dayEvents: CalendarEvent[]) => void;
   className?: string;
   style?: React.CSSProperties;
   renderDay?: (day: number, isToday: boolean) => React.ReactNode;

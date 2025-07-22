@@ -1,12 +1,10 @@
 import React from 'react';
+import { CalendarEvent } from '../utils/CalendaHelpers';
 
-export interface Event {
-  start_date?: string;
-  // add other event properties as needed
-}
+
 
 export interface EventItemProps {
-  event: Event;
+  event: CalendarEvent;
   /** The label to display (e.g. event.name) */
   label: string;
   /** The time to display (e.g. event.start_time) */
