@@ -271,13 +271,46 @@ export function calculateDynamicModalPosition(
   };
 }
 
-export function debounce<T extends (...args: unknown[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout>;
+// export function debounce<T extends (...args: unknown[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+//   let timeout: ReturnType<typeof setTimeout>;
 
-  return (...args: Parameters<T>): void => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      func(...args);
+//   return (...args: Parameters<T>): void => {
+//     clearTimeout(timeout);
+//     timeout = setTimeout(() => {
+//       func(...args);
+//     }, wait);
+//   };
+// }
+
+// CalendaHelpers.ts
+
+export function debounce<T extends (...args: any[]) => void>(
+  fn: T,
+  wait: number
+) {
+  let timeoutId: number | null = null;
+
+  // the actual debounced function
+  function debounced(...args: Parameters<T>) {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+    timeoutId = window.setTimeout(() => {
+      fn(...args);
+      timeoutId = null;
     }, wait);
+  }
+
+  // add a cancel method
+  debounced.cancel = () => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+      timeoutId = null;
+    }
   };
+
+  return debounced;
 }
+
+
+
