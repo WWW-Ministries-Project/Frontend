@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
@@ -6,7 +6,6 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { api } from "@/utils";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { MarketCard } from "./components/MarketCard";
 import { AddMarketForm } from "./components/forms/AddMarketForm";
 import { IMarket } from "@/utils/api/marketPlace/interface";
 import PageOutline from "../../Components/PageOutline";
@@ -15,12 +14,22 @@ import { usePut } from "@/CustomHooks/usePut";
 import { useDelete } from "@/CustomHooks/useDelete";
 import EmptyState from "@/components/EmptyState";
 import useWindowSize from "@/CustomHooks/useWindowSize";
+import TabSelection from "../../Components/reusable/TabSelection";
+import { MarketCard } from "./components/cards/MarketCard";
+import { encodeQuery } from "@/pages/HomePage/utils";
+import { useNavigate } from "react-router-dom";
 
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
   const [editData, setEditData] = useState<IMarket | null>(null);
+  const TABS = {
+    active: "Active",
+    upcoming: "Upcoming",
+    ended: "Ended",
+  };
+  const [tab, setTab] = useState<string>(TABS.active);
   const { data: markets, refetch } = useFetch(api.fetch.fetchMarkets);
-  const {screenWidth} = useWindowSize()
+  const { screenWidth } = useWindowSize();
   const {
     postData,
     data: newMarket,
@@ -42,14 +51,10 @@ export function MarketPlace() {
   const handleAddMarket = async (market: IMarket) => {
     const { id, event_id, event_name, ...rest } = market;
 
-    try {
-      if (id) {
-        await updateData({ ...rest, id, event_id: +event_id }, { id });
-      } else {
-        await postData({ ...rest, event_id: +event_id });
-      }
-    } catch (error) {
-      showNotification("Something went wrong", "error");
+    if (id) {
+      await updateData({ ...rest, id, event_id: +event_id }, { id });
+    } else {
+      await postData({ ...rest, event_id: +event_id });
     }
   };
 
@@ -87,8 +92,30 @@ export function MarketPlace() {
     });
   };
 
+  const filteredMarkets = useMemo(() => {
+    return markets?.data.filter(
+      (market) =>
+        getMarketStatus({
+          start_date: market.start_date,
+          end_date: market.end_date,
+        }) === tab.toLowerCase()
+    );
+  }, [tab, markets?.data]);
+
+  const navigate = useNavigate();
+
+  const openShop = (id: string) => {
+    navigate(encodeQuery(id));
+  };
   return (
     <PageOutline>
+      <div className="w-fit">
+        <TabSelection
+          tabs={["Upcoming", "Active", "Ended"]}
+          selectedTab={tab}
+          onTabSelect={(tab) => setTab(tab)}
+        />
+      </div>
       <HeaderControls
         title="Marketplace Management"
         subtitle="Manage your market here"
@@ -99,7 +126,7 @@ export function MarketPlace() {
 
       <GridComponent
         columns={[]}
-        data={markets?.data || []}
+        data={filteredMarkets || []}
         displayedCount={6}
         filter=""
         setFilter={() => {}}
@@ -109,7 +136,7 @@ export function MarketPlace() {
             market={original}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
-            openMarket={() => {}}
+            openMarket={openShop}
           />
         )}
       />
@@ -126,3 +153,13 @@ export function MarketPlace() {
     </PageOutline>
   );
 }
+
+const getMarketStatus = (status: { start_date: string; end_date: string }) => {
+  const now = new Date().getTime();
+  const start = new Date(status.start_date).getTime();
+  const end = new Date(status.end_date).getTime();
+
+  if (now < start) return "upcoming";
+  if (now >= start && now <= end) return "active";
+  return "ended";
+};
