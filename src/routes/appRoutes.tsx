@@ -41,6 +41,7 @@ import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
+import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 
 // Define a Route type
 export interface AppRoute {
@@ -280,6 +281,11 @@ export const routes: AppRoute[] = [
         name: "Market Place",
         element: <MarketPlace />,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.marketPlace.details,
+        name: "Market Details",
+        element: <MarketDetails />,
       },
 
       {

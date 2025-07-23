@@ -9,3 +9,14 @@ export interface IMarket {
 }
 
 export type MarketStatusType = "upcoming" | "active" | "ended";
+
+export type IProduct = {
+  imageUrl: string;
+  title: string;
+  status: "published" | "draft";
+  type: string;
+  category: string;
+  price: number;
+  stock: number;
+  id:string
+};
