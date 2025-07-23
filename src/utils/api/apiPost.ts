@@ -16,6 +16,7 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import type { IMarket } from "./marketPlace/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -133,5 +134,12 @@ export class ApiCreationCalls {
     payload: LifeCenterMemberForm
   ): Promise<ApiResponse<LifeCenterMemberForm>> => {
     return this.postToApi("lifecenter/add-lifecenter-member", payload);
+  };
+
+  //marketPlace
+  createMarket = (
+    payload: Omit<IMarket, "id" | "event_name">
+  ): Promise<ApiResponse<IMarket>> => {
+    return this.postToApi("market/create-market", payload);
   };
 }

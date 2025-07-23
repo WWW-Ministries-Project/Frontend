@@ -94,6 +94,14 @@ export class ApiDeletionCalls {
   };
 
   deleteLifeCenterMember = (query: QueryType): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>("lifecenter/remove-lifecenter-member", query);
+    return this.deleteFromApi<void>(
+      "lifecenter/remove-lifecenter-member",
+      query
+    );
+  };
+
+  //marketplace
+  deleteMarket = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("market/delete-market", query);
   };
 }
