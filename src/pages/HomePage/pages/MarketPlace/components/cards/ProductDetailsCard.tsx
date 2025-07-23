@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { ProductChip } from "../chips/ProductChip";
-import { IProduct } from "@/utils/api/marketPlace/interface";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 
 type ProductDetailsCardProps = {
@@ -40,17 +40,14 @@ export const ProductDetailsCard = memo(
                   >
                     <span className="hidden md:block lg:block"> {status}</span>
                   </p>
-                  {/* <EllipsisVerticalIcon
-                    className="h-5 w-5 text-gray-500"
-                    aria-label="More options"
-                  /> */}
+
                   <div
                     className=""
                     onClick={() => setShowOptions((prev) => !prev)}
                   >
                     <ActionButton
                       showOptions={showOptions}
-                      onDelete={() => {}}
+                      onDelete={()=>handleDelete(product.id, product.title)}
                       onEdit={() => handleEdit(id)}
                       onView={() => handleView(product)}
                     />
@@ -76,7 +73,9 @@ export const ProductDetailsCard = memo(
 
 ProductDetailsCard.displayName = "ProductDetailsCard";
 
-export const statusColors: Record<string, string> = {
+
+
+const statusColors: Record<string, string> = {
   published: "bg-[#34C759] text-white",
   draft: "bg-gray-400 text-white",
 };
