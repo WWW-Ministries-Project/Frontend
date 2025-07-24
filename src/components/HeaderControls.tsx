@@ -4,6 +4,7 @@ import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { Button } from "@/components";
 import { cn } from "@/utils/cn";
+import { ReactNode } from "react";
 
 //TODO
 interface IProps {
@@ -21,6 +22,7 @@ interface IProps {
   hasFilter?: boolean;
   hasSearch?: boolean;
   subtitle?: string;
+  customIcon?:ReactNode
 }
 
 export const HeaderControls = ({
@@ -38,6 +40,7 @@ export const HeaderControls = ({
   hasSearch = false,
   hasFilter = false,
   subtitle,
+  customIcon
 }: IProps) => {
   return (
     <div className="flex justify-between items-center mb-4">
@@ -91,6 +94,7 @@ export const HeaderControls = ({
               />
             )}
           </div>
+          {customIcon && customIcon}
           {/* Add Member Button */}
           {btnName && (
             <Button

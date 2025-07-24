@@ -54,7 +54,7 @@ const Action = ({ ...props }) => {
 Action.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
-  onView: PropTypes.func.isRequired,
+  onView: PropTypes.func,
   hideDelete: PropTypes.bool,
   className: PropTypes.string,
   isEditable: PropTypes.bool,

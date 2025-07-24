@@ -9,10 +9,11 @@ import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { MarketHeader } from "../components/MarketHeader";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 
 export function MarketDetails() {
-
-// TODO: replace this with the products
+  // TODO: replace this with the products
   const products = [
     {
       id: 1,
@@ -94,6 +95,8 @@ export function MarketDetails() {
   ];
 
   const [tab, setTab] = useState(`Products (${products.length})`);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const navigate = useNavigate();
   const { id: marketId } = useParams();
   const id = decodeQuery(String(marketId));
@@ -102,7 +105,17 @@ export function MarketDetails() {
     id,
   });
 
- 
+  // TODO: replace this with the original data
+  const [categories, setCategories] = useState([
+    { id: "1", name: "Electronics" },
+    { id: "2", name: "Books" },
+  ]);
+
+  const [types, setTypes] = useState([
+    { id: "a", name: "Laptop" },
+    { id: "b", name: "Phone" },
+  ]);
+
   const editProduct = (id: string) => {
     navigate("update-product/" + encodeQuery(id));
   };
@@ -116,11 +129,20 @@ export function MarketDetails() {
           onTabSelect={(tab) => setTab(tab)}
         />
       </div>
+      <div className="flex items-end justify-end"></div>
       <HeaderControls
         title={tab}
         btnName={tab !== "Orders" ? "Add product" : ""}
         screenWidth={window.innerWidth}
         handleClick={() => navigate("create-product")}
+        customIcon={
+          <div
+            onClick={() => setDrawerOpen(true)}
+            className="size-12 border rounded-lg flex items-center justify-center cursor-pointer hover:bg-lightGray"
+          >
+            <Cog6ToothIcon className="w-10" />
+          </div>
+        }
       />
 
       <GridComponent
@@ -135,11 +157,18 @@ export function MarketDetails() {
             key={row.original.id}
             handleDelete={() => {}}
             handleEdit={(id) => editProduct(id)}
-            handleView={()=>{}}
+            handleView={() => {}}
           />
         )}
       />
-
+      <ConfigurationsDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        categories={categories}
+        types={types}
+        onUpdateCategories={setCategories}
+        onUpdateTypes={setTypes}
+      />
     </PageOutline>
   );
 }
