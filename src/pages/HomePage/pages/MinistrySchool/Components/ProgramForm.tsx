@@ -52,7 +52,7 @@ const ProgramFormComponent = ({
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, setFieldValue, handleSubmit,errors }) => (
+        {({ values, setFieldValue, handleSubmit, errors }) => (
           <Form>
             <Field
               component={FormikInputDiv}
@@ -124,8 +124,9 @@ const ProgramFormComponent = ({
                           //     ? `topics[${index}].name`
                           //     : `topics[${index}]`
                           // }
-                          component={FormikInputDiv}
+                          component={FormikInputDiv} //
                           name={`topics[${index}]`}
+                          id={`topics[${index}]`}
                           className="flex-1"
                           placeholder="Enter a topic"
                         />
@@ -176,16 +177,19 @@ const ProgramFormComponent = ({
 
               {values.isPrerequisitesChecked && (
                 <>
-                <MultiSelect
-                  options={prerequisitesDropdown}
-                  selectedValues={values.prerequisites}
-                  onChange={(selected) =>
-                    setFieldValue("prerequisites", selected)
+                  <MultiSelect
+                    options={prerequisitesDropdown}
+                    selectedValues={values.prerequisites}
+                    onChange={(selected) =>
+                      setFieldValue("prerequisites", selected)
+                    }
+                  />
+                  {
+                    <div className="text-sma text-error relative top-[-20px]">
+                      {errors.prerequisites}
+                    </div>
                   }
-                />
-                {<div className="text-sma text-error relative top-[-20px]">{errors.prerequisites}</div>}
                 </>
-                
               )}
             </div>
             <div className="flex  gap-4 sticky bottom-0 bg-white p-4 border-t border-lightGray">
@@ -240,8 +244,10 @@ const validationSchema = object().shape({
   prerequisites: array().when("isPrerequisitesChecked", {
     is: true,
     then: () =>
-      array().of(number()).min(1, "At least one prerequisite is required").transform((value) =>
-        value.map((val:string) => Number(val))),
+      array()
+        .of(number())
+        .min(1, "At least one prerequisite is required")
+        .transform((value) => value.map((val: string) => Number(val))),
     otherwise: () => array().of(number()).min(0),
   }),
 });

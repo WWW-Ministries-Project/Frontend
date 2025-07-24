@@ -1,4 +1,4 @@
-import * as Yup from "yup";
+import { object, string, date, number } from "yup";
 import { formatDate } from "/src/utils/helperFunctions";
 
 export const months = [
@@ -24,7 +24,6 @@ export const registeredEventAttendance = [
   },
   {
     header: "Membership",
-
     cell: ({ row }) => row.original.event_status,
   },
   {
@@ -34,7 +33,6 @@ export const registeredEventAttendance = [
   },
   {
     header: "Arrival",
-
     cell: ({ row }) => row.original.user.user_info.name,
   },
   {
@@ -53,10 +51,12 @@ export const eventColumns = [
     id: "date",
   },
 ];
+
 export const eventInput = {
   name: "",
   event_type: "",
   start_date: "",
+  event_name_id: "",
   // end_date: "",
   // start_time: "",
   // end_time: "",
@@ -78,53 +78,60 @@ export const eventInput = {
     //   monthOfYear: null,
   },
 };
-export const eventFormValidator = Yup.object().shape({
-  name: Yup.string().required("Required"),
-  event_type: Yup.string().required("Required"),
-  start_date: Yup.date("invalid date").required("Required"),
-  start_time: Yup.string().required("Required"),
-  day_event: Yup.string()
+
+export const eventFormValidator = object().shape({
+  // name: string().required("Required"),
+  // event_type: string().required("Required"),
+  event_name_id: string().required("Required"),
+  start_date: date("invalid date").required("Required"),
+  start_time: string().required("Required"),
+  day_event: string()
     .oneOf(["one", "multi"], "Invalid value")
     .required("Required"),
 
-  // recurring: Yup.object().shape({
-  //   daysOfWeek: Yup.number().nullable()
+  // recurring: object().shape({
+  //   daysOfWeek: number().nullable()
   //     .when("day_event", {
   //       is: (day_event) => day_event === "multi",
-  //       then: Yup.number()
+  //       then: number()
   //         .min(2, "Minimum is 2")
   //         .required("Required"),
   //     }),
   // }),
 
-  // number_days:Yup.number().min(2,"should have a minimum of 2"),
-  // repeatEvery:Yup.number().min(1,"should have a minimum of 1")
-  // repetitive: Yup.boolean().required("Required")
-  // recurring: Yup.object({
-  //   frequency: Yup.string().when("repetitive", {
+  // number_days: number().min(2,"should have a minimum of 2"),
+  // repeatEvery: number().min(1,"should have a minimum of 1")
+  // repetitive: boolean().required("Required")
+  // recurring: object({
+  //   frequency: string().when("repetitive", {
   //     is: "yes",
-  //     then: Yup.oneOf(["daily", "weekly", "monthly", "yearly"]).required(
+  //     then: oneOf(["daily", "weekly", "monthly", "yearly"]).required(
   //       "Required"
   //     ),
   //   }),
-  //   daysOfWeek: Yup.number()
+  //   daysOfWeek: number()
   //     .min(1)
   //     .when("repetitive", {
   //       is: "yes",
-  //       then: Yup.number().min(1, "Minimum is 1").required("Required"),
+  //       then: number().min(1, "Minimum is 1").required("Required"),
   //     }),
-  //   interval: Yup.number()
+  //   interval: number()
   //     .min(1)
   //     .when("repetitive", {
   //       is: "yes",
-  //       then: Yup.number().min(1, "Minimum is 1").required("Required"),
+  //       then: number().min(1, "Minimum is 1").required("Required"),
   //     }),
   // }),
 });
 
 export const eventTypeColors = {
-  ACTIVITY: "#FF5765",
-  PROGRAM: "#FF5765", // This is already correct
-  SERVICE: "#8A6FDF",
-  other: "#A8E10C",
+  ACTIVITY: "#FF6B4D",
+  PROGRAM: "#00CFC1", // This is already correct
+  SERVICE: "#FFD700",
+  other: "#C1BFFF",
+};
+
+export const getBadgeColor = (eventType) => {
+    const colors = eventTypeColors;
+    return colors[eventType] || "#A8E10C";
 };

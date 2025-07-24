@@ -96,7 +96,13 @@ const EventsManagement = () => {
           return refetch();
         })
         .then((response) => {
-          setEvents(response?.data || []);
+          setEvents(
+            (response?.data || []).map((event: any) => ({
+              ...event,
+              event_name: event.event_name ?? event.name ?? "",
+              event_name_id: event.event_name_id ?? event.id ?? "",
+            }))
+          );
         })
         .catch((error) => {
           showNotification("Event could not be deleted", "error");
@@ -117,9 +123,14 @@ const EventsManagement = () => {
   // Filtered events based on search
   const filteredEvents = useMemo(() => {
     return events.filter((event) =>
-      event.name.toLowerCase().includes(filterEvents.toLowerCase())
+      event?.event_name?.toLowerCase().includes(filterEvents.toLowerCase())
     );
   }, [events, filterEvents]);
+
+  useEffect(() => {
+    console.log("Filtered events", events);
+    
+  }, [])
 
   return (
     <PageOutline>
@@ -138,7 +149,7 @@ const EventsManagement = () => {
         screenWidth={screenWidth}
         btnName="Add Event"
       />
-      <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
+      <div className={`flex gap-4  ${!tableView ? "" : ""}`}>
         {/* Events Manager Header */}
         <EventsManagerHeader
           onNavigate={handleNavigation}

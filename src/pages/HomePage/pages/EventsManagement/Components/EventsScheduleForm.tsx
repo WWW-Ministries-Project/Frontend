@@ -1,7 +1,9 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
+import { api, EventType } from "@/utils";
 import { Field, Form, Formik } from "formik";
 import React from "react";
 import {
@@ -10,15 +12,34 @@ import {
 } from "../../../../../utils/helperFunctions";
 import { eventFormValidator } from "../utils/eventHelpers";
 
+interface EventsFormValues {
+  event_name_id?: string;
+  name?: string;
+  description?: string;
+  start_date?: string;
+  start_time?: string;
+  end_time?: string;
+  day_event?: string;
+  recurring?: {
+    daysOfWeek?: number;
+    interval?: number;
+    frequency?: string;
+  };
+  repetitive?: string;
+  end_date?: string;
+  location?: string;
+  [key: string]: unknown;
+}
+
 interface EventsFormProps {
-  inputValue: any;
-  handleMultiSelectChange?: any;
-  onSubmit: (val: any) => void;
+  inputValue: EventsFormValues;
+  handleMultiSelectChange?: (name: string, value: Array<string>) => void;
+  onSubmit: (val: EventsFormValues) => void;
   loading?: boolean;
   updating?: boolean;
 }
 
-const EventsForm: React.FC<EventsFormProps> = (props) => {
+const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
   const handleMultiSelectChange = (name: string, value: Array<string>) => {
     const values = value;
     const index = values.indexOf(name);
@@ -29,6 +50,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     }
     return values;
   };
+
+  const { data: eventsData } = useFetch(api.fetch.fetchAllUniqueEvents);
 
   return (
     <Formik
@@ -43,34 +66,44 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
     >
       {(form) => (
         <Form className="flex flex-col gap-4 mt-4 w-full">
-          <h2 className="text-primary H600 font-extrabold ">
+          <h2 className="text-primary H600 font-extrabold">
             Event Information
           </h2>
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
-              component={FormikInputDiv}
-              label="Event Name"
-              id="name"
-              name="name"
-              value={form.values.name || props.inputValue.name}
-            />
-            <Field
               component={FormikSelectField}
-              options={[
-                { name: "Activity", value: "ACTIVITY" },
-                { name: "Program", value: "PROGRAM" },
-                { name: "Service", value: "SERVICE" },
-                { name: "Other", value: "other" },
-              ]}
-              label="Event Type"
-              id="event_type"
-              name="event_type"
-              value={form.values.event_type || props.inputValue.event_type}
+              options={
+                eventsData?.data?.map((event: EventType) => ({
+                  label: event.event_name,
+                  value: event.id,
+                })) || []
+              }
+              label="Event Name"
+              id="event_name_id"
+              name="event_name_id"
+              value={
+                form.values.event_name_id || props.inputValue.event_name_id
+              }
             />
           </div>
-          <h2 className="text-primary H600 font-extrabold ">
+
+          <div className="grid md:grid-cols-1 gap-4">
+            <Field
+              component={FormikInputDiv}
+              label="Event Description"
+              id="description"
+              name="description"
+              type="textarea"
+              inputClass="!h-48 resize-none"
+              value={form.values.description || props.inputValue.description}
+            />
+          </div>
+
+          <h2 className="text-primary H600 font-extrabold">
             Date & Time Information
           </h2>
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
@@ -100,6 +133,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.end_time || props.inputValue.end_time}
             />
           </div>
+
           {!props.updating && (
             <>
               <div className="mt-4">
@@ -108,7 +142,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                 </p>
                 <div className="mt-2 flex gap-4 text-900">
                   <label className="flex items-center gap-x-2">
-                    <Field type="radio" name="day_event" value={"one"} />
+                    <Field type="radio" name="day_event" value="one" />
                     One-day
                   </label>
                   <label className="flex items-center gap-x-2">
@@ -121,7 +155,7 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     {form.errors.day_event as string}
                   </div>
                 )}
-                {form.values.day_event == "multi" && (
+                {form.values.day_event === "multi" && (
                   <div className="mt-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <Field
@@ -130,14 +164,16 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                         type="number"
                         id="recurring.daysOfWeek"
                         name="recurring.daysOfWeek"
-                        min={"2"}
+                        min="2"
                       />
                     </div>
                   </div>
                 )}
               </div>
-              <h2 className="text-primary H600 font-extrabold ">Repetition</h2>
-              <div className="">
+
+              <h2 className="text-primary H600 font-extrabold">Repetition</h2>
+
+              <div>
                 <p className="text-sm text-primary">
                   Is this event a repetitive event?
                 </p>
@@ -151,7 +187,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                     No
                   </label>
                 </div>
-                {form.values.repetitive == "yes" && (
+
+                {form.values.repetitive === "yes" && (
                   <div className="mt-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <Field
@@ -183,7 +220,8 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
                         max={maxMinValueForDate().maxDate}
                       />
                     </div>
-                    {form.values.recurring?.frequency == "months" && (
+
+                    {form.values.recurring?.frequency === "months" && (
                       <div className="mt-4">
                         <p className="text-sm text-gray-600">Ends:</p>
                         <div className="flex gap-4">
@@ -205,9 +243,11 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               </div>
             </>
           )}
-          <h2 className="text-primary H600 font-extrabold ">
+
+          <h2 className="text-primary H600 font-extrabold">
             Other Information
           </h2>
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
@@ -218,45 +258,37 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.location || props.inputValue.location}
             />
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field
-              component={FormikInputDiv}
-              label="Event Description"
-              id="description"
-              name="description"
-              type="textarea"
-              inputClass=" !h-48 resize-none"
-              value={form.values.description || props.inputValue.description}
-            />
-          </div>
-          <div className="flex gap-4 justify-end mt-4">
-            <Button
-              value="Cancel"
-              variant="ghost"
-              onClick={() => window.history.back()}
-            />
-            <Button
-              value={props.updating ? "Update" : "Save"}
-              type={"submit"}
-              variant="primary"
-              loading={props.loading}
-              onClick={async () => {
-                const errors = await form.validateForm();
-                // console.log(errors,"values",form.values);
-                const touchedFields = Object.keys(errors).reduce(
-                  (acc, field) => {
-                    acc[field] = true;
-                    return acc;
-                  },
-                  {} as Record<string, boolean>
-                );
-                // const touchedFields = markTouchedFields(errors);
-                form.setTouched(touchedFields);
-                if (!Object.keys(errors).length) {
-                  form.handleSubmit();
-                }
-              }}
-            />
+
+          <div className="sticky bottom-0 border-t">
+            <div className="flex gap-4 justify-end py-4">
+              <Button
+                value="Cancel"
+                variant="ghost"
+                onClick={() => window.history.back()}
+              />
+              <Button
+                value={props.updating ? "Update" : "Save"}
+                type="submit"
+                variant="primary"
+                loading={props.loading}
+                onClick={async () => {
+                  const errors = await form.validateForm();
+                  console.log(errors, "values", form.values);
+                  const touchedFields = Object.keys(errors).reduce(
+                    (acc, field) => {
+                      acc[field] = true;
+                      return acc;
+                    },
+                    {} as Record<string, boolean>
+                  );
+                  form.setTouched(touchedFields);
+                  if (!Object.keys(errors).length) {
+                    form.handleSubmit();
+                  }
+                  console.log("Test", form.values);
+                }}
+              />
+            </div>
           </div>
         </Form>
       )}
@@ -264,4 +296,4 @@ const EventsForm: React.FC<EventsFormProps> = (props) => {
   );
 };
 
-export default EventsForm;
+export default EventsScheduleForm;

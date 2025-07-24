@@ -40,8 +40,10 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
-import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
+import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace";
+import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
+// import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -153,10 +155,28 @@ export const routes: AppRoute[] = [
       {
         path: "events",
         name: "Events",
-        element: <EventsManagement />,
+        // element: <EventsManagement />,
         isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
+        children:[
+          {
+          path: "all-events",
+          name: "Events",
+          element: <AllEvent />,
+          isPrivate: true,
+          permissionNeeded: "view_events",
+          sideTab: true,
+          },
+          {
+          path: "events",
+          name: "Events Schedule",
+          element: <EventsManagement />,
+          isPrivate: true,
+          permissionNeeded: "view_events",
+          sideTab: true,
+          },
+        ]
       },
       {
         path: "manage-event",
@@ -166,7 +186,7 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_events",
       },
       {
-        path: "events/view-event",
+        path: "events/events/view-event",
         element: <ViewEvent />,
         name: " View Event",
         isPrivate: true,
