@@ -107,13 +107,13 @@ export function MarketDetails() {
 
   // TODO: replace this with the original data
   const [categories, setCategories] = useState([
-    { id: "1", name: "Electronics" },
-    { id: "2", name: "Books" },
+    { id: "1", name: "Adult" },
+    { id: "2", name: "Kids" },
   ]);
 
   const [types, setTypes] = useState([
-    { id: "a", name: "Laptop" },
-    { id: "b", name: "Phone" },
+    { id: "a", name: "T-shirt" },
+    { id: "b", name: "Hoodie" },
   ]);
 
   const editProduct = (id: string) => {
