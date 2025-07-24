@@ -11,6 +11,7 @@ import {
   LifeCenterStatsType,
   LifeCenterType,
 } from "./lifeCenter/interfaces";
+import type { IMarket } from "./marketPlace/interface";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
   DetailedCohortType,
@@ -21,7 +22,6 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
-import type { IMarket } from "./marketPlace/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -180,7 +180,9 @@ export class ApiCalls {
     return this.fetchFromApi(`program/course`, query);
   };
 
-  fetchStudentById = (query?: QueryType): Promise<ApiResponse<EnrollmentDataType>> => {
+  fetchStudentById = (
+    query?: QueryType
+  ): Promise<ApiResponse<EnrollmentDataType>> => {
     return this.fetchFromApi(`program/progress`, query);
   };
 
@@ -244,8 +246,7 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/stats`, query);
   };
 
-  
-  fetchAllEvents = (
+  fetchAllUniqueEvents = (
     query?: QueryType
   ): Promise<ApiResponse<EventType[]>> => {
     return this.fetchFromApi(`event/get-event-types`, query);
@@ -263,9 +264,7 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
   };
 
-  fetchMarkets = (
-    query?: QueryType
-  ): Promise<ApiResponse<IMarket[]>> => {
+  fetchMarkets = (query?: QueryType): Promise<ApiResponse<IMarket[]>> => {
     return this.fetchFromApi(`market/list-markets`, query);
   };
 }

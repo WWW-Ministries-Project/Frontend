@@ -8,13 +8,13 @@ import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 interface IProps {
   item: EventType;
   handleEdit: (item: EventType) => void;
-  deleteAllEvent: (id: string, name: string) => void;
+  deleteUniqueEvent: (id: string, name: string) => void;
 }
 
 export const AllEventCard = ({
   item,
   handleEdit,
-  deleteAllEvent,
+  deleteUniqueEvent,
 }: IProps) => {
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
@@ -51,7 +51,7 @@ export const AllEventCard = ({
         >
             <ActionButton
             showOptions={selectedEventId === item.id}
-              onDelete={() => deleteAllEvent(item.id, item.event_name)}
+              onDelete={() => deleteUniqueEvent(item.id, item.event_name)}
               onEdit={() => handleEdit(item)}
             />
         </div>

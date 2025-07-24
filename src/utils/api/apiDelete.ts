@@ -26,7 +26,7 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("event/delete-event", query);
   };
 
-  deleteAllEvent = (query: QueryType): Promise<ApiResponse<void>> => {
+  deleteUniqueEvent = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("event/delete-event-type", query);
   };
   

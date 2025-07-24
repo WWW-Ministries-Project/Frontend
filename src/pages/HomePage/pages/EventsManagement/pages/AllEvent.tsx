@@ -34,14 +34,14 @@ const AllEvent = () => {
   // Single source of truth for events
   const [allEvents, setAllEvents] = useState<EventType[]>([]);
 
-  const { data: lcData } = useFetch(api.fetch.fetchAllEvents);
-  const { executeDelete } = useDelete(api.delete.deleteAllEvent);
-  const { postData, data, loading } = usePost(api.post.createAllEvent);
+  const { data: lcData } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const { executeDelete } = useDelete(api.delete.deleteUniqueEvent);
+  const { postData, data, loading } = usePost(api.post.createUniqueEvent);
   const {
     updateData,
     data: update_value,
     loading: isUpdating,
-  } = usePut(api.put.updateAllEvent);
+  } = usePut(api.put.updateUniqueEvent);
 
 
 
@@ -89,7 +89,7 @@ const AllEvent = () => {
   const handleDelete = (id: string) => {
       setAllEvents((prev) => prev.filter((item) => item.id !== id));
     };
-    const deleteAllEvent = (id: string, name: string) => {
+    const deleteUniqueEvent = (id: string, name: string) => {
       showDeleteDialog({ id, name }, async () => {
         await executeDelete({ id: id });
         handleDelete(id);
@@ -196,7 +196,7 @@ const AllEvent = () => {
             key={event.id}
                 item={event}
                 handleEdit={handleEdit}
-                deleteAllEvent={deleteAllEvent}
+                deleteUniqueEvent={deleteUniqueEvent}
               />
           ))
         ) : (

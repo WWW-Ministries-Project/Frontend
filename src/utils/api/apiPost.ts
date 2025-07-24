@@ -42,7 +42,7 @@ export class ApiCreationCalls {
     return this.postToApi<T>("event/create-event", payload);
   };
 
-  createAllEvent = (
+  createUniqueEvent = (
     payload: EventType
   ): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);

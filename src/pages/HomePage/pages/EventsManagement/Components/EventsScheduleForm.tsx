@@ -1,7 +1,9 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
+import { api, EventType } from "@/utils";
 import { Field, Form, Formik } from "formik";
 import React from "react";
 import {
@@ -9,8 +11,6 @@ import {
   getChangedValues,
 } from "../../../../../utils/helperFunctions";
 import { eventFormValidator } from "../utils/eventHelpers";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api, EventType } from "@/utils";
 
 interface EventsFormValues {
   event_name_id?: string;
@@ -51,7 +51,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     return values;
   };
 
-  const { data: eventsData } = useFetch(api.fetch.fetchAllEvents);
+  const { data: eventsData } = useFetch(api.fetch.fetchAllUniqueEvents);
 
   return (
     <Formik
@@ -69,7 +69,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           <h2 className="text-primary H600 font-extrabold">
             Event Information
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikSelectField}
@@ -82,10 +82,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               label="Event Name"
               id="event_name_id"
               name="event_name_id"
-              value={form.values.event_name_id || props.inputValue.event_name_id}
+              value={
+                form.values.event_name_id || props.inputValue.event_name_id
+              }
             />
           </div>
-          
+
           <div className="grid md:grid-cols-1 gap-4">
             <Field
               component={FormikInputDiv}
@@ -97,11 +99,11 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.description || props.inputValue.description}
             />
           </div>
-          
+
           <h2 className="text-primary H600 font-extrabold">
             Date & Time Information
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}
@@ -131,7 +133,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               value={form.values.end_time || props.inputValue.end_time}
             />
           </div>
-          
+
           {!props.updating && (
             <>
               <div className="mt-4">
@@ -168,9 +170,9 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                   </div>
                 )}
               </div>
-              
+
               <h2 className="text-primary H600 font-extrabold">Repetition</h2>
-              
+
               <div>
                 <p className="text-sm text-primary">
                   Is this event a repetitive event?
@@ -185,7 +187,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                     No
                   </label>
                 </div>
-                
+
                 {form.values.repetitive === "yes" && (
                   <div className="mt-4">
                     <div className="grid md:grid-cols-2 gap-4">
@@ -218,7 +220,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                         max={maxMinValueForDate().maxDate}
                       />
                     </div>
-                    
+
                     {form.values.recurring?.frequency === "months" && (
                       <div className="mt-4">
                         <p className="text-sm text-gray-600">Ends:</p>
@@ -241,11 +243,11 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               </div>
             </>
           )}
-          
+
           <h2 className="text-primary H600 font-extrabold">
             Other Information
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikInputDiv}

@@ -40,7 +40,7 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
-  updateAllEvent = (
+  updateUniqueEvent = (
     payload: EventType,
     query?: QueryType
   ): Promise<ApiResponse<EventType>> => {
