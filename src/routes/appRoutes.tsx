@@ -40,7 +40,8 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
-import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace";
+import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
+import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
@@ -300,6 +301,11 @@ export const routes: AppRoute[] = [
         name: "Market Place",
         element: <MarketPlace />,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.marketPlace.details,
+        name: "Market Details",
+        element: <MarketDetails />,
       },
 
       {
