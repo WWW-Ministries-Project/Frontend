@@ -16,6 +16,7 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { EventType } from "./events/interfaces";
 import type { IMarket } from "./marketPlace/interface";
 
 export class ApiCreationCalls {
@@ -40,6 +41,13 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
+
+  createUniqueEvent = (
+    payload: EventType
+  ): Promise<ApiResponse<EventType>> => {
+    return this.postToApi<EventType>("event/create-event-type", payload);
+  };
+  
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
