@@ -20,6 +20,7 @@ import {
   VisitorType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { EventType } from "./events/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -38,10 +39,10 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
-  updateAllEvent = <T>(
-    payload: unknown,
+  updateAllEvent = (
+    payload: EventType,
     query?: QueryType
-  ): Promise<ApiResponse<T>> => {
+  ): Promise<ApiResponse<EventType>> => {
     return this.apiExecution.updateData("event/update-event-type", payload, query);
   };
   

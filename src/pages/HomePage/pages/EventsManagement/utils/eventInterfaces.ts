@@ -28,3 +28,11 @@ export interface EventSlice {
   setEventsOptions: () => void;
   setUpcomingEvents: () => void;
 }
+
+export const TAB_TO_EVENT_TYPE = {
+  "All": null,
+  "ACTIVITY": "ACTIVITY", 
+  "PROGRAM": "PROGRAM",
+  "SERVICE": "SERVICE", 
+  "OTHER": "OTHER",
+};

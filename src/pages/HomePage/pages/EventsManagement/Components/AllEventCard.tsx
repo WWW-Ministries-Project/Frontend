@@ -1,11 +1,9 @@
-import ellipse from "@/assets/ellipse.svg";
-import Action from "@/components/Action";
+
 import { Badge } from "@/components/Badge";
-import { encodeQuery } from "@/pages/HomePage/utils";
 import { EventType } from "@/utils";
-import { ReactNode, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { ReactNode, useCallback, useState } from "react";
 import { getBadgeColor } from "../utils/eventHelpers";
+import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 
 interface IProps {
   item: EventType;
@@ -18,14 +16,15 @@ export const AllEventCard = ({
   handleEdit,
   deleteAllEvent,
 }: IProps) => {
-  const [showActions, setShowActions] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
-  const toggleActions = () => setShowActions((prev) => !prev);
 
-  const navigate = useNavigate();
+  const handleShowOptions = useCallback((id: string) => {
+      setSelectedEventId((prev) => (prev === id ? "" : id));
+    }, []);
 
-  const handleView = () =>
-    navigate(`life-center/${encodeQuery(String(item?.id))}`);
+  // const handleView = () =>
+  //   navigate(`life-center/${encodeQuery(String(item?.id))}`);
 
   return (
     <div 
@@ -48,16 +47,13 @@ export const AllEventCard = ({
           className={`absolute right-5 top-5 flex flex-col items-end w-1/4 transition-opacity duration-200 ${
             isHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
-          onClick={toggleActions}
+          onClick={()=>handleShowOptions(item.id)}
         >
-          <img src={ellipse} alt="options" className="cursor-pointer" />
-          {showActions && (
-            <Action
+            <ActionButton
+            showOptions={selectedEventId === item.id}
               onDelete={() => deleteAllEvent(item.id, item.event_name)}
-              onView={handleView}
               onEdit={() => handleEdit(item)}
             />
-          )}
         </div>
       </div>
 

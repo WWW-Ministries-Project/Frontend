@@ -16,6 +16,7 @@ import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
+import { EventType } from "./events/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -40,10 +41,10 @@ export class ApiCreationCalls {
     return this.postToApi<T>("event/create-event", payload);
   };
 
-  createAllEvent = <T>(
-    payload: unknown
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("event/create-event-type", payload);
+  createAllEvent = (
+    payload: EventType
+  ): Promise<ApiResponse<EventType>> => {
+    return this.postToApi<EventType>("event/create-event-type", payload);
   };
   
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
