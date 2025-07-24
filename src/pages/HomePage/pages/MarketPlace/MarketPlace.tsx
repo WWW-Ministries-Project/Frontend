@@ -154,7 +154,7 @@ export function MarketPlace() {
   );
 }
 
-const getMarketStatus = (status: { start_date: string; end_date: string }) => {
+export const getMarketStatus = (status: { start_date: string; end_date: string }) => {
   const now = new Date().getTime();
   const start = new Date(status.start_date).getTime();
   const end = new Date(status.end_date).getTime();

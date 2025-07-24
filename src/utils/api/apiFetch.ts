@@ -265,6 +265,6 @@ export class ApiCalls {
    fetchMarketById = (
     query?: QueryType
   ): Promise<ApiResponse<IMarket>> => {
-    return this.fetchFromApi(`market/`, query);
+    return this.fetchFromApi(`market/get-market-by-id/`, query);
   };
 }
