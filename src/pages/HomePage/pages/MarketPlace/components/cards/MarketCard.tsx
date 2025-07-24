@@ -5,7 +5,7 @@ import { Button } from "@/components";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 import { formatDate } from "@/utils";
 import type { IMarket } from "@/utils/api/marketPlace/interface";
-import { MarketStatusChip } from "./chips/MarketStatusChip";
+import { MarketStatusChip } from "../chips/MarketStatusChip";
 
 interface IProps {
   market: IMarket;
