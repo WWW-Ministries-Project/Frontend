@@ -109,13 +109,6 @@ export function MarketPlace() {
   };
   return (
     <PageOutline>
-      <div className="w-fit">
-        <TabSelection
-          tabs={["Upcoming", "Active", "Ended"]}
-          selectedTab={tab}
-          onTabSelect={(tab) => setTab(tab)}
-        />
-      </div>
       <HeaderControls
         title="Marketplace Management"
         subtitle="Manage your market here"
@@ -123,7 +116,13 @@ export function MarketPlace() {
         btnName="Create market"
         handleClick={handleOpenModal}
       />
-
+      <div className="w-fit">
+        <TabSelection
+          tabs={["Upcoming", "Active", "Ended"]}
+          selectedTab={tab}
+          onTabSelect={(tab) => setTab(tab)}
+        />
+      </div>
       <GridComponent
         columns={[]}
         data={filteredMarkets || []}
@@ -154,7 +153,10 @@ export function MarketPlace() {
   );
 }
 
-export const getMarketStatus = (status: { start_date: string; end_date: string }) => {
+export const getMarketStatus = (status: {
+  start_date: string;
+  end_date: string;
+}) => {
   const now = new Date().getTime();
   const start = new Date(status.start_date).getTime();
   const end = new Date(status.end_date).getTime();
