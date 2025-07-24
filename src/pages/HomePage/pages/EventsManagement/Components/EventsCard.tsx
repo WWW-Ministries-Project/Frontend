@@ -49,11 +49,11 @@ export const EventsCard = (props: IProps) => {
       >
         <div
           className={`rounded-xl bg-[#00000050] border-b `}
-          style={{
-            borderColor: props.event.event_type
-              ? eventTypeColors[props.event.event_type]
-              : "#00000050",
-          }}
+          // style={{
+          //   borderColor: props.event.event_type
+          //     ? eventTypeColors[props.event.event_type]
+          //     : "#00000050",
+          // }}
         >
           <img
             className="max-w-[70vw] rounded-xl w-full h-44"

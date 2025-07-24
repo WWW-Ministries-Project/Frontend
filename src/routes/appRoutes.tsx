@@ -41,6 +41,7 @@ import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
+import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -89,13 +90,13 @@ export const routes: AppRoute[] = [
         element: <Members />,
         isPrivate: false,
       },
-      // {
-      //   path: relativePath.home.dashboard,
-      //   name: "Dashboard",
-      //   element: <DashBoardPage />,
-      //   isPrivate: false,
-      //   sideTab: true,
-      // },
+      {
+        path: relativePath.home.dashboard,
+        name: "Dashboard",
+        element: <DashBoardPage />,
+        isPrivate: false,
+        sideTab: true,
+      },
       {
         path: relativePath.home.members.main,
         name: "Members",
@@ -227,21 +228,7 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "manage_asset",
       },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_users",
-        sideTab: true,
-      },
-      {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: true,
-        permissionNeeded: "view_events",
-      },
+     
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
@@ -326,6 +313,21 @@ export const routes: AppRoute[] = [
         //   name: "View Certificate",
         //   element: <ViewCertificate />,
         // },
+      },
+       {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_users",
+        sideTab: true,
+      },
+      {
+        path: "users/:id/info",
+        name: "View User",
+        element: <ViewUser />,
+        isPrivate: true,
+        permissionNeeded: "view_events",
       },
       {
         path: "settings",
