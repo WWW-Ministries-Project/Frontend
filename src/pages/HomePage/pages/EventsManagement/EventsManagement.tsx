@@ -96,7 +96,13 @@ const EventsManagement = () => {
           return refetch();
         })
         .then((response) => {
-          setEvents(response?.data || []);
+          setEvents(
+            (response?.data || []).map((event: any) => ({
+              ...event,
+              event_name: event.event_name ?? event.name ?? "",
+              event_name_id: event.event_name_id ?? event.id ?? "",
+            }))
+          );
         })
         .catch((error) => {
           showNotification("Event could not be deleted", "error");
@@ -143,7 +149,7 @@ const EventsManagement = () => {
         screenWidth={screenWidth}
         btnName="Add Event"
       />
-      <div className={`flex gap-4 mb-4 ${!tableView ? "" : "mt-4"}`}>
+      <div className={`flex gap-4  ${!tableView ? "" : ""}`}>
         {/* Events Manager Header */}
         <EventsManagerHeader
           onNavigate={handleNavigation}
