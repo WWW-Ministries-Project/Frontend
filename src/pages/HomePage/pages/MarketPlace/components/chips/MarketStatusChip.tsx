@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { compareDates, type MarketStatusType } from "@/utils";
+import { getMarketStatus } from "../../MarketPlace";
 
 interface IProps {
   start_date: string;
@@ -21,16 +21,10 @@ export const MarketStatusChip = ({ start_date, end_date }: IProps) => {
 
 const useMarketStatus = (start_date: string, end_date: string) => {
   const { status, color } = useMemo(() => {
-    let status: MarketStatusType;
-
-    if (compareDates(start_date)) {
-      status = "upcoming";
-    } else if (compareDates(end_date)) {
-      status = "active";
-    } else {
-      status = "ended";
-    }
-
+    const status = getMarketStatus({
+      start_date: start_date,
+      end_date: end_date,
+    });
     const color =
       status === "active"
         ? "bg-[#34C759]"
