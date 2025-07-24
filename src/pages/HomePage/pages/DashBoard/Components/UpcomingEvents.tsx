@@ -1,4 +1,6 @@
 import { useStore } from "@/store/useStore";
+import { formatDate, formatDatefull, formatTime } from "@/utils";
+import { CalendarIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
 export const UpcomingEvents = () => {
@@ -13,17 +15,6 @@ export const UpcomingEvents = () => {
         console.log("Event", events);
     }, [events]);
 
-    const handleNavigation = (eventId) => {
-        console.log("Navigate to event:", eventId);
-    };
-
-    const handleDeleteModal = (eventId) => {
-        console.log("Delete event:", eventId);
-    };
-
-    const handleShowOptions = (eventId) => {
-        setShowOptions(showOptions === eventId ? null : eventId);
-    };
 
     // Filter for upcoming and ongoing events
     const upcomingAndOngoingEvents = events.filter(event => {
@@ -35,69 +26,53 @@ export const UpcomingEvents = () => {
         return eventStartTime > now || (eventStartTime <= now && eventEndTime >= now);
     });
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            day: 'numeric',
-            month: 'long', 
-            year: 'numeric' 
-        });
-    };
 
-    const formatTime = (timeString) => {
-        if (!timeString) return '';
-        const [hours, minutes] = timeString.split(':');
-        const date = new Date();
-        date.setHours(parseInt(hours), parseInt(minutes));
-        return date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-        });
-    };
 
     const EventCard = ({ event }) => (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+        <div className="bg-gray-50 rounded-lg border border-gray-200  overflow-hidden hover:shadow-md transition-shadow duration-200 p-4 space-y-4">
             {/* Event Image */}
-            <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 relative overflow-hidden">
-                {event.poster ? (
+            {event.poster&&<div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 relative overflow-hidden rounded-lg">
+                {event.poster && (
                     <img 
                         src={event.poster} 
                         alt={event.event_name || "Event"} 
                         className="w-full h-full object-cover"
                     />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400"></div>
-                        <div className="relative z-10 text-center">
-                            <svg className="w-16 h-16 text-white mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <p className="text-white text-sm font-medium opacity-90">Event Image</p>
-                        </div>
-                    </div>
                 )}
-            </div>
+                
+            </div>}
 
             {/* Event Details */}
-            <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className=" space-y-2">
+                <div className="space-y-1">
+                    <h3 className="text-xl font-semibold text-gray-900 ">
                     {event.event_name || "Brainstorming session"}
                 </h3>
+                {/* Description */}
+                {event.description && (
+                    <div className="mb-4">
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                            {event.description}
+                        </p>
+                    </div>
+                )}
+                </div>
 
                 {/* Date & Time */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex gap-4 ">
+                    <div className="flex items-center gap-2 ">
                     <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="text-sm text-gray-600">
-                        {formatDate(event.start_date)}
+                        {formatDatefull(event.start_date)}
                     </span>
                 </div>
+                <div className=" text-gray-600">|</div>
 
                 {/* Time */}
                 {(event.start_time || event.end_time) && (
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 ">
                         <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -108,6 +83,7 @@ export const UpcomingEvents = () => {
                         </span>
                     </div>
                 )}
+                </div>
 
                 {/* Location */}
                 {event.location && (
@@ -122,14 +98,7 @@ export const UpcomingEvents = () => {
                     </div>
                 )}
 
-                {/* Description */}
-                {event.description && (
-                    <div className="mb-4">
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                            {event.description}
-                        </p>
-                    </div>
-                )}
+                
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
@@ -140,33 +109,7 @@ export const UpcomingEvents = () => {
                         View Details
                     </button>
                     
-                    <div className="relative">
-                        <button
-                            onClick={() => handleShowOptions(event.id)}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                            </svg>
-                        </button>
-
-                        {showOptions === event.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
-                                <button
-                                    onClick={() => handleNavigation(event.id)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                                >
-                                    Edit Event
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteModal(event.id)}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                    Delete Event
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -175,17 +118,17 @@ export const UpcomingEvents = () => {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-3 mb-6">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <div>
+                    <CalendarIcon className="text-primary" height={24}/>
+                </div>
                 <h3 className="text-xl font-semibold text-gray-800">Upcoming & Ongoing Events</h3>
             </div>
           
             {upcomingAndOngoingEvents.length === 0 ? (
                 <div className="text-center py-12">
-                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <div className="flex justify-center">
+            <CalendarIcon className="text-gray-600" height={24}/>
+        </div>
                     <h4 className="text-lg font-medium text-gray-600 mb-2">No Upcoming or Ongoing Events</h4>
                     <p className="text-gray-500">Check back soon — any upcoming or ongoing event will appear here.</p>
                 </div>

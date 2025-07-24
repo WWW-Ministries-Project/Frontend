@@ -1,9 +1,15 @@
+import { decodeToken } from "@/utils";
+
 export const WelcomeHeader = () => {
+      const decodedToken = decodeToken();
+      const name = decodedToken?.name ?? "";
+
   return (
-    <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-purple-900 rounded-xl p-8 mb-8 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-20"></div>
+    <div className=" bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover rounded-xl p-8 mb-8 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-black opacity-60 backdrop-blur-sm rounded-xl"></div>
+      
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold mb-2">Welcome Jojo!</h1>
+        <h1 className="text-3xl font-bold mb-2">Welcome {name} 👋!</h1>
         <p className="text-blue-100 mb-6">Worldwide Word Ministries - Raising people to function like Christ Jesus</p>
         
         <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">

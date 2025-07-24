@@ -170,3 +170,24 @@ export const getWeekOptions = (month: string, year: string) => {
 
   return weeks
 }
+
+    export const formatDatefull = (dateString: string | number | Date) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            day: 'numeric',
+            month: 'long', 
+            year: 'numeric' 
+        });
+    };
+
+   export const formatTime = (timeString: { split: (arg0: string) => [string, string]; }) => {
+        if (!timeString) return '';
+        const [hours, minutes] = timeString.split(':');
+        const date = new Date();
+        date.setHours(parseInt(hours), parseInt(minutes));
+        return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    };
