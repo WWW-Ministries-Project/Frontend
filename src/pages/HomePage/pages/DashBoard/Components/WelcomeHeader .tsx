@@ -1,14 +1,17 @@
 import { decodeToken } from "@/utils";
 
-export const WelcomeHeader = () => {
+export const WelcomeHeader = ({route}) => {
       const decodedToken = decodeToken();
       const name = decodedToken?.name ?? "";
 
-  return (
-    <div className=" bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover rounded-xl p-8 mb-8 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-60 backdrop-blur-sm rounded-xl"></div>
+      console.log("Route:", route);
       
-      <div className="relative z-10">
+
+  return (
+    <div className={` bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover py-6  mb-8 text-white relative overflow-hidden ${route==="member"?"px-[1rem] lg:px-[4rem] xl:px-[8rem]":"rounded-xl px-6"}`}>
+      <div className="absolute inset-0 bg-black opacity-70 backdrop-blur-sm rounded-xl"></div>
+      
+      <div className="relative z-10 ">
         <h1 className="text-3xl font-bold mb-2">Welcome {name} 👋!</h1>
         <p className="text-blue-100 mb-6">Worldwide Word Ministries - Raising people to function like Christ Jesus</p>
         

@@ -130,7 +130,7 @@ export function HomePage() {
     <div className="lg:fixed ">
       {token ? (
         <main className="h-screen w-screen p-3  ">
-          <div className="">
+          <div className="pb-3">
             <Header handleShowNav={handleShowNav} />
           </div>
           <div className="flex">

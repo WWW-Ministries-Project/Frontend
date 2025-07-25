@@ -44,6 +44,7 @@ import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace";
 import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
+import MembersPage from "@/pages/MembersPage/MembersPage";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -463,6 +464,20 @@ export const routes: AppRoute[] = [
     element: <EventRegister />,
     isPrivate: false,
   },
+  {
+    path: "/member",
+    element: <MembersPage />,
+    name: "member",
+    children: [
+      {
+    path: "dashboard",
+    name: "member_dashboard",
+    element: <DashBoardPage />,
+    isPrivate: false,
+  },
+    ]
+
+  }
 ];
 
 // Now, extract sideTabs
