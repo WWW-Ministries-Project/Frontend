@@ -1,10 +1,11 @@
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
 import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";

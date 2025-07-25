@@ -13,3 +13,10 @@ export type EventResponseType = {
   end_time: string; // Format: "HH:mm"
   //   event_attendance: [];
 };
+
+export type EventType = {
+  id: string,
+  event_name: string,
+  event_type: string,
+  event_description: string
+}

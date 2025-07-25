@@ -10,6 +10,7 @@ export * from "./api/settings/departmentInterfaces";
 export * from "./api/settings/positionInterfaces";
 export * from "./api/visitors/interfaces";
 export * from "./api/lifeCenter/interfaces";
+export * from "./api/marketPlace/interface";
 
 //consts
 export * from "./const";
