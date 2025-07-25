@@ -22,7 +22,7 @@ interface IProps {
   hasFilter?: boolean;
   hasSearch?: boolean;
   subtitle?: string;
-  customIcon?:ReactNode
+  customIcon?: ReactNode;
 }
 
 export const HeaderControls = ({
@@ -40,7 +40,7 @@ export const HeaderControls = ({
   hasSearch = false,
   hasFilter = false,
   subtitle,
-  customIcon
+  customIcon,
 }: IProps) => {
   return (
     <div className="flex justify-between items-center mb-4">
@@ -94,7 +94,7 @@ export const HeaderControls = ({
               />
             )}
           </div>
-          {customIcon && customIcon}
+          {customIcon ?? null}
           {/* Add Member Button */}
           {btnName && (
             <Button

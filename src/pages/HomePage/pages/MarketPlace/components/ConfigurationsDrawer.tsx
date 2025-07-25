@@ -1,43 +1,38 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+
+import { Field, Form, Formik } from "formik";
+import { object, string } from "yup";
 import {
   XMarkIcon,
   Square3Stack3DIcon,
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+
+import { Button } from "@/components";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import { Button } from "@/components";
-import { Field, Form, Formik } from "formik";
-import { object, string } from "yup";
 
-type Item = { name: string; id: string };
-
-interface ConfigurationsDrawerProps {
+interface IProps {
   isOpen: boolean;
   onClose: () => void;
-  categories: Item[];
-  types: Item[];
-  onUpdateCategories: (items: Item[]) => void;
-  onUpdateTypes: (items: Item[]) => void;
+  categories: ItemType[];
+  types: ItemType[];
+  onUpdateCategories: (items: ItemType[]) => void;
+  onUpdateTypes: (items: ItemType[]) => void;
 }
 
-const TABS = [
-  { key: "type", label: "Product Type" },
-  { key: "category", label: "Product Category" },
-] as const;
-
-export const ConfigurationsDrawer: React.FC<ConfigurationsDrawerProps> = ({
+export const ConfigurationsDrawer = ({
   isOpen,
   onClose,
   categories,
   types,
   onUpdateCategories,
   onUpdateTypes,
-}) => {
+}: IProps) => {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
-  const [editItem, setEditItem] = useState<Item | null>(null);
+  const [editItem, setEditItem] = useState<ItemType | null>(null);
 
   const { list, updateList } = useMemo(() => {
     const isCategory = activeTab.key === "category";
@@ -66,7 +61,6 @@ export const ConfigurationsDrawer: React.FC<ConfigurationsDrawerProps> = ({
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -74,7 +68,6 @@ export const ConfigurationsDrawer: React.FC<ConfigurationsDrawerProps> = ({
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
         className={`fixed top-0 -right-10 h-screen w-[424px] xs:w-[100%] sm:w-[400px] md:w-[424px]  bg-white shadow-lg z-50 transition-transform duration-300 text-[#474D66] ${
           isOpen ? "-translate-x-4" : "translate-x-full"
@@ -127,7 +120,7 @@ const ItemCard = ({
   onEdit,
   onDelete,
 }: {
-  item: Item;
+  item: ItemType;
   onEdit: () => void;
   onDelete: () => void;
 }) => (
@@ -154,7 +147,7 @@ const ConfigurationForm = ({
 }: {
   label: string;
   placeholder: string;
-  editItem: Item | null;
+  editItem: ItemType | null;
   onSubmit: (data: { name: string; id?: string }) => void;
 }) => {
   const initialValues = editItem || { name: "", id: "" };
@@ -163,7 +156,7 @@ const ConfigurationForm = ({
     <Formik
       initialValues={initialValues}
       validationSchema={object().shape({
-        name: string().trim().required("Name is required"),
+        name: string().trim().required("required"),
       })}
       onSubmit={(values, { resetForm }) => {
         onSubmit(values);
@@ -194,3 +187,10 @@ const ConfigurationForm = ({
     </Formik>
   );
 };
+
+type ItemType = { name: string; id: string };
+
+const TABS = [
+  { key: "type", label: "Product Type" },
+  { key: "category", label: "Product Category" },
+] as const;

@@ -24,10 +24,7 @@ export function AddMarketForm({
   loading,
   events,
 }: IProps) {
-  const formInitialValues = useMemo(
-    () => editData ?? initialValues,
-    [editData]
-  );
+  const initials = useMemo(() => editData ?? initialValues, [editData]);
 
   const eventOptions =
     useMemo(
@@ -42,7 +39,7 @@ export function AddMarketForm({
 
   return (
     <Formik
-      initialValues={formInitialValues}
+      initialValues={initials}
       validationSchema={validationSchema}
       onSubmit={onSubmit}
       enableReinitialize
