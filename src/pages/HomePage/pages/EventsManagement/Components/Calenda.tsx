@@ -21,13 +21,13 @@ import {
   formatTime,
   parseTimeToMinutes,
   CalendarEvent,
-} from '@/components/calenda/utils/CalendaHelpers';
-import DayCell from '@/components/calenda/components/DayCell';
-import MoreEventsIndicator from '@/components/calenda/components/MoreEventsIndicator';
-import EventItem from '@/components/calenda/components/EventItem';
-import WeekView from '@/components/calenda/components/WeekView';
-import DayView from '@/components/calenda/components/DayView';
-import EnhancedModal from '@/components/calenda/components/EnhancedModal';
+} from './calenda/utils/CalendaHelpers';
+import DayCell from './calenda/components/DayCell';
+import MoreEventsIndicator from './calenda/components/MoreEventsIndicator';
+import EventItem from './calenda/components/EventItem';
+import WeekView from './calenda/components/WeekView';
+import DayView from './calenda/components/DayView';
+import EnhancedModal from './calenda/components/EnhancedModal';
 import EventDetailsModal from './EventDetailsModal';
 
 interface CalendarProps {
