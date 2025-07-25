@@ -11,7 +11,7 @@ export const MarketStatusChip = ({ start_date, end_date }: IProps) => {
   return (
     <div>
       <span
-        className={`${colorClass} py-1 px-3 text-white rounded-xl text-sm capitalize`}
+        className={`${colorClass} py-1 px-3 text-white group-hover:hidden rounded-xl text-sm capitalize`}
       >
         {status}
       </span>
