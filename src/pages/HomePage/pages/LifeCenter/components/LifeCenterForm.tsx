@@ -40,7 +40,7 @@ export function LifeCenterForm({
             <FormHeader>
                   <p className="text-lg font-semibold">{initial.id ? "Update" : "Create"} Life Center</p>
                   <p className="text-sm text-white">
-                    Provide the details of the new soul you&apos;ve connected with.
+                    Provide the details of the life center.
                   </p>
                 </FormHeader>
             <div className="flex-1 overflow-y-auto px-6 py-4">
