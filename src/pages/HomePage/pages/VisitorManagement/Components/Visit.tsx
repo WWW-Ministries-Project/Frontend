@@ -73,9 +73,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
           <ActionButton
             showOptions={row.original.id == selectedId}
             hideDelete={true}
-            onView={() => {
-              navigate(`visitor/${row.original.id}`);
-            }}
+           
             onEdit={() => {
               setSelectedVisit({
                 id: row.original.id,
@@ -99,6 +97,7 @@ export const Visits = ({ visitorId, visits }: IProps) => {
         subtitle="Record of all visits to services and events"
         btnName="Record Visit"
         handleClick={() => setIsModalOpen(true)}
+        screenWidth={window.innerWidth}
       />
 
       <TableComponent data={visits} columns={header} />

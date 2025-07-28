@@ -1,6 +1,7 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
+import { FormHeader } from "@/components/ui";
 import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils";
 import { Field, Form, Formik } from "formik";
@@ -27,19 +28,37 @@ const VisitFormComponent = ({
   const { eventsOptions } = useStore();
 
   return (
-    <div className="bg-white p-4 sm:p-4 md:p-6  rounded-2xl shadow-xl w-[450px]">
-  <div className="text-2xl font-semibold text-gray-800 mb-6">
-    {initialData ? "Edit Visit" : "Record a Visit"}
-  </div>
-
+    <div className="bg-white  rounded-2xl shadow-xl ">
+  
   <Formik
     initialValues={initial}
     validationSchema={validationSchema}
     onSubmit={(values) => onSubmit(values)}
   >
     {({ handleSubmit,values }) => (
-      <Form className="flex flex-col gap-6">
-        <Field
+      
+      <Form className="flex flex-col  ">
+        <div className="sticky top-0 z-10 ">
+            <FormHeader>
+              <p className="text-lg font-semibold">{initialData ? "Edit Visit" : "Record a Visit"}</p>
+              <p className="text-sm text-white">
+                Provide the details of the visits.
+              </p>
+            </FormHeader>
+            
+          </div>
+
+         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field
+          component={FormikSelectField}
+          options={eventsOptions}
+          label="Event *"
+          placeholder="Select an event"
+          id="eventId"
+          name="eventId"
+        />
+          <Field
           component={FormikInputDiv}
           type="date"
           placeholder="When did you visit?"
@@ -48,14 +67,8 @@ const VisitFormComponent = ({
           id="date"
           name="date"
         />
-        <Field
-          component={FormikSelectField}
-          options={eventsOptions}
-          label="Event *"
-          placeholder="Select an event"
-          id="eventId"
-          name="eventId"
-        />
+        
+        </div>
         <Field
           component={FormikInputDiv}
           type="textarea"
@@ -64,22 +77,25 @@ const VisitFormComponent = ({
           id="notes"
           name="notes"
         />
+        </div>
 
-        <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 mt-4">
-          <Button
-            value="Cancel"
-            variant="secondary"
-            onClick={onClose}
-            disabled={loading}
-          />
-          <Button
-            value="Submit"
-            variant="primary"
-            type="submit"
-            disabled={loading}
-            loading={loading}
-            onClick={handleSubmit}
-          />
+        <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+          <div className="flex items-center justify-end gap-3">
+                <Button
+                  value="Submit"
+                  variant="primary"
+                  type="submit"
+                  disabled={loading}
+                  loading={loading}
+                  onClick={handleSubmit}
+                />
+                <Button
+                  value="Cancel"
+                  variant="secondary"
+                  onClick={onClose}
+                  disabled={loading}
+                />    
+          </div>
         </div>
       </Form>
     )}

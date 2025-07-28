@@ -7,9 +7,9 @@ import {
   INameInfo,
   NameInfo,
 } from "@/components/subform";
-import { FormLayout } from "@/components/ui";
+import { FormHeader, FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
-import { Field, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { date, object, string } from "yup";
 
 interface IProps {
@@ -28,8 +28,8 @@ const VisitorFormComponent = ({
   const { eventsOptions } = useStore();
 
   return (
-    <div className="bg-white p-6 rounded-lg w-full max-w-3xl mx-auto">
-      <div className="font-bold text-lg mb-4">Visitor Registration</div>
+    <div className="bg-white  rounded-lg w-full  mx-auto">
+      
       <Formik
         initialValues={selectedVisitor || initialValues}
         // validationSchema={validationSchema}
@@ -37,7 +37,17 @@ const VisitorFormComponent = ({
         onSubmit={onSubmit}
       >
         {({ handleSubmit }) => (
-          <>
+          <Form className="flex flex-col h-[80vh] w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="sticky top-0 z-10">
+              <FormHeader>
+                <p className="text-lg font-semibold">Visitor Registration</p>
+                <p className="text-sm text-white">
+                  Provide the details of the new soul you&apos;ve connected with.
+                </p>
+              </FormHeader>
+              
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
             <FormLayout>
               <NameInfo prefix="personal_info" />
               <ContactsSubForm prefix="contact_info" />
@@ -95,7 +105,9 @@ const VisitorFormComponent = ({
                 </label>
               </div>
             </FormLayout>
-            <div className="flex justify-end">
+            </div>
+            <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+            <div className="flex justify-end gap-3">
               <Button
                 onClick={handleSubmit}
                 loading={loading}
@@ -106,11 +118,12 @@ const VisitorFormComponent = ({
               <Button
                 onClick={onClose}
                 value="Cancel"
-                variant={"ghost"}
+                variant={"secondary"}
                 disabled={loading}
               />
             </div>
-          </>
+            </div>
+          </Form>
         )}
       </Formik>
     </div>
