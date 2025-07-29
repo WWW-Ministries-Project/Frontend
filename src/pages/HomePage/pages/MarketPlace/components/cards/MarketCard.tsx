@@ -24,7 +24,7 @@ export function MarketCard({
   const [showOptions, setShowOptions] = useState(false);
 
   return (
-    <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white relative">
+    <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white relative group">
       <div>
         <div className="flex justify-between items-start gap-2">
           <div>
@@ -37,7 +37,10 @@ export function MarketCard({
               start_date={market.start_date}
               end_date={market.end_date}
             />
-            <div onClick={() => setShowOptions((prev) => !prev)}>
+            <div
+              onClick={() => setShowOptions((prev) => !prev)}
+              className="hidden group-hover:block"
+            >
               <ActionButton
                 showOptions={showOptions}
                 onDelete={() => handleDelete(market.id, name)}
