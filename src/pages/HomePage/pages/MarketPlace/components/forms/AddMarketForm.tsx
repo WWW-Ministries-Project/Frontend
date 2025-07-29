@@ -6,34 +6,40 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
-import { useStore } from "@/store/useStore";
-import { IMarket } from "@/utils/api/marketPlace/interface";
+import type { IMarket } from "@/utils/api/marketPlace/interface";
+import type { EventType } from "@/utils";
 
 interface IProps {
   onSubmit: (values: IMarket) => void;
   onClose: () => void;
   editData: IMarket | null;
   loading: boolean;
+  events: EventType[] | undefined;
 }
 
+export function AddMarketForm({
+  onSubmit,
+  onClose,
+  editData,
+  loading,
+  events,
+}: IProps) {
+  const initials = useMemo(() => editData ?? initialValues, [editData]);
 
-export function AddMarketForm({ onSubmit, onClose, editData, loading }: IProps) {
-  const { events } = useStore();
-
-  const formInitialValues = useMemo(() => editData ?? initialValues, [editData]);
-
-  const eventOptions = useMemo(
-    () =>
-      events.map((event) => ({
-        label: event.event_name,
-        value: event.id,
-      })),
-    [events]
-  );
+  const eventOptions =
+    useMemo(
+      () =>
+        events &&
+        events.map((event) => ({
+          label: event.event_name,
+          value: event.id,
+        })),
+      [events]
+    ) ?? [];
 
   return (
     <Formik
-      initialValues={formInitialValues}
+      initialValues={initials}
       validationSchema={validationSchema}
       onSubmit={onSubmit}
       enableReinitialize
@@ -44,7 +50,9 @@ export function AddMarketForm({ onSubmit, onClose, editData, loading }: IProps) 
             <p className="font-bold text-2xl">
               {editData ? "Update" : "Create New"} Market
             </p>
-            <p className="text-xl">Set up a new marketplace for your event merchandise</p>
+            <p className="text-xl">
+              Set up a new marketplace for your event merchandise
+            </p>
           </div>
 
           <div className="px-6 py-3">
