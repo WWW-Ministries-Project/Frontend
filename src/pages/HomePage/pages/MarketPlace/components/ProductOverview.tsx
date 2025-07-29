@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import { IProduct } from "@/utils/api/marketPlace/interface";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
 import { statusColors } from "./cards/ProductDetailsCard";
 import { ProductChip } from "./chips/ProductChip";
 
@@ -10,7 +10,7 @@ interface IProductProps {
 }
 
 export function ProductOverview({ product, onDelete, onEdit }: IProductProps) {
-    // TODO: replace with original properties
+  // TODO: replace with original properties
   return (
     <div className="w-[800px] xs:w-[350px] sm:w-[400px] md:w-[400px] lg:w-[800px]">
       {/* Header */}
