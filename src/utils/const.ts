@@ -50,7 +50,9 @@ export const relativePath = {
     },
     marketPlace: {
       main: "market-place",
-      details:"market-place/:id"
+      details: "market-place/:id",
+      addProduct: "market-place/:marketId/create-product",
+      editProduct: "market-place/:marketId/edit-product/:productId",
     },
     fallback: "*",
   },
