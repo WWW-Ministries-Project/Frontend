@@ -75,7 +75,7 @@ ProductDetailsCard.displayName = "ProductDetailsCard";
 
 
 
-const statusColors: Record<string, string> = {
+export const statusColors: Record<string, string> = {
   published: "bg-[#34C759] text-white",
   draft: "bg-gray-400 text-white",
 };
