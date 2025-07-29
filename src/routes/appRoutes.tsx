@@ -45,6 +45,7 @@ import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace";
 import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import MembersPage from "@/pages/MembersPage/MembersPage";
+import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -161,24 +162,24 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
-        children:[
+        children: [
           {
-          path: "all-events",
-          name: "Events",
-          element: <AllEvent />,
-          isPrivate: true,
-          permissionNeeded: "view_events",
-          sideTab: true,
+            path: "all-events",
+            name: "Events",
+            element: <AllEvent />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+            sideTab: true,
           },
           {
-          path: "events",
-          name: "Events Schedule",
-          element: <EventsManagement />,
-          isPrivate: true,
-          permissionNeeded: "view_events",
-          sideTab: true,
+            path: "events",
+            name: "Events Schedule",
+            element: <EventsManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+            sideTab: true,
           },
-        ]
+        ],
       },
       {
         path: "manage-event",
@@ -294,6 +295,16 @@ export const routes: AppRoute[] = [
         path: relativePath.home.marketPlace.details,
         name: "Market Details",
         element: <MarketDetails />,
+      },
+      {
+        path: relativePath.home.marketPlace.addProduct,
+        name: "Add Product",
+        element: <AddProduct />,
+      },
+      {
+        path: relativePath.home.marketPlace.editProduct,
+        name: "Edit Product",
+        element: <AddProduct />,
       },
 
       {

@@ -17,7 +17,7 @@ export const ProductDetailsCard = memo(
     handleEdit,
     handleView,
   }: ProductDetailsCardProps) => {
-    const { imageUrl, title, status, type, category, price, stock, id } =
+    const { imageUrl, product_name, status, type, category, price, stock, id } =
       product;
     const [showOptions, setShowOptions] = useState(false);
     return (
@@ -25,14 +25,14 @@ export const ProductDetailsCard = memo(
         <div className="flex gap-4">
           <img
             src={imageUrl}
-            alt={`${title} product image`}
+            alt={`${product_name} product image`}
             className="h-[119px] w-[102px] rounded-lg border object-cover"
           />
           <div className="flex w-full flex-col justify-between space-y-5">
             <div className="space-y-1">
               <div className="flex w-full items-center justify-between">
                 <h3 className="text-xs md:text-sm lg:text-lg  font-medium text-gray-700">
-                  {title}
+                  {product_name}
                 </h3>
                 <div className="flex items-center gap-1">
                   <p
@@ -47,7 +47,7 @@ export const ProductDetailsCard = memo(
                   >
                     <ActionButton
                       showOptions={showOptions}
-                      onDelete={()=>handleDelete(product.id, product.title)}
+                      onDelete={()=>handleDelete(product.id, product.product_name)}
                       onEdit={() => handleEdit(id)}
                       onView={() => handleView(product)}
                     />
@@ -61,7 +61,7 @@ export const ProductDetailsCard = memo(
             </div>
 
             <div className="flex flex-col sm:flex-col md:flex-col lg:flex-row lg:items-center gap-2">
-              <p className="font-medium text-gray-800">${price.toFixed(2)}</p>
+              <p className="font-medium text-gray-800">${price}</p>
               <ProductChip section="" text={`${stock} in stock`} />
             </div>
           </div>

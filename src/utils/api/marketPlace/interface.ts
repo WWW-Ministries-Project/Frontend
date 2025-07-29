@@ -11,12 +11,13 @@ export interface IMarket {
 export type MarketStatusType = "upcoming" | "active" | "ended";
 
 export type IProduct = {
+  product_name:string
   imageUrl: string;
-  title: string;
+  description: string;
   status: "published" | "draft";
   type: string;
   category: string;
-  price: number;
-  stock: number;
-  id:string
+  price: string;
+  stock: string;
+  id:string;
 };

@@ -47,7 +47,7 @@ export const SoulsWonForm = ({
       }}
     >
       {({ handleSubmit }) => (
-        <Form className="flex flex-col h-[80vh] w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+        <Form className="flex flex-col  w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden space-y-4">
   {/* Sticky Header */}
   <div className="sticky top-0 z-10">
     <FormHeader>
@@ -102,13 +102,7 @@ export const SoulsWonForm = ({
   {/* Sticky Footer */}
   <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
     <div className="flex items-center justify-end gap-3">
-      <Button
-        type="button"
-        disabled={loading}
-        value="Cancel"
-        variant="secondary"
-        onClick={onClose}
-      />
+      
       <Button
         type="submit"
         disabled={loading}
@@ -116,6 +110,13 @@ export const SoulsWonForm = ({
         variant="primary"
         onClick={handleSubmit}
         loading={loading}
+      />
+      <Button
+        type="button"
+        disabled={loading}
+        value="Cancel"
+        variant="secondary"
+        onClick={onClose}
       />
     </div>
   </div>

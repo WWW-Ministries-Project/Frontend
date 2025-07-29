@@ -33,7 +33,10 @@ export const LifeCenterCard = ({
   return (
     <div className="w-full max-w-[591px] flex flex-col rounded-2xl text-primary border border-lightGray p-4 bg-white relative space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold ">{item.name}</h2>
+        <div>
+          <h2 className="text-xl font-bold ">{item.name}</h2>
+        <p >{item.description}</p>
+        </div>
         <div
           className="absolute right-5 top-5 flex flex-col items-end w-1/4"
           onClick={toggleActions}
@@ -47,7 +50,7 @@ export const LifeCenterCard = ({
             />
           )}
         </div>
-        <p className="mb-3">{item.description}</p>
+        
       </div>
       <div className="space-y-3">
         <InfoRow
