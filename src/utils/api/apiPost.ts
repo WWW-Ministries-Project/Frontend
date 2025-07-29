@@ -17,7 +17,7 @@ import type {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
-import type { IMarket } from "./marketPlace/interface";
+import type { IMarket, IProductType } from "./marketPlace/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -42,12 +42,10 @@ export class ApiCreationCalls {
     return this.postToApi<T>("event/create-event", payload);
   };
 
-  createUniqueEvent = (
-    payload: EventType
-  ): Promise<ApiResponse<EventType>> => {
+  createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
-  
+
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
@@ -149,5 +147,11 @@ export class ApiCreationCalls {
     payload: Omit<IMarket, "id" | "event_name">
   ): Promise<ApiResponse<IMarket>> => {
     return this.postToApi("market/create-market", payload);
+  };
+
+  createProductType = (payload: {
+    name: string;
+  }): Promise<ApiResponse<IProductType>> => {
+    return this.postToApi("product/create-product-type", payload);
   };
 }

@@ -13,8 +13,13 @@ import type { IProduct } from "@/utils/api/marketPlace/interface";
 interface IProps {
   addProduct: (product: IProduct) => void;
   isSubmitting: boolean;
+  productTypes: { label: string; value: string }[];
 }
-export function ProductForm({ addProduct, isSubmitting }: IProps) {
+export function ProductForm({
+  addProduct,
+  isSubmitting,
+  productTypes,
+}: IProps) {
   const navigate = useNavigate();
 
   const toggleSize = useCallback(
@@ -70,7 +75,7 @@ export function ProductForm({ addProduct, isSubmitting }: IProps) {
                   <Field
                     name="type"
                     component={FormikSelectField}
-                    options={[]}
+                    options={productTypes}
                     label="Product type"
                     id="type"
                     placeholder="Select Type"
@@ -156,7 +161,7 @@ export function ProductForm({ addProduct, isSubmitting }: IProps) {
                     type="number"
                   />
                   <Field
-                    name="stock" 
+                    name="stock"
                     component={FormikInputDiv}
                     label="Stock"
                     id="stock"
