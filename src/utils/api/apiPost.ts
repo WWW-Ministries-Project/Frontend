@@ -149,9 +149,16 @@ export class ApiCreationCalls {
     return this.postToApi("market/create-market", payload);
   };
 
+  //products
   createProductType = (payload: {
     name: string;
   }): Promise<ApiResponse<IProductType>> => {
     return this.postToApi("product/create-product-type", payload);
+  };
+
+  createProductCategory = (payload: {
+    name: string;
+  }): Promise<ApiResponse<IProductType>> => {
+    return this.postToApi("product/create-product-category", payload);
   };
 }

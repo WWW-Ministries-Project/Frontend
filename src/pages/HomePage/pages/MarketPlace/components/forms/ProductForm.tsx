@@ -8,17 +8,19 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import ImageUpload from "@/components/ImageUpload";
 import { FormLayout } from "@/components/ui";
-import type { IProduct } from "@/utils/api/marketPlace/interface";
+import type { IProduct, IProductType } from "@/utils/api/marketPlace/interface";
 
 interface IProps {
   addProduct: (product: IProduct) => void;
   isSubmitting: boolean;
   productTypes: { label: string; value: string }[];
+  categories: { label: string; value: string }[];
 }
 export function ProductForm({
   addProduct,
   isSubmitting,
   productTypes,
+  categories,
 }: IProps) {
   const navigate = useNavigate();
 
@@ -84,7 +86,7 @@ export function ProductForm({
                   <Field
                     name="category"
                     component={FormikSelectField}
-                    options={[]}
+                    options={categories}
                     label="Product category"
                     id="category"
                     placeholder="Select Category"
