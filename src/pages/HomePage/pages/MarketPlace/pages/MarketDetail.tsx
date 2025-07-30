@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
@@ -15,7 +15,6 @@ import { api, IProductType } from "@/utils";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 import EmptyState from "@/components/EmptyState";
 
-
 export function MarketDetails() {
   const [tab, setTab] = useState("Products");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -30,7 +29,6 @@ export function MarketDetails() {
   const { data: producttypes, refetch: refetchProductTypes } = useFetch(
     api.fetch.fetchProductTypes
   );
- 
 
   // TODO: replace this with the original data
   const [categories, setCategories] = useState([
@@ -50,14 +48,12 @@ export function MarketDetails() {
     navigate("update-product/" + encodeQuery(id));
   };
 
-  
 
-
-  const hnadleRefetch = (section: "type" | "category") => {
+  const handleRefetch = useCallback((section: "type" | "category") => {
     if (section === "type") {
       refetchProductTypes();
     }
-  };
+  }, []);
 
   return (
     <PageOutline>
@@ -109,9 +105,7 @@ export function MarketDetails() {
         onClose={() => setDrawerOpen(false)}
         categories={categories}
         types={types}
-        onUpdateCategories={setCategories}
-        onUpdateTypes={setTypes}
-        refetch={hnadleRefetch}
+        refetch={handleRefetch}
       />
     </PageOutline>
   );

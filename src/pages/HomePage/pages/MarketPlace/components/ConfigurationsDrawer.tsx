@@ -25,8 +25,6 @@ interface IProps {
   onClose: () => void;
   categories: IProductType[];
   types: IProductType[];
-  onUpdateCategories: (items: IProductType[]) => void;
-  onUpdateTypes: (items: IProductType[]) => void;
   refetch: (section: "type" | "category") => void;
 }
 
@@ -35,8 +33,6 @@ export const ConfigurationsDrawer = ({
   onClose,
   categories,
   types,
-  onUpdateCategories,
-  onUpdateTypes,
   refetch,
 }: IProps) => {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
@@ -63,7 +59,7 @@ export const ConfigurationsDrawer = ({
     return {
       list: isCategory ? categories : types,
     };
-  }, [activeTab, categories, types, onUpdateCategories, onUpdateTypes]);
+  }, [activeTab, categories, types]);
 
   const handleSubmit = async (type: IProductType) => {
     if (!type.name.trim()) return;
