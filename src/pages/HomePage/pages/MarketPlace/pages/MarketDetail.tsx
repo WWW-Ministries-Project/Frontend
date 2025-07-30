@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
@@ -11,7 +11,7 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { MarketHeader } from "../components/MarketHeader";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
+import { api, IProductType } from "@/utils";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 import EmptyState from "@/components/EmptyState";
 
@@ -26,6 +26,9 @@ export function MarketDetails() {
   const { data: market, refetch } = useFetch(api.fetch.fetchMarketById, {
     id,
   });
+  const { data: producttypes, refetch: refetchProductTypes } = useFetch(
+    api.fetch.fetchProductTypes
+  );
 
   // TODO: replace this with the original data
   const [categories, setCategories] = useState([
@@ -33,14 +36,25 @@ export function MarketDetails() {
     { id: "2", name: "Books" },
   ]);
 
-  const [types, setTypes] = useState([
-    { id: "a", name: "T-shirt" },
-    { id: "b", name: "Hoodie" },
-  ]);
+  const [types, setTypes] = useState<IProductType[]>([]);
+
+  useEffect(() => {
+    if (producttypes?.data) {
+      setTypes(producttypes?.data);
+    }
+  }, [producttypes?.data]);
 
   const editProduct = (id: string) => {
     navigate("update-product/" + encodeQuery(id));
   };
+
+
+  const handleRefetch = useCallback((section: "type" | "category") => {
+    if (section === "type") {
+      refetchProductTypes();
+    }
+  }, []);
+
   return (
     <PageOutline>
       <MarketHeader market={market?.data} />
@@ -91,8 +105,7 @@ export function MarketDetails() {
         onClose={() => setDrawerOpen(false)}
         categories={categories}
         types={types}
-        onUpdateCategories={setCategories}
-        onUpdateTypes={setTypes}
+        refetch={handleRefetch}
       />
     </PageOutline>
   );

@@ -21,7 +21,7 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
-import type { IMarket } from "./marketPlace/interface";
+import type { IMarket, IProductType } from "./marketPlace/interface";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -44,9 +44,13 @@ export class ApiUpdateCalls {
     payload: EventType,
     query?: QueryType
   ): Promise<ApiResponse<EventType>> => {
-    return this.apiExecution.updateData("event/update-event-type", payload, query);
+    return this.apiExecution.updateData(
+      "event/update-event-type",
+      payload,
+      query
+    );
   };
-  
+
   // Update Asset
   updateAsset = (payload: AssetPayloadType): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("assets/update-asset", payload);
@@ -257,5 +261,12 @@ export class ApiUpdateCalls {
     query?: QueryType
   ): Promise<ApiResponse<IMarket>> => {
     return this.apiExecution.updateData("market/update-market", payload, query);
+  };
+
+  updateProductType = (
+    payload: IProductType,
+    query?: QueryType
+  ): Promise<ApiResponse<IProductType>> => {
+    return this.apiExecution.updateData("product/update-product-type", payload, query);
   };
 }

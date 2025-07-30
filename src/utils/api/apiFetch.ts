@@ -268,9 +268,13 @@ export class ApiCalls {
     return this.fetchFromApi(`market/list-markets`, query);
   };
 
-   fetchMarketById = (
-    query?: QueryType
-  ): Promise<ApiResponse<IMarket>> => {
+  fetchMarketById = (query?: QueryType): Promise<ApiResponse<IMarket>> => {
     return this.fetchFromApi(`market/get-market-by-id/`, query);
+  };
+
+  fetchProductTypes = (
+    query?: QueryType
+  ): Promise<ApiResponse<{ name: string; id: string }[]>> => {
+    return this.fetchFromApi(`product/list-product-type`, query);
   };
 }
