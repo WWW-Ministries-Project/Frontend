@@ -112,4 +112,8 @@ export class ApiDeletionCalls {
   deleteProductType = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("product/delete-product-type", query);
   };
+
+  deleteProductCategory = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("product/delete-product-category", query);
+  };
 }

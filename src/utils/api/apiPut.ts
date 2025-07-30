@@ -267,6 +267,21 @@ export class ApiUpdateCalls {
     payload: IProductType,
     query?: QueryType
   ): Promise<ApiResponse<IProductType>> => {
-    return this.apiExecution.updateData("product/update-product-type", payload, query);
+    return this.apiExecution.updateData(
+      "product/update-product-type",
+      payload,
+      query
+    );
+  };
+
+  updateProductCategory = (
+    payload: IProductType,
+    query?: QueryType
+  ): Promise<ApiResponse<IProductType>> => {
+    return this.apiExecution.updateData(
+      "product/update-product-category",
+      payload,
+      query
+    );
   };
 }

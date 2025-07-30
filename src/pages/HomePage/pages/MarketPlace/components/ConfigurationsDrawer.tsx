@@ -37,7 +37,9 @@ export const ConfigurationsDrawer = ({
 }: IProps) => {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
   const [editItem, setEditItem] = useState<IProductType | null>(null);
+  const [count, setCount] = useState(0);
 
+  //create
   const {
     postData: createProducttype,
     data: newProductType,
@@ -45,14 +47,33 @@ export const ConfigurationsDrawer = ({
   } = usePost(api.post.createProductType);
 
   const {
+    postData: createProductCategory,
+    data: newProductCategory,
+    loading: isAddingNewTCategory,
+  } = usePost(api.post.createProductCategory);
+
+  //update
+  const {
     updateData: updateProductType,
     data: typeUpdateData,
     loading: isUpdatingProductType,
   } = usePut(api.put.updateProductType);
 
+  const {
+    updateData: updateProductCategory,
+    data: categoryUpdateData,
+    loading: isUpdatingProductCategory,
+  } = usePut(api.put.updateProductCategory);
+
+  //delete
   const { executeDelete: deleteProductType, success } = useDelete(
     api.delete.deleteProductType
   );
+
+  const {
+    executeDelete: deleteProductCategory,
+    success: deleteCategorySuccess,
+  } = useDelete(api.delete.deleteProductCategory);
 
   const { list } = useMemo(() => {
     const isCategory = activeTab.key === "category";
@@ -61,38 +82,71 @@ export const ConfigurationsDrawer = ({
     };
   }, [activeTab, categories, types]);
 
-  const handleSubmit = async (type: IProductType) => {
-    if (!type.name.trim()) return;
+  const handleSubmit = async (data: IProductType) => {
+    if (!data.name.trim()) return;
 
     const isType = activeTab.key === "type";
 
     if (isType) {
-      if (type.id) {
-        updateProductType(type, { id: type.id });
+      if (data.id) {
+        await updateProductType(data, { id: data.id });
       } else {
-        await createProducttype({ name: type.name });
+        await createProducttype({ name: data.name });
+      }
+    } else {
+      if (data.id) {
+        await updateProductCategory(data, { id: data.id });
+      } else {
+        await createProductCategory({ name: data.name });
       }
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     showDeleteDialog({ id, name }, async () => {
-      await deleteProductType({ id: id });
+      if (activeTab.key === "type") {
+        await deleteProductType({ id: id });
+      } else {
+        await deleteProductCategory({ id: id });
+      }
     });
   };
 
   useEffect(() => {
-    if (newProductType?.data) {
+    if (newProductType?.data || typeUpdateData?.data || success) {
       refetch("type");
+
+      if (newProductType?.data) {
+        setCount((prev) => prev + 1);
+      }
+
+      if (typeUpdateData?.data) {
+        setEditItem(null);
+      }
     }
-  }, [newProductType]);
+  }, [newProductType, typeUpdateData?.data, success]);
 
   useEffect(() => {
-    if (typeUpdateData) {
-      refetch("type");
-      setEditItem(null);
+    if (
+      newProductCategory?.data ||
+      categoryUpdateData?.data ||
+      deleteCategorySuccess
+    ) {
+      refetch("category");
+
+      if (newProductCategory?.data) {
+        setCount((prev) => prev + 1);
+      }
+
+      if (categoryUpdateData?.data) {
+        setEditItem(null);
+      }
     }
-  }, [typeUpdateData]);
+  }, [
+    newProductCategory?.data,
+    categoryUpdateData?.data,
+    deleteCategorySuccess,
+  ]);
 
   return (
     <>
@@ -125,11 +179,17 @@ export const ConfigurationsDrawer = ({
 
           <div className="my-5">
             <ConfigurationForm
+              key={count}
               label={activeTab.label}
               placeholder={`Enter ${activeTab.label.toLowerCase()}`}
               editItem={editItem}
               onSubmit={handleSubmit}
-              loading={isAddingNewType || isUpdatingProductType}
+              loading={
+                isAddingNewType ||
+                isUpdatingProductType ||
+                isAddingNewTCategory ||
+                isUpdatingProductCategory
+              }
             />
 
             {list.length > 0 && <HorizontalLine />}

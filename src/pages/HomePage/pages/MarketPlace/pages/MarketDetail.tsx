@@ -26,16 +26,15 @@ export function MarketDetails() {
   const { data: market, refetch } = useFetch(api.fetch.fetchMarketById, {
     id,
   });
+
   const { data: producttypes, refetch: refetchProductTypes } = useFetch(
     api.fetch.fetchProductTypes
   );
 
-  // TODO: replace this with the original data
-  const [categories, setCategories] = useState([
-    { id: "1", name: "Adult" },
-    { id: "2", name: "Books" },
-  ]);
+  const { data: productCategories, refetch: refetchProductCategories } =
+    useFetch(api.fetch.fetchProductCategories);
 
+  const [categories, setCategories] = useState<IProductType[]>([]);
   const [types, setTypes] = useState<IProductType[]>([]);
 
   useEffect(() => {
@@ -44,14 +43,21 @@ export function MarketDetails() {
     }
   }, [producttypes?.data]);
 
+  useEffect(() => {
+    if (productCategories?.data) {
+      setCategories(productCategories.data);
+    }
+  }, [productCategories?.data]);
+
   const editProduct = (id: string) => {
     navigate("update-product/" + encodeQuery(id));
   };
 
-
   const handleRefetch = useCallback((section: "type" | "category") => {
     if (section === "type") {
       refetchProductTypes();
+    } else {
+      refetchProductCategories();
     }
   }, []);
 
