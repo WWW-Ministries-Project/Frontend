@@ -29,7 +29,7 @@ export class ApiDeletionCalls {
   deleteUniqueEvent = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("event/delete-event-type", query);
   };
-  
+
   deleteAsset = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("assets/delete-asset", query);
   };
@@ -107,5 +107,13 @@ export class ApiDeletionCalls {
   //marketplace
   deleteMarket = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("market/delete-market", query);
+  };
+
+  deleteProductType = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("product/delete-product-type", query);
+  };
+
+  deleteProductCategory = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("product/delete-product-category", query);
   };
 }

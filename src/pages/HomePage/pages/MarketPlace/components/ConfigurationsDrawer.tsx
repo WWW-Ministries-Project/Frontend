@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Field, Form, Formik } from "formik";
 import { object, string } from "yup";
@@ -13,14 +13,19 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import type { IProductType } from "@/utils/api/marketPlace/interface";
+import { usePost } from "@/CustomHooks/usePost";
+import { api } from "@/utils";
+import { usePut } from "@/CustomHooks/usePut";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 
 interface IProps {
   isOpen: boolean;
   onClose: () => void;
-  categories: ItemType[];
-  types: ItemType[];
-  onUpdateCategories: (items: ItemType[]) => void;
-  onUpdateTypes: (items: ItemType[]) => void;
+  categories: IProductType[];
+  types: IProductType[];
+  refetch: (section: "type" | "category") => void;
 }
 
 export const ConfigurationsDrawer = ({
@@ -28,36 +33,120 @@ export const ConfigurationsDrawer = ({
   onClose,
   categories,
   types,
-  onUpdateCategories,
-  onUpdateTypes,
+  refetch,
 }: IProps) => {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
-  const [editItem, setEditItem] = useState<ItemType | null>(null);
+  const [editItem, setEditItem] = useState<IProductType | null>(null);
+  const [count, setCount] = useState(0);
 
-  const { list, updateList } = useMemo(() => {
+  //create
+  const {
+    postData: createProducttype,
+    data: newProductType,
+    loading: isAddingNewType,
+  } = usePost(api.post.createProductType);
+
+  const {
+    postData: createProductCategory,
+    data: newProductCategory,
+    loading: isAddingNewTCategory,
+  } = usePost(api.post.createProductCategory);
+
+  //update
+  const {
+    updateData: updateProductType,
+    data: typeUpdateData,
+    loading: isUpdatingProductType,
+  } = usePut(api.put.updateProductType);
+
+  const {
+    updateData: updateProductCategory,
+    data: categoryUpdateData,
+    loading: isUpdatingProductCategory,
+  } = usePut(api.put.updateProductCategory);
+
+  //delete
+  const { executeDelete: deleteProductType, success } = useDelete(
+    api.delete.deleteProductType
+  );
+
+  const {
+    executeDelete: deleteProductCategory,
+    success: deleteCategorySuccess,
+  } = useDelete(api.delete.deleteProductCategory);
+
+  const { list } = useMemo(() => {
     const isCategory = activeTab.key === "category";
     return {
       list: isCategory ? categories : types,
-      updateList: isCategory ? onUpdateCategories : onUpdateTypes,
     };
-  }, [activeTab, categories, types, onUpdateCategories, onUpdateTypes]);
+  }, [activeTab, categories, types]);
 
-  const handleSubmit = (data: { name: string; id?: string }) => {
+  const handleSubmit = async (data: IProductType) => {
     if (!data.name.trim()) return;
 
-    const updated = data.id
-      ? list.map((item) =>
-          item.id === data.id ? { ...item, name: data.name } : item
-        )
-      : [{ id: crypto.randomUUID(), name: data.name }, ...list];
+    const isType = activeTab.key === "type";
 
-    updateList(updated);
-    setEditItem(null);
+    if (isType) {
+      if (data.id) {
+        await updateProductType(data, { id: data.id });
+      } else {
+        await createProducttype({ name: data.name });
+      }
+    } else {
+      if (data.id) {
+        await updateProductCategory(data, { id: data.id });
+      } else {
+        await createProductCategory({ name: data.name });
+      }
+    }
   };
 
-  const handleDelete = (id: string) => {
-    updateList(list.filter((item) => item.id !== id));
+  const handleDelete = async (id: string, name: string) => {
+    showDeleteDialog({ id, name }, async () => {
+      if (activeTab.key === "type") {
+        await deleteProductType({ id: id });
+      } else {
+        await deleteProductCategory({ id: id });
+      }
+    });
   };
+
+  useEffect(() => {
+    if (newProductType?.data || typeUpdateData?.data || success) {
+      refetch("type");
+
+      if (newProductType?.data) {
+        setCount((prev) => prev + 1);
+      }
+
+      if (typeUpdateData?.data) {
+        setEditItem(null);
+      }
+    }
+  }, [newProductType, typeUpdateData?.data, success]);
+
+  useEffect(() => {
+    if (
+      newProductCategory?.data ||
+      categoryUpdateData?.data ||
+      deleteCategorySuccess
+    ) {
+      refetch("category");
+
+      if (newProductCategory?.data) {
+        setCount((prev) => prev + 1);
+      }
+
+      if (categoryUpdateData?.data) {
+        setEditItem(null);
+      }
+    }
+  }, [
+    newProductCategory?.data,
+    categoryUpdateData?.data,
+    deleteCategorySuccess,
+  ]);
 
   return (
     <>
@@ -90,10 +179,17 @@ export const ConfigurationsDrawer = ({
 
           <div className="my-5">
             <ConfigurationForm
+              key={count}
               label={activeTab.label}
               placeholder={`Enter ${activeTab.label.toLowerCase()}`}
               editItem={editItem}
               onSubmit={handleSubmit}
+              loading={
+                isAddingNewType ||
+                isUpdatingProductType ||
+                isAddingNewTCategory ||
+                isUpdatingProductCategory
+              }
             />
 
             {list.length > 0 && <HorizontalLine />}
@@ -104,7 +200,7 @@ export const ConfigurationsDrawer = ({
                   key={item.id}
                   item={item}
                   onEdit={() => setEditItem(item)}
-                  onDelete={() => handleDelete(item.id)}
+                  onDelete={() => handleDelete(item.id, item.name)}
                 />
               ))}
             </ul>
@@ -120,7 +216,7 @@ const ItemCard = ({
   onEdit,
   onDelete,
 }: {
-  item: ItemType;
+  item: IProductType;
   onEdit: () => void;
   onDelete: () => void;
 }) => (
@@ -144,11 +240,13 @@ const ConfigurationForm = ({
   placeholder,
   editItem,
   onSubmit,
+  loading,
 }: {
   label: string;
   placeholder: string;
-  editItem: ItemType | null;
-  onSubmit: (data: { name: string; id?: string }) => void;
+  editItem: IProductType | null;
+  onSubmit: (type: IProductType) => void;
+  loading: boolean;
 }) => {
   const initialValues = editItem || { name: "", id: "" };
 
@@ -158,9 +256,8 @@ const ConfigurationForm = ({
       validationSchema={object().shape({
         name: string().trim().required("required"),
       })}
-      onSubmit={(values, { resetForm }) => {
+      onSubmit={(values) => {
         onSubmit(values);
-        resetForm();
       }}
       enableReinitialize
       validateOnBlur={false}
@@ -181,14 +278,13 @@ const ConfigurationForm = ({
             value={editItem ? "Update" : "Add"}
             onClick={submitForm}
             className="mt-8"
+            loading={loading}
           />
         </Form>
       )}
     </Formik>
   );
 };
-
-type ItemType = { name: string; id: string };
 
 const TABS = [
   { key: "type", label: "Product Type" },
