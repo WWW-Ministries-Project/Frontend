@@ -23,7 +23,7 @@ export const NotificationCard = () => {
 
   return (
     <div
-      className={`flex items-start p-4 border rounded-lg shadow-lg z-10 ${backgroundColor} ${borderColor} 
+      className={`flex items-start p-4 border rounded-lg shadow-lg z-50 ${backgroundColor} ${borderColor} 
       transform transition-opacity duration-400 ease-in-out 
       ${
         visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
