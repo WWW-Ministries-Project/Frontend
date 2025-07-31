@@ -52,7 +52,7 @@ export function ViewClass() {
   };
 
   return (
-    <div className="px-4">
+    <div className="">
       <div>
         <AllStudents
           Data={data?.data?.enrollments || []}

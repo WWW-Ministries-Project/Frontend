@@ -1,6 +1,7 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelect from "@/components/FormikSelect";
 import { INameInfo, NameInfo } from "@/components/subform";
+import { FormHeader } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
@@ -41,8 +42,8 @@ export const StudentForm = ({ onClose, onSubmit, loading = false }: IProps) => {
     [memberData]
   );
   return (
-    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4 overflow-auto">
-      <div className="text-lg font-bold">Enroll Student</div>
+    <div className="bg-white rounded-lg md:w-[45rem] text-primary space-y-4 overflow-auto">
+      
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
@@ -50,7 +51,17 @@ export const StudentForm = ({ onClose, onSubmit, loading = false }: IProps) => {
         enableReinitialize
       >
         {({ handleSubmit }) => (
-          <Form className="space-y-4">
+          <Form className="">
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">Enroll Student</p>
+                  <p className="text-sm text-white">
+                    Provide the details of the student you want to enroll.
+                  </p>
+                </FormHeader>
+                
+              </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <Field
               component={FormikSelect}
               options={membersOptions}
@@ -72,11 +83,13 @@ export const StudentForm = ({ onClose, onSubmit, loading = false }: IProps) => {
               placeholder="Enter email"
               disabled
             />
+            
             <Actions
               onCancel={onClose}
               loading={loading || memberLoading}
               onSubmit={handleSubmit}
             />
+            </div>
           </Form>
         )}
       </Formik>

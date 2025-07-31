@@ -1,9 +1,9 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormLayout, FullWidth } from "@/components/ui";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
 import { useStore } from "@/store/useStore";
-import { Field, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
 import { number, object, string } from "yup";
 
@@ -31,17 +31,8 @@ export const ClassForm = ({
     };
   }, [initialData]);
   return (
-    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
-      <div>
-        <div className="text-lg font-bold">
-          {initialData ? "Edit Class" : "Add New Class"}
-        </div>
-        <div className="text-sm mb-4">
-          {initialData
-            ? "Edit the details of the class"
-            : "Create a new class for the cohort."}
-        </div>
-      </div>
+    <div className="bg-white  rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
+      
 
       <Formik
         initialValues={initial}
@@ -49,6 +40,19 @@ export const ClassForm = ({
         onSubmit={(values) => onSubmit(validationSchema.cast(values))}
       >
         {({ errors, touched, values, handleSubmit }) => (
+          <Form>
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">{initialData ? "Edit Class" : "Add New Class"}</p>
+                  <p className="text-sm text-white">
+                    {initialData
+            ? "Edit the details of the class"
+            : "Create a new class for the cohort."}
+                  </p>
+                </FormHeader>
+                
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-4">
           <FormLayout>
             <Field
               component={FormikInputDiv}
@@ -84,10 +88,10 @@ export const ClassForm = ({
             {/* Class Format */}
             <FullWidth>
               <div className="">
-                <label className="block text-sm font-medium text-primary">
+                <label className="block t font-semibold text-primary pb-1">
                   Class Format *
                 </label>
-                <div className="flex gap-4" >
+                <div className="flex md:flex-row flex-col gap-4 " >
                   <label className="">
                     <Field
                       type="radio"
@@ -149,6 +153,8 @@ export const ClassForm = ({
               loading={loading}
             />
           </FormLayout>
+          </div>
+          </Form>
         )}
       </Formik>
     </div>

@@ -44,6 +44,7 @@ import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -415,24 +416,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "huh",
     children: [
-      // {
-      //   path: "programs",
-      //   name: "Programs",
-      //   element: <ProgramApply />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name",
-      //   name: "Programs",
-      //   element: <ProgramDetails />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name/apply",
-      //   name: "Programs",
-      //   element: <ProgramInformation />,
-      //   isPrivate: false,
-      // },
+      {
+        path: "programs",
+        name: "Programs",
+        element: <ProgramApply />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        isPrivate: false,
+      },
       {
         path: "register-member",
         element: <Registration />,
