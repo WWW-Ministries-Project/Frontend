@@ -110,7 +110,7 @@ export const SideBar = ({ className }: IProps) => {
 
   return (
     <div
-      className={`h-screen flex flex-col justify-between transition-all duration-300 ${
+      className={`h-screen flex flex-col justify-between transition-all duration-300 overflow-y-auto ${
         isExpanded ? "w-64" : "w-16"
       } ${className || ""}`}
       onMouseEnter={handleMouseEnter}
