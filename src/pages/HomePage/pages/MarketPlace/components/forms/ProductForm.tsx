@@ -1,14 +1,14 @@
-import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { array, mixed, object, string } from "yup";
-import { Field, FieldArray, Form, Formik, FormikHelpers } from "formik";
+import { Field, FieldArray, Form, Formik } from "formik";
 
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import ImageUpload from "@/components/ImageUpload";
 import { FormLayout } from "@/components/ui";
-import type { IProduct, IProductType } from "@/utils/api/marketPlace/interface";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
+import { MinusCircleIcon } from "@heroicons/react/24/outline";
 
 interface IProps {
   addProduct: (product: IProduct) => void;
@@ -24,21 +24,6 @@ export function ProductForm({
 }: IProps) {
   const navigate = useNavigate();
 
-  const toggleSize = useCallback(
-    (
-      size: string,
-      selectedSizes: string[],
-      setFieldValue: FormikHelpers<Product>["setFieldValue"]
-    ) => {
-      const updatedSizes = selectedSizes.includes(size)
-        ? selectedSizes.filter((s) => s !== size)
-        : [...selectedSizes, size];
-
-      setFieldValue("sizes", updatedSizes);
-    },
-    []
-  );
-
   return (
     <Formik
       initialValues={initialValues}
@@ -48,11 +33,9 @@ export function ProductForm({
       }}
     >
       {({ values, setFieldValue, handleSubmit, errors, touched }) => {
-        const selectedSizes: string[] = values.sizes || [];
-
         return (
           <Form className="px-5 space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="g">
               <div className="lg:col-span-2 space-y-4">
                 <FormLayout>
                   <Field
@@ -61,7 +44,7 @@ export function ProductForm({
                     label="Product name *"
                     id="product_name"
                     placeholder="Enter Product Name"
-                    className="col-span-2 w-full"
+                    className="col-span-1 w-full"
                   />
 
                   <Field
@@ -97,10 +80,23 @@ export function ProductForm({
                 <FieldArray name="gallery">
                   {({ push }) => (
                     <div>
+                      <p className="text-primary font-semibold py-1">
+                        Stock management
+                      </p>
+                      <div className="mt-1 mb-3 flex gap-4 text-900">
+                        <label className="flex items-center gap-x-2">
+                          <Field type="radio" name="manage_stock" value="yes" />
+                          Yes
+                        </label>
+                        <label className="flex items-center gap-x-2">
+                          <Field type="radio" name="manage_stock" value="no" />
+                          No
+                        </label>
+                      </div>
                       <p className="text-primary font-semibold py-2">
                         Product gallery
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
+                      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
                         {values.gallery.map((variant, index) => (
                           <div key={index} className="space-y-3 cursor-pointer">
                             {/* Color Picker */}
@@ -110,7 +106,6 @@ export function ProductForm({
                               className="w-full h-10 rounded-lg p-0.5"
                               title="Select product color"
                             />
-
                             {/* Image Upload */}
                             <ImageUpload
                               id={`fileUpload-${index}`}
@@ -131,6 +126,93 @@ export function ProductForm({
                                   {errors.gallery[index]?.image}
                                 </p>
                               )}
+                            {/* size and stocks */}
+                            {values.manage_stock === "yes" && (
+                              <div>
+                                <FieldArray
+                                  name={`gallery[${index}].stock_management`}
+                                >
+                                  {({ push, remove }) => (
+                                    <>
+                                      {values.gallery[
+                                        index
+                                      ].stock_management.map((item, i) => (
+                                        <div
+                                          key={i}
+                                          className="flex items-center gap-2 justify-between"
+                                        >
+                                          <div className="flex items-end">
+                                            <FormLayout>
+                                              <Field
+                                                name={`gallery[${index}].stock_management[${i}].size`}
+                                                component={FormikSelectField}
+                                                options={sizes.filter(
+                                                  (sizeOption) =>
+                                                    !values.gallery[
+                                                      index
+                                                    ].stock_management.some(
+                                                      (s) =>
+                                                        s.size ===
+                                                        sizeOption.value
+                                                    ) ||
+                                                    item.size ===
+                                                      sizeOption.value
+                                                )}
+                                                id={`gallery[${index}].stock_management[${i}].size`}
+                                                placeholder="Select size"
+                                                title="Select size"
+                                              />
+                                              <Field
+                                                name={`gallery[${index}].stock_management[${i}].stock`}
+                                                component={FormikInputDiv}
+                                                id={`gallery[${index}].stock_management[${i}].stock`}
+                                                placeholder="Number of stocks"
+                                                type="number"
+                                              />
+                                            </FormLayout>
+                                            {values.gallery[index]
+                                              .stock_management.length > 1 && (
+                                              <MinusCircleIcon
+                                                className="size-7 text-lightGray"
+                                                onClick={() => remove(i)}
+                                              />
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <div className="flex justify-end">
+                                        {values.gallery[index].stock_management
+                                          .length < sizes.length && (
+                                          <Button
+                                            variant="ghost"
+                                            value="+ Add size"
+                                            onClick={() => {
+
+                                              //add the next available size
+                                              const nextSize = sizes.find(
+                                                (s) =>
+                                                  !values.gallery[
+                                                    index
+                                                  ].stock_management.some(
+                                                    (item) =>
+                                                      item.size === s.value
+                                                  )
+                                              )?.value;
+
+                                              push({
+                                                size: nextSize,
+                                                stock: 0,
+                                              });
+                                            }}
+                                            className="hover:no-underline"
+                                          />
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </FieldArray>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -144,6 +226,7 @@ export function ProductForm({
                             push({
                               color: "#000000",
                               image: "",
+                              stock_management: [{ size: "S", stock: 0 }],
                             })
                           }
                           className="hover:no-underline"
@@ -162,50 +245,18 @@ export function ProductForm({
                     placeholder=""
                     type="number"
                   />
-                  <Field
-                    name="stock"
-                    component={FormikInputDiv}
-                    label="Stock"
-                    id="stock"
-                    placeholder="Enter number of stocks"
-                    type="number"
-                  />
-                  <div className="space-y-2  ">
-                    <p className="font-semibold">Sizes</p>
-                    <ul className="flex gap-2 font-semibold">
-                      {sizes.map((size) => (
-                        <li
-                          key={size}
-                          className={`border text-center flex items-center justify-center size-9 rounded-lg  p-1 cursor-pointer ${
-                            values.sizes.includes(size)
-                              ? "bg-gray-200"
-                              : "bg-white"
-                          }`}
-                          onClick={() =>
-                            toggleSize(size, selectedSizes, setFieldValue)
-                          }
-                        >
-                          {size}
-                        </li>
-                      ))}
-                    </ul>
-                    {touched.sizes && errors.sizes && (
-                      <p className="text-error text-sma">{errors.sizes}</p>
-                    )}
+
+                  <div className="space-y-4">
+                    <Field
+                      name="status"
+                      component={FormikSelectField}
+                      options={productSatus}
+                      label="Status"
+                      id="status"
+                      placeholder="Select status"
+                    />
                   </div>
                 </FormLayout>
-              </div>
-
-              {/* Right Section: Status */}
-              <div className="space-y-4">
-                <Field
-                  name="status"
-                  component={FormikSelectField}
-                  options={productSatus}
-                  label="Status"
-                  id="status"
-                  placeholder="Select status"
-                />
               </div>
             </div>
 
@@ -234,8 +285,9 @@ export interface Product extends IProduct {
   gallery: {
     color: string;
     image: File | string;
+    stock_management: { stock?: number; size?: string }[];
   }[];
-  sizes: string[];
+  manage_stock: "yes" | "no";
 }
 
 const initialValues: Product = {
@@ -247,14 +299,15 @@ const initialValues: Product = {
   category: "",
   price: "",
   stock: "",
-  sizes: [],
   gallery: [
     {
       color: "",
       image: "",
+      stock_management: [{ size: "S", stock: 0 }],
     },
   ],
   id: "",
+  manage_stock: "yes",
 };
 
 const validationSchema = object().shape({
@@ -263,14 +316,19 @@ const validationSchema = object().shape({
   type: string().required("required"),
   category: string().required("required"),
   price: string().required("required"),
-  stock: string().required("required"),
+  manage_stock: string().oneOf(["yes", "no"]),
+
   gallery: array().of(
     object({
       color: string(),
-      image: mixed().required("Image is required"),
+      image: mixed().required("Required"),
+      stock_management: array().of(
+        object({
+          size: string(),
+        })
+      ),
     })
   ),
-  sizes: array().min(1).required("required"),
 });
 
 const productSatus = [
@@ -284,4 +342,9 @@ const productSatus = [
   },
 ];
 
-const sizes = ["S", "M", "L", "XL", "2XL", "3XL"];
+const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => {
+  return {
+    label: size,
+    value: size,
+  };
+});

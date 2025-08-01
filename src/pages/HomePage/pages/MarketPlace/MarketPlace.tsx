@@ -41,8 +41,7 @@ export function MarketPlace() {
     loading: isUpdating,
   } = usePut(api.put.updateMarket);
   const { executeDelete, success } = useDelete(api.delete.deleteMarket);
-    const { data: events } = useFetch(api.fetch.fetchAllUniqueEvents);
-
+  const { data: events } = useFetch(api.fetch.fetchAllUniqueEvents);
 
   const handleOpenModal = () => {
     setEditData(null);

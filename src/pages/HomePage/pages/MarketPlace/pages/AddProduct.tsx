@@ -31,7 +31,8 @@ export function AddProduct() {
         value: type.id,
       };
     });
-  }, [data?.data]);
+  }, [categories?.data]);
+
   return (
     <PageOutline>
       <div className="bg-primary p-5 w-full rounded-tr-md rounded-tl-md h-28 text-white">
