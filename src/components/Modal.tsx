@@ -17,7 +17,7 @@ export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
     >
       <Dialog.Portal>
         <Dialog.Overlay
-          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-20"
           style={{ animation: "fadeIn 0.2s" }}
         />
         <Dialog.Content

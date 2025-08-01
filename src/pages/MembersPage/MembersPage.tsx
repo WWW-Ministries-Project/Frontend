@@ -7,10 +7,13 @@ const MembersPage = () => {
     return ( 
         <div className="bg-gray-100 min-h-screen">
             
-            <div className=" py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
+            <div className=" py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem] border">
                 <Header />
             </div>
-            <Outlet/>
+            <div className="  px-[1rem] lg:px-[4rem] xl:px-[8rem] ">
+                <Outlet/>
+            </div>
+            
         </div>
      );
 }

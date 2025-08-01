@@ -160,8 +160,7 @@ const AllEvent = () => {
     <PageOutline>
       <div>
         <HeaderControls
-          title="Events"
-          totalMembers={filteredEvents?.length}
+          title={`Events (${filteredEvents.length})`}
           subtitle="Create and manage your events"
           screenWidth={window.innerWidth}
           btnName="Create Event"

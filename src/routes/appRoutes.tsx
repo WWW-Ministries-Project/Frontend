@@ -27,26 +27,29 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
+import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
 import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
+import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
+import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
+import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
-import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
-import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace";
-import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
-import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import MembersPage from "@/pages/MembersPage/MembersPage";
-import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
-// import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
+import { ProtectedRoute } from "./ProtectedRoutes.js";
+import Market from "@/pages/MembersPage/Pages/Market.js";
+import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
+import SchoolOfMinistries from "@/pages/MembersPage/Pages/SchoolOfMinistries.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -86,7 +89,11 @@ export const routes: AppRoute[] = [
   },
   {
     path: relativePath.home.main,
-    element: <HomePage />,
+    element: (
+      <ProtectedRoute>
+        <HomePage />
+      </ProtectedRoute>
+    ),
     name: "Home",
     children: [
       {
@@ -484,6 +491,24 @@ export const routes: AppRoute[] = [
     path: "dashboard",
     name: "member_dashboard",
     element: <DashBoardPage />,
+    isPrivate: false,
+  },
+  {
+    path: "market",
+    name: "member_market",
+    element: <Market />,
+    isPrivate: false,
+  },
+  {
+    path: "life-center",
+    name: "member_life_center",
+    element: <MyLifeCenter />,
+    isPrivate: false,
+  },
+  {
+    path: "school-of-ministries",
+    name: "member_school_of_ministries",
+    element: <SchoolOfMinistries />,
     isPrivate: false,
   },
     ]

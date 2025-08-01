@@ -31,7 +31,7 @@ export const Button = ({
   };
 
   const baseClass = `
-    inline-flex items-center justify-center px-4 py-2 rounded-lg leading-5 text-center w-auto whitespace-nowrapdisabled:bg-lightGray
+    inline-flex items-center justify-center px-4 py-2 rounded-lg leading-5 text-center w-auto whitespace-nowrap disabled:bg-lightGray
   `;
 
   const variantClass = {

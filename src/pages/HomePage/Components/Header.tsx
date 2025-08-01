@@ -52,10 +52,10 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   const memberNavItems = [
     { label: "Home", path: "/member/dashboard" },
-    { label: "Marketplace", path: "/member/marketplace" },
-    { label: "Life Center", path: "/member/lifecenter" },
+    { label: "Marketplace", path: "/member/market" },
+    { label: "Life Center", path: "/member/life-center" },
     { label: "School of Ministries", path: "/member/school-of-ministries" },
-    { label: "Appointments", path: "/member/appointments" },
+    // { label: "Appointments", path: "/member/appointments" },
   ];
 
   return (

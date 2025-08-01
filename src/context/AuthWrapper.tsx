@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 // import RenderRoutes from "/src/routes/RenderRoutes";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { convertPermissions } from "@/utils/helperFunctions";
 import { userType } from "@/utils/interfaces";
 import PropTypes from "prop-types";
@@ -59,6 +60,8 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     setUser({ name: "", email: "", permissions: {}, id: "" });
     sessionStorage.removeItem("user");
+    const { setVisible } = useNotificationStore.getState();
+    setVisible(false);
   };
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

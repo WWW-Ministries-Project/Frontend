@@ -21,7 +21,7 @@ const DashBoardPage = () => {
       <div className={`${routeName==="member"?"":"min-h-screen p-6"}`}>
       <WelcomeHeader route={routeName} />
 
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${routeName==="member"?"px-[1rem] lg:px-[4rem] xl:px-[8rem] pb-6":""}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${routeName==="member"?"":""}`}>
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <UpcomingEvents />
