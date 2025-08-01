@@ -9,7 +9,6 @@ import { ReactNode } from "react";
 //TODO
 interface IProps {
   title: string;
-  totalMembers?: number;
   tableView?: boolean;
   handleViewMode?: (isTableView: boolean) => void;
   showFilter?: boolean;
@@ -27,7 +26,6 @@ interface IProps {
 
 export const HeaderControls = ({
   title,
-  totalMembers,
   tableView,
   handleViewMode,
   showFilter,
@@ -43,11 +41,11 @@ export const HeaderControls = ({
   customIcon,
 }: IProps) => {
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between items-center mb-4 overflow-x-auto">
       {/* Title with total members */}
       <div className="space-y-1">
-        <p className="text-primary text-2xl font-semibold">
-          {title} {totalMembers !== undefined ? `(${totalMembers})` : ""}
+        <p className="text-primary text-xl md:text-2xl font-semibold">
+          {title}
         </p>
         {subtitle && <p>{subtitle}</p>}
       </div>

@@ -123,10 +123,9 @@ export const MinistrySchool = () => {
   return (
     <PageOutline>
       <HeaderControls
-        title="School of Ministry"
+        title={`School of Ministry (${programsData.length})`}
         showSearch={false}
         showFilter={false}
-        totalMembers={programsData.length}
         btnName="Create program"
         handleClick={() => setIsModalOpen(true)}
         screenWidth={window.innerWidth}

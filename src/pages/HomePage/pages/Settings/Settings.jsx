@@ -54,8 +54,11 @@ function Settings() {
       refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
-    if (departmentError || positionError) {
-      showNotification("Something went wrong", "error");
+    if (departmentError) {
+      showNotification(departmentError.message, "error");
+    }
+    if (positionError) {
+      showNotification(positionError.message, "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [department, position, positionError, departmentError]);
@@ -75,8 +78,11 @@ function Settings() {
       refetchDepartments();// this is intentional to update the position options of departments
       handleCloseForm();
     }
-    if (departmentUpdateError || positionUpdateError) {
-      showNotification("Something went wrong", "error");
+    if (departmentUpdateError) {
+      showNotification(departmentUpdateError.message, "error");
+    }
+    if (positionUpdateError) {
+      showNotification(positionUpdateError.message, "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);

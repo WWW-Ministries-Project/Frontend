@@ -19,7 +19,6 @@ export const UserManagement = () => {
   const [showSearch, setShowSearch] = useState(true);
   const navigate = useNavigate();
 
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchedUser(e.target.value);
   };
@@ -110,8 +109,7 @@ export const UserManagement = () => {
   return (
     <PageOutline>
       <HeaderControls
-        title="Users"
-        totalMembers={users.length}
+        title={`"Users" (${users.length})`}
         setShowSearch={setShowSearch}
         hasFilter={false}
         screenWidth={window.innerWidth}

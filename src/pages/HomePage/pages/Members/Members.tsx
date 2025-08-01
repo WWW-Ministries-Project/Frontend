@@ -167,10 +167,7 @@ export function Members() {
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
         <HeaderControls
-          title="Church Memberships"
-          totalMembers={
-            userStats.online?.total_members + userStats.inhouse?.total_members
-          }
+          title={`Church Memberships (${userStats.online?.total_members + userStats.inhouse?.total_members})`}
           tableView={tableView}
           handleViewMode={handleViewMode}
           hasFilter={true}
