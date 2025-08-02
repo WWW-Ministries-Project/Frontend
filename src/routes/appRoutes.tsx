@@ -45,6 +45,7 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -98,13 +99,13 @@ export const routes: AppRoute[] = [
         element: <Members />,
         isPrivate: false,
       },
-      // {
-      //   path: relativePath.home.dashboard,
-      //   name: "Dashboard",
-      //   element: <DashBoardPage />,
-      //   isPrivate: false,
-      //   sideTab: true,
-      // },
+      {
+        path: relativePath.home.dashboard,
+        name: "Dashboard",
+        element: <DashBoardPage />,
+        isPrivate: false,
+        sideTab: true,
+      },
       {
         path: relativePath.home.members.main,
         name: "Members",

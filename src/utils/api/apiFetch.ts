@@ -43,7 +43,7 @@ export class ApiCalls {
   fetchAllMembers = (
     query?: QueryType
   ): Promise<ApiResponse<MembersType[]>> => {
-    return this.fetchFromApi("user/list-users", query);
+    return this.fetchFromApi("user/list-users?page=1&limit=100", query);
   };
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
