@@ -1,6 +1,6 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import earthImg from '@/assets/images/earth.jpg';
 import { ProfilePicture } from "@/components";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { FullWidth } from "@/components/ui";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
@@ -11,7 +11,7 @@ import {
   IUserSubForm,
   UserSubForm,
 } from "@components/subform";
-import { Formik, FormikProps, useFormikContext } from "formik";
+import { Field, Formik, FormikProps, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
 import { object, ObjectSchema } from "yup";
 import {
@@ -105,7 +105,7 @@ export const Registration = () => {
   }
 
   return (
-    <main className="  py-8" >
+    <main className="  py-8">
       <div className="bg-white w-full h-full sm:max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
         <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
           <div className="text-center">
@@ -120,11 +120,7 @@ export const Registration = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={(values) => handleSubmit(values)}
-          validationSchema={
-            getValidationSchema(initialValues.personal_info.has_children)[
-              currentStep
-            ]
-          }
+          validationSchema={{}}
         >
           {(formik: FormikProps<IRegistration>) => {
             const steps = getSteps(formik.values.personal_info.has_children);
@@ -252,6 +248,12 @@ const FirstStep = () => {
         </div>
       </FullWidth>
       <UserSubForm prefix="personal_info" />
+      <Field
+        component={FormikInputDiv}
+        label="Date joined"
+        name="church_info.membership_type"
+        type="date"
+      />
     </>
   );
 };

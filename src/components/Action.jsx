@@ -1,3 +1,4 @@
+import { cn } from "@/utils/cn";
 import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import PropTypes from "prop-types";
 import { memo } from "react";
@@ -32,10 +33,9 @@ const Action = ({ ...props }) => {
 
   return (
     <div
-      className={
-        "z-10 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5] " +
-        props.className
-      }
+      className={cn(
+        "z-50 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5] ", props.className
+      )}
     >
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
         {handleEdit && <ActionButton onClick={handleEdit} text="Edit" />}

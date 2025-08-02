@@ -1,3 +1,4 @@
+import { formatDate } from "@/utils";
 import { useOutletContext } from "react-router-dom";
 //TODO : Correct interface to have the same source of truth as source once the API is ready
 
@@ -25,7 +26,8 @@ export const FamilyInformation = () => {
   return (
     <div className="bg-white rounded-b-lg p-6 pt-0 mx-auto text-gray-800">
       <Section title="Spousal Information">
-        {user.spousal_info && (user.spousal_info.name || user.spousal_info.primary_number) ? (
+        {user.spousal_info &&
+        (user.spousal_info.name || user.spousal_info.primary_number) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
             <InfoField
               label="Spouse Name"
@@ -38,18 +40,20 @@ export const FamilyInformation = () => {
                 </div>
               }
             />
-            <InfoField 
-              label="Contact number" 
-              value={user.spousal_info?.primary_number} 
+            <InfoField
+              label="Contact number"
+              value={user.spousal_info?.primary_number}
             />
           </div>
         ) : (
-          <div className="text-gray-500 italic">No spousal information available</div>
+          <div className="text-gray-500 italic">
+            No spousal information available
+          </div>
         )}
       </Section>
-      
+
       <hr />
-      
+
       <Section title="Children Information">
         {user.children && user.children.length > 0 ? (
           user.children.map((child, index) => (
@@ -67,14 +71,19 @@ export const FamilyInformation = () => {
                   }
                 />
                 <InfoField label="Gender" value={child.gender} />
-                <InfoField label="Date of birth" value={child.date_of_birth} />
+                <InfoField
+                  label="Date of birth"
+                  value={formatDate(child.date_of_birth)}
+                />
                 <InfoField label="Nationality" value={child.nationality} />
               </div>
               {index < user.children.length - 1 && <hr className="mt-4" />}
             </div>
           ))
         ) : (
-          <div className="text-gray-500 italic">No children information available</div>
+          <div className="text-gray-500 italic">
+            No children information available
+          </div>
         )}
       </Section>
     </div>
