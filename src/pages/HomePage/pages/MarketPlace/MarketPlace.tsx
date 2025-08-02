@@ -1,23 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import useWindowSize from "@/CustomHooks/useWindowSize";
+import {
+  encodeQuery,
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils";
 import { api } from "@/utils";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { AddMarketForm } from "./components/forms/AddMarketForm";
 import { IMarket } from "@/utils/api/marketPlace/interface";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import { usePut } from "@/CustomHooks/usePut";
-import { useDelete } from "@/CustomHooks/useDelete";
-import EmptyState from "@/components/EmptyState";
-import useWindowSize from "@/CustomHooks/useWindowSize";
 import TabSelection from "../../Components/reusable/TabSelection";
 import { MarketCard } from "./components/cards/MarketCard";
-import { encodeQuery } from "@/pages/HomePage/utils";
-import { useNavigate } from "react-router-dom";
+import { AddMarketForm } from "./components/forms/AddMarketForm";
+import { useStore } from "@/store/useStore";
 
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
@@ -36,12 +40,12 @@ export function MarketPlace() {
     loading: isSubmitting,
   } = usePost(api.post.createMarket);
   const {
-    updateData,
-    data: update_value,
+    updateData: updateMarket,
+    data: updateValue,
     loading: isUpdating,
   } = usePut(api.put.updateMarket);
   const { executeDelete, success } = useDelete(api.delete.deleteMarket);
-  const { data: events } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const { events } = useStore()
 
   const handleOpenModal = () => {
     setEditData(null);
@@ -53,7 +57,7 @@ export function MarketPlace() {
     const { id, event_id, event_name, ...rest } = market;
 
     if (id) {
-      await updateData({ ...rest, id, event_id: +event_id }, { id });
+      await updateMarket({ ...rest, id, event_id: +event_id }, { id });
     } else {
       await postData({ ...rest, event_id: +event_id });
     }
@@ -65,22 +69,18 @@ export function MarketPlace() {
       refetch();
       handleCloseModal();
     }
-  }, [newMarket, refetch]);
 
-  useEffect(() => {
-    if (update_value) {
+    if (updateValue) {
       showNotification("Market updated successfully", "success");
       refetch();
       handleCloseModal();
     }
-  }, [update_value, refetch]);
 
-  useEffect(() => {
     if (success) {
       showNotification("Market deleted successfully", "success");
       refetch();
     }
-  }, [success]);
+  }, [newMarket, refetch, updateValue, success]);
 
   const handleEdit = (market: IMarket) => {
     setEditData(market);
@@ -148,7 +148,7 @@ export function MarketPlace() {
           editData={editData}
           onSubmit={handleAddMarket}
           loading={isSubmitting || isUpdating}
-          events={events?.data}
+          events={events}
         />
       </Modal>
     </PageOutline>
