@@ -4,9 +4,6 @@ import { decodeToken } from "@/utils";
 export const WelcomeHeader = ({route ={}}) => {
       const decodedToken = decodeToken();
       const name = decodedToken?.name ?? "";
-
-      console.log("Route:", route);
-      console.log("User", decodedToken);
       
       
 

@@ -10,12 +10,6 @@ export const UpcomingEvents = () => {
         setEvents: state.setEvents,
     }));
 
-    const [showOptions, setShowOptions] = useState(null);
-
-    useEffect(() => {
-        console.log("Event", events);
-    }, [events]);
-
 
     // Filter for upcoming and ongoing events
     const upcomingAndOngoingEvents = events.filter(event => {

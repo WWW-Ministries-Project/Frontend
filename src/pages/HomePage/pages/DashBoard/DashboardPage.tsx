@@ -1,12 +1,12 @@
 
 import { matchRoutes, useLocation } from "react-router-dom";
-import { ChurchAnnouncements } from "./Components/ChurchAnnouncements ";
-import { MyAppointments } from "./Components/MyAppointments ";
-import { ProfileSummary } from "./Components/ProfileSummary ";
-import { QuickActions } from "./Components/QuickActions ";
+import { ChurchAnnouncements } from "./Components/ChurchAnnouncements";
+import { MyAppointments } from "./Components/MyAppointments";
+import { ProfileSummary } from "./Components/ProfileSummary";
+import { QuickActions } from "./Components/QuickActions";
 import { RecentSermons } from "./Components/RecentSermons";
 import { UpcomingEvents } from "./Components/UpcomingEvents";
-import { WelcomeHeader } from "./Components/WelcomeHeader ";
+import { WelcomeHeader } from "./Components/WelcomeHeader";
 import { routes } from "@/routes/appRoutes";
 
 
