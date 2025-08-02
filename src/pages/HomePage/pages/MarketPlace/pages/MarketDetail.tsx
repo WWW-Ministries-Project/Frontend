@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
@@ -11,7 +11,7 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { MarketHeader } from "../components/MarketHeader";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
+import { api, IProductType } from "@/utils";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 import EmptyState from "@/components/EmptyState";
 
@@ -27,20 +27,40 @@ export function MarketDetails() {
     id,
   });
 
-  // TODO: replace this with the original data
-  const [categories, setCategories] = useState([
-    { id: "1", name: "Adult" },
-    { id: "2", name: "Books" },
-  ]);
+  const { data: producttypes, refetch: refetchProductTypes } = useFetch(
+    api.fetch.fetchProductTypes
+  );
 
-  const [types, setTypes] = useState([
-    { id: "a", name: "T-shirt" },
-    { id: "b", name: "Hoodie" },
-  ]);
+  const { data: productCategories, refetch: refetchProductCategories } =
+    useFetch(api.fetch.fetchProductCategories);
+
+  const [categories, setCategories] = useState<IProductType[]>([]);
+  const [types, setTypes] = useState<IProductType[]>([]);
+
+  useEffect(() => {
+    if (producttypes?.data) {
+      setTypes(producttypes?.data);
+    }
+  }, [producttypes?.data]);
+
+  useEffect(() => {
+    if (productCategories?.data) {
+      setCategories(productCategories.data);
+    }
+  }, [productCategories?.data]);
 
   const editProduct = (id: string) => {
     navigate("update-product/" + encodeQuery(id));
   };
+
+  const handleRefetch = useCallback((section: "type" | "category") => {
+    if (section === "type") {
+      refetchProductTypes();
+    } else {
+      refetchProductCategories();
+    }
+  }, []);
+
   return (
     <PageOutline>
       <MarketHeader market={market?.data} />
@@ -91,8 +111,7 @@ export function MarketDetails() {
         onClose={() => setDrawerOpen(false)}
         categories={categories}
         types={types}
-        onUpdateCategories={setCategories}
-        onUpdateTypes={setTypes}
+        refetch={handleRefetch}
       />
     </PageOutline>
   );

@@ -1,11 +1,11 @@
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
 import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
-import { useEffect, useState } from "react";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";
@@ -24,6 +24,10 @@ export const navigateRef = {
 };
 
 export function HomePage() {
+  //custom navigation
+  const navigate = useNavigate();
+  navigateRef.current = navigate;
+
   const { data: membersData, refetch: refetchMembers } = useFetch(
     api.fetch.fetchAllMembers
   );
@@ -121,59 +125,52 @@ export function HomePage() {
     };
   }, []);
 
-  //custom navigation
-  const navigate = useNavigate();
-  navigateRef.current = navigate;
-
+  if (!token) return null;
   return (
     <div className="lg:fixed ">
-      {token ? (
-        <main className="h-screen w-screen p-3  ">
-          <div className="">
-            <Header handleShowNav={handleShowNav} />
+      <main className="h-screen w-screen p-3  ">
+        <div className="">
+          <Header handleShowNav={handleShowNav} />
+        </div>
+        <div className="flex">
+          <div className={` hidden sm:hidden md:hidden lg:inline  `}>
+            <SideBar className="" onClick={handleShowNav} show={show} />
           </div>
-          <div className="flex">
-            <div className={` hidden sm:hidden md:hidden lg:inline  `}>
-              <SideBar className="" onClick={handleShowNav} show={show} />
-            </div>
 
-            <div className="inline lg:hidden">
-              <MobileSideBar show={show} onClick={handleShowNav} />
+          <div className="inline lg:hidden">
+            <MobileSideBar show={show} onClick={handleShowNav} />
+          </div>
+          <div className="w-full ">
+            <div className="">
+              {/* <Header handleShowNav={handleShowNav} /> */}
             </div>
-            <div className="w-full ">
-              <div className="">
-                {/* <Header handleShowNav={handleShowNav} /> */}
-              </div>
-              <div
-                className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
-              >
-                <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-                  <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
-                    <Breadcrumb />
-                  </div>
-                  <Outlet
-                    context={{
-                      members,
-                      refetchMembers,
-                      filter,
-                      setFilter,
-                      handleSearchChange,
-                      userStats,
-                      refetchPositions,
-                      refetchDepartments,
-                    }}
-                  />
+            <div
+              className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
+            >
+              <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
+                  <Breadcrumb />
                 </div>
+                <Outlet
+                  context={{
+                    members,
+                    refetchMembers,
+                    filter,
+                    setFilter,
+                    handleSearchChange,
+                    userStats,
+                    refetchPositions,
+                    refetchDepartments,
+                  }}
+                />
               </div>
             </div>
           </div>
-          <NotificationCard />
-          <Dialog />
-          <LoaderComponent />
-        </main>
-      ) : (
-        <Navigate to="/login" />
-      )}
+        </div>
+        <NotificationCard />
+        <Dialog />
+        <LoaderComponent />
+      </main>
     </div>
   );
 }

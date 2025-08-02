@@ -61,8 +61,7 @@ export const AssetManagement = () => {
   return (
     <PageOutline>
       <HeaderControls
-        title="Asset Management"
-        totalMembers={assertsData.length}
+        title={`Asset Management (${assertsData.length})`}
         tableView={tableView}
         handleViewMode={handleViewMode}
         showSearch={showSearch}

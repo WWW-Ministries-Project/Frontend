@@ -1,7 +1,8 @@
 
-import { api } from "@/utils/api/apiCalls";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+
+import { api } from "@/utils/api/apiCalls";
 // import useState from "react-usestateref";
 import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete.tsx";
@@ -41,63 +42,98 @@ function Settings() {
   const { executeDelete: deletePosition, success: positionDelete, error: positionDeleteError } = useDelete(api.delete.deletePosition);
 
 
+  const handleCloseForm = useCallback(() => {
+    setDisplayForm(false);
+    setEditMode(false);
+  }, [setDisplayForm, setEditMode])
   // new data
   useEffect(() => {
-    if (department) {
-      showNotification("Department added successfully", "success");
-      settingsStore.setDepartments(department.data);
+    if (department || position) {
+      const { message } = department ?? position ?? {};
+      showNotification(message || "Created successfully", "success");
+
+      const refetch = position
+        ? () => refetchPositions().then(refetchDepartments)
+        : refetchDepartments;
+
+      refetch();
       handleCloseForm();
     }
-    if (position) {
-      showNotification("Position added successfully", "success");
-      settingsStore.setPositions(position.data);
-      refetchDepartments();// this is intentional to update the position options of departments
-      handleCloseForm();
-    }
+
     if (departmentError || positionError) {
-      showNotification("Something went wrong", "error");
+      const errorMessage =
+        departmentError?.message ||
+        positionError?.message ||
+        "Something went wrong";
+
+      showNotification(errorMessage, "error");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [department, position, positionError, departmentError]);
+  }, [
+    department,
+    position,
+    departmentError,
+    positionError,
+    refetchDepartments,
+    refetchPositions,
+    handleCloseForm,
+  ]);
 
   // updated data
   useEffect(() => {
-    if (departmentUpdate) {
-      showNotification("Department updated successfully", "success");
-      settingsStore.updateDepartment(departmentUpdate.data);
+    if (departmentUpdate || positionUpdate) {
+      const { message } = departmentUpdate ?? positionUpdate ?? {};
+      showNotification(message || "Updated successfully", "success");
 
-      handleCloseForm();
-    }
-    if (positionUpdate) {
-      showNotification("Position updated successfully", "success");
-      // settingsStore.updatePosition(positionUpdate.data);
-      refetchPositions();
-      refetchDepartments();// this is intentional to update the position options of departments
+      const refetch = positionUpdate
+        ? () => refetchPositions().then(refetchDepartments)
+        : refetchDepartments;
+
+      refetch();
       handleCloseForm();
     }
     if (departmentUpdateError || positionUpdateError) {
-      showNotification("Something went wrong", "error");
+      const errorMessage =
+        departmentUpdateError?.message ||
+        positionUpdateError?.message ||
+        "Something went wrong";
+
+      showNotification(errorMessage, "error");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [departmentUpdate, positionUpdate, positionUpdateError, departmentUpdateError]);
+  }, [
+    departmentUpdate,
+    positionUpdate,
+    departmentUpdateError,
+    positionUpdateError,
+    refetchDepartments,
+    refetchPositions,
+    handleCloseForm,
+  ]);
+
   // deleted data
   useEffect(() => {
-
-    if (departmentDelete) {
-      showNotification("Department deleted successfully", "success");
-      refetchDepartments();
-      // settingsStore.removeDepartment(departmentDelete.data);
-    }
-    if (positionDelete) {
-      showNotification("Position deleted successfully", "success");
-      refetchPositions();
-      // settingsStore.removePosition(positionDelete.data);
+    if (departmentDelete || positionDelete) {
+      const { message } = departmentDelete ?? positionDelete ?? {};
+      showNotification(message || "Deleted successfully", "success");
+      if (departmentDelete) refetchDepartments()
+      else refetchPositions();
     }
     if (departmentDeleteError || positionDeleteError) {
-      showNotification("Something went wrong", "error");
+      const errorMessage =
+        departmentDeleteError?.message ||
+        positionDeleteError?.message ||
+        "Something went wrong";
+
+      showNotification(errorMessage, "error");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [departmentDelete, positionDelete]);
+  }, [
+    departmentDelete,
+    positionDelete,
+    departmentDeleteError,
+    positionDeleteError,
+    refetchDepartments,
+    refetchPositions,
+  ]);
+
   const handleDelete = (itemToDelete) => {
     if (selectedTab === "Department") {
       deleteDepartment({ id: itemToDelete.id })
@@ -200,10 +236,6 @@ function Settings() {
     setInputValue((prev) => ({ ...prev, [name]: value }));
   }
 
-  const handleCloseForm = () => {
-    setDisplayForm(false);
-    setEditMode(false);
-  }
 
   const handleFormSubmit = async () => {
     switch (selectedTab) {

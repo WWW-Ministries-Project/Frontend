@@ -135,8 +135,7 @@ const EventsManagement = () => {
   return (
     <PageOutline>
       <HeaderControls
-        title="Events "
-        totalMembers={filteredEvents.length} // Number of events
+        title={`Events (${filteredEvents.length})`}
         tableView={tableView}
         handleViewMode={handleToggleView}
         showFilter={showFilter}
