@@ -59,8 +59,8 @@ export const SideBarSubMenu = ({
         <div>
           {/* Active indicator shape - top */}
           {(isActive || showChildren) && (
-            <div className="flex justify-end">
-              <div className="shape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-top"></div>
             </div>
           )}
 
@@ -130,8 +130,8 @@ export const SideBarSubMenu = ({
 
           {/* Active indicator shape - bottom */}
           {(isActive || showChildren) && (
-            <div className="flex justify-end">
-              <div className="Bshape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-bottom"></div>
             </div>
           )}
         </div>
@@ -139,16 +139,16 @@ export const SideBarSubMenu = ({
         <div>
           {/* Navigation link rendering */}
           {isActive && (
-            <div className="flex justify-end">
-              <div className="shape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-top"></div>
             </div>
           )}
           <NavigationLink item={item} show={show}>
             {children}
           </NavigationLink>
           {isActive && (
-            <div className="flex justify-end">
-              <div className="Bshape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-bottom"></div>
             </div>
           )}
         </div>

@@ -1,16 +1,15 @@
 import {
+  ColumnDef,
+  ColumnFilter,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-  ColumnDef,
   SortingState,
-  ColumnFilter,
+  useReactTable,
 } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useState } from "react";
-import PaginationComponent from "./PaginationComponent";
+import { PaginationComponent } from "./PaginationComponent";
 
 interface TableComponentProps<TData> {
   data: TData[];
@@ -25,6 +24,9 @@ interface TableComponentProps<TData> {
   headClass?: string;
   className?: string;
   onRowClick?: (data: any) => void;
+  total?: number;
+  take?: number;
+  onPageChange?: (newPage: number, limit: number) => void;
 }
 
 function TableComponent<TData>({
@@ -46,7 +48,6 @@ function TableComponent<TData>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
@@ -54,12 +55,6 @@ function TableComponent<TData>({
       globalFilter: filter,
       columnFilters,
       columnVisibility,
-    },
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: displayedCount,
-      },
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
@@ -87,10 +82,15 @@ function TableComponent<TData>({
                       onClick={header.column.getToggleSortingHandler()}
                       className={`py-4 px-6 text-left font-semibold cursor-pointer ${headClass}`}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                       <span className="ml-2">
                         {header.column.getIsSorted() ? (
-                          <span>{header.column.getIsSorted() === "asc" ? "↑" : "↓"}</span>
+                          <span>
+                            {header.column.getIsSorted() === "asc" ? "↑" : "↓"}
+                          </span>
                         ) : null}
                       </span>
                     </th>
@@ -107,7 +107,10 @@ function TableComponent<TData>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -116,15 +119,11 @@ function TableComponent<TData>({
           </table>
         </div>
       </div>
-      {data.length > displayedCount ? (
+      {props.total ?? displayedCount > displayedCount ? (
         <PaginationComponent
-          canGoBack={table.getCanPreviousPage()}
-          goBack={table.previousPage}
-          canGoForward={table.getCanNextPage()}
-          goForward={table.nextPage}
-          goToPage={table.setPageIndex}
-          goFirst={() => table.setPageIndex(0)}
-          totalPages={table.getPageCount()}
+          total={props.total}
+          take={displayedCount}
+          onPageChange={props.onPageChange || (() => {})}
         />
       ) : null}
     </div>

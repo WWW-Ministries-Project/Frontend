@@ -3,11 +3,11 @@ import {
   ColumnFilter,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import React, { Dispatch, SetStateAction, useState } from "react";
+import { PaginationComponent } from "./PaginationComponent";
 
 interface GridComponentProps {
   data: any;
@@ -19,6 +19,9 @@ interface GridComponentProps {
   setColumnFilters?: Dispatch<SetStateAction<ColumnFilter[]>>;
   displayedCount: number;
   renderRow: (row: any) => React.ReactNode;
+  total?: number;
+  take?: number;
+  onPageChange?: (newPage: number, limit: number) => void;
 }
 
 const GridComponent: React.FC<GridComponentProps> = ({
@@ -35,20 +38,13 @@ const GridComponent: React.FC<GridComponentProps> = ({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting: sorting,
       globalFilter: filter,
       columnFilters: props.columnFilters,
-      columnVisibility: props.columnVisibility
-    },
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: displayedCount || 12,
-      },
+      columnVisibility: props.columnVisibility,
     },
     //@ts-expect-error will have to check this out
     onSortingChange: setSorting,
@@ -61,55 +57,12 @@ const GridComponent: React.FC<GridComponentProps> = ({
       <GridWrapper>
         {table.getRowModel().rows.map((row) => renderRow(row))}
       </GridWrapper>
-      {data.length > displayedCount ? (
-        <div className={`flex justify-end gap-1 text-gray my-2`}>
-          <button
-            onClick={() => table.setPageIndex(0)}
-            className={
-              table.getCanPreviousPage()
-                ? "border border-primary p-1 sm rounded-md text-primary"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-          >
-            <span className="hidden sm:inline">First page</span>
-            <span className="inline sm:hidden text-xs">First</span>
-          </button>
-          <button
-            className={
-              table.getCanPreviousPage()
-                ? "border border-primary p-1 rounded-md text-primary"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}
-          >
-            <span className="hidden sm:inline">Previous page</span>
-            <span className="inline sm:hidden text-xs">Previous</span>
-          </button>
-          <button
-            className={
-              table.getCanNextPage()
-                ? "border border-primary p-1 rounded-md text-primary"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            disabled={!table.getCanNextPage()}
-            onClick={() => table.nextPage()}
-          >
-            <span className="hidden sm:inline">Next page</span>
-            <span className="inline sm:hidden text-xs">Next</span>
-          </button>
-          <button
-            className={
-              table.getCanNextPage()
-                ? "border border-primary p-1 rounded-md text-primary"
-                : "border border-lightGray p-1 rounded-md opacity-50"
-            }
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          >
-            <span className="hidden sm:inline">Last page</span>
-            <span className="inline sm:hidden text-xs">Last</span>
-          </button>
-        </div>
+      {props.total ?? displayedCount > displayedCount ? (
+        <PaginationComponent
+          total={props.total}
+          take={displayedCount}
+          onPageChange={props.onPageChange || (() => {})}
+        />
       ) : null}
     </div>
   );
