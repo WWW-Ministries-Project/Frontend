@@ -64,7 +64,7 @@ export function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMembers(membersData.data);
+      store.setMembers(membersData.data, membersData.meta?.total ?? 0);
     }
 
     if (userStatsData) {

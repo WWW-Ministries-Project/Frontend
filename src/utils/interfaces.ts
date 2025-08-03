@@ -3,11 +3,20 @@ export interface pictureType {
   src: string;
 }
 
+export interface IPaginationMeta {
+  current_page: number;
+  take: number;
+  total: number;
+  page_size: number;
+  totalPages: number;
+}
+
 export interface ApiResponse<T> {
   success: unknown;
   error: string;
   status: number;
   data: T;
+  meta?: IPaginationMeta;
 }
 
 export type QueryType = Record<string, string>;

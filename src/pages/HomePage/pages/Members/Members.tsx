@@ -1,3 +1,8 @@
+import type { ColumnFilter } from "@tanstack/react-table";
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
+import useState from "react-usestateref";
+
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
@@ -5,15 +10,12 @@ import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
 import { MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
-import { ColumnFilter } from "@tanstack/react-table";
-import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import useState from "react-usestateref";
+import { QueryType } from "@/utils/interfaces";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import {MembersCount} from "../../Components/reusable/MembersCount";
+import { MembersCount } from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { MemberCard } from "./Components/MemberCard";
@@ -29,6 +31,10 @@ export function Members() {
   const {
     user: { permissions },
   } = useAuth();
+
+  const { refetchMembers } = useOutletContext<{
+    refetchMembers: (query?: QueryType) => void;
+  }>();
 
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
@@ -57,7 +63,7 @@ export function Members() {
     true
   );
   const store = useStore();
-  const { members, userStats, removeMember } = store;
+  const { members, userStats, removeMember, total } = store;
   const columns = membersColumns;
 
   useEffect(() => {
@@ -167,7 +173,9 @@ export function Members() {
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
         <HeaderControls
-          title={`Church Memberships (${userStats.online?.total_members + userStats.inhouse?.total_members})`}
+          title={`Church Memberships (${
+            userStats.online?.total_members + userStats.inhouse?.total_members
+          })`}
           tableView={tableView}
           handleViewMode={handleViewMode}
           hasFilter={true}
@@ -212,23 +220,31 @@ export function Members() {
             <TableComponent
               columns={columns}
               data={members}
-              displayedCount={12}
+              displayedCount={24}
+              total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
+              onPageChange={(page, limit) => {
+                refetchMembers({ limit: String(limit), page: String(page) });
+              }}
             />
           ) : (
             <GridComponent
               columns={columns}
               data={members}
               displayedCount={24}
+              total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
+              onPageChange={(page, limit) => {
+                refetchMembers({ limit: String(limit), page: String(page) });
+              }}
               renderRow={(row) => (
                 <MemberCard
                   member={row.original}

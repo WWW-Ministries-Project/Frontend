@@ -8,6 +8,7 @@ export const createMemberSlice: StateCreator<
   MemberSlice
 > = (set, get) => ({
   members: [],
+  total: 0,
   membersOptions: [],
   userStats: {
     online: {
@@ -65,8 +66,9 @@ export const createMemberSlice: StateCreator<
     }));
     get().setMemberOptions();
   },
-  setMembers: (members) => {
+  setMembers: (members, total) => {
     set({ members });
+    set({ total });
     get().setMemberOptions();
   },
   setUserStats: (userStats) => {
