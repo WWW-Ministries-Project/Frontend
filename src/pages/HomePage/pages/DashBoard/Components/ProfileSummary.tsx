@@ -1,17 +1,10 @@
-import { decodeToken, formatDatefull } from "@/utils";
+import { decodeToken, firstLetters, formatDatefull } from "@/utils";
 
 export const ProfileSummary = () => {
   const decodedToken = decodeToken();
+
+  console.log("decodedToken", decodedToken);
   
-  // Function to get initials from name
-  const getInitials = (name: string | undefined) => {
-    if (!name) return "NA"; // "Not Available" fallback
-    return name
-      .split(" ")
-      .map(word => word.charAt(0).toUpperCase())
-      .slice(0, 2) // Take only first 2 initials
-      .join("");
-  };
 
   // Function to render profile picture or initials
   const renderProfileImage = () => {
@@ -29,7 +22,7 @@ export const ProfileSummary = () => {
       // Show initials if no profile image
       return (
         <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
-          {getInitials(decodedToken?.name)}
+          {firstLetters(decodedToken?.name)}
         </div>
       );
     }
