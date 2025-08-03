@@ -5,20 +5,18 @@ export interface IMarket {
   start_date: string;
   end_date: string;
   id: string;
-  event_name: string;
+  event_name?: string;
 }
 
 export type MarketStatusType = "upcoming" | "active" | "ended";
 
 export type IProduct = {
   product_name: string;
-  imageUrl: string;
   description: string;
   status: "published" | "draft";
   type: string;
   category: string;
   price: string;
-  stock: string;
   id: string;
 };
 
