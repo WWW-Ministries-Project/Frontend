@@ -2,12 +2,12 @@ import { Field, Form, Formik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { array, mixed, object, string } from "yup";
 
-import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
 import type { IProduct } from "@/utils/api/marketPlace/interface";
 import { ProductGallery } from "./ProductGallery";
+import { Actions } from "@/components/ui/form/Actions";
 
 interface IProps {
   addProduct: (product: IProduct) => void;
@@ -70,16 +70,14 @@ export function ProductForm({
                 id="category"
                 placeholder="Select Category"
               />
-            </FormLayout>
 
-            <ProductGallery
-              values={values}
-              errors={errors}
-              touched={touched}
-              setFieldValue={setFieldValue}
-            />
+              <ProductGallery
+                values={values}
+                errors={errors}
+                touched={touched}
+                setFieldValue={setFieldValue}
+              />
 
-            <FormLayout>
               <Field
                 name="price"
                 component={FormikInputDiv}
@@ -89,32 +87,23 @@ export function ProductForm({
                 type="number"
               />
 
-              <div className="space-y-4">
-                <Field
-                  name="status"
-                  component={FormikSelectField}
-                  options={productSatus}
-                  label="Status"
-                  id="status"
-                  placeholder="Select status"
-                />
-              </div>
+              <Field
+                name="status"
+                component={FormikSelectField}
+                options={productSatus}
+                label="Status"
+                id="status"
+                placeholder="Select status"
+              />
             </FormLayout>
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-3 border-t p-2">
-              <Button
-                value="Save"
-                type="submit"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-              />
-              <Button
-                value="Cancel"
-                variant="secondary"
-                onClick={() => navigate(-1)}
-              />
-            </div>
+
+            <Actions
+              loading={isSubmitting}
+              onCancel={() => navigate(-1)}
+              onSubmit={handleSubmit}
+            />
           </Form>
         );
       }}

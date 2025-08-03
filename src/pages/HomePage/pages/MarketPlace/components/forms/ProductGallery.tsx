@@ -24,7 +24,7 @@ export const ProductGallery = ({
   return (
     <FieldArray name="gallery">
       {({ push: pushGallery }) => (
-        <div>
+        <div className="col-span-2">
           <p className="text-primary font-semibold py-1">Stock management</p>
           <div className="mt-1 mb-3 flex gap-4 text-900">
             {["yes", "no"].map((option) => (
