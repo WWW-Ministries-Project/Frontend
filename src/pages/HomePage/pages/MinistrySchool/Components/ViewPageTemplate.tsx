@@ -5,6 +5,7 @@ import { Badge } from "@/components/Badge";
 
 const ViewPageTemplateInner = () => {
   const { loading, data: Data, details } = useViewPage();
+  
   return (
     <PageOutline className="p-0 ">
       <section className="sticky top-0">
@@ -19,7 +20,7 @@ const ViewPageTemplateInner = () => {
                     <div className="h-4 bg-lightGray rounded w-1/6"></div>
                     </div> : 
                     <div className="flex items-center gap-4">
-                      <div className="text-white text-2xl font-bold">{Data?.title } </div>
+                      <div className="text-white text-2xl font-bold">{Data?.title || Data?.user?.name }</div>
                       
                     </div>
                     }

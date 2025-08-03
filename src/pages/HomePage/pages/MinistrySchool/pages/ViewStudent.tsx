@@ -3,7 +3,7 @@ import { Badge } from "@/components/Badge";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
-import { api } from "@/utils";
+import { api, User } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TopicAssessment } from "../Components/TopicAssessment";
@@ -30,6 +30,7 @@ const ViewStudent = () => {
     setDetails?.(<Details data={studentData?.data} onEdit={toggleEditMode} />);
     setData?.({
       showTopic: true,
+      user:studentData?.data?.user
       // title: classData?.name || "",
     });
     setLoading?.(false);
@@ -56,6 +57,7 @@ const ViewStudent = () => {
           editMode={editMode}
           enrollmentId={studentData?.data.id}
           onCancel={() => setEditMode(false)}
+          toggleEditMode={toggleEditMode}
           onUpdate={(data) => updateData(data)}
           loading={loading}
         />
@@ -70,7 +72,7 @@ const Details = ({
   data,
   onEdit,
 }: {
-  data: { email: string; phone: string };
+  data: { email: string; user: User };
   onEdit: () => void;
 }) => {
   return (
@@ -85,11 +87,9 @@ const Details = ({
       </div>
       <div className="space-y-1">
         <div className="font-semibold">Phone number</div>
-        <div>{data?.phone} </div>
+        <div>{data?.user?.user_info?.country_code}{data?.user?.user_info?.primary_number} </div>
       </div>
-      <div className="ml-auto">
-        <Button variant="primary" value="Edit" onClick={onEdit} />
-      </div>
+      
     </div>
   );
 };
