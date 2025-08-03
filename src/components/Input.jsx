@@ -1,13 +1,14 @@
 // import React from "react";
+import { layouts } from "chart.js";
 import PropTypes from "prop-types";
 import { useRef } from "react";
 
 const Input = (props) => {
   const emailInputRef = useRef();
   return (
-    <div className={"inputBox bg-white rounded-lg W px-5 " + props.className}>
+    <div className={"inputBox  rounded-lg W px-5 " + props.className}>
       <label
-        className=" text-left text-primary p-2  "
+        className={` text-left  p-2 ${props.labelClassName? props.labelClassName:"text-primary"} `}
         htmlFor={props.id}>
         {props.label}
       </label>
@@ -49,6 +50,7 @@ Input.propTypes = {
   handleBlur: PropTypes.func,
   onChange: PropTypes.func,
   className: PropTypes.string,
+  labelClassName:PropTypes.string
 };
 
 export default Input;
