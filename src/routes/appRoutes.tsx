@@ -45,6 +45,8 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import Authentication from "@/pages/Authentication/Authentication";
+import MemberLogin from "@/pages/Authentication/pages/LoginPage/MemberLogin.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -64,7 +66,7 @@ export interface AppRoute {
 export const routes: AppRoute[] = [
   {
     path: "/",
-    element: <LoginPage />,
+    element: <Authentication />,
     name: "Landing",
     errorElement: <ErrorPage />,
   },
@@ -72,6 +74,11 @@ export const routes: AppRoute[] = [
     path: relativePath.login,
     name: "Landing",
     element: <LoginPage />,
+  },
+  {
+    path: "/member-login",
+    name: "member-login",
+    element: <MemberLogin />,
   },
   {
     path: "/forgot-password",

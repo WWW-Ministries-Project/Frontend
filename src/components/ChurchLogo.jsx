@@ -12,7 +12,7 @@ function ChurchLogo (props) {
                 </div>
                 {props.show&&<div className="flex flex-col gap-1.5">
                   <img src="/assets/authentication/churchName.svg" alt="" />
-                  <img src="/assets/authentication/ministries.svg" className="" alt="" />
+                  <img src="/assets/authentication/ministries.svg" className="text-white" alt="" />
                 </div>}
               </div>
         </>

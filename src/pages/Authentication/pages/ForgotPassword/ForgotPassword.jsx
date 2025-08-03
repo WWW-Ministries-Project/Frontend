@@ -51,7 +51,7 @@ const ForgotPassword = () => {
   return (
     <>
       <OuterDiv>
-        {response.status == 200 ? (
+        {true ? (
           <div className="authForm mx-auto">
             <NotificationCard
               header="Email sent!"

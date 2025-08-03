@@ -72,17 +72,17 @@ function LoginPage() {
   }
   return (
     <div className="bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover">
-      <div className="relative h-screen bg-primary/60 overflow-hidden">
+      <div className="bg-primary/60  backdrop-blur-sm">
         <OuterDiv>
           <AuthenticationForm
             response={response}
-            header={"Welcome back!"}
-            text={"Login to your account to continue."}
+            header={"Administrator Login"}
+            // text={"Login to your account to continue."}
             buttonValue={"Login"}>
             {/* <div className="gap-4"> */}
 
             <Input
-              label="Email"
+              label="Email Address"
               type="email "
               id="mail"
               name="email"
@@ -91,12 +91,13 @@ function LoginPage() {
               onChange={handleInputChange}
               onBlur={handleBlur}
               placeholder={"Enter email address"}
+              labelClassName={"text-white"}
               inputClass={
                 error.status
                   ? "  rounded-md px-4 mt-2 border-error"
-                  : "  rounded-md px-4 mt-2"
+                  : "  rounded-md px-4 mt-2 "
               }
-              className="my-4 !p-0"
+              className="my-4 !p-0 "
             />
             <InputPassword
               label="Password"
@@ -107,6 +108,7 @@ function LoginPage() {
               onChange={handleInputChange}
               onBlur={handleBlur}
               placeholder={"Enter password"}
+              labelClassName={"text-white"}
               inputClass={
                 error.status
                   ? " rounded-md px-4 mt-2 border-error"
@@ -115,23 +117,23 @@ function LoginPage() {
               className=" !p-0"
             />
             <Button
+            variant="secondary"
               value={"Login"}
               loading={loading}
               disabled={loading}
               onClick={handleSubmit}
-              className={"w-full  bg-primary my-8 text-white"}
+              className={"w-full  border border-white my-8 text-white"}
             />
             <div className="text-lightGray text-sm">
-              <div className="mb-4">
-                Forgot Password?{" "}
+              <div className=" flex flex-col justify-center text-center space-y-1">
+                <p>Forgot password?</p>
                 <Link to="/forgot-password" className="text-primary">
-                  Reset
+                  <p className="font-bold text-white hover:underline">
+                    Reset Password
+                  </p>
                 </Link>
               </div>
-              {/* <div className="">
-              Don't have an account?{" "}
-              <span className="text-primary">Register</span>
-            </div> */}
+              
             </div>
 
             {/* </div> */}

@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import ChurchLogo from "../../../components/ChurchLogo";
 import Alert from "./Alerts";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const AuthenticationForm = (props) => {
 
@@ -8,12 +9,18 @@ const AuthenticationForm = (props) => {
   return (
     <>
       <div className=" md:w-2/3  max-w-[500px] h-full mx-auto ">
+      <div className="flex ">
+                <ChurchLogo show className={'text-white mb-5'} />
+              </div>
         <form>
-          <div className="authForm pt-1 rounded-lg shadow-lg mx-auto bg-primary">
-            <div className="bg-white shadow-sm rounded-lg py-12 px-10 ">
-              <ChurchLogo className={' mb-5'} />
-              <div className="flex justify-center text-primary text-2xl mb-2">{props.header}</div>
-              <div className="text-center  text-gray">{props.text}</div>
+          <div className="authForm pt-1 rounded-xl shadow-lg mx-auto bg-primary/50">
+            <div className="bg-white/15 shadow-sm rounded-lg py-8 px-10 ">
+              
+              <div className="flex  font-bold text-white text-2xl gap-x-4">
+                <ArrowLeftIcon className="w-4"/>
+                <div>{props.header}</div>
+              </div>
+              <div className="text-center  text-white">{props.text}</div>
               <div className="gap-4">
                 {props.response?.status >= 400 ? (
                   <Alert
