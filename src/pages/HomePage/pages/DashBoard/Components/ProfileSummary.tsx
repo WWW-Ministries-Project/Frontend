@@ -2,8 +2,6 @@ import { decodeToken, firstLetters, formatDatefull } from "@/utils";
 
 export const ProfileSummary = () => {
   const decodedToken = decodeToken();
-
-  console.log("decodedToken", decodedToken);
   
 
   // Function to render profile picture or initials
