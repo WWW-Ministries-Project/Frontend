@@ -1,15 +1,19 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { api, type ProductColour, type ProductType } from "@/utils";
+import { api } from "@/utils";
 import { ProductForm } from "../components/forms/ProductForm";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { pictureInstance } from "@/axiosInstance";
 import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
+import type {
+  ProductColour,
+  ProductType,
+} from "@/utils/api/marketPlace/interface";
 
 export function AddProduct() {
   const { data } = useFetch(api.fetch.fetchProductTypes);
@@ -30,15 +34,19 @@ export function AddProduct() {
 
   const decoded_market_id = decodeQuery(String(marketId));
   const navigate = useNavigate();
+  const [isUploading, setIsUploading] = useState(false);
 
   const uploadPicture = async (file: FormData) => {
     try {
+      setIsUploading(true);
       const response: { data: { result: { link: string } } } =
         await pictureInstance.post("/upload", file);
 
       return response.data.result.link;
     } catch {
       showNotification("There was an error uploading image", "error");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,9 +126,7 @@ export function AddProduct() {
           : "Product created successfully",
         "success"
       );
-      setTimeout(() => {
-        navigate(`/home/market-place/${marketId}`);
-      }, 100);
+      navigate(`/home/market-place/${marketId}`);
     }
   }, [newProduct?.data, updateValue?.data]);
 
@@ -132,7 +138,7 @@ export function AddProduct() {
       </div>
       <ProductForm
         addProduct={addProduct}
-        isSubmitting={isSubmitting || isUpdating}
+        isSubmitting={isSubmitting || isUpdating || isUploading}
         productTypes={productTypes || []}
         categories={productCategories || []}
       />
