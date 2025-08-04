@@ -1,17 +1,16 @@
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { ProductForm } from "../components/forms/ProductForm";
-import { useParams } from "react-router-dom";
-import { IProduct } from "@/utils";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
 import { useMemo } from "react";
 
+import { useFetch } from "@/CustomHooks/useFetch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { api, IProduct } from "@/utils";
+import { ProductForm } from "../components/forms/ProductForm";
+
 export function AddProduct() {
-  const { marketId, productId } = useParams();
   const { data } = useFetch(api.fetch.fetchProductTypes);
   const { data: categories } = useFetch(api.fetch.fetchProductCategories);
 
   const addProduct = (product: IProduct) => {
+    // TODO: replace with api call
     console.log(product);
   };
 
@@ -31,7 +30,8 @@ export function AddProduct() {
         value: type.id,
       };
     });
-  }, [data?.data]);
+  }, [categories?.data]);
+
   return (
     <PageOutline>
       <div className="bg-primary p-5 w-full rounded-tr-md rounded-tl-md h-28 text-white">

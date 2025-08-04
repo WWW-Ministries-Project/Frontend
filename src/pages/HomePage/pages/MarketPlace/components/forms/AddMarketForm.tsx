@@ -1,20 +1,20 @@
-import { useMemo } from "react";
 import { Field, Form, Formik } from "formik";
-import { object, string, date, ref } from "yup";
+import { useMemo } from "react";
+import { date, object, ref, string } from "yup";
 
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
 import type { IMarket } from "@/utils/api/marketPlace/interface";
-import type { EventType } from "@/utils";
+import type { eventType } from "../../../EventsManagement/utils/eventInterfaces";
 
 interface IProps {
   onSubmit: (values: IMarket) => void;
   onClose: () => void;
   editData: IMarket | null;
   loading: boolean;
-  events: EventType[] | undefined;
+  events: eventType[] | undefined;
 }
 
 export function AddMarketForm({

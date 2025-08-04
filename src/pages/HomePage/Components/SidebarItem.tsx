@@ -43,8 +43,8 @@ export const SidebarItem = ({
         <div>
           {/* Navigation link rendering */}
           {isActive && (
-            <div className="flex justify-end">
-              <div className="shape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-top"></div>
             </div>
           )}
           <NavigationLink item={item} show={isExpanded}>
@@ -57,8 +57,8 @@ export const SidebarItem = ({
           </NavigationLink>
           {/* Active indicator shape */}
           {isActive && (
-            <div className="flex justify-end">
-              <div className="Bshape"></div>
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-bottom"></div>
             </div>
           )}
         </div>
