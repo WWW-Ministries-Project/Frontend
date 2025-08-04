@@ -13,7 +13,7 @@ export const WelcomeHeader = ({ showFull = false }: { showFull?: boolean }) => {
     >
       <div
         className={` bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover py-6  mb-8 text-white relative overflow-hidden ${
-          showFull ? "px-[1rem] lg:px-[4rem] xl:px-[8rem]" : "rounded-xl px-6"
+          showFull ? "px-[1rem] lg:px-[4rem] xl:px-[10rem]" : "rounded-xl px-6"
         }`}
       >
         <div className="absolute inset-0 bg-black opacity-70 backdrop-blur-sm rounded-xl"></div>

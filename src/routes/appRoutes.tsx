@@ -46,6 +46,10 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import MembersPage from "@/pages/MembersPage/MembersPage.js";
+import Market from "@/pages/MembersPage/Pages/Market.js";
+import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
+import SchoolOfMinistries from "@/pages/MembersPage/Pages/SchoolOfMinistries.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -478,6 +482,38 @@ export const routes: AppRoute[] = [
     element: <EventRegister />,
     isPrivate: false,
   },
+  {
+    path: "/member",
+    element: <MembersPage />,
+    name: "member",
+    children: [
+      {
+    path: "dashboard",
+    name: "member_dashboard",
+    element: <DashBoardPage />,
+    isPrivate: false,
+  },
+  {
+    path: "market",
+    name: "member_market",
+    element: <Market />,
+    isPrivate: false,
+  },
+  {
+    path: "life-center",
+    name: "member_life_center",
+    element: <MyLifeCenter />,
+    isPrivate: false,
+  },
+  {
+    path: "school-of-ministries",
+    name: "member_school_of_ministries",
+    element: <SchoolOfMinistries />,
+    isPrivate: false,
+  },
+    ]
+
+  }
 ];
 
 // Now, extract sideTabs
