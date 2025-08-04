@@ -6,12 +6,12 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import ImageUpload from "@/components/ImageUpload";
 import { FormLayout } from "@/components/ui";
-import type { Product } from "./ProductForm";
+import type { ProductType } from "@/utils/api/marketPlace/interface";
 
 interface IProps {
-  values: Product;
-  errors: FormikErrors<Product>;
-  touched: FormikTouched<Product>;
+  values: ProductType;
+  errors: FormikErrors<ProductType>;
+  touched: FormikTouched<ProductType>;
   setFieldValue: (field: string, value: File) => void;
 }
 
@@ -22,7 +22,7 @@ export const ProductGallery = ({
   setFieldValue,
 }: IProps) => {
   return (
-    <FieldArray name="gallery">
+    <FieldArray name="product_colours">
       {({ push: pushGallery }) => (
         <div className="col-span-2">
           <p className="text-primary font-semibold py-1">Stock management</p>
@@ -32,18 +32,18 @@ export const ProductGallery = ({
                 key={option}
                 className="flex items-center gap-x-2 capitalize"
               >
-                <Field type="radio" name="manage_stock" value={option} />
+                <Field type="radio" name="stock_managed" value={option} />
                 {option}
               </label>
             ))}
           </div>
 
-          <p className="text-primary font-semibold py-2">Product gallery</p>
+          <p className="text-primary font-semibold py-2">Product Gallery</p>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {values.gallery.map((gallery, index: number) => (
+            {values.product_colours.map((product_colours, index: number) => (
               <div key={index} className="space-y-3 cursor-pointer">
                 <Field
-                  name={`gallery[${index}].color`}
+                  name={`product_colours[${index}].colour`}
                   type="color"
                   className="w-full h-10 rounded-lg p-0.5"
                   title="Select product color"
@@ -52,25 +52,26 @@ export const ProductGallery = ({
                 <ImageUpload
                   id={`fileUpload-${index}`}
                   src={
-                    typeof values.gallery[index].image === "string"
-                      ? values.gallery[index].image
+                    typeof values.product_colours[index].image_url === "string"
+                      ? values.product_colours[index].image_url
                       : ""
                   }
                   onFileChange={(file: File) => {
-                    setFieldValue(`gallery[${index}].image`, file);
+                    setFieldValue(`product_colours[${index}].image_url`, file);
                   }}
                   label="Click to upload or drag and drop"
                 />
-                {touched.gallery?.[index]?.image &&
-                  typeof errors.gallery?.[index] === "object" &&
-                  "image" in errors.gallery[index] &&
-                  typeof errors.gallery[index]?.image === "string" && (
+                {touched.product_colours?.[index]?.image_url &&
+                  typeof errors.product_colours?.[index] === "object" &&
+                  "image_url" in errors.product_colours[index] &&
+                  typeof errors.product_colours[index]?.image_url ===
+                    "string" && (
                     <p className="text-sm text-red-500">
-                      {errors.gallery[index]?.image}
+                      {errors.product_colours[index]?.image_url}
                     </p>
                   )}
 
-                {values.manage_stock === "yes" && (
+                {values.stock_managed === "yes" && (
                   <StockManagement values={values} index={index} />
                 )}
               </div>
@@ -84,9 +85,9 @@ export const ProductGallery = ({
               value="+ Add another one"
               onClick={() =>
                 pushGallery({
-                  color: "#000000",
-                  image: "",
-                  stock_management: [{ size: "S", stock: 0 }],
+                  colour: "#000000",
+                  image_url: "",
+                  stock: [{ size: "S", stock: 0 }],
                 })
               }
               className="hover:no-underline"
@@ -104,39 +105,39 @@ const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
 }));
 
 interface IStockProps {
-  values: Product;
+  values: ProductType;
   index: number;
 }
 const StockManagement = ({ values, index }: IStockProps) => {
   return (
-    <FieldArray name={`gallery[${index}].stock_management`}>
+    <FieldArray name={`product_colours[${index}].stock`}>
       {({ push, remove }) => (
         <>
-          {values.gallery[index].stock_management.map((item, i: number) => (
+          {values.product_colours[index].stock.map((item, i: number) => (
             <div key={i} className="flex items-center gap-2 justify-between">
               <div className="flex items-end">
                 <FormLayout>
                   <Field
-                    name={`gallery[${index}].stock_management[${i}].size`}
+                    name={`product_colours[${index}].stock[${i}].size`}
                     component={FormikSelectField}
                     options={sizes.filter(
                       (sizeOption) =>
-                        !values.gallery[index].stock_management.some(
+                        !values.product_colours[index].stock.some(
                           (stock) => stock.size === sizeOption.value
                         ) || item.size === sizeOption.value
                     )}
                     placeholder="Select size"
-                    id={`gallery[${index}].stock_management[${i}].size`}
+                    id={`product_colours[${index}].stock[${i}].size`}
                   />
                   <Field
-                    name={`gallery[${index}].stock_management[${i}].stock`}
+                    name={`product_colours[${index}].stock[${i}].stock`}
                     component={FormikInputDiv}
                     placeholder="Number of stocks"
                     type="number"
-                    id={`gallery[${index}].stock_management[${i}].stock`}
+                    id={`product_colours[${index}].stock[${i}].stock`}
                   />
                 </FormLayout>
-                {values.gallery[index].stock_management.length > 1 && (
+                {values.product_colours[index].stock.length > 1 && (
                   <MinusCircleIcon
                     className="size-7 text-lightGray"
                     onClick={() => remove(i)}
@@ -146,14 +147,14 @@ const StockManagement = ({ values, index }: IStockProps) => {
             </div>
           ))}
           <div className="flex justify-end">
-            {values.gallery[index].stock_management.length < sizes.length && (
+            {values.product_colours[index].stock.length < sizes.length && (
               <Button
                 variant="ghost"
                 value="+ Add size"
                 onClick={() => {
                   const nextSize = sizes.find(
                     (s) =>
-                      !values.gallery[index].stock_management.some(
+                      !values.product_colours[index].stock.some(
                         (item) => item.size === s.value
                       )
                   )?.value;

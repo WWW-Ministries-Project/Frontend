@@ -17,7 +17,11 @@ import type {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
-import type { IMarket, IProductType } from "./marketPlace/interface";
+import type {
+  IMarket,
+  IProductType,
+  ProductResponse,
+} from "./marketPlace/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -160,5 +164,11 @@ export class ApiCreationCalls {
     name: string;
   }): Promise<ApiResponse<IProductType>> => {
     return this.postToApi("product/create-product-category", payload);
+  };
+
+  createProduct = (
+    payload: ProductResponse
+  ): Promise<ApiResponse<ProductResponse>> => {
+    return this.postToApi("product/create-product", payload);
   };
 }
