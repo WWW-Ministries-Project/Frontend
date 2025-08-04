@@ -38,9 +38,9 @@ export interface userType {
   permissions: Record<string, boolean>;
   profile_img?: string;
   phone:string;
-  member_since: Date;
+  member_since?: Date;
   membership_type: string;
-  department: string[];
+  department?: string[];
 }
 export interface userTypeWithToken extends userType {
   iat: number;
