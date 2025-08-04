@@ -5,7 +5,7 @@ import { array, mixed, number, object, string } from "yup";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
-import type { IProduct, ProductType } from "@/utils/api/marketPlace/interface";
+import type { ProductType } from "@/utils/api/marketPlace/interface";
 import { ProductGallery } from "./ProductGallery";
 import { Actions } from "@/components/ui/form/Actions";
 
@@ -109,15 +109,6 @@ export function ProductForm({
       }}
     </Formik>
   );
-}
-
-export interface Product extends IProduct {
-  gallery: {
-    color: string;
-    image: File | string;
-    stock_management: { stock?: number; size?: string }[];
-  }[];
-  manage_stock: "yes" | "no";
 }
 
 const initialValues: ProductType = {
