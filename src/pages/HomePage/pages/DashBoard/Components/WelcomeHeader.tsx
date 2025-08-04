@@ -1,8 +1,7 @@
-import { decodeToken } from "@/utils";
+import { useUserStore } from "@/store/userStore";
 
 export const WelcomeHeader = ({ showFull = false }: { showFull?: boolean }) => {
-  const decodedToken = decodeToken();
-  const name = decodedToken?.name ?? "";
+  const name = useUserStore((state) => state.name);
 
   return (
     <div
