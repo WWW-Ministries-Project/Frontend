@@ -8,29 +8,24 @@ import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
+import { ApiResponse } from "@/utils/interfaces";
 
 interface PasswordValues {
   password1?: string;
   password2?: string;
-  [key: string]: unknown;
 }
 
 interface ErrorState {
   password1?: boolean;
   password2?: boolean;
   status?: boolean;
-  [key: string]: unknown;
 }
 
-interface ApiResponse {
-  status?: number;
-  data?: unknown;
-  [key: string]: unknown;
-}
+
 
 function ResetPassword() {
   const [passwordValues, setPasswordValues] = useState<PasswordValues>({});
-  const [response, setResponse] = useState<ApiResponse>({});
+  const [response, setResponse] = useState<ApiResponse<unknown>>();
   const [error, setError] = useState<ErrorState>({});
   const [loading, setLoading] = useState(false);
   const [samePassword, setSamePassword] = useState(true);

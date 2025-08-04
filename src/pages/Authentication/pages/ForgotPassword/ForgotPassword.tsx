@@ -8,23 +8,18 @@ import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
+import { ApiResponse } from "@/utils/interfaces";
 
 interface EmailValue {
   email?: string;
-  [key: string]: unknown;
 }
 
 interface ErrorState {
   email?: boolean;
   status?: boolean;
-  [key: string]: unknown;
 }
 
-interface ApiResponse {
-  status?: number;
-  data?: unknown;
-  [key: string]: unknown;
-}
+
 
 const ForgotPassword = () => {
   const [emailValue, setEmailValue] = useState<EmailValue>({});
@@ -33,11 +28,10 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   function handleSubmit(e: FormEvent) {
-    e.preventDefault();
     setLoading(true);
     (async () => {
       try {
-        const endpoint = baseUrl + "/user/forgot-password";
+        const endpoint = baseUrl + "user/forgot-password";
         const response: AxiosResponse = await axios.post(endpoint, emailValue);
         setResponse(response);
       } catch (error) {

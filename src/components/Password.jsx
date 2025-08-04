@@ -30,7 +30,6 @@ const InputPassword = (props) => {
           value={props.value}
           onBlur={props.onBlur}
           pattern={props.pattern}
-          labelClassName={"text-white"}
         />
         {/* <i className="fas fa-eye-slash absolute top-6 right-2 text-fontGrayW hidden" onClick={handleClick} ></i>
                     <i className="fas fa-eye absolute top-6 right-2 text-fontGrayW" onClick={handleClick} ></i> */}

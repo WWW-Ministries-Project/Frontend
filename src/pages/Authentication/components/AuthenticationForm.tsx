@@ -2,10 +2,9 @@ import { ReactNode } from "react";
 import ChurchLogo from "../../../components/ChurchLogo";
 import Alert from "./Alerts";
 
-interface AuthenticationFormProps {
+interface IProps {
   response?: {
     status?: number;
-    [key: string]: unknown;
   };
   header: string;
   text: string;
@@ -14,7 +13,7 @@ interface AuthenticationFormProps {
   onSubmit?: (e: React.FormEvent) => void;
 }
 
-const AuthenticationForm = (props: AuthenticationFormProps) => {
+const AuthenticationForm = (props: IProps) => {
   return (
     <>
       <div className="md:w-2/3 max-w-[500px] mx-auto">
