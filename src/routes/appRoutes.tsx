@@ -27,6 +27,7 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
+import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
@@ -95,16 +96,16 @@ export const routes: AppRoute[] = [
       {
         path: "",
         name: "Home",
-        element: <Members />,
+        element: <DashBoardPage />,
         isPrivate: false,
       },
-      // {
-      //   path: relativePath.home.dashboard,
-      //   name: "Dashboard",
-      //   element: <DashBoardPage />,
-      //   isPrivate: false,
-      //   sideTab: true,
-      // },
+      {
+        path: relativePath.home.dashboard,
+        name: "Dashboard",
+        element: <DashBoardPage />,
+        isPrivate: false,
+        sideTab: true,
+      },
       {
         path: relativePath.home.members.main,
         name: "Members",
