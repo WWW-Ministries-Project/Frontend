@@ -10,9 +10,7 @@ import { baseUrl, validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
 import { ApiResponse } from "@/utils/interfaces";
 
-interface EmailValue {
-  email?: string;
-}
+
 
 interface ErrorState {
   email?: boolean;
@@ -22,7 +20,7 @@ interface ErrorState {
 
 
 const ForgotPassword = () => {
-  const [emailValue, setEmailValue] = useState<EmailValue>({});
+  const [emailValue, setEmailValue] = useState("");
   const [response, setResponse] = useState<ApiResponse>({});
   const [error, setError] = useState<ErrorState>({});
   const [loading, setLoading] = useState<boolean>(false);

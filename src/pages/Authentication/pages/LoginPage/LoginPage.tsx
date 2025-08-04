@@ -15,14 +15,12 @@ import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
 interface LoginValues {
   email?: string;
   password?: string;
-  [key: string]: unknown;
 }
 
 interface ErrorState {
   email?: boolean;
   password?: boolean;
   status?: boolean;
-  [key: string]: unknown;
 }
 
 interface ApiResponse {
@@ -31,7 +29,6 @@ interface ApiResponse {
     token?: string;
     [key: string]: unknown;
   };
-  [key: string]: unknown;
 }
 
 function LoginPage() {
