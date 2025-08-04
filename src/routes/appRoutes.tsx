@@ -27,6 +27,7 @@ import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
+import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
@@ -45,7 +46,6 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
-import DashBoardPage from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -96,7 +96,7 @@ export const routes: AppRoute[] = [
       {
         path: "",
         name: "Home",
-        element: <Members />,
+        element: <DashBoardPage />,
         isPrivate: false,
       },
       {

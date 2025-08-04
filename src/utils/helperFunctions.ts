@@ -21,7 +21,7 @@ export const decodeToken = (value?: string): userTypeWithToken | undefined => {
   if (!token) return undefined;
   return jwtDecode(token);
 };
-export const firstLetters = (string = "No Name") => {
+export const getInitials = (string = "No Name") => {
   string = string.length > 0 ? string : "No Name";
   const arr = string.trim().split(" ");
   let initials = "";
@@ -47,8 +47,22 @@ export const formatPhoneNumber = (
   return "-";
 };
 
-export const formatDate = (value: string) => {
-  return DateTime.fromISO(value).toLocaleString(DateTime.DATE_MED);
+export const formatDate = (
+  value: string | number | Date,
+  formatStyle: "short" | "long" | "numeric" = "short"
+): string => {
+  const dateTime =
+    typeof value === "string"
+      ? DateTime.fromISO(value)
+      : DateTime.fromJSDate(new Date(value));
+
+  const formatMap = {
+    short: DateTime.DATE_MED,
+    long: DateTime.DATE_FULL,
+    numeric: DateTime.DATE_SHORT,
+  };
+
+  return dateTime.toLocaleString(formatMap[formatStyle]);
 };
 export const formatInputDate = (value: string | undefined) => {
   return value && DateTime.fromISO(value).toFormat("yyyy-MM-dd");
@@ -116,17 +130,17 @@ export function convertPermissions(permissions: Record<string, string>) {
 
   return result;
 }
-export const currentYear = new Date().getFullYear()
+export const currentYear = new Date().getFullYear();
 
 // Helper function to get years (5 years backwards from current)
 export const getYearOptions = () => {
-  const years = []
+  const years = [];
   for (let i = 0; i < 5; i++) {
-    const year = currentYear - i
-    years.push({ label: year.toString(), value: year.toString() })
+    const year = currentYear - i;
+    years.push({ label: year.toString(), value: year.toString() });
   }
-  return [{ label: "All Years", value: "all" }, ...years]
-}
+  return [{ label: "All Years", value: "all" }, ...years];
+};
 
 // Helper function to get month options
 export const getMonthOptions = () => {
@@ -144,50 +158,61 @@ export const getMonthOptions = () => {
     { label: "October", value: "10" },
     { label: "November", value: "11" },
     { label: "December", value: "12" },
-  ]
-  return months
-}
+  ];
+  return months;
+};
 
 // Helper function to get weeks based on selected month and year
 export const getWeekOptions = (month: string, year: string) => {
   if (month === "all") {
-    return [{ label: "All Weeks", value: "all" }]
+    return [{ label: "All Weeks", value: "all" }];
   }
 
-  const selectedYear = year === "all" ? currentYear : Number.parseInt(year)
-  const selectedMonth = Number.parseInt(month)
+  const selectedYear = year === "all" ? currentYear : Number.parseInt(year);
+  const selectedMonth = Number.parseInt(month);
 
   // Get the number of days in the selected month
-  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
+  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
 
   // Calculate number of weeks (rounded up)
-  const numberOfWeeks = Math.ceil(daysInMonth / 7)
+  const numberOfWeeks = Math.ceil(daysInMonth / 7);
 
-  const weeks = [{ label: "All Weeks", value: "all" }]
+  const weeks = [{ label: "All Weeks", value: "all" }];
   for (let i = 1; i <= numberOfWeeks; i++) {
-    weeks.push({ label: `Week ${i}`, value: i.toString() })
+    weeks.push({ label: `Week ${i}`, value: i.toString() });
   }
 
-  return weeks
-}
+  return weeks;
+};
 
 export const formatDatefull = (dateString: string | number | Date) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            day: 'numeric',
-            month: 'long', 
-            year: 'numeric' 
-        });
-    };
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
-   export const formatTime = (timeString: { split: (arg0: string) => [string, string]; }) => {
-        if (!timeString) return '';
-        const [hours, minutes] = timeString.split(':');
-        const date = new Date();
-        date.setHours(parseInt(hours), parseInt(minutes));
-        return date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: true 
-        });
-    };
+// export const formatTime = (timeString: {
+//   split: (arg0: string) => [string, string];
+// }) => {
+//   if (!timeString) return "";
+//   const [hours, minutes] = timeString.split(":");
+//   const date = new Date();
+//   date.setHours(parseInt(hours), parseInt(minutes));
+//   return date.toLocaleTimeString("en-US", {
+//     hour: "numeric",
+//     minute: "2-digit",
+//     hour12: true,
+//   });
+// };
+
+export function formatTime(timeString: string): string {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+}
