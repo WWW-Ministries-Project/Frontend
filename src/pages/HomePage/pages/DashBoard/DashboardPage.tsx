@@ -17,7 +17,7 @@ export const DashBoardPage = () => {
   const routeName = matches?.find((m) => m.route.name)?.route.name;
 
   return (
-    <PageOutline className="bg-inherit p-1 lg:p-6">
+    <PageOutline className="bg-inherit p-1 ">
       <WelcomeHeader showFull={ routeName === "member" ? true : false} />
 
       <div
