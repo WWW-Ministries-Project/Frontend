@@ -49,6 +49,7 @@ export interface userType {
   phone:string;
   member_since?: Date;
   membership_type: string;
+  ministry_worker:boolean;
   department?: string[];
 }
 export interface userTypeWithToken extends userType {
