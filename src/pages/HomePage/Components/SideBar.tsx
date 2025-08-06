@@ -117,8 +117,8 @@ export const SideBar = ({ className }: IProps) => {
       onMouseLeave={handleMouseLeave}
     >
       {/* Scrollable navigation area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll">
-        <div className="flex flex-col space-y-2 py-4 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll ">
+        <div className="flex flex-col space-y-2 py-4 min-h-0 h-[80vh]">
           {/* Render sidebar items */}
           {filteredTabs.map((item) => {
             const IconComponent = sidebarIcons[item.name!];
