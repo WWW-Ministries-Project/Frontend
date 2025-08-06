@@ -62,7 +62,7 @@ function LoginPage() {
           navigate(relativePath.home.members.mainNew);
         }
         if (response.status === 200 && !decodedToken?.ministry_worker) {
-          navigate("/member/dashboard");
+          navigate(relativePath.member.dashboard);
         }
       }
     } catch (error: unknown) {

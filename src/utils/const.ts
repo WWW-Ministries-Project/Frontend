@@ -1,3 +1,5 @@
+import Market from "@/pages/MembersPage/Pages/Market";
+
 export const relativePath = {
   root: "/",
   login: "/login",
@@ -69,6 +71,17 @@ export const relativePath = {
   programs: {
     details: "/programs/:name",
     apply: "/programs/:name/apply",
+  },
+  member:{
+    main: "/member",
+    dashboard: "/member/dashboard",
+    market: "/member/market",
+    lifeCenter:"/member/life-center",
+    schoolOfMinistries: {
+      main:"school-of-ministries",
+      allPrograms:"school-of-ministries/programs",
+      myClass:"school-of-ministries/my-class"
+    }
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

@@ -6,6 +6,7 @@ import { matchRoutes, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import { routes } from "@/routes/appRoutes";
+import { relativePath } from "@/utils";
 
 interface IProps {
   handleShowNav?: () => void;
@@ -83,15 +84,15 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMinistryWorker = decodedToken?.ministry_worker
 
   const memberNavItems = [
-    { label: "Home", path: "/member/dashboard" },
-    { label: "Marketplace", path: "/member/market" },
-    { label: "Life Center", path: "/member/life-center" },
+    { label: "Home", path: relativePath.member.dashboard },
+    { label: "Marketplace", path: relativePath.member.market},
+    { label: "Life Center", path: relativePath.member.lifeCenter},
     // { label: "Appointments", path: "/member/appointments" },
   ];
 
   const schoolOfMinistriesItems = [
-    { label: "All programs", path: "/member/school-of-ministries/programs" },
-    { label: "My class", path: "/member/school-of-ministries/my-class" },
+    { label: "All programs", path: relativePath.member.schoolOfMinistries.allPrograms },
+    { label: "My class", path: relativePath.member.schoolOfMinistries.myClass},
   ];
 
   return (

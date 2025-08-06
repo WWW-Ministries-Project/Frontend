@@ -4,8 +4,6 @@ import { formatDatefull } from "@/utils";
 
 export const ProfileSummary = () => {
   const userData = useUserStore((state) => state);
-  console.log("userData", userData);
-  
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

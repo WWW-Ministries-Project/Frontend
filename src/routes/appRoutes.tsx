@@ -49,7 +49,9 @@ import { ProtectedRoute } from "./ProtectedRoutes.js";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
 import Market from "@/pages/MembersPage/Pages/Market.js";
 import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
-import SchoolOfMinistries from "@/pages/MembersPage/Pages/SchoolOfMinistries.js";
+import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
+import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
+import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -488,27 +490,33 @@ export const routes: AppRoute[] = [
     name: "member",
     children: [
       {
-    path: "dashboard",
+    path: relativePath.member.dashboard,
     name: "member_dashboard",
     element: <DashBoardPage />,
     isPrivate: false,
   },
   {
-    path: "market",
+    path: relativePath.member.market,
     name: "member_market",
     element: <Market />,
     isPrivate: false,
   },
   {
-    path: "life-center",
+    path: relativePath.member.lifeCenter,
     name: "member_life_center",
     element: <MyLifeCenter />,
     isPrivate: false,
   },
   {
-    path: "school-of-ministries",
+    path: relativePath.member.schoolOfMinistries.allPrograms,
     name: "member_school_of_ministries",
-    element: <SchoolOfMinistries />,
+    element: <AllPrograms />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.schoolOfMinistries.myClass,
+    name: "member_school_of_ministries",
+    element: <MyClass />,
     isPrivate: false,
   },
     ]
