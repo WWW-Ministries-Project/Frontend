@@ -156,7 +156,6 @@ const StockManagement = ({ index }: { index: number }) => {
   );
 };
 
-
 interface IProductGalleryForm {
   stock_managed: "yes" | "no";
   product_colours: {
@@ -173,7 +172,7 @@ const initialValues: IProductGalleryForm = {
   stock_managed: "yes",
   product_colours: [
     {
-      colour: "",
+      colour: "#000000",
       image_url: "",
       stock: [
         {
@@ -187,27 +186,23 @@ const initialValues: IProductGalleryForm = {
 
 const validationSchema = object().shape({
   stock_managed: string().oneOf(["yes", "no"]).required(),
-  product_colours: array()
-    .of(
-      object().shape({
-        colour: string().required("Required"),
-        image_url: mixed().required("Required"),
-        stock: array().when("$stock_managed", {
-          is: "yes",
-          then: () =>
-            array().of(
-              object().shape({
-                size: string().required("Size is required"),
-                stock: number()
-                  .required("Number of stock is required")
-                  .min(0, "Stock can't be negative"),
-              })
-            ),
-          otherwise: () => array().notRequired(),
-        }),
-      })
-    )
-    .min(1, "At least one product variation is required"),
+  product_colours: array().of(
+    object().shape({
+      colour: string(),
+      image_url: mixed().required("Required"),
+      stock: array().when("$stock_managed", {
+        is: "yes",
+        then: () =>
+          array().of(
+            object().shape({
+              size: string().required("Required"),
+              stock: number().min(0, "Stock can't be negative"),
+            })
+          ),
+        otherwise: () => array().notRequired(),
+      }),
+    })
+  ),
 });
 
 const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
