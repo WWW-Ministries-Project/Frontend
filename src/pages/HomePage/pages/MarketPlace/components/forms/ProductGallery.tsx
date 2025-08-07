@@ -92,7 +92,7 @@ const ProductGallery = () => {
 };
 
 const StockManagement = ({ index }: { index: number }) => {
-  const { values } = useFormikContext<ProductFormValues>();
+  const { values } = useFormikContext<IProductGalleryForm>();
 
   return (
     <FieldArray name={`product_colours[${index}].stock`}>
@@ -156,21 +156,20 @@ const StockManagement = ({ index }: { index: number }) => {
   );
 };
 
-interface ProductColourForm {
-  colour: string;
-  image_url: File | string;
-  stock: {
-    size: string;
-    stock: number;
+
+interface IProductGalleryForm {
+  stock_managed: "yes" | "no";
+  product_colours: {
+    colour: string;
+    image_url: File | string;
+    stock: {
+      size: string;
+      stock: number;
+    }[];
   }[];
 }
 
-interface ProductFormValues {
-  stock_managed: "yes" | "no";
-  product_colours: ProductColourForm[];
-}
-
-const initialValues: ProductFormValues = {
+const initialValues: IProductGalleryForm = {
   stock_managed: "yes",
   product_colours: [
     {
