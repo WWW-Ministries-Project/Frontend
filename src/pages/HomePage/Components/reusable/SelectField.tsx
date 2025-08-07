@@ -131,7 +131,7 @@ export const SelectField = (props: IProps) => {
             value={props.value}
             disabled={props.disabled}
           >
-            <option value="">{props.placeholder}</option>
+            <option className='text-gray-400' value="">{props.placeholder}</option>
             {props.options.map((option, index) => (
               <option key={index} value={option.value}>
                 {option.label}

@@ -14,23 +14,28 @@ import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 
 import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
+import { LifeCenterMemberType } from "@/utils";
 
 interface IProps {
   soulsWon: ISoulsWonForm[];
   lifeCenterId: string;
   handleSuccess: () => void;
   hasMembers:boolean
+  leader:LifeCenterMemberType | undefined
 }
 
 export const SoulsWon = ({
   soulsWon,
   lifeCenterId,
   handleSuccess,
-  hasMembers
+  hasMembers,
+  leader
 }: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [openModal, setOpenModal] = useState(false);
   const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);
+  console.log("leader", leader);
+  
 
   const { executeDelete } = useDelete(api.delete.deleteSoulWon);
   const {
@@ -179,6 +184,7 @@ export const SoulsWon = ({
       onClose={() => setOpenModal(false)}
       editData={soulWon}
       loading={isPosting || isUpdating}
+      leader={leader}
     />
   </Modal>
 </div>

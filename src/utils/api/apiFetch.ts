@@ -240,6 +240,12 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
   };
 
+    fetchLifeCenterByUserId = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterDetailsType>> => {
+    return this.fetchFromApi(`lifecenter/my-lifecenter/`, query);
+  };
+
   fetchLifeCenterStats = (
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterStatsType>> => {

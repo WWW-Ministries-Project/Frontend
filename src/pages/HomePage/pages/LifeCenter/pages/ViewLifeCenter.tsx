@@ -63,6 +63,7 @@ export function ViewLifeCenter() {
               handleSuccess={refetch}
               lifeCenterId={id}
               hasMembers={lifeCenterData?.members.length!==0}
+              leader={lifeCenterData?.members[0]}
             />
           </div>
           <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">

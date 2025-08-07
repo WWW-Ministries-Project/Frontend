@@ -6,6 +6,7 @@ import FormikSelectField from "@/components/FormikSelect";
 import { INameInfo, NameInfo } from "@/components/subform";
 import { FormHeader, FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
+import { LifeCenterMemberType } from "@/utils";
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
 import { object, string } from "yup";
@@ -15,14 +16,19 @@ interface IProps {
   onClose: () => void;
   editData: ISoulsWonForm | null;
   loading: boolean;
+  leader:LifeCenterMemberType | undefined;
 }
 export const SoulsWonForm = ({
   onSubmit,
   onClose,
   editData,
   loading,
+  leader
 }: IProps) => {
-  const { membersOptions } = useStore();
+  const  membersOptions  = [{
+    value: leader?.userId,
+  label: leader?.name
+  }]
 
   const initial = useMemo(
     () => ({
@@ -94,7 +100,7 @@ export const SoulsWonForm = ({
         options={membersOptions}
         label="Won By *"
         id="wonById"
-        placeholder="Soul won by"
+        placeholder="Select the one who won the soul"
       />
     </FormLayout>
   </div>
