@@ -1,29 +1,21 @@
 import { MinusCircleIcon } from "@heroicons/react/24/outline";
-import { Field, FieldArray, FormikErrors, FormikTouched } from "formik";
+import { Field, FieldArray, useFormikContext } from "formik";
+import { array, mixed, number, object, string } from "yup";
 
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import ImageUpload from "@/components/ImageUpload";
 import { FormLayout } from "@/components/ui";
-import type { ProductType } from "@/utils/api/marketPlace/interface";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
 
-interface IProps {
-  values: ProductType;
-  errors: FormikErrors<ProductType>;
-  touched: FormikTouched<ProductType>;
-  setFieldValue: (field: string, value: File) => void;
-}
+const ProductGallery = () => {
+  const { values, errors, touched, setFieldValue } =
+    useFormikContext<IProduct>();
 
-export const ProductGallery = ({
-  values,
-  errors,
-  touched,
-  setFieldValue,
-}: IProps) => {
   return (
     <FieldArray name="product_colours">
-      {({ push: pushGallery }) => (
+      {({ push }) => (
         <div className="col-span-2">
           <p className="text-primary font-semibold py-1">Stock management</p>
           <div className="mt-1 mb-3 flex gap-4 text-900">
@@ -40,7 +32,7 @@ export const ProductGallery = ({
 
           <p className="text-primary font-semibold py-2">Product Gallery</p>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {values.product_colours.map((product_colours, index: number) => (
+            {values.product_colours.map((product_colours, index) => (
               <div key={index} className="space-y-3 cursor-pointer">
                 <Field
                   name={`product_colours[${index}].colour`}
@@ -52,8 +44,8 @@ export const ProductGallery = ({
                 <ImageUpload
                   id={`fileUpload-${index}`}
                   src={
-                    typeof values.product_colours[index].image_url === "string"
-                      ? values.product_colours[index].image_url
+                    typeof product_colours.image_url === "string"
+                      ? product_colours.image_url
                       : ""
                   }
                   onFileChange={(file: File) => {
@@ -61,6 +53,7 @@ export const ProductGallery = ({
                   }}
                   label="Click to upload or drag and drop"
                 />
+
                 {touched.product_colours?.[index]?.image_url &&
                   typeof errors.product_colours?.[index] === "object" &&
                   "image_url" in errors.product_colours[index] &&
@@ -72,19 +65,18 @@ export const ProductGallery = ({
                   )}
 
                 {values.stock_managed === "yes" && (
-                  <StockManagement values={values} index={index} />
+                  <StockManagement index={index} />
                 )}
               </div>
             ))}
           </div>
 
-          {/* Add More Gallery */}
           <div className="flex justify-end">
             <Button
               variant="ghost"
               value="+ Add another one"
               onClick={() =>
-                pushGallery({
+                push({
                   colour: "#000000",
                   image_url: "",
                   stock: [{ size: "S", stock: 0 }],
@@ -99,21 +91,14 @@ export const ProductGallery = ({
   );
 };
 
-const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
-  label: size,
-  value: size,
-}));
+const StockManagement = ({ index }: { index: number }) => {
+  const { values } = useFormikContext<ProductFormValues>();
 
-interface IStockProps {
-  values: ProductType;
-  index: number;
-}
-const StockManagement = ({ values, index }: IStockProps) => {
   return (
     <FieldArray name={`product_colours[${index}].stock`}>
       {({ push, remove }) => (
         <>
-          {values.product_colours[index].stock.map((item, i: number) => (
+          {values.product_colours[index].stock.map((item, i) => (
             <div key={i} className="flex items-center gap-2 justify-between">
               <div className="flex items-end">
                 <FormLayout>
@@ -123,7 +108,7 @@ const StockManagement = ({ values, index }: IStockProps) => {
                     options={sizes.filter(
                       (sizeOption) =>
                         !values.product_colours[index].stock.some(
-                          (stock) => stock.size === sizeOption.value
+                          (s) => s.size === sizeOption.value
                         ) || item.size === sizeOption.value
                     )}
                     placeholder="Select size"
@@ -170,3 +155,68 @@ const StockManagement = ({ values, index }: IStockProps) => {
     </FieldArray>
   );
 };
+
+interface ProductColourForm {
+  colour: string;
+  image_url: File | string;
+  stock: {
+    size: string;
+    stock: number;
+  }[];
+}
+
+interface ProductFormValues {
+  stock_managed: "yes" | "no";
+  product_colours: ProductColourForm[];
+}
+
+const initialValues: ProductFormValues = {
+  stock_managed: "yes",
+  product_colours: [
+    {
+      colour: "",
+      image_url: "",
+      stock: [
+        {
+          size: "",
+          stock: 0,
+        },
+      ],
+    },
+  ],
+};
+
+const validationSchema = object().shape({
+  stock_managed: string().oneOf(["yes", "no"]).required(),
+  product_colours: array()
+    .of(
+      object().shape({
+        colour: string().required("Required"),
+        image_url: mixed().required("Required"),
+        stock: array().when("$stock_managed", {
+          is: "yes",
+          then: () =>
+            array().of(
+              object().shape({
+                size: string().required("Size is required"),
+                stock: number()
+                  .required("Number of stock is required")
+                  .min(0, "Stock can't be negative"),
+              })
+            ),
+          otherwise: () => array().notRequired(),
+        }),
+      })
+    )
+    .min(1, "At least one product variation is required"),
+});
+
+const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
+  label: size,
+  value: size,
+}));
+
+export const ProductGalleryWithForm = Object.assign(ProductGallery, {
+  initialValues,
+  validationSchema,
+});

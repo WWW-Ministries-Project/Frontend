@@ -10,15 +10,6 @@ export interface IMarket {
 
 export type MarketStatusType = "upcoming" | "active" | "ended";
 
-export type IProduct = {
-  product_name: string;
-  description: string;
-  status: "published" | "draft";
-  type: string;
-  category: string;
-  price: string;
-  id: string;
-};
 
 export interface IProductType {
   name: string;
@@ -28,13 +19,13 @@ export interface IProductType {
 export type ProductColour = {
   colour: string;
   image_url: string | File;
-  stock: {
+  stock?: {
     size: string;
     stock: string | number;
   }[];
 };
 
-export type ProductType = {
+export interface IProduct {
   name: string;
   description: string;
   status: "published" | "draft";
@@ -42,16 +33,8 @@ export type ProductType = {
   product_category_id: string | number;
   price_amount: string | number;
   price_currency: string;
-  market_id: number;
+  market_id?: string;
   stock_managed: "yes" | "no";
   id?: number | string;
   product_colours: ProductColour[];
 };
-
-type BooleanValues = {
-  published: boolean;
-  stock_managed: boolean;
-};
-
-export type ProductResponse = Omit<ProductType, "status" | "stock_managed"> &
-  BooleanValues;

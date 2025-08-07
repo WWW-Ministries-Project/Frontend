@@ -20,7 +20,7 @@ import { EventType } from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
-  ProductResponse,
+  IProduct,
 } from "./marketPlace/interface";
 
 export class ApiCreationCalls {
@@ -167,8 +167,8 @@ export class ApiCreationCalls {
   };
 
   createProduct = (
-    payload: ProductResponse
-  ): Promise<ApiResponse<ProductResponse>> => {
+    payload: IProduct
+  ): Promise<ApiResponse<IProduct>> => {
     return this.postToApi("product/create-product", payload);
   };
 }
