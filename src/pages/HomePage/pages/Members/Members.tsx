@@ -220,7 +220,7 @@ export function Members() {
             <TableComponent
               columns={columns}
               data={members}
-              displayedCount={24}
+              displayedCount={12}
               total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}
