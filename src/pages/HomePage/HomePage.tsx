@@ -10,7 +10,6 @@ import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
-import Breadcrumb from "./Components/BreadCrumb";
 import { Header } from "./Components/Header";
 import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
@@ -154,9 +153,6 @@ export function HomePage() {
               className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
             >
               <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-                <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
-                  <Breadcrumb />
-                </div>
                 <Outlet
                   context={{
                     members,
