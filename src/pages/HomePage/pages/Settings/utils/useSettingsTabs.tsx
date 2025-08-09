@@ -10,8 +10,6 @@ import { showDeleteDialog } from "../../../utils";
 import useSettingsStore from "./settingsStore";
 
 interface UseSettingsTabsProps {
-  departmentData: DepartmentType[];
-  positionData: PositionType[];
   setDisplayForm: (value: boolean) => void;
   setEditMode: (value: boolean) => void;
   setInputValue: (value: Record<string, string | number | undefined>) => void;
@@ -19,8 +17,6 @@ interface UseSettingsTabsProps {
 }
 
 export function useSettingsTabs({
-  departmentData,
-  positionData,
   setDisplayForm,
   setEditMode,
   setInputValue,
@@ -29,12 +25,15 @@ export function useSettingsTabs({
   const userId = useUserStore((state) => state.id);
   const settingsStore = useSettingsStore();
   const membersOptions = useStore((state) => state.membersOptions);
+  const {positions: positionData, total: positionTotal} = settingsStore;
+  const {departments: departmentData, total: departmentTotal} = settingsStore;
   const tabs = ["Department", "Position"];
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0]);
   const [columns, setColumns] = useState<
     ColumnDef<DepartmentType | PositionType>[]
   >([]);
   const [data, setData] = useState<(DepartmentType | PositionType)[]>([]);
+  const [total, setTotal] = useState<number>(0);
   const [selectedId, setSelectedId] = useState<string>("department_head");
   const [selectLabel, setSelectLabel] = useState<string>("Department Head");
 
@@ -148,16 +147,14 @@ export function useSettingsTabs({
     if (selectedTab === "Department") {
       setColumns(departmentColumns);
       setData(departmentData);
+      setTotal(departmentTotal);
     } else {
       setColumns(positionsColumns);
       setData(positionData);
+      setTotal(positionTotal);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    selectedTab,
-    departmentData,
-    positionData,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab, departmentData, positionData]);
 
   const selectOptions = useMemo(() => {
     return selectedTab === "Department"
@@ -181,6 +178,7 @@ export function useSettingsTabs({
     tabs,
     selectedTab,
     setSelectedTab: handleTabSelect,
+    total,
     columns,
     data,
     selectOptions,

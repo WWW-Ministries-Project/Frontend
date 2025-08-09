@@ -16,7 +16,6 @@ import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showNotification } from "../../utils";
 import { FormsComponent } from "./Components/FormsComponent";
-import useSettingsStore from "./utils/settingsStore";
 import { useSettingsTabs } from "./utils/useSettingsTabs";
 
 function Settings() {
@@ -38,9 +37,6 @@ function Settings() {
     description: "",
   });
   const [editMode, setEditMode] = useState(false);
-  const settingsStore = useSettingsStore();
-  const positionData = settingsStore.positions || [];
-  const departmentData = settingsStore.departments || [];
 
   const {
     postData: postDepartment,
@@ -98,12 +94,11 @@ function Settings() {
     setSelectedTab,
     columns,
     data,
+    total,
     selectOptions,
     selectedId,
     selectLabel,
   } = useSettingsTabs({
-    departmentData,
-    positionData,
     setDisplayForm,
     setEditMode,
     //@ts-expect-error will figure it out later
@@ -193,6 +188,16 @@ function Settings() {
       editMode ? updatePosition(inputValue) : postPosition(inputValue);
     }
   };
+  const handlePageChange = useCallback(
+    (page: number, take: number) => {
+      if (selectedTab === "Department") {
+        refetchDepartments({page, take});
+      } else {
+        refetchPositions(page, take);
+      }
+    },
+    [refetchDepartments, refetchPositions, selectedTab]
+  );
 
   return (
     <PageOutline>
@@ -240,9 +245,13 @@ function Settings() {
         <TableComponent
           columns={columns}
           data={data}
+          total={total}
+          displayedCount={10}
           filter={filter}
           setFilter={setFilter}
-          onPageChange={() => {}}
+          onPageChange={(page, limit) => {
+            handlePageChange(page, limit);
+          }}
         />
       </section>
 

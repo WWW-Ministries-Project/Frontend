@@ -76,10 +76,16 @@ export function HomePage() {
     }
 
     if (positionsData) {
-      settingsStore.setPositions(positionsData.data);
+      settingsStore.setPositions(
+        positionsData.data,
+        positionsData.meta?.total ?? 0
+      );
     }
     if (departmentsData) {
-      settingsStore.setDepartments(departmentsData.data);
+      settingsStore.setDepartments(
+        departmentsData.data,
+        departmentsData.meta?.total ?? 0
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
