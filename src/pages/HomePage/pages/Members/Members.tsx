@@ -65,6 +65,7 @@ export function Members() {
   const store = useStore();
   const { members, userStats, removeMember, total } = store;
   const columns = membersColumns;
+  const crumbs = [{label: "Home", link: "/home"},{ label: "Members", link: "/members" }];
 
   useEffect(() => {
     const switchElement = document.getElementById("switch");
@@ -168,7 +169,7 @@ export function Members() {
   ];
 
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
@@ -220,7 +221,7 @@ export function Members() {
             <TableComponent
               columns={columns}
               data={members}
-              displayedCount={24}
+              displayedCount={12}
               total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}

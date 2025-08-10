@@ -1,23 +1,23 @@
 import { Field, Form, Formik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { array, mixed, number, object, string } from "yup";
+import { number, object, string } from "yup";
 
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
-import type { ProductType } from "@/utils/api/marketPlace/interface";
-import { ProductGallery } from "./ProductGallery";
 import { Actions } from "@/components/ui/form/Actions";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
+import { ProductGalleryWithForm } from "./ProductGallery";
 
 interface IProps {
-  addProduct: (product: ProductType) => void;
-  isSubmitting: boolean;
+  onSubmit: (product: IProduct) => void;
+  loading: boolean;
   productTypes: { label: string; value: string }[];
   categories: { label: string; value: string }[];
 }
 export function ProductForm({
-  addProduct,
-  isSubmitting,
+  onSubmit,
+  loading,
   productTypes,
   categories,
 }: IProps) {
@@ -28,10 +28,10 @@ export function ProductForm({
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        addProduct(values);
+        onSubmit(values);
       }}
     >
-      {({ values, setFieldValue, handleSubmit, errors, touched }) => {
+      {({ handleSubmit }) => {
         return (
           <Form className="px-5 space-y-6">
             <FormLayout>
@@ -71,12 +71,7 @@ export function ProductForm({
                 placeholder="Select Category"
               />
 
-              <ProductGallery
-                values={values}
-                errors={errors}
-                touched={touched}
-                setFieldValue={setFieldValue}
-              />
+              <ProductGalleryWithForm />
 
               <Field
                 name="price_amount"
@@ -100,7 +95,7 @@ export function ProductForm({
             {/* Submit Button */}
 
             <Actions
-              loading={isSubmitting}
+              loading={loading}
               onCancel={() => navigate(-1)}
               onSubmit={handleSubmit}
             />
@@ -111,7 +106,7 @@ export function ProductForm({
   );
 }
 
-const initialValues: ProductType = {
+const initialValues: IProduct = {
   name: "",
   description: "",
   status: "published",
@@ -119,38 +114,17 @@ const initialValues: ProductType = {
   product_category_id: 0,
   price_amount: 0,
   price_currency: "",
-  market_id: 0,
-  stock_managed: "yes",
   id: "",
-  product_colours: [
-    {
-      colour: "#000000",
-      image_url: "",
-      stock: [{ size: "", stock: 0 }],
-    },
-  ],
+  ...ProductGalleryWithForm.initialValues,
 };
 
-const validationSchema = object().shape({
+const validationSchema = object({
   name: string().required("required"),
   description: string().required("required"),
   product_type_id: number().required("required"),
-  product_category_id: string().required("required"),
-  price_amount: string().required("required"),
-  manage_stock: string().oneOf(["yes", "no"]),
-
-  gallery: array().of(
-    object({
-      colour: string(),
-      image: mixed().required("Required"),
-      stock: array().of(
-        object({
-          size: string(),
-        })
-      ),
-    })
-  ),
-});
+  product_category_id: number().required("required"),
+  price_amount: number().required("required"),
+}).concat(ProductGalleryWithForm.validationSchema);
 
 const productSatus = [
   {
