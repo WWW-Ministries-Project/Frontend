@@ -1,13 +1,11 @@
-import { MinusCircleIcon } from "@heroicons/react/24/outline";
 import { Field, FieldArray, useFormikContext } from "formik";
-import { array, mixed, number, object, string } from "yup";
+import { array, mixed, object, string } from "yup";
 
 import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import FormikSelectField from "@/components/FormikSelect";
 import ImageUpload from "@/components/ImageUpload";
-import { FormLayout } from "@/components/ui";
 import type { IProduct } from "@/utils/api/marketPlace/interface";
+import { IStocksSubForm, StocksSubForm } from "./StocksSubForm";
+import { FormHeader } from "@/components/ui";
 
 const ProductGallery = () => {
   const { values, errors, touched, setFieldValue } =
@@ -65,7 +63,7 @@ const ProductGallery = () => {
                   )}
 
                 {values.stock_managed === "yes" && (
-                  <StockManagement index={index} />
+                  <StocksSubForm index={index} />
                 )}
               </div>
             ))}
@@ -91,80 +89,12 @@ const ProductGallery = () => {
   );
 };
 
-const StockManagement = ({ index }: { index: number }) => {
-  const { values } = useFormikContext<IProductGalleryForm>();
-
-  return (
-    <FieldArray name={`product_colours[${index}].stock`}>
-      {({ push, remove }) => (
-        <>
-          {values.product_colours[index].stock.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 justify-between">
-              <div className="flex items-end">
-                <FormLayout>
-                  <Field
-                    name={`product_colours[${index}].stock[${i}].size`}
-                    component={FormikSelectField}
-                    options={sizes.filter(
-                      (sizeOption) =>
-                        !values.product_colours[index].stock.some(
-                          (s) => s.size === sizeOption.value
-                        ) || item.size === sizeOption.value
-                    )}
-                    placeholder="Select size"
-                    id={`product_colours[${index}].stock[${i}].size`}
-                  />
-                  <Field
-                    name={`product_colours[${index}].stock[${i}].stock`}
-                    component={FormikInputDiv}
-                    placeholder="Number of stocks"
-                    type="number"
-                    id={`product_colours[${index}].stock[${i}].stock`}
-                  />
-                </FormLayout>
-                {values.product_colours[index].stock.length > 1 && (
-                  <MinusCircleIcon
-                    className="size-7 text-lightGray"
-                    onClick={() => remove(i)}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            {values.product_colours[index].stock.length < sizes.length && (
-              <Button
-                variant="ghost"
-                value="+ Add size"
-                onClick={() => {
-                  const nextSize = sizes.find(
-                    (s) =>
-                      !values.product_colours[index].stock.some(
-                        (item) => item.size === s.value
-                      )
-                  )?.value;
-
-                  push({ size: nextSize, stock: 0 });
-                }}
-                className="hover:no-underline"
-              />
-            )}
-          </div>
-        </>
-      )}
-    </FieldArray>
-  );
-};
-
 interface IProductGalleryForm {
   stock_managed: "yes" | "no";
   product_colours: {
     colour: string;
     image_url: File | string;
-    stock: {
-      size: string;
-      stock: number;
-    }[];
+    stock: IStocksSubForm[];
   }[];
 }
 
@@ -174,12 +104,7 @@ const initialValues: IProductGalleryForm = {
     {
       colour: "#000000",
       image_url: "",
-      stock: [
-        {
-          size: "",
-          stock: 0,
-        },
-      ],
+      stock: StocksSubForm.initialValues,
     },
   ],
 };
@@ -192,23 +117,13 @@ const validationSchema = object().shape({
       image_url: mixed().required("Required"),
       stock: array().when("$stock_managed", {
         is: "yes",
-        then: () =>
-          array().of(
-            object().shape({
-              size: string().required("Required"),
-              stock: number().min(0, "Stock can't be negative"),
-            })
-          ),
+        then: () => StocksSubForm.validationSchema,
         otherwise: () => array().notRequired(),
       }),
     })
   ),
 });
 
-const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
-  label: size,
-  value: size,
-}));
 
 export const ProductGalleryWithForm = Object.assign(ProductGallery, {
   initialValues,

@@ -66,8 +66,9 @@ export function AddProduct() {
     );
   };
 
-  const addProduct = async (product: IProduct) => {
+  const handleSubmit = async (product: IProduct) => {
     const { id, ...rest } = product;
+    console.log(product);
 
     const productGallery = await transformGallery(
       product.product_colours,
@@ -79,11 +80,11 @@ export function AddProduct() {
       product_colours: productGallery,
     };
 
-    if (id) {
-      await updateProduct({ ...dataToSend, id });
-    } else {
-      await postData(dataToSend);
-    }
+    // if (id) {
+    //   await updateProduct({ ...dataToSend, id });
+    // } else {
+    //   await postData(dataToSend);
+    // }
   };
 
   const productTypes = useMemo(() => {
@@ -123,7 +124,7 @@ export function AddProduct() {
         <p className="text-xl">Add mechandise to your marketplace</p>
       </div>
       <ProductForm
-        onSubmit={addProduct}
+        onSubmit={handleSubmit}
         loading={isCreating || isUpdating || loading}
         productTypes={productTypes || []}
         categories={productCategories || []}
