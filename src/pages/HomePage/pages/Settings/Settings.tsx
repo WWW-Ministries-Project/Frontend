@@ -191,9 +191,9 @@ function Settings() {
   const handlePageChange = useCallback(
     (page: number, take: number) => {
       if (selectedTab === "Department") {
-        refetchDepartments({page, take});
+        refetchDepartments({limit: take,page});
       } else {
-        refetchPositions(page, take);
+        refetchPositions({page, limit:take});
       }
     },
     [refetchDepartments, refetchPositions, selectedTab]
