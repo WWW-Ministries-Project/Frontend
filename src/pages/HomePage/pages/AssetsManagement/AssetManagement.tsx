@@ -14,6 +14,7 @@ import { showDeleteDialog, showNotification } from "../../utils";
 import { AssetCard } from "./Components/AssetCard";
 import { assetType } from "./utils/assetsInterface";
 import { assetsColumns } from "./utils/utils";
+import { relativePath } from "@/utils";
 
 export const AssetManagement = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export const AssetManagement = () => {
   const { executeDelete, success, error } = useDelete(api.delete.deleteAsset);
 
   const assertsData = useMemo(() => assets?.data || [], [assets]);
+  const crumbs = [{label: "Home", link: relativePath.home.main},{label: "Asset Management", link: ""}];
 
   const handleViewMode = (bol: boolean) => {
     sessionStorage.setItem("assetsTableView", bol + "");
@@ -59,7 +61,7 @@ export const AssetManagement = () => {
   };
 
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       <HeaderControls
         title={`Asset Management (${assertsData.length})`}
         tableView={tableView}
