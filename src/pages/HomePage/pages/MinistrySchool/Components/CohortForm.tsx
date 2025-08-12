@@ -1,6 +1,6 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormLayout, FullWidth } from "@/components/ui";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
 import { formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
@@ -24,15 +24,8 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
   );
 
   return (
-    <div className="bg-white p-6 rounded-lg md:w-[45rem] text-primary space-y-4">
-      <div>
-        <div className="text-lg font-bold">
-          {cohort?.id ? "Edit Cohort" : "Create New Cohort"}
-        </div>
-        <div className="text-sm mb-4">
-          Create or edit a cohort for the program.
-        </div>
-      </div>
+    <div className="bg-white  rounded-lg md:w-[45rem] text-primary space-y-4">
+      
 
       <Formik
         initialValues={initial}
@@ -40,6 +33,17 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
         onSubmit={onSubmit}
       >
         {({ values }) => (
+          <div>
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">{cohort?.id ? "Edit Cohort" : "Create New Cohort"}</p>
+                  <p className="text-sm text-white">
+                    Create or edit a cohort for the program.
+                  </p>
+                </FormHeader>
+                
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-4">
           <FormLayout>
             {/* Cohort Name */}
             <FullWidth>
@@ -112,6 +116,8 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
               loading={loading}
             />
           </FormLayout>
+          </div>
+          </div>
         )}
       </Formik>
     </div>

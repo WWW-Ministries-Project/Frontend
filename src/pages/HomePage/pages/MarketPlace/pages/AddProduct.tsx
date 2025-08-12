@@ -32,6 +32,15 @@ export function AddProduct() {
     loading: isUpdating,
   } = usePut(api.put.updateProduct);
 
+  const decodedProductId = decodeQuery(String(productId || ""));
+  const { data: product, refetch } = useFetch(
+    api.fetch.fetchProductById,
+    {
+      id: decodedProductId,
+    },
+    true
+  );
+
   const decoded_market_id = decodeQuery(String(marketId));
   const navigate = useNavigate();
 
@@ -68,7 +77,6 @@ export function AddProduct() {
 
   const handleSubmit = async (product: IProduct) => {
     const { id, ...rest } = product;
-    console.log(product);
 
     const productGallery = await transformGallery(
       product.product_colours,
@@ -79,12 +87,11 @@ export function AddProduct() {
       market_id: decoded_market_id,
       product_colours: productGallery,
     };
-
-    // if (id) {
-    //   await updateProduct({ ...dataToSend, id });
-    // } else {
-    //   await postData(dataToSend);
-    // }
+    if (id) {
+      await updateProduct({ ...dataToSend, id });
+    } else {
+      await postData(dataToSend);
+    }
   };
 
   const productTypes = useMemo(() => {
@@ -117,13 +124,31 @@ export function AddProduct() {
     }
   }, [newProduct?.data, updateValue?.data]);
 
+  useEffect(() => {
+    if (decodedProductId) {
+      refetch();
+    }
+  }, [decodedProductId, refetch]);
+
+  const initailData: IProduct | undefined = useMemo(() => {
+    if (product?.data) {
+      const { market, product_type, product_category, ...rest } = product.data;
+      return {
+        ...rest,
+      };
+    }
+  }, [product?.data]);
+
   return (
     <PageOutline>
       <div className="bg-primary p-5 w-full rounded-tr-md rounded-tl-md h-28 text-white">
-        <h2 className="font-bold text-2xl">Add New Product</h2>
+        <h2 className="font-bold text-2xl">
+          {productId ? "Update" : "Add New"} Product
+        </h2>
         <p className="text-xl">Add mechandise to your marketplace</p>
       </div>
       <ProductForm
+        initialData={initailData}
         onSubmit={handleSubmit}
         loading={isCreating || isUpdating || loading}
         productTypes={productTypes || []}

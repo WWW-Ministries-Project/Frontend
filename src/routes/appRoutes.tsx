@@ -45,6 +45,7 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
 import Market from "@/pages/MembersPage/Pages/Market.js";
@@ -427,24 +428,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "huh",
     children: [
-      // {
-      //   path: "programs",
-      //   name: "Programs",
-      //   element: <ProgramApply />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name",
-      //   name: "Programs",
-      //   element: <ProgramDetails />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name/apply",
-      //   name: "Programs",
-      //   element: <ProgramInformation />,
-      //   isPrivate: false,
-      // },
+      {
+        path: "programs",
+        name: "Programs",
+        element: <ProgramApply />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        isPrivate: false,
+      },
       {
         path: "register-member",
         element: <Registration />,
