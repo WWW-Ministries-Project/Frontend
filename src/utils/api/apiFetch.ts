@@ -89,13 +89,17 @@ export class ApiCalls {
   };
 
   // Position Management
-  fetchPositions = (): Promise<ApiResponse<PositionType[]>> => {
-    return this.fetchFromApi("position/list-positions");
+  fetchPositions = (
+    query?: QueryType
+  ): Promise<ApiResponse<PositionType[]>> => {
+    return this.fetchFromApi("position/list-positions", query);
   };
 
   // Department Management
-  fetchDepartments = (): Promise<ApiResponse<DepartmentType[]>> => {
-    return this.fetchFromApi("department/list-departments");
+  fetchDepartments = (
+    query?: QueryType
+  ): Promise<ApiResponse<DepartmentType[]>> => {
+    return this.fetchFromApi("department/list-departments", query);
   };
 
   // Asset Management
