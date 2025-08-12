@@ -10,7 +10,6 @@ export interface IMarket {
 
 export type MarketStatusType = "upcoming" | "active" | "ended";
 
-
 export interface IProductType {
   name: string;
   id: string;
@@ -37,4 +36,10 @@ export interface IProduct {
   stock_managed: "yes" | "no";
   id?: number | string;
   product_colours: ProductColour[];
-};
+}
+
+export interface IProductTypeResponse extends IProduct {
+  product_category: IProductType;
+  product_type: IProductType;
+  market: IMarket;
+}
