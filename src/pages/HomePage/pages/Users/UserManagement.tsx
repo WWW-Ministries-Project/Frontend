@@ -1,15 +1,19 @@
+import { ColumnDef } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { HeaderControls } from "@/components/HeaderControls";
 import { ProfilePicture } from "@/components/ProfilePicture";
 import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { MembersType } from "@/utils";
+import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
-import { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import edit from "/src/assets/edit.svg";
+import { Modal } from "@/components/Modal";
+import { ViewUser } from "./pages/ViewUser";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 export const UserManagement = () => {
   const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
@@ -17,11 +21,22 @@ export const UserManagement = () => {
   });
   const [searchedUser, setSearchedUser] = useState("");
   const [showSearch, setShowSearch] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<string>()
   const navigate = useNavigate();
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "User Management", link: "" },
+  ];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchedUser(e.target.value);
   };
+
+  const handleEditing = (id:string) => {
+    setSelectedUserId(id)
+    setIsModalOpen(true)
+  }
 
   //displayed headers for table
   const usersColumns: ColumnDef<User>[] = [
@@ -30,10 +45,8 @@ export const UserManagement = () => {
       accessorKey: "name",
       cell: ({ row }) => (
         <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => {
-            navigate(`${row.original.id}/info`);
-          }}
+          className="flex items-center gap-2 "
+          
         >
           <ProfilePicture
             src={row.original.photo}
@@ -56,11 +69,6 @@ export const UserManagement = () => {
       header: "Email",
       accessorKey: "email",
     },
-    // {
-    //   header: "Department",
-    //   accessorKey: "department",
-    //   accessorFn: (row) => row.department?.name || "-",
-    // },
     {
       header: "Role",
       accessorKey: "access.name",
@@ -74,7 +82,7 @@ export const UserManagement = () => {
           className={
             info.getValue()
               ? "bg-green-500 text-sm h-6 w-20 p-2 flex items-center justify-center rounded-lg text-center text-white "
-              : "bg-red-500 text-sm h-6 w-20 p-2 flex items-center justify-center rounded-lg text-center text-lighterBlack"
+              : "bg-red-500 text-sm h-6 w-20 p-2 flex items-center justify-center rounded-lg text-center text-white"
           }
         >
           {info.getValue() ? "Active" : "Inactive"}
@@ -86,17 +94,14 @@ export const UserManagement = () => {
       cell: ({ row }) => (
         <div
           className={
-            "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            "text-sm h-6 flex  gap-2 rounded-lg text-center text-white "
           }
-        >
-          <img
-            src={edit}
-            alt="edit icon"
-            className="cursor-pointer"
-            onClick={() => {
-              navigate(`${row.original.id}/info`);
+          onClick={() => {
+              handleEditing(`${row.original.id}`)
             }}
-          />
+        >
+          
+          <PencilSquareIcon height={24} className="text-gray-800"/>
         </div>
       ),
     },
@@ -107,9 +112,9 @@ export const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       <HeaderControls
-        title={`"Users" (${users.length})`}
+        title={`Users (${users.length})`}
         setShowSearch={setShowSearch}
         hasFilter={false}
         screenWidth={window.innerWidth}
@@ -132,6 +137,12 @@ export const UserManagement = () => {
         columnFilters={[]}
         setColumnFilters={() => {}}
       />
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ViewUser 
+        id={`${selectedUserId}`}
+        onClose={()=>setIsModalOpen(false)}
+        />
+      </Modal>
     </PageOutline>
   );
 };

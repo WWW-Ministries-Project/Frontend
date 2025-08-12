@@ -12,8 +12,15 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ActiveAccess } from "../../Settings/Components/ActiveAccess";
-export const ViewUser = () => {
-  const { id } = useParams();
+import { XCircleIcon } from "@heroicons/react/24/outline";
+
+interface IProps {
+  id: string;
+  onClose: () => void
+}
+
+export const ViewUser = ({id, onClose}:IProps) => {
+  // const { id } = useParams();
   //api
   const { data: responseData, refetch } = useFetch(api.fetch.fetchAMember, {
     user_id: id!,
@@ -109,19 +116,29 @@ export const ViewUser = () => {
   };
 
   return (
-    <PageOutline>
-      <div className="max-w-4xl mx-auto bg-white rounded-lg  p-6 space-y-4">
-        <h2 className="text-2xl font-semibold ">User Account</h2>
+      <div className="w-[45rem] mx-auto bg-white rounded-lg  p-6 space-y-4">
+        <div className="">
+          <div className="flex justify-between items-center cursor-pointer" onClick={onClose}>
+            <h2 className="text-2xl font-bold ">User Account</h2>
+          <div>
+            <XCircleIcon height={32} className="text-gray-500 hover:text-primary"/>
+          </div>
+        </div>
+        <div>
+          <p className="text-gray-600">Manage user account and permissions</p>
+        </div>
+        </div>
+        <HorizontalLine />
         <div className="flex items-center  gap-8">
           <ProfilePicture
             src={user?.photo}
             alt="Profile"
-            className={" w-32 h-32 bg-lightGray"}
+            className={" w-24 h-24 bg-lightGray"}
           />
           {/* User Details */}
           <div className="space-y-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <div className="font-semibold">{user?.name}</div>
                 <div
                   className={`text-xs font-semibold rounded-full px-2 py-1 ${
@@ -151,10 +168,14 @@ export const ViewUser = () => {
             </div>
           </div>
         </div>
-        <HorizontalLine />
+        
         <section className="space-y-4">
-          <div className="flex items-center justify-between w-2/3">
-            <div className="">Account status</div>
+          <div className="font-semibold text-xl">Account Management</div>
+          <div className="flex items-center justify-between border p-4 rounded-xl">
+            <div className="">
+              <p className="font-medium">Account status</p>
+              <p className="text-sm text-gray-700">User access is {isActive ? "active" : "inactive"}</p>
+            </div>
             <ToggleSwitch
               name="activate"
               label={`${isActive ? "Deactivate" : "Activate"}`}
@@ -164,9 +185,12 @@ export const ViewUser = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between w-2/3">
-            <div>User role</div>
-            <div className="max-w-[300px]">
+          <div className="flex items-center justify-between border p-4 rounded-xl">
+            <div>
+              <p className="font-medium">User role</p>
+              <p className="text-sm text-gray-700">Select a role for this user</p>
+            </div>
+            <div className="">
               <SelectField
                 placeholder={"Select Role"}
                 className="w-full"
@@ -180,26 +204,21 @@ export const ViewUser = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between w-2/3">
-            <div className="">Reset password?</div>
+          <div className="flex items-center justify-between border p-4 rounded-xl">
+            <div className="">
+              <p className="font-medium">Password Reset</p>
+              <p className="text-sm text-gray-700">Send a password reset email to the user</p>
+            </div>
             <Button
               variant={"primary"}
-              value="Reset"
+              value="Send Reset Email"
               onClick={handlePasswordReset}
               disabled={resetLoading || !isActive}
               loading={resetLoading}
             />
           </div>
         </section>
-        <HorizontalLine />
-        <section></section>
-        {user?.access_level_id && (
-          <ActiveAccess
-            permissions={user?.access?.permissions || {}}
-            name={user?.access?.name || ""}
-          />
-        )}
+      
       </div>
-    </PageOutline>
   );
 };
