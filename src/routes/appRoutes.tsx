@@ -23,7 +23,7 @@ import { HomePage } from "../pages/HomePage/HomePage";
 import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
-import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
+import Settings from "../pages/HomePage/pages/Settings/Settings";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
@@ -45,7 +45,14 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import MembersPage from "@/pages/MembersPage/MembersPage.js";
+import Market from "@/pages/MembersPage/Pages/Market.js";
+import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
+import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
+import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
+import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -421,24 +428,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "huh",
     children: [
-      // {
-      //   path: "programs",
-      //   name: "Programs",
-      //   element: <ProgramApply />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name",
-      //   name: "Programs",
-      //   element: <ProgramDetails />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name/apply",
-      //   name: "Programs",
-      //   element: <ProgramInformation />,
-      //   isPrivate: false,
-      // },
+      {
+        path: "programs",
+        name: "Programs",
+        element: <ProgramApply />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        isPrivate: false,
+      },
       {
         path: "register-member",
         element: <Registration />,
@@ -478,6 +485,44 @@ export const routes: AppRoute[] = [
     element: <EventRegister />,
     isPrivate: false,
   },
+  {
+    path: "/member",
+    element: <MembersPage />,
+    name: "member",
+    children: [
+      {
+    path: relativePath.member.dashboard,
+    name: "member_dashboard",
+    element: <DashBoardPage />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.market,
+    name: "member_market",
+    element: <Market />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.lifeCenter,
+    name: "member_life_center",
+    element: <MyLifeCenter />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.schoolOfMinistries.allPrograms,
+    name: "member_school_of_ministries",
+    element: <AllPrograms />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.schoolOfMinistries.myClass,
+    name: "member_school_of_ministries",
+    element: <MyClass />,
+    isPrivate: false,
+  },
+    ]
+
+  }
 ];
 
 // Now, extract sideTabs

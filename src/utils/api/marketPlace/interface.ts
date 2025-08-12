@@ -10,17 +10,36 @@ export interface IMarket {
 
 export type MarketStatusType = "upcoming" | "active" | "ended";
 
-export type IProduct = {
-  product_name: string;
-  description: string;
-  status: "published" | "draft";
-  type: string;
-  category: string;
-  price: string;
-  id: string;
-};
-
 export interface IProductType {
   name: string;
   id: string;
+}
+
+export type ProductColour = {
+  colour: string;
+  image_url: string | File;
+  stock?: {
+    size: string;
+    stock: string | number;
+  }[];
+};
+
+export interface IProduct {
+  name: string;
+  description: string;
+  status: "published" | "draft";
+  product_type_id: string | number;
+  product_category_id: string | number;
+  price_amount: string | number;
+  price_currency: string;
+  market_id?: string;
+  stock_managed: "yes" | "no";
+  id?: number | string;
+  product_colours: ProductColour[];
+}
+
+export interface IProductTypeResponse extends IProduct {
+  product_category: IProductType;
+  product_type: IProductType;
+  market: IMarket;
 }

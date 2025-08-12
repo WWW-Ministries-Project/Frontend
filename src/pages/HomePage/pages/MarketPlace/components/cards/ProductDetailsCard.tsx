@@ -1,10 +1,13 @@
 import { memo, useState } from "react";
 import { ProductChip } from "../chips/ProductChip";
-import type { IProduct } from "@/utils/api/marketPlace/interface";
+import type {
+  IProduct,
+  IProductTypeResponse,
+} from "@/utils/api/marketPlace/interface";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 
 type ProductDetailsCardProps = {
-  product: IProduct;
+  product: IProductTypeResponse;
   handleDelete: (id: string, name: string) => void;
   handleView: (product: IProduct) => void;
   handleEdit: (id: string) => void;
@@ -17,22 +20,34 @@ export const ProductDetailsCard = memo(
     handleEdit,
     handleView,
   }: ProductDetailsCardProps) => {
-    const { imageUrl, product_name, status, type, category, price, stock, id } =
-      product;
+    const {
+      product_colours,
+      name,
+      status,
+      product_type,
+      product_category,
+      price_amount,
+      id,
+    } = product;
+
+    const totalStock = product_colours
+      .flatMap((colour) => colour.stock || [])
+      .reduce((sum, stockItem) => sum + Number(stockItem.stock || 0), 0);
+
     const [showOptions, setShowOptions] = useState(false);
     return (
       <div className="relative w-full rounded-xl border bg-white p-2 shadow-sm">
         <div className="flex gap-4">
           <img
-            src={imageUrl}
-            alt={`${product_name} product image`}
+            src={`${product_colours[0]?.image_url}`}
+            alt={`${name} product image`}
             className="h-[119px] w-[102px] rounded-lg border object-cover"
           />
           <div className="flex w-full flex-col justify-between space-y-5">
             <div className="space-y-1">
               <div className="flex w-full items-center justify-between">
                 <h3 className="text-xs md:text-sm lg:text-lg  font-medium text-gray-700">
-                  {product_name}
+                  {product?.name || ""}
                 </h3>
                 <div className="flex items-center gap-1">
                   <p
@@ -47,22 +62,24 @@ export const ProductDetailsCard = memo(
                   >
                     <ActionButton
                       showOptions={showOptions}
-                      onDelete={()=>handleDelete(product.id, product.product_name)}
-                      onEdit={() => handleEdit(id)}
+                      onDelete={() =>
+                        handleDelete(`${product.id}`, product?.name)
+                      }
+                      onEdit={() => handleEdit(`${id}`)}
                       onView={() => handleView(product)}
                     />
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-col md:flex-col lg:flex-row gap-2">
-                <ProductChip section="type" text={type} />
-                <ProductChip section="category" text={category} />
+              <div className="flex items-center gap-2">
+                <ProductChip section="type" text={product_type?.name} />
+                <ProductChip section="category" text={product_category?.name} />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-col md:flex-col lg:flex-row lg:items-center gap-2">
-              <p className="font-medium text-gray-800">${price}</p>
-              <ProductChip section="" text={`${stock} in stock`} />
+            <div className="flex items-center gap-2">
+              <p className="font-medium text-gray-800">${price_amount}</p>
+              <ProductChip section="" text={`${totalStock} in stock`} />
             </div>
           </div>
         </div>
@@ -72,8 +89,6 @@ export const ProductDetailsCard = memo(
 );
 
 ProductDetailsCard.displayName = "ProductDetailsCard";
-
-
 
 export const statusColors: Record<string, string> = {
   published: "bg-[#34C759] text-white",

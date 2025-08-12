@@ -39,6 +39,7 @@ function LoginPage() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  
 
   async function handleSubmit() {
     setLoading(true);
@@ -51,10 +52,17 @@ function LoginPage() {
       if (token) {
         login(decodeToken(token));
         setToken(token);
+        const decodedToken = decodeToken(token)
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        if (response.status === 200) {
+        console.log("Token", decodeToken(token));
+        
+        
+        if (response.status === 200 && decodedToken?.ministry_worker) {
           navigate(relativePath.home.members.mainNew);
+        }
+        if (response.status === 200 && !decodedToken?.ministry_worker) {
+          navigate(relativePath.member.dashboard);
         }
       }
     } catch (error: unknown) {

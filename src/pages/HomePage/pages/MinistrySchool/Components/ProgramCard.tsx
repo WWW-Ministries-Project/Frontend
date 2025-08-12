@@ -72,7 +72,7 @@ export const ProgramsCard = ({
                     Edit Program
                   </button>
                 </li>
-                <li>
+                {/* <li>
                   <button
                     className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30"
                     onClick={() => {
@@ -82,11 +82,11 @@ export const ProgramsCard = ({
                   >
                     Add Cohort
                   </button>
-                </li>
+                </li> */}
                 {cohorts.length > 0 && (
                   <>
                     {" "}
-                    <li>
+                    {/* <li>
                       <button
                         className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30"
                         onClick={() => {
@@ -96,7 +96,7 @@ export const ProgramsCard = ({
                       >
                         Copy Application Link
                       </button>
-                    </li>
+                    </li> */}
                     <li>
                       <button
                         className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30"

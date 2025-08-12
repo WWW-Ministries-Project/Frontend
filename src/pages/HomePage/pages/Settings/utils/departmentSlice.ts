@@ -9,6 +9,7 @@ const createDepartmentSlice: StateCreator<
   DepartmentSlice
 > = (set, get) => ({
   departments: [],
+  total: 0,
   departmentsOptions: [],
   positionOptions: {},
 
@@ -38,8 +39,8 @@ const createDepartmentSlice: StateCreator<
     get().setPositionOptions();
   },
 
-  setDepartments: (departments: Department[]) => {
-    set({ departments });
+  setDepartments: (departments: Department[], total: number = 0) => {
+    set({ departments, total });
     get().setDepartmentsOptions();
     get().setPositionOptions();
   },
@@ -48,7 +49,7 @@ const createDepartmentSlice: StateCreator<
     set((state) => ({
       departmentsOptions: state.departments.map((department) => ({
         label: department.name,
-        value: department.id,
+        value: department.id + "",
       })),
     }));
   },

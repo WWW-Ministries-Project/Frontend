@@ -11,7 +11,12 @@ import {
   LifeCenterStatsType,
   LifeCenterType,
 } from "./lifeCenter/interfaces";
-import type { IMarket, IProductType } from "./marketPlace/interface";
+import type {
+  IMarket,
+  IProduct,
+  IProductType,
+  IProductTypeResponse,
+} from "./marketPlace/interface";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
   DetailedCohortType,
@@ -88,13 +93,17 @@ export class ApiCalls {
   };
 
   // Position Management
-  fetchPositions = (): Promise<ApiResponse<PositionType[]>> => {
-    return this.fetchFromApi("position/list-positions");
+  fetchPositions = (
+    query?: QueryType
+  ): Promise<ApiResponse<PositionType[]>> => {
+    return this.fetchFromApi("position/list-positions", query);
   };
 
   // Department Management
-  fetchDepartments = (): Promise<ApiResponse<DepartmentType[]>> => {
-    return this.fetchFromApi("department/list-departments");
+  fetchDepartments = (
+    query?: QueryType
+  ): Promise<ApiResponse<DepartmentType[]>> => {
+    return this.fetchFromApi("department/list-departments", query);
   };
 
   // Asset Management
@@ -282,5 +291,17 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IProductType[]>> => {
     return this.fetchFromApi(`product/list-product-category`, query);
+  };
+
+  fetchProductsByMarket = (
+    query?: QueryType
+  ): Promise<ApiResponse<IProductTypeResponse[]>> => {
+    return this.fetchFromApi(`product/list-products-by-market/`, query);
+  };
+
+  fetchProductById = (
+    query?: QueryType
+  ): Promise<ApiResponse<IProductTypeResponse>> => {
+    return this.fetchFromApi(`product/get-product-by-id/`, query);
   };
 }
