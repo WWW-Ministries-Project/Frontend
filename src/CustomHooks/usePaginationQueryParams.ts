@@ -29,18 +29,20 @@ export function usePaginationQueryParams(
   const setTake = (newTake: number) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("take", Math.max(newTake, 1).toString());
-    newParams.set("page", "1"); // reset page to 1 when take changes
+    newParams.set("page", "1"); 
     setSearchParams(newParams, { replace: true });
   };
 
-  useEffect(() => {
-    if (!hasPage || !hasTake) {
-      const newParams = new URLSearchParams(searchParams);
-      if (!hasPage) newParams.set("page", defaultPage.toString());
-      if (!hasTake) newParams.set("take", defaultTake.toString());
-      setSearchParams(newParams, { replace: true });
-    }
-  }, [hasPage, hasTake, defaultPage, defaultTake]);
+useEffect(() => {
+  if (!hasPage || !hasTake) {
+    const newParams = new URLSearchParams(searchParams);
+    if (!hasPage) newParams.set("page", defaultPage.toString());
+    if (!hasTake) newParams.set("take", defaultTake.toString());
+    setSearchParams(newParams, { replace: true });
+  } else if (take !== defaultTake) {
+    setTake(defaultTake);
+  }
+}, [hasPage, hasTake, defaultPage, defaultTake]);
 
   return {
     page,

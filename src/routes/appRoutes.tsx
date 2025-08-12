@@ -23,7 +23,7 @@ import { HomePage } from "../pages/HomePage/HomePage";
 import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
-import Settings from "../pages/HomePage/pages/Settings/Settings.jsx";
+import Settings from "../pages/HomePage/pages/Settings/Settings";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";

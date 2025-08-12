@@ -9,19 +9,15 @@ export interface Department {
   position?: Position[];
 }
 
-export interface DepartmentOption {
-  label: string;
-  value: number;
-}
-
 export interface DepartmentSlice {
   departments: Department[];
-  departmentsOptions: DepartmentOption[];
+  total: number;
+  departmentsOptions: ISelectOption[];
   positionOptions: Record<number, ISelectOption[]>;
   addDepartment: (department: Department) => void;
   removeDepartment: (departmentId: number) => void;
   updateDepartment: (updatedDepartment: Department) => void;
-  setDepartments: (departments: Department[]) => void;
+  setDepartments: (departments: Department[], total: number) => void;
   setDepartmentsOptions: () => void;
   setPositionOptions: () => void;
 }
@@ -38,11 +34,12 @@ export interface PositionOption {
 
 export interface PositionSlice {
   positions: Position[];
+  total: number;
   // positionsOptions: PositionOption[];
   addPosition: (position: Position) => void;
   removePosition: (positionId: number | string) => void;
   updatePosition: (updatedPosition: Position) => void;
-  setPositions: (positions: Position[]) => void;
+  setPositions: (positions: Position[], total: number) => void;
   // setPositionsOptions: () => void;
 }
 
