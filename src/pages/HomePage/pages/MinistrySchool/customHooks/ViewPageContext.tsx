@@ -1,11 +1,14 @@
-import { Topic } from "@/utils";
+import { Topic, User } from "@/utils";
 import React, { createContext, useContext, useState } from "react";
+
+
 
 type Data = {
   title?: string;
   description?: string;
   showTopic?: boolean; // Optional property
   topics?: Topic[]; // Optional property
+  user?: User;
 };
 interface ViewPageContextProps {
   loading: boolean;
