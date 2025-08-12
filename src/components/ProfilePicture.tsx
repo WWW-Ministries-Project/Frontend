@@ -1,4 +1,4 @@
-import { firstLetters } from "@/utils/helperFunctions";
+import { getInitials } from "@/utils/helperFunctions";
 import { ChangeEvent } from "react";
 import icon from "/src/assets/edit-2.svg";
 
@@ -44,7 +44,7 @@ export const ProfilePicture = (props: IProps) => {
           <div
             className={`w-full rounded-full h-full flex justify-center items-center ${props.textClass}`}
           >
-            {firstLetters(props.name)}
+            {getInitials(props.name)}
           </div>
         )}
         {props.editable ? (

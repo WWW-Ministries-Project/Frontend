@@ -72,6 +72,8 @@ export const StudentForm = ({ onClose, onSubmit, loading = false }: IProps) => {
               id="user_id"
               label="Select a member *"
               placeholder="Select a member *"
+              searchable={true}
+  searchPlaceholder="Search members..."
             />
             <NameInfo disabled />
             <Field

@@ -1,10 +1,11 @@
-import hamburger from "/src/assets/sidenav.svg";
 import { ProfilePicture } from "@/components";
 import ChurchLogo from "@/components/ChurchLogo";
+import { useUserStore } from "@/store/userStore";
 import { MouseEventHandler, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
-import { decodeToken, removeToken } from "../../../utils/helperFunctions";
+import { removeToken } from "../../../utils/helperFunctions";
+import hamburger from "/src/assets/sidenav.svg";
 
 interface IProps {
   handleShowNav: () => void;
@@ -25,9 +26,7 @@ export const Header = ({ handleShowNav }: IProps) => {
     navigate("/login");
   };
 
-  const decodedToken = decodeToken();
-  const profileImg = decodedToken?.profile_img ?? "";
-  const name = decodedToken?.name ?? "";
+  const { name, profile_img: profileImg } = useUserStore((state) => state);
 
   return (
     <div className="flex items-center">
