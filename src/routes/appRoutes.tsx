@@ -52,6 +52,7 @@ import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
 import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -427,24 +428,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "huh",
     children: [
-      // {
-      //   path: "programs",
-      //   name: "Programs",
-      //   element: <ProgramApply />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name",
-      //   name: "Programs",
-      //   element: <ProgramDetails />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name/apply",
-      //   name: "Programs",
-      //   element: <ProgramInformation />,
-      //   isPrivate: false,
-      // },
+      {
+        path: "programs",
+        name: "Programs",
+        element: <ProgramApply />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        isPrivate: false,
+      },
       {
         path: "register-member",
         element: <Registration />,
