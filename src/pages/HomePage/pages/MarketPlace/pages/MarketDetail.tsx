@@ -29,7 +29,7 @@ export function MarketDetails() {
   const { id: marketId } = useParams();
   const id = decodeQuery(String(marketId));
 
-  const { data: market, refetch } = useFetch(api.fetch.fetchMarketById, {
+  const { data: market } = useFetch(api.fetch.fetchMarketById, {
     id,
   });
 
@@ -40,7 +40,7 @@ export function MarketDetails() {
   const { data: productCategories, refetch: refetchProductCategories } =
     useFetch(api.fetch.fetchProductCategories);
 
-  const { data: products } = useFetch(api.fetch.fetchProductsByMarket, {
+  const { data: products , refetch} = useFetch(api.fetch.fetchProductsByMarket, {
     market_id: id,
   });
 

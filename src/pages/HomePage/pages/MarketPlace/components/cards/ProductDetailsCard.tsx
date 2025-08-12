@@ -71,13 +71,13 @@ export const ProductDetailsCard = memo(
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-col md:flex-col lg:flex-row gap-2">
+              <div className="flex items-center gap-2">
                 <ProductChip section="type" text={product_type?.name} />
                 <ProductChip section="category" text={product_category?.name} />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-col md:flex-col lg:flex-row lg:items-center gap-2">
+            <div className="flex items-center gap-2">
               <p className="font-medium text-gray-800">${price_amount}</p>
               <ProductChip section="" text={`${totalStock} in stock`} />
             </div>
