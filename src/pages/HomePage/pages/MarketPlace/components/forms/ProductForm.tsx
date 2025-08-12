@@ -1,23 +1,23 @@
 import { Field, Form, Formik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { array, mixed, object, string } from "yup";
+import { number, object, string } from "yup";
 
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
-import type { IProduct } from "@/utils/api/marketPlace/interface";
-import { ProductGallery } from "./ProductGallery";
 import { Actions } from "@/components/ui/form/Actions";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
+import { ProductGalleryWithForm } from "./ProductGallery";
 
 interface IProps {
-  addProduct: (product: IProduct) => void;
-  isSubmitting: boolean;
+  onSubmit: (product: IProduct) => void;
+  loading: boolean;
   productTypes: { label: string; value: string }[];
   categories: { label: string; value: string }[];
 }
 export function ProductForm({
-  addProduct,
-  isSubmitting,
+  onSubmit,
+  loading,
   productTypes,
   categories,
 }: IProps) {
@@ -28,18 +28,18 @@ export function ProductForm({
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        addProduct(values);
+        onSubmit(values);
       }}
     >
-      {({ values, setFieldValue, handleSubmit, errors, touched }) => {
+      {({ handleSubmit }) => {
         return (
           <Form className="px-5 space-y-6">
             <FormLayout>
               <Field
-                name="product_name"
+                name="name"
                 component={FormikInputDiv}
                 label="Product name *"
-                id="product_name"
+                id="name"
                 placeholder="Enter Product Name"
               />
 
@@ -54,35 +54,30 @@ export function ProductForm({
               />
 
               <Field
-                name="type"
+                name="product_type_id"
                 component={FormikSelectField}
                 options={productTypes}
                 label="Product type"
-                id="type"
+                id="product_type_id"
                 placeholder="Select Type"
               />
 
               <Field
-                name="category"
+                name="product_category_id"
                 component={FormikSelectField}
                 options={categories}
                 label="Product category"
-                id="category"
+                id="product_category_id"
                 placeholder="Select Category"
               />
 
-              <ProductGallery
-                values={values}
-                errors={errors}
-                touched={touched}
-                setFieldValue={setFieldValue}
-              />
+              <ProductGalleryWithForm />
 
               <Field
-                name="price"
+                name="price_amount"
                 component={FormikInputDiv}
                 label="Price"
-                id="price"
+                id="price_amount"
                 placeholder=""
                 type="number"
               />
@@ -100,7 +95,7 @@ export function ProductForm({
             {/* Submit Button */}
 
             <Actions
-              loading={isSubmitting}
+              loading={loading}
               onCancel={() => navigate(-1)}
               onSubmit={handleSubmit}
             />
@@ -111,53 +106,25 @@ export function ProductForm({
   );
 }
 
-export interface Product extends IProduct {
-  gallery: {
-    color: string;
-    image: File | string;
-    stock_management: { stock?: number; size?: string }[];
-  }[];
-  manage_stock: "yes" | "no";
-}
-
-const initialValues: Product = {
-  product_name: "",
+const initialValues: IProduct = {
+  name: "",
   description: "",
   status: "published",
-  type: "",
-  category: "",
-  price: "",
-  gallery: [
-    {
-      color: "",
-      image: "",
-      stock_management: [{ size: "S", stock: 0 }],
-    },
-  ],
+  product_type_id: 0,
+  product_category_id: 0,
+  price_amount: 0,
+  price_currency: "",
   id: "",
-  manage_stock: "yes",
+  ...ProductGalleryWithForm.initialValues,
 };
 
-const validationSchema = object().shape({
-  product_name: string().required("required"),
+const validationSchema = object({
+  name: string().required("required"),
   description: string().required("required"),
-  type: string().required("required"),
-  category: string().required("required"),
-  price: string().required("required"),
-  manage_stock: string().oneOf(["yes", "no"]),
-
-  gallery: array().of(
-    object({
-      color: string(),
-      image: mixed().required("Required"),
-      stock_management: array().of(
-        object({
-          size: string(),
-        })
-      ),
-    })
-  ),
-});
+  product_type_id: number().required("required"),
+  product_category_id: number().required("required"),
+  price_amount: number().required("required"),
+}).concat(ProductGalleryWithForm.validationSchema);
 
 const productSatus = [
   {
