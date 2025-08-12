@@ -3,17 +3,23 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
+import EmptyState from "@/components/EmptyState";
+import { HeaderControls } from "@/components/HeaderControls";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { ProductDetailsCard } from "../components/cards/ProductDetailsCard";
 import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { HeaderControls } from "@/components/HeaderControls";
-import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
-import { MarketHeader } from "../components/MarketHeader";
-import { useFetch } from "@/CustomHooks/useFetch";
+import {
+  decodeQuery,
+  encodeQuery,
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils";
 import { api, IProductType } from "@/utils";
+import { ProductDetailsCard } from "../components/cards/ProductDetailsCard";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
-import EmptyState from "@/components/EmptyState";
+import { MarketHeader } from "../components/MarketHeader";
 
 export function MarketDetails() {
   const [tab, setTab] = useState("Products");
@@ -23,7 +29,7 @@ export function MarketDetails() {
   const { id: marketId } = useParams();
   const id = decodeQuery(String(marketId));
 
-  const { data: market, refetch } = useFetch(api.fetch.fetchMarketById, {
+  const { data: market } = useFetch(api.fetch.fetchMarketById, {
     id,
   });
 
@@ -34,23 +40,32 @@ export function MarketDetails() {
   const { data: productCategories, refetch: refetchProductCategories } =
     useFetch(api.fetch.fetchProductCategories);
 
+  const { data: products , refetch} = useFetch(api.fetch.fetchProductsByMarket, {
+    market_id: id,
+  });
+
+  const { executeDelete, success } = useDelete(api.delete.deleteProduct);
+
   const [categories, setCategories] = useState<IProductType[]>([]);
   const [types, setTypes] = useState<IProductType[]>([]);
-
-  useEffect(() => {
-    if (producttypes?.data) {
-      setTypes(producttypes?.data);
-    }
-  }, [producttypes?.data]);
 
   useEffect(() => {
     if (productCategories?.data) {
       setCategories(productCategories.data);
     }
-  }, [productCategories?.data]);
+
+    if (producttypes?.data) {
+      setTypes(producttypes?.data);
+    }
+
+    if (success) {
+      showNotification("Product deleted successfully", "success");
+      refetch();
+    }
+  }, [productCategories?.data, producttypes?.data, success]);
 
   const editProduct = (id: string) => {
-    navigate("update-product/" + encodeQuery(id));
+    navigate("edit-product/" + encodeQuery(id));
   };
 
   const handleRefetch = useCallback((section: "type" | "category") => {
@@ -59,6 +74,12 @@ export function MarketDetails() {
     } else {
       refetchProductCategories();
     }
+  }, []);
+
+  const handleDelete = useCallback(async (id: string, name: string) => {
+    showDeleteDialog({ id, name }, async () => {
+      await executeDelete({ product_id: id });
+    });
   }, []);
 
   return (
@@ -89,22 +110,22 @@ export function MarketDetails() {
 
       <GridComponent
         columns={[]}
-        data={[]}
-        displayedCount={10}
+        data={products?.data || []}
+        displayedCount={100}
         filter={""}
         setFilter={() => {}}
         renderRow={(row) => (
           <ProductDetailsCard
             product={row.original}
             key={row.original.id}
-            handleDelete={() => {}}
+            handleDelete={handleDelete}
             handleEdit={(id) => editProduct(id)}
             handleView={() => {}}
           />
         )}
       />
 
-      <EmptyState msg="No products found" />
+      {products?.data.length === 0 && <EmptyState msg="No products found" />}
 
       <ConfigurationsDrawer
         isOpen={drawerOpen}
