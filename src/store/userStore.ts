@@ -26,6 +26,7 @@ export const useUserStore = create<UserState & UserActions>()(
       profile_img: undefined,
       member_since: undefined,
       membership_type: "",
+      ministry_worker: false,
       department: undefined,
 
       setUser: ({
@@ -36,6 +37,7 @@ export const useUserStore = create<UserState & UserActions>()(
         profile_img,
         member_since,
         membership_type,
+        ministry_worker,
         department,
         permissions,
       }) => {
@@ -47,6 +49,7 @@ export const useUserStore = create<UserState & UserActions>()(
           profile_img,
           member_since,
           membership_type,
+          ministry_worker,
           department,
           permissions: convertPermissions(permissions),
         });
@@ -62,6 +65,7 @@ export const useUserStore = create<UserState & UserActions>()(
           profile_img: undefined,
           member_since: undefined,
           membership_type: "",
+          ministry_worker: false,
           department: undefined,
         }),
     }),

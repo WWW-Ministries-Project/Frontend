@@ -46,6 +46,12 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import MembersPage from "@/pages/MembersPage/MembersPage.js";
+import Market from "@/pages/MembersPage/Pages/Market.js";
+import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
+import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
+import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
+import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -478,6 +484,44 @@ export const routes: AppRoute[] = [
     element: <EventRegister />,
     isPrivate: false,
   },
+  {
+    path: "/member",
+    element: <MembersPage />,
+    name: "member",
+    children: [
+      {
+    path: relativePath.member.dashboard,
+    name: "member_dashboard",
+    element: <DashBoardPage />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.market,
+    name: "member_market",
+    element: <Market />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.lifeCenter,
+    name: "member_life_center",
+    element: <MyLifeCenter />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.schoolOfMinistries.allPrograms,
+    name: "member_school_of_ministries",
+    element: <AllPrograms />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.schoolOfMinistries.myClass,
+    name: "member_school_of_ministries",
+    element: <MyClass />,
+    isPrivate: false,
+  },
+    ]
+
+  }
 ];
 
 // Now, extract sideTabs

@@ -32,6 +32,7 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
     profile_img: state.profile_img,
     member_since: state.member_since,
     membership_type: state.membership_type,
+    ministry_worker: state.ministry_worker,
     department: state.department,
   }));
 
