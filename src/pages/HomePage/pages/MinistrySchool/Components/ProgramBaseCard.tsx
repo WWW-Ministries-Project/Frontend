@@ -61,7 +61,7 @@ export const ProgramBaseCard = ({ program, cohorts = [], applyCard = false, chil
         </div>
       </div>
 
-      {!applyCard && <hr className="border-lightGray" />}
+      {!applyCard && <hr className="border-gray-100" />}
 
       <div className="space-y-3">
         <h4 className="text-sm font-semibold">Cohorts</h4>
@@ -97,7 +97,7 @@ export const ProgramBaseCard = ({ program, cohorts = [], applyCard = false, chil
       </div>
 
       <div className="flex-grow" />
-      {!applyCard && <hr className="my-0 w-[calc(100%+32px)] -mx-4 border-t-1 border-lightGray" />}
+      {!applyCard && <hr className="my-0 w-[calc(100%+32px)] -mx-4 border-t-1 border-gray-100" />}
       {children}
     </CardWrappers>
   );

@@ -161,6 +161,17 @@ type DetailedProgramType = {
 //   updatedAt: string;
 //   cohort: CohortType;
 // }
+export type UserInfo = {
+  primary_number?: string;
+  country_code?:string
+}
+
+export type User = {
+  id?: string;
+  name?: string;
+  email?: string;
+  user_info?: UserInfo;
+}
 
 export type EnrollmentDataType = {
   id: number;
@@ -170,6 +181,7 @@ export type EnrollmentDataType = {
   course: CourseType;
   phone: string;
   email: string;
+  user: User;
 }
 
 export type ClassOption = {

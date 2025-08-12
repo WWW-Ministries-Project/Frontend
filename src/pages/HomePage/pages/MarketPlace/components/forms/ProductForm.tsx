@@ -1,6 +1,7 @@
 import { Field, Form, Formik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { number, object, string } from "yup";
+import { useMemo } from "react";
 
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
@@ -14,18 +15,25 @@ interface IProps {
   loading: boolean;
   productTypes: { label: string; value: string }[];
   categories: { label: string; value: string }[];
+  initialData?: IProduct;
 }
 export function ProductForm({
   onSubmit,
   loading,
   productTypes,
   categories,
+  initialData,
 }: IProps) {
   const navigate = useNavigate();
 
+  const initial: IProduct = useMemo(
+    () => initialData || initialValues,
+    [initialData]
+  );
   return (
     <Formik
-      initialValues={initialValues}
+      enableReinitialize
+      initialValues={initial}
       validationSchema={validationSchema}
       onSubmit={(values) => {
         onSubmit(values);

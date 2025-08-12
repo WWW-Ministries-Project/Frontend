@@ -108,6 +108,7 @@ export const ViewProgram = () => {
 
   return (
     <div className="">
+      
       <AllCohorts
         cohorts={program?.cohorts || []}
         onCreate={() => {

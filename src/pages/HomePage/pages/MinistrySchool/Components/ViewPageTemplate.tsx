@@ -1,31 +1,33 @@
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { Outlet } from "react-router-dom";
 import { useViewPage, ViewPageProvider } from "../customHooks/ViewPageContext";
+import { Badge } from "@/components/Badge";
 
 const ViewPageTemplateInner = () => {
   const { loading, data: Data, details } = useViewPage();
+  
   return (
-    <PageOutline className="p-0">
+    <PageOutline className="p-0 ">
       <section className="sticky top-0">
         <div className="bg-gradient-to-r from-primary to-primary/90 rounded-t-lg text-white">
-          <div className="container mx-auto p-4 space-y-4">
+          <div className="container mx-auto p-4 px-6 space-y-4">
             <div>
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  {loading && (
-                    <div className="animate-pulse flex  justify-between  w-[40rem]">
-                      <div className="h-6 bg-lightGray rounded w-3/5"></div>
-                      <div className="h-4 bg-lightGray rounded w-1/6"></div>
+                  <div className="flex items-center gap-4">
+                    {
+                    loading ?  <div className="animate-pulse flex  justify-between  w-[40rem]">
+                    <div className="h-6 bg-lightGray rounded w-3/5"></div>
+                    <div className="h-4 bg-lightGray rounded w-1/6"></div>
+                    </div> : 
+                    <div className="flex items-center gap-4">
+                      <div className="text-white text-2xl font-bold">{Data?.title || Data?.user?.name }</div>
+                      
                     </div>
-                  )}
-                </div>
-                {/* {loading && (
-                  <div className="animate-pulse flex justify-end space-x-2 w-[30rem]">
-                    <div className="h-10 bg-lightGray rounded w-1/3"></div>
-                    <div className="h-10 bg-lightGray rounded w-1/3"></div>
+                    }
+                    
                   </div>
-                )} */}
-              </div>
+                  
+                </div>
               {/* Description */}
               {loading ? (
                 <div className="animate-pulse h-4 bg-lightGray rounded w-2/6"></div>
@@ -57,7 +59,7 @@ const ViewPageTemplateInner = () => {
             )}
 
             {/* Topics */}
-            {/* {loading
+            {loading
               ? Data?.topics &&
                 Data?.showTopic && (
                   <div className="space-y-2 animate-pulse">
@@ -87,7 +89,7 @@ const ViewPageTemplateInner = () => {
                       ))}
                     </div>
                   </div>
-                )} */}
+                )}
           </div>
         </div>
       </section>
@@ -103,7 +105,9 @@ const ViewPageTemplateInner = () => {
             {isGrid ? <SkeletonLoader no={6} /> : <TableSkeleton />}
           </div>
         ) : ( */}
-        <Outlet />
+        <div className="px-6">
+          <Outlet />
+        </div>
         {/* )} */}
       </section>
     </PageOutline>

@@ -11,7 +11,12 @@ import {
   LifeCenterStatsType,
   LifeCenterType,
 } from "./lifeCenter/interfaces";
-import type { IMarket, IProductType } from "./marketPlace/interface";
+import type {
+  IMarket,
+  IProduct,
+  IProductType,
+  IProductTypeResponse,
+} from "./marketPlace/interface";
 import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
   DetailedCohortType,
@@ -305,5 +310,17 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IProductType[]>> => {
     return this.fetchFromApi(`product/list-product-category`, query);
+  };
+
+  fetchProductsByMarket = (
+    query?: QueryType
+  ): Promise<ApiResponse<IProductTypeResponse[]>> => {
+    return this.fetchFromApi(`product/list-products-by-market/`, query);
+  };
+
+  fetchProductById = (
+    query?: QueryType
+  ): Promise<ApiResponse<IProductTypeResponse>> => {
+    return this.fetchFromApi(`product/get-product-by-id/`, query);
   };
 }

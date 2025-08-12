@@ -1,3 +1,4 @@
+import { Button } from "@/components";
 import { Actions } from "@/components/ui/form/Actions";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
@@ -8,6 +9,7 @@ export const TopicAssessment = ({
   editMode,
   enrollmentId,
   onCancel,
+  toggleEditMode,
   onUpdate,
   loading,
 }: {
@@ -16,6 +18,7 @@ export const TopicAssessment = ({
   enrollmentId: number;
   loading: boolean;
   onCancel: () => void;
+  toggleEditMode: () => void;
   onUpdate: (data: {
     progressUpdates: {
       topicId: number;
@@ -146,7 +149,7 @@ export const TopicAssessment = ({
             {editMode ? (
               <input
                 type="text"
-                className="px-4 py-2 border border-lightGray rounded-lg"
+                className="px-4 py-2 border border-lightGray rounded-lg w-full"
                 placeholder="Enter notes"
                 value={row.original.notes}
                 onChange={(e) => {
@@ -170,10 +173,17 @@ export const TopicAssessment = ({
   return (
     <div className="py-4">
       <div className="space-y-6">
-       <div>
-         <h2 className="text-xl font-semibold">Topic Assessment</h2>
+       <div className="flex justify-between">
+          <div>
+          <h2 className="text-xl font-semibold">Topic Assessment</h2>
         <p>Evaluate student performance for each topic in the program</p>
-       </div>
+        </div>
+        {!editMode &&toggleEditMode&&<Button
+        variant="primary"
+        value="Edit"
+        onClick={toggleEditMode}
+        />}
+        </div>
        <div className="border px-4 p-2 rounded-xl space-y-2">
         <div>
            <h2 className="text-lg font-medium"> Overall Assessment</h2>
