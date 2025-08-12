@@ -1,12 +1,13 @@
+import { ColumnDef } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { HeaderControls } from "@/components/HeaderControls";
 import { ProfilePicture } from "@/components/ProfilePicture";
 import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { MembersType } from "@/utils";
+import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
-import { ColumnDef } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import edit from "/src/assets/edit.svg";
@@ -18,6 +19,10 @@ export const UserManagement = () => {
   const [searchedUser, setSearchedUser] = useState("");
   const [showSearch, setShowSearch] = useState(true);
   const navigate = useNavigate();
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "User Management", link: "" },
+  ];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchedUser(e.target.value);
@@ -107,7 +112,7 @@ export const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       <HeaderControls
         title={`"Users" (${users.length})`}
         setShowSearch={setShowSearch}

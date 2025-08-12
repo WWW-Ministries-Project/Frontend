@@ -9,6 +9,7 @@ const createPositionSlice: StateCreator<
   PositionSlice
 > = (set, get) => ({
   positions: [],
+  total: 0,
   // positionsOptions: [],
   addPosition: (position: Position) => {
     set((state) => ({
@@ -30,8 +31,8 @@ const createPositionSlice: StateCreator<
     }));
     // get().setPositionsOptions();
   },
-  setPositions: (positions: Position[]) => {
-    set({ positions });
+  setPositions: (positions: Position[], total: number) => {
+    set({ positions, total });
     // get().setPositionsOptions();
   },
   // setPositionsOptions: () => {
