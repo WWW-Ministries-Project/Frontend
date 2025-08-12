@@ -45,6 +45,7 @@ import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewPro
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
+import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
 import Market from "@/pages/MembersPage/Pages/Market.js";
@@ -52,7 +53,6 @@ import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
 import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
-import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
