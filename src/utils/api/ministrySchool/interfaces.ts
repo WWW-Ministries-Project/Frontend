@@ -184,3 +184,23 @@ export type EnrollmentDataType = {
   user: User;
 }
 
+export type ClassOption = {
+  id: string
+  name: string
+  meetingDays: string[]
+  meetingTime: string
+  facilitator: string
+  enrolled: number
+  capacity: number
+}
+
+export type Programs = {
+  id: string
+  name: string
+  upcomingCohort: string
+  topics: string[]
+  description: string
+  prerequisites: string[] | undefined
+  courses: ClassOption[]
+}
+

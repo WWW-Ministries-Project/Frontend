@@ -23,6 +23,7 @@ import {
   DetailedCourseType,
   EnrollmentDataType,
   ProgramResponse,
+  Programs,
 } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
@@ -144,6 +145,12 @@ export class ApiCalls {
     return this.fetchFromApi("program/programs", query);
   };
 
+  fetchAllApplicablePrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<Programs[]>> => {
+    return this.fetchFromApi("program/get-member-programs", query);
+  };
+
   fetchProgramById = (
     query?: QueryType
   ): Promise<ApiResponse<ProgramResponse>> => {
@@ -208,6 +215,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/user-enrollment", query);
+  };
+  
+  fetchEnrollmentsByUserId = (
+    query?: QueryType
+  ): Promise<ApiResponse<EnrollmentDataType>> => {
+    return this.fetchFromApi(`program/my-enrollment`, query);
   };
 
   // Follow-Up Management

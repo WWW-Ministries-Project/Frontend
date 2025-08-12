@@ -29,6 +29,8 @@ export const TopicAssessment = ({
     }[];
   }) => void;
 }) => {
+  console.log("topic", topics);
+  
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
   const averageScore = updatedTopics.length
     ? updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
@@ -171,35 +173,40 @@ export const TopicAssessment = ({
   return (
     <div className="py-4">
       <div className="space-y-6">
-        <div className="flex justify-between">
+       <div className="flex justify-between">
           <div>
           <h2 className="text-xl font-semibold">Topic Assessment</h2>
         <p>Evaluate student performance for each topic in the program</p>
         </div>
-        {!editMode&&<Button
+        {!editMode &&toggleEditMode&&<Button
         variant="primary"
         value="Edit"
         onClick={toggleEditMode}
         />}
         </div>
-        <TableComponent columns={columns} data={updatedTopics} />
+       <div className="border px-4 p-2 rounded-xl space-y-2">
+        <div>
+           <h2 className="text-lg font-medium"> Overall Assessment</h2>
+            <p className="text-sm">Summary across all topics</p>
+        </div> 
 
-        {/* Overall Assessment */}
-        <div className="flex items-center justify-between">
-          <div className=" text-sm">
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2">
             <div>
-              <span className="font-semibold">Overall Assessment</span>
+              <p className="font-medium text-lg">Average Score: </p>
+              <p>{averageScore.toFixed(2)}%</p>
             </div>
             <div>
-              <span className="font-medium">Average Score: </span>
-              <span>{averageScore.toFixed(2)}%</span>
-            </div>
-            <div>
-              <span className="font-medium">Progress: </span>
-              <span>{progress}% Complete</span>
+              <p className="font-medium text-lg">Progress: </p>
+              <p>{progress}% Complete</p>
             </div>
           </div>
+        </div>
+       </div>
+        <TableComponent columns={columns} data={updatedTopics} />
 
+
+        <div className="flex items-center justify-end">
           {/* Save Button */}
           <div className="">
             {editMode && (
