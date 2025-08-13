@@ -6,6 +6,7 @@ export const useCart = create<ICartSlice>()(
   persist(
     (set, get) => ({
       cartItems: [],
+      cartOpen: false,
       addToCart: (item) => {
         set((state) => {
           const existingItemIndex = state.cartItems.findIndex(
@@ -43,6 +44,9 @@ export const useCart = create<ICartSlice>()(
         return get().cartItems.reduce((total, item) => {
           return total + item.price_amount * item.quantity;
         }, 0);
+      },
+      toggleCart: (value) => {
+        set({ cartOpen: value });
       },
     }),
     {

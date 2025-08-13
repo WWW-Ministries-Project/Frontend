@@ -24,6 +24,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
     quantity: 1,
     currentIndex: 0,
   });
+  const { itemIsInCart,  } = useCart();
 
   const handleQuantityChange = (type: "increment" | "decrement") => {
     setSelection((prev) => {
@@ -53,7 +54,6 @@ export function ProductDetails({ product, addToCart }: IProps) {
     (color) => color.stock || []
   );
 
-  const { itemIsInCart } = useCart();
 
   const itemExistInCart = itemIsInCart(`${product.id}`);
 
@@ -61,7 +61,18 @@ export function ProductDetails({ product, addToCart }: IProps) {
     if (itemExistInCart) {
       console.log("Check out");
     } else {
-     console.log("add to csrt")
+      addToCart({
+        name: product.name,
+        id: `${product.id}`,
+        price_amount: +product.price_amount,
+        price_currency: product.price_currency,
+        quantity: selection.quantity,
+        product_type: product.product_type.name,
+        product_category: product.product_category.name,
+        image_url: `${
+          product.product_colours[selection.currentIndex].image_url
+        }`,
+      });
     }
   };
 

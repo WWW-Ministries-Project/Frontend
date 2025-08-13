@@ -1,3 +1,4 @@
+import { image } from '@/pages/HomePage/Components/MultiImageComponent';
 export interface IMarket {
   name: string;
   description: string;
@@ -52,6 +53,7 @@ export interface ICartItem {
   quantity: number;
   product_type: string;
   product_category: string;
+  image_url: string;
 }
 
 export interface ICartSlice {
@@ -62,4 +64,6 @@ export interface ICartSlice {
   itemIsInCart: (productId: string) => boolean;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  cartOpen: boolean;
+  toggleCart: (value: boolean) => void;
 }

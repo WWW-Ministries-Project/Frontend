@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { changeAuth } from "@/axiosInstance";
 import { useStore } from "@/store/useStore";
 import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
+import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer";
 
 
 
@@ -34,6 +35,7 @@ const MembersPage = () => {
             <div className="  px-[1rem] lg:px-[4rem] xl:px-[8rem] ">
                 <Outlet/>
             </div>
+            <CartDrawer/>
 
             <LoaderComponent/>
 
