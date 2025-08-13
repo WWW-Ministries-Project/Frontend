@@ -7,9 +7,23 @@ export const useCart = create<ICartSlice>()(
     (set, get) => ({
       cartItems: [],
       addToCart: (item) => {
-        set((state) => ({
-          cartItems: [...state.cartItems, item],
-        }));
+        set((state) => {
+          const existingItemIndex = state.cartItems.findIndex(
+            (cartItem) => cartItem.id === item.id
+          );
+
+          if (existingItemIndex !== -1) {
+            const updatedCartItems = [...state.cartItems];
+            updatedCartItems[existingItemIndex] = {
+              ...updatedCartItems[existingItemIndex],
+              quantity:
+                updatedCartItems[existingItemIndex].quantity + item.quantity,
+            };
+            return { cartItems: updatedCartItems };
+          } else {
+            return { cartItems: [...state.cartItems, item] };
+          }
+        });
       },
       removeFromCart: (itemId) => {
         set((state) => ({
