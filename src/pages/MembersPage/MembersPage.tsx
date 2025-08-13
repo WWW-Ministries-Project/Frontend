@@ -6,6 +6,7 @@ import { api } from "@/utils";
 import { useEffect } from "react";
 import { changeAuth } from "@/axiosInstance";
 import { useStore } from "@/store/useStore";
+import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
 
 
 
@@ -33,6 +34,8 @@ const MembersPage = () => {
             <div className="  px-[1rem] lg:px-[4rem] xl:px-[8rem] ">
                 <Outlet/>
             </div>
+
+            <LoaderComponent/>
 
         </div>
      );
