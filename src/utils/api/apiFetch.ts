@@ -216,7 +216,7 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/user-enrollment", query);
   };
-  
+
   fetchEnrollmentsByUserId = (
     query?: QueryType
   ): Promise<ApiResponse<EnrollmentDataType>> => {
@@ -262,7 +262,7 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenter/`, query);
   };
 
-    fetchLifeCenterByUserId = (
+  fetchLifeCenterByUserId = (
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterDetailsType>> => {
     return this.fetchFromApi(`lifecenter/my-lifecenter/`, query);
@@ -322,5 +322,11 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IProductTypeResponse>> => {
     return this.fetchFromApi(`product/get-product-by-id/`, query);
+  };
+
+  fetchAllProducts = (
+    query?: QueryType
+  ): Promise<ApiResponse<IProductTypeResponse[]>> => {
+    return this.fetchFromApi(`product/list-products`, query);
   };
 }
