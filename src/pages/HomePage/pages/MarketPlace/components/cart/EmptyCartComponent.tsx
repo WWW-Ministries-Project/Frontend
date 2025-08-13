@@ -1,7 +1,9 @@
-import { Button } from "@/components";
-import emptyCartSvg from "@/assets/empty-cart.svg";
 import { useNavigate } from "react-router-dom";
+
+import emptyCartSvg from "@/assets/empty-cart.svg";
+import { Button } from "@/components";
 import { useCart } from "../../utils/cartSlice";
+
 export default function EmptyCartComponent() {
   const navigate = useNavigate();
 

@@ -3,7 +3,7 @@ import { ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../../utils/cartSlice";
 
 export function CartIcon() {
-  const { cartOpen, toggleCart, getTotalItems } = useCart();
+  const { toggleCart, getTotalItems } = useCart();
 
   const cartCount = getTotalItems();
 

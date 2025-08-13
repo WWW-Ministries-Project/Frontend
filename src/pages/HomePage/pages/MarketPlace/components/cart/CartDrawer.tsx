@@ -1,10 +1,12 @@
+import { useEffect, useRef } from "react";
+
 import { ShoppingCartIcon } from "@heroicons/react/24/outline";
-import { useCart } from "../../utils/cartSlice";
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import { ProductChip } from "../chips/ProductChip";
+
 import { Button } from "@/components";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import { useCart } from "../../utils/cartSlice";
+import { ProductChip } from "../chips/ProductChip";
 import EmptyCartComponent from "./EmptyCartComponent";
-import { useRef, useEffect } from "react";
 
 export default function CartDrawer() {
   const { cartItems, cartOpen, toggleCart, removeFromCart, getTotalPrice } =
