@@ -43,3 +43,23 @@ export interface IProductTypeResponse extends IProduct {
   product_type: IProductType;
   market: IMarket;
 }
+
+export interface ICartItem {
+  name: string;
+  id: string;
+  price_amount: number;
+  price_currency: string;
+  quantity: number;
+  product_type: string;
+  product_category: string;
+}
+
+export interface ICartSlice {
+  cartItems: ICartItem[];
+  addToCart: (product: ICartItem) => void;
+  removeFromCart: (productId: string) => void;
+  clearCart: () => void;
+  itemIsInCart: (productId: string) => boolean;
+  getTotalItems: () => number;
+  getTotalPrice: () => number;
+}
