@@ -7,15 +7,16 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
-import { IProductTypeResponse } from "@/utils";
+import { ICartItem, IProductTypeResponse } from "@/utils";
 import { ProductChip } from "./chips/ProductChip";
 import { cn } from "@/utils/cn";
 
 interface IProps {
   product: IProductTypeResponse;
+  addToCart: (item: ICartItem) => void;
 }
 
-export function ProductDetails({ product }: IProps) {
+export function ProductDetails({ product, addToCart }: IProps) {
   const [selection, setSelection] = useState({
     selectedColor: "",
     selectedSize: "",
@@ -50,6 +51,8 @@ export function ProductDetails({ product }: IProps) {
   const productStock = product.product_colours.flatMap(
     (color) => color.stock || []
   );
+
+  const handleAddToCart = () => {};
 
   return (
     <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
@@ -173,7 +176,12 @@ export function ProductDetails({ product }: IProps) {
         {/* Buttons */}
         <div className="flex gap-4 flex-wrap w-full">
           <Button value="By now" className="w-full" />
-          <Button value="Add to cart" variant="secondary" className="w-full" />
+          <Button
+            value="Add to cart"
+            variant="secondary"
+            className="w-full"
+            onClick={handleAddToCart}
+          />
         </div>
 
         {/* Description */}
