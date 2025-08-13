@@ -16,10 +16,13 @@ import {
   showDeleteDialog,
   showNotification,
 } from "@/pages/HomePage/utils";
-import { api, IProductType } from "@/utils";
+import { api, IProductType, IProductTypeResponse } from "@/utils";
 import { ProductDetailsCard } from "../components/cards/ProductDetailsCard";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 import { MarketHeader } from "../components/MarketHeader";
+import { Modal } from "@/components/Modal";
+import { ProductDetails } from "../components/ProductDetails";
+import { ProductOverview } from "../components/ProductOverview";
 
 export function MarketDetails() {
   const [tab, setTab] = useState("Products");
@@ -40,14 +43,20 @@ export function MarketDetails() {
   const { data: productCategories, refetch: refetchProductCategories } =
     useFetch(api.fetch.fetchProductCategories);
 
-  const { data: products , refetch} = useFetch(api.fetch.fetchProductsByMarket, {
-    market_id: id,
-  });
+  const { data: products, refetch } = useFetch(
+    api.fetch.fetchProductsByMarket,
+    {
+      market_id: id,
+    }
+  );
 
   const { executeDelete, success } = useDelete(api.delete.deleteProduct);
 
   const [categories, setCategories] = useState<IProductType[]>([]);
   const [types, setTypes] = useState<IProductType[]>([]);
+  const [open, setOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] =
+    useState<IProductTypeResponse | null>(null);
 
   useEffect(() => {
     if (productCategories?.data) {
@@ -81,6 +90,11 @@ export function MarketDetails() {
       await executeDelete({ product_id: id });
     });
   }, []);
+
+  const handleView = (product: IProductTypeResponse) => {
+    setCurrentProduct(product);
+    setOpen(true);
+  };
 
   return (
     <PageOutline>
@@ -120,7 +134,7 @@ export function MarketDetails() {
             key={row.original.id}
             handleDelete={handleDelete}
             handleEdit={(id) => editProduct(id)}
-            handleView={() => {}}
+            handleView={handleView}
           />
         )}
       />
@@ -134,6 +148,19 @@ export function MarketDetails() {
         types={types}
         refetch={handleRefetch}
       />
+
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setCurrentProduct(null);
+        }}
+        persist={false}
+      >
+        {currentProduct && (
+          <ProductOverview product={currentProduct} onEdit={editProduct} />
+        )}
+      </Modal>
     </PageOutline>
   );
 }

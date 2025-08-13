@@ -4,9 +4,10 @@ import { Button } from "@/components";
 
 interface IProps {
   product: IProductTypeResponse;
+  handleViewProduct: (id: string) => void;
 }
 
-export const ProductCard = ({ product }: IProps) => {
+export const ProductCard = ({ product, handleViewProduct }: IProps) => {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
       <div className=" bg-[#D9D9D9]">
@@ -32,7 +33,11 @@ export const ProductCard = ({ product }: IProps) => {
           </p>
         </div>
         <div className="w-full">
-          <Button value="View Product" className="w-full" />
+          <Button
+            value="View Product"
+            className="w-full"
+            onClick={() => handleViewProduct(`${product.id}`)}
+          />
         </div>
       </div>
     </div>

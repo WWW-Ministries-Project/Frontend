@@ -76,6 +76,7 @@ export const relativePath = {
     main: "/member",
     dashboard: "/member/dashboard",
     market: "/member/market",
+    productDetails:"/member/product/:id",
     lifeCenter:"/member/life-center",
     schoolOfMinistries: {
       main:"school-of-ministries",

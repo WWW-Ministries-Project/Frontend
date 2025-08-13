@@ -53,6 +53,7 @@ import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
 import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
+import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -500,6 +501,12 @@ export const routes: AppRoute[] = [
     path: relativePath.member.market,
     name: "member_market",
     element: <Market />,
+    isPrivate: false,
+  },
+  {
+    path: relativePath.member.productDetails,
+    name: "member_market",
+    element: <ProductDetailsPage />,
     isPrivate: false,
   },
   {

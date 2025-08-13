@@ -9,7 +9,7 @@ import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 type ProductDetailsCardProps = {
   product: IProductTypeResponse;
   handleDelete: (id: string, name: string) => void;
-  handleView: (product: IProduct) => void;
+  handleView: (product: IProductTypeResponse) => void;
   handleEdit: (id: string) => void;
 };
 
