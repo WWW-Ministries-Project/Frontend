@@ -10,6 +10,7 @@ import { Button } from "@/components";
 import { ICartItem, IProductTypeResponse } from "@/utils";
 import { ProductChip } from "./chips/ProductChip";
 import { cn } from "@/utils/cn";
+import { useCart } from "../utils/cartSlice";
 
 interface IProps {
   product: IProductTypeResponse;
@@ -52,7 +53,19 @@ export function ProductDetails({ product, addToCart }: IProps) {
     (color) => color.stock || []
   );
 
-  const handleAddToCart = () => {};
+  const { itemIsInCart } = useCart();
+
+  const itemExistInCart = itemIsInCart(`${product.id}`);
+
+  const handleAddToCart = () => {
+    if (itemExistInCart) {
+      console.log("Check out");
+    } else {
+     console.log("add to csrt")
+    }
+  };
+
+  const cartText = itemExistInCart ? "Checkout" : "Add to cart";
 
   return (
     <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
@@ -175,10 +188,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
         {/* Buttons */}
         <div className="flex gap-4 flex-wrap w-full">
-          <Button value="By now" className="w-full" />
+          {!itemExistInCart && <Button value="By now" className="w-full" />}
           <Button
-            value="Add to cart"
-            variant="secondary"
+            value={cartText}
+            variant={itemExistInCart ? "primary" : "secondary"}
             className="w-full"
             onClick={handleAddToCart}
           />

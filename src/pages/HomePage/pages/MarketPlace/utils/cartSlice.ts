@@ -16,8 +16,7 @@ export const useCart = create<ICartSlice>()(
             const updatedCartItems = [...state.cartItems];
             updatedCartItems[existingItemIndex] = {
               ...updatedCartItems[existingItemIndex],
-              quantity:
-                updatedCartItems[existingItemIndex].quantity + item.quantity,
+              quantity: item.quantity,
             };
             return { cartItems: updatedCartItems };
           } else {
