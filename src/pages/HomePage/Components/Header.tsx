@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import { routes } from "@/routes/appRoutes";
 import { relativePath } from "@/utils";
+import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 
 interface IProps {
   handleShowNav?: () => void;
@@ -202,10 +203,11 @@ export const Header = ({ handleShowNav }: IProps) => {
           {/* <div className={routeName === "member" ? "flex-1" : "w-[40.9%]"} /> */}
 
           <div className="relative w-[246px] flex justify-end gap-x-2 items-center">
+            {routeName === "member" &&  <CartIcon />}
             <div
               className="flex items-center rounded-xl gap-x-3 cursor-pointer"
               onClick={handleClick}
-            >
+              >
               <ProfilePicture
                 src={profileImg}
                 className="w-[2rem] h-[2rem] bg-lightGray/90 border text-primary"
