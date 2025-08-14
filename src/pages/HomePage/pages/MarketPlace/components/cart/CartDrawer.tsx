@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ShoppingCartIcon } from "@heroicons/react/24/outline";
 
@@ -13,6 +14,7 @@ export default function CartDrawer() {
     useCart();
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,7 +42,7 @@ export default function CartDrawer() {
 
   return (
     <div
-      className={`fixed top-[65px] right-0 w-80 h-fit z-50 p-4 rounded-tl-md text-[#474D66] bg-white shadow-lg transform transition-transform duration-300 ${
+      className={`fixed top-[65px] right-0 w-96 h-fit   z-50 p-4 rounded-tl-md text-[#474D66] bg-white shadow-lg transform transition-transform duration-300 ${
         cartOpen ? "translate-x-0" : "translate-x-full"
       }`}
       ref={drawerRef}
@@ -54,7 +56,7 @@ export default function CartDrawer() {
           <XMarkIcon className="size-5" />
         </button>
       </div>
-      <div className="p-4 divide-y-[1px]">
+      <div className="p-4 divide-y-[1px] max-h-[60vh] overflow-y-scroll">
         {cartItems.length === 0 ? (
           <EmptyCartComponent />
         ) : (
@@ -66,23 +68,28 @@ export default function CartDrawer() {
                 onDelete={handleRemoveFromCart}
               />
             ))}
-
-            <div className="pt-2">
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-semibold">Subtotal</p>
-                <p className="text-lg font-semibold">
-                  <span>GHC </span>
-                  {totalPrice.toFixed(2)}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between mt-3">
-                <Button value="Checkout" />
-                <Button value="View cart" variant="secondary" />
-              </div>
-            </div>
           </>
         )}
+      </div>
+      <div className="pt-2 border-t">
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold">Subtotal</p>
+          <p className="text-lg font-semibold">
+            <span>GHC </span>
+            {totalPrice.toFixed(2)}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-3">
+        <Button value="Checkout" />
+        <Button
+          value="View cart"
+          variant="secondary"
+          onClick={() => {
+            toggleCart(false);
+            navigate("/member/cart");
+          }}
+        />
       </div>
     </div>
   );

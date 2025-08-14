@@ -54,6 +54,10 @@ export interface ICartItem {
   product_type: string;
   product_category: string;
   image_url: string;
+  color:string
+  size: string;
+  productColors?: string[];
+  productSizes?: string[];
 }
 
 export interface ICartSlice {
@@ -66,4 +70,5 @@ export interface ICartSlice {
   getTotalPrice: () => number;
   cartOpen: boolean;
   toggleCart: (value: boolean) => void;
+  setCartItems: (items: ICartItem[]) => void;
 }

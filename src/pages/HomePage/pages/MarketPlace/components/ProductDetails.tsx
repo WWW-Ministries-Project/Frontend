@@ -24,7 +24,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
     quantity: 1,
     currentIndex: 0,
   });
-  const { itemIsInCart,  } = useCart();
+  const { itemIsInCart } = useCart();
 
   const handleQuantityChange = (type: "increment" | "decrement") => {
     setSelection((prev) => {
@@ -54,8 +54,13 @@ export function ProductDetails({ product, addToCart }: IProps) {
     (color) => color.stock || []
   );
 
-
   const itemExistInCart = itemIsInCart(`${product.id}`);
+  const productColors = Array.from(
+    new Set(product.product_colours.map((color) => color.colour))
+  );
+  const productSizes = Array.from(
+    new Set(productStock.map((size) => size.size))
+  );
 
   const handleAddToCart = () => {
     if (itemExistInCart) {
@@ -72,6 +77,12 @@ export function ProductDetails({ product, addToCart }: IProps) {
         image_url: `${
           product.product_colours[selection.currentIndex].image_url
         }`,
+        color:
+          selection.selectedColor ||
+          product.product_colours[selection.currentIndex].colour,
+        size: selection.selectedSize || productStock[0]?.size,
+        productColors,
+        productSizes,
       });
     }
   };
@@ -173,17 +184,17 @@ export function ProductDetails({ product, addToCart }: IProps) {
         {/* Sizes */}
         <Section title="Sizes">
           <div className="flex gap-2 flex-wrap">
-            {productStock.map((size) => (
+            {productSizes.map((size) => (
               <button
-                key={size.size}
-                onClick={() => handleSizeChange(size.size)}
+                key={size}
+                onClick={() => handleSizeChange(size)}
                 className={`px-3 py-1 border rounded ${
-                  selection.selectedSize === size.size
+                  selection.selectedSize === size
                     ? "border border-black"
                     : "border-gray-300"
                 }`}
               >
-                {size.size}
+                {size}
               </button>
             ))}
           </div>

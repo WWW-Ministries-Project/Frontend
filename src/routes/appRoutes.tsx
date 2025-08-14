@@ -54,6 +54,7 @@ import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
 import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage.js";
+import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -485,44 +486,49 @@ export const routes: AppRoute[] = [
     name: "member",
     children: [
       {
-    path: relativePath.member.dashboard,
-    name: "member_dashboard",
-    element: <DashBoardPage />,
-    isPrivate: false,
+        path: relativePath.member.dashboard,
+        name: "member_dashboard",
+        element: <DashBoardPage />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.market,
+        name: "member_market",
+        element: <Market />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.productDetails,
+        name: "product_details",
+        element: <ProductDetailsPage />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.cart,
+        name: "cart",
+        element: <ViewCart />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.lifeCenter,
+        name: "member_life_center",
+        element: <MyLifeCenter />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.allPrograms,
+        name: "member_school_of_ministries",
+        element: <AllPrograms />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.myClass,
+        name: "member_school_of_ministries",
+        element: <MyClass />,
+        isPrivate: false,
+      },
+    ],
   },
-  {
-    path: relativePath.member.market,
-    name: "member_market",
-    element: <Market />,
-    isPrivate: false,
-  },
-  {
-    path: relativePath.member.productDetails,
-    name: "member_market",
-    element: <ProductDetailsPage />,
-    isPrivate: false,
-  },
-  {
-    path: relativePath.member.lifeCenter,
-    name: "member_life_center",
-    element: <MyLifeCenter />,
-    isPrivate: false,
-  },
-  {
-    path: relativePath.member.schoolOfMinistries.allPrograms,
-    name: "member_school_of_ministries",
-    element: <AllPrograms />,
-    isPrivate: false,
-  },
-  {
-    path: relativePath.member.schoolOfMinistries.myClass,
-    name: "member_school_of_ministries",
-    element: <MyClass />,
-    isPrivate: false,
-  },
-    ]
-
-  }
 ];
 
 // Now, extract sideTabs
