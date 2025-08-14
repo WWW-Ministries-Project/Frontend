@@ -48,6 +48,9 @@ export const useCart = create<ICartSlice>()(
       toggleCart: (value) => {
         set({ cartOpen: value });
       },
+      setCartItems: (items) => {
+        set({ cartItems: items });
+      },
     }),
     {
       name: "cart-storage",
