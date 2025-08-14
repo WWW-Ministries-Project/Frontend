@@ -119,7 +119,7 @@ function TableComponent<TData>({
           </table>
         </div>
       </div>
-      {props.total ?? 12 > displayedCount ? (
+      {props.total && props.total > displayedCount ? (
         <PaginationComponent
           total={props.total}
           take={displayedCount}

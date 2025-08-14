@@ -272,13 +272,6 @@ export const routes: AppRoute[] = [
         sideTab: true,
       },
       {
-        path: "users/:id/info",
-        name: "View User",
-        element: <ViewUser />,
-        isPrivate: true,
-        permissionNeeded: "view_events",
-      },
-      {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
         // element: <LifeCenter />,

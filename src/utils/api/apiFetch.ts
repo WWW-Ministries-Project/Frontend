@@ -51,6 +51,11 @@ export class ApiCalls {
   ): Promise<ApiResponse<MembersType[]>> => {
     return this.fetchFromApi("user/list-users", query);
   };
+  fetchMembersForOptions = (
+    query?: QueryType
+  ): Promise<ApiResponse<MembersType[]>> => {
+    return this.fetchFromApi("user/list-users-light", query);
+  };
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);

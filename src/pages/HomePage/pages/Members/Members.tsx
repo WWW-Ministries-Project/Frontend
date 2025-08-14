@@ -32,10 +32,14 @@ export function Members() {
     user: { permissions },
   } = useAuth();
 
-  const { refetchMembers } = useOutletContext<{
-    refetchMembers: (query?: QueryType) => void;
+  const { refetchMembersOptions } = useOutletContext<{
+    refetchMembersOptions: (query?: QueryType) => void;
   }>();
 
+  const { data: allMembers, refetch: refetchMembers } = useFetch(
+    api.fetch.fetchAllMembers
+  );
+  const members = allMembers?.data||[];
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const columnVisibility = useMemo(() => {
@@ -63,9 +67,13 @@ export function Members() {
     true
   );
   const store = useStore();
-  const { members, userStats, removeMember, total } = store;
+  const { userStats, total } = store;
+
   const columns = membersColumns;
-  const crumbs = [{label: "Home", link: "/home"},{ label: "Members", link: "/members" }];
+  const crumbs = [
+    { label: "Home", link: "/home" },
+    { label: "Members", link: "/members" },
+  ];
 
   useEffect(() => {
     const switchElement = document.getElementById("switch");
@@ -82,8 +90,8 @@ export function Members() {
     const handleEffect = async () => {
       if (success) {
         showNotification("Member Deleted Successfully");
-        if ("id" in dataToDeleteRef.current)
-          removeMember(dataToDeleteRef.current.id);
+        refetchMembers();
+        refetchMembersOptions();
         const userStatsData = await refetchUserStats();
         if (userStatsData) store.setUserStats(userStatsData.data);
       }
@@ -218,7 +226,7 @@ export function Members() {
           } rounded-xl`}
         >
           {tableView ? (
-            <TableComponent
+            <TableComponent<UserType>
               columns={columns}
               data={members}
               displayedCount={12}

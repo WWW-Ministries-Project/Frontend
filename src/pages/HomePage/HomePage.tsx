@@ -27,8 +27,8 @@ export function HomePage() {
   const navigate = useNavigate();
   navigateRef.current = navigate;
 
-  const { data: membersData, refetch: refetchMembers } = useFetch(
-    api.fetch.fetchAllMembers
+  const { data: membersData, refetch: refetchMembersOptions } = useFetch(
+    api.fetch.fetchMembersForOptions
   );
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
   const { data: eventsData } = useFetch(api.fetch.fetchEvents);
@@ -40,7 +40,6 @@ export function HomePage() {
   );
   const settingsStore = useSettingsStore();
   const store = useStore();
-  const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
   const { user } = useAuth();
@@ -63,7 +62,8 @@ export function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMembers(membersData.data, membersData.meta?.total ?? 0);
+      store.setMemberOptions(membersData.data);
+      // store.setMembers(membersData.data, membersData.meta?.total ?? 0);
     }
 
     if (userStatsData) {
@@ -155,8 +155,7 @@ export function HomePage() {
               <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
                 <Outlet
                   context={{
-                    members,
-                    refetchMembers,
+                    refetchMembersOptions,
                     filter,
                     setFilter,
                     handleSearchChange,

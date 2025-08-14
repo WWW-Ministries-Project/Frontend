@@ -35,15 +35,15 @@ export type UserStats = {
 };
 
 export interface MemberSlice {
-  members: UserType[];
+  // members: UserType[];
   total: number;
   membersOptions: ISelectOption[];
   userStats: UserStats;
-  addMember: (member: UserType) => void;
-  removeMember: (memberId: number | string) => void;
-  updateMember: (updatedMember: UserType) => void;
-  setMembers: (members: UserType[],total: number) => void;
-  setMemberOptions: () => void;
+  // addMember: (member: UserType) => void;
+  // removeMember: (memberId: number | string) => void;
+  // updateMember: (updatedMember: UserType) => void;
+  // setMembers: (members: UserType[],total: number) => void;
+  setMemberOptions: (members: UserType[]) => void;
   setUserStats: (userStats: UserStats) => void;
 }
 
