@@ -13,7 +13,7 @@ import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer
 
 const MembersPage = () => {
     const store = useStore();
-     const { data: eventsData } = useFetch(api.fetch.fetchEvents);
+     const { data: eventsData } = useFetch(api.fetch.fetchUpcomingEvents);
 
      useEffect(() => {
         //  changeAuth(token);

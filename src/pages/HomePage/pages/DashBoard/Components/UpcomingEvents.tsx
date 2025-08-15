@@ -1,7 +1,9 @@
 import { useStore } from "@/store/useStore";
 import { CalendarIcon } from "@heroicons/react/24/outline";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { EventCard } from "./EventCard";
+import { Modal } from "@/components/Modal";
+import { eventType } from "../../EventsManagement/utils/eventInterfaces";
 
 export const UpcomingEvents = () => {
   const { events } = useStore((state) => ({
@@ -9,20 +11,17 @@ export const UpcomingEvents = () => {
     setEvents: state.setEvents,
   }));
 
-  // Filter for upcoming and ongoing events
-  //   const upcomingAndOngoingEvents = events.filter((event) => {
-  //     const now = new Date();
-  //     const start = new Date(
-  //       `${event.start_date.split("T")[0]}T${event.start_time || "00:00"}:00`
-  //     );
-  //     const end = new Date(
-  //       `${event.end_date.split("T")[0]}T${event.end_time || "23:59"}:00`
-  //     );
-
-  //     return start > now || (start <= now && end >= now);
-  //   });
-  //TODO: This is a placeholder waiting for api from BE
+  const [openModaal, setOpenModal] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<eventType | null>(null)
   const upcomingAndOngoingEvents = useMemo(() => events.slice(0, 4), [events]);
+
+
+  const handleEventDetails = (event: eventType): void => {
+    setSelectedEvent(event);
+    setOpenModal(true)
+    console.log('selectedEvent', selectedEvent);
+    
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -50,10 +49,20 @@ export const UpcomingEvents = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols- gap-6 max-h-[50vh] overflow-auto z-10">
           {upcomingAndOngoingEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
+            <div key={event.id} >
+              <EventCard  event={event} handleEventClick = {() =>handleEventDetails (event)}/>
+            </div>
+            
           ))}
         </div>
       )}
+
+      {/* Event Details Modal */}
+      <Modal persist open={openModaal} onClose={() => setOpenModal(false)}>
+        <div className="">
+          {selectedEvent && <EventCard event={selectedEvent} showInModal={true} onClose={() => setOpenModal(false)}/>}
+        </div>
+      </Modal>
     </div>
   );
 };
