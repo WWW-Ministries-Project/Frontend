@@ -1,5 +1,5 @@
-import { Form, Formik, FormikProps } from "formik";
-import { useCallback, useRef } from "react";
+import { Form, Formik } from "formik";
+import { useCallback } from "react";
 import { object } from "yup";
 
 import { Button } from "@/components";
@@ -11,45 +11,44 @@ import {
 } from "@/components/subform";
 import { FormLayout } from "@/components/ui";
 import { useCart } from "../../utils/cartSlice";
-import HubtelLogo from "@/assets/hubtel-logo.jpg";
+import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
+import { useNavigate } from "react-router-dom";
 
 export function CheckoutForm() {
-  const formikRef = useRef<FormikProps<ICheckoutForm>>(null);
-
-  const handlePlaceOrder = () => {
-    if (formikRef.current) {
-      formikRef.current.submitForm();
-    }
-  };
-
+  const navigate = useNavigate();
   return (
-    <div className="text-[#474D66] flex gap-5 flex-col lg:flex-row">
+    <div className="text-[#474D66] ">
       <Formik
-        innerRef={formikRef}
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={(values) => {}}
+        onSubmit={(values) => {
+          console.log(values);
+        }}
       >
-        {() => (
-          <Form className="space-y-6 w-full max-w-6xl mx-auto rounded-lg ">
-            <div className="border rounded-lg p-5">
-              <p className="font-semibold mb-5">Billing details</p>
+        {({ handleSubmit, values }) => (
+          <Form className="space-y-6 w-full max-w-6xl mx-auto rounded-lg flex gap-5 flex-col lg:flex-row">
+            <div className="border rounded-lg p-5 ">
+              <p className="font-bold mb-5">Billing Details</p>
               <FormLayout>
                 <NameInfo prefix="personal_info" />
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
+            <div className="w-full space-y-5">
+              <OrderSummary />
+              <PaymentOptionsForm />
+              <div className="flex items-center gap-2 justify-end">
+                <Button
+                  value="Cancel"
+                  variant="secondary"
+                  onClick={() => navigate(-1)}
+                />
+                <Button value="Place Order" onClick={handleSubmit} />
+              </div>
+            </div>
           </Form>
         )}
       </Formik>
-      <div className="w-full space-y-5">
-        <OrderSummary />
-        <PaymentMethod />
-        <div className="flex items-center gap-2 justify-end">
-          <Button value="Cancel" variant="secondary" />
-          <Button value="Place Order" onClick={handlePlaceOrder} />
-        </div>
-      </div>
     </div>
   );
 }
@@ -57,11 +56,13 @@ export function CheckoutForm() {
 interface ICheckoutForm {
   contact_info: IContactsSubForm;
   personal_info: INameInfo;
+  payment_method: string;
 }
 
 const initialValues: ICheckoutForm = {
   contact_info: ContactsSubForm.initialValues,
   personal_info: NameInfo.initialValues,
+  payment_method: "",
 };
 
 const validationSchema = object({
@@ -71,6 +72,7 @@ const validationSchema = object({
   contact_info: object().shape({
     ...ContactsSubForm.validationSchema,
   }),
+  ...PaymentOptionsForm.validationSchema,
 });
 
 const OrderSummary = () => {
@@ -108,19 +110,6 @@ const OrderSummary = () => {
         <p className="font-bold">Total</p>
         <p className="font-bold">GHC {totalPrice}</p>
       </div>
-    </div>
-  );
-};
-
-const PaymentMethod = () => {
-  return (
-    <div className="w-full h-fit border rounded-lg p-4 space-y-2">
-      <p>Payment</p>
-      <img
-        src={HubtelLogo}
-        alt="hubtel-image"
-        className="size-20 border rounded-lg shadow-md cursor-pointer"
-      />
     </div>
   );
 };
