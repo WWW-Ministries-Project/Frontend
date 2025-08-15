@@ -98,6 +98,12 @@ export class ApiCalls {
     return this.fetchFromApi("event/list-events", query);
   };
 
+   fetchUpcomingEvents = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType[]>> => {
+    return this.fetchFromApi("event/upcoming-events", query);
+  };
+
   // Position Management
   fetchPositions = (
     query?: QueryType
