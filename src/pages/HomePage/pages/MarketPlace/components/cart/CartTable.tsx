@@ -9,6 +9,7 @@ import { Button } from "@/components";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { relativePath } from "@/utils";
 
 export function CartTable() {
   const { cartItems, setCartItems } = useCart();
@@ -23,7 +24,7 @@ export function CartTable() {
       validationSchema={validationSchema}
       onSubmit={(values) => {
         setCartItems(values.cartItems);
-        navigate("/member/check-out");
+        navigate(relativePath.member.checkOut);
       }}
     >
       {({ values, handleSubmit }) => {
@@ -33,7 +34,7 @@ export function CartTable() {
         );
 
         return (
-          <Form className=" text-[#080808] bg-white p-4">
+          <Form className=" text-[#080808] bg-white">
             <FieldArray name="cartItems">
               {({ remove }) => (
                 <div className="overflow-x-auto">

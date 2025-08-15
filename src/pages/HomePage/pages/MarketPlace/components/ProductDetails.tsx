@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import {
   MinusIcon,
   PlusIcon,
@@ -7,10 +7,11 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
-import { ICartItem, IProductTypeResponse } from "@/utils";
+import { ICartItem, IProductTypeResponse, relativePath } from "@/utils";
 import { ProductChip } from "./chips/ProductChip";
 import { cn } from "@/utils/cn";
 import { useCart } from "../utils/cartSlice";
+import { useNavigate } from "react-router-dom";
 
 interface IProps {
   product: IProductTypeResponse;
@@ -18,14 +19,26 @@ interface IProps {
 }
 
 export function ProductDetails({ product, addToCart }: IProps) {
+  const { itemIsInCart, updateSection, cartItems } = useCart();
+  const navigate = useNavigate();
+
+  const currentProduct = useMemo(() => {
+    const productExists = cartItems.find((item) => item.id === `${product.id}`);
+    return productExists
+      ? {
+          quantity: productExists.quantity,
+          color: productExists.color,
+          size: productExists.size,
+        }
+      : { quantity: 1, color: "", size: "" };
+  }, []);
+
   const [selection, setSelection] = useState({
-    selectedColor: "",
-    selectedSize: "",
-    quantity: 1,
+    selectedColor: currentProduct.color,
+    selectedSize: currentProduct.size,
+    quantity: currentProduct.quantity,
     currentIndex: 0,
   });
-  const { itemIsInCart } = useCart();
-
   const handleQuantityChange = (type: "increment" | "decrement") => {
     setSelection((prev) => {
       const newQuantity =
@@ -34,6 +47,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
           : prev.quantity > 1
           ? prev.quantity - 1
           : 1;
+      updateSection(`${product.id}`, "quantity", newQuantity);
       return { ...prev, quantity: newQuantity };
     });
   };
@@ -43,10 +57,12 @@ export function ProductDetails({ product, addToCart }: IProps) {
   };
 
   const handleColorChange = (color: string) => {
+    updateSection(`${product.id}`, "color", color);
     setSelection((prev) => ({ ...prev, selectedColor: color }));
   };
 
   const handleSizeChange = (size: string) => {
+    updateSection(`${product.id}`, "size", size);
     setSelection((prev) => ({ ...prev, selectedSize: size }));
   };
 
@@ -64,7 +80,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
   const handleAddToCart = () => {
     if (itemExistInCart) {
-      console.log("Check out");
+      navigate(relativePath.member.checkOut);
     } else {
       addToCart({
         name: product.name,
@@ -90,10 +106,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const cartText = itemExistInCart ? "Checkout" : "Add to cart";
 
   return (
-    <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
+    <div className=" border rounded-lg mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
       {/* Image Section */}
       <div>
-        <div className="border rounded-lg overflow-hidden max-h-[400px]">
+        <div className=" border p-2 rounded-lg overflow-hidden max-h-[400px]">
           <img
             src={`${
               product.product_colours?.[selection.currentIndex].image_url
@@ -109,7 +125,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
                 <button
                   key={idx}
                   onClick={() => handleCurrentIndexChange(idx)}
-                  className={`border rounded-lg overflow-hidden size-10 ${
+                  className={`border rounded-lg overflow-hidden size-14 ${
                     idx === selection.currentIndex ? "ring-1 ring-black" : ""
                   }`}
                 >
@@ -210,7 +226,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
         {/* Buttons */}
         <div className="flex gap-4 flex-wrap w-full">
-          {!itemExistInCart && <Button value="By now" className="w-full" />}
+          {!itemExistInCart && <Button value="Buy now" className="w-full" />}
           <Button
             value={cartText}
             variant={itemExistInCart ? "primary" : "secondary"}

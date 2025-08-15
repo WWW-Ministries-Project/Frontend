@@ -26,7 +26,7 @@ export function CheckoutForm() {
         }}
       >
         {({ handleSubmit, values }) => (
-          <Form className="space-y-6 w-full max-w-6xl mx-auto rounded-lg flex gap-5 flex-col lg:flex-row">
+          <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row">
             <div className="border rounded-lg p-5 ">
               <p className="font-bold mb-5">Billing Details</p>
               <FormLayout>
