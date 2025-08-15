@@ -11,7 +11,7 @@ import {
 } from "@/components/subform";
 import { FormLayout } from "@/components/ui";
 import { useCart } from "../../utils/cartSlice";
-import HubtelLogo from "@/assets/hubtel-logo.jpeg";
+import HubtelLogo from "@/assets/hubtel-logo.jpg";
 
 export function CheckoutForm() {
   const formikRef = useRef<FormikProps<ICheckoutForm>>(null);
