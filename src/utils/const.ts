@@ -72,18 +72,19 @@ export const relativePath = {
     details: "/programs/:name",
     apply: "/programs/:name/apply",
   },
-  member:{
+  member: {
     main: "/member",
     dashboard: "/member/dashboard",
     market: "/member/market",
-    productDetails:"/member/product/:id",
-    cart:"/member/cart",
-    lifeCenter:"/member/life-center",
+    productDetails: "/member/product/:id",
+    cart: "/member/cart",
+    checkOut: "/member/check-out",
+    lifeCenter: "/member/life-center",
     schoolOfMinistries: {
-      main:"school-of-ministries",
-      allPrograms:"school-of-ministries/programs",
-      myClass:"school-of-ministries/my-class"
-    }
+      main: "school-of-ministries",
+      allPrograms: "school-of-ministries/programs",
+      myClass: "school-of-ministries/my-class",
+    },
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",
