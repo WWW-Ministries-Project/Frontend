@@ -1,4 +1,4 @@
-import { image } from '@/pages/HomePage/Components/MultiImageComponent';
+import { image } from "@/pages/HomePage/Components/MultiImageComponent";
 export interface IMarket {
   name: string;
   description: string;
@@ -54,7 +54,7 @@ export interface ICartItem {
   product_type: string;
   product_category: string;
   image_url: string;
-  color:string
+  color: string;
   size: string;
   productColors?: string[];
   productSizes?: string[];
@@ -71,4 +71,9 @@ export interface ICartSlice {
   cartOpen: boolean;
   toggleCart: (value: boolean) => void;
   setCartItems: (items: ICartItem[]) => void;
+  updateSection: <T extends "color" | "quantity" | "size">(
+    productId: string,
+    section: T,
+    value: T extends "quantity" ? number : string
+  ) => void;
 }

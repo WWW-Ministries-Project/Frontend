@@ -9,7 +9,7 @@ interface IProps {
 
 export const ProductCard = ({ product, handleViewProduct }: IProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
       <div className=" bg-[#D9D9D9]">
         <img
           src={`${product?.product_colours?.[0]?.image_url}`}
