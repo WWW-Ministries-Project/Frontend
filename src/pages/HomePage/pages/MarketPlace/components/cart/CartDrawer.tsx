@@ -8,6 +8,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useCart } from "../../utils/cartSlice";
 import { ProductChip } from "../chips/ProductChip";
 import EmptyCartComponent from "./EmptyCartComponent";
+import { relativePath } from "@/utils";
 
 export default function CartDrawer() {
   const { cartItems, cartOpen, toggleCart, removeFromCart, getTotalPrice } =
@@ -81,13 +82,16 @@ export default function CartDrawer() {
         </div>
       </div>
       <div className="flex items-center justify-between mt-3">
-        <Button value="Checkout" />
+        <Button value="Checkout" onClick={() => {
+          toggleCart(false);
+          navigate(relativePath.member.checkOut);
+        }} />
         <Button
           value="View cart"
           variant="secondary"
           onClick={() => {
             toggleCart(false);
-            navigate("/member/cart");
+            navigate(relativePath.member.cart);
           }}
         />
       </div>

@@ -11,7 +11,7 @@ export function MarketLayout(props: IProps) {
         <div className="font-bold text-2xl">{props.title || "Marketplace"}</div>
       </div>
 
-      <div className="w-full container mx-auto mb-10 pb-10 py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
+      <div className="w-full flex items-center justify-center rounded-lg">
         {props.children}
       </div>
     </div>

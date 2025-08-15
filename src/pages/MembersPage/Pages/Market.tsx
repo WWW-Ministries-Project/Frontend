@@ -1,39 +1,36 @@
-import { useNavigate } from "react-router-dom";
+import { matchRoutes, Outlet, useNavigate } from "react-router-dom";
 
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
-import { ProductCard } from "@/pages/HomePage/pages/MarketPlace/components/cards/ProductCard";
-import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
-import EmptyState from "@/components/EmptyState";
 import { MarketLayout } from "../layouts/MarketLayout";
-import { encodeQuery } from "@/pages/HomePage/utils";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import { routes } from "@/routes/appRoutes";
 
 const Market = () => {
-  const { data: products } = useFetch(api.fetch.fetchAllProducts);
+  const naviggate = useNavigate();
 
-  const navigate = useNavigate();
-
-  const handleViewProduct = (productId: string) => {
-    navigate(`/member/product/${encodeQuery(productId)}`);
+  const handleSelectedTab = (tab: string) => {
+    if (tab === "Products") {
+      naviggate("/member/market");
+    } else {
+      naviggate(`${tab.toLowerCase()}`);
+    }
   };
+
+  const matches = matchRoutes(routes, location);
+  const routeName = matches?.[matches.length - 1]?.route.name;
 
   return (
     <MarketLayout>
-      <GridComponent
-        columns={10}
-        data={products?.data || []}
-        displayedCount={2}
-        filter={""}
-        setFilter={() => {}}
-        renderRow={(row) => (
-          <ProductCard
-            product={row.original}
-            handleViewProduct={handleViewProduct}
+      <div className="bg-white p-4 space-y-5 h-screen w-fit max-w-6xl">
+        <div className="w-fit">
+          <TabSelection
+            tabs={["Products", "Carts", "Orders"]}
+            onTabSelect={handleSelectedTab}
+            selectedTab={routeName || "Products"}
           />
-        )}
-      />
+        </div>
 
-      {products?.data.length === 0 && <EmptyState msg="No products found" />}
+        <Outlet />
+      </div>
     </MarketLayout>
   );
 };

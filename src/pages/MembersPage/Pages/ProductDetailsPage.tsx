@@ -3,9 +3,9 @@ import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { ProductDetails } from "@/pages/HomePage/pages/MarketPlace/components/ProductDetails";
 import { api, ICartItem } from "@/utils";
-import { MarketLayout } from "../layouts/MarketLayout";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
+import EmptyState from "@/components/EmptyState";
 
 export function ProductDetailsPage() {
   const { id } = useParams();
@@ -22,12 +22,12 @@ export function ProductDetailsPage() {
   };
 
   return (
-    <MarketLayout title="Product Details">
-      <div className=" w-fit mx-auto bg-white rounded-2xl p-4 shadow-md flex items-center justify-center">
-        {product && (
-          <ProductDetails product={product?.data} addToCart={handleAddToCart} />
-        )}
-      </div>
-    </MarketLayout>
+    <div className=" mx-auto bg-white flex items-center justify-center">
+      {product ? (
+        <ProductDetails product={product?.data} addToCart={handleAddToCart} />
+      ) : (
+        <EmptyState />
+      )}
+    </div>
   );
 }

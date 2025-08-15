@@ -37,7 +37,6 @@ export const useCart = create<ICartSlice>()(
         return get().cartItems.length;
       },
       itemIsInCart: (productId: string) => {
-        console.log("Checking if item is in cart", productId);
         return get().cartItems.some((item) => item.id === productId);
       },
       getTotalPrice: () => {
@@ -50,6 +49,15 @@ export const useCart = create<ICartSlice>()(
       },
       setCartItems: (items) => {
         set({ cartItems: items });
+      },
+      updateSection: (productId, section, value) => {
+        console.log("Updating quantity for product:", productId, "to", section);
+        set((state) => {
+          const updatedCartItems = state.cartItems.map((item) =>
+            item.id === productId ? { ...item, [section]: value } : item
+          );
+          return { cartItems: updatedCartItems };
+        });
       },
     }),
     {

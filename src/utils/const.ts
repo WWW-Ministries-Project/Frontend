@@ -75,10 +75,11 @@ export const relativePath = {
   member: {
     main: "/member",
     dashboard: "/member/dashboard",
-    market: "/member/market",
-    productDetails: "/member/product/:id",
-    cart: "/member/cart",
-    checkOut: "/member/check-out",
+    market: "/member/market/",
+    productDetails: "/member/market/product/:id",
+    cart: "/member/market/carts",
+    checkOut: "/member/market/check-out",
+    orders:"/member/market/orders",
     lifeCenter: "/member/life-center",
     schoolOfMinistries: {
       main: "school-of-ministries",

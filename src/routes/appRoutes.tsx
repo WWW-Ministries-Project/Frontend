@@ -56,6 +56,8 @@ import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage";
 import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart";
 import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
+import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
+import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -494,28 +496,45 @@ export const routes: AppRoute[] = [
       },
       {
         path: relativePath.member.market,
-        name: "member_market",
+        name: "Member Market",
         element: <Market />,
         isPrivate: false,
+
+        children: [
+          {
+            path: relativePath.member.market,
+            name: "Products",
+            element: <ProductsPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.productDetails,
+            name: "Product Details",
+            element: <ProductDetailsPage />,
+            isPrivate: false,
+          },
+
+          {
+            path: relativePath.member.cart,
+            name: "Carts",
+            element: <ViewCart />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.checkOut,
+            name: "Check Out",
+            element: <CheckOutPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.orders,
+            name: "Orders",
+            element: <MyOrders />,
+            isPrivate: false,
+          },
+        ],
       },
-      {
-        path: relativePath.member.productDetails,
-        name: "product_details",
-        element: <ProductDetailsPage />,
-        isPrivate: false,
-      },
-      {
-        path: relativePath.member.cart,
-        name: "Cart",
-        element: <ViewCart />,
-        isPrivate: false,
-      },
-      {
-        path: relativePath.member.checkOut,
-        name: "Check Out",
-        element: <CheckOutPage />,
-        isPrivate: false,
-      },
+
       {
         path: relativePath.member.lifeCenter,
         name: "member_life_center",
