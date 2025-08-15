@@ -8,7 +8,7 @@ function PaymentOptionsSubForm() {
 
   return (
     <div className="w-full h-fit border rounded-lg p-4 space-y-2">
-      <p>Payment Methods</p>
+      <p className="font-bold">Payment Methods</p>
       <FieldArray
         name="payment_method"
         render={() => (

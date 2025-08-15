@@ -1,5 +1,5 @@
-import { Form, Formik, } from "formik";
-import { useCallback, } from "react";
+import { Form, Formik } from "formik";
+import { useCallback } from "react";
 import { object } from "yup";
 
 import { Button } from "@/components";
@@ -12,8 +12,10 @@ import {
 import { FormLayout } from "@/components/ui";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
+import { useNavigate } from "react-router-dom";
 
 export function CheckoutForm() {
+  const navigate = useNavigate();
   return (
     <div className="text-[#474D66] ">
       <Formik
@@ -36,7 +38,11 @@ export function CheckoutForm() {
               <OrderSummary />
               <PaymentOptionsForm />
               <div className="flex items-center gap-2 justify-end">
-                <Button value="Cancel" variant="secondary" />
+                <Button
+                  value="Cancel"
+                  variant="secondary"
+                  onClick={() => navigate(-1)}
+                />
                 <Button value="Place Order" onClick={handleSubmit} />
               </div>
             </div>
@@ -107,5 +113,3 @@ const OrderSummary = () => {
     </div>
   );
 };
-
-
