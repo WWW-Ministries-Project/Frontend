@@ -53,8 +53,9 @@ import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import SchoolOfMinistries from "@/pages/MembersPage/Pages/MyClass.js";
 import MyClass from "@/pages/MembersPage/Pages/MyClass.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
-import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage.js";
-import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart.js";
+import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage";
+import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart";
+import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -505,8 +506,14 @@ export const routes: AppRoute[] = [
       },
       {
         path: relativePath.member.cart,
-        name: "cart",
+        name: "Cart",
         element: <ViewCart />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.checkOut,
+        name: "Check Out",
+        element: <CheckOutPage />,
         isPrivate: false,
       },
       {
