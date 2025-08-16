@@ -104,7 +104,7 @@ export function LifeCenter() {
   };
 
   return (
-    <PageOutline>
+    <PageOutline className="p-6">
       <HeaderControls
         title="Life Center Management"
         subtitle="Manage your church's life centers and track souls won"

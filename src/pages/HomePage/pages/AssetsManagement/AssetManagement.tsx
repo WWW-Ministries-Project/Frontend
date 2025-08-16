@@ -61,7 +61,7 @@ export const AssetManagement = () => {
   };
 
   return (
-    <PageOutline crumbs={crumbs}>
+    <PageOutline crumbs={crumbs} className="p-6">
       <HeaderControls
         title={`Asset Management (${assertsData.length})`}
         tableView={tableView}
@@ -70,6 +70,7 @@ export const AssetManagement = () => {
         setShowSearch={setShowSearch}
         handleClick={() => navigate("manage-asset")}
         btnName="Add Asset"
+        screenWidth={window.innerWidth}
       />
       <div className="">
         <section className="mt-   ">

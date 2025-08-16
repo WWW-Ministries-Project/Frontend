@@ -121,7 +121,7 @@ export const MinistrySchool = () => {
   };
 
   return (
-    <PageOutline>
+    <PageOutline className="p-6">
       <HeaderControls
         title={`School of Ministry (${programsData.length})`}
         showSearch={false}

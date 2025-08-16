@@ -31,7 +31,7 @@ export function LifeCenterMemberForm({
       }}
     >
       {({ handleSubmit }) => (
-        <Form className="space-y-6 w-[60vw] sm:w-[50vw] xl:w-[40vw] ">
+        <Form className="space-y-6 ">
           <FormHeader >
             <p className="text-lg font-semibold">{initial.id ? "Update" : "Assign"} a Leader</p>
             <p className="text-sm">Select a member you’d like to appoint as a leader for this center.</p>

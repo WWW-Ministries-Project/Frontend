@@ -363,7 +363,7 @@ export const LifeCenterAnalytics = () => {
   }, [processedData]);
 
   return (
-    <PageOutline>
+    <PageOutline className="p-6 space-y-6">
       <div>
         <HeaderControls
           title="Life Center Analytics"

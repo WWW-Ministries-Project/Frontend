@@ -45,7 +45,7 @@ export function AddMarketForm({
       enableReinitialize
     >
       {({ handleSubmit }) => (
-        <Form className="space-y-6 w-[90vw] sm:w-[70vw] xl:w-[50vw]">
+        <Form className="space-y-6 ">
           <div className="bg-primary h-28 w-full -mt-3 text-white p-6">
             <p className="font-bold text-2xl">
               {editData ? "Update" : "Create New"} Market

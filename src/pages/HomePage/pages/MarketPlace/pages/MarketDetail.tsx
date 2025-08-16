@@ -97,16 +97,17 @@ export function MarketDetails() {
   };
 
   return (
-    <PageOutline>
+    <PageOutline className="">
       <MarketHeader market={market?.data} />
-      <div className="w-fit">
+      <div className="px-6">
+        <div className="w-fit">
         <TabSelection
           tabs={[`Products`, "Orders"]}
           selectedTab={tab}
           onTabSelect={(tab) => setTab(tab)}
         />
       </div>
-      <div className="flex items-end justify-end"></div>
+      <div className="flex items-end justify-end "></div>
       <HeaderControls
         title={tab}
         btnName={tab !== "Orders" ? "Add product" : ""}
@@ -161,6 +162,7 @@ export function MarketDetails() {
           <ProductOverview product={currentProduct} onEdit={editProduct} />
         )}
       </Modal>
+      </div>
     </PageOutline>
   );
 }

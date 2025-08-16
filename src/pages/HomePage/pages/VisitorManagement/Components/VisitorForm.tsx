@@ -37,7 +37,7 @@ const VisitorFormComponent = ({
         onSubmit={onSubmit}
       >
         {({ handleSubmit }) => (
-          <Form className="flex flex-col h-[80vh] w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+          <Form className="flex flex-col h-[80vh]  xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="sticky top-0 z-10">
               <FormHeader>
                 <p className="text-lg font-semibold">Visitor Registration</p>
