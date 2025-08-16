@@ -19,8 +19,8 @@ const Market = () => {
   const routeName = matches?.[matches.length - 1]?.route.name;
 
   return (
-    <MarketLayout>
-      <div className="bg-white p-4 space-y-5 h-screen w-fit max-w-6xl">
+    <MarketLayout title={routeName}>
+      <div className="bg-white p-4 space-y-5 container mx-auto">
         <div className="w-fit">
           <TabSelection
             tabs={["Products", "Carts", "Orders"]}

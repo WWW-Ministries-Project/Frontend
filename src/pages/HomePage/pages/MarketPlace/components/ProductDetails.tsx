@@ -106,7 +106,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const cartText = itemExistInCart ? "Checkout" : "Add to cart";
 
   return (
-    <div className=" border rounded-lg mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
+    <div className=" border rounded-lg w-full p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
       {/* Image Section */}
       <div>
         <div className=" border p-2 rounded-lg overflow-hidden max-h-[400px]">
