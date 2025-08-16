@@ -6,14 +6,20 @@ interface IProps {
 }
 export function MarketLayout(props: IProps) {
   return (
-    <div className="w-screen  text-white relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-      <div className=" bg-primary h-[10rem] flex items-center py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
-        <div className="font-bold text-2xl">{props.title || "Marketplace"}</div>
+    <div>
+      <div className="w-screen bg-primary h-[10rem] text-white relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+        <div className="h-full flex items-center py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
+          <div className="space-y-4">
+            {
+              <div className="font-bold text-2xl">
+                {props.title || "Marketplace"}
+              </div>
+            }
+          </div>
+        </div>
       </div>
 
-      <div className="w-full flex items-center justify-center rounded-lg">
-        {props.children}
-      </div>
+      <section>{props.children}</section>
     </div>
   );
 }
