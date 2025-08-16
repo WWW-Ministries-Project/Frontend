@@ -64,7 +64,7 @@ type CourseType = {
   classFormat: string;
   location?: string;
   meetingLink: string;
-  instructor: { name: string, id: number };
+  facilitator: { name: string, id: number };
   cohort: CohortType;
 };
 

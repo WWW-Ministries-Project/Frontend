@@ -18,7 +18,7 @@ export const TopicAssessment = ({
   enrollmentId: number;
   loading: boolean;
   onCancel: () => void;
-  toggleEditMode: () => void;
+  toggleEditMode?: () => void;
   onUpdate: (data: {
     progressUpdates: {
       topicId: number;
