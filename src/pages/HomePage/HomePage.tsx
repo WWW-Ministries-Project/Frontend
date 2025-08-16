@@ -133,8 +133,8 @@ export function HomePage() {
   if (!token) return null;
   return (
     <div className="lg:fixed ">
-      <main className="h-screen w-screen p-3  ">
-        <div className="">
+      <main className="h-screen w-screen lg:p-3  ">
+        <div className="p-3 lg:p-0 lg:pb-3">
           <Header handleShowNav={handleShowNav} />
         </div>
         <div className="flex">

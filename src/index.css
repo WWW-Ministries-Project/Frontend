@@ -157,6 +157,17 @@ input.input::placeholder {
 }
 
 
+.scrollable-shape-top,
+.scrollable-shape-bottom {
+  display: none; /* hide by default */
+}
+
+@media (min-width: 1024px) {
+  .scrollable-shape-top,
+  .scrollable-shape-bottom {
+    display: block; /* show on lg screens and above */
+  }
+}
 
 
 /* Scrollable shape alternatives that move with content */
@@ -166,6 +177,7 @@ input.input::placeholder {
   background: #D8DAE5;
   position: relative;
   overflow: hidden;
+  border: white;
 }
 
 .scrollable-shape-top::before {
@@ -175,6 +187,7 @@ input.input::placeholder {
   width: 100px;
   background: white;
   border-bottom-right-radius: 5rem;
+  border: white;
   left: -50px;
   top: 0;
 }
@@ -185,6 +198,7 @@ input.input::placeholder {
   background: #D8DAE5;
   position: relative;
   overflow: hidden;
+  border: white;
 }
 
 .scrollable-shape-bottom::before {
@@ -196,6 +210,7 @@ input.input::placeholder {
   border-top-right-radius: 5rem;
   left: -50px;
   top: 0;
+  border: white;
 }
 
 .container {
