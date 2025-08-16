@@ -7,6 +7,7 @@ import { useUserStore } from "@/store/userStore";
 import { api, Programs, ClassOption } from "@/utils";
 import { ProgramCard } from "@/pages/MembersPage/Component/ProgramCard";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
+import EmptyState from "@/components/EmptyState";
 
 const ProgramApply = () => {
   const [open, setOpen] = useState(false);
@@ -29,17 +30,52 @@ const ProgramApply = () => {
   };
 
   const handleSubmit = async () => {
-    if (!activeProgram || !selectedClass) {
-      Alert({ title: "Please select a class", description: "Choose a class to join before applying." });
-      return;
+  if (!activeProgram || !selectedClass) {
+    Alert({
+      title: "Please select a class",
+      description: "Choose a class to join before applying."
+    });
+    return;
+  }
+
+  if (selectedClass.enrolled >= selectedClass.capacity) {
+    Alert({
+      title: "This class is full",
+      description: "Please select a class with available seats."
+    });
+    return;
+  }
+
+  try {
+    const res = await enrollUser({
+      user_id: user.id,
+      course_id: Number(selectedClassId)
+    });
+
+    // If backend returns something like { success: true, message: '...' }
+    if (res?.success) {
+     
+      Alert({
+        title: "Enrollment Successful",
+        description: res?.message || "You have been enrolled successfully."
+      });
+       setOpen(false);
+    } else {
+      
+      Alert({
+        title: "Enrollment Failed",
+        description: res?.message || "Something went wrong while enrolling."
+      });
+      setOpen(false);
     }
-    if (selectedClass.enrolled >= selectedClass.capacity) {
-      Alert({ title: "This class is full", description: "Please select a class with available seats." });
-      return;
-    }
-    await enrollUser({ user_id: user.id, course_id: Number(selectedClassId) })
-  
-  };
+  } catch (err: any) {
+    setOpen(false);
+    Alert({
+      title: "Enrollment Failed",
+      description: err?.message || "An unexpected error occurred."
+    });
+  }
+};
 
   return (
     <div className="w-full py-4 flex flex-col overflow-auto">
@@ -50,7 +86,8 @@ const ProgramApply = () => {
           ))}
         </div>
       ) : (
-        <div className="mt-8 w-full max-w-2xl rounded-lg bg-primary/80 p-4 text-center text-white shadow-md">
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <EmptyState/>
           <h2 className="mb-2 text-2xl font-bold">No Programs Available</h2>
           We will be adding more programs soon.
         </div>

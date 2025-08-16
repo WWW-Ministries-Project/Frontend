@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Programs } from "@/utils";
+import { Button } from "@/components";
 
 export const ProgramCard: FC<{ program: Programs; onOpen: () => void }> = ({ program, onOpen }) => (
   <article className="flex flex-col rounded-lg border bg-white shadow-sm transition hover:shadow-md">
@@ -22,12 +23,8 @@ export const ProgramCard: FC<{ program: Programs; onOpen: () => void }> = ({ pro
       )}
     </div>
     <div className="mt-auto border-t p-5">
-      <button
-        onClick={onOpen}
-        className="inline-flex w-full items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-      >
-        View details
-      </button>
+      <Button value="View details" onClick={onOpen} className="w-full"/>
+      
     </div>
   </article>
 );
