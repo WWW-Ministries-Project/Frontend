@@ -32,9 +32,9 @@ export const WelcomeHeader = ({ showFull = false }: { showFull?: boolean }) => {
               Theme for the Year 2025
             </p>
             <h2 className="text-lg md:text-xl font-semibold mb-1">
-              &quot;Walking by Faith, Not by Sight&quot;
+              &quot;The Year of Acceptance and Completeness&quot;
             </h2>
-            <p className="text-sm text-blue-200">2 Corinthians 5:7</p>
+            {/* <p className="text-sm text-blue-200">2 Corinthians 5:7</p> */}
           </div>
         </div>
 
