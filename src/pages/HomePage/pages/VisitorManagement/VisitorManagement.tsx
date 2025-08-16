@@ -167,7 +167,7 @@ export function VisitorManagement() {
   ];
 
   return (
-    <PageOutline crumbs={crumbs}>
+    <PageOutline crumbs={crumbs} className="p-6">
       {loading && visitors.length === 0 ? (
         <div className="space-y-4">
           <div className="animate-pulse space-y-2  w-[40rem] ">
@@ -177,7 +177,7 @@ export function VisitorManagement() {
           <SkeletonLoader />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 ">
           <HeaderControls
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"

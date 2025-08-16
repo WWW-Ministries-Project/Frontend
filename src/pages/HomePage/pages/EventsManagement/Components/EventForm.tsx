@@ -40,7 +40,7 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
   const initial: EventType = useMemo(() => editData || initialValues, [editData]);
 
   return (
-    <div className="w-[80vw] sm:w-[70vw] xl:w-[40vw] max-h-[70vh]">
+    <div className=" ">
       <div className="w-full bg-primary p-4 px-6 sticky top-0">
         <div className="text-white text-xl font-bold">
           Create Event

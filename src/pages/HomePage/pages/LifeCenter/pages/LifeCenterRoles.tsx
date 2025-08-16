@@ -119,7 +119,7 @@ export function LifeCenterRoles() {
   );
 
   return (
-    <PageOutline>
+    <PageOutline className="p-6">
       <PageHeader
         title="Life Center Roles"
         buttonValue="Create Role"

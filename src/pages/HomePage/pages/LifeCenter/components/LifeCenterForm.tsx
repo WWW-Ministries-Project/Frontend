@@ -24,7 +24,7 @@ export function LifeCenterForm({
     [editData]
   );
   return (
-    <div className="w-[80vw] sm:w-[70vw] xl:w-[40vw] ">
+    <div className=" ">
       
       <Formik
         initialValues={initial}

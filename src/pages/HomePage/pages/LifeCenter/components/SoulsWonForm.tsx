@@ -53,7 +53,7 @@ export const SoulsWonForm = ({
       }}
     >
       {({ handleSubmit }) => (
-        <Form className="flex flex-col  w-[90vw] sm:w-[70vw] xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden space-y-4">
+        <Form className="flex flex-col  xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden space-y-4">
   {/* Sticky Header */}
   <div className="sticky top-0 z-10">
     <FormHeader>
@@ -66,7 +66,7 @@ export const SoulsWonForm = ({
   </div>
 
   {/* Scrollable Content */}
-  <div className="flex-1 overflow-y-auto px-6 py-4">
+  <div className="flex-1 overflow-y-auto px-6 py-4 h-90">
     <FormLayout >
       <NameInfo />
       <ContactInput />

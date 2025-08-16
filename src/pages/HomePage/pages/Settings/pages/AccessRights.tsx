@@ -40,7 +40,7 @@ export function AccessRights() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteSuccess]);
   return (
-    <PageOutline>
+    <PageOutline className="p-6">
       <PageHeader
         title="Access Rights"
         buttonValue="Create Access"

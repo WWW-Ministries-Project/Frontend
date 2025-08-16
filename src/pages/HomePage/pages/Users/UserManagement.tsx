@@ -112,7 +112,7 @@ export const UserManagement = () => {
     [registeredMembers]
   );
   return (
-    <PageOutline crumbs={crumbs}>
+    <PageOutline crumbs={crumbs} className="p-6">
       <HeaderControls
         title={`Users (${users.length})`}
         setShowSearch={setShowSearch}

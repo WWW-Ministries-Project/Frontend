@@ -200,7 +200,7 @@ function Settings() {
   );
 
   return (
-    <PageOutline>
+    <PageOutline className="p-6">
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
