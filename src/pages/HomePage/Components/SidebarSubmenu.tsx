@@ -69,7 +69,7 @@ export const SideBarSubMenu = ({
             onClick={toggleSubMenu}
             className={`text-primary transition z-10 cursor-pointer ${
               showChildren || isActive
-                ? "text-primary bg-lightGray rounded-tl-xl"
+                ? "text-primary bg-lightGray rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
                 : "rounded-s-xl"
             }
             ${
@@ -105,7 +105,7 @@ export const SideBarSubMenu = ({
           {showChildren && filteredChildren.length > 0 && (
             <div
               className={`pl-3 ${
-                showChildren ? "rounded-bl-xl bg-lightGray" : ""
+                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none bg-lightGray" : ""
               } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
             >
               {filteredChildren.map((child) => (
