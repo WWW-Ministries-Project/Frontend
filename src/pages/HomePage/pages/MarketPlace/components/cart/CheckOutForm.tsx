@@ -13,9 +13,30 @@ import { FormLayout } from "@/components/ui";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
 import { useNavigate } from "react-router-dom";
+import { decodeToken } from "@/utils";
 
 export function CheckoutForm() {
   const navigate = useNavigate();
+  const { name, phone, email } = decodeToken();
+  const [first_name, other_name, last_name] = name.split(" ");
+
+  const initialValues: ICheckoutForm = {
+    personal_info: {
+      first_name,
+      other_name: other_name || "",
+      last_name,
+    },
+    contact_info: {
+      ...ContactsSubForm.initialValues,
+      email: email || "",
+      phone: {
+        ...ContactsSubForm.initialValues.phone,
+        number: phone || "",
+      },
+    },
+    payment_method: "hubtel",
+  };
+
   return (
     <div className="text-[#474D66] ">
       <Formik
@@ -27,14 +48,14 @@ export function CheckoutForm() {
       >
         {({ handleSubmit, values }) => (
           <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row">
-            <div className="border rounded-lg p-5 ">
+            <div className="border rounded-lg p-5 w-full">
               <p className="font-bold mb-5">Billing Details</p>
               <FormLayout>
                 <NameInfo prefix="personal_info" />
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
-            <div className="w-full space-y-5">
+            <div className="w-full space-y-5 ">
               <OrderSummary />
               <PaymentOptionsForm />
               <div className="flex items-center gap-2 justify-end">
@@ -58,12 +79,6 @@ interface ICheckoutForm {
   personal_info: INameInfo;
   payment_method: string;
 }
-
-const initialValues: ICheckoutForm = {
-  contact_info: ContactsSubForm.initialValues,
-  personal_info: NameInfo.initialValues,
-  payment_method: "",
-};
 
 const validationSchema = object({
   personal_info: object().shape({
