@@ -10,12 +10,15 @@ import {
   NameInfo,
 } from "@/components/subform";
 import { FormLayout } from "@/components/ui";
+import { decodeToken } from "@/utils";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
-import { useNavigate } from "react-router-dom";
-import { decodeToken } from "@/utils";
 
-export function CheckoutForm() {
+interface IProps {
+  handleCheckout: (data: ICheckoutForm) => void;
+}
+export function CheckoutForm(props: IProps) {
   const navigate = useNavigate();
   const { name, phone, email } = decodeToken();
   const [first_name, other_name, last_name] = name.split(" ");
@@ -34,7 +37,7 @@ export function CheckoutForm() {
         number: phone || "",
       },
     },
-    payment_method: "hubtel",
+    payment_method: "paystack",
   };
 
   return (
@@ -42,8 +45,10 @@ export function CheckoutForm() {
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={(values) => {
-          console.log(values);
+        onSubmit={async (values, isValid) => {
+          if (isValid) {
+            props.handleCheckout(values);
+          }
         }}
       >
         {({ handleSubmit, values }) => (
@@ -74,10 +79,10 @@ export function CheckoutForm() {
   );
 }
 
-interface ICheckoutForm {
+export interface ICheckoutForm {
   contact_info: IContactsSubForm;
   personal_info: INameInfo;
-  payment_method: string;
+  payment_method: "hubtel" | "paystack";
 }
 
 const validationSchema = object({
@@ -113,9 +118,13 @@ const OrderSummary = () => {
         {cartItems.map((item) => (
           <div
             key={item.id}
-            className="w-full flex justify-between items-center gap-2"
+            className="w-full flex justify-between items-center gap-2 font-medium"
           >
-            <p>{item.name}</p>
+            <p className="flex items-center gap-2">
+              {item.name} <span>x</span>
+              <span>{item.quantity}</span>
+            </p>
+
             <p>GHC {getProductTotalAmount(item.price_amount, item.quantity)}</p>
           </div>
         ))}

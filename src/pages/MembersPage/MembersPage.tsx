@@ -8,6 +8,7 @@ import { changeAuth } from "@/axiosInstance";
 import { useStore } from "@/store/useStore";
 import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
 import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer";
+import { NotificationCard } from "@/components/NotificationCard";
 
 
 
@@ -38,6 +39,7 @@ const MembersPage = () => {
             <CartDrawer/>
 
             <LoaderComponent/>
+            <NotificationCard />
 
         </div>
      );
