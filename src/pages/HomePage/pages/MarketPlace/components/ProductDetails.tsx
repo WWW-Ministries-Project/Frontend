@@ -226,7 +226,16 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
         {/* Buttons */}
         <div className="flex gap-4 flex-wrap w-full">
-          {!itemExistInCart && <Button value="Buy now" className="w-full" />}
+          {!itemExistInCart && (
+            <Button
+              value="Buy now"
+              className="w-full"
+              onClick={() => {
+                handleAddToCart();
+                navigate(relativePath.member.checkOut);
+              }}
+            />
+          )}
           <Button
             value={cartText}
             variant={itemExistInCart ? "primary" : "secondary"}

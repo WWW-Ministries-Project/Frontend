@@ -2,6 +2,7 @@ import { Field, FieldArray, useFormikContext } from "formik";
 import { string } from "yup";
 
 import HubtelLogo from "@/assets/hubtel-logo.jpg";
+import PaystackLogo from "@/assets/Paystack-logo.png"; //TODO: replace with momo logo
 
 function PaymentOptionsSubForm() {
   const { values, errors } = useFormikContext<{ payment_method: string }>();
@@ -25,8 +26,8 @@ function PaymentOptionsSubForm() {
                 >
                   <img
                     src={option.logo}
-                    alt="hubtel-image"
-                    className="size-20  p-1"
+                    alt={option.name}
+                    className="size-20  p-1 rounded-lg"
                   />
                   <Field
                     type="radio"
@@ -59,11 +60,15 @@ const validationSchema = {
 const PaymentOptions = [
   {
     id: 1,
+    name: "Paystack",
+    logo: PaystackLogo,
+    value: "paystack",
+  },
+  {
+    id: 2,
     name: "Hubtel",
-    description: "Pay with Hubtel",
     logo: HubtelLogo,
     value: "hubtel",
-    disabled: false,
   },
 ];
 
