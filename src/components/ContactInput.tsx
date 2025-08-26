@@ -85,10 +85,10 @@ const ContactInputComponent = ({
 
   return (
     <div className="mb-4">
-      <label className="text-primary font-semibold block mb-1">{label}</label>
+      <label className="text-primary font-semibold block ">{label}</label>
       <div className="flex items-center w-full relative ">
         {/* Country Code Input */}
-        <div className="w-24">
+        <div className="w-20">
           <InputDiv
             id={`${prefix ? `${prefix}.phone.country_code` : "phone.country_code"}`}
             value={code}
@@ -103,7 +103,7 @@ const ContactInputComponent = ({
             }}
             inputClass={`w-full  ${
               zipClass ||
-              "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/30"
+              "rounded-l-lg p-2 border border-r-0 border-primary bg-lightGray/20"
             }  ${error ? "border-error" : "border-primary"}`}
             placeholder="Code"
             aria-describedby="country-code-description"
