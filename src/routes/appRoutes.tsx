@@ -424,7 +424,7 @@ export const routes: AppRoute[] = [
   {
     path: "/out",
     element: <LandingPage />,
-    name: "huh",
+    name: "out",
     children: [
       {
         path: "programs",
@@ -455,6 +455,24 @@ export const routes: AppRoute[] = [
         element: <EventRegister />,
         name: "Event Registration",
         isPrivate: false,
+      },
+      {
+        path: "products",
+        name: "products",
+        element: <ProductsPage />,
+        isPrivate: false,
+      },
+      {
+        path: "products/:id",
+        name: "ProductDetailsPage",
+        element: <ProductDetailsPage />,
+        isPrivate: false,
+      },
+      {
+        path: "products/check-out",
+        name: "Check Out",
+            element: <CheckOutPage />,
+            isPrivate: false,
       },
     ],
   },

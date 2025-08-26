@@ -20,14 +20,17 @@ interface IProps {
 }
 export function CheckoutForm(props: IProps) {
   const navigate = useNavigate();
-  const { name, phone, email } = decodeToken();
+  const user = decodeToken();
+  const name = user?.name || "";
+  const phone = user?.phone || "";
+  const email = user?.email || "";
   const [first_name, other_name, last_name] = name.split(" ");
 
   const initialValues: ICheckoutForm = {
     personal_info: {
-      first_name,
+      first_name: first_name || "",
       other_name: other_name || "",
-      last_name,
+      last_name: last_name || "",
     },
     contact_info: {
       ...ContactsSubForm.initialValues,
@@ -41,7 +44,7 @@ export function CheckoutForm(props: IProps) {
   };
 
   return (
-    <div className="text-[#474D66] ">
+    <div className="text-[#474D66] bg-white p-5 rounded-lg ">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
@@ -54,13 +57,13 @@ export function CheckoutForm(props: IProps) {
         {({ handleSubmit, values }) => (
           <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row">
             <div className="border rounded-lg p-5 w-full">
-              <p className="font-bold mb-5">Billing Details</p>
+              <p className="font-bold mb-5 text-xl">Billing Details</p>
               <FormLayout>
                 <NameInfo prefix="personal_info" />
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
-            <div className="w-full space-y-5 ">
+            <div className="w-1/2 space-y-5 ">
               <OrderSummary />
               <PaymentOptionsForm />
               <div className="flex items-center gap-2 justify-end">
@@ -109,7 +112,7 @@ const OrderSummary = () => {
 
   return (
     <div className="w-full h-fit border rounded-lg p-4 space-y-2">
-      <p className="font-bold">Order</p>
+      <p className="font-bold text-xl">Order</p>
       <div className="flex justify-between">
         <p className="font-bold">Product</p>
         <p className="font-bold">Subtotal</p>
