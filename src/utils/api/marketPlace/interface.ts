@@ -47,7 +47,6 @@ export interface IProductTypeResponse extends IProduct {
 
 export interface ICartItem {
   name: string;
-  id: string;
   price_amount: number;
   price_currency: string;
   quantity: number;
@@ -58,6 +57,7 @@ export interface ICartItem {
   size: string;
   productColors?: string[];
   productSizes?: string[];
+  product_id: string;
 }
 
 export interface ICartSlice {
@@ -76,4 +76,20 @@ export interface ICartSlice {
     section: T,
     value: T extends "quantity" ? number : string
   ) => void;
+}
+
+export interface ICheckOut {
+  user_id: string;
+  market_id: string;
+  total_amount: string;
+  reference: string;
+  billing: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone_number: string;
+    country: string;
+    country_code: string;
+  };
+  items: ICartItem[];
 }

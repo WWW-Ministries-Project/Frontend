@@ -21,6 +21,7 @@ import type {
   IMarket,
   IProductType,
   IProduct,
+  ICheckOut,
 } from "./marketPlace/interface";
 
 export class ApiCreationCalls {
@@ -170,5 +171,11 @@ export class ApiCreationCalls {
     payload: IProduct
   ): Promise<ApiResponse<IProduct>> => {
     return this.postToApi("product/create-product", payload);
+  };
+
+  createOrder = (
+    payload: ICheckOut
+  ): Promise<ApiResponse<ICheckOut>> => {
+    return this.postToApi("orders/create-order", payload);
   };
 }

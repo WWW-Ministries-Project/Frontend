@@ -117,7 +117,7 @@ const OrderSummary = () => {
       <div className="w-full space-y-2">
         {cartItems.map((item) => (
           <div
-            key={item.id}
+            key={item.product_id}
             className="w-full flex justify-between items-center gap-2 font-medium"
           >
             <p className="flex items-center gap-2">

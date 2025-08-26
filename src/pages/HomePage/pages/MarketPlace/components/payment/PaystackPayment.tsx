@@ -56,7 +56,7 @@ export const PaystackPayment = (props: IProps) => {
 
 const getConfig = (email: string, amount: number, currency: string) => {
   return {
-    reference: new Date().getTime().toString(),
+    reference: `txn_ref_${new Date().getTime().toString()}`,
     email: email,
     amount: amount * 100,
     currency: currency,

@@ -23,7 +23,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const navigate = useNavigate();
 
   const currentProduct = useMemo(() => {
-    const productExists = cartItems.find((item) => item.id === `${product.id}`);
+    const productExists = cartItems.find((item) => item.product_id === `${product.id}`);
     return productExists
       ? {
           quantity: productExists.quantity,
@@ -84,7 +84,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
     } else {
       addToCart({
         name: product.name,
-        id: `${product.id}`,
+        product_id: `${product.id}`,
         price_amount: +product.price_amount,
         price_currency: product.price_currency,
         quantity: selection.quantity,
