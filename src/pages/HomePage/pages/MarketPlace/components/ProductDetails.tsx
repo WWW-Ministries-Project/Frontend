@@ -248,7 +248,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
               className="w-full"
               onClick={() => {
                 
-                if(routeName === "out" ? true : false) return navigate(`/out/products/check-out`);
+                if(routeName === "out") return navigate(`/out/products/check-out`);
                 else {
                   handleAddToCart();
                   navigate(relativePath.member.checkOut);
