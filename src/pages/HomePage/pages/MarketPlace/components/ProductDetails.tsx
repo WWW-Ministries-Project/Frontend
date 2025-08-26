@@ -4,6 +4,7 @@ import {
   PlusIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
+  ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
@@ -11,7 +12,8 @@ import { ICartItem, IProductTypeResponse, relativePath } from "@/utils";
 import { ProductChip } from "./chips/ProductChip";
 import { cn } from "@/utils/cn";
 import { useCart } from "../utils/cartSlice";
-import { useNavigate } from "react-router-dom";
+import { matchRoutes, useNavigate } from "react-router-dom";
+import { routes } from "@/routes/appRoutes";
 
 interface IProps {
   product: IProductTypeResponse;
@@ -21,6 +23,8 @@ interface IProps {
 export function ProductDetails({ product, addToCart }: IProps) {
   const { itemIsInCart, updateSection, cartItems } = useCart();
   const navigate = useNavigate();
+  const matches = matchRoutes(routes, location);
+    const routeName = matches?.find((m) => m.route.name)?.route.name;
 
   const currentProduct = useMemo(() => {
     const productExists = cartItems.find((item) => item.id === `${product.id}`);
@@ -106,16 +110,28 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const cartText = itemExistInCart ? "Checkout" : "Add to cart";
 
   return (
-    <div className=" border rounded-lg w-full p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
+    <div >
+      {routeName === "out"&&<div className="p-4 space-y-2">
+        <div className="flex items-center gap-2 cursor-pointer text-primary font-semibold" onClick={() => navigate(-1)}>
+          <ArrowLeftIcon
+            className="size-6  "
+            />
+          back
+        </div>
+        <div className="text-xl font-bold ">
+          Product Specification
+        </div>
+      </div>}
+      <div className="  rounded-lg   p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
       {/* Image Section */}
-      <div>
-        <div className=" border p-2 rounded-lg overflow-hidden max-h-[400px]">
+      <div className="">
+        <div className=" border p-2 rounded-lg overflow-hidden ">
           <img
             src={`${
               product.product_colours?.[selection.currentIndex].image_url
             }`}
             alt={product.name}
-            className="w-full object-cover"
+            className=" aspect-video object-contain w-full h-72"
           />
         </div>
         {product.product_colours.length > 1 && (
@@ -231,17 +247,21 @@ export function ProductDetails({ product, addToCart }: IProps) {
               value="Buy now"
               className="w-full"
               onClick={() => {
-                handleAddToCart();
-                navigate(relativePath.member.checkOut);
+                
+                if(routeName === "out") return navigate(`/out/products/check-out`);
+                else {
+                  handleAddToCart();
+                  navigate(relativePath.member.checkOut);
+                }
               }}
             />
           )}
-          <Button
+          {routeName !== "out"&&<Button
             value={cartText}
             variant={itemExistInCart ? "primary" : "secondary"}
             className="w-full"
             onClick={handleAddToCart}
-          />
+          />}
         </div>
 
         {/* Description */}
@@ -250,6 +270,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
           <p className="text-gray-700">{product.description}</p>
         </div>
       </div>
+    </div>
     </div>
   );
 }
