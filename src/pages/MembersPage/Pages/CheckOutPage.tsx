@@ -29,7 +29,6 @@ export function CheckOutPage() {
     : my_cart?.price_amount * my_cart?.quantity;
   const location = useLocation();
 
-
   const handleCheckout = (data: ICheckoutForm) => {
     const { first_name, last_name } = data.personal_info;
     const { email, resident_country, phone } = data.contact_info;
@@ -59,10 +58,10 @@ export function CheckOutPage() {
     if (data) {
       setIsOpen(true);
       setCheckoutUrl(data.data.checkoutUrl);
+      clearCart();
+      localStorage.removeItem("my_cart");
     }
   }, [data]);
-
-
 
   return (
     <>
