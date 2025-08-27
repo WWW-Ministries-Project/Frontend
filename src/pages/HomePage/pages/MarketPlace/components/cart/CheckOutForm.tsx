@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { object } from "yup";
 
 import { Button } from "@/components";
@@ -10,13 +10,14 @@ import {
   NameInfo,
 } from "@/components/subform";
 import { FormLayout } from "@/components/ui";
-import { decodeToken } from "@/utils";
+import { decodeToken, ICartItem } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
 
 interface IProps {
   handleCheckout: (data: ICheckoutForm) => void;
+  loading: boolean;
 }
 export function CheckoutForm(props: IProps) {
   const navigate = useNavigate();
@@ -65,14 +66,18 @@ export function CheckoutForm(props: IProps) {
             </div>
             <div className="w-1/2 space-y-5 ">
               <OrderSummary />
-              <PaymentOptionsForm />
               <div className="flex items-center gap-2 justify-end">
                 <Button
                   value="Cancel"
                   variant="secondary"
                   onClick={() => navigate(-1)}
                 />
-                <Button value="Place Order" onClick={handleSubmit} />
+                <Button
+                  value="Place Order"
+                  onClick={handleSubmit}
+                  loading={props.loading}
+                  disabled={props.loading}
+                />
               </div>
             </div>
           </Form>
@@ -101,14 +106,13 @@ const validationSchema = object({
 const OrderSummary = () => {
   const { cartItems, getTotalPrice } = useCart();
 
-  const getProductTotalAmount = useCallback(
-    (price: number, quantity: number) => {
-      return (price * quantity).toFixed(2);
-    },
-    []
-  );
+  const totalPrice = getTotalPrice();
+  const my_cart_string = localStorage.getItem("my_cart");
+  const my_cart = my_cart_string ? JSON.parse(my_cart_string) : null;
 
-  const totalPrice = getTotalPrice().toFixed(2);
+  const amount = (
+    totalPrice ? totalPrice : my_cart?.price_amount * my_cart?.quantity
+  ).toFixed(2);
 
   return (
     <div className="w-full h-fit border rounded-lg p-4 space-y-2">
@@ -118,25 +122,37 @@ const OrderSummary = () => {
         <p className="font-bold">Subtotal</p>
       </div>
       <div className="w-full space-y-2">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="w-full flex justify-between items-center gap-2 font-medium"
-          >
-            <p className="flex items-center gap-2">
-              {item.name} <span>x</span>
-              <span>{item.quantity}</span>
-            </p>
-
-            <p>GHC {getProductTotalAmount(item.price_amount, item.quantity)}</p>
-          </div>
-        ))}
+        {cartItems?.length
+          ? cartItems.map((item) => (
+              <ItemCard key={item.product_id} item={item} />
+            ))
+          : my_cart && <ItemCard item={my_cart} />}
       </div>
 
       <div className="flex justify-between">
         <p className="font-bold">Total</p>
-        <p className="font-bold">GHC {totalPrice}</p>
+        <p className="font-bold">GHC {amount}</p>
       </div>
+    </div>
+  );
+};
+
+interface ICardProp {
+  item: ICartItem;
+}
+const ItemCard = ({ item }: ICardProp) => {
+  const getProductTotalAmount = useCallback(() => {
+    return (item.price_amount * item.quantity).toFixed(2);
+  }, []);
+
+  return (
+    <div className="w-full flex justify-between items-center gap-2 font-medium">
+      <p className="flex items-center gap-2">
+        {item.name} <span>x</span>
+        <span>{item.quantity}</span>
+      </p>
+
+      <p>GHC {getProductTotalAmount()}</p>
     </div>
   );
 };

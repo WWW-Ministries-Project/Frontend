@@ -1,97 +1,79 @@
-import axios from "axios";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
+import { usePost } from "@/CustomHooks/usePost";
 import {
   CheckoutForm,
   type ICheckoutForm,
 } from "@/pages/HomePage/pages/MarketPlace/components/cart/CheckOutForm";
-import { PaystackPayment } from "@/pages/HomePage/pages/MarketPlace/components/payment/PaystackPayment";
-import { showNotification } from "@/pages/HomePage/utils";
-import { relativePath } from "@/utils";
 import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
+import { api, decodeToken, relativePath } from "@/utils";
 
 export function CheckOutPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [checkoutData, setCheckoutData] = useState<ICheckoutForm | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState("");
 
   const navigate = useNavigate();
-  const { getTotalPrice, clearCart } = useCart();
+  const { getTotalPrice, clearCart, cartItems } = useCart();
+  const { postData, data, loading } = usePost(api.post.createOrder);
+
+  const totalAmount = getTotalPrice();
+
+  const my_cart_string = localStorage.getItem("my_cart");
+  const my_cart = my_cart_string ? JSON.parse(my_cart_string) : null;
+  const user = decodeToken();
+
+  const amount = totalAmount
+    ? totalAmount
+    : my_cart?.price_amount * my_cart?.quantity;
+  const location = useLocation();
 
   const handleCheckout = (data: ICheckoutForm) => {
-    setCheckoutData(data);
-    setIsOpen(true);
+    const { first_name, last_name } = data.personal_info;
+    const { email, resident_country, phone } = data.contact_info;
+    const checkout_data = {
+      total_amount: `${amount}`,
+      billing: {
+        first_name,
+        last_name,
+        country: resident_country,
+        country_code: phone.country_code,
+        email,
+        phone_number: phone.number,
+      },
+      items: cartItems?.length ? cartItems : [my_cart],
+    };
+
+    postData(
+      user?.id ? { ...checkout_data, user_id: user?.id } : { ...checkout_data }
+    );
   };
 
   const handleClose = () => {
     setIsOpen(false);
   };
 
-  const handleVerifyPayment = async (reference: string) => {
-    // TODO: handle verification logic at the backend
-    // TODO: should not use secret key in the frontend
-
-    try {
-      setIsLoading(true);
-      const response = await axios.get(
-        `https://api.paystack.co/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.REACT_APP_PAYSTACK_SECRETE_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        showNotification("Payment verified successfully", "success");
-        clearCart();
-        navigate(relativePath.member.market);
-        setIsOpen(false);
-      }
-
-      setIsOpen(false);
-    } catch {
-      showNotification("Error verifying payment. Please try again.", "error");
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (data) {
+      setIsOpen(true);
+      setCheckoutUrl(data.data.checkoutUrl);
+      clearCart();
+      localStorage.removeItem("my_cart");
     }
-  };
+  }, [data]);
 
-  const totalAmount = getTotalPrice();
   return (
     <>
-      <CheckoutForm handleCheckout={handleCheckout} />
+      <CheckoutForm handleCheckout={handleCheckout} loading={loading} />
       <Modal open={isOpen} onClose={handleClose}>
-        <div className="p-5">
-          <h2 className="text-lg font-semibold mb-4">Checkout</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Please review your order details before proceeding to payment.
-          </p>
-          <p className="text-sm text-gray-600 mb-4">
-            Ensure all information is correct to avoid any issues with your
-            order.
-          </p>
-        </div>
-
-        <div className="border-t border-gray-200 pt-4 flex justify-end gap-3 p-5">
-          <Button value="Cancel" variant="secondary" onClick={handleClose} />
-          {checkoutData?.payment_method === "paystack" && (
-            <PaystackPayment
-              closeModal={handleClose}
-              handleVerifyPayment={handleVerifyPayment}
-              isLoading={isLoading}
-              openModal={() => setIsOpen(true)}
-              data={{
-                email: checkoutData.contact_info.email,
-                amount: totalAmount,
-                currency: "GHS",
-              }}
-            />
-          )}
+        <div className="overflow-hidden">
+          <iframe
+            src={checkoutUrl}
+            width="100%"
+            height={600}
+            className="overflow-hidden"
+          ></iframe>
         </div>
       </Modal>
     </>

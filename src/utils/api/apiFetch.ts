@@ -98,7 +98,7 @@ export class ApiCalls {
     return this.fetchFromApi("event/list-events", query);
   };
 
-   fetchUpcomingEvents = (
+  fetchUpcomingEvents = (
     query?: QueryType
   ): Promise<ApiResponse<EventResponseType[]>> => {
     return this.fetchFromApi("event/upcoming-events", query);
@@ -339,5 +339,10 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IProductTypeResponse[]>> => {
     return this.fetchFromApi(`product/list-products`, query);
+  };
+
+  //orders
+  verifyPayment = (query?: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi(`orders/verify-payment/`, query);
   };
 }

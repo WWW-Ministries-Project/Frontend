@@ -64,7 +64,7 @@ export default function CartDrawer() {
           <>
             {cartItems.map((item) => (
               <CartCard
-                key={item.id}
+                key={item.product_id}
                 cartItem={item}
                 onDelete={handleRemoveFromCart}
               />
@@ -105,7 +105,7 @@ interface CartCardProps {
     name: string;
     price_amount?: number;
     quantity: number;
-    id: string;
+    product_id: string;
     product_type: string;
     product_category: string;
   };
@@ -143,7 +143,7 @@ const CartCard = ({ cartItem, onDelete }: CartCardProps) => {
       </div>
       <XMarkIcon
         className="size-5"
-        onClick={() => handleRemoveFromCart(cartItem.id)}
+        onClick={() => handleRemoveFromCart(cartItem.product_id)}
       />
     </div>
   );

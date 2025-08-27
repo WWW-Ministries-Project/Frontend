@@ -10,7 +10,7 @@ export const useCart = create<ICartSlice>()(
       addToCart: (item) => {
         set((state) => {
           const existingItemIndex = state.cartItems.findIndex(
-            (cartItem) => cartItem.id === item.id
+            (cartItem) => cartItem.product_id === item.product_id
           );
 
           if (existingItemIndex !== -1) {
@@ -25,9 +25,9 @@ export const useCart = create<ICartSlice>()(
           }
         });
       },
-      removeFromCart: (itemId) => {
+      removeFromCart: (itemproduct_id) => {
         set((state) => ({
-          cartItems: state.cartItems.filter((item) => item.id !== itemId),
+          cartItems: state.cartItems.filter((item) => item.product_id !== itemproduct_id),
         }));
       },
       clearCart: () => {
@@ -36,8 +36,8 @@ export const useCart = create<ICartSlice>()(
       getTotalItems: (): number => {
         return get().cartItems.length;
       },
-      itemIsInCart: (productId: string) => {
-        return get().cartItems.some((item) => item.id === productId);
+      itemIsInCart: (productproduct_id: string) => {
+        return get().cartItems.some((item) => item.product_id === productproduct_id);
       },
       getTotalPrice: () => {
         return get().cartItems.reduce((total, item) => {
@@ -50,11 +50,11 @@ export const useCart = create<ICartSlice>()(
       setCartItems: (items) => {
         set({ cartItems: items });
       },
-      updateSection: (productId, section, value) => {
-        console.log("Updating quantity for product:", productId, "to", section);
+      updateSection: (productproduct_id, section, value) => {
+        console.log("Updating quantity for product:", productproduct_id, "to", section);
         set((state) => {
           const updatedCartItems = state.cartItems.map((item) =>
-            item.id === productId ? { ...item, [section]: value } : item
+            item.product_id === productproduct_id ? { ...item, [section]: value } : item
           );
           return { cartItems: updatedCartItems };
         });
