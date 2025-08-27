@@ -58,6 +58,7 @@ export interface ICartItem {
   productColors?: string[];
   productSizes?: string[];
   product_id: string;
+  market_id:string
 }
 
 export interface ICartSlice {
@@ -79,10 +80,8 @@ export interface ICartSlice {
 }
 
 export interface ICheckOut {
-  user_id: string;
-  market_id: string;
+  user_id?: string;
   total_amount: string;
-  reference: string;
   billing: {
     first_name: string;
     last_name: string;
@@ -92,4 +91,11 @@ export interface ICheckOut {
     country_code: string;
   };
   items: ICartItem[];
+}
+
+export interface CheckOutResponse {
+  checkoutDirectUrl: string;
+  checkoutId: string;
+  checkoutUrl: string;
+  clientReference: string;
 }

@@ -60,7 +60,7 @@ export function CartTable() {
                     </thead>
                     <tbody>
                       {values.cartItems.map((item, index) => (
-                        <tr key={item.id} className="border-t">
+                        <tr key={item.product_id} className="border-t">
                           <td className="px-4 py-2">{item.name}</td>
 
                           {/* Type */}
@@ -145,7 +145,11 @@ export function CartTable() {
                 onClick={() => navigate(-1)}
                 variant="secondary"
               />
-              <Button value="Proceed to Checkout" onClick={handleSubmit} />
+              <Button
+                value="Proceed to Checkout"
+                onClick={handleSubmit}
+                disabled={cartItems.length === 0}
+              />
             </div>
           </Form>
         );
