@@ -13,7 +13,7 @@ export const UpcomingEvents = () => {
 
   const [openModaal, setOpenModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<eventType | null>(null)
-  const upcomingAndOngoingEvents = useMemo(() => events.slice(0, 4), [events]);
+  const upcomingAndOngoingEvents = useMemo(() => events?.slice(0, 4), [events]);
 
 
   const handleEventDetails = (event: eventType): void => {
