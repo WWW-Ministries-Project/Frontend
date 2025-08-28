@@ -5,6 +5,7 @@ import { Button } from "@/components";
 import { LifeCenterType } from "@/utils";
 import { useMemo } from "react";
 import { object, string, array } from "yup";
+import { FormHeader } from "@/components/ui";
 
 interface IProps {
   closeModal: () => void;
@@ -23,10 +24,8 @@ export function LifeCenterForm({
     [editData]
   );
   return (
-    <div className="w-[80vw] sm:w-[70vw] xl:w-[40vw] p-6">
-      <h3 className="text-[#101840] font-semibold text-2xl  mb-4">
-        {editData ? "Edit Life Center" : "Create Life Center"}
-      </h3>
+    <div className=" ">
+      
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
@@ -37,13 +36,21 @@ export function LifeCenterForm({
       >
         {({ setFieldValue, values, handleSubmit, errors }) => (
           <Form className="space-y-4">
+
+            <FormHeader>
+                  <p className="text-lg font-semibold">{initial.id ? "Update" : "Create"} Life Center</p>
+                  <p className="text-sm text-white">
+                    Provide the details of the life center.
+                  </p>
+                </FormHeader>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
             <Field
               component={FormikInputDiv}
               name="name"
               label="Life center name"
               id="name"
               placeholder="Enter the name of the life center"
-              className="w-full md:w-1/2 xl:w-1/2"
+              className="w-full "
             />
             <Field
               component={FormikInputDiv}
@@ -55,7 +62,7 @@ export function LifeCenterForm({
               type="textarea"
               col={50}
             />
-            <div className="flex gap-5 flex-col md:flex-row xl:flex-row items-start">
+            {/* <div className="flex gap-5  items-start"> */}
               <Field
                 component={FormikInputDiv}
                 name="location"
@@ -65,6 +72,7 @@ export function LifeCenterForm({
                 className="w-full"
               />
               <div className="md:mt-7 xl:mt-7 w-full">
+                <label className='text-primary font-semibold' htmlFor="description">{"Meeting Days"}</label>
                 <MultiSelect
                   options={meetingDays.map((day) => {
                     return {
@@ -83,7 +91,9 @@ export function LifeCenterForm({
                   <p className="text-xs text-error">{errors.meeting_dates}</p>
                 )}
               </div>
-            </div>
+              </div>
+            {/* </div> */}
+            <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
             <div className="flex justify-end gap-2">
               <Button
                 value={values.id ? "Update" : "Save"}
@@ -94,6 +104,7 @@ export function LifeCenterForm({
                 disabled={loading}
               />
               <Button value="Cancel" variant="secondary" onClick={closeModal} />
+            </div>
             </div>
           </Form>
         )}

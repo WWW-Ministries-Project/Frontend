@@ -1,88 +1,132 @@
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { api, Cohort } from "@/utils";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
+import type { CohortType } from "@/utils";
+import { api } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import AllCohortsPage from "../Components/AllCohort";
-import CohortForm from "../Components/CohortForm";
-import ViewPageTemplate from "../Components/ViewPageTemplate";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { AllCohorts } from "../Components/AllCohort";
+import { CohortForm, ICohortForm } from "../Components/CohortForm";
+import { useViewPage } from "../customHooks/ViewPageContext";
 
-const ViewProgram = () => {
+export const ViewProgram = () => {
   //api
-  const { id: programId } = useParams(); // Get program ID from the route
-  const { data, loading } = useFetch(api.fetch.fetchProgramById, {
+  const { id: programId } = useParams();
+  const { data, refetch } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
+  //cohort api
+  const {
+    postData: postCohort,
+    loading: postLoading,
+    data: postedData,
+  } = usePost(api.post.createCohort);
+  const {
+    updateData: updateCohort,
+    loading: updateLoading,
+    data: updatedData,
+  } = usePut(api.put.updateCohort);
+
+  const { executeDelete, success } = useDelete(api.delete.deleteCohort);
 
   const program = useMemo(() => data?.data, [data]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCohort, setSelectedCohort] = useState<Cohort | undefined>(
+  const [selectedCohort, setSelectedCohort] = useState<ICohortForm | undefined>(
     undefined
   );
 
-  const fetchProgramData = async () => {};
+  const { setLoading, setData } = useViewPage();
   useEffect(() => {
-    fetchProgramData(); // Call the function when programId changes
-  }, [programId]); // Dependency on programId ensures this is called on mount and when programId changes
+    setData?.({
+      title: program?.title || "",
+      description: program?.description || "",
+      showTopic: true,
+      topics: program?.topics || [],
+    });
+  }, [setData, program]);
+  // useEffect(() => {
+  //   setLoading(loading);
+  //   console.log(loading,"loading")
+  // }, [loading, setLoading]);
 
-  const handleEdit = (cohort: Cohort): void => {
-    setSelectedCohort(cohort);
+  // const fetchProgramData = async () => {};
+  useEffect(() => {
+    if (updatedData || postedData) {
+      refetch();
+      setIsModalOpen(false);
+      setSelectedCohort(undefined);
+    }
+  }, [updatedData, postedData, refetch]);
+  useEffect(() => {
+    if (success) {
+      refetch();
+    }
+  }, [success, refetch]);
+
+  const handleEdit = (cohort: CohortType): void => {
+    const formattedCohort: ICohortForm = {
+      id: cohort.id,
+      name: cohort.name,
+      duration: cohort.duration,
+      description: cohort.description,
+      startDate: cohort.startDate,
+      applicationDeadline: cohort.applicationDeadline,
+      status: cohort.status,
+    };
+    setSelectedCohort(formattedCohort);
     setIsModalOpen(true);
   };
 
+  const handleSubmit = (values: ICohortForm) => {
+    if (!programId || isNaN(parseInt(programId, 10))) return;
+    if (selectedCohort?.id) {
+      updateCohort(
+        {
+          ...values,
+          id: selectedCohort.id,
+          programId: Number(programId),
+        },
+        { id: String(selectedCohort.id) }
+      );
+    } else {
+      postCohort({ ...values, programId: Number(programId) });
+    }
+  };
   const handleClose = () => {
     setSelectedCohort(undefined);
     setIsModalOpen(false);
   };
 
   const deleteCohort = async (cohortId: number) => {
-    showDeleteDialog({ name: "Cohort", id: cohortId }, async () => {});
+    showDeleteDialog({ name: "Cohort", id: cohortId }, () =>
+      executeDelete({ id: String(cohortId) })
+    );
   };
 
   return (
-    //   <div>Loading...</div> // Show loading text while data is being fetched
-    // ) : (
     <div className="">
-      <ViewPageTemplate
-        title="Program Details" // Add the title property
-        description="View and manage program details" // Add the description property
-        Data={program}
-        showTopic={true}
-        isGrid={true}
-        details={""}
-        loading={loading}
-      >
-        <AllCohortsPage
-          loading={loading}
-          cohorts={program?.cohorts || []}
-          onCreate={() => setIsModalOpen(true)}
-          onEdit={handleEdit}
-          onDelete={(cohortId) => deleteCohort(cohortId)}
-        />
-      </ViewPageTemplate>
+      
+      <AllCohorts
+        cohorts={program?.cohorts || []}
+        onCreate={() => {
+          setSelectedCohort(undefined);
+          setIsModalOpen(true);
+        }}
+        onEdit={handleEdit}
+        onDelete={(cohortId) => deleteCohort(cohortId)}
+      />
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <CohortForm
           onClose={() => handleClose()}
-          programId={
-            programId && !isNaN(parseInt(programId, 10))
-              ? parseInt(programId, 10)
-              : 0
-          } // Pass the programId to CohortForm
-          fetchProgramData={fetchProgramData}
-          cohort={
-            selectedCohort
-              ? {
-                  ...selectedCohort,
-                  startDate: new Date(selectedCohort.startDate),
-                }
-              : undefined
-          }
+          onSubmit={handleSubmit}
+          loading={postLoading || updateLoading}
+          cohort={selectedCohort}
         />
       </Modal>
     </div>
   );
 };
-
-export default ViewProgram;

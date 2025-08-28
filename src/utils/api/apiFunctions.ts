@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
 import axios from "../../axiosInstance";
-import type { ApiResponse, QueryType } from "../interfaces";
+import type { ApiResponse, IPaginationMeta, QueryType } from "../interfaces";
 import { ApiErrorHandler } from "./errors/ApiError";
 
 // Define the fetchData function
@@ -14,9 +14,20 @@ export const fetchData = async <T>(
       ? `?${new URLSearchParams(query).toString()}`
       : "";
     const url = `${baseUrl}${path}${queryString}`;
-    const response: AxiosResponse<{ data: T }> = await axios.get(url);
+    const response: AxiosResponse<
+      {
+        data: T;
+      } & IPaginationMeta
+    > = await axios.get(url);
     return {
       data: response.data.data,
+      meta: {
+        current_page: response.data.current_page,
+        take: response.data.take,
+        total: response.data.total,
+        page_size: response.data.page_size,
+        totalPages: response.data.totalPages,
+      },
       status: response.status,
       error: "",
       success: true,

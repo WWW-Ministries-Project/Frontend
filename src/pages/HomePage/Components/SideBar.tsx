@@ -54,6 +54,7 @@ export const SideBar = ({ className }: IProps) => {
       hoverTimerRef.current = null;
     }
     setIsExpanded(false);
+    setOpenMenus({});
   };
 
   // Close all submenus when route changes
@@ -109,42 +110,49 @@ export const SideBar = ({ className }: IProps) => {
 
   return (
     <div
-      className={`h-screen flex flex-col justify-between transition-all duration-300 ${
+      className={`h-full flex flex-col transition-all duration-300 ${
         isExpanded ? "w-64" : "w-16"
       } ${className || ""}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex flex-col space-y-2 py-4 flex-1">
-        {/* Render sidebar items */}
-        {filteredTabs.map((item) => {
-          const IconComponent = sidebarIcons[item.name!];
-          if (!IconComponent) return null;
+      {/* Scrollable navigation area */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll ">
+        <div className="flex flex-col space-y-2 py-4 min-h-0 h-[80vh]">
+          {/* Render sidebar items */}
+          {filteredTabs.map((item) => {
+            const IconComponent = sidebarIcons[item.name!];
+            if (!IconComponent) return null;
 
-          const isActive = activeTabNames[item.name];
+            const isActive = activeTabNames[item.name];
 
-          return (
-            <SidebarItem
-              key={item.name}
-              item={item}
-              IconComponent={IconComponent}
-              isActive={isActive}
-              isExpanded={isExpanded}
-              openMenus={openMenus}
-              toggleSubMenu={toggleSubMenu}
-            />
-          );
-        })}
+            return (
+              <SidebarItem
+                key={item.name}
+                item={item}
+                IconComponent={IconComponent}
+                isActive={isActive}
+                isExpanded={isExpanded}
+                openMenus={openMenus}
+                toggleSubMenu={toggleSubMenu}
+              />
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Logout Section */}
+      {/* Fixed logout section at bottom */}
+      <div className="flex-shrink-0 border-t border-gray-200">
         <div
-          className="flex items-center gap-2 p-4 cursor-pointer hover:bg-gray-100 rounded-md mt-auto mb-4"
+          className="flex items-center gap-2 p-4  cursor-pointer hover:bg-gray-100 rounded-md transition-colors"
           onClick={handleLogOut}
           aria-label="Logout"
         >
-          <LogoutIcon className="w-6 h-6 text-gray-600" />
+          <LogoutIcon className="w-6 h-6 text-gray-600 flex-shrink-0" />
           {isExpanded && (
-            <span className="transition-opacity duration-200">Logout</span>
+            <span className="transition-opacity duration-200 whitespace-nowrap">
+              Logout
+            </span>
           )}
         </div>
       </div>

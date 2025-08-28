@@ -11,22 +11,32 @@ export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={(open) => {
-        if (!open) onClose();
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
       }}
     >
       <Dialog.Portal>
+        {/* Fullscreen overlay */}
         <Dialog.Overlay
-          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-10"
           style={{ animation: "fadeIn 0.2s" }}
         />
-        <Dialog.Content
-          className="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-auto max-w-xlg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-md m-4 overflow-y-auto"
-          onPointerDownOutside={persist ? (e) => e.preventDefault() : undefined}
-          onEscapeKeyDown={persist ? (e) => e.preventDefault() : undefined}
-        >
-          {children}
-        </Dialog.Content>
+
+        {/* Flex container to center the modal */}
+        <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
+          <Dialog.Content
+            className="relative max-h-[90vh] w-full max-w-xl rounded-2xl bg-white shadow-md "
+            onPointerDownOutside={
+              persist ? (e) => e.preventDefault() : undefined
+            }
+            onEscapeKeyDown={
+              persist ? (e) => e.preventDefault() : undefined
+            }
+          >
+            <Dialog.Title className="hidden">title</Dialog.Title>
+            {children}
+          </Dialog.Content>
+        </div>
       </Dialog.Portal>
     </Dialog.Root>
   );

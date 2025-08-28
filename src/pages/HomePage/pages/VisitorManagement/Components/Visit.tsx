@@ -9,7 +9,6 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { api, formatDate, VisitType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { IVisitForm, VisitForm } from "./VisitForm";
 
 interface IProps {
@@ -17,7 +16,6 @@ interface IProps {
   visits: Visit[];
 }
 export const Visits = ({ visitorId, visits }: IProps) => {
-  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
   const [selectedVisit, setSelectedVisit] = useState<
@@ -73,9 +71,6 @@ export const Visits = ({ visitorId, visits }: IProps) => {
           <ActionButton
             showOptions={row.original.id == selectedId}
             hideDelete={true}
-            onView={() => {
-              navigate(`visitor/${row.original.id}`);
-            }}
             onEdit={() => {
               setSelectedVisit({
                 id: row.original.id,
@@ -99,9 +94,11 @@ export const Visits = ({ visitorId, visits }: IProps) => {
         subtitle="Record of all visits to services and events"
         btnName="Record Visit"
         handleClick={() => setIsModalOpen(true)}
+        screenWidth={window.innerWidth}
       />
-
-      <TableComponent data={visits} columns={header} />
+      <div className="relative">
+        <TableComponent data={visits} columns={header} />
+      </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <VisitForm

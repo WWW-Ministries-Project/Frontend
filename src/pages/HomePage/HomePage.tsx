@@ -1,15 +1,15 @@
+import { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
 import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
-import { useEffect, useState } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
-import Breadcrumb from "./Components/BreadCrumb";
 import { Header } from "./Components/Header";
 import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
@@ -23,8 +23,12 @@ export const navigateRef = {
 };
 
 export function HomePage() {
-  const { data: membersData, refetch: refetchMembers } = useFetch(
-    api.fetch.fetchAllMembers
+  //custom navigation
+  const navigate = useNavigate();
+  navigateRef.current = navigate;
+
+  const { data: membersData, refetch: refetchMembersOptions } = useFetch(
+    api.fetch.fetchMembersForOptions
   );
   const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
   const { data: eventsData } = useFetch(api.fetch.fetchEvents);
@@ -36,7 +40,6 @@ export function HomePage() {
   );
   const settingsStore = useSettingsStore();
   const store = useStore();
-  const members = store.members;
   const userStats = store.userStats;
   const token = getToken();
   const { user } = useAuth();
@@ -59,7 +62,8 @@ export function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMembers(membersData.data);
+      store.setMemberOptions(membersData.data);
+      // store.setMembers(membersData.data, membersData.meta?.total ?? 0);
     }
 
     if (userStatsData) {
@@ -71,10 +75,16 @@ export function HomePage() {
     }
 
     if (positionsData) {
-      settingsStore.setPositions(positionsData.data);
+      settingsStore.setPositions(
+        positionsData.data,
+        positionsData.meta?.total ?? 0
+      );
     }
     if (departmentsData) {
-      settingsStore.setDepartments(departmentsData.data);
+      settingsStore.setDepartments(
+        departmentsData.data,
+        departmentsData.meta?.total ?? 0
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -120,59 +130,48 @@ export function HomePage() {
     };
   }, []);
 
-  //custom navigation
-  const navigate = useNavigate();
-  navigateRef.current = navigate;
-
+  if (!token) return null;
   return (
     <div className="lg:fixed ">
-      {token ? (
-        <main className="h-screen w-screen p-3  ">
-          <div className="">
-            <Header handleShowNav={handleShowNav} />
+      <main className="h-screen w-screen lg:p-3  ">
+        <div className="p-3 lg:p-0 lg:pb-3">
+          <Header handleShowNav={handleShowNav} />
+        </div>
+        <div className="flex">
+          <div className={` hidden sm:hidden md:hidden lg:inline  `}>
+            <SideBar className="" onClick={handleShowNav} show={show} />
           </div>
-          <div className="flex">
-            <div className={` hidden sm:hidden md:hidden lg:inline  `}>
-              <SideBar className="" onClick={handleShowNav} show={show} />
-            </div>
 
-            <div className="inline lg:hidden">
-              <MobileSideBar show={show} onClick={handleShowNav} />
+          <div className="inline lg:hidden">
+            <MobileSideBar show={show} onClick={handleShowNav} />
+          </div>
+          <div className="w-full ">
+            <div className="">
+              {/* <Header handleShowNav={handleShowNav} /> */}
             </div>
-            <div className="w-full ">
-              <div className="">
-                {/* <Header handleShowNav={handleShowNav} /> */}
-              </div>
-              <div
-                className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
-              >
-                <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-                  <div className="sticky top-0 z-10   rounded-t-xl  backdrop-blur-sm">
-                    <Breadcrumb />
-                  </div>
-                  <Outlet
-                    context={{
-                      members,
-                      refetchMembers,
-                      filter,
-                      setFilter,
-                      handleSearchChange,
-                      userStats,
-                      refetchPositions,
-                      refetchDepartments,
-                    }}
-                  />
-                </div>
+            <div
+              className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
+            >
+              <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
+                <Outlet
+                  context={{
+                    refetchMembersOptions,
+                    filter,
+                    setFilter,
+                    handleSearchChange,
+                    userStats,
+                    refetchPositions,
+                    refetchDepartments,
+                  }}
+                />
               </div>
             </div>
           </div>
-          <NotificationCard />
-          <Dialog />
-          <LoaderComponent />
-        </main>
-      ) : (
-        <Navigate to="/login" />
-      )}
+        </div>
+        <NotificationCard />
+        <Dialog />
+        <LoaderComponent />
+      </main>
     </div>
   );
 }

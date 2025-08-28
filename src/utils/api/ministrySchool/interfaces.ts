@@ -17,30 +17,190 @@ export type ProgramResponse = {
   leader_required: boolean;
   ministry_required: boolean;
   completed: boolean;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
   topics: Topic[];
-  cohorts: Cohort[];
-  prerequisitePrograms: { id: number; title: string }[];//possibly wrong check it
+  cohorts: CohortType[];
+  prerequisitePrograms: { id: number; title: string }[];
 };
 
-export type Topic = {
-  id: number;
-  name: string;
-  programId: number;
-};
+// export type Topic = {
+//   id: number;
+//   name: string;
+//   programId: number;
+// };
 
-export type Cohort = {
+export type CohortType = {
   id: number;
   name: string;
-  startDate: string; 
+  startDate: string;
   status: string;
   description: string;
   duration: string;
-  applicationDeadline: string; 
+  applicationDeadline: string;
   programId: number;
-  createdAt: string; 
-  updatedAt: string; 
-//   classes: number;
-//   enrolledCount: number;
+  createdAt: string;
+  updatedAt: string;
+  courses: [];
+  program: DetailedProgramType;
+  
 };
+export type CohortPayloadType = {
+  name: string;
+  startDate: string;
+  status: string;
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
+};
+
+type CourseType = {
+  id: number;
+  name: string;
+  capacity: number;
+  enrolled: number;
+  schedule: string;
+  classFormat: string;
+  location?: string;
+  meetingLink: string;
+  facilitator: { name: string, id: number };
+  cohort: CohortType;
+};
+
+type Program = {
+  id: number;
+  title: string;
+  description: string;
+  member_required: boolean;
+  leader_required: boolean;
+  ministry_required: boolean;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DetailedCohortType = {
+  id: number;
+  name: string;
+  startDate: string;
+  status: string;
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
+  createdAt: string;
+  updatedAt: string;
+  program: Program;
+  courses: CourseType[];
+  isDeadlinePassed: boolean;
+};
+export type DetailedCourseType = {
+  id: number;
+  name: string;
+  capacity: number;
+  enrolled: number;
+  schedule: string;
+  classFormat: string;
+  location?: string;
+  meetingLink: string;
+  instructor: { name: string; id: number };
+  cohortId: number;
+  enrollments: []
+};
+export type Topic ={
+  id: number;
+  name: string;
+  programId: number;
+  score: number;
+  progressId: number;
+  status: "PENDING" | "PASS" | "FAIL";
+  completedAt: string | null;
+  notes?: string;
+}
+
+type DetailedProgramType = {
+  id: number;
+  title: string;
+  description: string;
+  member_required: boolean;
+  leader_required: boolean;
+  ministry_required: boolean;
+  completed: boolean;
+  createdAt: string;
+  updatedAt: string;
+  topics: Topic[];
+}
+
+// type CohortType = {
+//   id: number;
+//   name: string;
+//   startDate: string;
+//   status: string;
+//   description: string;
+//   duration: string;
+//   applicationDeadline: string;
+//   programId: number;
+//   createdAt: string;
+//   updatedAt: string;
+//   program: DetailedProgramType;
+// }
+
+// interface Course {
+//   id: number;
+//   name: string;
+//   instructorId: number;
+//   capacity: number;
+//   enrolled: number;
+//   schedule: string;
+//   cohortId: number;
+//   classFormat: string;
+//   location: string;
+//   meetingLink: string | null;
+//   createdAt: string;
+//   updatedAt: string;
+//   cohort: CohortType;
+// }
+export type UserInfo = {
+  primary_number?: string;
+  country_code?:string
+}
+
+export type User = {
+  id?: string;
+  name?: string;
+  email?: string;
+  user_info?: UserInfo;
+}
+
+export type EnrollmentDataType = {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  course: CourseType;
+  phone: string;
+  email: string;
+  user: User;
+}
+
+export type ClassOption = {
+  id: string
+  name: string
+  meetingDays: string[]
+  meetingTime: string
+  facilitator: string
+  enrolled: number
+  capacity: number
+}
+
+export type Programs = {
+  id: string
+  name: string
+  upcomingCohort: string
+  topics: string[]
+  description: string
+  prerequisites: string[] | undefined
+  courses: ClassOption[]
+}
+

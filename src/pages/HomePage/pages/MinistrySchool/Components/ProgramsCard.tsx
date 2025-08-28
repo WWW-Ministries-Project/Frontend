@@ -33,6 +33,7 @@ interface ProgramsCardProps {
   onOpen?: () => void;
   onDelete?: () => void;
   applyCard?: boolean;
+  handleApply?: () =>void
 }
 
 interface EligibilityBadgeProps {
@@ -46,6 +47,7 @@ const ProgramsCard = ({
   onOpen,
   onDelete,
   applyCard = false,
+  handleApply
 }: ProgramsCardProps) => {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -69,15 +71,15 @@ const ProgramsCard = ({
     setIsMenuOpen((prev) => !prev);
   };
 
-  const handleApply = (cohort: Cohort) => {
-    // Set the selected cohort and program in the store
-    setSelectedCohort(cohort, program);
+  // const handleApply = (cohort: Cohort) => {
+  //   // Set the selected cohort and program in the store
+  //   setSelectedCohort(cohort, program);
 
-    console.log("Selected cohort:", cohort);
+  //   console.log("Selected cohort:", cohort);
 
-    // Navigate to the application page
-    navigate(`${program.title}`);
-  };
+  //   // Navigate to the application page
+  //   navigate(`${program.title}`);
+  // };
 
   const getEligibilityBadge = ({
     eligibility,

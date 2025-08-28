@@ -1,9 +1,9 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormLayout } from "@/components/ui";
+import { FormHeader, FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
-import { Field, Formik } from "formik";
+import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
 import { date, object, string } from "yup";
 
@@ -27,17 +27,27 @@ const FollowUpFormComponent = ({
   );
 
   return (
-    <div className="bg-white p-6 rounded-lg w-full max-w-md mx-auto">
-      <div className="font-bold text-lg mb-4">
-        {initialData ? "Edit Follow-up" : "Record a Follow-up"}
-      </div>
+    <div className="bg-white rounded-lg w-full  mx-auto">
+      
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
         onSubmit={(values) => onSubmit(values)}
       >
         {({ handleSubmit }) => (
+          <Form className="flex flex-col  bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">{initialData ? "Edit Follow-up" : "Record a Follow-up"}</p>
+                  <p className="text-sm text-white">
+                    Provide the details of the new soul you&apos;ve connected with.
+                  </p>
+                </FormHeader>
+                
+              </div>
+           <div className="flex-1 overflow-y-auto px-6 py-4">
           <FormLayout $columns={1}>
+             
             <Field
               component={FormikInputDiv}
               type="date"
@@ -50,15 +60,15 @@ const FollowUpFormComponent = ({
               component={FormikSelectField}
               options={typeOptions}
               label="Type *"
-              placeholder="how did you reach them?"
+              placeholder="How did you reach them?"
               id="type"
               name="type"
             />
             <Field
               component={FormikSelectField}
               options={membersOptions}
-              label="assigned To *"
-              placeholder="assigned To"
+              label="Assigned To *"
+              placeholder="Assigned To"
               id="assignedTo"
               name="assignedTo"
             />
@@ -70,8 +80,11 @@ const FollowUpFormComponent = ({
               id="notes"
               name="notes"
             />
+            </FormLayout>
+            </div>
 
-            <div className="flex justify-end gap-4 mt-2">
+            <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+            <div className="flex items-center justify-end gap-3">
               <Button
                 value="Submit"
                 variant="primary"
@@ -87,7 +100,10 @@ const FollowUpFormComponent = ({
                 disabled={loading}
               />
             </div>
-          </FormLayout>
+            </div>
+          
+          
+          </Form>
         )}
       </Formik>
     </div>
@@ -95,9 +111,9 @@ const FollowUpFormComponent = ({
 };
 
 const typeOptions = [
-  { value: "phone", name: "Phone" },
-  { value: "email", name: "Email" },
-  { value: "in-person", name: "In-Person" },
+  { value: "phone", label: "Phone" },
+  { value: "email", label: "Email" },
+  { value: "in-person", label: "In-Person" },
 ];
 
 export interface IFollowUpForm {

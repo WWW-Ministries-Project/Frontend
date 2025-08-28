@@ -1,3 +1,8 @@
+import type { ColumnFilter } from "@tanstack/react-table";
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
+import useState from "react-usestateref";
+
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
@@ -5,15 +10,12 @@ import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
 import { MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
-import { ColumnFilter } from "@tanstack/react-table";
-import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import useState from "react-usestateref";
+import { QueryType } from "@/utils/interfaces";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
-import {MembersCount} from "../../Components/reusable/MembersCount";
+import { MembersCount } from "../../Components/reusable/MembersCount";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { MemberCard } from "./Components/MemberCard";
@@ -30,6 +32,14 @@ export function Members() {
     user: { permissions },
   } = useAuth();
 
+  const { refetchMembersOptions } = useOutletContext<{
+    refetchMembersOptions: (query?: QueryType) => void;
+  }>();
+
+  const { data: allMembers, refetch: refetchMembers } = useFetch(
+    api.fetch.fetchAllMembers
+  );
+  const members = allMembers?.data||[];
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const columnVisibility = useMemo(() => {
@@ -57,8 +67,13 @@ export function Members() {
     true
   );
   const store = useStore();
-  const { members, userStats, removeMember } = store;
+  const { userStats, total } = store;
+
   const columns = membersColumns;
+  const crumbs = [
+    { label: "Home", link: "/home" },
+    { label: "Members", link: "/members" },
+  ];
 
   useEffect(() => {
     const switchElement = document.getElementById("switch");
@@ -75,8 +90,8 @@ export function Members() {
     const handleEffect = async () => {
       if (success) {
         showNotification("Member Deleted Successfully");
-        if ("id" in dataToDeleteRef.current)
-          removeMember(dataToDeleteRef.current.id);
+        refetchMembers();
+        refetchMembersOptions();
         const userStatsData = await refetchUserStats();
         if (userStatsData) store.setUserStats(userStatsData.data);
       }
@@ -162,15 +177,14 @@ export function Members() {
   ];
 
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       {/* Members Table Section */}
       <section className={`flex flex-col gap-5 bg-white p-4 rounded-xl`}>
         {/* ✅ Reusable HeaderControls Component */}
         <HeaderControls
-          title="Church Memberships"
-          totalMembers={
+          title={`Church Memberships (${
             userStats.online?.total_members + userStats.inhouse?.total_members
-          }
+          })`}
           tableView={tableView}
           handleViewMode={handleViewMode}
           hasFilter={true}
@@ -212,26 +226,34 @@ export function Members() {
           } rounded-xl`}
         >
           {tableView ? (
-            <TableComponent
+            <TableComponent<UserType>
               columns={columns}
               data={members}
               displayedCount={12}
+              total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
+              onPageChange={(page, limit) => {
+                refetchMembers({ limit: String(limit), page: String(page) });
+              }}
             />
           ) : (
             <GridComponent
               columns={columns}
               data={members}
               displayedCount={24}
+              total={total}
               filter={filterMembers}
               setFilter={setFilterMembers}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
+              onPageChange={(page, limit) => {
+                refetchMembers({ limit: String(limit), page: String(page) });
+              }}
               renderRow={(row) => (
                 <MemberCard
                   member={row.original}

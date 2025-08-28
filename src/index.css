@@ -156,71 +156,61 @@ input.input::placeholder {
   }
 }
 
-/* @media (min-width: 768px) {
-  .grid-wrapper {
-      grid-template-columns: repeat(2, 1fr);
-      height: calc(100vh - 60px); 
-  }
+
+.scrollable-shape-top,
+.scrollable-shape-bottom {
+  display: none; /* hide by default */
 }
 
 @media (min-width: 1024px) {
-  .grid-wrapper {
-      grid-template-columns: repeat(3, 1fr);
-      height: calc(80vh - 80px); 
+  .scrollable-shape-top,
+  .scrollable-shape-bottom {
+    display: block; /* show on lg screens and above */
   }
 }
 
-@media (min-width: 1280px) {
-  .grid-wrapper {
-      grid-template-columns: repeat(4, 1fr);
-      height: calc(88vh - 100px); 
-  }
-}
 
-@media (min-width: 1536px) {
-  .grid-wrapper {
-      grid-template-columns: repeat(4, 1fr);
-      height: calc(92vh - 120px); 
-  }
-} */
-
-.shape{
+/* Scrollable shape alternatives that move with content */
+.scrollable-shape-top {
   height: 1rem;
   width: 50px;
   background: #D8DAE5;
-  /* background: red; */
-  /* margin-left: 50px; */
-  
+  position: relative;
+  overflow: hidden;
+  border: white;
 }
-.shape:before{
-  position: absolute;
+
+.scrollable-shape-top::before {
   content: '';
+  position: absolute;
   height: 1rem;
   width: 100px;
   background: white;
   border-bottom-right-radius: 5rem;
-  
-  
-  margin-left: -50px;
+  border: white;
+  left: -50px;
+  top: 0;
 }
-.Bshape{
+
+.scrollable-shape-bottom {
   height: 1rem;
   width: 50px;
   background: #D8DAE5;
-  /* background: red; */
-  /* margin-left: 50px; */
-  
+  position: relative;
+  overflow: hidden;
+  border: white;
 }
-.Bshape:before{
-  position: absolute;
+
+.scrollable-shape-bottom::before {
   content: '';
+  position: absolute;
   height: 1rem;
   width: 100px;
   background: white;
   border-top-right-radius: 5rem;
-  
-  
-  margin-left: -50px;
+  left: -50px;
+  top: 0;
+  border: white;
 }
 
 .container {

@@ -7,7 +7,13 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { api, formatDate, formatPhoneNumber, VisitorType } from "@/utils";
+import {
+  api,
+  formatDate,
+  formatPhoneNumber,
+  relativePath,
+  VisitorType,
+} from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +54,10 @@ export function VisitorManagement() {
   };
 
   const visitors = useMemo(() => data?.data || [], [data]);
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "Visitor", link: "" },
+  ];
 
   useEffect(() => {
     if (success) {
@@ -157,7 +167,7 @@ export function VisitorManagement() {
   ];
 
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs} className="p-6">
       {loading && visitors.length === 0 ? (
         <div className="space-y-4">
           <div className="animate-pulse space-y-2  w-[40rem] ">
@@ -167,7 +177,7 @@ export function VisitorManagement() {
           <SkeletonLoader />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 ">
           <HeaderControls
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"

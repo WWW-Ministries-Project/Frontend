@@ -1,13 +1,14 @@
 import { StateCreator } from "zustand";
-import { MemberSlice, UserType } from "../utils/membersInterfaces";
+import { MemberSlice } from "../utils/membersInterfaces";
 
 export const createMemberSlice: StateCreator<
   MemberSlice,
   [],
   [],
   MemberSlice
-> = (set, get) => ({
-  members: [],
+> = (set) => ({
+  // members: [],
+  total: 0,
   membersOptions: [],
   userStats: {
     online: {
@@ -45,36 +46,37 @@ export const createMemberSlice: StateCreator<
       },
     },
   },
-  addMember: (member) => {
-    set((state) => ({
-      members: [...state.members, member],
-    }));
-    get().setMemberOptions();
-  },
-  removeMember: (memberId) => {
-    set((state) => ({
-      members: state.members.filter((pos: UserType) => pos.id !== memberId),
-    }));
-    get().setMemberOptions();
-  },
-  updateMember: (updatedMember) => {
-    set((state) => ({
-      members: state.members.map((pos: UserType) =>
-        pos.id === updatedMember.id ? updatedMember : pos
-      ),
-    }));
-    get().setMemberOptions();
-  },
-  setMembers: (members) => {
-    set({ members });
-    get().setMemberOptions();
-  },
+  // addMember: (member) => {
+  //   set((state) => ({
+  //     members: [...state.members, member],
+  //   }));
+  //   get().setMemberOptions();
+  // },
+  // removeMember: (memberId) => {
+  //   set((state) => ({
+  //     members: state.members.filter((pos: UserType) => pos.id !== memberId),
+  //   }));
+  //   get().setMemberOptions();
+  // },
+  // updateMember: (updatedMember) => {
+  //   set((state) => ({
+  //     members: state.members.map((pos: UserType) =>
+  //       pos.id === updatedMember.id ? updatedMember : pos
+  //     ),
+  //   }));
+  //   get().setMemberOptions();
+  // },
+  // setMembers: (members, total) => {
+  //   set({ members });
+  //   set({ total });
+  //   get().setMemberOptions();
+  // },
   setUserStats: (userStats) => {
     set({ userStats });
   },
-  setMemberOptions: () => {
-    set((state) => ({
-      membersOptions: state.members.map((member: UserType) => ({
+  setMemberOptions: (members) => {
+    set(() => ({
+      membersOptions: members.map((member) => ({
         label: member.name,
         value: String(member.id),
       })),

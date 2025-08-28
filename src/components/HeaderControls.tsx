@@ -3,12 +3,12 @@ import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { Button } from "@/components";
-
+import { cn } from "@/utils/cn";
+import { ReactNode } from "react";
 
 //TODO
 interface IProps {
   title: string;
-  totalMembers?: number;
   tableView?: boolean;
   handleViewMode?: (isTableView: boolean) => void;
   showFilter?: boolean;
@@ -21,11 +21,11 @@ interface IProps {
   hasFilter?: boolean;
   hasSearch?: boolean;
   subtitle?: string;
+  customIcon?: ReactNode;
 }
 
 export const HeaderControls = ({
   title,
-  totalMembers,
   tableView,
   handleViewMode,
   showFilter,
@@ -38,13 +38,14 @@ export const HeaderControls = ({
   hasSearch = false,
   hasFilter = false,
   subtitle,
+  customIcon,
 }: IProps) => {
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between items-center mb-4 overflow-x-auto">
       {/* Title with total members */}
       <div className="space-y-1">
-        <p className="text-primary text-2xl font-semibold">
-          {title} {totalMembers !== undefined ? `(${totalMembers})` : ""}
+        <p className="text-primary text-xl md:text-2xl font-semibold">
+          {title}
         </p>
         {subtitle && <p>{subtitle}</p>}
       </div>
@@ -91,14 +92,15 @@ export const HeaderControls = ({
               />
             )}
           </div>
+          {customIcon ?? null}
           {/* Add Member Button */}
           {btnName && (
             <Button
               value={screenWidth <= 700 ? "+" : btnName}
-              className={
-                "text-white px-5 min-h-12 max-h-14 p-3 bg-primary whitespace-nowrap" +
-                (screenWidth <= 540 ? " w-12 px-3" : "")
-              }
+              className={cn(
+                "text-white min-h-12 max-h-14 bg-primary whitespace-nowrap",
+                screenWidth <= 540 ? "px-3" : "px-5"
+              )}
               onClick={handleClick}
             />
           )}
@@ -107,4 +109,3 @@ export const HeaderControls = ({
     </div>
   );
 };
-

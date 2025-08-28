@@ -57,12 +57,19 @@ export const SideBarSubMenu = ({
     <div>
       {show ? (
         <div>
+          {/* Active indicator shape - top */}
+          {(isActive || showChildren) && (
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-top"></div>
+            </div>
+          )}
+
           {/* Main Parent Menu */}
           <div
             onClick={toggleSubMenu}
             className={`text-primary transition z-10 cursor-pointer ${
               showChildren || isActive
-                ? "text-primary bg-lightGray rounded-tl-xl"
+                ? "text-primary bg-lightGray rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
                 : "rounded-s-xl"
             }
             ${
@@ -98,7 +105,7 @@ export const SideBarSubMenu = ({
           {showChildren && filteredChildren.length > 0 && (
             <div
               className={`pl-3 ${
-                showChildren ? "rounded-bl-xl bg-lightGray" : ""
+                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none bg-lightGray" : ""
               } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
             >
               {filteredChildren.map((child) => (
@@ -107,9 +114,9 @@ export const SideBarSubMenu = ({
                     end
                     to={getChildPath(child)}
                     className={({ isActive }) =>
-                      `hover:border-[#6539C310] hover:border hover:shadow-inner hover:bg-[#6539C310] transition h-10 z-10 flex items-center py-4 px-4 ${
+                      ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
                         isActive
-                          ? "bg-[#6539C310] text-primary transition"
+                          ? "font-extrabold text-primary transition"
                           : "hover:text-primary"
                       }`
                     }
@@ -120,11 +127,31 @@ export const SideBarSubMenu = ({
               ))}
             </div>
           )}
+
+          {/* Active indicator shape - bottom */}
+          {(isActive || showChildren) && (
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-bottom"></div>
+            </div>
+          )}
         </div>
       ) : (
-        <NavigationLink item={item} show={show}>
-          {children}
-        </NavigationLink>
+        <div>
+          {/* Navigation link rendering */}
+          {isActive && (
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-top"></div>
+            </div>
+          )}
+          <NavigationLink item={item} show={show}>
+            {children}
+          </NavigationLink>
+          {isActive && (
+            <div className="flex justify-end relative">
+              <div className="scrollable-shape-bottom"></div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import ellipse from "@/assets/ellipse.svg";
+import { Button } from "@/components";
 import Action from "@/components/Action";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
@@ -30,9 +31,12 @@ export const LifeCenterCard = ({
     navigate(`life-center/${encodeQuery(String(item?.id))}`);
 
   return (
-    <div className="w-full max-w-[591px] flex flex-col rounded-2xl text-[#101840] border border-lightGray p-4 bg-white relative">
+    <div className="w-full max-w-[591px] flex flex-col rounded-2xl text-primary border border-lightGray p-4 bg-white relative space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-medium mb-2">{item.name}</h2>
+        <div>
+          <h2 className="text-xl font-bold ">{item.name}</h2>
+        <p >{item.description}</p>
+        </div>
         <div
           className="absolute right-5 top-5 flex flex-col items-end w-1/4"
           onClick={toggleActions}
@@ -46,35 +50,42 @@ export const LifeCenterCard = ({
             />
           )}
         </div>
+        
       </div>
-      <div className="space-y-4">
-        <p className="mb-3">{item.description}</p>
+      <div className="space-y-3">
         <InfoRow
-          icon={<MapPinIcon className="h-6 w-6 text-gray-600" />}
+          icon={<MapPinIcon className="h-5 w-5 text-primary" />}
           label={item.location}
         />
         {!!item.meeting_dates?.length && (
           <InfoRow
-            icon={<CalendarIcon className="h-6 w-6 text-gray-600" />}
+            icon={<CalendarIcon className="h-5 w-5 text-primary" />}
             label={
               <ul className="border flex divide-x-[1px] w-fit">
                 {item.meeting_dates.map((date, index) => (
                   <li key={index} className="px-2">
-                    {date.slice(0, 2)}
+                    {date.slice(0, 3)}
                   </li>
                 ))}
               </ul>
             }
           />
         )}
-        <InfoRow
-          icon={<IdentificationIcon className="h-6 w-6 text-gray-600" />}
+        {/* <InfoRow
+          icon={<IdentificationIcon className="h-5 w-5 text-primary" />}
           label={`${item.totalMembers || 0} Members`}
-        />
+        /> */}
         <InfoRow
-          icon={<UserIcon className="h-6 w-6 text-gray-600" />}
+          icon={<UserIcon className="h-5 w-5 text-primary" />}
           label={`${item.totalSoulsWon || 0} Souls won`}
         />
+      </div>
+      <div>
+        <Button
+                  value={"View "}
+                  onClick={handleView}
+                  className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-primary"
+                />
       </div>
     </div>
   );
@@ -86,8 +97,8 @@ interface InfoRowProps {
 }
 
 export const InfoRow = ({ icon, label }: InfoRowProps) => (
-  <div className="flex items-center gap-3">
+  <div className="flex items-center gap-2">
     {icon && <span>{icon}</span>}
-    <div>{label}</div>
+    <div className="text-sm">{label}</div>
   </div>
 );

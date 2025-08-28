@@ -18,7 +18,7 @@ export function RolesForm({
 }: IProps) {
   const initial = useMemo(() => editData || initialValues, [editData]);
   return (
-    <div className="w-[80vw] sm:w-[70vw] xl:w-[40vw] p-6">
+    <div className=" p-6">
       <h3 className="text-[#101840] font-semibold text-2xl  mb-4">
         {editData?.id ? "Edit Role" : "Create Role"}
       </h3>

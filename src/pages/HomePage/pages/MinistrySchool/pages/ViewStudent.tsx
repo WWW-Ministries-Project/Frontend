@@ -1,132 +1,95 @@
+import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
-import { ApiCalls } from "@/utils/api/apiFetch";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { usePut } from "@/CustomHooks/usePut";
+import { showNotification } from "@/pages/HomePage/utils";
+import { api, User } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import TopicAssessment from "../Components/TopicAssessment";
-import ViewPageTemplate from "../Components/ViewPageTemplate";
-
-const student = {
-  id: 1,
-  title: "Sarah Wilson",
-  name: "Sarah Wilson", // Added to match 'Data' interface
-  description: "A dedicated selectedStudent in the Biblical Leadership program", // Added to match 'Data' interface
-  email: "sarah.w@example.com",
-  phone: "+1 555-789-0123",
-  applicationDate: "2023-05-08",
-  status: "Active",
-  attendance: 100,
-  progress: 100,
-  isMember: true,
-  membershipType: "In-person Family",
-  completionDate: "2023-08-28",
-  startDate: "2023-06-05", // Added to match 'Data' interface
-  duration: "3 months", // Added to match 'Data' interface
-  topics: [
-    { name: "Biblical Leadership Foundations", score: 98, status: "Pass" },
-    { name: "Character Development", score: 95, status: "Pass" },
-    { name: "Vision Casting", score: 92, status: "Pass" },
-    { name: "Team Building", score: 94, status: "Pass" },
-  ],
-};
-
-const mockClass = {
-  id: 1,
-  programId: 1,
-  name: "Biblical Leadership - Monday Evening Class",
-  instructor: "Pastor James Wilson",
-  capacity: 15,
-  enrolled: 12,
-  format: "in-person",
-  location: "Main Campus - Room 201",
-  schedule: "Mondays, 7:00 PM - 9:00 PM",
-  startDate: "2023-06-05",
-  endDate: "2023-08-28",
-  cohortName: "Spring 2023",
-  programName: "Biblical Leadership",
-};
+import { TopicAssessment } from "../Components/TopicAssessment";
+import { useViewPage } from "../customHooks/ViewPageContext";
 
 const ViewStudent = () => {
-  const apiCalls = new ApiCalls();
   const { id: studentId } = useParams();
-  const [showTopic, setTopicShow] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  // api
+  const { data: studentData, refetch } = useFetch(api.fetch.fetchStudentById, {
+    id: studentId!,
+  });
+  const {
+    updateData,
+    loading,
+    error,
+    data: updatedData,
+  } = usePut(api.put.updateStudentProgress);
   const [editMode, setEditMode] = useState(false);
+  const topics = studentData?.data.course?.cohort?.program?.topics;
 
-  const fetchStudentData = async () => {
-    if (!studentId) return; // Ensure we have the programId before making the API call
-
-    try {
-      setLoading(true);
-      // Fetch cohort details by programId
-      const programResponse = await apiCalls.fetchStudentById(studentId);
-      if (programResponse.status === 200) {
-        setSelectedStudent(programResponse.data.data);
-      } else {
-        setError("Error fetching cohort details");
-      }
-    } catch (err) {
-      setError("An error occurred while fetching cohort details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { setLoading, setDetails, setData } = useViewPage();
+  useEffect(() => {
+    if (!studentData?.data) return;
+    setDetails?.(<Details data={studentData?.data} onEdit={toggleEditMode} />);
+    setData?.({
+      showTopic: true,
+      user:studentData?.data?.user
+      // title: classData?.name || "",
+    });
+    setLoading?.(false);
+  }, [setDetails, setData, setLoading, studentData?.data]);
 
   useEffect(() => {
-    fetchStudentData(); // Call the function when programId changes
-  }, [studentId]);
+      if (updatedData) {
+        showNotification("Progress updated successfully", "success");
+        setEditMode(false);
+        refetch();
+      }
+    if (error) showNotification("Error updating progress", "error");
+  }, [refetch, updatedData, error]);
 
   const toggleEditMode = () => {
-    setEditMode((prevMode) => !prevMode); // Toggle the current state of editMode
+    setEditMode((prevMode) => !prevMode);
   };
 
   return (
-    <div className="px-4">
-      <ViewPageTemplate
-        Data={selectedStudent}
-        showTopic={showTopic}
-        primaryButton={editMode ? "" : "Edit"}
-        onPrimaryButtonClick={toggleEditMode}
-        loading={loading}
-        isGrid={false}
-        details={
-          <div className="flex flex-wrap gap-x-12">
-            <div className="space-y-1">
-              <div className="font-semibold ">Membership</div>
-              <div>
-                {selectedStudent?.userId ? (
-                  <div className="flex items-center gap-2  ">
-                    {selectedStudent?.membershipType}
-                    <Badge>Member</Badge>{" "}
-                  </div>
-                ) : (
-                  <Badge>Non-member</Badge>
-                )}{" "}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="font-semibold ">Email</div>
-              <div className="">{selectedStudent?.email} </div>
-            </div>
-            <div className="space-y-1">
-              <div className="font-semibold">Phone number</div>
-              <div>{selectedStudent?.phone} </div>
-            </div>
-          </div>
-        }
-      >
-        <div>
-          <TopicAssessment
-            topics={selectedStudent?.course?.cohort?.program?.topics}
-            editMode={editMode}
-            enrollmentId={selectedStudent?.id}
-            onCancel={() => setEditMode(false)}
-          />
-        </div>
-      </ViewPageTemplate>
+    <div className="">
+      {studentData?.data.id && (
+        <TopicAssessment
+          topics={topics || []}
+          editMode={editMode}
+          enrollmentId={studentData?.data.id}
+          onCancel={() => setEditMode(false)}
+          toggleEditMode={toggleEditMode}
+          onUpdate={(data) => updateData(data)}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };
 
 export default ViewStudent;
+
+const Details = ({
+  data,
+  onEdit,
+}: {
+  data: { email: string; user: User };
+  onEdit: () => void;
+}) => {
+  return (
+    <div className="flex flex-wrap gap-x-12 w-full">
+      <div className="space-y-1">
+        <div className="font-semibold ">Membership</div>
+        <Badge>Member</Badge>{" "}
+      </div>
+      <div className="space-y-1">
+        <div className="font-semibold ">Email</div>
+        <div className="">{data?.email} </div>
+      </div>
+      <div className="space-y-1">
+        <div className="font-semibold">Phone number</div>
+        <div>{data?.user?.user_info?.country_code}{data?.user?.user_info?.primary_number} </div>
+      </div>
+      
+    </div>
+  );
+};

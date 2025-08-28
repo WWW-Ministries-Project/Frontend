@@ -1,54 +1,45 @@
-import { HeaderControls } from "@/components/HeaderControls";
-import { useState } from "react";
+import { routes } from "@/routes/appRoutes";
+import { matchRoutes, useLocation } from "react-router-dom";
+
 import PageOutline from "../../Components/PageOutline";
-import TabSelection from "../../Components/reusable/TabSelection";
-import Analytics from "./pages/Analytics";
-import Overview from "./pages/Overview";
+import { ChurchAnnouncements } from "./Components/ChurchAnnouncements";
+import { MyAppointments } from "./Components/MyAppointments";
+import { ProfileSummary } from "./Components/ProfileSummary";
+import { QuickActions } from "./Components/QuickActions";
+import { RecentSermons } from "./Components/RecentSermons";
+import { UpcomingEvents } from "./Components/UpcomingEvents";
+import { WelcomeHeader } from "./Components/WelcomeHeader";
 
-const DashBoardPage = () => {
-  const [selectedTab, setSelectedTab] = useState("Overview");
+export const DashBoardPage = () => {
+  const location = useLocation();
 
-  // Handle the tab selection
-  const handleTabSelect = (tab: string) => {
-    setSelectedTab(tab); // Set the selected tab to display the corresponding component
-  };
-
-  const tabs = [
-    "Overview",
-    "Analytics",
-    // "Events"
-  ];
+  const matches = matchRoutes(routes, location);
+  const routeName = matches?.find((m) => m.route.name)?.route.name;
 
   return (
-      <PageOutline className="">
-        <div>
-          <HeaderControls
-            title="Dashboard"
-            tableView={false}
-            handleViewMode={() => {}}
-            showFilter={false}
-            subtitle="Welcome back, Pastor Adam"
-          />
+    <PageOutline className="bg-inherit p-1 ">
+      <WelcomeHeader showFull={ routeName === "member" ? true : false} />
 
-          <section>
-            <div className="flex mt-2 mb-6">
-              <TabSelection
-                tabs={tabs}
-                selectedTab={selectedTab}
-                onTabSelect={handleTabSelect} // Use the handleTabSelect function to update the selected tab
-              />
-            </div>
-          </section>
-
-          <section>
-            {/* Dynamically render the content based on the selected tab */}
-            {selectedTab === "Overview" && <Overview />}
-            {selectedTab === "Analytics" && <Analytics />}
-            {/* {selectedTab === "Events" && <Events />} */}
-          </section>
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${
+          routeName === "member" ? "" : ""
+        }`}
+      >
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <UpcomingEvents />
+          <ChurchAnnouncements />
+          <RecentSermons />
         </div>
-      </PageOutline>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          <ProfileSummary />
+          <MyAppointments />
+          <QuickActions />
+        </div>
+      </div>
+    </PageOutline>
   );
 };
 
-export default DashBoardPage;

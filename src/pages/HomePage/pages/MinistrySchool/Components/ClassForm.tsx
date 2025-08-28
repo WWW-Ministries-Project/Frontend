@@ -1,274 +1,159 @@
-import { ApiCreationCalls } from "@/utils/api/apiPost"; // Make sure this is the correct import
-import { ApiUpdateCalls } from "@/utils/api/apiPut"; // Ensure you have the correct import
+import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
+import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import { Actions } from "@/components/ui/form/Actions";
+import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
-import { useState } from "react";
-import "react-datepicker/dist/react-datepicker.css";
-import * as Yup from "yup";
+import { useMemo } from "react";
+import { number, object, string } from "yup";
 
-interface ClassFormProps {
+interface IProps {
   onClose: () => void;
-  fetchCohortData: () => void;
-  classId?: number; // Optional class ID for updating
-  initialData?: any; // Initial data for updating class
-  cohortId?: number; // Required cohort ID
+  onSubmit: (values: IClassForm) => void;
+  initialData?: IClassForm;
+  loading?: boolean;
 }
 
-const ClassForm: React.FC<ClassFormProps> = ({
+export const ClassForm = ({
   onClose,
-  classId,
+  onSubmit,
   initialData,
-  cohortId,
-  fetchCohortData,
-}) => {
-  const [loading, setLoading] = useState(false);
-  const apiCalls = new ApiCreationCalls();
-  const api = new ApiUpdateCalls();
+  loading = false,
+}: IProps) => {
+  const membersOptions = useStore((state) => state.membersOptions);
 
-  const initialValues = {
-    name: initialData?.name || "",
-    instructor: initialData?.instructor || "",
-    capacity: initialData?.capacity || "",
-    schedule: initialData?.schedule || "",
-    classFormat: initialData?.classFormat || "Hybrid",
-    location: initialData?.location || "",
-    meetingLink: initialData?.meetingLink || "",
-    cohortId: cohortId || "", // Add cohortId here
-  };
-
-
-  const handleSubmit = async (values: any) => {
-    setLoading(true);
-
-    // Include cohortId in the payload
-    const payload = {
-      ...values,
-      cohortId, // Ensure cohortId is added to the payload
-      // ...(classId && { id: classId }),
-      id: initialData?.id,
+  const initial = useMemo(() => {
+    return {
+      ...initialValues,
+      ...initialData,
+      meetingLink: initialData?.meetingLink || "",
+      location: initialData?.location || "",
     };
-
-    try {
-      console.log("Submit", payload);
-
-      let response;
-      if (initialData?.id) {
-        // Update class if classId exists
-        response = await api.updateClass(payload); // Ensure you have this method in your ApiUpdateCalls class
-      } else {
-        // Create class if no classId exists
-        response = await apiCalls.createCourse(payload); // Ensure you have this method in your ApiCreationCalls class
-      }
-
-      if (response.success) {
-        console.log("Class successfully updated/created:", response.data);
-        onClose(); // Close the modal after successful submit
-      } else {
-        console.error(
-          "Error submitting class:",
-          response?.error || "Unknown error"
-        );
-      }
-    } catch (error) {
-      console.error("Error in submitting class:", error);
-    } finally {
-      setLoading(false);
-      onClose();
-      fetchCohortData();
-    }
-  };
-
+  }, [initialData]);
   return (
-    <div className="bg-white p-6 rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
-      <div>
-        <div className="text-lg font-bold">
-          {initialData?.id ? "Edit Class" : "Add New Class"}
-        </div>
-        <div className="text-sm mb-4">
-          {initialData?.id
-            ? "Edit the details of the class"
-            : "Create a new class for the cohort."}
-        </div>
-      </div>
+    <div className="bg-white  rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
+      
 
       <Formik
-        initialValues={initialValues}
+        initialValues={initial}
         validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        onSubmit={(values) => onSubmit(validationSchema.cast(values))}
       >
-        {({ errors, touched, values, setFieldValue }) => (
-          <Form className="space-y-4">
-            <div className="grid lg:grid-cols-2 gap-4">
-              {/* Class Name */}
-              <div className="w-full">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-dark900"
-                >
-                  Class Name *
-                </label>
-                <Field
-                  type="text"
-                  id="name"
-                  name="name"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="Enter class name"
-                />
-                {errors.name && touched.name && (
-                  <div className="text-red-600 text-xs">
-                    {typeof errors.name === "string" && errors.name}
-                  </div>
-                )}
+        {({ errors, touched, values, handleSubmit }) => (
+          <Form>
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">{initialData ? "Edit Class" : "Add New Class"}</p>
+                  <p className="text-sm text-white">
+                    {initialData
+            ? "Edit the details of the class"
+            : "Create a new class for the cohort."}
+                  </p>
+                </FormHeader>
+                
               </div>
-
-              {/* Instructor */}
-              <div className="w-full">
-                <label htmlFor="instructor" className="block text-sm font-medium text-primary">
-                  Instructor *
-                </label>
-                <Field
-                  type="text"
-                  id="instructor"
-                  name="instructor"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="Enter instructor name"
-                />
-                {errors.instructor && touched.instructor && (
-                  <div className="text-red-600 text-xs">
-                    {typeof errors.instructor === "string" && errors.instructor}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Capacity */}
-            <div className="w-full">
-              <label htmlFor="capacity" className="block text-sm font-medium text-primary">
-                Capacity *
-              </label>
-              <Field
-                type="number"
-                id="capacity"
-                name="capacity"
-                className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                placeholder="Maximum number of students"
-              />
-              {errors.capacity && touched.capacity && (
-                <div className="text-red-600 text-xs">{errors.capacity}</div>
-              )}
-            </div>
-
-            {/* Schedule */}
-            <div className="w-full">
-              <label htmlFor="schedule" className="block text-sm font-medium text-primary">
-                Schedule *
-              </label>
-              <Field
-                type="text"
-                id="schedule"
-                name="schedule"
-                className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                placeholder="e.g., Mondays 7-9 PM"
-              />
-              {errors.schedule && touched.schedule && (
-                <div className="text-red-600 text-xs">{errors.schedule}</div>
-              )}
-            </div>
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+          <FormLayout>
+            <Field
+              component={FormikInputDiv}
+              label="Class Name *"
+              id="name"
+              name="name"
+              placeholder="Enter class name"
+            />
+            <Field
+              component={FormikSelectField}
+              id="instructorId"
+              name="instructorId"
+              label="Instructor Name *"
+              placeholder="Enter instructor name"
+              options={membersOptions}
+            />
+            <Field
+              component={FormikInputDiv}
+              type="number"
+              id="capacity"
+              name="capacity"
+              label="Capacity *"
+              placeholder="Maximum number of students"
+            />
+            <Field
+              component={FormikInputDiv}
+              id="schedule"
+              name="schedule"
+              label="Schedule *"
+              placeholder="e.g., Mondays 7-9 PM"
+            />
 
             {/* Class Format */}
-            <div className="w-full">
-              <label className="block text-sm font-medium text-primary">Class Format *</label>
-              <div className="flex flex-col space-y-2">
-                <label>
-                  <Field
-                    type="radio"
-                    name="classFormat"
-                    value="In_Person"
-                    className="mr-2"
-                  />
-                  In-Person
+            <FullWidth>
+              <div className="">
+                <label className="block t font-semibold text-primary pb-1">
+                  Class Format *
                 </label>
-                <label>
-                  <Field
-                    type="radio"
-                    name="classFormat"
-                    value="Online"
-                    className="mr-2"
-                  />
-                  Online
-                </label>
-                <label>
-                  <Field
-                    type="radio"
-                    name="classFormat"
-                    value="Hybrid"
-                    className="mr-2"
-                  />
-                  Hybrid (Both In-Person and Online)
-                </label>
-              </div>
-              {errors.classFormat && touched.classFormat && (
-                <div className="text-red-600 text-xs">{errors.classFormat}</div>
-              )}
-            </div>
-
-            {/* Location */}
-            {(values.classFormat === "In_Person" ||
-              values.classFormat === "Hybrid") && (
-              <div className="w-full">
-                <label htmlFor="location" className="block text-sm font-medium text-primary">
-                  Location *
-                </label>
-                <Field
-                  type="text"
-                  id="location"
-                  name="location"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="Enter physical location"
-                />
-                {errors.location && touched.location && (
-                  <div className="text-red-600 text-xs">{errors.location}</div>
-                )}
-              </div>
-            )}
-
-            {/* Meeting Link */}
-            {(values.classFormat === "Online" ||
-              values.classFormat === "Hybrid") && (
-              <div className="w-full">
-                <label htmlFor="meetingLink" className="block text-sm font-medium text-primary">
-                  Meeting Link *
-                </label>
-                <Field
-                  type="text"
-                  id="meetingLink"
-                  name="meetingLink"
-                  className="mt-1 block w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="Enter online meeting link"
-                />
-                {errors.meetingLink && touched.meetingLink && (
+                <div className="flex md:flex-row flex-col gap-4 " >
+                  <label className="">
+                    <Field
+                      type="radio"
+                      name="classFormat"
+                      value="In_Person"
+                      className="mr-1"
+                    />
+                    In-Person
+                  </label>
+                  <label className="">
+                    <Field
+                      type="radio"
+                      name="classFormat"
+                      value="Online"
+                      className="mr-1"
+                    />
+                    Online
+                  </label>
+                  <label className="">
+                    <Field
+                      type="radio"
+                      name="classFormat"
+                      value="Hybrid"
+                      className="mr-1"
+                    />
+                    Hybrid (Both In-Person and Online)
+                  </label>
+                </div>
+                {errors.classFormat && touched.classFormat && (
                   <div className="text-red-600 text-xs">
-                    {errors.meetingLink}
+                    {errors.classFormat}
                   </div>
                 )}
               </div>
+            </FullWidth>
+            {(values.classFormat === "In_Person" ||
+              values.classFormat === "Hybrid") && (
+              <Field
+                component={FormikInputDiv}
+                id="location"
+                name="location"
+                label="Location *"
+                placeholder="Enter physical location"
+              />
             )}
-
-            {/* Submit Button */}
-            <div className="flex gap-4 mt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="border border-primary text-primary px-6 py-2 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-primary text-white px-6 py-2 rounded-lg"
-              >
-                {initialData?.id ? "Update Class" : "Create Class"}
-              </button>
-            </div>
+            {(values.classFormat === "Online" ||
+              values.classFormat === "Hybrid") && (
+              <Field
+                component={FormikInputDiv}
+                id="meetingLink"
+                name="meetingLink"
+                label="Online Meeting Link *"
+                placeholder="Enter online meeting link"
+              />
+            )}
+            <Actions
+              onCancel={onClose}
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          </FormLayout>
+          </div>
           </Form>
         )}
       </Formik>
@@ -276,27 +161,42 @@ const ClassForm: React.FC<ClassFormProps> = ({
   );
 };
 
-  const validationSchema = Yup.object({
-    name: Yup.string().required("Class name is required"),
-    instructor: Yup.string().required("Instructor name is required"),
-    capacity: Yup.number()
-      .required("Capacity is required")
-      .positive()
-      .integer(),
-    schedule: Yup.string().required("Schedule is required"),
-    classFormat: Yup.string().required("Class format is required"),
-    location: Yup.string().when("classFormat", {
-      is: (value: any) => value === "In_Person" || value === "Hybrid",
-      then: (schema) =>
-        schema.required("Location is required for in-person or hybrid classes"),
-    }),
-    meetingLink: Yup.string().when("classFormat", {
-      is: (value: any) => value === "Online" || value === "Hybrid",
-      then: (schema) =>
-        schema.required(
-          "Meeting link is required for online or hybrid classes"
-        ),
-    }),
-  });
-  
-export default ClassForm;
+export interface IClassForm {
+  id?: number;
+  name: string;
+  instructorId: string;
+  capacity: number;
+  schedule: string;
+  classFormat: string;
+  location?: string;
+  meetingLink?: string;
+}
+const initialValues: IClassForm = {
+  name: "",
+  instructorId: "",
+  capacity: 0,
+  schedule: "",
+  classFormat: "",
+};
+const validationSchema = object({
+  name: string().required("required"),
+  instructorId: string().required("required"),
+  capacity: number()
+    .transform((value, originalValue) => Number(originalValue))
+    .typeError("must be a number")
+    .required("required")
+    .positive("must be positive")
+    .integer("must be an integer"),
+  schedule: string().required("required"),
+  classFormat: string().required("required"),
+  location: string().when("classFormat", {
+    is: (value: string) => value === "In_Person" || value === "Hybrid",
+    then: (schema) =>
+      schema.required("Location is required for in-person or hybrid classes"),
+  }),
+  meetingLink: string().when("classFormat", {
+    is: (value: string) => value === "Online" || value === "Hybrid",
+    then: (schema) =>
+      schema.required("Meeting link is required for online or hybrid classes").url("Invalid URL"),
+  }),
+});

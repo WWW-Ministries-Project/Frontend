@@ -1,22 +1,85 @@
-import { MembersType } from "@/utils";
 import { create } from "zustand";
-type userType = {
-  name: string;
-  email: string;
-  selectedMember: MembersType | object;
-};
-type Action = {
-  setName: (name: string) => void;
-  setEmail: (email: string) => void;
-  setSelectedMember: (selectedMember: MembersType) => void;
+import { persist, createJSONStorage } from "zustand/middleware";
+import { convertPermissions } from "@/utils/helperFunctions";
+import { userType } from "@/utils/interfaces";
+
+type UserState = userType;
+
+type UserActions = {
+  setUser: (data: Omit<userType, "permissions"> & {
+    permissions: Record<string, string>;
+  }) => void;
+  clearUser: () => void;
 };
 
-export const useUserStore = create<userType & Action>((set) => ({
-  name: "",
-  email: "",
-  selectedMember: {},
+// Type to persist (user state only, excluding methods)
+type PersistedUserState = Omit<UserState, keyof UserActions>;
 
-  setName: (name: string) => set({ name }),
-  setEmail: (email: string) => set({ email }),
-  setSelectedMember: (selectedMember: MembersType) => set({ selectedMember }),
-}));
+export const useUserStore = create<UserState & UserActions>()(
+  persist(
+    (set) => ({
+      id: "",
+      name: "",
+      email: "",
+      phone: "",
+      permissions: {},
+      profile_img: undefined,
+      member_since: undefined,
+      membership_type: "",
+      ministry_worker: false,
+      department: undefined,
+
+      setUser: ({
+        id,
+        name,
+        email,
+        phone,
+        profile_img,
+        member_since,
+        membership_type,
+        ministry_worker,
+        department,
+        permissions,
+      }) => {
+        set({
+          id,
+          name,
+          email,
+          phone,
+          profile_img,
+          member_since,
+          membership_type,
+          ministry_worker,
+          department,
+          permissions: convertPermissions(permissions),
+        });
+      },
+
+      clearUser: () =>
+        set({
+          id: "",
+          name: "",
+          email: "",
+          phone: "",
+          permissions: {},
+          profile_img: undefined,
+          member_since: undefined,
+          membership_type: "",
+          ministry_worker: false,
+          department: undefined,
+        }),
+    }),
+    {
+      name: "user",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state): PersistedUserState => {
+        const {
+          setUser,
+          clearUser,
+          ...persistedState
+        } = state as UserState & Partial<UserActions>; 
+        return persistedState;
+      },
+    }
+  )
+);

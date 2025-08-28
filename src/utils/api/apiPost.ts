@@ -1,18 +1,29 @@
+import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
+import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import type { ApiResponse } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import { LifeCenterType } from "./lifeCenter/interfaces";
-import { ProgramsPayloadType } from "./ministrySchool/interfaces";
+import {
+  CohortPayloadType,
+  ProgramsPayloadType,
+} from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
+import { EventType } from "./events/interfaces";
+import type {
+  IMarket,
+  IProductType,
+  IProduct,
+  ICheckOut,
+  CheckOutResponse,
+} from "./marketPlace/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -36,6 +47,11 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("event/create-event", payload);
   };
+
+  createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
+    return this.postToApi<EventType>("event/create-event-type", payload);
+  };
+
   createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("assets/create-asset", payload);
   };
@@ -62,19 +78,21 @@ export class ApiCreationCalls {
   };
 
   // Create Cohort
-  // createCohort = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/cohorts", payload);
-  // };
+  createCohort = (
+    payload: CohortPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/cohort", payload);
+  };
 
   // Create Course
-  // createCourse = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/courses", payload);
-  // };
+  createCourse = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/course", payload);
+  };
 
   // Enroll User
-  // enrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/enroll", payload);
-  // };
+  enrollUser = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/enroll", payload);
+  };
 
   // Unenroll User
   // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
@@ -128,5 +146,35 @@ export class ApiCreationCalls {
     payload: LifeCenterMemberForm
   ): Promise<ApiResponse<LifeCenterMemberForm>> => {
     return this.postToApi("lifecenter/add-lifecenter-member", payload);
+  };
+
+  //marketPlace
+  createMarket = (
+    payload: Omit<IMarket, "id" | "event_name">
+  ): Promise<ApiResponse<IMarket>> => {
+    return this.postToApi("market/create-market", payload);
+  };
+
+  //products
+  createProductType = (payload: {
+    name: string;
+  }): Promise<ApiResponse<IProductType>> => {
+    return this.postToApi("product/create-product-type", payload);
+  };
+
+  createProductCategory = (payload: {
+    name: string;
+  }): Promise<ApiResponse<IProductType>> => {
+    return this.postToApi("product/create-product-category", payload);
+  };
+
+  createProduct = (payload: IProduct): Promise<ApiResponse<IProduct>> => {
+    return this.postToApi("product/create-product", payload);
+  };
+
+  createOrder = (
+    payload: ICheckOut
+  ): Promise<ApiResponse<CheckOutResponse>> => {
+    return this.postToApi("orders/create-order", payload);
   };
 }

@@ -1,29 +1,21 @@
-import { createContext, useContext, useState } from "react";
-// import RenderRoutes from "/src/routes/RenderRoutes";
-import { convertPermissions } from "@/utils/helperFunctions";
+import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { useUserStore } from "@/store/userStore";
 import { userType } from "@/utils/interfaces";
 import PropTypes from "prop-types";
+import { createContext, useContext } from "react";
 
 type contextType = {
   user: userType;
-  login: ({
-    name,
-    email,
-    id,
-    permissions,
-  }: Omit<userType, "permissions"> & {
-    permissions: Record<string, string>;
-  }) => void;
+  login: (
+    data: Omit<userType, "permissions"> & {
+      permissions: Record<string, string>;
+    }
+  ) => void;
   logout: () => void;
 };
 
-const defaultValue: userType = {
-  name: "name",
-  email: "email",
-  permissions: {},
-  id: "",
-};
 export const AuthContext = createContext<contextType | null>(null);
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthWrapper");
@@ -31,41 +23,43 @@ export const useAuth = () => {
 };
 
 export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
-  const storedUser = JSON.parse(
-    sessionStorage.getItem("user") || JSON.stringify(defaultValue)
-  );
-  const [user, setUser] = useState<userType>(storedUser);
+  const user = useUserStore((state) => ({
+    id: state.id,
+    name: state.name,
+    email: state.email,
+    phone: state.phone,
+    permissions: state.permissions,
+    profile_img: state.profile_img,
+    member_since: state.member_since,
+    membership_type: state.membership_type,
+    ministry_worker: state.ministry_worker,
+    department: state.department,
+  }));
 
-  const login = ({
-    name,
-    email,
-    id,
-    permissions = {},
-  }: Omit<userType, "permissions"> & {
-    permissions: Record<string, string>;
-  }) => {
-    sessionStorage.setItem(
-      "user",
-      JSON.stringify({
-        name,
-        permissions: convertPermissions(permissions),
-        email,
-        id,
-      })
-    );
-    setUser({ name, permissions: convertPermissions(permissions), email, id });
-    // useUserStore.setState({ name, permissions, email, id });
+  const setUser = useUserStore((state) => state.setUser);
+  const clearUser = useUserStore((state) => state.clearUser);
+
+  const login = (
+    data: Omit<userType, "permissions"> & {
+      permissions: Record<string, string>;
+    }
+  ) => {
+    setUser(data);
   };
+
   const logout = () => {
-    setUser({ name: "", email: "", permissions: {}, id: "" });
-    sessionStorage.removeItem("user");
+    clearUser();
+    const { setVisible } = useNotificationStore.getState();
+    setVisible(false);
   };
+
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
 AuthWrapper.propTypes = {
   children: PropTypes.node.isRequired,
 };

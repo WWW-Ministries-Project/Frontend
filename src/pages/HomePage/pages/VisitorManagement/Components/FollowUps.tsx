@@ -4,7 +4,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { api } from "@/utils";
+import { api, formatDate } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
@@ -41,7 +41,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
   };
 
   const header: ColumnDef<FollowUp>[] = [
-    { accessorKey: "date", header: "Date" },
+    { accessorFn: (row) => formatDate(row.date), header: "Date" },
     { accessorKey: "type", header: "Type" },
     { accessorKey: "notes", header: "Notes" },
     { accessorKey: "assignedTo", header: "Assigned To" },
@@ -50,7 +50,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
       cell: ({ row }) => (
         <div
           className={
-            "text-sm h-6 flex items-center justify-center gap-2 rounded-lg text-center text-white "
+            "text-sm h-6 flex items-center  gap-2 rounded-lg text-center text-white "
           }
         >
           <img
@@ -86,6 +86,7 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
         handleClick={() => {
           setIsModalOpen(true);
         }}
+        screenWidth={window.innerWidth}
       />
       <TableComponent data={followUps} columns={header} />
       <Modal

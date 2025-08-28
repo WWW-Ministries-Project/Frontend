@@ -3,11 +3,20 @@ export interface pictureType {
   src: string;
 }
 
+export interface IPaginationMeta {
+  current_page: number;
+  take: number;
+  total: number;
+  page_size: number;
+  totalPages: number;
+}
+
 export interface ApiResponse<T> {
   success: unknown;
   error: string;
   status: number;
   data: T;
+  meta?: IPaginationMeta;
 }
 
 export type QueryType = Record<string, string>;
@@ -37,6 +46,11 @@ export interface userType {
   name: string;
   permissions: Record<string, boolean>;
   profile_img?: string;
+  phone:string;
+  member_since?: Date;
+  membership_type: string;
+  ministry_worker:boolean;
+  department?: string[];
 }
 export interface userTypeWithToken extends userType {
   iat: number;

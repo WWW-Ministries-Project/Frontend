@@ -1,16 +1,17 @@
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
+import { FormHeader } from "@/components/ui";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { Field, FieldArray, Form, Formik } from "formik";
-import { object } from "yup";
+import { array, boolean, number, object, string } from "yup";
 
 interface IProps {
   onClose: () => void;
   program?: ProgramResponse;
   prerequisitesDropdown: { label: string; value: string }[]; // Add prerequisitesDropdown property
   handleSubmit: (value: IProgramForm) => void; // Add setFeedback property
-  loading?: boolean;
+  loading: boolean;
 }
 
 const ProgramFormComponent = ({
@@ -36,25 +37,32 @@ const ProgramFormComponent = ({
     : initialValues;
 
   return (
-    <div className="bg-white p-4 rounded-lg md:w-[45rem] max-h-[90vh] text-primary space-y-4">
-      <div className="sticky top-0 bg-white p-4 border-b border-lightGray z-10">
-        <div className="font-bold text-lg">
-          {program?.id ? "Edit Program" : "Create New Program"}
-        </div>
-        <p className="text-sm">
-          Fill in the program details to {program?.id ? "update" : "create"} a
-          school program.
-        </p>
-      </div>
+    
+      
 
-      <Formik initialValues={initial} onSubmit={handleSubmit}>
-        {({ values, setFieldValue, handleSubmit }) => (
-          <Form>
+      <Formik
+        initialValues={initial}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+      >
+        {({ values, setFieldValue, handleSubmit, errors }) => (
+          <Form className="bg-white rounded-lg   md:w-[45rem] max-h-[90vh] text-primary space-y-4">
+            <div className="sticky top-0 z-10">
+                <FormHeader>
+                  <p className="text-lg font-semibold">{program?.id ? "Edit Program" : "Create New Program"}</p>
+                  <p className="text-sm text-white">
+                    Fill in the program details to {program?.id ? "update" : "create"} a
+          school program.
+                  </p>
+                </FormHeader>
+                
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <Field
               component={FormikInputDiv}
               type="text"
               placeholder="Enter program title"
-              label="Program Title *"
+              label="Program Name *"
               name="title"
               id="title"
             />
@@ -62,62 +70,24 @@ const ProgramFormComponent = ({
               component={FormikInputDiv}
               type="textarea"
               placeholder="Enter program description"
-              label="Description *"
+              label="Program Overview *"
               name="description"
               id="description"
             />
-            {/* Eligibility */}
-            {/* <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-primary">
-                Eligibility *
-              </label>
-              <div className="flex flex-col items space-y-1">
-                <label>
-                  <Field
-                    type="radio"
-                    name="eligibility"
-                    value="Members"
-                    checked={values.eligibility === "Members"}
-                    className="mr-2"
-                  />
-                  Members Only
-                </label>
-                <label>
-                  <Field
-                    type="radio"
-                    name="eligibility"
-                    value="Non_Members"
-                    checked={values.eligibility === "Non_Members"}
-                    className="mr-2"
-                  />
-                  Non Members Only
-                </label>
-                <label>
-                  <Field
-                    type="radio"
-                    name="eligibility"
-                    value="Both"
-                    checked={values.eligibility === "Both"}
-                    className="mr-2"
-                  />
-                  Both Members and Non Members
-                </label>
-              </div>
-            </div> */}
 
             {/* Completion Requirement */}
             <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-primary">
-                Completion of this program is required to become:
+              <label className="block  font-semibold text-primary">
+                This program is required for:
               </label>
-              <div className="flex flex-col space-y-1 ml-2">
+              <div className="flex flex-col md:flex-row space-x-1 gap-4  md:items-center">
                 <label>
                   <Field
                     type="checkbox"
                     name="member_required"
                     className="mr-2"
                   />
-                  A Member
+                  Church Member
                 </label>
                 <label>
                   <Field
@@ -125,7 +95,7 @@ const ProgramFormComponent = ({
                     name="leader_required"
                     className="mr-2"
                   />
-                  A Leader
+                  Leaders (Department & Ministry Heads)
                 </label>
                 <label>
                   <Field
@@ -133,7 +103,7 @@ const ProgramFormComponent = ({
                     name="ministry_required"
                     className="mr-2"
                   />
-                  A Ministry Worker
+                  Ministry Worker
                 </label>
               </div>
             </div>
@@ -158,8 +128,10 @@ const ProgramFormComponent = ({
                           //     ? `topics[${index}].name`
                           //     : `topics[${index}]`
                           // }
+                          component={FormikInputDiv} //
                           name={`topics[${index}]`}
-                          className="block w-full px-4 py-2 border border-lightGray rounded-lg"
+                          id={`topics[${index}]`}
+                          className="flex-1"
                           placeholder="Enter a topic"
                         />
                         {index > 0 && (
@@ -195,7 +167,7 @@ const ProgramFormComponent = ({
 
             {/* Prerequisites */}
             <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-primary">
+              <label className="block  font-semibold text-primary">
                 Prerequisites
               </label>
               <div>
@@ -204,20 +176,29 @@ const ProgramFormComponent = ({
                   name="isPrerequisitesChecked"
                   className="mr-2"
                 />
-                <span>Check if this program has prerequisites</span>
+                <span>This program has prerequisite(s)</span>
               </div>
 
               {values.isPrerequisitesChecked && (
-                <MultiSelect
-                  options={prerequisitesDropdown}
-                  selectedValues={values.prerequisites}
-                  onChange={(selected) =>
-                    setFieldValue("prerequisites", selected)
+                <>
+                  <MultiSelect
+                    options={prerequisitesDropdown}
+                    selectedValues={values.prerequisites}
+                    onChange={(selected) =>
+                      setFieldValue("prerequisites", selected)
+                    }
+                  />
+                  {
+                    <div className="text-sma text-error relative top-[-20px]">
+                      {errors.prerequisites}
+                    </div>
                   }
-                />
+                </>
               )}
             </div>
-            <div className="flex  gap-4 sticky bottom-0 bg-white p-4 border-t border-lightGray">
+            </div>
+            <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+    <div className="flex items-center justify-end gap-3">
               <Button
                 type="submit"
                 variant="primary"
@@ -233,10 +214,11 @@ const ProgramFormComponent = ({
                 value="Cancel"
               />
             </div>
+            </div>
           </Form>
         )}
       </Formik>
-    </div>
+
   );
 };
 export interface IProgramForm {
@@ -259,7 +241,23 @@ const initialValues: IProgramForm = {
   prerequisites: [],
   isPrerequisitesChecked: false,
 };
-const validationSchema = object().shape({});
+const validationSchema = object().shape({
+  title: string().required("required"),
+  description: string().required("required"),
+  topics: array()
+    .of(string().required("Topic is required"))
+    .min(1, "At least one topic is required"),
+  isPrerequisitesChecked: boolean(),
+  prerequisites: array().when("isPrerequisitesChecked", {
+    is: true,
+    then: () =>
+      array()
+        .of(number())
+        .min(1, "At least one prerequisite is required")
+        .transform((value) => value.map((val: string) => Number(val))),
+    otherwise: () => array().of(number()).min(0),
+  }),
+});
 
 export const ProgramForm = Object.assign(ProgramFormComponent, {
   initialValues,
