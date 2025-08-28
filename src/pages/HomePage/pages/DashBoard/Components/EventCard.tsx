@@ -8,6 +8,7 @@ import {
   PlusIcon,
   XMarkIcon,
   ArrowTopRightOnSquareIcon,
+  EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { eventType } from "../../EventsManagement/utils/eventInterfaces";
 import { useState } from "react";
@@ -253,7 +254,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
             className="p-2 sm:p-2.5 bg-white flex items-center rounded-lg gap-2 hover:shadow-lg transition-shadow duration-200 border border-gray-200 active:scale-95"
             aria-label="Close"
           >
-            <ArrowTopRightOnSquareIcon className="h-6 w-6 sm:h-4 sm:w-4 text-gray-700" /> <p>View details</p>
+            <ArrowTopRightOnSquareIcon className="h-6 w-6 md:h-4 md:w-4 text-gray-700" /> <p className="hidden md:block">View details</p>
           </button>
         )}
         
@@ -265,7 +266,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
             aria-expanded={showShareMenu}
           >
             
-            <ShareIcon className="h-5 w-5 sm:h-4 sm:w-4 text-gray-700" /> 
+            <EllipsisVerticalIcon className="h-6 w-6 md:h-4 md:w-4 text-gray-700" /> 
           </button>
         
         {showInModal && (
@@ -304,10 +305,10 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       {/* Content */}
       <div className="space-y-2 sm:space-y-2">
         <div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 pr-16" >
-            {event.event_name || "Brainstorming session"}
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 pr-16 truncate" >
+            {event?.event_name || "-"}
           </h3>
-          {showInModal && event.description && (
+          {showInModal && event?.description && (
             <p className="  leading-relaxed text-gray-600">
               {event.description}
             </p>
@@ -403,7 +404,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
                 className="w-full px-4 py-3 text-sm font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg active:scale-[.99] flex items-center justify-center gap-2"
               >
                 <ShareIcon className="h-5 w-5" />
-                Share on WhatsApp
+                Share 
               </button>
             </div>
 
@@ -457,7 +458,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
               className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
             >
               <ShareIcon className="h-4 w-4" />
-              Share on WhatsApp
+              Share on ...
             </button>
           </div>
         </>
