@@ -510,7 +510,11 @@ export const routes: AppRoute[] = [
   },
   {
     path: "/member",
-    element: <MembersPage />,
+    element: (
+      <ProtectedRoute>
+        <MembersPage />
+      </ProtectedRoute>
+    ),
     name: "member",
     children: [
       {
