@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { useCallback, useEffect } from "react";
+import { useCallback, } from "react";
 import { object } from "yup";
 
 import { Button } from "@/components";
@@ -27,7 +27,10 @@ export function CheckoutForm(props: IProps) {
   const email = user?.email || "";
   const [first_name, other_name, last_name] = name.split(" ");
 
-  const initialValues: ICheckoutForm = {
+    const { billinDetails } = useCart();
+
+
+  const initialValues: ICheckoutForm = billinDetails || {
     personal_info: {
       first_name: first_name || "",
       other_name: other_name || "",
