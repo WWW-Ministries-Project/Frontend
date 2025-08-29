@@ -9,7 +9,7 @@ import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
 import { api, decodeToken, relativePath } from "@/utils";
 
 export function CheckOutPage() {
-  const { getTotalPrice, cartItems } = useCart();
+  const { getTotalPrice, cartItems, setBillinDetails } = useCart();
   const { postData, data, loading } = usePost(api.post.createOrder);
 
   const totalAmount = getTotalPrice();
@@ -27,10 +27,10 @@ export function CheckOutPage() {
     : "/out/verify-payment/out";
 
   const cancellation_url = user?.id
-    ? `${window.location.origin}/member/market`
-    : `${window.location.origin}/out/products`;
+    ? `${window.location.origin}/member/market/check-out`
+    : `${window.location.origin}/out/products/check-out`;
 
-  const handleCheckout = async(data: ICheckoutForm) => {
+  const handleCheckout = async (data: ICheckoutForm) => {
     const { first_name, last_name } = data.personal_info;
     const { email, resident_country, phone } = data.contact_info;
     const checkout_data = {
@@ -47,7 +47,7 @@ export function CheckOutPage() {
       },
       items: cartItems?.length ? cartItems : [my_cart],
     };
-
+    setBillinDetails(data);
     await postData(
       user?.id ? { ...checkout_data, user_id: user?.id } : { ...checkout_data }
     );

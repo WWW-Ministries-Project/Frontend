@@ -27,7 +27,9 @@ export const useCart = create<ICartSlice>()(
       },
       removeFromCart: (itemproduct_id) => {
         set((state) => ({
-          cartItems: state.cartItems.filter((item) => item.product_id !== itemproduct_id),
+          cartItems: state.cartItems.filter(
+            (item) => item.product_id !== itemproduct_id
+          ),
         }));
       },
       clearCart: () => {
@@ -37,7 +39,9 @@ export const useCart = create<ICartSlice>()(
         return get().cartItems.length;
       },
       itemIsInCart: (productproduct_id: string) => {
-        return get().cartItems.some((item) => item.product_id === productproduct_id);
+        return get().cartItems.some(
+          (item) => item.product_id === productproduct_id
+        );
       },
       getTotalPrice: () => {
         return get().cartItems.reduce((total, item) => {
@@ -51,13 +55,23 @@ export const useCart = create<ICartSlice>()(
         set({ cartItems: items });
       },
       updateSection: (productproduct_id, section, value) => {
-        console.log("Updating quantity for product:", productproduct_id, "to", section);
+        console.log(
+          "Updating quantity for product:",
+          productproduct_id,
+          "to",
+          section
+        );
         set((state) => {
           const updatedCartItems = state.cartItems.map((item) =>
-            item.product_id === productproduct_id ? { ...item, [section]: value } : item
+            item.product_id === productproduct_id
+              ? { ...item, [section]: value }
+              : item
           );
           return { cartItems: updatedCartItems };
         });
+      },
+      setBillinDetails: (details) => {
+        set({ billinDetails: details });
       },
     }),
     {

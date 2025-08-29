@@ -1,4 +1,5 @@
 import { image } from "@/pages/HomePage/Components/MultiImageComponent";
+import { ICheckoutForm } from "@/pages/HomePage/pages/MarketPlace/components/cart/CheckOutForm";
 export interface IMarket {
   name: string;
   description: string;
@@ -77,6 +78,8 @@ export interface ICartSlice {
     section: T,
     value: T extends "quantity" ? number : string
   ) => void;
+  billinDetails?:ICheckoutForm,
+  setBillinDetails:(details:ICheckoutForm)=>void
 }
 
 export interface ICheckOut {
