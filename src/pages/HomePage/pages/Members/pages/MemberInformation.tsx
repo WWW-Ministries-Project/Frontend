@@ -1,5 +1,6 @@
 
 import { formatDate, formatPhoneNumber } from "@/utils";
+import { DivideIcon } from "@heroicons/react/24/outline";
 
 import { useOutletContext } from "react-router-dom";
 
@@ -119,10 +120,14 @@ export function MemberInformation() {
         {user?.is_user && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 mt-4">
             <InfoField
-              label="Ministry/Department"
-              value={user?.department?.name}
+              label="Ministry/Department - Position"
+              value={user?.department_positions?.map((department_position, index) =>
+                <div key={index} className="py-1">
+                  <div>{ department_position.department_name} - <span className="font-medium">{department_position.position_name}</span></div>
+                </div> 
+              )}
             />
-            <InfoField label="Position" value={user?.position?.name} />
+            {/* <InfoField label="Position" value={user?.position?.name} /> */}
           </div>
         )}
       </Section>
@@ -153,7 +158,7 @@ export function MemberInformation() {
           />
           <InfoField
             label="Contact Number"
-            value={user.emergency_contact?.phone_number}
+            value={formatPhoneNumber(user.emergency_contact?.country_code,user.emergency_contact?.phone_number)}
           />
         </div>
       </Section>
@@ -193,7 +198,9 @@ interface IMemberInfo {
     name: string;
     relation: string;
     phone_number: string;
+    country_code:string
   };
+  department_positions: string[]
   
 }
 const InfoField = ({
