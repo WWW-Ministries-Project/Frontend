@@ -1,35 +1,93 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workbook } from "exceljs";
-import { useCallback } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders } from "@/utils";
+import { SearchBar } from "@/components/SearchBar";
+import { OrderFilters } from "./OrderFilters";
 interface IProps {
   orders: IOrders[] | null;
   tableColumns: ColumnDef<IOrders>[];
   showExport?: boolean;
 }
 export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterOrders, setFilterOrders] = useState<IFilters>({
+    name: "",
+    product_type: "",
+    product_category: "",
+    product_color: "",
+  });
+
+  const filteredOrders = useCallback(() => {
+    return orders!.filter((order) => {
+      return Object.entries(filterOrders).every(([key, value]) => {
+        if (!value) return true;
+        const orderValue = order[key as keyof IOrders];
+        return (
+          orderValue &&
+          orderValue.toString().toLowerCase().includes(value.toLowerCase())
+        );
+      });
+    });
+  }, [filterOrders, orders]);
+
+  const allOrders = filteredOrders();
   const handleExport = useCallback(() => {
-    exportToExcel(orders!);
-  }, [orders]);
+    exportToExcel(allOrders);
+  }, [allOrders]);
+
+  const handleFilters = (key: keyof IFilters, value: string) => {
+    setFilterOrders((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    handleFilters("name", e.target.value);
+  };
+
+  const handleChange = (name: string, value: string) => {
+    handleFilters(name as keyof IFilters, value);
+  };
+
   return (
     <>
       <HeaderControls
         title="Orders"
-        btnName={showExport && orders && orders?.length > 0 ? "Export to Excel" : ""}
+        btnName={
+          showExport && orders && orders?.length > 0 ? "Export to Excel" : ""
+        }
         screenWidth={window.innerWidth}
         handleClick={handleExport}
+        hasFilter={true}
+        hasSearch={true}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
       />
+
+      { (
+        <OrderFilters
+          onChange={handleChange}
+          searchValue={filterOrders.name}
+          showSearch={showSearch}
+          showFilter={showFilter}
+        />
+      )}
       <TableComponent
         columns={tableColumns}
-        data={orders || []}
+        data={allOrders || []}
         displayedCount={10}
         className="relative"
       />
-      {orders?.length === 0 && <EmptyState msg="No Orders made yet" />}
+      {allOrders?.length === 0 && <EmptyState msg="No Orders found" />}
     </>
   );
 };
@@ -137,4 +195,11 @@ async function exportToExcel(orders: IOrders[]) {
   a.download = "Orders.xlsx";
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export interface IFilters {
+  name: string;
+  product_type: string;
+  product_category: string;
+  product_color: string;
 }
