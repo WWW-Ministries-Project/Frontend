@@ -19,7 +19,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     <>
       <HeaderControls
         title="Orders"
-        btnName={showExport && orders?.length > 0 ? "Export to Excel" : ""}
+        btnName={showExport && orders && orders?.length > 0 ? "Export to Excel" : ""}
         screenWidth={window.innerWidth}
         handleClick={handleExport}
       />
