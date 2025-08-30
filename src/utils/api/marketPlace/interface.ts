@@ -1,4 +1,5 @@
 import { image } from "@/pages/HomePage/Components/MultiImageComponent";
+import { ICheckoutForm } from "@/pages/HomePage/pages/MarketPlace/components/cart/CheckOutForm";
 export interface IMarket {
   name: string;
   description: string;
@@ -58,7 +59,7 @@ export interface ICartItem {
   productColors?: string[];
   productSizes?: string[];
   product_id: string;
-  market_id:string
+  market_id: string;
 }
 
 export interface ICartSlice {
@@ -77,19 +78,22 @@ export interface ICartSlice {
     section: T,
     value: T extends "quantity" ? number : string
   ) => void;
+  billinDetails?: ICheckoutForm;
+  setBillinDetails: (details: ICheckoutForm) => void;
 }
 
+interface IUserDetails {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  country: string;
+  country_code: string;
+}
 export interface ICheckOut {
   user_id?: string;
   total_amount: string;
-  billing: {
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone_number: string;
-    country: string;
-    country_code: string;
-  };
+  billing: IUserDetails;
   items: ICartItem[];
 }
 
@@ -98,4 +102,9 @@ export interface CheckOutResponse {
   checkoutId: string;
   checkoutUrl: string;
   clientReference: string;
+}
+
+export interface IOrders extends ICartItem, IUserDetails {
+  payment_status: "pending" | "success" | "failed";
+  delivery_status: "pending" | "delivered" | "cancelled";
 }

@@ -79,7 +79,8 @@ export const relativePath = {
     productDetails: "/member/market/product/:id",
     cart: "/member/market/carts",
     checkOut: "/member/market/check-out",
-    orders:"/member/market/orders",
+    orders: "/member/market/orders",
+    verify_payment: "/member/market/verify_payment/member",
     lifeCenter: "/member/life-center",
     schoolOfMinistries: {
       main: "school-of-ministries",

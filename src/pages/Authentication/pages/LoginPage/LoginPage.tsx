@@ -63,6 +63,8 @@ function LoginPage() {
         }
         if (response.status === 200 && !decodedToken?.ministry_worker) {
           navigate(relativePath.member.dashboard);
+          
+          
         }
       }
     } catch (error: unknown) {

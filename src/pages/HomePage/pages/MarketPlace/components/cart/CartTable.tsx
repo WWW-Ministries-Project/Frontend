@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { relativePath } from "@/utils";
+import EmptyCartComponent from "./EmptyCartComponent";
 
 export function CartTable() {
   const { cartItems, setCartItems } = useCart();
@@ -127,6 +128,13 @@ export function CartTable() {
                 </div>
               )}
             </FieldArray>
+            {cartItems.length === 0 && (
+              <div className="w-full flex items-center justify-center mt-5">
+                <div className="w-1/2 flex items-center justify-center">
+                  <EmptyCartComponent />
+                </div>
+              </div>
+            )}
 
             {/* Total Section */}
             <div className="flex justify-end mt-2 pt-4">

@@ -13,6 +13,7 @@ import {
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
+  IOrders,
   IProduct,
   IProductType,
   IProductTypeResponse,
@@ -344,5 +345,17 @@ export class ApiCalls {
   //orders
   verifyPayment = (query?: QueryType): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi(`orders/verify-payment/`, query);
+  };
+
+  fetchOrdersByMarket = (
+    query?: QueryType
+  ): Promise<ApiResponse<IOrders[]>> => {
+    return this.fetchFromApi(`orders/get-orders-by-market/`, query);
+  };
+
+  fetchOrdersByUser = (
+    query?: QueryType
+  ): Promise<ApiResponse<IOrders[]>> => {
+    return this.fetchFromApi(`orders/get-orders-by-user/`, query);
   };
 }

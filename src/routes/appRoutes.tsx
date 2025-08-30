@@ -58,6 +58,7 @@ import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart";
 import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
+import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -471,8 +472,14 @@ export const routes: AppRoute[] = [
       {
         path: "products/check-out",
         name: "Check Out",
-            element: <CheckOutPage />,
-            isPrivate: false,
+        element: <CheckOutPage />,
+        isPrivate: false,
+      },
+      {
+        path: "verify-payment/:type",
+        name: "Verify payment",
+        element: <VerifyPayment />,
+        isPrivate: false,
       },
     ],
   },
@@ -503,7 +510,11 @@ export const routes: AppRoute[] = [
   },
   {
     path: "/member",
-    element: <MembersPage />,
+    element: (
+      <ProtectedRoute>
+        <MembersPage />
+      </ProtectedRoute>
+    ),
     name: "member",
     children: [
       {
@@ -548,6 +559,12 @@ export const routes: AppRoute[] = [
             path: relativePath.member.orders,
             name: "Orders",
             element: <MyOrders />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.verify_payment,
+            name: "Verify Payment",
+            element: <VerifyPayment />,
             isPrivate: false,
           },
         ],
