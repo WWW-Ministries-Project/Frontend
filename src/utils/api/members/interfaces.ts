@@ -101,6 +101,7 @@ export interface IMemberInfo {
     country_code?: string;
   };
   children: unknown[];
+  department_positions: string[]
   photo: string;
   country: string;
 }
