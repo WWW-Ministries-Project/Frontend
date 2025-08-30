@@ -24,7 +24,7 @@ export function OrderFilters({
     onChange("name", e.target.value);
   };
 
-  const { data: types, refetch } = useFetch(
+  const { data: types, refetch: refetchTypes } = useFetch(
     api.fetch.fetchProductTypes,
     {},
     true
@@ -37,39 +37,37 @@ export function OrderFilters({
   );
 
   const productCategories = useMemo(() => {
-    return categories?.data?.map((cat) => {
-      return {
-        label: cat.name,
-        value: cat.name,
-      };
-    }) || [];
+    return (
+      categories?.data?.map((cat) => {
+        return {
+          label: cat.name,
+          value: cat.name,
+        };
+      }) || []
+    );
   }, [categories]);
 
   const productTypes = useMemo(() => {
-    return types?.data?.map((cat) => {
-      return {
-        label: cat.name,
-        value: cat.name,
-      };
-    }) || [];
+    return (
+      types?.data?.map((cat) => {
+        return {
+          label: cat.name,
+          value: cat.name,
+        };
+      }) || []
+    );
   }, [categories]);
 
   useEffect(() => {
     if (showFilter) {
-      if (productTypes?.length === 0) {
-        refetch();
-      }
-      if (productCategories?.length === 0) {
-        refetchCategories();
-      }
+      refetchTypes();
+      refetchCategories();
     }
   }, [showFilter]);
 
   return (
     <div className="flex flex-col md:flex-row items-end justify-between gap-2 mb-5">
-      <div
-        className={`${showSearch ? "block" : "hidden"} w-full`}
-      >
+      <div className={`${showSearch ? "block" : "hidden"} w-full`}>
         <SearchBar
           className="h-10 w-full "
           placeholder="Search product name here..."

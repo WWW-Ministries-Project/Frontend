@@ -40,17 +40,13 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     exportToExcel(allOrders);
   }, [allOrders]);
 
-  const handleFilters = (key: keyof IFilters, value: string) => {
+  const handleFilters = (key: string, value: string) => {
     setFilterOrders((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-
-  const handleChange = (name: string, value: string) => {
-    handleFilters(name as keyof IFilters, value);
-  };
 
   return (
     <>
@@ -71,7 +67,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
 
       { (
         <OrderFilters
-          onChange={handleChange}
+          onChange={handleFilters}
           searchValue={filterOrders.name}
           showSearch={showSearch}
           showFilter={showFilter}
