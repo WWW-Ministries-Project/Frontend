@@ -1,10 +1,11 @@
+import { ColumnDef } from "@tanstack/react-table";
+import { Workbook } from "exceljs";
+import { useCallback } from "react";
+
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders } from "@/utils";
-import { ColumnDef } from "@tanstack/react-table";
-import { Workbook } from "exceljs";
-import { useCallback, } from "react";
 interface IProps {
   orders: IOrders[] | null;
   tableColumns: ColumnDef<IOrders>[];
@@ -13,12 +14,12 @@ interface IProps {
 export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   const handleExport = useCallback(() => {
     exportToExcel(orders!);
-  }, []);
+  }, [orders]);
   return (
     <>
       <HeaderControls
         title="Orders"
-        btnName={showExport && orders?.length > 0 ? "Export to Excel" : ""}
+        btnName={showExport && orders && orders?.length > 0 ? "Export to Excel" : ""}
         screenWidth={window.innerWidth}
         handleClick={handleExport}
       />
@@ -92,7 +93,7 @@ async function exportToExcel(orders: IOrders[]) {
     { header: "Payment Status", key: "payment_status" },
   ];
 
-  orders!.forEach((order) => {
+  orders.forEach((order) => {
     const row = worksheet.addRow({
       name: order.name,
       product_type: order.product_type,
@@ -122,7 +123,7 @@ async function exportToExcel(orders: IOrders[]) {
     const paymentCell = row.getCell("payment_status");
     const style = getPaymentStyle(order.payment_status);
     paymentCell.fill = style.fill;
-    paymentCell.font = style.font; 
+    paymentCell.font = style.font;
   });
 
   const buffer = await workbook.xlsx.writeBuffer();

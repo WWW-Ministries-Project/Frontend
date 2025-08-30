@@ -72,29 +72,36 @@ export default function CartDrawer() {
           </>
         )}
       </div>
-      <div className="pt-2 border-t">
-        <div className="flex items-center justify-between">
-          <p className="text-lg font-semibold">Subtotal</p>
-          <p className="text-lg font-semibold">
-            <span>GHC </span>
-            {totalPrice.toFixed(2)}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between mt-3">
-        <Button value="Checkout" onClick={() => {
-          toggleCart(false);
-          navigate(relativePath.member.checkOut);
-        }} />
-        <Button
-          value="View cart"
-          variant="secondary"
-          onClick={() => {
-            toggleCart(false);
-            navigate(relativePath.member.cart);
-          }}
-        />
-      </div>
+      {cartItems.length > 0 && (
+        <>
+          <div className="pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <p className="text-lg font-semibold">Subtotal</p>
+              <p className="text-lg font-semibold">
+                <span>GHC </span>
+                {totalPrice.toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-3">
+            <Button
+              value="Checkout"
+              onClick={() => {
+                toggleCart(false);
+                navigate(relativePath.member.checkOut);
+              }}
+            />
+            <Button
+              value="View cart"
+              variant="secondary"
+              onClick={() => {
+                toggleCart(false);
+                navigate(relativePath.member.cart);
+              }}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -142,7 +149,7 @@ const CartCard = ({ cartItem, onDelete }: CartCardProps) => {
         </div>
       </div>
       <XMarkIcon
-        className="size-5"
+        className="size-5 cursor-pointer"
         onClick={() => handleRemoveFromCart(cartItem.product_id)}
       />
     </div>
