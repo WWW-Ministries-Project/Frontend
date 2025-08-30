@@ -1,12 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workbook } from "exceljs";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders } from "@/utils";
-import { SearchBar } from "@/components/SearchBar";
 import { OrderFilters } from "./OrderFilters";
 interface IProps {
   orders: IOrders[] | null;
@@ -48,9 +47,6 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     }));
   };
 
-  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    handleFilters("name", e.target.value);
-  };
 
   const handleChange = (name: string, value: string) => {
     handleFilters(name as keyof IFilters, value);
