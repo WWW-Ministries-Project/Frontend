@@ -10,7 +10,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token || !decodedToken?.ministry_worker ) {
+    if (!token ) {
       logout();
       navigate("/login", { replace: true });
     }
