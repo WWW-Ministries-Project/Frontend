@@ -21,8 +21,8 @@ import { ProductDetailsCard } from "../components/cards/ProductDetailsCard";
 import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
 import { MarketHeader } from "../components/MarketHeader";
 import { Modal } from "@/components/Modal";
-import { ProductDetails } from "../components/ProductDetails";
 import { ProductOverview } from "../components/ProductOverview";
+import { MarketOrders } from "../components/Orders/MarketOrders";
 
 export function MarketDetails() {
   const [tab, setTab] = useState("Products");
@@ -101,67 +101,81 @@ export function MarketDetails() {
       <MarketHeader market={market?.data} />
       <div className="px-6">
         <div className="w-fit">
-        <TabSelection
-          tabs={[`Products`, "Orders"]}
-          selectedTab={tab}
-          onTabSelect={(tab) => setTab(tab)}
-        />
-      </div>
-      <div className="flex items-end justify-end "></div>
-      <HeaderControls
-        title={tab}
-        btnName={tab !== "Orders" ? "Add product" : ""}
-        screenWidth={window.innerWidth}
-        handleClick={() => navigate("create-product")}
-        customIcon={
-          <div
-            onClick={() => setDrawerOpen(true)}
-            className="size-12 border rounded-lg flex items-center justify-center cursor-pointer hover:shadow-sm"
-          >
-            <Cog6ToothIcon className="w-10" />
-          </div>
-        }
-      />
-
-      <GridComponent
-        columns={[]}
-        data={products?.data || []}
-        displayedCount={100}
-        filter={""}
-        setFilter={() => {}}
-        renderRow={(row) => (
-          <ProductDetailsCard
-            product={row.original}
-            key={row.original.id}
-            handleDelete={handleDelete}
-            handleEdit={(id) => editProduct(id)}
-            handleView={handleView}
+          <TabSelection
+            tabs={[`Products`, "Orders"]}
+            selectedTab={tab}
+            onTabSelect={(tab) => setTab(tab)}
+          />
+        </div>
+        <div className="flex items-end justify-end "></div>
+        {tab === "Products" && (
+          <HeaderControls
+            title={tab}
+            btnName="Add Product"
+            screenWidth={window.innerWidth}
+            handleClick={() => navigate("create-product")}
+            customIcon={
+              <div
+                onClick={() => setDrawerOpen(true)}
+                className="size-12 border rounded-lg flex items-center justify-center cursor-pointer hover:shadow-sm"
+              >
+                <Cog6ToothIcon className="w-10" />
+              </div>
+            }
           />
         )}
-      />
 
-      {products?.data.length === 0 && <EmptyState msg="No products found" />}
+        {tab === "Orders" ? (
+          <>
+            <MarketOrders />
+          </>
+        ) : (
+          <>
+            <GridComponent
+              columns={[]}
+              data={products?.data || []}
+              displayedCount={100}
+              filter={""}
+              setFilter={() => {}}
+              renderRow={(row) => (
+                <ProductDetailsCard
+                  product={row.original}
+                  key={row.original.id}
+                  handleDelete={handleDelete}
+                  handleEdit={(id) => editProduct(id)}
+                  handleView={handleView}
+                />
+              )}
+            />
 
-      <ConfigurationsDrawer
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        categories={categories}
-        types={types}
-        refetch={handleRefetch}
-      />
-
-      <Modal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          setCurrentProduct(null);
-        }}
-        persist={false}
-      >
-        {currentProduct && (
-          <ProductOverview product={currentProduct} onEdit={editProduct} />
+            {products?.data.length === 0 && (
+              <EmptyState msg="No products found" />
+            )}
+          </>
         )}
-      </Modal>
+
+        {tab !== "Orders" && (
+          <ConfigurationsDrawer
+            isOpen={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            categories={categories}
+            types={types}
+            refetch={handleRefetch}
+          />
+        )}
+
+        <Modal
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            setCurrentProduct(null);
+          }}
+          persist={false}
+        >
+          {currentProduct && (
+            <ProductOverview product={currentProduct} onEdit={editProduct} />
+          )}
+        </Modal>
       </div>
     </PageOutline>
   );
