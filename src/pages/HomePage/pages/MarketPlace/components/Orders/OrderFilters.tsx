@@ -4,18 +4,24 @@ import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
 import Filter from "@/pages/HomePage/Components/reusable/Filter";
 import { api } from "@/utils";
+import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
 
+interface IProps {
+  onChange: (name: string, value: string) => void;
+  showSearch: boolean;
+  searchValue: string;
+  showFilter: boolean;
+  colors: string[];
+  sizes: { label: string; value: string }[];
+}
 export function OrderFilters({
   onChange,
   showSearch,
   searchValue,
   showFilter,
-}: {
-  onChange: (name: string, value: string) => void;
-  showSearch: boolean;
-  searchValue: string;
-  showFilter: boolean;
-}) {
+  colors,
+  sizes,
+}: IProps) {
   const handleChange = function (name: string, value: string) {
     onChange(value, name);
   };
@@ -76,13 +82,13 @@ export function OrderFilters({
         />
       </div>
       {showFilter && (
-        <div className="flex flex-col sm:flex-row items-center gap-5 w-full">
+        <div className="flex flex-col sm:flex-row items-end gap-5 w-full">
           <div className="w-full">
             <span className="text-sm">Product Type</span>
             <Filter
               name="product_type"
               className="w-full"
-              options={productTypes || []}
+              options={[{ label: "All", value: "" }, ...productTypes]}
               onChange={handleChange}
               placeholder="Select product type"
             />
@@ -92,11 +98,32 @@ export function OrderFilters({
             <Filter
               name="product_category"
               className="w-full"
-              options={productCategories || []}
+              options={[{ label: "All", value: "" }, ...productCategories]}
               onChange={handleChange}
               placeholder="Select product category"
             />
           </div>
+          <div className="w-full">
+            <div className="text-sm">Size</div>
+            <Filter
+              name="size"
+              className="w-full"
+              options={[{ label: "All", value: "" }, ...sizes]}
+              onChange={handleChange}
+              placeholder="Select product category"
+            />
+          </div>
+          {colors.length > 1 && (
+            <div className="w-full">
+              <ColorSelectField
+                colors={colors}
+                onChange={onChange}
+                name="color"
+                id=""
+                value=""
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

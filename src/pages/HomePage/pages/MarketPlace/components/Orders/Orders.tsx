@@ -19,7 +19,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     name: "",
     product_type: "",
     product_category: "",
-    product_color: "",
+    color: "",
   });
 
   const filteredOrders = useCallback(() => {
@@ -36,6 +36,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   }, [filterOrders, orders]);
 
   const allOrders = filteredOrders();
+
   const handleExport = useCallback(() => {
     exportToExcel(allOrders);
   }, [allOrders]);
@@ -47,11 +48,20 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     }));
   };
 
+  const allColors = Array.from(new Set(orders?.map((order) => order.color)));
+  const allSizes = Array.from(new Set(orders?.map((order) => order.size))).map(
+    (size) => {
+      return {
+        label: size,
+        value: size,
+      };
+    }
+  );
 
   return (
     <>
       <HeaderControls
-        title="Orders"
+        title= {`Orders (${allOrders?.length})`}
         btnName={
           showExport && orders && orders?.length > 0 ? "Export to Excel" : ""
         }
@@ -65,14 +75,16 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
         setShowFilter={setShowFilter}
       />
 
-      { (
+      {
         <OrderFilters
           onChange={handleFilters}
           searchValue={filterOrders.name}
           showSearch={showSearch}
           showFilter={showFilter}
+          colors={allColors || []}
+          sizes={allSizes}
         />
-      )}
+      }
       <TableComponent
         columns={tableColumns}
         data={allOrders || []}
@@ -193,5 +205,5 @@ export interface IFilters {
   name: string;
   product_type: string;
   product_category: string;
-  product_color: string;
+  color: string;
 }
