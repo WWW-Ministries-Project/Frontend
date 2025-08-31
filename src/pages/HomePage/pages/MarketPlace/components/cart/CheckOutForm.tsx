@@ -48,7 +48,7 @@ export function CheckoutForm(props: IProps) {
   };
 
   return (
-    <div className="text-[#474D66] bg-white p-5 rounded-lg ">
+    <div className="text-[#474D66] bg-white rounded-lg ">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
@@ -67,7 +67,7 @@ export function CheckoutForm(props: IProps) {
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
-            <div className="w-1/2 space-y-5 ">
+            <div className="w-full lg:w-1/2  space-y-5 ">
               <OrderSummary />
               <div className="flex items-center gap-2 justify-end">
                 <Button

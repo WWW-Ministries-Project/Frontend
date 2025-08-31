@@ -69,7 +69,7 @@ export function AddMarketForm({
                 name="event_id"
                 component={FormikSelectField}
                 options={eventOptions}
-                label="Associated event *"
+                label="Associated event"
                 id="event_id"
                 placeholder="Select Event"
               />
@@ -139,7 +139,6 @@ const initialValues: IMarket = {
 const validationSchema = object().shape({
   name: string().required("required"),
   description: string().required("required"),
-  event_id: string().required("required"),
   start_date: date().required("required"),
   end_date: date()
     .required("required")

@@ -1,35 +1,98 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workbook } from "exceljs";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders } from "@/utils";
+import { OrderFilters } from "./OrderFilters";
 interface IProps {
   orders: IOrders[] | null;
   tableColumns: ColumnDef<IOrders>[];
   showExport?: boolean;
 }
 export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
+  const [showSearch, setShowSearch] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterOrders, setFilterOrders] = useState<IFilters>({
+    name: "",
+    product_type: "",
+    product_category: "",
+    color: "",
+    size:""
+  });
+
+  const filteredOrders = useCallback(() => {
+    return orders!.filter((order) => {
+      return Object.entries(filterOrders).every(([key, value]) => {
+        if (!value) return true;
+        const orderValue = order[key as keyof IOrders];
+        return (
+          orderValue &&
+          orderValue.toString().toLowerCase().includes(value.toLowerCase())
+        );
+      });
+    });
+  }, [filterOrders, orders]);
+
+  const allOrders = filteredOrders();
+
   const handleExport = useCallback(() => {
-    exportToExcel(orders!);
-  }, [orders]);
+    exportToExcel(allOrders);
+  }, [allOrders]);
+
+  const handleFilters = (key: string, value: string) => {
+    setFilterOrders((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const allColors = Array.from(new Set(orders?.map((order) => order.color)));
+  const allSizes = Array.from(new Set(orders?.map((order) => order.size))).map(
+    (size) => {
+      return {
+        label: size,
+        value: size,
+      };
+    }
+  );
+
   return (
     <>
       <HeaderControls
-        title="Orders"
-        btnName={showExport && orders && orders?.length > 0 ? "Export to Excel" : ""}
+        title={`Orders (${allOrders?.length})`}
+        btnName={
+          showExport && orders && orders?.length > 0 ? "Export to Excel" : ""
+        }
         screenWidth={window.innerWidth}
         handleClick={handleExport}
+        hasFilter={true}
+        hasSearch={true}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
       />
+
+      {
+        <OrderFilters
+          onChange={handleFilters}
+          searchValue={filterOrders.name}
+          showSearch={showSearch}
+          showFilter={showFilter}
+          colors={allColors || []}
+          sizes={allSizes}
+        />
+      }
       <TableComponent
         columns={tableColumns}
-        data={orders || []}
+        data={allOrders || []}
         displayedCount={10}
         className="relative"
       />
-      {orders?.length === 0 && <EmptyState msg="No Orders made yet" />}
+      {allOrders?.length === 0 && <EmptyState msg="No Orders found" />}
     </>
   );
 };
@@ -137,4 +200,12 @@ async function exportToExcel(orders: IOrders[]) {
   a.download = "Orders.xlsx";
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export interface IFilters {
+  name: string;
+  product_type: string;
+  product_category: string;
+  color: string;
+  size:string
 }

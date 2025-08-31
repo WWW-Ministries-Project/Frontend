@@ -1,16 +1,15 @@
 import { Field, FieldArray, FieldProps, Form, Formik, getIn } from "formik";
 import { array, number, object, string } from "yup";
-import { createPortal } from "react-dom";
 
+import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { useCart } from "../../utils/cartSlice";
-import { Button } from "@/components";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
-import { ChevronDownIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { relativePath } from "@/utils";
+import { TrashIcon } from "@heroicons/react/24/solid";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../../utils/cartSlice";
 import EmptyCartComponent from "./EmptyCartComponent";
+import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
 
 export function CartTable() {
   const { cartItems, setCartItems } = useCart();
@@ -176,99 +175,7 @@ const validationSchema = object({
   ),
 });
 
-// TODO: take this component outsite
-interface IColorProps {
-  colors: string[];
-  id: string;
-  name: string;
-  onChange: (name: string, value: string) => void;
-  value: string;
-}
 
-const ColorSelectField = ({
-  colors,
-  id,
-  name,
-  onChange,
-  value,
-}: IColorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const handleSelect = (color: string) => {
-    onChange(name, color);
-    setIsOpen(false);
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  return (
-    <div ref={dropdownRef} className="relative min-w-32 h-10 border rounded-lg">
-      {/* Selected Color Display */}
-      <div
-        id={id}
-        className="h-full w-full flex items-center justify-between cursor-pointer rounded-lg px-2"
-        style={{ backgroundColor: value || "#fff" }}
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
-        <p></p>
-        {!value && <span className="text-sm text-gray-500">Select color</span>}
-        <ChevronDownIcon
-          className={`transition-transform size-4 ${
-            isOpen ? "rotate-180" : "rotate-0"
-          }`}
-          color={value ? "#fff" : "#000"}
-        />
-      </div>
-
-      {/* Dropdown */}
-
-      {isOpen &&
-        createPortal(
-          <div
-            className="absolute bg-white border rounded-lg shadow-lg p-2 flex flex-wrap gap-2 z-50"
-            style={{
-              top: dropdownRef.current
-                ? dropdownRef.current.getBoundingClientRect().bottom +
-                  window.scrollY
-                : 0,
-              left: dropdownRef.current
-                ? dropdownRef.current.getBoundingClientRect().left +
-                  window.scrollX
-                : 0,
-              width: dropdownRef.current?.offsetWidth || 0,
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {colors.map((color) => (
-              <div
-                key={color}
-                className="w-full h-8 rounded-sm cursor-pointer border border-gray-300"
-                style={{ backgroundColor: color }}
-                onClick={() => handleSelect(color)}
-                title={color}
-              />
-            ))}
-          </div>,
-          document.body
-        )}
-    </div>
-  );
-};
 
 interface FormikColorSelectProps extends FieldProps {
   colors: string[];
