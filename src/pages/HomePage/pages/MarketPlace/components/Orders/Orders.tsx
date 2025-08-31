@@ -20,6 +20,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     product_type: "",
     product_category: "",
     color: "",
+    size:""
   });
 
   const filteredOrders = useCallback(() => {
@@ -61,7 +62,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   return (
     <>
       <HeaderControls
-        title= {`Orders (${allOrders?.length})`}
+        title={`Orders (${allOrders?.length})`}
         btnName={
           showExport && orders && orders?.length > 0 ? "Export to Excel" : ""
         }
@@ -206,4 +207,5 @@ export interface IFilters {
   product_type: string;
   product_category: string;
   color: string;
+  size:string
 }
