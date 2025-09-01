@@ -51,6 +51,7 @@ export interface userType {
   membership_type: string;
   ministry_worker:boolean;
   department?: string[];
+  life_center_leader?:boolean
 }
 export interface userTypeWithToken extends userType {
   iat: number;
