@@ -27,7 +27,7 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="text-2xl font-semibold text-white mb-4">PA 2025 Products</div>
+      <div className="text-2xl font-semibold text-white mb-4"> PA 2025 Apparel</div>
 
       {/* Loading Skeleton */}
       {loading && <ProductsGridSkeleton count={8} />}
