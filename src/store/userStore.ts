@@ -51,7 +51,7 @@ export const useUserStore = create<UserState & UserActions>()(
           membership_type,
           ministry_worker,
           department,
-          permissions: convertPermissions(permissions),
+          permissions: permissions ? convertPermissions(permissions) : {},
         });
       },
 
