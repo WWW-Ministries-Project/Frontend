@@ -83,11 +83,14 @@ export const Header = ({ handleShowNav }: IProps) => {
   const profileImg = decodedToken?.profile_img ?? "";
   const name = decodedToken?.name ?? "";
   const isMinistryWorker = decodedToken?.ministry_worker
+  const isLifeCenterLeader = decodedToken?.life_center_leader
 
   const memberNavItems = [
     { label: "Home", path: relativePath.member.dashboard },
     { label: "Marketplace", path: relativePath.member.market},
-    { label: "Life Center", path: relativePath.member.lifeCenter},
+    ...(isLifeCenterLeader
+    ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
+    : []),
     // { label: "Appointments", path: "/member/appointments" },
   ];
 
