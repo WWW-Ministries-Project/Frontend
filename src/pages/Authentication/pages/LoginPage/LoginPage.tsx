@@ -100,7 +100,7 @@ function LoginPage() {
   return (
     <BackgroundWrapper>
         <OuterDiv>
-          <div className="text-center animate-slide-up">
+          {/* <div className="text-center animate-slide-up">
             <h1 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight md:space-y-2">
               <span className="block bg-clip-text text-white">
                 Welcome to the
@@ -113,7 +113,7 @@ function LoginPage() {
               </span>
             </h1>
             <div className="w-24 h-1 bg-white mx-auto mb-8 rounded-full" />
-          </div>
+          </div> */}
           
           <AuthenticationForm
             response={response}
