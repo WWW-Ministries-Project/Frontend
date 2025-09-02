@@ -1,5 +1,5 @@
 import { Field, FieldArray, useFormikContext } from "formik";
-import { array, mixed, object, string } from "yup";
+import { array, mixed, number, object, string } from "yup";
 
 import { Button } from "@/components";
 import ImageUpload from "@/components/ImageUpload";
@@ -112,11 +112,17 @@ const validationSchema = object().shape({
     object().shape({
       colour: string(),
       image_url: mixed().required("Required"),
-      stock: array().when("$stock_managed", {
-        is: "yes",
-        then: () => StocksSubForm.validationSchema,
-        otherwise: () => array().notRequired(),
-      }),
+
+      stock: array().of(
+        object().shape({
+          size: string().required("required"),
+          stock: string().when("$stock_managed", {
+            is: "yes",
+            then: () => number().min(1, "Stock can't be 0"),
+            otherwise: () => number().notRequired(),
+          }),
+        })
+      ),
     })
   ),
 });
