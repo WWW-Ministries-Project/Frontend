@@ -5,7 +5,6 @@ import { Button } from "@/components";
 import ImageUpload from "@/components/ImageUpload";
 import type { IProduct } from "@/utils/api/marketPlace/interface";
 import { IStocksSubForm, StocksSubForm } from "./StocksSubForm";
-import { FormHeader } from "@/components/ui";
 
 const ProductGallery = () => {
   const { values, errors, touched, setFieldValue } =
@@ -62,9 +61,7 @@ const ProductGallery = () => {
                     </p>
                   )}
 
-                {values.stock_managed === "yes" && (
-                  <StocksSubForm index={index} />
-                )}
+                <StocksSubForm index={index} />
               </div>
             ))}
           </div>
@@ -123,7 +120,6 @@ const validationSchema = object().shape({
     })
   ),
 });
-
 
 export const ProductGalleryWithForm = Object.assign(ProductGallery, {
   initialValues,
