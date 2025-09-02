@@ -62,14 +62,13 @@ export function AddProduct() {
         return {
           colour: item.colour,
           image_url: String(uploadedUrl),
-          stock: manage_stock
-            ? item.stock?.map((stock) => {
-                return {
-                  size: stock.size,
-                  stock: +stock.stock,
-                };
-              })
-            : [],
+          stock:
+            item.stock?.map((stock) => {
+              return {
+                size: stock.size,
+                stock: +stock.stock,
+              };
+            }) ?? [],
         };
       })
     );
