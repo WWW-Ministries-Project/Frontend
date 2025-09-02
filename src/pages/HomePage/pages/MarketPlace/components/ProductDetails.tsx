@@ -62,9 +62,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
     setSelection((prev) => ({ ...prev, currentIndex: newIndex }));
   };
 
-  const handleColorChange = (color: string) => {
+  const handleColorChange = (color: string,idx:number) => {
     updateSection(`${product.id}`, "color", color);
     setSelection((prev) => ({ ...prev, selectedColor: color }));
+    handleCurrentIndexChange(idx)
   };
 
   const handleSizeChange = (size: string) => {
@@ -216,7 +217,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
               {product.product_colours.map((color, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleColorChange(color.colour)}
+                  onClick={() => handleColorChange(color.colour, idx)}
                   className={`w-8 h-8 rounded-lg border-2 ${
                     selection.selectedColor === color.colour
                       ? "border-blue-500"
