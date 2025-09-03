@@ -62,10 +62,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
     setSelection((prev) => ({ ...prev, currentIndex: newIndex }));
   };
 
-  const handleColorChange = (color: string,idx:number) => {
+  const handleColorChange = (color: string, idx: number) => {
     updateSection(`${product.id}`, "color", color);
     setSelection((prev) => ({ ...prev, selectedColor: color }));
-    handleCurrentIndexChange(idx)
+    handleCurrentIndexChange(idx);
   };
 
   const handleSizeChange = (size: string) => {
@@ -100,15 +100,15 @@ export function ProductDetails({ product, addToCart }: IProps) {
     size: selection.selectedSize || productStock[0]?.size,
     productColors,
     productSizes,
-    market_id:product?.market_id ||""
+    market_id: product?.market_id || "",
   };
 
   const handleAddToCart = () => {
-    if (itemExistInCart) {
-      navigate(relativePath.member.checkOut);
-    } else {
-      addToCart(cartItem);
-    }
+    // if (itemExistInCart) {
+    //   navigate(relativePath.member.checkOut);
+    // } else {
+    addToCart(cartItem);
+    // }
   };
 
   const cartText = itemExistInCart ? "Checkout" : "Add to cart";
@@ -150,23 +150,27 @@ export function ProductDetails({ product, addToCart }: IProps) {
             />
           </div>
           {product.product_colours.length > 1 && (
-            <div className="flex  items-center justify-between">
-              <div className="flex gap-2 mt-4">
-                {product.product_colours?.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleCurrentIndexChange(idx)}
-                    className={`border rounded-lg overflow-hidden size-14 ${
-                      idx === selection.currentIndex ? "ring-1 ring-black" : ""
-                    }`}
-                  >
-                    <img
-                      src={`${img.image_url}`}
-                      alt={`Product ${idx}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex  items-center w-full overflow-auto">
+                <div className="flex gap-2 mt-4">
+                  {product.product_colours?.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleCurrentIndexChange(idx)}
+                      className={`border rounded-lg overflow-hidden size-14 ${
+                        idx === selection.currentIndex
+                          ? "ring-1 ring-black"
+                          : ""
+                      }`}
+                    >
+                      <img
+                        src={`${img.image_url}`}
+                        alt={`Product ${idx}`}
+                        className="w-full h-full object-"
+                      />
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex gap-2 items-center mt-4 cursor-pointer ">
                 <ChevronLeftIcon
@@ -208,7 +212,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
             </div>
             <p className="text-2xl font-semibold">
               <span>{product.price_currency || "GHC"}</span>{" "}
-              {product.price_amount}
+              {Number(product.price_amount).toFixed(2)}
             </p>
           </div>
 
@@ -258,13 +262,13 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
           {/* Buttons */}
           <div className="flex gap-4 flex-wrap w-full">
-            {!itemExistInCart && (
-              <Button value="Buy now" className="w-full" onClick={handleBuy} />
-            )}
+            {/* {!itemExistInCart && ( */}
+            <Button value="Buy now" className="w-full" onClick={handleBuy} />
+            {/* )} */}
             {routeName !== "out" && (
               <Button
-                value={cartText}
-                variant={itemExistInCart ? "primary" : "secondary"}
+                value="Add to cart"
+                variant={"secondary"}
                 className="w-full"
                 onClick={handleAddToCart}
               />
@@ -288,7 +292,7 @@ interface ISectionProps {
 }
 const Section = ({ title, children }: ISectionProps) => {
   return (
-    <div className="border-b pb-2 flex justify-between">
+    <div className="border-b pb-2 flex justify-between gap-2">
       <h3 className="font-bold mb-2">{title}</h3>
       {children}
     </div>
