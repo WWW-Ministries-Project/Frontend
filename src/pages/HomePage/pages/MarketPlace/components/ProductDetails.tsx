@@ -151,8 +151,8 @@ export function ProductDetails({ product, addToCart }: IProps) {
           </div>
           {product.product_colours.length > 1 && (
             <div className="flex items-center justify-between gap-3">
-              <div className="flex  items-center w-full overflow-auto">
-                <div className="flex gap-2 mt-4">
+              <div className="flex items-center w-full overflow-auto">
+                <div className="flex gap-2 mt-4 p-2">
                   {product.product_colours?.map((img, idx) => (
                     <button
                       key={idx}
