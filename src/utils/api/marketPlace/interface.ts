@@ -60,12 +60,14 @@ export interface ICartItem {
   productSizes?: string[];
   product_id: string;
   market_id: string;
+  item_uuid?: string;
 }
 
+export type CartSections = "color" | "quantity" | "size";
 export interface ICartSlice {
   cartItems: ICartItem[];
   addToCart: (product: ICartItem) => void;
-  removeFromCart: (productId: string) => void;
+  removeFromCart: (car: string) => void;
   clearCart: () => void;
   itemIsInCart: (productId: string) => boolean;
   getTotalItems: () => number;
@@ -73,7 +75,7 @@ export interface ICartSlice {
   cartOpen: boolean;
   toggleCart: (value: boolean) => void;
   setCartItems: (items: ICartItem[]) => void;
-  updateSection: <T extends "color" | "quantity" | "size">(
+  updateSection: <T extends CartSections>(
     productId: string,
     section: T,
     value: T extends "quantity" ? number : string

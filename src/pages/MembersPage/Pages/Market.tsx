@@ -20,7 +20,7 @@ const Market = () => {
 
   return (
     <MarketLayout title={routeName}>
-      <div className="bg-white p-4 space-y-5 container mx-auto">
+      <div className="bg-white p-6 space-y-5 container mx-auto">
         <div className="w-fit">
           <TabSelection
             tabs={["Products", "Carts", "Orders"]}

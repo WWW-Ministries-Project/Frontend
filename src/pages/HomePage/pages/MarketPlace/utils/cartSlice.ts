@@ -13,22 +13,22 @@ export const useCart = create<ICartSlice>()(
             (cartItem) => cartItem.product_id === item.product_id
           );
 
-          if (existingItemIndex !== -1) {
-            const updatedCartItems = [...state.cartItems];
-            updatedCartItems[existingItemIndex] = {
-              ...updatedCartItems[existingItemIndex],
-              quantity: item.quantity,
-            };
-            return { cartItems: updatedCartItems };
-          } else {
-            return { cartItems: [...state.cartItems, item] };
-          }
+          // if (existingItemIndex !== -1) {
+          //   const updatedCartItems = [...state.cartItems];
+          //   updatedCartItems[existingItemIndex] = {
+          //     ...updatedCartItems[existingItemIndex],
+          //     quantity: item.quantity,
+          //   };
+          //   return { cartItems: updatedCartItems };
+          // } else {
+            return { cartItems: [...state.cartItems, {...item, item_uuid:crypto.randomUUID()}] };
+          // }
         });
       },
-      removeFromCart: (itemproduct_id) => {
+      removeFromCart: (uuid) => {
         set((state) => ({
           cartItems: state.cartItems.filter(
-            (item) => item.product_id !== itemproduct_id
+            (item) => item.item_uuid !== uuid
           ),
         }));
       },
@@ -38,9 +38,9 @@ export const useCart = create<ICartSlice>()(
       getTotalItems: (): number => {
         return get().cartItems.length;
       },
-      itemIsInCart: (productproduct_id: string) => {
+      itemIsInCart: (uuid: string) => {
         return get().cartItems.some(
-          (item) => item.product_id === productproduct_id
+          (item) => item.item_uuid === uuid
         );
       },
       getTotalPrice: () => {
@@ -54,16 +54,16 @@ export const useCart = create<ICartSlice>()(
       setCartItems: (items) => {
         set({ cartItems: items });
       },
-      updateSection: (productproduct_id, section, value) => {
+      updateSection: (uuid, section, value) => {
         console.log(
           "Updating quantity for product:",
-          productproduct_id,
+          uuid,
           "to",
           section
         );
         set((state) => {
           const updatedCartItems = state.cartItems.map((item) =>
-            item.product_id === productproduct_id
+            item.item_uuid === uuid
               ? { ...item, [section]: value }
               : item
           );

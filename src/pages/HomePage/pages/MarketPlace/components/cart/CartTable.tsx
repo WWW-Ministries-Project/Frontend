@@ -4,7 +4,7 @@ import { array, number, object, string } from "yup";
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { relativePath } from "@/utils";
+import { type CartSections, relativePath } from "@/utils";
 import { TrashIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
@@ -12,9 +12,17 @@ import EmptyCartComponent from "./EmptyCartComponent";
 import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
 
 export function CartTable() {
-  const { cartItems, setCartItems } = useCart();
+  const { cartItems, setCartItems, updateSection, removeFromCart } = useCart();
   const initialValues = {
     cartItems,
+  };
+
+  const handleUpdateSection = (
+    productId: string,
+    section: CartSections,
+    value: number | string
+  ) => {
+    updateSection(productId, section, value);
   };
 
   const navigate = useNavigate();
@@ -26,8 +34,9 @@ export function CartTable() {
         setCartItems(values.cartItems);
         navigate(relativePath.member.checkOut);
       }}
+      enableReinitialize
     >
-      {({ values, handleSubmit }) => {
+      {({ values, handleSubmit, setFieldValue }) => {
         const totalAmount = values.cartItems.reduce(
           (acc, item) => acc + item.price_amount * item.quantity,
           0
@@ -60,7 +69,7 @@ export function CartTable() {
                     </thead>
                     <tbody>
                       {values.cartItems.map((item, index) => (
-                        <tr key={item.product_id} className="border-t">
+                        <tr key={item.item_uuid} className="border-t">
                           <td className="px-4 py-2">{item.name}</td>
 
                           {/* Type */}
@@ -76,6 +85,18 @@ export function CartTable() {
                               id={`cartItems[${index}].color`}
                               colors={item.productColors || []}
                               placeholder="Select color"
+                              onChange={(_: string, value: string) => {
+                                handleUpdateSection(
+                                  item.item_uuid!,
+                                  "color",
+                                  value
+                                );
+                                setFieldValue(
+                                  `cartItems[${index}].color`,
+                                  value
+                                );
+                              }}
+                              showAll={false}
                             />
                           </td>
 
@@ -91,6 +112,17 @@ export function CartTable() {
                                 })) || []
                               }
                               placeholder="Select size"
+                              onChange={(_: string, value: string) => {
+                                handleUpdateSection(
+                                  item.item_uuid!,
+                                  "size",
+                                  value
+                                );
+                                setFieldValue(
+                                  `cartItems[${index}].size`,
+                                  value
+                                );
+                              }}
                             />
                           </td>
 
@@ -103,6 +135,17 @@ export function CartTable() {
                               className="w-16"
                               min="1"
                               placeholder="Quantity"
+                              onChange={(_: string, value: string) => {
+                                handleUpdateSection(
+                                  item.item_uuid!,
+                                  "quantity",
+                                  +value
+                                );
+                                setFieldValue(
+                                  `cartItems[${index}].quantity`,
+                                  value
+                                );
+                              }}
                             />
                           </td>
 
@@ -117,7 +160,10 @@ export function CartTable() {
                           <td className="text-center px-4 py-2">
                             <TrashIcon
                               className="size-5 text-red-500 cursor-pointer"
-                              onClick={() => remove(index)}
+                              onClick={() => {
+                                remove(index);
+                                removeFromCart(item.item_uuid!);
+                              }}
                             />
                           </td>
                         </tr>
@@ -127,7 +173,7 @@ export function CartTable() {
                 </div>
               )}
             </FieldArray>
-            {cartItems.length === 0 && (
+            {values.cartItems.length === 0 && (
               <div className="w-full flex items-center justify-center mt-5">
                 <div className="w-1/2 flex items-center justify-center">
                   <EmptyCartComponent />
@@ -155,7 +201,7 @@ export function CartTable() {
               <Button
                 value="Proceed to Checkout"
                 onClick={handleSubmit}
-                disabled={cartItems.length === 0}
+                disabled={values.cartItems.length === 0}
               />
             </div>
           </Form>
@@ -175,14 +221,13 @@ const validationSchema = object({
   ),
 });
 
-
-
 interface FormikColorSelectProps extends FieldProps {
   colors: string[];
   id: string;
   name: string;
   onChange: () => void;
   value: string;
+  placeholder:string
 }
 
 function fieldToColorSelect({
@@ -202,6 +247,7 @@ function fieldToColorSelect({
       ((name: string, value: string) =>
         fieldOnChange({ target: { name, value } })),
     error: showError,
+    placeholder:props.placeholder
   };
 }
 
