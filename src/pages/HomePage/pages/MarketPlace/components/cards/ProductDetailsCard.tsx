@@ -78,7 +78,9 @@ export const ProductDetailsCard = memo(
             </div>
 
             <div className="flex items-center gap-2">
-              <p className="font-medium text-gray-800">${price_amount}</p>
+              <p className="font-medium text-gray-800">
+                GHC {Number(price_amount).toFixed(2)}
+              </p>
               <ProductChip section="" text={`${totalStock} in stock`} />
             </div>
           </div>

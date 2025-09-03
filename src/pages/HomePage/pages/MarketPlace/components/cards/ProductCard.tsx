@@ -29,7 +29,8 @@ export const ProductCard = ({ product, handleViewProduct }: IProps) => {
         <div className="flex flex-col gap-2 text-[#404040]">
           <h2 className="font-semibold text-sm line-clamp-1">{product.name}</h2>
           <p className="text-lg font-bold ">
-            {product.price_currency || "GHC"} {product.price_amount}
+            {product.price_currency || "GHC"}{" "}
+            {Number(product.price_amount).toFixed(2)}
           </p>
         </div>
         <div className="w-full">
