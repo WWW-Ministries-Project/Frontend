@@ -59,7 +59,7 @@ export function CheckoutForm(props: IProps) {
         }}
       >
         {({ handleSubmit, values }) => (
-          <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row">
+          <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row p-3">
             <div className="border rounded-lg p-5 w-full">
               <p className="font-bold mb-5 text-xl">Billing Details</p>
               <FormLayout>
@@ -67,7 +67,7 @@ export function CheckoutForm(props: IProps) {
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
-            <div className="w-full lg:w-1/2  space-y-5 ">
+            <div className="w-full lg:w-1/2  space-y-5">
               <OrderSummary />
               <div className="flex items-center gap-2 justify-end">
                 <Button
