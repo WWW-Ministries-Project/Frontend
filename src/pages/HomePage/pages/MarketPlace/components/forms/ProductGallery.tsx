@@ -1,11 +1,10 @@
 import { Field, FieldArray, useFormikContext } from "formik";
-import { array, mixed, object, string } from "yup";
+import { array, mixed, number, object, string } from "yup";
 
 import { Button } from "@/components";
 import ImageUpload from "@/components/ImageUpload";
 import type { IProduct } from "@/utils/api/marketPlace/interface";
 import { IStocksSubForm, StocksSubForm } from "./StocksSubForm";
-import { FormHeader } from "@/components/ui";
 
 const ProductGallery = () => {
   const { values, errors, touched, setFieldValue } =
@@ -62,9 +61,7 @@ const ProductGallery = () => {
                     </p>
                   )}
 
-                {values.stock_managed === "yes" && (
-                  <StocksSubForm index={index} />
-                )}
+                <StocksSubForm index={index} />
               </div>
             ))}
           </div>
@@ -115,15 +112,20 @@ const validationSchema = object().shape({
     object().shape({
       colour: string(),
       image_url: mixed().required("Required"),
-      stock: array().when("$stock_managed", {
-        is: "yes",
-        then: () => StocksSubForm.validationSchema,
-        otherwise: () => array().notRequired(),
-      }),
+
+      stock: array().of(
+        object().shape({
+          size: string().required("required"),
+          stock: string().when("$stock_managed", {
+            is: "yes",
+            then: () => number().min(1, "Stock can't be 0"),
+            otherwise: () => number().notRequired(),
+          }),
+        })
+      ),
     })
   ),
 });
-
 
 export const ProductGalleryWithForm = Object.assign(ProductGallery, {
   initialValues,

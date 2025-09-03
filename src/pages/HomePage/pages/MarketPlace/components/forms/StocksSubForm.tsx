@@ -70,7 +70,7 @@ const StocksSubFormComponent = ({ index }: { index: number }) => {
   );
 };
 
-const sizes = ["S", "M", "L", "XL", "2XL", "3XL"].map((size) => ({
+const sizes = ["S", "M", "L", "XL", "2XL", "3XL","4XL"].map((size) => ({
   label: size,
   value: size,
 }));
