@@ -8,7 +8,11 @@ import { encodeQuery } from "@/pages/HomePage/utils";
 import { routes } from "@/routes/appRoutes";
 
 export default function ProductsPage() {
-  const { data: products, loading, error } = useFetch(api.fetch.fetchAllProducts);
+  const {
+    data: products,
+    loading,
+    error,
+  } = useFetch(api.fetch.fetchAllProducts);
 
   // Infer loading if hook doesn't expose it
   // const loading = typeof hookLoading === "boolean" ? hookLoading : typeof products === "undefined";
@@ -16,10 +20,11 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const matches = matchRoutes(routes, location);
-  const routeName = matches?.find((m) => (m.route as any)?.name)?.route?.name;
+  const routeName = matches?.find((m) => (m.route)?.name)?.route?.name;
 
   const handleViewProduct = (productId: string) => {
-    if (routeName === "out") return navigate(`/out/products/${encodeQuery(productId)}`);
+    if (routeName === "out")
+      return navigate(`/out/products/${encodeQuery(productId)}`);
     return navigate(`/member/market/product/${encodeQuery(productId)}`);
   };
 
@@ -27,11 +32,15 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="text-2xl font-semibold text-white mb-4"> PA 2025 Apparel</div>
+      {routeName === "out" && (
+        <div className="text-2xl font-semibold text-white mb-4">
+          {" "}
+          PA 2025 Apparel
+        </div>
+      )}
 
       {/* Loading Skeleton */}
       {loading && <ProductsGridSkeleton count={8} />}
-      
 
       {/* Loaded Grid */}
       {!loading && items.length > 0 && (
@@ -53,7 +62,9 @@ export default function ProductsPage() {
 
       {/* Empty / Error */}
       {!loading && items.length === 0 && (
-        <EmptyState msg={error ? "Failed to load products" : "No products found"} />
+        <EmptyState
+          msg={error ? "Failed to load products" : "No products found"}
+        />
       )}
     </>
   );
