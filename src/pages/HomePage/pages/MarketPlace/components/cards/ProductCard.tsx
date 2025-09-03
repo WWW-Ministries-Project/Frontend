@@ -9,12 +9,12 @@ interface IProps {
 
 export const ProductCard = ({ product, handleViewProduct }: IProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className=" bg-[#D9D9D9]">
         <img
           src={`${product?.product_colours?.[0]?.image_url}`}
           alt={`${product.name} product image`}
-          className="w-full object-contain h-56 p-4"
+          className="w-full object-cover h-56 p-4"
         />
         <div className="flex justify-between px-4 pt-2 pb-4">
           <ProductChip section="type" text={product.product_type?.name} />

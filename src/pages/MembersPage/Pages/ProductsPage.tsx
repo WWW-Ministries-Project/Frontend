@@ -16,7 +16,7 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const matches = matchRoutes(routes, location);
-  const routeName = matches?.find((m) => (m.route as any)?.name)?.route?.name;
+  const routeName = matches?.find((m) => (m.route)?.name)?.route?.name;
 
   const handleViewProduct = (productId: string) => {
     if (routeName === "out") return navigate(`/out/products/${encodeQuery(productId)}`);
@@ -27,8 +27,6 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="text-2xl font-semibold text-white mb-4"> PA 2025 Apparel</div>
-
       {/* Loading Skeleton */}
       {loading && <ProductsGridSkeleton count={8} />}
       
