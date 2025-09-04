@@ -14,6 +14,7 @@ import { cn } from "@/utils/cn";
 import { useCart } from "../utils/cartSlice";
 import { matchRoutes, useNavigate } from "react-router-dom";
 import { routes } from "@/routes/appRoutes";
+import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
 
 interface IProps {
   product: IProductTypeResponse;
@@ -45,14 +46,18 @@ export function ProductDetails({ product, addToCart }: IProps) {
     quantity: currentProduct.quantity,
     currentIndex: 0,
   });
-  const handleQuantityChange = (type: "increment" | "decrement") => {
+  const handleQuantityChange = (
+    type: "increment" | "decrement",
+    value?: number
+  ) => {
     setSelection((prev) => {
-      const newQuantity =
-        type === "increment"
-          ? prev.quantity + 1
-          : prev.quantity > 1
-          ? prev.quantity - 1
-          : 1;
+      const newQuantity = value
+        ? value
+        : type === "increment"
+        ? prev.quantity + 1
+        : prev.quantity > 1
+        ? prev.quantity - 1
+        : 1;
       updateSection(`${product.id}`, "quantity", newQuantity);
       return { ...prev, quantity: newQuantity };
     });
@@ -111,8 +116,6 @@ export function ProductDetails({ product, addToCart }: IProps) {
     // }
   };
 
-  const cartText = itemExistInCart ? "Checkout" : "Add to cart";
-
   const handleBuy = () => {
     if (routeName === "out") {
       localStorage.setItem("my_cart", JSON.stringify(cartItem));
@@ -122,6 +125,8 @@ export function ProductDetails({ product, addToCart }: IProps) {
       navigate(relativePath.member.checkOut);
     }
   };
+
+  const is_not_admin = routeName === "out" || routeName === "member";
 
   return (
     <div>
@@ -217,7 +222,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
           </div>
 
           <Section title="Colors">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {product.product_colours.map((color, idx) => (
                 <button
                   key={idx}
@@ -257,23 +262,26 @@ export function ProductDetails({ product, addToCart }: IProps) {
             <QuantitySelector
               quantity={selection.quantity}
               handleQuantityChange={handleQuantityChange}
+              disabled={!is_not_admin}
             />
           </Section>
 
           {/* Buttons */}
-          <div className="flex gap-4 flex-wrap w-full">
-            {/* {!itemExistInCart && ( */}
-            <Button value="Buy now" className="w-full" onClick={handleBuy} />
-            {/* )} */}
-            {routeName !== "out" && (
-              <Button
-                value="Add to cart"
-                variant={"secondary"}
-                className="w-full"
-                onClick={handleAddToCart}
-              />
-            )}
-          </div>
+          {is_not_admin && (
+            <div className="flex gap-4 flex-wrap w-full">
+              {/* {!itemExistInCart && ( */}
+              <Button value="Buy now" className="w-full" onClick={handleBuy} />
+              {/* )} */}
+              {routeName !== "out" && (
+                <Button
+                  value="Add to cart"
+                  variant={"secondary"}
+                  className="w-full"
+                  onClick={handleAddToCart}
+                />
+              )}
+            </div>
+          )}
 
           {/* Description */}
           <div>
@@ -301,25 +309,41 @@ const Section = ({ title, children }: ISectionProps) => {
 
 interface IQuantitySelectorProps {
   quantity: number;
-  handleQuantityChange: (type: "increment" | "decrement") => void;
+  handleQuantityChange: (
+    type: "increment" | "decrement",
+    value?: number
+  ) => void;
+  disabled: boolean;
 }
 const QuantitySelector = ({
   handleQuantityChange,
   quantity,
+  disabled,
 }: IQuantitySelectorProps) => {
   return (
     <div className="flex items-center  bg-gray-50 rounded border border-gray-300">
       <QuantityButton
         className="rounded-tl rounded-bl border-r"
         onClick={() => handleQuantityChange("decrement")}
+        disabled={disabled}
       >
         <MinusIcon className="size-5" />
       </QuantityButton>
 
-      <span className="w-8 text-center">{quantity}</span>
+      <InputDiv
+        inputClass="text-center w-11 outline-none"
+        value={quantity}
+        id=""
+        onChange={(_, value) => {
+          const val = value ? +value : 1;
+          handleQuantityChange("increment", val);
+        }}
+        disabled={disabled}
+      />
       <QuantityButton
         className="rounded-tr rounded-br border-l"
         onClick={() => handleQuantityChange("increment")}
+        disabled={disabled}
       >
         <PlusIcon className="size-5" />
       </QuantityButton>
@@ -331,19 +355,22 @@ interface IQuantityButtonProps {
   className?: string;
   onClick: () => void;
   children: ReactNode;
+  disabled: boolean;
 }
 const QuantityButton = ({
   className,
   children,
   onClick,
+  disabled,
 }: IQuantityButtonProps) => {
   return (
     <button
       className={cn(
-        " h-full hover:bg-gray-100 bg-[#F3F4F6] w-8 flex items-center justify-center",
+        " h-full hover:bg-gray-100 bg-[#F3F4F6] w-8 flex items-center justify-center disabled:cursor-not-allowed",
         className
       )}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>

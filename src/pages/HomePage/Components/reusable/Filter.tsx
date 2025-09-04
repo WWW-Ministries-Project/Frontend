@@ -7,6 +7,7 @@ interface FilterProps {
   name: string;
   placeholder?: string;
   size?: number;
+  label?:string
 }
 
 const Filter: React.FC<FilterProps> = (props) => {
@@ -17,6 +18,7 @@ const Filter: React.FC<FilterProps> = (props) => {
 
   return (
     <div className={props.className || ""}>
+     <label className="text-sm" >{props.label}</label>
       <select
         name={props.name}
         id={props.name}

@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { useCallback, } from "react";
+import { useCallback } from "react";
 import { object } from "yup";
 
 import { Button } from "@/components";
@@ -11,7 +11,7 @@ import {
 } from "@/components/subform";
 import { FormLayout } from "@/components/ui";
 import { decodeToken, ICartItem } from "@/utils";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
 
@@ -27,8 +27,7 @@ export function CheckoutForm(props: IProps) {
   const email = user?.email || "";
   const [first_name, other_name, last_name] = name.split(" ");
 
-    const { billinDetails } = useCart();
-
+  const { billinDetails } = useCart();
 
   const initialValues: ICheckoutForm = billinDetails || {
     personal_info: {
@@ -113,8 +112,11 @@ const OrderSummary = () => {
   const my_cart_string = localStorage.getItem("my_cart");
   const my_cart = my_cart_string ? JSON.parse(my_cart_string) : null;
 
+  const location = useLocation();
+  const is_member = location.pathname.includes("member");
+
   const amount = (
-    totalPrice ? totalPrice : my_cart?.price_amount * my_cart?.quantity
+    is_member ? totalPrice : my_cart?.price_amount * my_cart?.quantity
   ).toFixed(2);
 
   return (
@@ -125,7 +127,7 @@ const OrderSummary = () => {
         <p className="font-bold">Subtotal</p>
       </div>
       <div className="w-full space-y-2">
-        {cartItems?.length
+        {is_member
           ? cartItems.map((item) => (
               <ItemCard key={item.product_id} item={item} />
             ))

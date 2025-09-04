@@ -2,17 +2,20 @@ import { Button } from "@/components";
 import type { IProductTypeResponse } from "@/utils/api/marketPlace/interface";
 
 import { ProductDetails } from "./ProductDetails";
+import { XCircleIcon } from "@heroicons/react/24/solid";
 
 interface IProductProps {
   product: IProductTypeResponse;
   onEdit: (id: string) => void;
+  onClose:()=>void
 }
 
-export function ProductOverview({ product, onEdit }: IProductProps) {
+export function ProductOverview({ product, onEdit,onClose }: IProductProps) {
   return (
-    <div className="w-[800px] xs:w-[350px] sm:w-[400px] md:w-[400px] lg:w-[800px]">
+    <div className="w-full rounded-t-lg">
       {/* Header */}
-      <div className="bg-primary text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-primary text-white px-6 py-4 flex items-center justify-between gap-3">
+        <div className="w-full flex items-center justify-between gap-4">
         <h3 className="font-bold text-2xl">Product Overview</h3>
         <div className="flex items-center gap-3">
           <Button
@@ -22,8 +25,12 @@ export function ProductOverview({ product, onEdit }: IProductProps) {
           />
         </div>
       </div>
+        <XCircleIcon className="size-6 cursor-pointer" onClick={onClose} />
+      </div>
 
-      <ProductDetails product={product} />
+      <div className="max-h-[600px] overflow-y-auto">
+        <ProductDetails product={product} addToCart={()=>{}} />
+      </div>
     </div>
   );
 }
