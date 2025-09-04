@@ -55,12 +55,7 @@ export const useCart = create<ICartSlice>()(
         set({ cartItems: items });
       },
       updateSection: (uuid, section, value) => {
-        console.log(
-          "Updating quantity for product:",
-          uuid,
-          "to",
-          section
-        );
+        
         set((state) => {
           const updatedCartItems = state.cartItems.map((item) =>
             item.item_uuid === uuid
