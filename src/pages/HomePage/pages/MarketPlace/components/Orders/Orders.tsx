@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import type { IOrders } from "@/utils";
+import type { IOrders, PaymentStatus } from "@/utils";
 import { OrderFilters } from "./OrderFilters";
 interface IProps {
   orders: IOrders[] | null;
@@ -20,7 +20,8 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     product_type: "",
     product_category: "",
     color: "",
-    size:""
+    size: "",
+    payment_status: "success",
   });
 
   const filteredOrders = useCallback(() => {
@@ -63,9 +64,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     <>
       <HeaderControls
         title={`Orders (${allOrders?.length})`}
-        btnName={
-          showExport && orders && orders?.length > 0 ? "Export to Excel" : ""
-        }
+        btnName={showExport && allOrders?.length > 0 ? "Export to Excel" : ""}
         screenWidth={window.innerWidth}
         handleClick={handleExport}
         hasFilter={true}
@@ -207,5 +206,6 @@ export interface IFilters {
   product_type: string;
   product_category: string;
   color: string;
-  size:string
+  size: string;
+  payment_status: PaymentStatus | "";
 }
