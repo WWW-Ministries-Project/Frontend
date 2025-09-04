@@ -96,11 +96,16 @@ export function MarketDetails() {
     setOpen(true);
   };
 
+  const handleCloseModal = ()=>{
+    setCurrentProduct(null)
+    setOpen(false)
+  }
+
   return (
     <PageOutline className="">
       <MarketHeader market={market?.data} />
       <div className="px-6">
-        <div className="w-fit">
+        <div className="w-fit mb-3">
           <TabSelection
             tabs={[`Products`, "Orders"]}
             selectedTab={tab}
@@ -166,14 +171,11 @@ export function MarketDetails() {
 
         <Modal
           open={open}
-          onClose={() => {
-            setOpen(false);
-            setCurrentProduct(null);
-          }}
+          onClose={handleCloseModal}
           persist={false}
         >
           {currentProduct && (
-            <ProductOverview product={currentProduct} onEdit={editProduct} />
+            <ProductOverview product={currentProduct} onEdit={editProduct} onClose={handleCloseModal} />
           )}
         </Modal>
       </div>
