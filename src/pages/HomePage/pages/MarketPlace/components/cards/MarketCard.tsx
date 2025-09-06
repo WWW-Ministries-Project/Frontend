@@ -40,6 +40,7 @@ export function MarketCard({
             <div
               onClick={() => setShowOptions((prev) => !prev)}
             >
+              lklkl
               <ActionButton
                 showOptions={showOptions}
                 onDelete={() => handleDelete(market.id, name)}

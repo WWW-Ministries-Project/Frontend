@@ -100,7 +100,7 @@ export const MinistrySchool = () => {
     if (!programsData.length) return <EmptyState msg={"No programs found"} />;
 
     return (
-      <section className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
+      <section className="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
         {programsData.map((program) => (
           <ProgramsCard
             key={program.id}
