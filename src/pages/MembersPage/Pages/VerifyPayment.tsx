@@ -12,14 +12,14 @@ export default function VerifyPayment() {
   const searchParams = new URLSearchParams(location.search);
   const { type } = useParams();
 
-  const order_reference = searchParams.get("order_reference") ?? "";
+  const reference = searchParams.get("order_reference") ?? "";
 
   const {
     data: verificationResult,
     loading,
     error,
     refetch,
-  } = useFetch(api.fetch.verifyPayment, { order_reference });
+  } = useFetch(api.fetch.verifyPayment, { reference });
 
   const [countdown, setCountdown] = useState(5);
   const navigate = useNavigate();
@@ -34,10 +34,8 @@ export default function VerifyPayment() {
           if (prev <= 1) {
             clearInterval(timer);
             if (type === "out") {
-              localStorage.removeItem("my_cart");
               navigate("/out/products");
             } else {
-              clearCart();
               navigate(relativePath.member.market);
             }
             return 0;
@@ -48,6 +46,11 @@ export default function VerifyPayment() {
     }
     return () => clearInterval(timer);
   }, [verificationResult, loading, error]);
+
+  useEffect(() => {
+    clearCart();
+    localStorage.removeItem("my_cart");
+  },[]);
 
   return (
     <div className="flex items-center justify-center w-full h-[80vh] px-4">
@@ -79,8 +82,7 @@ export default function VerifyPayment() {
               Payment verified successfully!
             </p>
             <p className="text-gray-600 text-sm">
-              Order Reference:{" "}
-              <span className="font-mono">{order_reference}</span>
+              Order Reference: <span className="font-mono">{reference}</span>
             </p>
 
             <p className="text-gray-500 text-sm mt-2">

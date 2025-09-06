@@ -344,7 +344,7 @@ export class ApiCalls {
 
   //orders
   verifyPayment = (query?: QueryType): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi(`orders/verify-payment/`, query);
+    return this.fetchFromApi(`orders/confirm-transaction-status/`, query);
   };
 
   fetchOrdersByMarket = (

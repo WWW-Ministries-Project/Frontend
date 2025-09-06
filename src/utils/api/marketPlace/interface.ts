@@ -106,7 +106,8 @@ export interface CheckOutResponse {
   clientReference: string;
 }
 
+export type PaymentStatus = "pending" | "success" | "failed";
 export interface IOrders extends ICartItem, IUserDetails {
-  payment_status: "pending" | "success" | "failed";
+  payment_status: PaymentStatus;
   delivery_status: "pending" | "delivered" | "cancelled";
 }
