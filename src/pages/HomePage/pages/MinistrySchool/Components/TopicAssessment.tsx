@@ -51,7 +51,7 @@ export const TopicAssessment = ({
   });
   
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
-  const [showCertificate, setShowCertificate] = useState(true);
+  const [showCertificate, setShowCertificate] = useState(false);
   const [generatingCertificate, setGeneratingCertificate] = useState(false);
 
   const averageScore = updatedTopics.length
@@ -245,7 +245,7 @@ export const TopicAssessment = ({
           </div>
         </div>
 
-        <TableComponent columns={columns} data={updatedTopics} enableSelection />
+        <TableComponent columns={columns} data={updatedTopics} />
 
         <div className="flex ">
           <div className="w-full">
