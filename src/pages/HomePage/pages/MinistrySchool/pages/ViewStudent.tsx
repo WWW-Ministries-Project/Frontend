@@ -60,6 +60,7 @@ const ViewStudent = () => {
           toggleEditMode={toggleEditMode}
           onUpdate={(data) => updateData(data)}
           loading={loading}
+          studentData={studentData?.data}
         />
       )}
     </div>

@@ -6,6 +6,7 @@ import { DivideIcon } from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { CertificateTemplate } from "./CertificateTemplate";
+import { EnrollmentDataType } from "@/utils";
 
 export const TopicAssessment = ({
   topics,
@@ -15,6 +16,7 @@ export const TopicAssessment = ({
   toggleEditMode,
   onUpdate,
   loading,
+  studentData
 }: {
   topics: Topic[];
   editMode: boolean;
@@ -31,11 +33,12 @@ export const TopicAssessment = ({
       enrollmentId: number;
     }[];
   }) => void;
+  studentData?: EnrollmentDataType | null;
 }) => {
   console.log("topic", topics);
   const [certificateData, setCertificateData] = useState({
-    recipientName: "Bartholomew Clement Koomson",
-    achievement: "WORD FOUNDATION SCHOOL",
+    recipientName: studentData?.user?.name || "-",
+    achievement: studentData?.course?.cohort?.program?.title || "-",
     description: "",
     date: new Date().toLocaleDateString("en-US", {
       year: "numeric",
@@ -48,7 +51,7 @@ export const TopicAssessment = ({
   });
   
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
-  const [showCertificate, setShowCertificate] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(true);
   const [generatingCertificate, setGeneratingCertificate] = useState(false);
 
   const averageScore = updatedTopics.length
@@ -242,7 +245,7 @@ export const TopicAssessment = ({
           </div>
         </div>
 
-        <TableComponent columns={columns} data={updatedTopics} />
+        <TableComponent columns={columns} data={updatedTopics} enableSelection />
 
         <div className="flex ">
           <div className="w-full">
