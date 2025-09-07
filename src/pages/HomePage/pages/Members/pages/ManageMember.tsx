@@ -1,5 +1,5 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import { Button } from "@/components";
+import { Actions } from "@/components/ui";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -26,7 +26,11 @@ export function ManageMember() {
     true
   );
   const { postData, loading, data } = usePost(api.post.createMember);
-  const { updateData, loading: updateLoading, data: updatedData } = usePut(api.put.updateMember);
+  const {
+    updateData,
+    loading: updateLoading,
+    data: updatedData,
+  } = usePut(api.put.updateMember);
 
   useEffect(() => {
     if (id) refetch();
@@ -103,24 +107,11 @@ export function ManageMember() {
               <MembersForm />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
-                <div className="flex justify-end gap-4 sticky bottom-0 bg-white">
-                  <Button
-                    value={"Cancel"}
-                    onClick={handleCancel}
-                    variant="primary"
-                  />
-                  <Button
-                    value={id ? "Update" : "Save"}
-                    type="button"
-                    // onClick={() => {
-                    //   console.log(errors, "errors");
-                    // }}
-                    onClick={handleSubmit}
-                    loading={loading || updateLoading}
-                    disabled={loading || updateLoading}
-                    variant="default"
-                  />
-                </div>
+                <Actions
+                  onCancel={handleCancel}
+                  onSubmit={handleSubmit}
+                  loading={loading || updateLoading}
+                />
               </section>
             </>
           )}
