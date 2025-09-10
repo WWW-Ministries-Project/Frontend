@@ -14,6 +14,7 @@ import { decodeToken, ICartItem } from "@/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
 import { PaymentOptionsForm } from "./PaymentOptionsSubForm";
+import { useCartDetails } from "../../utils/useCartDetails";
 
 interface IProps {
   handleCheckout: (data: ICheckoutForm) => void;
@@ -27,7 +28,7 @@ export function CheckoutForm(props: IProps) {
   const email = user?.email || "";
   const [first_name, other_name, last_name] = name.split(" ");
 
-  const { billinDetails } = useCart();
+  const { billinDetails, cartItems } = useCart();
 
   const initialValues: ICheckoutForm = billinDetails || {
     personal_info: {
@@ -57,7 +58,7 @@ export function CheckoutForm(props: IProps) {
           }
         }}
       >
-        {({ handleSubmit, values }) => (
+        {({ handleSubmit }) => (
           <Form className="w-full mx-auto rounded-lg flex items-start gap-5 flex-col lg:flex-row p-3">
             <div className="border rounded-lg p-5 w-full">
               <p className="font-bold mb-5 text-xl">Billing Details</p>
@@ -78,7 +79,7 @@ export function CheckoutForm(props: IProps) {
                   value="Place Order"
                   onClick={handleSubmit}
                   loading={props.loading}
-                  disabled={props.loading}
+                  disabled={props.loading || cartItems.length === 0}
                 />
               </div>
             </div>
@@ -106,9 +107,8 @@ const validationSchema = object({
 });
 
 const OrderSummary = () => {
-  const { cartItems, getTotalPrice } = useCart();
+  const { items: cartItems, totalPrice } = useCartDetails();
 
-  const totalPrice = getTotalPrice();
   const my_cart_string = localStorage.getItem("my_cart");
   const my_cart = my_cart_string ? JSON.parse(my_cart_string) : null;
 
@@ -148,7 +148,7 @@ interface ICardProp {
 const ItemCard = ({ item }: ICardProp) => {
   const getProductTotalAmount = useCallback(() => {
     return (item.price_amount * item.quantity).toFixed(2);
-  }, []);
+  }, [item]);
 
   return (
     <div className="w-full flex justify-between items-center gap-2 font-medium">

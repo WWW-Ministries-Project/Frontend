@@ -6,13 +6,14 @@ import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
 import EmptyState from "@/components/EmptyState";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { routes } from "@/routes/appRoutes";
+import { useStore } from "@/store/useStore";
 
 export default function ProductsPage() {
-  const {
-    data: products,
-    loading,
-    error,
-  } = useFetch(api.fetch.fetchAllProducts);
+  // const {
+  //   data: products,
+  //   loading,
+  //   error,
+  // } = useFetch(api.fetch.fetchAllProducts);
 
   // Infer loading if hook doesn't expose it
   // const loading = typeof hookLoading === "boolean" ? hookLoading : typeof products === "undefined";
@@ -20,7 +21,7 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const matches = matchRoutes(routes, location);
-  const routeName = matches?.find((m) => (m.route)?.name)?.route?.name;
+  const routeName = matches?.find((m) => m.route?.name)?.route?.name;
 
   const handleViewProduct = (productId: string) => {
     if (routeName === "out")
@@ -28,7 +29,7 @@ export default function ProductsPage() {
     return navigate(`/member/market/product/${encodeQuery(productId)}`);
   };
 
-  const items = products?.data || [];
+  const { products, loading, error } = useStore();
 
   return (
     <>
@@ -43,10 +44,10 @@ export default function ProductsPage() {
       {loading && <ProductsGridSkeleton count={8} />}
 
       {/* Loaded Grid */}
-      {!loading && items.length > 0 && (
+      {!loading && products.length > 0 && (
         <GridComponent
           columns={10}
-          data={items}
+          data={products}
           displayedCount={2}
           filter={""}
           setFilter={() => {}}
@@ -61,7 +62,7 @@ export default function ProductsPage() {
       )}
 
       {/* Empty / Error */}
-      {!loading && items.length === 0 && (
+      {!loading && products.length === 0 && (
         <EmptyState
           msg={error ? "Failed to load products" : "No products found"}
         />

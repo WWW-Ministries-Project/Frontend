@@ -111,3 +111,12 @@ export interface IOrders extends ICartItem, IUserDetails {
   payment_status: PaymentStatus;
   delivery_status: "pending" | "delivered" | "cancelled";
 }
+
+export interface IProductSlice {
+  products: IProductTypeResponse[];
+  setProducts: (products: IProductTypeResponse[]) => void;
+  loading:boolean
+  setLoading: (loading: boolean) => void;
+  error:Error | null
+  setError: (error: Error | null) => void;
+}
