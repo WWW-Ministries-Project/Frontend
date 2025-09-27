@@ -59,6 +59,7 @@ import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
+import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -449,6 +450,12 @@ export const routes: AppRoute[] = [
         path: "register-member",
         element: <Registration />,
         name: "MemberRegistration",
+        isPrivate: false,
+      },
+      {
+        path: "register-visitor",
+        element: <VisitorRegistration />,
+        name: "VisitorRegistration",
         isPrivate: false,
       },
       {

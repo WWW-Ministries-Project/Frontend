@@ -29,7 +29,7 @@ export const Registration = () => {
 
   const [registrationSuccess, setRegistrationSuccess] =
     useState<boolean>(false);
-  const { postData, loading, error, data } = usePost(api.post.createMember);
+  const { postData, loading } = usePost(api.post.createMember);
 
   useEffect(() => {
     if (registrationSuccess) {
@@ -120,7 +120,11 @@ export const Registration = () => {
         <Formik
           initialValues={initialValues}
           onSubmit={(values) => handleSubmit(values)}
-          validationSchema={{}}
+          validationSchema={
+            getValidationSchema(initialValues.personal_info.has_children)[
+              currentStep
+            ]
+          }
         >
           {(formik: FormikProps<IRegistration>) => {
             const steps = getSteps(formik.values.personal_info.has_children);
@@ -166,6 +170,8 @@ interface IRegistration extends IChildrenSubForm, IRegistrationContactSubForm {
   status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
   church_info: {
     membership_type: "ONLINE" | "IN_HOUSE";
+    member_since?: string;
+
   };
 }
 
@@ -251,7 +257,7 @@ const FirstStep = () => {
       <Field
         component={FormikInputDiv}
         label="Date joined"
-        name="church_info.membership_type"
+        name="church_info.member_since"
         type="date"
       />
     </>
