@@ -15,6 +15,8 @@ import { api } from "@/utils/api/apiCalls";
 
 import { LifeCenterMemberType } from "@/utils";
 import { ISoulsWonForm, SoulsWonForm } from "./SoulsWonForm";
+import { matchRoutes, useLocation } from "react-router-dom";
+import { routes } from "@/routes/appRoutes";
 
 interface IProps {
   soulsWon: ISoulsWonForm[];
@@ -34,6 +36,13 @@ export const SoulsWon = ({
   const [selectedId, setSelectedId] = useState<number | string>("");
   const [openModal, setOpenModal] = useState(false);
   const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);
+  const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
+  const [accessDeniedAction, setAccessDeniedAction] = useState<'edit' | 'delete' | ''>('');
+
+  const location = useLocation();
+  
+  const matches = matchRoutes(routes, location);
+  const routeName = matches?.find((m) => m.route.name)?.route.name;
 
   const { executeDelete } = useDelete(api.delete.deleteSoulWon);
   const {
@@ -53,13 +62,19 @@ export const SoulsWon = ({
 
   const handleDeleteSoul = useCallback(
     (id: string, name: string) => {
+      if (routeName === "member") {
+        setAccessDeniedAction('delete');
+        setShowAccessDeniedModal(true);
+        return;
+      }
+
       showDeleteDialog({ id, name }, async () => {
         await executeDelete({ id });
         handleSuccess();
         showNotification("Soul deleted successfully", "success");
       });
     },
-    [executeDelete]
+    [executeDelete, routeName]
   );
 
   const handleSave = async (formData: ISoulsWonForm) => {
@@ -75,6 +90,12 @@ export const SoulsWon = ({
   };
 
   const handleEdit = (soul: ISoulsWonForm) => {
+    if (routeName === "member") {
+      setAccessDeniedAction('edit');
+      setShowAccessDeniedModal(true);
+      return;
+    }
+
     setSoulWon(soul);
     setOpenModal(true);
   };
@@ -82,6 +103,11 @@ export const SoulsWon = ({
   const handleAddSoul = () => {
     setSoulWon(null);
     setOpenModal(true);
+  };
+
+  const handleCloseAccessDeniedModal = () => {
+    setShowAccessDeniedModal(false);
+    setAccessDeniedAction('');
   };
 
   const tableColumns: ColumnDef<ISoulsWonForm>[] = useMemo(
@@ -125,7 +151,7 @@ export const SoulsWon = ({
         },
       },
     ],
-    [selectedId, handleDeleteSoul, handleShowOptions]
+    [selectedId, handleDeleteSoul, handleShowOptions, handleEdit]
   );
 
   useEffect(() => {
@@ -181,6 +207,7 @@ export const SoulsWon = ({
         </div>
       )}
 
+      {/* Form Modal */}
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
         <SoulsWonForm
           onSubmit={handleSave}
@@ -189,6 +216,38 @@ export const SoulsWon = ({
           loading={isPosting || isUpdating}
           leader={leader}
         />
+      </Modal>
+
+      {/* Access Denied Modal */}
+      <Modal open={showAccessDeniedModal} onClose={handleCloseAccessDeniedModal}>
+        <div className="p-6 max-w-md mx-auto bg-white rounded-lg">
+          <div className="flex items-center mb-4">
+            <div className="flex-shrink-0">
+              <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-gray-900">
+                Access Denied
+              </h3>
+            </div>
+          </div>
+          <div className="mb-6">
+            <p className="text-sm text-gray-700">
+              You do not have access to {accessDeniedAction} this data. Please contact the Ministry's IT Directorate for assistance.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md"
+              onClick={handleCloseAccessDeniedModal}
+            >
+              Understood
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

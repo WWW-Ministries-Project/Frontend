@@ -40,6 +40,7 @@ export function Members() {
     api.fetch.fetchAllMembers
   );
   const members = allMembers?.data||[];
+  const total = allMembers?.meta?.total||0;
   const [filterMembers, setFilterMembers] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const columnVisibility = useMemo(() => {
@@ -67,7 +68,7 @@ export function Members() {
     true
   );
   const store = useStore();
-  const { userStats, total } = store;
+  const { userStats } = store;
 
   const columns = membersColumns;
   const crumbs = [

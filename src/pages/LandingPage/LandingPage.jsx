@@ -14,7 +14,7 @@ function LandingPage() {
                 </div>
                 
                 {/* Page Content */}
-                <div className="p-8 flex flex-col items-center justify-center ">
+                <div className="w-full">
                     <Outlet />
                 </div>
             </div>
