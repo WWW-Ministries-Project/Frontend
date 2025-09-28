@@ -1,4 +1,4 @@
-// TODO remove THE next time you see this 
+// TODO remove THE next time you see this
 import { usePost } from "@/CustomHooks/usePost";
 import {
   IVisitorForm,
@@ -66,9 +66,9 @@ export const VisitorRegistration = () => {
   }
 
   return (
-    <main className="py-8">
-      <div className="bg-white w-full h-full sm:max-h-[80vh] mx-auto overflow-y-scroll rounded-lg px-8">
-        <div className="sticky top-0 bg-white flex flex-col items-center space-y-3 pt-8 z-10 rounded-lg w-[calc(100%+px)] -mx-8">
+    <main className="min-h-screen flex flex-col justify-center items-center p-4">
+      <div className="bg-white w-full max-w-4xl mx-auto rounded-lg px-4 md:px-8 flex-1 flex flex-col max-h-screen overflow-hidden">
+        <div className="bg-white flex flex-col items-center space-y-3 pt-4 pb-4 rounded-lg flex-shrink-0">
           <div className="text-center">
             <h2 className="p-1 text-xl md:text-2xl font-bold">
               Welcome to our visitor registration portal
@@ -78,14 +78,12 @@ export const VisitorRegistration = () => {
             </p>
           </div>
         </div>
-        <div className="py-8">
           <VisitorForm
             onClose={() => {}}
             onSubmit={handleSubmit}
             loading={loading}
             showHeader={false}
           />
-        </div>
       </div>
     </main>
   );
