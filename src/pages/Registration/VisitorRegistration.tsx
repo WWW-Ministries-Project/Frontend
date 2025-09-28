@@ -1,9 +1,12 @@
 // TODO remove THE next time you see this
+import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import {
   IVisitorForm,
   VisitorForm,
 } from "@/pages/HomePage/pages/VisitorManagement/Components/VisitorForm";
+import { useStore } from "@/store/useStore";
+import { decodeToken } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
 
@@ -11,6 +14,10 @@ export const VisitorRegistration = () => {
   const [registrationSuccess, setRegistrationSuccess] =
     useState<boolean>(false);
   const { postData, loading } = usePost(api.post.createVisitor);
+  const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
+  const store = useStore()
+  const user = decodeToken()
+
 
   useEffect(() => {
     if (registrationSuccess) {
@@ -29,6 +36,18 @@ export const VisitorRegistration = () => {
       // Error is handled by the usePost hook
     }
   }
+
+  useEffect(() => {
+    if (!user?.id) {
+      refetch();
+    }
+  }, [user?.id, refetch]);
+
+  useEffect(() => {
+    if (data) {
+      store.setEvents(data.data);
+    }
+  }, [data]);
 
   if (registrationSuccess) {
     return (
