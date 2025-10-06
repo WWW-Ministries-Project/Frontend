@@ -10,11 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../../utils/cartSlice";
 import EmptyCartComponent from "./EmptyCartComponent";
 import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
+import { useCartDetails } from "../../utils/useCartDetails";
 
 export function CartTable() {
-  const { cartItems, setCartItems, updateSection, removeFromCart } = useCart();
+  const { setCartItems, updateSection, removeFromCart } = useCart();
+  const { items: cartWithDetails } = useCartDetails();
+
   const initialValues = {
-    cartItems,
+    cartItems: cartWithDetails,
   };
 
   const handleUpdateSection = (
@@ -227,7 +230,7 @@ interface FormikColorSelectProps extends FieldProps {
   name: string;
   onChange: () => void;
   value: string;
-  placeholder:string
+  placeholder: string;
 }
 
 function fieldToColorSelect({
@@ -247,7 +250,7 @@ function fieldToColorSelect({
       ((name: string, value: string) =>
         fieldOnChange({ target: { name, value } })),
     error: showError,
-    placeholder:props.placeholder
+    placeholder: props.placeholder,
   };
 }
 
