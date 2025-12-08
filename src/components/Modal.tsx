@@ -5,9 +5,10 @@ interface IProps {
   persist?: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
+export const Modal = ({ open, persist = true, onClose, children, className }: IProps) => {
   return (
     <Dialog.Root
       open={open}
@@ -25,7 +26,7 @@ export const Modal = ({ open, persist = true, onClose, children }: IProps) => {
         {/* Flex container to center the modal */}
         <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
           <Dialog.Content
-            className="relative max-h-[90vh] w-full max-w-xl rounded-2xl bg-white shadow-md "
+            className={`relative max-h-[90vh] rounded-2xl bg-white shadow-md ${className ?? "w-full max-w-xl"}`}
             onPointerDownOutside={
               persist ? (e) => e.preventDefault() : undefined
             }

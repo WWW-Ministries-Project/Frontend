@@ -1,8 +1,6 @@
 import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import type { CohortType } from "@/utils";
 import { api } from "@/utils";
@@ -11,6 +9,9 @@ import { useParams } from "react-router-dom";
 import { AllCohorts } from "../Components/AllCohort";
 import { CohortForm, ICohortForm } from "../Components/CohortForm";
 import { useViewPage } from "../customHooks/ViewPageContext";
+import TopicForm, { TopicFormPayload } from "../Components/TopicForm";
+import { Button } from "@/components";
+import AllTopics from "../Components/AllTopics";
 
 export const ViewProgram = () => {
   //api
@@ -18,17 +19,6 @@ export const ViewProgram = () => {
   const { data, refetch } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
-  //cohort api
-  const {
-    postData: postCohort,
-    loading: postLoading,
-    data: postedData,
-  } = usePost(api.post.createCohort);
-  const {
-    updateData: updateCohort,
-    loading: updateLoading,
-    data: updatedData,
-  } = usePut(api.put.updateCohort);
 
   const { executeDelete, success } = useDelete(api.delete.deleteCohort);
 
@@ -37,6 +27,8 @@ export const ViewProgram = () => {
   const [selectedCohort, setSelectedCohort] = useState<ICohortForm | undefined>(
     undefined
   );
+
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
 
   const { setLoading, setData } = useViewPage();
   useEffect(() => {
@@ -47,19 +39,7 @@ export const ViewProgram = () => {
       topics: program?.topics || [],
     });
   }, [setData, program]);
-  // useEffect(() => {
-  //   setLoading(loading);
-  //   console.log(loading,"loading")
-  // }, [loading, setLoading]);
 
-  // const fetchProgramData = async () => {};
-  useEffect(() => {
-    if (updatedData || postedData) {
-      refetch();
-      setIsModalOpen(false);
-      setSelectedCohort(undefined);
-    }
-  }, [updatedData, postedData, refetch]);
   useEffect(() => {
     if (success) {
       refetch();
@@ -80,21 +60,6 @@ export const ViewProgram = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (values: ICohortForm) => {
-    if (!programId || isNaN(parseInt(programId, 10))) return;
-    if (selectedCohort?.id) {
-      updateCohort(
-        {
-          ...values,
-          id: selectedCohort.id,
-          programId: Number(programId),
-        },
-        { id: String(selectedCohort.id) }
-      );
-    } else {
-      postCohort({ ...values, programId: Number(programId) });
-    }
-  };
   const handleClose = () => {
     setSelectedCohort(undefined);
     setIsModalOpen(false);
@@ -106,9 +71,18 @@ export const ViewProgram = () => {
     );
   };
 
+  const handleSubmitTopic = (payload: TopicFormPayload) => {
+    // TODO: hook this into the real API once available
+    // eslint-disable-next-line no-console
+    console.log("Topic payload", payload);
+    // you can call refetch() here after a successful API call
+  };
+
   return (
-    <div className="">
-      
+    <div >
+      <div className="flex flex-row gap-8">
+        
+      <div className="w-4/6">
       <AllCohorts
         cohorts={program?.cohorts || []}
         onCreate={() => {
@@ -118,15 +92,41 @@ export const ViewProgram = () => {
         onEdit={handleEdit}
         onDelete={(cohortId) => deleteCohort(cohortId)}
       />
+      </div>
+
+      <div className="border-l h-[100]"></div>
+  
+      <AllTopics
+      topics={program?.topics || []}
+      onDelete={() => {}}
+      onCreateTopic={() => setIsTopicModalOpen(true)}
+      onEditTopic={() => {}}
+      />
+
+      </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <CohortForm
-          onClose={() => handleClose()}
-          onSubmit={handleSubmit}
-          loading={postLoading || updateLoading}
+          onClose={handleClose}
           cohort={selectedCohort}
+          programId={programId ? Number(programId) : NaN}
+          onSuccess={() => {
+            refetch();
+            handleClose();
+          }}
         />
+      </Modal>
+
+      {/* Topic creation */}
+      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[60vw]">
+      <TopicForm
+        open={isTopicModalOpen}
+        onClose={() => setIsTopicModalOpen(false)}
+        onSubmit={handleSubmitTopic}
+      />
       </Modal>
     </div>
   );
 };
+
+export default ViewProgram;

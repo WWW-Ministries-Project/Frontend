@@ -108,7 +108,35 @@ export type DetailedCourseType = {
   cohortId: number;
   enrollments: []
 };
-export type Topic ={
+
+export type TopicMaterial = {
+  id: number;
+  name: string;
+  description?: string;
+  url?: string;
+  type?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AllTopic = {
+  id: number;
+  name: string;
+  programId: number;
+  materials: TopicMaterial[];
+  assignments: TopicAssignment[];
+}
+
+export type TopicAssignment = {
+  id: number;
+  name: string;
+  description?: string;
+  url?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Topic = {
   id: number;
   name: string;
   programId: number;
@@ -117,7 +145,7 @@ export type Topic ={
   status: "PENDING" | "PASS" | "FAIL";
   completedAt: string | null;
   notes?: string;
-}
+};
 
 type DetailedProgramType = {
   id: number;
@@ -203,4 +231,3 @@ export type Programs = {
   prerequisites: string[] | undefined
   courses: ClassOption[]
 }
-

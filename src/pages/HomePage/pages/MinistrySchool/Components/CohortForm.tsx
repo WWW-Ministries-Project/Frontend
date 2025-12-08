@@ -4,17 +4,20 @@ import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
 import { formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { date, object, ref, string } from "yup";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { api } from "@/utils";
 
 interface IProps {
   onClose: () => void;
-  onSubmit: (values: ICohortForm) => void;
-  loading: boolean;
   cohort?: ICohortForm;
+  programId: number;
+  onSuccess?: () => void;
 }
 
-export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
+export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) => {
   const initial = useMemo(
     () => ({
       ...initialValues,
@@ -23,6 +26,42 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
     [cohort]
   );
 
+  const {
+    postData: postCohort,
+    loading: postLoading,
+    data: postedData,
+  } = usePost(api.post.createCohort);
+  const {
+    updateData: updateCohort,
+    loading: updateLoading,
+    data: updatedData,
+  } = usePut(api.put.updateCohort);
+  const loading = postLoading || updateLoading;
+  
+  const handleSubmit = (values: ICohortForm) => {
+    if (!programId || Number.isNaN(programId)) return;
+    if (cohort?.id) {
+      updateCohort(
+        {
+          ...values,
+          id: cohort.id,
+          programId,
+        },
+        { id: String(cohort.id) }
+      );
+    } else {
+      postCohort({ ...values, programId });
+    }
+  };
+  
+  useEffect(() => {
+    if (updatedData || postedData) {
+      if (onSuccess) {
+        onSuccess();
+      }
+    }
+  }, [updatedData, postedData, onSuccess]);
+
   return (
     <div className="bg-white  rounded-lg md:w-[45rem] text-primary space-y-4">
       
@@ -30,9 +69,9 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
       >
-        {({ values }) => (
+        {({ values, submitForm }) => (
           <div>
             <div className="sticky top-0 z-10">
                 <FormHeader>
@@ -110,9 +149,7 @@ export const CohortForm = ({ onClose, cohort, onSubmit, loading }: IProps) => {
             />
             <Actions
               onCancel={onClose}
-              onSubmit={() => {
-                onSubmit(values);
-              }}
+              onSubmit={submitForm}
               loading={loading}
             />
           </FormLayout>

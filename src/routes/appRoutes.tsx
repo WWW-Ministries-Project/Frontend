@@ -41,7 +41,7 @@ import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/V
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
-import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";

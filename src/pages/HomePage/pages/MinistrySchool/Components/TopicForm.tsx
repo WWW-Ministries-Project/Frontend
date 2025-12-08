@@ -1,0 +1,487 @@
+import React, { useCallback, useState } from "react";
+import { Button } from "@/components/Button";
+import { Modal } from "@/components/Modal";
+
+export type TopicStep = "info" | "material" | "assignment" | "confirmation";
+
+export interface TopicFileItem {
+  id: number;
+  name: string;
+  sizeLabel?: string;
+  source: "file" | "url";
+}
+
+export interface TopicFormState {
+  topicName: string;
+  topicDescription: string;
+  materialName: string;
+  materialFiles: TopicFileItem[];
+  assignmentName: string;
+  assignmentItems: TopicFileItem[];
+}
+
+export interface TopicFormPayload extends TopicFormState {}
+
+interface TopicFormProps {
+  open: boolean;
+  onClose: () => void;
+  /**
+   * Called when the user finishes the wizard (Save and exit).
+   * You can persist the data in the parent.
+   */
+  onSubmit?: (payload: TopicFormPayload) => void;
+}
+
+const topicSteps: { id: TopicStep; label: string }[] = [
+  { id: "info", label: "Topic Info" },
+  { id: "material", label: "Course material" },
+  { id: "assignment", label: "Assignment" },
+  { id: "confirmation", label: "Confirmation" },
+];
+
+export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit }) => {
+  const [topicStep, setTopicStep] = useState<TopicStep>("info");
+  const [topicForm, setTopicForm] = useState<TopicFormState>({
+    topicName: "",
+    topicDescription: "",
+    materialName: "",
+    materialFiles: [],
+    assignmentName: "",
+    assignmentItems: [],
+  });
+  const [materialUrlInput, setMaterialUrlInput] = useState("");
+  const [assignmentUrlInput, setAssignmentUrlInput] = useState("");
+  const [fileIdCounter, setFileIdCounter] = useState(0);
+
+  const resetTopicForm = useCallback(() => {
+    setTopicForm({
+      topicName: "",
+      topicDescription: "",
+      materialName: "",
+      materialFiles: [],
+      assignmentName: "",
+      assignmentItems: [],
+    });
+    setMaterialUrlInput("");
+    setAssignmentUrlInput("");
+    setTopicStep("info");
+  }, []);
+
+  const handleClose = () => {
+    resetTopicForm();
+    onClose();
+  };
+
+  const goToStep = (step: TopicStep) => {
+    setTopicStep(step);
+  };
+
+  const goToNextStep = () => {
+    const currentIndex = topicSteps.findIndex((s) => s.id === topicStep);
+    if (currentIndex < topicSteps.length - 1) {
+      setTopicStep(topicSteps[currentIndex + 1].id);
+    }
+  };
+
+  const goToPrevStep = () => {
+    const currentIndex = topicSteps.findIndex((s) => s.id === topicStep);
+    if (currentIndex > 0) {
+      setTopicStep(topicSteps[currentIndex - 1].id);
+    }
+  };
+
+  const registerFiles = (
+    files: FileList | null,
+    target: "material" | "assignment"
+  ) => {
+    if (!files || files.length === 0) return;
+    setFileIdCounter((prev) => {
+      let nextId = prev;
+      const items: TopicFileItem[] = [];
+      Array.from(files).forEach((file) => {
+        nextId += 1;
+        items.push({
+          id: nextId,
+          name: file.name,
+          sizeLabel: `${(file.size / (1024 * 1024)).toFixed(1)} mb`,
+          source: "file",
+        });
+      });
+      setTopicForm((old) => ({
+        ...old,
+        materialFiles:
+          target === "material" ? [...old.materialFiles, ...items] : old.materialFiles,
+        assignmentItems:
+          target === "assignment" ? [...old.assignmentItems, ...items] : old.assignmentItems,
+      }));
+      return nextId;
+    });
+  };
+
+  const addUrlItem = (target: "material" | "assignment") => {
+    const url = target === "material" ? materialUrlInput.trim() : assignmentUrlInput.trim();
+    if (!url) return;
+    setFileIdCounter((prev) => {
+      const id = prev + 1;
+      const item: TopicFileItem = {
+        id,
+        name: url,
+        source: "url",
+      };
+      setTopicForm((old) => ({
+        ...old,
+        materialFiles:
+          target === "material" ? [...old.materialFiles, item] : old.materialFiles,
+        assignmentItems:
+          target === "assignment" ? [...old.assignmentItems, item] : old.assignmentItems,
+      }));
+      return id;
+    });
+    if (target === "material") {
+      setMaterialUrlInput("");
+    } else {
+      setAssignmentUrlInput("");
+    }
+  };
+
+  const removeItem = (target: "material" | "assignment", id: number) => {
+    setTopicForm((old) => ({
+      ...old,
+      materialFiles:
+        target === "material" ? old.materialFiles.filter((f) => f.id !== id) : old.materialFiles,
+      assignmentItems:
+        target === "assignment" ? old.assignmentItems.filter((f) => f.id !== id) : old.assignmentItems,
+    }));
+  };
+
+  const handleSubmit = () => {
+    const payload: TopicFormPayload = {
+      ...topicForm,
+    };
+
+    if (onSubmit) {
+      onSubmit(payload);
+    }
+    handleClose();
+  };
+
+  return (
+      <div className="w-[60vw] rounded-lg p-6 flex bg-gray-100">
+        {/* Left stepper */}
+        <div className="w- pr-4 border-r border-gray-200">
+          <div className="font-semibold mb-6">Topic creation</div>
+          <div className="space-y-4">
+            {topicSteps.map((step, index) => {
+              const currentIndex = topicSteps.findIndex((s) => s.id === topicStep);
+              const isActive = step.id === topicStep;
+              const isCompleted = index < currentIndex;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => goToStep(step.id)}
+                  className={`flex items-center w-full text-left text-sm gap-3 ${
+                    isActive ? "text-primary font-medium" : "text-gray-700"
+                  }`}
+                >
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
+                      isCompleted
+                        ? "bg-emerald-500 border-emerald-500 text-white"
+                        : isActive
+                        ? "border-primary text-primary"
+                        : "border-gray-300 text-gray-400"
+                    }`}
+                  >
+                    {isCompleted ? "✓" : index + 1}
+                  </span>
+                  <span>{step.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 h-full bg-white ml-6 rounded-lg shadow-sm flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="font-semibold text-sm">
+              {topicStep === "info" && "Topic Information"}
+              {topicStep === "material" && "Course material"}
+              {topicStep === "assignment" && "Assignment"}
+              {topicStep === "confirmation" && "Confirmation"}
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            >
+              &times;
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 text-sm">
+            {topicStep === "info" && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700">
+                    Name <span className="text-red-500">Required</span>
+                  </label>
+                  <input
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    value={topicForm.topicName}
+                    onChange={(e) =>
+                      setTopicForm((old) => ({ ...old, topicName: e.target.value }))
+                    }
+                    placeholder="Enter topic name"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700">Description</label>
+                  <textarea
+                    className="w-full min-h-[180px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    value={topicForm.topicDescription}
+                    onChange={(e) =>
+                      setTopicForm((old) => ({
+                        ...old,
+                        topicDescription: e.target.value,
+                      }))
+                    }
+                    placeholder="Write text here..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {topicStep === "material" && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700">
+                    Name <span className="text-red-500">Required</span>
+                  </label>
+                  <input
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    value={topicForm.materialName}
+                    onChange={(e) =>
+                      setTopicForm((old) => ({ ...old, materialName: e.target.value }))
+                    }
+                    placeholder="Enter material name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-700">Upload file</label>
+                  <label className="flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-6 text-xs text-gray-500 cursor-pointer">
+                    <span>Click to upload or drag and drop</span>
+                    <span className="mt-1 text-[11px] text-gray-400">
+                      document or video (5mb max)
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mov,.avi,.mkv"
+                      onChange={(e) => registerFiles(e.target.files, "material")}
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-center text-[11px] text-gray-400">or</div>
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      placeholder="Import from URL"
+                      value={materialUrlInput}
+                      onChange={(e) => setMaterialUrlInput(e.target.value)}
+                    />
+                    <Button
+                      value="Add file"
+                      variant="secondary"
+                      onClick={() => addUrlItem("material")}
+                    />
+                  </div>
+                </div>
+
+                {topicForm.materialFiles.length > 0 && (
+                  <div className="space-y-2">
+                    {topicForm.materialFiles.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-xs"
+                      >
+                        <div>
+                          <div className="font-medium text-gray-800 truncate max-w-xs">
+                            {item.name}
+                          </div>
+                          {item.sizeLabel && (
+                            <div className="text-[11px] text-gray-400">{item.sizeLabel}</div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeItem("material", item.id)}
+                          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {topicStep === "assignment" && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700">
+                    Name <span className="text-red-500">Required</span>
+                  </label>
+                  <input
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    value={topicForm.assignmentName}
+                    onChange={(e) =>
+                      setTopicForm((old) => ({ ...old, assignmentName: e.target.value }))
+                    }
+                    placeholder="Enter assignment name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-700">File</label>
+                  <label className="flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-6 text-xs text-gray-500 cursor-pointer">
+                    <span>Click to upload or drag and drop</span>
+                    <span className="mt-1 text-[11px] text-gray-400">
+                      image, document or video (5mb max)
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mov,.avi,.mkv,.png,.jpg,.jpeg"
+                      onChange={(e) => registerFiles(e.target.files, "assignment")}
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-center text-[11px] text-gray-400">or</div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-700">Link</label>
+                    <div className="flex gap-2">
+                      <input
+                        className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        placeholder="Paste assignment URL"
+                        value={assignmentUrlInput}
+                        onChange={(e) => setAssignmentUrlInput(e.target.value)}
+                      />
+                      <Button
+                        value="Add file"
+                        variant="secondary"
+                        onClick={() => addUrlItem("assignment")}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {topicForm.assignmentItems.length > 0 && (
+                  <div className="space-y-2">
+                    {topicForm.assignmentItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-xs"
+                      >
+                        <div>
+                          <div className="font-medium text-gray-800 truncate max-w-xs">
+                            {item.name}
+                          </div>
+                          {item.sizeLabel && (
+                            <div className="text-[11px] text-gray-400">{item.sizeLabel}</div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeItem("assignment", item.id)}
+                          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {topicStep === "confirmation" && (
+              <div className="space-y-4 text-sm">
+                <p className="text-gray-700">
+                  Review the information below before creating the topic.
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <div className="text-xs font-medium text-gray-500">Topic name</div>
+                    <div className="text-sm text-gray-800">{topicForm.topicName || "—"}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-gray-500">Description</div>
+                    <div className="text-sm text-gray-800 whitespace-pre-line">
+                      {topicForm.topicDescription || "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-gray-500">Course materials</div>
+                    <div className="text-sm text-gray-800">
+                      {topicForm.materialFiles.length === 0
+                        ? "No materials added"
+                        : `${topicForm.materialFiles.length} item(s)`}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-gray-500">Assignments</div>
+                    <div className="text-sm text-gray-800">
+                      {topicForm.assignmentItems.length === 0
+                        ? "No assignments added"
+                        : `${topicForm.assignmentItems.length} item(s)`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 text-xs">
+            <button
+              type="button"
+              onClick={goToPrevStep}
+              disabled={topicStep === "info"}
+              className={`flex items-center gap-1 text-gray-500 ${
+                topicStep === "info" ? "opacity-40 cursor-default" : "hover:text-gray-700"
+              }`}
+            >
+              <span>← Prev</span>
+            </button>
+
+            <div className="flex items-center gap-3">
+              {topicStep === "confirmation" ? (
+                <Button value="Save and exit" onClick={handleSubmit} />
+              ) : (
+                <Button
+                  value="Continue"
+                  onClick={() => {
+                    goToNextStep();
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+  );
+};
+
+export default TopicForm;
