@@ -16,6 +16,7 @@
     ]
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-react": "^11.0.0",
     "@heroicons/react": "^2.1.5",
     "@radix-ui/react-dialog": "^1.1.14",
     "@tanstack/react-table": "^8.9.7",

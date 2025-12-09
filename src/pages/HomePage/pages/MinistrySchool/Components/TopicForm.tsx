@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
+import Editor from "@/components/Editor";
 
 export type TopicStep = "info" | "material" | "assignment" | "confirmation";
 
@@ -166,7 +167,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
   };
 
   return (
-      <div className="w-[60vw] rounded-lg p-6 flex bg-gray-100">
+      <div className="w-[60vw] rounded-lg p-6 flex bg-gray-100 h-[80vh]">
         {/* Left stepper */}
         <div className="w- pr-4 border-r border-gray-200">
           <div className="font-semibold mb-6">Topic creation</div>
@@ -240,16 +241,14 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-700">Description</label>
-                  <textarea
-                    className="w-full min-h-[180px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  <Editor
                     value={topicForm.topicDescription}
-                    onChange={(e) =>
+                    onChange={(data) =>
                       setTopicForm((old) => ({
                         ...old,
-                        topicDescription: e.target.value,
+                        topicDescription: data,
                       }))
                     }
-                    placeholder="Write text here..."
                   />
                 </div>
               </div>
@@ -428,9 +427,12 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                   </div>
                   <div>
                     <div className="text-xs font-medium text-gray-500">Description</div>
-                    <div className="text-sm text-gray-800 whitespace-pre-line">
-                      {topicForm.topicDescription || "—"}
-                    </div>
+                    <div 
+                        className="text-sm text-gray-800 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ 
+                            __html: topicForm.topicDescription || "—" 
+                        }}
+                        />
                   </div>
                   <div>
                     <div className="text-xs font-medium text-gray-500">Course materials</div>

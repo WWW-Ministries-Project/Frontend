@@ -105,7 +105,7 @@ export const Header = ({ handleShowNav }: IProps) => {
         <header className="flex justify-between items-center w-full">
           <div className="flex items-center gap-x-6">
             <div>
-              <ChurchLogo show={true} className="h-3" />
+              <ChurchLogo show={true} className="" />
             </div>
             <div className="flex items-center gap-x-2">
               {routeName !== "member" &&<img

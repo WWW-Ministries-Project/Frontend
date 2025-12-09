@@ -15,20 +15,20 @@ const PageOutline = ({
   crumbs,
 }: PageOutlineProps): JSX.Element => {
   return (
-    <>
-      <div className="sticky top-0 z-10 pl-3 rounded-t-xl  backdrop-blur-sm">
-        <Breadcrumbs items={crumbs || []} />
-      </div>
-      <section
-        role="main"
-        className={cn(
-          "bg-white w-[calc(100%-2rem)] rounded-xl min-h-[calc(100vh-9rem)] drop-shadow flex flex-col gap-4 mx-auto ",
-          className
-        )}
-      >
-        {children}
-      </section>
-    </>
+    <div className="flex flex-col gap-4 flex-1 min-h-0 ">
+  <div className="sticky top-0 z-10  rounded-t-xl backdrop-blur-sm flex-shrink-0">
+    <Breadcrumbs items={crumbs || []} />
+  </div>
+  <section
+  role="main"
+  className={cn(
+    "bg-white w-[calc(100%-2rem)] rounded-xl drop-shadow flex flex-col gap-4 mx-auto h-[calc(100vh-10.5rem)] overflow-auto",
+    className
+  )}
+>
+  {children}
+</section>
+</div>
   );
 };
 

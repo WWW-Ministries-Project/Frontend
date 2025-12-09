@@ -72,16 +72,16 @@ const AllTopics = ({topics, onEdit, onDelete}: IProps) => {
                       <ul className="py-1">
                         <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                          onClick={() => navigate(`cohort/${topic.id}`)}
+                          onClick={() => navigate(`topic/${topic.id}`)}
                         >
                           Manage topic
                         </li>
-                        <li
+                        {/* <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
                           onClick={() => handleEdit(topic)}
                         >
                           Edit topic
-                        </li>
+                        </li> */}
 
                         <hr className="text-lightGray" />
                         <li

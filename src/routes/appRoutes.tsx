@@ -60,6 +60,7 @@ import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
+import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -351,6 +352,11 @@ export const routes: AppRoute[] = [
                 path: "",
                 name: "View Program",
                 element: <ViewProgram />,
+              },
+              {
+                path: `${relativePath.home.ministrySchool.topic}`,
+                name: "View Topic",
+                element: <ViewTopic />,
               },
               {
                 path: relativePath.home.ministrySchool.cohort,

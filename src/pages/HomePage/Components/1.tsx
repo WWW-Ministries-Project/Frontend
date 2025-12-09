@@ -132,23 +132,28 @@ export function HomePage() {
 
   if (!token) return null;
   return (
-    <main className="h-screen w-screen p-3 flex flex-col gap-3">
-  <div className=" flex-shrink-0">
-    {/* Navbar */}
-   <Header handleShowNav={handleShowNav} />
-  </div>
-  <div className="flex-1 flex flex-col md:flex-row  min-h-0">
-    <div className="md:h-full rounded-xl flex-shrink-0">
-     <div className={` hidden sm:hidden md:hidden lg:inline  `}>
-                 <SideBar className="" onClick={handleShowNav} show={show} />
-               </div>
-     
-               <div className="inline lg:hidden">
-                 <MobileSideBar show={show} onClick={handleShowNav} />
-               </div>
-    </div>
-    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto ">
-     <Outlet
+    // <div className="lg:fixed ">
+      <main className="h-screen w-screen  lg:pt-4 lg:pb-4 lg:px-4  ">
+        <div className="p-3 lg:p-0 lg:pb-3">
+          <Header handleShowNav={handleShowNav} />
+        </div>
+        <div className="flex h-full">
+          <div className={` hidden sm:hidden md:hidden lg:inline  `}>
+            <SideBar className="" onClick={handleShowNav} show={show} />
+          </div>
+
+          <div className="inline lg:hidden">
+            <MobileSideBar show={show} onClick={handleShowNav} />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="">
+              {/* <Header handleShowNav={handleShowNav} /> */}
+            </div>
+            <div
+              className={`flex-1 lg:mr-3 xs:w-full h-full overflow-auto mx-auto rounded-xl border border-1 border-lightGray bg-lightGray`}
+            >
+              {/* <div className="hideScrollbar    overflow-y-auto rounded-xl "> */}
+                <Outlet
                   context={{
                     refetchMembersOptions,
                     filter,
@@ -159,11 +164,14 @@ export function HomePage() {
                     refetchDepartments,
                   }}
                 />
-    </div>
-  </div>
-  <NotificationCard />
-          <Dialog />
-          <LoaderComponent />
-</main>
+              {/* </div> */}
+            </div>
+          </div>
+        </div>
+        <NotificationCard />
+        <Dialog />
+        <LoaderComponent />
+      </main>
+    // </div>
   );
 }
