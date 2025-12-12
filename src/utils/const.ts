@@ -87,6 +87,8 @@ export const relativePath = {
       main: "school-of-ministries",
       allPrograms: "school-of-ministries/programs",
       myClass: "school-of-ministries/my-class",
+      myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
+      programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
     },
   },
   registerMember: "/register-member",

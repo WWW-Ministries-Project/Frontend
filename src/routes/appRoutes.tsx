@@ -61,6 +61,9 @@ import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
 import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
+import EnrolledClass from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -596,11 +599,23 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: relativePath.member.schoolOfMinistries.myClass,
+        path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
-        element: <MyClass />,
+        element: <MyLearning />,
         isPrivate: false,
       },
+      {
+        path: relativePath.member.schoolOfMinistries.programDetails,
+        name: "member_school_of_ministries",
+        element: <EnrolledProgram />,
+        isPrivate: false,
+      },
+      // {
+      //   path: relativePath.member.schoolOfMinistries.myClass,
+      //   name: "member_school_of_ministries",
+      //   element: <EnrolledClass />,
+      //   isPrivate: false,
+      // },
     ],
   },
 ];

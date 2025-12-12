@@ -17,8 +17,10 @@ export const DashBoardPage = () => {
   const routeName = matches?.find((m) => m.route.name)?.route.name;
 
   return (
-    <PageOutline className="bg-inherit p-1 ">
-      <WelcomeHeader showFull={ routeName === "member" ? true : false} />
+    <div className="space-y-6 p-4">
+      <div className="sticky top-0 z-30">
+        <WelcomeHeader showFull={ routeName === "member" ? true : false} />
+      </div>
 
       <div
         className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${
@@ -39,7 +41,7 @@ export const DashBoardPage = () => {
           <QuickActions />
         </div>
       </div>
-    </PageOutline>
+    </div>
   );
 };
 

@@ -20,7 +20,7 @@ const MembersPage = () => {
         //  changeAuth(token);
      
          if (eventsData) {
-           store.setEvents(eventsData.data);
+           store.setEvents(eventsData?.data);
          }
      
          // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -33,7 +33,7 @@ const MembersPage = () => {
             <div className=" py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem] border">
                 <Header handleShowNav={()=>{}} />
             </div>
-            <div className="  px-[1rem] lg:px-[4rem] xl:px-[8rem] ">
+            <div className="  px-[1rem] lg:px-[8rem] xl:px-[16rem] ">
                 <Outlet/>
             </div>
             <CartDrawer/>

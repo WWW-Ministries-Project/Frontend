@@ -1,3 +1,4 @@
+export const dummyTopics = "Understanding Faith, The Journey of Discipleship";
 export const mockText = `The #1 Master's Degree for Startup Entrepreneurs and Corporate Innovators
 Explore the 100% online
 Master of Professional Studies (MPS) in Technology Entrepreneurship and Corporate Innovation from the University of Maryland, the #1 public university in technology entrepreneurship. Our degree pairs an enriching academic experience with a new venture accelerator model for you to learn how to develop and launch your own startup company or corporate innovation. We've designed this program for working professionals to earn their degree part-time from anywhere in the world.

@@ -2,6 +2,8 @@ import React, { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import Editor from "@/components/Editor";
+import TopicBasicInfoForm from "./TopicBasicInfoForm";
+import { FileCard } from "./FileCard";
 
 export type TopicStep = "info" | "material" | "assignment" | "confirmation";
 
@@ -226,31 +228,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 text-sm">
             {topicStep === "info" && (
               <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-700">
-                    Name <span className="text-red-500">Required</span>
-                  </label>
-                  <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                    value={topicForm.topicName}
-                    onChange={(e) =>
-                      setTopicForm((old) => ({ ...old, topicName: e.target.value }))
-                    }
-                    placeholder="Enter topic name"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-700">Description</label>
-                  <Editor
-                    value={topicForm.topicDescription}
-                    onChange={(data) =>
-                      setTopicForm((old) => ({
-                        ...old,
-                        topicDescription: data,
-                      }))
-                    }
-                  />
-                </div>
+                <TopicBasicInfoForm/>
               </div>
             )}
 
@@ -389,26 +367,8 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                 {topicForm.assignmentItems.length > 0 && (
                   <div className="space-y-2">
                     {topicForm.assignmentItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-xs"
-                      >
-                        <div>
-                          <div className="font-medium text-gray-800 truncate max-w-xs">
-                            {item.name}
-                          </div>
-                          {item.sizeLabel && (
-                            <div className="text-[11px] text-gray-400">{item.sizeLabel}</div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeItem("assignment", item.id)}
-                          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
-                        >
-                          &times;
-                        </button>
-                      </div>
+                      
+                      <FileCard key={item.id} name={item.name} size={item.sizeLabel || ""} removeItem={removeItem("assignment", item.id)} />
                     ))}
                   </div>
                 )}
