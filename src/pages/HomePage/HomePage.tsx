@@ -147,7 +147,8 @@ export function HomePage() {
                  <MobileSideBar show={show} onClick={handleShowNav} />
                </div>
     </div>
-    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto ">
+    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto pb-4">
+      <div className="max-w-7xl flex mx-auto  ">
      <Outlet
                   context={{
                     refetchMembersOptions,
@@ -159,6 +160,7 @@ export function HomePage() {
                     refetchDepartments,
                   }}
                 />
+                </div>
     </div>
   </div>
   <NotificationCard />

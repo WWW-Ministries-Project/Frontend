@@ -16,7 +16,9 @@ const AllPrograms = () => {
                 
                 </div>
             </BannerWrapper>
-        <ProgramApply />        
+        <ProgramApply />
+        
+                
 
         </div>
      );

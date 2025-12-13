@@ -97,7 +97,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   const schoolOfMinistriesItems = [
     { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
     { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms},
-    { label: "Instructor portal", path: relativePath.member.schoolOfMinistries.myClass},
+    { label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal},
   ];
 
   return (

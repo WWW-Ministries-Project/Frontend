@@ -64,6 +64,8 @@ import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopi
 import EnrolledClass from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
+import InstructorPortal from "@/pages/MembersPage/Pages/InstructorPortal.js";
+import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -608,6 +610,12 @@ export const routes: AppRoute[] = [
         path: relativePath.member.schoolOfMinistries.programDetails,
         name: "member_school_of_ministries",
         element: <EnrolledProgram />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.instructorPortal,
+        name: "member_school_of_ministries",
+        element: <InstructorProg />,
         isPrivate: false,
       },
       // {

@@ -1,3 +1,4 @@
+import InstructorPortal from "@/pages/MembersPage/Pages/InstructorPortal";
 import Market from "@/pages/MembersPage/Pages/Market";
 
 export const relativePath = {
@@ -89,6 +90,7 @@ export const relativePath = {
       myClass: "school-of-ministries/my-class",
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
       programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
+      instructorPortal: "school-of-ministries/programs/instructor-portal",
     },
   },
   registerMember: "/register-member",

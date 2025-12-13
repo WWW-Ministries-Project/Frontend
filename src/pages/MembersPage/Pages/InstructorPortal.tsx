@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components";
-import CourseSidebar from "../Component/CourseSidebar";
 import { useNavigate } from "react-router-dom";
-import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
-import { Banner } from "@/pages/HomePage/pages/Members/Components/Banner";
+import CourseSidebar from "../Component/CourseSidebar";
 import BannerWrapper from "../layouts/BannerWrapper";
+import { useEffect, useState } from "react";
+import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
+import { Button } from "@/components";
 
 type Program = typeof dummyProgData[number];
 
-const MyLearning: React.FC = () => {
+const InstructorPortal : React.FC = () => {
   const navigate = useNavigate();
 
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -21,8 +20,8 @@ const MyLearning: React.FC = () => {
 
   const programStatus = [
     // { id: 1, name: "All", key: "all", active: filter === "all" },
-    { id: 2, name: "In Progress", key: "in-progress", active: filter === "in-progress" },
-    { id: 3, name: "Completed", key: "completed", active: filter === "completed" },
+    { id: 2, name: "On going", key: "in-progress", active: filter === "in-progress" },
+    { id: 3, name: "Ended", key: "completed", active: filter === "completed" },
   ];
 
   const filteredPrograms = programs.filter((p) => (filter === "all" ? true : p.status === filter));
@@ -38,8 +37,8 @@ const MyLearning: React.FC = () => {
     <div>
       <BannerWrapper>
           <div className="space-y-4">
-            <div className="font-bold text-3xl">My Learning</div>
-            <div>Overview of your learning progress and materials.</div>
+            <div className="font-bold text-3xl">Instructor Portal</div>
+            <div>Overview of programs you are instructing.</div>
           </div>
         </BannerWrapper>
       {/* Section */}
@@ -103,5 +102,5 @@ const MyLearning: React.FC = () => {
     </div>
   );
 };
-
-export default MyLearning;
+ 
+export default InstructorPortal;

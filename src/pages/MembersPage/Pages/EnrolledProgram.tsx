@@ -10,7 +10,6 @@ import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 import BannerWrapper from "../layouts/BannerWrapper";
 
 type Program = typeof dummyProgData[number];
-
 type NavItem = { id: string | number; name: string; active: boolean };
 
 const EnrolledProgram: React.FC = () => {
@@ -22,66 +21,93 @@ const EnrolledProgram: React.FC = () => {
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
 
   useEffect(() => {
-    // find program by id from dummy data
     const found = dummyProgData.find((p) => p.id === id) || null;
-    console.log("programId", programId);
-    
-    console.log("found",found);
-    
     setProgram(found);
 
-    if (found && found.topics && found.topics.length > 0) {
-      const items = found.topics.map((t, idx) => ({ id: t.id, name: t.name, active: idx === 0 }));
+    if (found?.topics?.length) {
+      const items = found.topics.map((t, idx) => ({
+        id: t.id,
+        name: t.name,
+        active: idx === 0,
+      }));
       setNavItems(items);
       setSelectedTopicId(found.topics[0].id);
-    } else {
-      setNavItems([]);
-      setSelectedTopicId(null);
     }
   }, [programId]);
 
   const handleTopicSelect = (navId: string | number) => {
-    setNavItems((items) => items.map((i) => ({ ...i, active: i.id === navId })));
+    setNavItems((items) =>
+      items.map((i) => ({ ...i, active: i.id === navId }))
+    );
     setSelectedTopicId(Number(navId));
   };
 
-  const selectedTopic = program?.topics?.find((t) => t.id === selectedTopicId) ?? null;
+  const selectedTopic =
+    program?.topics?.find((t) => t.id === selectedTopicId) ?? null;
 
-  // derive assignments and materials safely
   const assignments = selectedTopic?.assignments ?? [];
   const materials = selectedTopic?.materials ?? [];
 
   if (!program) {
     return (
-      <div className="p-8">
+      <div className="p-6">
         <h2 className="text-lg font-semibold">Program not found</h2>
-        <p className="text-sm text-muted-foreground">We couldn't find a program with id: {id}</p>
+        <p className="text-sm text-muted-foreground">
+          We couldn't find a program with id: {id}
+        </p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="w-full">
+      {/* Banner */}
       <BannerWrapper>
-          <div className="space-y-4">
-            <div className="font-bold text-3xl">{program.title}</div>
-            <div>{program.description}</div>
-          </div>
-          </BannerWrapper>
+        <div className="space-y-3 max-w-5xl">
+          <h1 className="font-bold text-2xl md:text-3xl">
+            {program.title}
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            {program.description}
+          </p>
+        </div>
+      </BannerWrapper>
 
-      <main className="mx-auto py-8 ">
+      {/* Content */}
+      <main className=" mx-auto py-6">
         <div className="flex flex-col gap-6 lg:flex-row">
-          <CourseSidebar navItems={navItems} onSelect={handleTopicSelect} heading="Topics" />
+          {/* Topics Sidebar */}
+          <aside className="lg:w-[260px] lg:sticky lg:top-6">
+            <CourseSidebar
+              navItems={navItems}
+              onSelect={handleTopicSelect}
+              heading="Topics"
+            />
+          </aside>
 
-          <div className="p-4 border bg-white rounded-xl flex-1">
-            {selectedTopic ? (
-              <TopicDetails topicName={selectedTopic.name} topicDetails={selectedTopic.content || mockText} />
-            ) : (
-              <div className="text-muted-foreground">Select a topic to view details</div>
-            )}
-          </div>
+          {/* Main Content */}
+          <section className="flex-1">
+            <div className="p-4 sm:p-6 border bg-white rounded-xl min-h-[300px]">
+              {selectedTopic ? (
+                <TopicDetails
+                  topicName={selectedTopic.name}
+                  topicDetails={selectedTopic.content || mockText}
+                />
+              ) : (
+                <div className="text-muted-foreground">
+                  Select a topic to view details
+                </div>
+              )}
+            </div>
+          </section>
 
-          <AssMatSidebar materials={materials} assignments={assignments} />
+          {/* Assignments & Materials */}
+          <aside className="lg:w-[300px] lg:sticky lg:top-6">
+            <AssMatSidebar
+              materials={materials}
+              assignments={assignments}
+            />
+          </aside>
         </div>
       </main>
     </div>

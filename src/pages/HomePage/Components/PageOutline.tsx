@@ -22,7 +22,7 @@ const PageOutline = ({
   <section
   role="main"
   className={cn(
-    "bg-white w-[calc(100%-2rem)] rounded-xl drop-shadow flex flex-col gap-4 mx-auto h-[calc(100vh-10.5rem)] overflow-auto",
+    "bg-white w-[calc(100%-2rem)] rounded-xl drop-shadow flex flex-col gap-4 mx-auto min-h-[calc(100vh-16vh)] overflow-auto",
     className
   )}
 >
