@@ -17,7 +17,7 @@ type CourseSidebarProps = {
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({ navItems, heading = "Topic", onSelect }) => {
   return (
-    <aside className="w-full lg:w-64 lg:flex-shrink-0" aria-label={`${heading} sidebar`}>
+    <aside className="w-full  lg:flex-shrink-0" aria-label={`${heading} sidebar`}>
       <div className="rounded-xl border border-border bg-white p-4">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {heading}

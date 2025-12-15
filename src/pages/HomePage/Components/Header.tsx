@@ -102,9 +102,9 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center">
+      <div className="flex items-center ">
         <header className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-x-6">
+          <div className="flex items-center ">
             <div>
               <ChurchLogo show={true} className="" />
             </div>

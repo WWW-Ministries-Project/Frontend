@@ -102,7 +102,7 @@ const programStatus = [
   return (
     <main className="mx-auto py-8 ">
     <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="w-full lg:w-64 sticky top-20">
+      <div className="w-full lg:w-64 lg:sticky lg:top-6">
             {/* Use CourseSidebar to render program status filters */}
             <CourseSidebar
               heading="State"

@@ -1,231 +1,232 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+import clsx from "clsx";
 
 interface Option {
   value: string | number;
   label: string;
 }
 
-interface IProps {
-  type?: string;
+interface SelectFieldProps {
+  id: string;
   label?: string;
   placeholder?: string;
-  className?: string;
-  inputClass?: string;
-  id: string;
   value?: string | number;
-  onChange: (name: string, value: string | number) => void;
   options: Option[];
+  onChange: (name: string, value: string | number) => void;
+
   disabled?: boolean;
   error?: string;
+
   searchable?: boolean;
   searchPlaceholder?: string;
+
+  className?: string;
+  inputClassName?: string;
 }
 
-export const SelectField = (props: IProps) => {
+export const SelectField: React.FC<SelectFieldProps> = ({
+  id,
+  label,
+  placeholder = "Select option",
+  value,
+  options,
+  onChange,
+  disabled,
+  error,
+  searchable,
+  searchPlaceholder = "Search...",
+  className,
+  inputClassName,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // Get the selected option's label for display
-  const selectedOption = props.options.find(option => option.value === props.value);
-  const displayValue = selectedOption ? selectedOption.label : '';
+  const selectedOption = options.find(o => o.value === value);
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    e.preventDefault();
-    const name = e.target.name;
-    props.onChange(name, e.target.value);
-  }
+  /* ---------------------------- styles ---------------------------- */
 
-  // Memoized filtered options with debouncing effect
+  const baseControl =
+    "w-full rounded-lg border bg-white px-3 py-2 text-sm text-left " +
+    "flex items-center justify-between transition-colors focus:outline-none focus:ring-2";
+
+  const stateStyles = clsx(
+    error
+      ? "border-error focus:ring-error/30"
+      : "border-gray-300 focus:ring-primary/20 focus:border-primary",
+    disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
+  );
+
+  /* ---------------------------- logic ---------------------------- */
+
   const filteredOptions = useMemo(() => {
-    if (!props.searchable || !searchTerm.trim()) {
-      return props.options;
-    }
-    
-    const searchLower = searchTerm.toLowerCase();
-    return props.options.filter(option =>
-      option.label.toLowerCase().includes(searchLower)
+    if (!searchable || !searchTerm.trim()) return options;
+
+    const q = searchTerm.toLowerCase();
+    return options.filter(o =>
+      o.label.toLowerCase().includes(q)
     );
-  }, [searchTerm, props.options, props.searchable]);
+  }, [options, searchTerm, searchable]);
 
-  // Debounced search handler
-  const debouncedSetSearchTerm = useCallback((value: string) => {
-    setSearchTerm(value);
-  }, []);
-
-  // Handle search input with immediate UI update but debounced filtering
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    debouncedSetSearchTerm(value);
-  }, [debouncedSetSearchTerm]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSearchTerm('');
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (isOpen && props.searchable && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isOpen, props.searchable]);
-
-  const handleOptionSelect = useCallback((option: Option) => {
-    props.onChange(props.id, option.value);
+  const handleSelect = (option: Option) => {
+    onChange(id, option.value);
     setIsOpen(false);
-    setSearchTerm('');
-  }, [props]);
+    setSearchTerm("");
+  };
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (props.disabled) return;
-
-    switch (e.key) {
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        setIsOpen(!isOpen);
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setSearchTerm('');
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-        }
-        break;
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      setIsOpen(false);
+      setSearchTerm("");
     }
-  }, [props.disabled, isOpen]);
+  }, []);
 
-  // If not searchable, render the original select
-  if (!props.searchable) {
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [handleClickOutside]);
 
+  useEffect(() => {
+    if (isOpen && searchable) {
+      searchRef.current?.focus();
+    }
+  }, [isOpen, searchable]);
+
+  /* ---------------------------- native select (non-searchable) ---------------------------- */
+
+  if (!searchable) {
     return (
-      <div>
-        <div className={"flex text-primary flex-col gap-1 " + props.className}>
-          <label className="font-semibold" htmlFor={props.id}>
-            {props.label}
+      <div className={clsx("flex flex-col gap-1", className)}>
+        {label && (
+          <label htmlFor={id} className="text-sm font-medium text-gray-700">
+            {label}
           </label>
-          <select
-            name={props.id}
-            id={props.id}
-            className={`p-2.5 rounded-lg border ${
-              props.inputClass
-            } ${props.error ? " !border-error !outline-error" : " "} ${
-              props.disabled
-                ? "bg-gray-100 border-none text-gray-500 cursor-not-allowed"
-                : ""
-            }`}
-            onChange={handleChange}
-            value={props.value}
-            disabled={props.disabled}
-          >
-            <option className='text-gray-400' value="">{props.placeholder}</option>
-            {props.options.map((option, index) => (
-              <option key={index} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {props.error && <p className="text-error text-sm">{props.error}</p>}
-        </div>
+        )}
+
+        <select
+          id={id}
+          name={id}
+          value={value ?? ""}
+          disabled={disabled}
+          onChange={(e) => onChange(id, e.target.value)}
+          className={clsx(
+            baseControl,
+            stateStyles,
+            inputClassName
+          )}
+        >
+          <option value="" className="text-gray-400">
+            {placeholder}
+          </option>
+
+          {options.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        {error && <span className="text-xs text-error">{error}</span>}
       </div>
     );
   }
 
-  // Render searchable dropdown
+  /* ---------------------------- searchable dropdown ---------------------------- */
+
   return (
-    <div>
-      <div className={"flex text-primary flex-col gap-1 " + props.className}>
-        <label className="font-semibold" htmlFor={props.id}>
-          {props.label}
+    <div className={clsx("flex flex-col gap-1", className)}>
+      {label && (
+        <label htmlFor={id} className="text-sm font-medium text-gray-700">
+          {label}
         </label>
-        
-        <div className="relative" ref={dropdownRef}>
-          {/* Main trigger button */}
-          <button
-            type="button"
-            id={props.id}
-            className={`w-full p-2.5 rounded-lg border text-left flex items-center justify-between ${
-              props.inputClass
-            } ${props.error ? " !border-error !outline-error" : " "} ${
-              props.disabled
-                ? "bg-gray-100 border-none text-gray-500 cursor-not-allowed"
-                : "bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            }`}
-            onClick={() => !props.disabled && setIsOpen(!isOpen)}
-            onKeyDown={handleKeyDown}
-            disabled={props.disabled}
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-          >
-            <span className={displayValue ? "text-gray-900" : "text-gray-500"}>
-              {displayValue || props.placeholder}
-            </span>
-            <svg
-              className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+      )}
 
-          {/* Dropdown */}
-          {isOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-              {/* Search input */}
-              <div className="p-2 border-b border-gray-200">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  placeholder={props.searchPlaceholder || "Search options..."}
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-
-              {/* Options list */}
-              <div className="max-h-48 overflow-y-auto">
-                {filteredOptions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-gray-500">
-                    No options found
-                  </div>
-                ) : (
-                  filteredOptions.map((option, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${
-                        option.value === props.value ? 'bg-gray-50 text-gray-600' : 'text-gray-900'
-                      }`}
-                      onClick={() => handleOptionSelect(option)}
-                    >
-                      {option.label}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+      <div ref={dropdownRef} className="relative">
+        {/* Trigger */}
+        <button
+          type="button"
+          disabled={disabled}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          onClick={() => !disabled && setIsOpen(v => !v)}
+          className={clsx(
+            baseControl,
+            stateStyles,
+            inputClassName
           )}
-        </div>
+        >
+          <span className={selectedOption ? "text-gray-900" : "text-gray-500"}>
+            {selectedOption?.label || placeholder}
+          </span>
 
-        {props.error && <p className="text-error text-sm">{props.error}</p>}
+          <svg
+            className={clsx(
+              "h-4 w-4 transition-transform",
+              isOpen && "rotate-180"
+            )}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+
+        {/* Dropdown */}
+        {isOpen && (
+          <div className="absolute z-50 mt-1 w-full rounded-lg border bg-white shadow-lg overflow-hidden">
+            {/* Search */}
+            <div className="border-b px-2 py-2">
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* Options */}
+            <div className="max-h-52 overflow-y-auto">
+              {filteredOptions.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-gray-500">
+                  No results
+                </div>
+              ) : (
+                filteredOptions.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleSelect(option)}
+                    className={clsx(
+                      "w-full px-3 py-2 text-sm text-left hover:bg-gray-100",
+                      option.value === value && "bg-gray-50 text-primary"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {error && <span className="text-xs text-error">{error}</span>}
     </div>
   );
 };

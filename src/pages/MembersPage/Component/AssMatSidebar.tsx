@@ -6,7 +6,7 @@ import MaterialItem from "./MaterialItem";
 
 const AssMatSidebar = ({materials, assignments}: {materials: any[], assignments: any[]}) => {
   return (
-    <aside className="w-full space-y-6 lg:w-72 lg:flex-shrink-0">
+    <aside className="w-full space-y-6  lg:flex-shrink-0">
       {/* Assignments */}
       <div>
         <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
