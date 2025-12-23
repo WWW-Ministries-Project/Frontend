@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Dispatch, SetStateAction, useState, useMemo } from "react";
 import { PaginationComponent } from "./PaginationComponent";
+import EmptyState from "@/components/EmptyState";
 
 interface TableComponentProps<TData> {
   data: TData[];
@@ -33,6 +34,7 @@ interface TableComponentProps<TData> {
   onBulkAction?: (selectedRows: TData[], action: string) => void;
   bulkActions?: { label: string; value: string; variant?: 'default' | 'danger' }[];
   showNumberColumn?: boolean;
+  emptyStateMessage?: string;
 }
 
 function TableComponent<TData>({
@@ -51,6 +53,7 @@ function TableComponent<TData>({
   onBulkAction,
   bulkActions = [],
   showNumberColumn = true,
+  emptyStateMessage = "No data found",
   ...props
 }: TableComponentProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -240,6 +243,7 @@ function TableComponent<TData>({
               ))}
             </tbody>
           </table>
+         { !table.getRowModel().rows.length && <EmptyState msg={emptyStateMessage}/>}
         </div>
       </div>
       {props.total && props.total > displayedCount ? (
