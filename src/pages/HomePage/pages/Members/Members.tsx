@@ -5,6 +5,7 @@ import useState from "react-usestateref";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useSearchQueryParams } from "@/CustomHooks/useSearchQueryParams";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
@@ -41,7 +42,8 @@ export function Members() {
   );
   const members = allMembers?.data||[];
   const total = allMembers?.meta?.total||0;
-  const [filterMembers, setFilterMembers] = useState("");
+
+  const { inputValue: filterMembers, setInputValue: setFilterMembers, submittedValue: submittedFilter, setSearch } = useSearchQueryParams();
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const columnVisibility = useMemo(() => {
     return {
@@ -114,7 +116,13 @@ export function Members() {
   }, [task, location.pathname, navigate]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterMembers(e.target.value);
+    const value = e.target.value;
+    setFilterMembers(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setSearch(filterMembers);
+    refetchMembers({ name: filterMembers, page: "1", limit: "12" });
   };
 
   const handleNavigation = () => {
@@ -206,6 +214,7 @@ export function Members() {
             placeholder="Search members here..."
             value={filterMembers}
             onChange={handleSearchChange}
+            onSubmit={handleSearchSubmit}
             id="searchMembers"
           />
         </div>
@@ -232,13 +241,17 @@ export function Members() {
               data={members}
               displayedCount={12}
               total={total}
-              filter={filterMembers}
-              setFilter={setFilterMembers}
+              filter={submittedFilter}
+              setFilter={() => {}}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
               onPageChange={(page, limit) => {
-                refetchMembers({ limit: String(limit), page: String(page) });
+                refetchMembers({
+                  limit: String(limit),
+                  page: String(page),
+                  ...(submittedFilter && { name: submittedFilter })
+                });
               }}
             />
           ) : (
@@ -247,13 +260,17 @@ export function Members() {
               data={members}
               displayedCount={24}
               total={total}
-              filter={filterMembers}
-              setFilter={setFilterMembers}
+              filter={submittedFilter}
+              setFilter={() => {}}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
               onPageChange={(page, limit) => {
-                refetchMembers({ limit: String(limit), page: String(page) });
+                refetchMembers({
+                  limit: String(limit),
+                  page: String(page),
+                  ...(submittedFilter && { name: submittedFilter })
+                });
               }}
               renderRow={(row) => (
                 <MemberCard
