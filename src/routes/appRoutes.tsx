@@ -150,7 +150,7 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_members",
         children: [
           {
-            path: "info",
+            path: "",
             name: "Info",
             element: <MemberInformation />,
             isPrivate: true,
@@ -351,7 +351,7 @@ export const routes: AppRoute[] = [
           },
           {
             path: `${relativePath.home.ministrySchool.program}/:id`,
-            name: "View Template",
+            name: "",
             element: <ViewPageTemplate />,
             children: [
               {
