@@ -26,7 +26,7 @@ export const ProfileDetails = () => {
   // Function to get tab based on current route
   const getTabFromRoute = useCallback(
     (pathname: string): string => {
-      if (pathname.endsWith('/info')) {
+      if (pathname.endsWith('')) {
         return "Member information";
       } else if (pathname.endsWith('/fam-info')) {
         return "Family information";
@@ -51,7 +51,7 @@ export const ProfileDetails = () => {
     setSelectedTab(tab); // Update the selected tab state
     switch (tab) {
       case "Member information":
-        navigate('info');
+        navigate('');
         break;
       case "Family information":
         navigate("fam-info");

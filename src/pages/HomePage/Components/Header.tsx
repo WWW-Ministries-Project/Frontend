@@ -98,7 +98,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 bg-white md:text-sm lg:text-md">
+    <header className="sticky top-0 z-10 bg-white md:text-sm lg:text-md">
       <div className="flex items-center justify-between px-4 ">
         {/* Left */}
         <div className="flex items-center gap-3">
