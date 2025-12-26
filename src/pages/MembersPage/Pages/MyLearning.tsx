@@ -1,37 +1,76 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useNavigate } from "react-router-dom";
-import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 import { Banner } from "@/pages/HomePage/pages/Members/Components/Banner";
 import BannerWrapper from "../layouts/BannerWrapper";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils/api/apiCalls";
+import { useAuth } from "@/context/AuthWrapper";
 
-type Program = typeof dummyProgData[number];
+interface BackendProgram {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  completed: boolean;
+  completedAt: string | null;
+  instructor: {
+    id: number;
+    name: string;
+  };
+  cohort: {
+    id: number;
+    name: string;
+    status: string;
+    startDate: string;
+    duration: string;
+  };
+  program: {
+    id: number;
+    title: string;
+  };
+  course: {
+    id: number;
+    name: string;
+    schedule: string;
+    classFormat: string;
+    location: string;
+    meetingLink: string;
+  };
+}
 
 const MyLearning: React.FC = () => {
+  const { user } = useAuth();
+  // api
+  const {data, loading, refetch} = useFetch(api.fetch.fetchUserEnrolledPrograms, user?.id);
+
+  const programsData = useMemo(() => data?.data || [], [data]);
+  console.log("My Prog data", programsData);
+  console.log("user data", user);
+  
   const navigate = useNavigate();
 
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("in-progress");
+  const [filter, setFilter] = useState<"in-progress" | "completed">("in-progress");
 
-  useEffect(() => {
-    // load dummy data (sync)
-    setPrograms(dummyProgData as Program[]);
-  }, []);
+  const programs = useMemo<BackendProgram[]>(() => {
+    return programsData || [];
+  }, [programsData]);
 
   const programStatus = [
-    // { id: 1, name: "All", key: "all", active: filter === "all" },
-    { id: 2, name: "In Progress", key: "in-progress", active: filter === "in-progress" },
-    { id: 3, name: "Completed", key: "completed", active: filter === "completed" },
+    { id: 1, name: "In Progress", key: "in-progress", active: filter === "in-progress" },
+    { id: 2, name: "Completed", key: "completed", active: filter === "completed" },
   ];
 
-  const filteredPrograms = programs.filter((p) => (filter === "all" ? true : p.status === filter));
+  const filteredPrograms = programs.filter((p) => {
+    if (filter === "completed") return p.completed === true;
+    return p.completed === false;
+  });
 
   const handleStatusSelect = (id: string | number) => {
     // map sidebar id to filter key
-    if (id === 1 || id === "1") setFilter("all");
-    if (id === 2 || id === "2") setFilter("in-progress");
-    if (id === 3 || id === "3") setFilter("completed");
+    if (id === 1 || id === "1") setFilter("in-progress");
+    if (id === 2 || id === "2") setFilter("completed");
   };
 
   return (
@@ -67,22 +106,13 @@ const MyLearning: React.FC = () => {
                   className="flex items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
                 >
                   <div>
-                    <h3 className="font-medium text-lg mb-2">{program.title}</h3>
-                    <div className="flex gap-4 text-sm">
-                      <div className="flex flex-col gap-2">
-                        <div className="font-medium">This program is required for:</div>
-                        <div className="flex gap-2 text-sm">
-                          {program.member_required && (
-                            <div className="font-medium bg-gray-100 px-2 py-1 rounded-md inline-block">Members</div>
-                          )}
-                          {program.ministry_required && (
-                            <div className="font-medium bg-gray-100 px-2 py-1 rounded-md inline-block">Ministry workers</div>
-                          )}
-                          {program.leader_required && (
-                            <div className="font-medium bg-gray-100 px-2 py-1 rounded-md inline-block">Leaders</div>
-                          )}
-                        </div>
-                      </div>
+                    <h3 className="font-medium text-lg mb-2">{program.program.title}</h3>
+                    <div className="text-sm text-gray-600">
+                      <div><span className="font-medium">Instructor:</span> {program.instructor.name}</div>
+                      <div><span className="font-medium">Cohort:</span> {program.cohort.name}</div>
+                      <div><span className="font-medium">Schedule:</span> {program.course.schedule}</div>
+                      <div><span className="font-medium">Format:</span> {program.course.classFormat}</div>
+                      <div><span className="font-medium">Location:</span> {program.course.location}</div>
                     </div>
                   </div>
 
@@ -91,7 +121,7 @@ const MyLearning: React.FC = () => {
                     <Button
                       variant="secondary"
                       value="View program"
-                      onClick={() => navigate(String(program.id))}
+                      onClick={() => navigate(String(program.course.id))}
                     />
                   </div>
                 </div>

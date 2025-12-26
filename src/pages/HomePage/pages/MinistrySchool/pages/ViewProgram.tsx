@@ -9,9 +9,11 @@ import { useParams } from "react-router-dom";
 import { AllCohorts } from "../Components/AllCohort";
 import { CohortForm, ICohortForm } from "../Components/CohortForm";
 import { useViewPage } from "../customHooks/ViewPageContext";
-import TopicForm, { TopicFormPayload } from "../Components/TopicForm";
 import { Button } from "@/components";
 import AllTopics from "../Components/AllTopics";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import TopicBasicInfoForm from "../Components/TopicBasicInfoForm";
 
 export const ViewProgram = () => {
   //api
@@ -19,6 +21,9 @@ export const ViewProgram = () => {
   const { data, refetch } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
+
+  console.log(programId);
+  
 
   const { executeDelete, success } = useDelete(api.delete.deleteCohort);
 
@@ -46,6 +51,12 @@ export const ViewProgram = () => {
     }
   }, [success, refetch]);
 
+  const [selectedTab, setSelectedTab] = useState<"Cohorts" | "Topics">("Cohorts");
+
+  const handleTabSelect = (tab: "Cohorts" | "Topics") => {
+    setSelectedTab(tab);
+  };
+
   const handleEdit = (cohort: CohortType): void => {
     const formattedCohort: ICohortForm = {
       id: cohort.id,
@@ -71,38 +82,39 @@ export const ViewProgram = () => {
     );
   };
 
-  const handleSubmitTopic = (payload: TopicFormPayload) => {
-    // TODO: hook this into the real API once available
-    // eslint-disable-next-line no-console
-    console.log("Topic payload", payload);
-    // you can call refetch() here after a successful API call
-  };
+
 
   return (
-    <div >
-      <div className="flex flex-row gap-8">
-        
-      <div className="w-4/6">
-      <AllCohorts
-        cohorts={program?.cohorts || []}
-        onCreate={() => {
-          setSelectedCohort(undefined);
-          setIsModalOpen(true);
-        }}
-        onEdit={handleEdit}
-        onDelete={(cohortId) => deleteCohort(cohortId)}
-      />
-      </div>
+    <PageOutline className=" ">
+      
+      <div className="py-6 flex flex-col gap-6">
+        <TabSelection
+          tabs={["Cohorts", "Topics"]}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+        />
 
-      <div className="border-l h-[100]"></div>
-  
-      <AllTopics
-      topics={program?.topics || []}
-      onDelete={() => {}}
-      onCreateTopic={() => setIsTopicModalOpen(true)}
-      onEditTopic={() => {}}
-      />
+        {selectedTab === "Cohorts" && (
+          <div className="">
+            <AllCohorts
+              cohorts={program?.cohorts || []}
+              onCreate={() => {
+                setSelectedCohort(undefined);
+                setIsModalOpen(true);
+              }}
+              onEdit={handleEdit}
+              onDelete={(cohortId) => deleteCohort(cohortId)}
+            />
+          </div>
+        )}
 
+        {selectedTab === "Topics" && (
+          <AllTopics
+            topics={program?.topics || []}
+            refetchProgram={refetch}
+            
+          />
+        )}
       </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -118,14 +130,12 @@ export const ViewProgram = () => {
       </Modal>
 
       {/* Topic creation */}
-      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[60vw]">
-      <TopicForm
-        open={isTopicModalOpen}
-        onClose={() => setIsTopicModalOpen(false)}
-        onSubmit={handleSubmitTopic}
-      />
+      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
+        <TopicBasicInfoForm
+          onClose={() => setIsTopicModalOpen(false)}
+        />
       </Modal>
-    </div>
+    </PageOutline>
   );
 };
 

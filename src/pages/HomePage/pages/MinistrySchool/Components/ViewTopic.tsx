@@ -5,6 +5,8 @@ import { Button } from '@/components';
 import TopicDetails from './TopicDetails';
 import TopicBasicInfoForm from './TopicBasicInfoForm';
 import { FileCard } from './FileCard';
+import { dummyLearningUnits } from '@/pages/HomePage/utils/dummyLearningUnits';
+import LearningUnit from './LearningUnit';
 
 
 
@@ -20,43 +22,50 @@ const ViewTopic: React.FC = () => {
     setEdit(true);
   }
   return (
-    <div style={{
-      display: 'flex',
-      gap: 32,
-      padding: 32,
-      fontFamily: "Inter, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
-      color: '#2b2b39'
-    }}>
+    <div  className='flex flex-col 2xl:flex-row gap-8 p-6 text-gray-700'>
 
       {/* Left content area */}
-      <div className=''>
+      <div className="flex-1">
         {!edit?<TopicDetails topicName={dummyTopics} topicDetails={mockText} handleEdit={handleEdit} canEdit/>:
         <TopicBasicInfoForm />}
+
+        {/* <div className="space-y-4">
+      {dummyLearningUnits
+        .sort((a, b) => a.order - b.order)
+        .map((unit) => (
+          <LearningUnit key={unit.id} unit={unit} />
+        ))}
+    </div> */}
 
       </div>
 
       {/* Vertical divider and right sidebar */}
-      <div style={{ width: 320, borderLeft: '1px solid #e6e6ea', paddingLeft: 24 }}>
-        <section style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ margin: 0 }}>Materials</h3>
+      <div className='border-t 2xl:border-t-0 2xl:border-l border-gray-200'/>
+      <div className="2xl:w-80  ">
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="m-0 font-semibold text-gray-800">Materials</h3>
             <Button value="Upload" />
           </div>
 
-          {materials.map(m => (
-            <FileCard key={m.id} name={m.name} size={m.size} />
-          ))}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-1 gap-3">
+            {materials.map((m) => (
+              <FileCard key={m.id} name={m.name} size={m.size} />
+            ))}
+          </div>
         </section>
 
         <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ margin: 0 }}>Assignment</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="m-0 font-semibold text-gray-800">Assignment</h3>
             <Button value="Upload" />
           </div>
 
-          {assignments.map(a => (
-            <FileCard key={a.id} name={a.name} size={a.size} />
-          ))}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-1 gap-3">
+            {assignments.map((a) => (
+              <FileCard key={a.id} name={a.name} size={a.size} />
+            ))}
+          </div>
         </section>
       </div>
     </div>

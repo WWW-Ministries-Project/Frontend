@@ -1,13 +1,14 @@
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import hamburger from "/src/assets/sidenav.svg";
-import { ProfilePicture } from "@/components";
 import ChurchLogo from "@/components/ChurchLogo";
-import { MouseEventHandler, useState, useRef, useEffect } from "react";
-import { matchRoutes, useLocation, useNavigate } from "react-router-dom";
+import { ProfilePicture } from "@/components";
+import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
+
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
-import { routes } from "@/routes/appRoutes";
 import { relativePath } from "@/utils";
-import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 
 interface IProps {
   handleShowNav?: () => void;
@@ -15,295 +16,223 @@ interface IProps {
 
 export const Header = ({ handleShowNav }: IProps) => {
   const navigate = useNavigate();
-  const [showLogOut, setShowLogOut] = useState<boolean>(false);
-  const [showMobileNav, setShowMobileNav] = useState<boolean>(false);
-  const [showSchoolDropdown, setShowSchoolDropdown] = useState<boolean>(false);
-  const [showMobileSchoolDropdown, setShowMobileSchoolDropdown] = useState<boolean>(false);
-  const { logout } = useAuth();
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const location = useLocation();
-  
-  const matches = matchRoutes(routes, location);
-  const routeName = matches?.find(m => m.route.name)?.route.name;
+  const { logout } = useAuth();
 
-  // Function to check if a nav item is active
-  const isActiveRoute = (path: string) => {
-    return location.pathname === path;
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isSchoolMenuOpen, setIsSchoolMenuOpen] = useState(false);
+
+  const profileRef = useRef<HTMLDivElement>(null);
+  const schoolRef = useRef<HTMLDivElement>(null);
+
+  const token = decodeToken();
+  const profileImg = token?.profile_img ?? "";
+  const name = token?.name ?? "";
+  const isMinistryWorker = token?.ministry_worker;
+  const isLifeCenterLeader = token?.life_center_leader;
+
+  const isMemberRoute = location.pathname.startsWith("/member");
+  const isSchoolRoute = location.pathname.includes("school-of-ministries");
+
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
+  const memberNavItems = [
+    { label: "Home", path: relativePath.member.dashboard },
+    { label: "Marketplace", path: relativePath.member.market },
+    ...(isLifeCenterLeader
+      ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
+      : []),
+  ];
+
+  const schoolItems = [
+    { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
+    { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms },
+    { label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal },
+  ];
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setIsMobileNavOpen(false);
+    setIsSchoolMenuOpen(false);
+    setIsProfileMenuOpen(false);
   };
 
-  // Check if any school of ministries route is active
-  const isSchoolRouteActive = () => {
-    return location.pathname.includes('/member/school-of-ministries');
-  };
-
-  const toggleMobileNav = () => {
-    setShowMobileNav((prev) => !prev);
-  };
-
-  const handleClick: MouseEventHandler<HTMLDivElement> = () => {
-    setShowLogOut((prev) => !prev);
-  };
-
-  const handleLogOut = () => {
+  const handleLogout = () => {
     removeToken();
     logout();
     navigate("/login");
   };
 
-  const handleNavItemClick = (path: string) => {
-    navigate(path);
-    setShowMobileNav(false); // Close mobile nav after navigation
-    setShowSchoolDropdown(false); // Close dropdown after navigation
-  };
-
-  const toggleSchoolDropdown = () => {
-    setShowSchoolDropdown((prev) => !prev);
-  };
-
-  const toggleMobileSchoolDropdown = () => {
-    setShowMobileSchoolDropdown((prev) => !prev);
-  };
-
-  // Close dropdown when clicking outside
+  /* Close dropdowns on outside click */
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowSchoolDropdown(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+
+      if (
+        schoolRef.current &&
+        !schoolRef.current.contains(e.target as Node)
+      ) {
+        setIsSchoolMenuOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const decodedToken = decodeToken();
-  const profileImg = decodedToken?.profile_img ?? "";
-  const name = decodedToken?.name ?? "";
-  const isMinistryWorker = decodedToken?.ministry_worker
-  const isLifeCenterLeader = decodedToken?.life_center_leader
-
-  const memberNavItems = [
-    { label: "Home", path: relativePath.member.dashboard },
-    { label: "Marketplace", path: relativePath.member.market},
-    ...(isLifeCenterLeader
-    ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
-    : []),
-    // { label: "Appointments", path: "/member/appointments" },
-  ];
-
-  const schoolOfMinistriesItems = [
-    { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
-    { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms},
-    { label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal},
-  ];
+  /* Auto close mobile nav on resize */
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileNavOpen(false);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center ">
-        <header className="flex justify-between items-center w-full">
-          <div className="flex items-center ">
-            <div>
-              <ChurchLogo show={true} className="" />
-            </div>
-            <div className="flex items-center gap-x-2">
-              {routeName !== "member" &&<img
-                src={hamburger}
-                alt="hamburger menu"
-                onClick={handleShowNav}
-                className="cursor-pointer inline sm:inline md:inline text-primary lg:hidden"
-              />}
-              {/* Mobile Navigation Toggle for Member Routes */}
-              {routeName === "member" && (
-                <button
-                  onClick={toggleMobileNav}
-                  className="lg:hidden text-primary hover:text-primary/80 transition-colors duration-200 p-1"
-                  aria-label="Toggle navigation menu"
-                >
-                  <svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    {showMobileNav ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
+    <header className="sticky top-0 z-40 bg-white md:text-sm lg:text-md">
+      <div className="flex items-center justify-between px-4 ">
+        {/* Left */}
+        <div className="flex items-center gap-3">
+          <ChurchLogo show />
 
-          {/* Desktop Navigation Items */}
-          {routeName === "member" && (
-            <nav className="hidden lg:flex items-center gap-x-6">
-              {memberNavItems.map((item) => {
-                const isActive = isActiveRoute(item.path);
-                return (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavItemClick(item.path)}
-                    className={`font-medium transition-colors duration-200 px-3 py-2 rounded-md ${
-                      isActive
-                        ? "text-white bg-primary font-bolder"
-                        : "text-primary font-semibold hover:text-primary/80 hover:bg-primary/10"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-              
-              {/* School of Ministries Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={toggleSchoolDropdown}
-                  className={`font-medium transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-1 ${
-                    isSchoolRouteActive()
-                      ? "text-white bg-primary font-bolder"
-                      : "text-primary font-semibold hover:text-primary/80 hover:bg-primary/10"
-                  }`}
-                >
-                  School of Ministries
-                  <svg 
-                    className={`w-4 h-4 transition-transform duration-200 ${showSchoolDropdown ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {showSchoolDropdown && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    {schoolOfMinistriesItems.map((item) => {
-                      const isActive = isActiveRoute(item.path);
-                      return (
-                        <button
-                          key={item.label}
-                          onClick={() => handleNavItemClick(item.path)}
-                          className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-50 first:rounded-t-md last:rounded-b-md ${
-                            isActive
-                              ? "text-primary bg-primary/10"
-                              : "text-gray-700 hover:text-primary"
-                          }`}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </nav>
+          {!isMemberRoute && (
+            <img
+              src={hamburger}
+              alt="menu"
+              onClick={handleShowNav}
+              className="lg:hidden w-6 h-6 cursor-pointer"
+            />
           )}
 
-          {/* <div className={routeName === "member" ? "flex-1" : "w-[40.9%]"} /> */}
+          {isMemberRoute && (
+            <button
+              aria-label="Toggle navigation"
+              aria-expanded={isMobileNavOpen}
+              onClick={() => setIsMobileNavOpen(v => !v)}
+              className="lg:hidden p-2 rounded-md hover:bg-primary/10"
+            >
+              ☰
+            </button>
+          )}
+        </div>
 
-          <div className="relative w-[246px] flex justify-end gap-x-2 items-center">
-            {routeName === "member" &&  <CartIcon />}
-            <div
-              className="flex items-center rounded-xl gap-x-3 cursor-pointer"
-              onClick={handleClick}
-              >
-              <ProfilePicture
-                src={profileImg}
-                className="w-[2rem] h-[2rem] bg-lightGray/90 border text-primary"
-                name={name}
-                alt="profile picture"
-              />
-              <span className="text-primary font-semibold hidden md:block">{name}</span>
-            </div>
-            {showLogOut && (
-              <div
-               
-                className="absolute z-50 top-12 border w-[246px] rounded-lg bg-white  shadow-xl items-center hover:bg-neutralGray cursor-pointer"
-              >
-               {isMinistryWorker&&<div  onClick={()=>navigate(routeName === "member"?"/home/dashboard":"/member/dashboard")} className="hover:bg-gray-100 w-full p-4 py-2 rounded-lg">
-                 {routeName === "member"? "Go to admin portal":"Go to member portal"}
-               </div>}
-               <hr />
-               <div  onClick={handleLogOut} className="hover:bg-gray-100 w-full p-4 py-2 rounded-lg">
-                 Log out
-               </div>
-              </div>
-            )}
-          </div>
-        </header>
-      </div>
-
-      {/* Mobile Navigation Menu */}
-      {routeName === "member" && showMobileNav && (
-        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
-          <nav className="px-4 py-3 space-y-2">
-            {memberNavItems.map((item) => {
-              const isActive = isActiveRoute(item.path);
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavItemClick(item.path)}
-                  className={`w-full text-left font-medium transition-colors duration-200 px-3 py-3 rounded-md block ${
-                    isActive
-                      ? "text-white bg-primary"
-                      : "text-primary hover:text-primary/80 hover:bg-primary/10"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-            
-            {/* Mobile School of Ministries Dropdown */}
-            <div>
+        {/* Desktop Nav */}
+        {isMemberRoute && (
+          <nav className="hidden lg:flex items-center gap-2">
+            {memberNavItems.map(item => (
               <button
-                onClick={toggleMobileSchoolDropdown}
-                className={`w-full text-left font-medium transition-colors duration-200 px-3 py-3 rounded-md flex items-center justify-between ${
-                  isSchoolRouteActive()
-                    ? "text-white bg-primary"
-                    : "text-primary hover:text-primary/80 hover:bg-primary/10"
+                key={item.label}
+                onClick={() => handleNavigate(item.path)}
+                className={`px-4 py-2 rounded-md font-semibold transition ${
+                  isActive(item.path)
+                    ? "bg-primary text-white"
+                    : "text-primary hover:bg-primary/10"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            <div ref={schoolRef} className="relative">
+              <button
+                aria-expanded={isSchoolMenuOpen}
+                onClick={() => setIsSchoolMenuOpen(v => !v)}
+                className={`px-4 py-2 rounded-md flex items-center gap-1 font-semibold ${
+                  isSchoolRoute
+                    ? "bg-primary text-white"
+                    : "text-primary hover:bg-primary/10"
                 }`}
               >
                 School of Ministries
-                <svg 
-                  className={`w-4 h-4 transition-transform duration-200 ${showMobileSchoolDropdown ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
               </button>
-              
-              {showMobileSchoolDropdown && (
-                <div className="ml-4 mt-2 space-y-1">
-                  {schoolOfMinistriesItems.map((item) => {
-                    const isActive = isActiveRoute(item.path);
-                    return (
-                      <button
-                        key={item.label}
-                        onClick={() => handleNavItemClick(item.path)}
-                        className={`w-full text-left font-medium transition-colors duration-200 px-3 py-2 rounded-md text-sm ${
-                          isActive
-                            ? "text-white bg-primary"
-                            : "text-primary/80 hover:text-primary hover:bg-primary/10"
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
+
+              {isSchoolMenuOpen && (
+                <div role="menu" className="absolute mt-2 w-56 bg-white border rounded-md shadow-lg">
+                  {schoolItems.map(item => (
+                    <button
+                      key={item.label}
+                      onClick={() => handleNavigate(item.path)}
+                      className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
+                        isActive(item.path) ? "text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
           </nav>
+        )}
+
+        {/* Right */}
+        <div ref={profileRef} className="flex items-center gap-3 relative">
+          {isMemberRoute && <CartIcon />}
+
+          <button
+            onClick={() => setIsProfileMenuOpen(v => !v)}
+            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100"
+          >
+            <ProfilePicture alt={name} src={profileImg} name={name} className="w-8 h-8" />
+            <span className="hidden md:block font-semibold text-primary">
+              {name}
+            </span>
+          </button>
+
+          {isProfileMenuOpen && (
+            <div className="absolute right-0 top-12 w-56 bg-white border rounded-md shadow-lg">
+              {isMinistryWorker && (
+                <button
+                  onClick={() =>
+                    navigate(isMemberRoute ? "/home/dashboard" : "/member/dashboard")
+                  }
+                  className="w-full text-left px-4 py-3 hover:bg-gray-100"
+                >
+                  {isMemberRoute ? "Go to admin portal" : "Go to member portal"}
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
+              >
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Nav */}
+      {isMemberRoute && (
+        <div
+          className={`lg:hidden transition-all duration-300 overflow-hidden ${
+            isMobileNavOpen ? "max-h-[500px] border-t" : "max-h-0"
+          }`}
+        >
+          <nav className="px-4 py-3 space-y-2">
+            {[...memberNavItems, { label: "School of Ministries", path: relativePath.member.schoolOfMinistries.allPrograms }].map(
+              item => (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavigate(item.path)}
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary/10"
+                >
+                  {item.label}
+                </button>
+              )
+            )}
+          </nav>
         </div>
       )}
-    </div>
+    </header>
   );
 };

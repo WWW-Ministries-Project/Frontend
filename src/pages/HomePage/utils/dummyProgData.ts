@@ -12,63 +12,88 @@ export const dummyProgData = [
     "updatedAt": "2025-11-21T09:12:00.000Z",
     "topics": [
       {
-        "id": 101,
-        "name": "Bible Introduction",
-        "content": "Overview of the Bible, structure, and how to read it devotionally.",
-        "programId": 11,
-        "assignments": [
-          {
-            "id": 1001,
-            "name": "Read Genesis 1-3 and write 1 page reflection",
-            "file": "reflection_template.docx",
-            "link": "https://example.com/assignments/genesis-reflection",
-            "dueDate": "2025-09-01T23:59:00.000Z",
-            "submittedDate": null,
-            "status": "pending"
+        id: 101,
+        title: "Introduction to Product Discovery",
+        order: 1,
+        description: "<p>Product discovery is the process of understanding user problems and validating solutions before building them.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Product discovery is the process of understanding user problems and validating solutions before building them. In this lesson, you'll learn why discovery is critical and how it reduces wasted effort.</p>"
           }
-        ],
-        "materials": [
-          {
-            "id": 2001,
-            "name": "Intro to the Bible (PDF)",
-            "file": "intro_bible.pdf",
-            "link": "https://example.com/materials/intro_bible.pdf",
-            "size": 245760
-          },
-          {
-            "id": 2002,
-            "name": "How to Read the Bible (Video)",
-            "file": "how_to_read.mp4",
-            "link": "https://example.com/videos/how_to_read",
-            "size": 104857600
-          }
-        ]
+        }
       },
       {
-        "id": 102,
-        "name": "Prayer Basics",
-        "content": "Foundations of prayer: posture, models, and daily practice.",
-        "programId": 11,
-        "assignments": [
-          {
-            "id": 1002,
-            "name": "7-day prayer log",
-            "file": "prayer_log.xlsx",
-            "link": "https://example.com/assignments/prayer-log",
-            "dueDate": "2025-09-08T23:59:00.000Z",
-            "submittedDate": "2025-09-07T18:34:00.000Z",
-            "status": "submitted"
+        id: 102,
+        title: "Product Discovery Overview (Video)",
+        order: 2,
+        description: "<p>Watch this short video introducing the key ideas behind product discovery.</p>",
+        learningUnit: {
+          type: "video",
+          data: {
+            value: "https://www.youtube.com/embed/1wfeqDyMUx4"
           }
-        ],
-        "materials": [
-          {
-            "id": 2003,
-            "name": "Prayer Guide (PDF)",
-            "file": "prayer_guide.pdf",
-            "link": "https://example.com/materials/prayer_guide.pdf",
-            "size": 51200
+        }
+      },
+      {
+        id: 103,
+        title: "Product Discovery Reading Material",
+        order: 3,
+        description: "<p>Download and read the product discovery guide.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://ds06gjz5fln1t.cloudfront.net/CMS-documents/approved/f1d32346-d7d6-497c-b898-7a5e9d8e09a6_fidus-inc-psa.pdf"
           }
-        ]
+        }
+      },
+      {
+        id: 104,
+        title: "Discovery Workshop Slides",
+        order: 4,
+        description: "<p>Slides used during the discovery workshop.</p>",
+        learningUnit: {
+          type: "ppt",
+          data: {
+            link: "https://example.com/discovery-workshop.pptx"
+          }
+        }
+      },
+      {
+        id: 105,
+        title: "External Resource: Lean Product Playbook",
+        order: 5,
+        description: "<p>An external reference for deeper learning.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Read more at <a href='https://leanproductplaybook.com/' target='_blank'>Lean Product Playbook</a>.</p>"
+          }
+        }
+      },
+      {
+        id: 106,
+        title: "Live Product Discovery Workshop",
+        order: 6,
+        description: "<p>Join the live online workshop session.</p>",
+        learningUnit: {
+          type: "live",
+          data: {
+            value: "https://zoom.us/j/1234567890"
+          }
+        }
+      },
+      {
+        id: 107,
+        title: "In-person Discovery Session",
+        order: 7,
+        description: "<p>Attend the in-person discovery session at the Accra campus.</p>",
+        learningUnit: {
+          type: "in-person",
+          data: {
+            value: "ICON Institute, Accra Campus"
+          }
+        }
       }
     ],
     "prerequisitePrograms": []
@@ -86,72 +111,64 @@ export const dummyProgData = [
     "updatedAt": "2025-10-10T14:22:30.000Z",
     "topics": [
       {
-        "id": 201,
-        "name": "Spiritual Disciplines",
-        "content": "Study and practice of fasting, solitude, study, and worship.",
-        "programId": 12,
-        "assignments": [
-          {
-            "id": 1003,
-            "name": "Discipline Practice Plan",
-            "file": "discipline_plan.docx",
-            "link": "https://example.com/assignments/discipline-plan",
-            "dueDate": "2025-07-15T23:59:00.000Z",
-            "submittedDate": "2025-07-14T11:05:00.000Z",
-            "status": "submitted"
-          },
-          {
-            "id": 1004,
-            "name": "Group reflection session (record minutes)",
-            "file": null,
-            "link": "https://example.com/assignments/group-reflection",
-            "dueDate": "2025-07-20T18:00:00.000Z",
-            "submittedDate": null,
-            "status": "pending"
+        id: 201,
+        title: "Spiritual Disciplines",
+        order: 1,
+        description: "<p>Study and practice of fasting, solitude, study, and worship.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>In this lesson, you'll explore the core spiritual disciplines including fasting, solitude, study, and worship. Learn how to incorporate these practices into your daily life for spiritual growth.</p>"
           }
-        ],
-        "materials": [
-          {
-            "id": 2004,
-            "name": "Guide to Fasting (PDF)",
-            "file": "fasting_guide.pdf",
-            "link": "https://example.com/materials/fasting_guide.pdf",
-            "size": 30720
-          }
-        ]
+        }
       },
       {
-        "id": 202,
-        "name": "Service & Outreach",
-        "content": "Practical steps for serving in the local community and planning outreach events.",
-        "programId": 12,
-        "assignments": [
-          {
-            "id": 1005,
-            "name": "Plan a 1-day outreach",
-            "file": "outreach_plan.xlsx",
-            "link": "https://example.com/assignments/outreach-plan",
-            "dueDate": "2025-08-01T12:00:00.000Z",
-            "submittedDate": null,
-            "status": "pending"
+        id: 202,
+        title: "Guide to Fasting (PDF)",
+        order: 2,
+        description: "<p>Download and study the fasting guide for deeper understanding.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/fasting_guide.pdf"
           }
-        ],
-        "materials": [
-          {
-            "id": 2005,
-            "name": "Outreach Checklist",
-            "file": "outreach_checklist.pdf",
-            "link": "https://example.com/materials/outreach_checklist.pdf",
-            "size": 16384
-          },
-          {
-            "id": 2006,
-            "name": "Case Study: Local Outreach (Video)",
-            "file": "outreach_case.mp4",
-            "link": "https://example.com/videos/outreach_case",
-            "size": 52428800
+        }
+      },
+      {
+        id: 203,
+        title: "Service & Outreach",
+        order: 3,
+        description: "<p>Practical steps for serving in the local community and planning outreach events.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Learn how to effectively serve your local community and plan impactful outreach events. This lesson covers practical steps and best practices for community engagement.</p>"
           }
-        ]
+        }
+      },
+      {
+        id: 204,
+        title: "Outreach Checklist and Planning",
+        order: 4,
+        description: "<p>Download the outreach checklist to help plan your service activities.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/outreach_checklist.pdf"
+          }
+        }
+      },
+      {
+        id: 205,
+        title: "Local Outreach Case Study (Video)",
+        order: 5,
+        description: "<p>Watch this video case study of successful local outreach initiatives.</p>",
+        learningUnit: {
+          type: "video",
+          data: {
+            value: "https://example.com/videos/outreach_case"
+          }
+        }
       }
     ],
     "prerequisitePrograms": [11]
@@ -169,63 +186,64 @@ export const dummyProgData = [
     "updatedAt": "2025-11-30T16:00:00.000Z",
     "topics": [
       {
-        "id": 301,
-        "name": "Leading a Small Group",
-        "content": "Practical leadership skills: facilitation, conflict resolution, and group care.",
-        "programId": 13,
-        "assignments": [
-          {
-            "id": 1006,
-            "name": "Facilitation practice (record 20-min session)",
-            "file": null,
-            "link": "https://example.com/assignments/facilitation-practice",
-            "dueDate": "2025-04-10T20:00:00.000Z",
-            "submittedDate": "2025-04-09T19:50:00.000Z",
-            "status": "submitted"
+        id: 301,
+        title: "Leading a Small Group",
+        order: 1,
+        description: "<p>Practical leadership skills: facilitation, conflict resolution, and group care.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Develop essential leadership skills for small group facilitation, including conflict resolution techniques and effective group management strategies.</p>"
           }
-        ],
-        "materials": [
-          {
-            "id": 2007,
-            "name": "Leader Handbook (PDF)",
-            "file": "leader_handbook.pdf",
-            "link": "https://example.com/materials/leader_handbook.pdf",
-            "size": 102400
-          },
-          {
-            "id": 2008,
-            "name": "Conflict Resolution Cheatsheet",
-            "file": "conflict_cheatsheet.pdf",
-            "link": "https://example.com/materials/conflict_cheatsheet.pdf",
-            "size": 20480
-          }
-        ]
+        }
       },
       {
-        "id": 302,
-        "name": "Group Care & Pastoral Support",
-        "content": "How to care for members, spot needs, and refer to pastoral teams.",
-        "programId": 13,
-        "assignments": [
-          {
-            "id": 1007,
-            "name": "Create a care plan for a hypothetical member",
-            "file": "care_plan_template.docx",
-            "link": "https://example.com/assignments/care-plan",
-            "dueDate": "2025-05-01T23:59:00.000Z",
-            "submittedDate": null,
-            "status": "pending"
+        id: 302,
+        title: "Leader Handbook (PDF)",
+        order: 2,
+        description: "<p>Download the comprehensive leader handbook for small group leadership.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/leader_handbook.pdf"
           }
-        ],
-        "materials": [
-          {
-            "id": 2009,
-            "name": "Care Plan Template",
-            "file": "care_plan_template.docx",
-            "link": "https://example.com/materials/care_plan_template.docx",
-            "size": 40960
+        }
+      },
+      {
+        id: 303,
+        title: "Conflict Resolution Workshop",
+        order: 3,
+        description: "<p>Learn conflict resolution strategies through this practical workshop.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Master conflict resolution techniques with this practical workshop. Download the cheatsheet for quick reference: <a href='https://example.com/materials/conflict_cheatsheet.pdf' target='_blank'>Conflict Resolution Cheatsheet</a>.</p>"
           }
-        ]
+        }
+      },
+      {
+        id: 304,
+        title: "Group Care & Pastoral Support",
+        order: 4,
+        description: "<p>How to care for members, spot needs, and refer to pastoral teams.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Learn how to effectively care for group members, identify their needs, and know when to refer them to pastoral support teams. Download the care plan template to get started.</p>"
+          }
+        }
+      },
+      {
+        id: 305,
+        title: "Care Plan Template",
+        order: 5,
+        description: "<p>Download the care plan template for creating member care strategies.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/care_plan_template.docx"
+          }
+        }
       }
     ],
     "prerequisitePrograms": [11, 12]
@@ -243,63 +261,64 @@ export const dummyProgData = [
     "updatedAt": "2025-11-25T07:30:00.000Z",
     "topics": [
       {
-        "id": 401,
-        "name": "Safeguarding & Child Protection",
-        "content": "Policies, reporting procedures, and best practices for safe ministry.",
-        "programId": 14,
-        "assignments": [
-          {
-            "id": 1008,
-            "name": "Complete safeguarding quiz",
-            "file": null,
-            "link": "https://example.com/assignments/safeguarding-quiz",
-            "dueDate": "2025-10-15T23:59:00.000Z",
-            "submittedDate": "2025-10-14T10:22:00.000Z",
-            "status": "submitted"
+        id: 401,
+        title: "Safeguarding & Child Protection",
+        order: 1,
+        description: "<p>Policies, reporting procedures, and best practices for safe ministry.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Essential training on safeguarding policies, reporting procedures, and best practices for creating a safe environment in youth ministry.</p>"
           }
-        ],
-        "materials": [
-          {
-            "id": 2010,
-            "name": "Safeguarding Policy (PDF)",
-            "file": "safeguarding_policy.pdf",
-            "link": "https://example.com/materials/safeguarding_policy.pdf",
-            "size": 61440
-          }
-        ]
+        }
       },
       {
-        "id": 402,
-        "name": "Creative Programming for Youth",
-        "content": "Session planning, games, and faith-formation activities for teens.",
-        "programId": 14,
-        "assignments": [
-          {
-            "id": 1009,
-            "name": "Draft a 4-week youth session plan",
-            "file": "youth_sessions.xlsx",
-            "link": "https://example.com/assignments/youth-plan",
-            "dueDate": "2025-11-10T23:59:00.000Z",
-            "submittedDate": null,
-            "status": "pending"
+        id: 402,
+        title: "Safeguarding Policy Guide (PDF)",
+        order: 2,
+        description: "<p>Download the official safeguarding policy document.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/safeguarding_policy.pdf"
           }
-        ],
-        "materials": [
-          {
-            "id": 2011,
-            "name": "Session Ideas Pack (PDF)",
-            "file": "session_ideas.pdf",
-            "link": "https://example.com/materials/session_ideas.pdf",
-            "size": 81920
-          },
-          {
-            "id": 2012,
-            "name": "Icebreakers Video",
-            "file": "icebreakers.mp4",
-            "link": "https://example.com/videos/icebreakers",
-            "size": 31457280
+        }
+      },
+      {
+        id: 403,
+        title: "Creative Programming for Youth",
+        order: 3,
+        description: "<p>Session planning, games, and faith-formation activities for teens.</p>",
+        learningUnit: {
+          type: "lesson-note",
+          data: {
+            content: "<p>Learn how to create engaging session plans, incorporate games, and develop faith-formation activities specifically designed for teenagers.</p>"
           }
-        ]
+        }
+      },
+      {
+        id: 404,
+        title: "Youth Session Ideas Pack (PDF)",
+        order: 4,
+        description: "<p>Download the creative session ideas pack for youth ministry.</p>",
+        learningUnit: {
+          type: "pdf",
+          data: {
+            link: "https://example.com/materials/session_ideas.pdf"
+          }
+        }
+      },
+      {
+        id: 405,
+        title: "Icebreakers and Activities (Video)",
+        order: 5,
+        description: "<p>Watch demonstration videos of effective icebreakers and youth activities.</p>",
+        learningUnit: {
+          type: "video",
+          data: {
+            value: "https://example.com/videos/icebreakers"
+          }
+        }
       }
     ],
     "prerequisitePrograms": [11]

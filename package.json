@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -34,6 +34,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-datepicker": "^7.2.0",
     "react-dom": "^18.2.0",
+    "react-quill": "^2.0.0",
     "react-select": "^5.10.1",
     "react-usestateref": "^1.0.8",
     "tailwind-merge": "^3.3.1",

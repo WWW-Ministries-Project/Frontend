@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components";
-import { FileCard } from "@/pages/HomePage/pages/MinistrySchool/Components/FileCard";
-import TopicDetails from "@/pages/HomePage/pages/MinistrySchool/Components/TopicDetails";
-import { mockText } from "@/pages/HomePage/utils/dummydata";
-import AssMatSidebar from "../Component/AssMatSidebar";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useParams, useNavigate } from "react-router-dom";
 import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 import BannerWrapper from "../layouts/BannerWrapper";
+import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 
 type Program = typeof dummyProgData[number];
 type NavItem = { id: string | number; name: string; active: boolean };
@@ -36,7 +33,7 @@ const EnrolledProgram: React.FC = () => {
     if (found?.topics?.length) {
       const items = found.topics.map((t, idx) => ({
         id: t.id,
-        name: t.name,
+        name: t.title,
         active: idx === 0,
       }));
       setNavItems(items);
@@ -55,9 +52,6 @@ const EnrolledProgram: React.FC = () => {
 
   const selectedTopic =
     program?.topics?.find((t) => t.id === selectedTopicId) ?? null;
-
-  const assignments = selectedTopic?.assignments ?? [];
-  const materials = selectedTopic?.materials ?? [];
 
   // Loading state
   if (isLoading) {
@@ -115,7 +109,7 @@ const EnrolledProgram: React.FC = () => {
         <div className="space-y-4 max-w-4xl">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-3 flex-1">
-              <h1 className="font-bold text-2xl md:text-3xl lg:text-4xl text-gray-900">
+              <h1 className="font-bold text-2xl md:text-3xl lg:text-4xl ">
                 {program.title}
               </h1>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
@@ -124,27 +118,7 @@ const EnrolledProgram: React.FC = () => {
             </div>
           </div>
 
-          {/* Optional: Progress indicator or metadata */}
-          {/* {program && (
-            <div className="flex flex-wrap gap-3 text-xs md:text-sm text-muted-foreground">
-              {program.duration && (
-                <span className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {program.duration}
-                </span>
-              )}
-              {program.metadata.level && (
-                <span className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  {program.metadata.level}
-                </span>
-              )}
-            </div>
-          )} */}
+          
         </div>
       </BannerWrapper>
 
@@ -170,13 +144,22 @@ const EnrolledProgram: React.FC = () => {
             className="flex-1 min-w-0"
             aria-label="Topic content"
           >
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-6 sm:p-8 min-h-[400px]">
+            <div className="bg-white  overflow-hidden">
+              <div className="">
                 {selectedTopic ? (
-                  <TopicDetails
-                    topicName={selectedTopic.name}
-                    topicDetails={selectedTopic.content || mockText}
-                  />
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {selectedTopic.title}
+                      </h2>
+                      <div
+                        className="prose max-w-none text-gray-700"
+                        dangerouslySetInnerHTML={{ __html: selectedTopic.description }}
+                      />
+                    </div>
+
+                    <LearningUnit unit={selectedTopic.learningUnit} />
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-[300px]">
                     <div className="text-center space-y-2">
@@ -201,16 +184,16 @@ const EnrolledProgram: React.FC = () => {
                 )}
               </div>
             </div>
-            <div className="w-full 2xl:hidden mt-6">
+            {/* <div className="w-full 2xl:hidden mt-6">
               <AssMatSidebar
                 materials={materials}
                 assignments={assignments}
               />
-            </div>
+            </div> */}
           </section>
 
           {/* Assignments & Materials Sidebar - Right */}
-          <aside 
+          {/* <aside 
             className="w-full hidden 2xl:block lg:w-[300px] xl:w-[320px] shrink-0"
             aria-label="Assignments and materials"
           >
@@ -220,7 +203,7 @@ const EnrolledProgram: React.FC = () => {
                 assignments={assignments}
               />
             </div>
-          </aside>
+          </aside> */}
         </div>
       </main>
     </div>

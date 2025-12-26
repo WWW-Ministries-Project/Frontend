@@ -23,7 +23,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({ navItems, heading = "Topi
           {heading}
         </h2>
 
-        <nav className="space-y-1" role="navigation" aria-label={heading}>
+        <nav className="space-y-6" role="navigation" aria-label={heading}>
           {navItems.map((nav, index) => (
             <button
               key={nav.id}

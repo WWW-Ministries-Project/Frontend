@@ -22,7 +22,7 @@ const ChildrenSubFormComponent = ({
 
   return (
     <>
-      <FormHeader>Children</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Children</FormHeader>
       <FieldArray name="children">
         {({ unshift, remove }) => (
           <>

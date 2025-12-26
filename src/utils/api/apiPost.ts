@@ -94,6 +94,10 @@ export class ApiCreationCalls {
     return this.postToApi("program/enroll", payload);
   };
 
+  createTopic = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/topic", payload);
+  }
+
   // Unenroll User
   // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
   //   return this.postToApi<T>("program/unenroll", payload);

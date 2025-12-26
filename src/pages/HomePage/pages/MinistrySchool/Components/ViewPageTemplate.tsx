@@ -122,16 +122,8 @@ const ViewPageTemplateInner = () => {
                 onClick={() => {}}
               />
             </div> */}
-            <div className="relative">
-            <button
-              ref={buttonRef} // Reference to the button
-              className="text-primary"
-              onClick={handleMenuToggle}
-            >
-              <div className="flex gap-2 text-white border p-2 rounded-lg">
-                Create
-              </div>
-            </button>
+            {/* <div className="relative">
+            
             {isMenuOpen  && (
               <div
                 ref={menuRef}
@@ -158,7 +150,8 @@ const ViewPageTemplateInner = () => {
                 </ul>
               </div>
             )}
-          </div>
+          </div> */}
+            
           </div>
         </div>
       </section>

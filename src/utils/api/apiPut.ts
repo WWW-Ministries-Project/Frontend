@@ -128,7 +128,7 @@ export class ApiUpdateCalls {
     payload: CohortPayloadType & { id: number },
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/cohorts`, payload, query);
+    return this.apiExecution.updateData(`program/cohort`, payload, query);
   };
 
   // Update Class
@@ -136,7 +136,7 @@ export class ApiUpdateCalls {
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/courses`, payload, query);
+    return this.apiExecution.updateData(`program/course`, payload, query);
   };
   // Update Cohort
   updateStudentProgress = (
@@ -161,6 +161,14 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+  // Update Topic
+  updateTopic = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/topic`, payload, query);
+  }
 
   /* Visitor Management */
 

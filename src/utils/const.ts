@@ -1,4 +1,4 @@
-import InstructorPortal from "@/pages/MembersPage/Pages/InstructorPortal";
+import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel";
 import Market from "@/pages/MembersPage/Pages/Market";
 
 export const relativePath = {
@@ -91,6 +91,7 @@ export const relativePath = {
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
       programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
       instructorPortal: "school-of-ministries/programs/instructor-portal",
+      instructorAssMan: "school-of-ministries/programs/instructor-portal/:Id",
     },
   },
   registerMember: "/register-member",

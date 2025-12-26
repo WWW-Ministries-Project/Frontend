@@ -64,8 +64,9 @@ import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopi
 import EnrolledClass from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
-import InstructorPortal from "@/pages/MembersPage/Pages/InstructorPortal.js";
+import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel.js";
 import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
+import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -617,7 +618,21 @@ export const routes: AppRoute[] = [
         name: "member_school_of_ministries",
         element: <InstructorProg />,
         isPrivate: false,
+        // children: [
+        //   {
+        //     path: relativePath.member.schoolOfMinistries.instructorAssMan,
+        //     name: "instructor_assessment_management",
+        //     element: <InstructorAssMan />,
+        //     isPrivate: false,
+        //   },
+        // ],
       },
+      {
+            path: relativePath.member.schoolOfMinistries.instructorAssMan,
+            name: "instructor_assessment_management",
+            element: <InstructorAssMan />,
+            isPrivate: false,
+          },
       // {
       //   path: relativePath.member.schoolOfMinistries.myClass,
       //   name: "member_school_of_ministries",

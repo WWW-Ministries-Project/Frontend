@@ -1,3 +1,5 @@
+// import { LearningUnitType } from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
+
 export type ProgramsPayloadType = {
   title: string;
   description: string;
@@ -225,9 +227,37 @@ export type ClassOption = {
 export type Programs = {
   id: string
   name: string
+  member_required: boolean
+  leader_required: boolean
+  ministry_required: boolean
   upcomingCohort: string
   topics: string[]
   description: string
   prerequisites: string[] | undefined
   courses: ClassOption[]
 }
+export type TopicPayload = {
+  id: string | number;
+  name: string;
+  description?: string;
+  type: LearningUnitType;
+  url?: string;
+  programId: number;
+  learningUnit?: LearningUnit
+};
+
+export type LearningUnit = {
+ 
+  type: LearningUnitType;
+  data: any;
+};
+
+export type LearningUnitType =
+  | "video"
+  | "live"
+  | "in-person"
+  | "ppt"
+  | "pdf"
+  | "lesson-note"
+  | "assignment"
+  | "assignment-essay";

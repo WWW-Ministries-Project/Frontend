@@ -17,7 +17,9 @@ const ProgramApply = () => {
   const [open, setOpen] = useState(false);
   const [activeProgram, setActiveProgram] = useState<Programs | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [filter, setFilter] = useState<"all" | "church_members" | "ministry_workers" | "HOD">("all");
+
+  type ProgramFilter = "all" | "member_required" | "leader_required" | "ministry_required";
+  const [filter, setFilter] = useState<ProgramFilter>("all");
 
 
   const user = useUserStore();
@@ -86,18 +88,34 @@ const ProgramApply = () => {
 };
 
 const programStatus = [
-    { id: 1, name: "All", key: "all", active: filter === "all" },
-    { id: 2, name: "Church members", key: "church_members", active: filter === "church_members" },
-    { id: 3, name: "Ministry workers", key: "ministry_workers", active: filter === "ministry_workers" },
-    { id: 4, name: "Heads of Ministries & Departments", key: "HOD", active: filter === "HOD" },
-  ];
-  const handleStatusSelect = (id: string | number) => {
-    // map sidebar id to filter key
-    if (id === 1 || id === "1") setFilter("all");
-    if (id === 2 || id === "2") setFilter("church_members");
-    if (id === 3 || id === "3") setFilter("ministry_workers");
-    if (id === 4 || id === "4") setFilter("HOD");
-  };
+  { id: 1, name: "All", key: "all", active: filter === "all" },
+  { id: 2, name: "Members", key: "member_required", active: filter === "member_required" },
+  { id: 3, name: "Leaders", key: "leader_required", active: filter === "leader_required" },
+  { id: 4, name: "Ministry Workers", key: "ministry_required", active: filter === "ministry_required" },
+];
+
+const handleStatusSelect = (id: string | number) => {
+  const selected = programStatus.find((s) => s.id === Number(id));
+  if (selected) {
+    setFilter(selected.key as ProgramFilter);
+  }
+};
+
+const filteredPrograms = useMemo(() => {
+  if (!programs) return [];
+
+  if (filter === "all") return programs;
+
+  return programs.filter((program) => program[filter] === true);
+}, [programs, filter]);
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <main className="mx-auto py-8 ">
@@ -113,9 +131,9 @@ const programStatus = [
           </div>
 
           <div className="flex flex-col gap-4 lg:flex-1">
-      {programs && programs.length > 0 ? (
+      {filteredPrograms && filteredPrograms.length > 0 ? (
         <div className="w-full max-w-6xl  flex flex-col gap-4">
-          {programs.map((program) => (
+          {filteredPrograms.map((program) => (
             <div key={program.id} className="border bg-white p-4 rounded-xl flex flex-col gap-6">
               <div className="flex flex-col gap-1">
                 <div className="text-lg font-semibold">
@@ -150,19 +168,17 @@ const programStatus = [
                 <div className="text-sm font-semibold flex gap-2">
                  <UserGroupIcon className="w-5"/> Facilitators
                 </div>
-                <div className="flex gap-6 mt-1">
-                  <div className="text-sm flex gap-2 items-center">
-                    <div className="rounded-full bg-gray-100 p-1">JA</div>
-                    <div className="font-medium">
-                      John Appleseed
+                <div className="flex flex-wrap gap-6 mt-1">
+                  {Array.from(
+                    new Set(program.courses?.map((course) => course.facilitator).filter(Boolean))
+                  ).map((facilitator) => (
+                    <div key={facilitator} className="text-sm flex gap-2 items-center">
+                      <div className="rounded-full bg-gray-100 px-2 py-1 font-medium">
+                        {getInitials(facilitator)}
+                      </div>
+                      <div className="font-medium">{facilitator}</div>
                     </div>
-                  </div>
-                  <div className="text-sm flex gap-2 items-center">
-                    <div className="rounded-full bg-gray-100 p-1">JA</div>
-                    <div className="font-medium">
-                      John Appleseed
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 

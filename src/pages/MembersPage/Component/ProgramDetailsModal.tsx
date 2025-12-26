@@ -128,9 +128,9 @@ export const ProgramDetailsModal: FC<{
   const hasCourses = (program.courses?.length ?? 0) > 0;
 
   return (
-    <div className="w-[95vw] max-w-2xl bg-white rounded-xl shadow-sm">
+    <div className="w-[95vw] max-w-2xl max-h-[80vh] bg-white rounded-xl shadow-sm flex flex-col">
       {/* Header */}
-      <div className="flex items-start justify-between p-6 pb-5 border-b border-gray-100">
+      <div className="sticky top-0 z-20 bg-white flex items-start justify-between p-6 pb-5 border-b border-gray-100">
         <div className="flex-1 pr-4">
           <h2 className="text-xl font-semibold text-gray-900 mb-1">{program.name}</h2>
           {program.upcomingCohort && (
@@ -148,7 +148,7 @@ export const ProgramDetailsModal: FC<{
       </div>
 
       {/* Content */}
-      <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Description */}
         {program.description && (
           <section aria-labelledby="about-program">
@@ -186,15 +186,15 @@ export const ProgramDetailsModal: FC<{
             Designed For
           </h3>
           <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
+            {program.member_required && <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
               Church members
-            </span>
-            <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
+            </span>}
+            {program.ministry_required && <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
               Ministry workers
-            </span>
-            <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
+            </span>}
+            {program.leader_required && <span className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded">
               Leaders
-            </span>
+            </span>}
           </div>
         </section>
 
@@ -245,7 +245,7 @@ export const ProgramDetailsModal: FC<{
       </div>
 
       {/* Footer */}
-      <div className="p-6 pt-5 ">
+      <div className="sticky bottom-0 z-20 bg-white border-gray-100 px-6 py-4">
         <Actions onCancel={onClose} onSubmit={onSubmit} loading={!!submitting} />
       </div>
     </div>

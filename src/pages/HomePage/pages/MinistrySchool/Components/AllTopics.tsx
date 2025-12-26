@@ -1,7 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Update the path below to the actual location of your ellipse image file
 import ellipse from "@/assets/ellipse.svg";
+import { Button } from '@/components';
+import { Modal } from '@/components/Modal';
+import TopicBasicInfoForm from './TopicBasicInfoForm';
+import { api } from '@/utils/api/apiCalls';
+import { useDelete } from '@/CustomHooks/useDelete';
 
 interface ITopic {
   id: string;
@@ -12,34 +17,63 @@ interface ITopic {
 
 interface IProps {
   topics: ITopic[];
-  onEdit: (topic: ITopic) => void;
-  onDelete: (topicId: string) => void;
+  refetchProgram?: () => void;
+ 
 }
 
-const AllTopics = ({topics, onEdit, onDelete}: IProps) => {
+const AllTopics = ({topics, refetchProgram}: IProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState<string | null>(null);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+  const [TopicToEdit, setTopicToEdit] = useState(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const{executeDelete: deleteTopic, loading: deleteLoading} = useDelete(api.delete.deleteTopic);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<ITopic | null>(null);
 
   const toggleMenu = (topicId: string) => {
     setIsMenuOpen(isMenuOpen === topicId ? null : topicId);
   };
 
   const handleEdit = (topic: ITopic) => {
-    onEdit(topic);
+    setTopicToEdit(topic);
+    setIsTopicModalOpen(true);
+    console.log("Topic to be edited", topic);
+    
     setIsMenuOpen(null);
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return ( 
-    <div className="w-2/6">
+    <div className="">
       <div className="space-y-4 ">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold mb-2">Topics</h2>
+          <Button value="Create New Topic" onClick={() => setIsTopicModalOpen(true)} />
         </div>
 
         {/* Created Topics */}
-        <div className='space-y-2'>
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
           {topics.map((topic) => (
             <div key={topic.id} className="border rounded-lg p-4 flex justify-between items-center ">
               <div>
@@ -76,16 +110,20 @@ const AllTopics = ({topics, onEdit, onDelete}: IProps) => {
                         >
                           Manage topic
                         </li>
-                        {/* <li
+                        <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
                           onClick={() => handleEdit(topic)}
                         >
                           Edit topic
-                        </li> */}
+                        </li>
 
                         <hr className="text-lightGray" />
                         <li
-                          onClick={() => onDelete(topic.id)}
+                          onClick={() => {
+                            setTopicToDelete(topic);
+                            setIsDeleteModalOpen(true);
+                            setIsMenuOpen(null);
+                          }}
                           className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
                         >
                           Delete topic
@@ -99,6 +137,66 @@ const AllTopics = ({topics, onEdit, onDelete}: IProps) => {
           ))}
         </div>
       </div>
+       {/* Topic creation */}
+      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
+        <TopicBasicInfoForm
+          onClose={() => setIsTopicModalOpen(false)}
+          topicToEdit={TopicToEdit}
+          refetchProgram={refetchProgram}
+        />
+      </Modal>
+      {/* Delete confirmation */}
+      <Modal
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTopicToDelete(null);
+        }}
+        className="w-[400px]"
+      >
+        <div className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold">Delete Topic</h3>
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete{" "}
+            <span className="font-medium">
+              {topicToDelete?.name}
+            </span>
+            ? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              value="Cancel"
+              variant="secondary"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setTopicToDelete(null);
+              }}
+            />
+            <Button
+              value={deleteLoading ? "Deleting..." : "Delete"}
+              variant="primary"
+              disabled={deleteLoading}
+              onClick={async () => {
+                if (!topicToDelete) return;
+
+                const id = topicToDelete.id;
+
+                // if (isNaN(id)) {
+                //   console.error("Invalid topicId", topicToDelete.id);
+                //   return;
+                // }
+
+                await deleteTopic({ id });
+                console.log("Deleted topic", id);
+
+                setIsDeleteModalOpen(false);
+                setTopicToDelete(null);
+                refetchProgram?.();
+              }}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

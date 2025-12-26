@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
-export const FormHeader = ({ children }: { children: ReactNode }) => {
+export const FormHeader = ({ children, className="bg-primary text-white p-6" }: { children: ReactNode, className?:String }) => {
   return (
-    <div className=" bg-primary text-white p-6 space-y-2  col-span-full">{children}</div>
+    <div className={` ${className} space-y-2  col-span-full`}>{children}</div>
   );
 };

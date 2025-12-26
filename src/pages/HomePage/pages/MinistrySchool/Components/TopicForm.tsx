@@ -169,11 +169,11 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
   };
 
   return (
-      <div className="w-[60vw] rounded-lg p-6 flex bg-gray-100 h-[80vh]">
+      <div className=" rounded-lg p-6 flex  h-[90vh] w-[90vw] ">
         {/* Left stepper */}
         <div className="w- pr-4 border-r border-gray-200">
           <div className="font-semibold mb-6">Topic creation</div>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {topicSteps.map((step, index) => {
               const currentIndex = topicSteps.findIndex((s) => s.id === topicStep);
               const isActive = step.id === topicStep;
@@ -183,7 +183,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                   key={step.id}
                   type="button"
                   onClick={() => goToStep(step.id)}
-                  className={`flex items-center w-full text-left text-sm gap-3 ${
+                  className={`flex items-center w-full text-left  gap-3 ${
                     isActive ? "text-primary font-medium" : "text-gray-700"
                   }`}
                 >
@@ -206,10 +206,10 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
         </div>
 
         {/* Main content */}
-        <div className="flex-1 h-full bg-white ml-6 rounded-lg shadow-sm flex flex-col">
+        <div className="flex-1 h-full bg-whitåe ml-6 rounded-lg shadow-sm flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <div className="font-semibold text-sm">
+          <div className="flex items-center justify-between py-4 border-b border-gray-100">
+            <div className="font-semibold ">
               {topicStep === "info" && "Topic Information"}
               {topicStep === "material" && "Course material"}
               {topicStep === "assignment" && "Assignment"}
@@ -225,89 +225,16 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 text-sm">
+          <div className="flex-1 overflow-y-auto  py-4 space-y-4 text-sm ">
             {topicStep === "info" && (
               <div className="space-y-4">
-                <TopicBasicInfoForm/>
+                <TopicBasicInfoForm creation={true} />
               </div>
             )}
 
             {topicStep === "material" && (
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-700">
-                    Name <span className="text-red-500">Required</span>
-                  </label>
-                  <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                    value={topicForm.materialName}
-                    onChange={(e) =>
-                      setTopicForm((old) => ({ ...old, materialName: e.target.value }))
-                    }
-                    placeholder="Enter material name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-700">Upload file</label>
-                  <label className="flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-6 text-xs text-gray-500 cursor-pointer">
-                    <span>Click to upload or drag and drop</span>
-                    <span className="mt-1 text-[11px] text-gray-400">
-                      document or video (5mb max)
-                    </span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept=".pdf,.doc,.docx,.ppt,.pptx,.mp4,.mov,.avi,.mkv"
-                      onChange={(e) => registerFiles(e.target.files, "material")}
-                    />
-                  </label>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-center text-[11px] text-gray-400">or</div>
-                  <div className="flex gap-2">
-                    <input
-                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                      placeholder="Import from URL"
-                      value={materialUrlInput}
-                      onChange={(e) => setMaterialUrlInput(e.target.value)}
-                    />
-                    <Button
-                      value="Add file"
-                      variant="secondary"
-                      onClick={() => addUrlItem("material")}
-                    />
-                  </div>
-                </div>
-
-                {topicForm.materialFiles.length > 0 && (
-                  <div className="space-y-2">
-                    {topicForm.materialFiles.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-xs"
-                      >
-                        <div>
-                          <div className="font-medium text-gray-800 truncate max-w-xs">
-                            {item.name}
-                          </div>
-                          {item.sizeLabel && (
-                            <div className="text-[11px] text-gray-400">{item.sizeLabel}</div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeItem("material", item.id)}
-                          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div>
+                <LearningUnitForm/>
               </div>
             )}
 
@@ -368,7 +295,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                   <div className="space-y-2">
                     {topicForm.assignmentItems.map((item) => (
                       
-                      <FileCard key={item.id} name={item.name} size={item.sizeLabel || ""} removeItem={removeItem("assignment", item.id)} />
+                      <FileCard key={item.id} name={item.name} size={item.sizeLabel || ""} removeItem={() => removeItem("assignment", item.id)} />
                     ))}
                   </div>
                 )}
