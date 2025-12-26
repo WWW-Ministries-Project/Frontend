@@ -41,7 +41,7 @@ import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/V
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
-import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
@@ -60,6 +60,13 @@ import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
+import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
+import EnrolledClass from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
+import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel.js";
+import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
+import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -353,6 +360,11 @@ export const routes: AppRoute[] = [
                 element: <ViewProgram />,
               },
               {
+                path: `${relativePath.home.ministrySchool.topic}`,
+                name: "View Topic",
+                element: <ViewTopic />,
+              },
+              {
                 path: relativePath.home.ministrySchool.cohort,
                 name: "View Cohort",
                 element: <ViewCohort />,
@@ -590,11 +602,43 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: relativePath.member.schoolOfMinistries.myClass,
+        path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
-        element: <MyClass />,
+        element: <MyLearning />,
         isPrivate: false,
       },
+      {
+        path: relativePath.member.schoolOfMinistries.programDetails,
+        name: "member_school_of_ministries",
+        element: <EnrolledProgram />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.instructorPortal,
+        name: "member_school_of_ministries",
+        element: <InstructorProg />,
+        isPrivate: false,
+        // children: [
+        //   {
+        //     path: relativePath.member.schoolOfMinistries.instructorAssMan,
+        //     name: "instructor_assessment_management",
+        //     element: <InstructorAssMan />,
+        //     isPrivate: false,
+        //   },
+        // ],
+      },
+      {
+            path: relativePath.member.schoolOfMinistries.instructorAssMan,
+            name: "instructor_assessment_management",
+            element: <InstructorAssMan />,
+            isPrivate: false,
+          },
+      // {
+      //   path: relativePath.member.schoolOfMinistries.myClass,
+      //   name: "member_school_of_ministries",
+      //   element: <EnrolledClass />,
+      //   isPrivate: false,
+      // },
     ],
   },
 ];

@@ -3,6 +3,7 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
 import { FormHeader } from "@/components/ui";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { XCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Field, FieldArray, Form, Formik } from "formik";
 import { array, boolean, number, object, string } from "yup";
 
@@ -76,11 +77,11 @@ const ProgramFormComponent = ({
             />
 
             {/* Completion Requirement */}
-            <div className="mb-4 space-y-2">
+            <div className="mb-4 space-y-2 text-sm">
               <label className="block  font-semibold text-primary">
                 This program is required for:
               </label>
-              <div className="flex flex-col md:flex-row space-x-1 gap-4  md:items-center">
+              <div className=" flex flex-col  gap-3">
                 <label>
                   <Field
                     type="checkbox"
@@ -139,9 +140,9 @@ const ProgramFormComponent = ({
                             type="button"
                             onClick={() => remove(index)}
                             title="Remove Topic"
-                            className="bg-red-500 text-white w-4 h-4 p-4 flex items-center justify-center rounded-full tooltip"
+                            className=" text-primary border w-4 h-4 p-4 flex items-center justify-center rounded-full tooltip"
                           >
-                            X
+                            x
                           </button>
                         )}
                       </div>
@@ -166,7 +167,7 @@ const ProgramFormComponent = ({
             </div>
 
             {/* Prerequisites */}
-            <div className="mb-4 space-y-2">
+            <div className="mb-4 space-y-2 text-sm">
               <label className="block  font-semibold text-primary">
                 Prerequisites
               </label>

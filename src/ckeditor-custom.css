@@ -1,0 +1,126 @@
+/* CKEditor Custom Styles - Fix for Dialog and UI Issues */
+
+/* Ensure dialogs and balloons appear above other content */
+.ck.ck-balloon-panel {
+  z-index: 10000 !important;
+}
+
+.ck.ck-dialog-overlay {
+  z-index: 9999 !important;
+}
+
+.ck.ck-dialog {
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+.ck-body-wrapper {
+  z-index: 10001 !important;
+}
+
+/* Ensure dropdown lists appear properly */
+.ck.ck-list {
+  z-index: 10000 !important;
+}
+
+/* Fix for heading dropdown */
+.ck.ck-list__item {
+  cursor: pointer !important;
+}
+
+/* Ensure buttons are clickable */
+.ck.ck-button {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Fix for toolbar dropdowns */
+.ck.ck-toolbar__items {
+  position: relative;
+  z-index: auto;
+}
+
+/* Ensure input fields in dialogs are clickable */
+.ck.ck-dialog .ck-input {
+  pointer-events: auto !important;
+}
+
+.ck.ck-dialog .ck-labeled-field-view {
+  pointer-events: auto !important;
+}
+
+/* Fix for image insert dialog */
+.ck.ck-dialog .ck-form__header {
+  pointer-events: auto !important;
+}
+
+.ck.ck-dialog .ck-dialog__actions {
+  pointer-events: auto !important;
+}
+
+/* Ensure list buttons work */
+.ck.ck-list-properties-form {
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+/* Fix for table properties dialog */
+.ck.ck-form {
+  pointer-events: auto !important;
+}
+
+/* Ensure all form elements are interactive */
+.ck.ck-dialog input,
+.ck.ck-dialog textarea,
+.ck.ck-dialog select,
+.ck.ck-dialog button {
+  pointer-events: auto !important;
+}
+
+/* Fix for link dialog */
+.ck.ck-link-form {
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+/* Better styling for the editor container */
+.ck-editor__editable_inline {
+  min-height: 200px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Ensure proper cursor for all interactive elements */
+.ck.ck-button:not(.ck-disabled),
+.ck.ck-button:not(.ck-disabled):hover {
+  cursor: pointer !important;
+}
+
+/* Fix for split button dropdowns */
+.ck.ck-splitbutton__action {
+  pointer-events: auto !important;
+}
+
+.ck.ck-splitbutton__arrow {
+  pointer-events: auto !important;
+}
+
+/* Ensure dropdown panels are visible and interactive */
+.ck.ck-dropdown__panel {
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+/* Fix for color picker and other panels */
+.ck.ck-color-picker {
+  pointer-events: auto !important;
+}
+
+.ck.ck-color-grid {
+  pointer-events: auto !important;
+}
+
+.ck.ck-color-grid__tile {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}

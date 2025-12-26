@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import clsx from "clsx";
 
 interface Option {
   label: string;
@@ -8,80 +9,143 @@ interface Option {
 interface MultiselectProps {
   options: Option[];
   selectedValues: string[];
-  onChange: (selectedValues: string[]) => void;
-  emptyMsg?:string;
-  placeholder?:string
+  onChange: (values: string[]) => void;
+
+  placeholder?: string;
+  emptyMsg?: string;
+  disabled?: boolean;
+  className?: string;
 }
 
-const Multiselect: React.FC<MultiselectProps> = ({ options, selectedValues, onChange,emptyMsg="No prerequired program selected",placeholder="program(s)" }) => {
+const Multiselect: React.FC<MultiselectProps> = ({
+  options,
+  selectedValues,
+  onChange,
+  placeholder = "Select options",
+  emptyMsg = "No selection",
+  disabled,
+  className,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const handleChange = (value: string) => {
-    const newSelectedValues = selectedValues.includes(value)
-      ? selectedValues.filter(v => v !== value)
-      : [...selectedValues, value];
-    onChange(newSelectedValues);
+  /* ------------------------ handlers ------------------------ */
+
+  const toggleValue = (value: string) => {
+    onChange(
+      selectedValues.includes(value)
+        ? selectedValues.filter(v => v !== value)
+        : [...selectedValues, value]
+    );
   };
 
-  const removeSelectedValue = (value: string) => {
-    const newSelectedValues = selectedValues.filter(v => v !== value);
-    onChange(newSelectedValues);
+  const removeValue = (value: string) => {
+    onChange(selectedValues.filter(v => v !== value));
   };
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  /* ------------------------ outside click ------------------------ */
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  /* ------------------------ styles ------------------------ */
+
+  const triggerStyles =
+    "w-full rounded-lg border bg-white px-3 py-2 text-sm " +
+    "flex items-center justify-between cursor-pointer transition-colors";
 
   return (
-    <div className="relative w-full">
-      <div
-        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 cursor-pointer"
-        onClick={toggleDropdown}
+    <div ref={ref} className={clsx("relative w-full", className)}>
+      {/* Trigger */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(v => !v)}
+        className={clsx(
+          triggerStyles,
+          "border-gray-300",
+          disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
+        )}
       >
-        {selectedValues.length > 0 ? `${selectedValues.length} ${placeholder} selected` : `Select ${placeholder}`}
-      </div>
+        <span className={selectedValues.length ? "text-gray-900" : "text-gray-500"}>
+          {selectedValues.length
+            ? `${selectedValues.length} selected`
+            : placeholder}
+        </span>
+
+        <svg
+          className={clsx(
+            "h-4 w-4 transition-transform",
+            isOpen && "rotate-180"
+          )}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1">
-          {options.map(option => (
-            <label key={option.value} className="flex items-center p-2 hover:bg-gray-100">
-              <input
-                type="checkbox"
-                value={option.value}
-                checked={selectedValues.includes(option.value)}
-                onChange={() => handleChange(option.value)}
-                className="mr-2"
-              />
-              {option.label}
-            </label>
-          ))}
+        <div className="absolute z-50 mt-1 w-full rounded-lg border bg-white shadow-lg">
+          <div className="max-h-56 overflow-y-auto">
+            {options.map(option => (
+              <label
+                key={option.value}
+                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedValues.includes(option.value)}
+                  onChange={() => toggleValue(option.value)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/20"
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
         </div>
       )}
-      <div className="flex flex-wrap gap-2">
-          {selectedValues.length > 0 ? (
-            selectedValues.map((value) => {
-              const selectedOption = options.find(option => option.value === value);
-              return (
-                <div
-                  key={value}
-                  className="flex items-center my-2 bg-primary/10 text-primary text-sm font-medium px-2 py-1 rounded-full"
+
+      {/* Selected chips */}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {selectedValues.length > 0 ? (
+          selectedValues.map(value => {
+            const option = options.find(o => o.value === value);
+            return (
+              <span
+                key={value}
+                className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+              >
+                {option?.label}
+                <button
+                  type="button"
+                  onClick={() => removeValue(value)}
+                  className="text-primary/60 hover:text-primary"
                 >
-                  <span>{selectedOption?.label}</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent dropdown from closing
-                      removeSelectedValue(value);
-                    }}
-                    className="ml-2 text-primary/60 hover:text-primary"
-                  >
-                    ×
-                  </button>
-                </div>
-              );
-            })
-          ) : (
-            <span className='py-2 text-sm'>{emptyMsg}</span>
-          )}
-        </div>
-      
+                  ×
+                </button>
+              </span>
+            );
+          })
+        ) : (
+          <span className="text-sm text-gray-500 py-1">{emptyMsg}</span>
+        )}
+      </div>
     </div>
   );
 };

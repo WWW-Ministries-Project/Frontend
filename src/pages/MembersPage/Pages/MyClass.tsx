@@ -1,12 +1,15 @@
+import { Button } from "@/components";
 import EmptyState from "@/components/EmptyState";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { TopicAssessment } from "@/pages/HomePage/pages/MinistrySchool/Components/TopicAssessment";
 import { useUserStore } from "@/store/userStore";
-import { api } from "@/utils";
+import { api, relativePath } from "@/utils";
+import { useNavigate } from "react-router-dom";
 
 const MyClass = () => {
   const userData = useUserStore((state) => state);
   const user_id = userData.id;
+  const navigate = useNavigate();
 
   const { data: studentData, refetch, loading } = useFetch(
     api.fetch.fetchEnrollmentsByUserId,
@@ -38,6 +41,34 @@ const MyClass = () => {
       </div>
 
       <section className="p-4">
+        My learning
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center border border-gray-300 rounded-md justify-between p-4">
+            <div >
+              <h3 className="font-medium  mb-2">Program Progress</h3>
+            <div className="flex gap-4 text-sm">
+              <div>
+                <p><span className="font-medium">Cohort</span>: <span> First Cohort</span></p>
+              </div>
+              <div>
+                <p><span className="font-medium">Class</span>: <span> First Cohort</span></p>
+              </div>
+              <div>
+                <p><span className="font-medium">Instructor</span>: <span> First Cohort</span></p>
+              </div>
+
+            </div>
+            
+            </div>
+            <div>
+              <Button variant="secondary" value="View program" onClick={()=>navigate("1")} />
+            </div>
+          </div>
+          <div>
+            
+          </div>
+        </div>
         {loading ? (
           <div className="text-center text-gray-500">Loading...</div>
         ) : hasData ? (
@@ -51,6 +82,7 @@ const MyClass = () => {
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+
            <EmptyState/>
             <p className="text-lg font-medium">No classes found</p>
             <p className=" text-gray-400">

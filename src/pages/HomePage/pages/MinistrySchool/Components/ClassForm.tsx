@@ -164,7 +164,7 @@ export const ClassForm = ({
 export interface IClassForm {
   id?: number;
   name: string;
-  instructorId: string;
+  instructorId: number|undefined;
   capacity: number;
   schedule: string;
   classFormat: string;
@@ -173,14 +173,14 @@ export interface IClassForm {
 }
 const initialValues: IClassForm = {
   name: "",
-  instructorId: "",
+  instructorId: undefined,
   capacity: 0,
   schedule: "",
   classFormat: "",
 };
 const validationSchema = object({
   name: string().required("required"),
-  instructorId: string().required("required"),
+  instructorId: number().required("required"),
   capacity: number()
     .transform((value, originalValue) => Number(originalValue))
     .typeError("must be a number")

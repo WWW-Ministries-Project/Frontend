@@ -1,16 +1,39 @@
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { Outlet } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 import { useViewPage, ViewPageProvider } from "../customHooks/ViewPageContext";
 import { Badge } from "@/components/Badge";
+import { useRef, useState } from "react";
+import ellipse from "@/assets/ellipse.svg"; // Update path as needed
+import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
+import { CohortForm } from "./CohortForm";
+import TopicForm from "./TopicForm";
 
 const ViewPageTemplateInner = () => {
   const { loading, data: Data, details } = useViewPage();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+    const [isCohortModalOpen, setIsCohortModalOpen] = useState(false);
+  const { id: programId } = useParams();
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleSubmitTopic = () => {
+    // Add your topic submission logic here
+  };
+
+  
   
   return (
     <PageOutline className="p-0 ">
       <section className="sticky top-0">
-        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-t-lg text-white">
-          <div className="container mx-auto p-4 px-6 space-y-4">
+        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-t-lg text-white flex p-4 px-6 justify-between items-center">
+          <div className="container mx-auto  space-y-4">
             <div>
               <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
@@ -59,7 +82,7 @@ const ViewPageTemplateInner = () => {
             )}
 
             {/* Topics */}
-            {loading
+            {/* {loading
               ? Data?.topics &&
                 Data?.showTopic && (
                   <div className="space-y-2 animate-pulse">
@@ -83,13 +106,52 @@ const ViewPageTemplateInner = () => {
                         <Badge
                           key={index}
                           className="bg-lightGray border-lightGray font-medium text-sm text-primary"
+                        <button
+                          ref={buttonRef} // Reference to the button
+                          className="text-primary"
+                          onClick={handleMenuToggle}
                         >
-                          {topic?.name || topic}
-                        </Badge>
-                      ))}
-                    </div>
                   </div>
-                )}
+                )} */}
+          </div>
+          <div className="flex gap-4">
+            {/* <div >
+              <Button
+                value="Manage class"
+                className="  text-primary min-h-10 max-h-14 bg-white"
+                onClick={() => {}}
+              />
+            </div> */}
+            {/* <div className="relative">
+            
+            {isMenuOpen  && (
+              <div
+                ref={menuRef}
+                className="absolute right-0  mt-2 w-48 bg-white text-primary border border-lightGray rounded-lg shadow-lg"
+              >
+                <ul className="py-1">
+                  <li
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                                        onClick={() => {
+                      setIsCohortModalOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Cohort
+                  </li>
+                  <li
+                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                    onClick={() => setIsTopicModalOpen(true)}
+                  >
+                    Topic
+                  </li>
+
+                  
+                </ul>
+              </div>
+            )}
+          </div> */}
+            
           </div>
         </div>
       </section>
@@ -110,6 +172,27 @@ const ViewPageTemplateInner = () => {
         </div>
         {/* )} */}
       </section>
+
+      
+            {/* Cohort creation (reused CohortForm) */}
+            <Modal open={isCohortModalOpen} onClose={() => setIsCohortModalOpen(false)}>
+              <CohortForm
+                onClose={() => setIsCohortModalOpen(false)}
+                programId={programId ? Number(programId) : NaN}
+                onSuccess={() => {
+                  setIsCohortModalOpen(false);
+                }}
+              />
+            </Modal>
+      
+            {/* Topic creation */}
+            <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[60vw]">
+            <TopicForm
+              open={isTopicModalOpen}
+              onClose={() => setIsTopicModalOpen(false)}
+              onSubmit={handleSubmitTopic}
+            />
+            </Modal>
     </PageOutline>
   );
 };

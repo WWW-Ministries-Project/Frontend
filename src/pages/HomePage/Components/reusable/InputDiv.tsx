@@ -1,122 +1,153 @@
-import PropTypes from "prop-types";
 import React, { forwardRef } from "react";
+import clsx from "clsx";
 
 export interface InputDivProps {
-  type?: string;
-  label?: string;
-  placeholder?: string;
-  className?: string;
-  inputClass?: string;
   id: string;
+  label?: string;
+  type?: "text" | "number" | "email" | "password" | "textarea";
   value?: string | number;
+  placeholder?: string;
   onChange: (name: string, value: string | number) => void;
-  onBlur?: (e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>) => void;
-  onClick?: (e: React.MouseEvent) => void;
+  onBlur?: React.FocusEventHandler<
+    HTMLInputElement | HTMLTextAreaElement
+  >;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
   error?: string;
+  required?: boolean;
+
   min?: string;
   max?: string;
-  autocomplete?: string;
-  ariaLabel?: string;
-  required?: boolean;
   pattern?: string;
+  autoComplete?: string;
+
+  className?: string;
+  inputClassName?: string;
+
+  ariaLabel?: string;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
 }
 
 export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
-  (props, ref) => {
-    function handleChange(
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) {
-      const name = e.target.name;
-      props.onChange(name, e.target.value);
-    }
+  (
+    {
+      id,
+      label,
+      type = "text",
+      value,
+      placeholder,
+      onChange,
+      onBlur,
+      onClick,
+      disabled,
+      error,
+      required,
+      min,
+      max,
+      pattern,
+      autoComplete = "off",
+      className,
+      inputClassName,
+      ariaLabel,
+      ariaLabelledBy,
+      ariaDescribedBy,
+    },
+    ref
+  ) => {
+    const isTextarea = type === "textarea";
 
-    function handleBlur(
-      e: React.FocusEvent<HTMLAreaElement | HTMLInputElement>
-    ) {
-      if (props.onBlur) props.onBlur(e);
-    }
+    const baseInputStyles =
+      "w-full rounded-lg border bg-white px-3 py-2 text-sm " +
+      "transition-colors focus:outline-none focus:ring-2";
+
+    const stateStyles = clsx(
+      error
+        ? "border-error focus:ring-error/30"
+        : "border-gray-300 focus:border-primary focus:ring-primary/20",
+      disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
+    );
+
+    const handleChange = (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      onChange(e.target.name, e.target.value);
+    };
 
     return (
       <div
-        className={`flex text-primary flex-col gap-1 ${props.className}`}
         ref={ref}
-        onClick={props.onClick}
-        style={{ cursor: props.onClick ? "pointer" : "default" }}
+        onClick={onClick}
+        className={clsx(
+          "flex flex-col gap-1 text-primary",
+          onClick && "cursor-pointer",
+          className
+        )}
       >
-        <label className="font-semibold " htmlFor={props.id}>
-          {props.label}
-        </label>
-        {props.type === "textarea" ? (
+        {label && (
+          <label
+            htmlFor={id}
+            className="text-sm font-medium text-gray-700"
+          >
+            {label}
+            {required && (
+              <span className="ml-0.5 text-error">*</span>
+            )}
+          </label>
+        )}
+
+        {isTextarea ? (
           <textarea
-            className={`input rounded-xl  !h-[150px] ${props.inputClass} ${
-              props.error ? "!border-error !outline-error" : ""
-            }`}
-            id={props.id}
-            name={props.id}
-            value={props.value}
+            id={id}
+            name={id}
+            value={value}
+            placeholder={placeholder}
+            disabled={disabled}
             onChange={handleChange}
-            placeholder={props.placeholder}
-            disabled={props.disabled}
+            onBlur={onBlur}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            aria-describedby={ariaDescribedBy}
+            className={clsx(
+              baseInputStyles,
+              stateStyles,
+              "min-h-[140px] resize-none",
+              inputClassName
+            )}
           />
         ) : (
           <input
-            className={`   ${
-              props.inputClass
-                ? props.inputClass
-                : "rounded-lg p-2 border focus:border-primary focus:outline-none"
-            }  ${
-              props.error
-                ? "!border-error focus:outline-none !outline-error"
-                : ""
-            }  ${
-              props.disabled
-                ? "bg-gray-100 border-none text-gray-500 cursor-not-allowed"
-                : ""
-            }`}
-            id={props.id}
-            name={props.id}
-            type={props.type || "text"}
-            value={props.value}
+            id={id}
+            name={id}
+            type={type}
+            value={value}
+            placeholder={placeholder}
+            disabled={disabled}
             onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder={props.placeholder}
-            disabled={props.disabled}
-            min={props.min}
-            max={props.max}
-            autoComplete={props.autocomplete || "off"}
-            aria-label={props.ariaLabel}
-            required={props.required}
-            pattern={props.pattern}
-            aria-labelledby={props.ariaLabelledBy}
-            aria-describedby={props.ariaDescribedBy}
+            onBlur={onBlur}
+            min={min}
+            max={max}
+            pattern={pattern}
+            autoComplete={autoComplete}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            aria-describedby={ariaDescribedBy}
+            className={clsx(
+              baseInputStyles,
+              stateStyles,
+              inputClassName
+            )}
           />
         )}
-        {props.error && (
-          <div className="text-error text-sma">{props.error}</div>
+
+        {error && (
+          <span className="text-xs text-error">
+            {error}
+          </span>
         )}
       </div>
     );
   }
 );
-
-InputDiv.propTypes = {
-  type: PropTypes.string,
-  label: PropTypes.string,
-  placeholder: PropTypes.string,
-  className: PropTypes.string,
-  inputClass: PropTypes.string,
-  id: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  onChange: PropTypes.func.isRequired,
-  onBlur: PropTypes.func,
-  onClick: PropTypes.func,
-  disabled: PropTypes.bool,
-  error: PropTypes.string,
-  min: PropTypes.string,
-  max: PropTypes.string,
-};
 
 InputDiv.displayName = "InputDiv";

@@ -52,7 +52,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
   return (
     <FormLayout>
-      <FormHeader>Personal Information</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Personal Information</FormHeader>
       <FullWidth>
         <div className="flex flex-col items-center justify-center w-full">
           <ProfilePicture
@@ -75,15 +75,15 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
       <UserSubForm prefix="personal_info" />
       <HorizontalLine />
 
-      <FormHeader>Contacts Information</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Contacts Information</FormHeader>
       <ContactsSubForm disabled={disabled} prefix="contact_info" />
       <HorizontalLine />
 
-      <FormHeader>Emergency Contact</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Emergency Contact</FormHeader>
       <EmergencyContact disabled={disabled} prefix="emergency_contact" />
       <HorizontalLine />
 
-      <FormHeader>Membership Status</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Membership Status</FormHeader>
       <Field
         component={FormikSelectField}
         label="Membership Type"
@@ -117,7 +117,7 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
       {values.is_user && (
         <>
-          <FormHeader>Ministry/Department & Positions</FormHeader>
+          <FormHeader className={"text-primary font-bold "}>Ministry/Department & Positions</FormHeader>
           <DepartmentPositionSubForm
             disabled={disabled}
             prefix="department_positions"

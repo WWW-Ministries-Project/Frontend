@@ -20,7 +20,7 @@ const WorkInfoSubFormComponent = ({
   );
   return (
     <>
-      <FormHeader>Work Information</FormHeader>
+      <FormHeader className={"text-primary font-bold "}>Work Information</FormHeader>
       <Field
         component={FormikSelectField}
         label="Employment Status *"

@@ -8,11 +8,19 @@ import { api, Programs, ClassOption } from "@/utils";
 import { ProgramCard } from "@/pages/MembersPage/Component/ProgramCard";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
 import EmptyState from "@/components/EmptyState";
+import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
+import { Button } from "@/components";
+import UsersIcon from "@/assets/sidebar/UsersIcon";
+import { Square3Stack3DIcon, Squares2X2Icon, UserGroupIcon } from "@heroicons/react/24/outline";
 
 const ProgramApply = () => {
   const [open, setOpen] = useState(false);
   const [activeProgram, setActiveProgram] = useState<Programs | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
+
+  type ProgramFilter = "all" | "member_required" | "leader_required" | "ministry_required";
+  const [filter, setFilter] = useState<ProgramFilter>("all");
+
 
   const user = useUserStore();
   const { data } = useFetch(api.fetch.fetchAllApplicablePrograms);
@@ -25,6 +33,8 @@ const ProgramApply = () => {
 
   const handleOpen = (program: Programs) => {
     setActiveProgram(program);
+    console.log("program", program);
+    
     setSelectedClassId("");
     setOpen(true);
   };
@@ -50,7 +60,7 @@ const ProgramApply = () => {
     const res = await enrollUser({
       user_id: user.id,
       course_id: Number(selectedClassId)
-    });
+    }) as { success: boolean; message: string } | undefined;
 
     // If backend returns something like { success: true, message: '...' }
     if (res?.success) {
@@ -77,12 +87,120 @@ const ProgramApply = () => {
   }
 };
 
+const programStatus = [
+  { id: 1, name: "All", key: "all", active: filter === "all" },
+  { id: 2, name: "Members", key: "member_required", active: filter === "member_required" },
+  { id: 3, name: "Leaders", key: "leader_required", active: filter === "leader_required" },
+  { id: 4, name: "Ministry Workers", key: "ministry_required", active: filter === "ministry_required" },
+];
+
+const handleStatusSelect = (id: string | number) => {
+  const selected = programStatus.find((s) => s.id === Number(id));
+  if (selected) {
+    setFilter(selected.key as ProgramFilter);
+  }
+};
+
+const filteredPrograms = useMemo(() => {
+  if (!programs) return [];
+
+  if (filter === "all") return programs;
+
+  return programs.filter((program) => program[filter] === true);
+}, [programs, filter]);
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
   return (
-    <div className="w-full py-4 flex flex-col overflow-auto">
-      {programs && programs.length > 0 ? (
-        <div className="grid w-full max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {programs.map((program) => (
-            <ProgramCard key={program.id} program={program} onOpen={() => handleOpen(program)} />
+    <main className="mx-auto py-8 ">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="w-full lg:w-64 lg:sticky lg:top-6">
+            {/* Use CourseSidebar to render program status filters */}
+            <CourseSidebar
+              heading="State"
+              // CourseSidebar expects navItems shaped like {id, name, active}
+              navItems={programStatus.map((s) => ({ id: s.id, name: s.name, active: s.active }))}
+              onSelect={handleStatusSelect}
+            />
+          </div>
+
+          <div className="flex flex-col gap-4 lg:flex-1">
+      {filteredPrograms && filteredPrograms.length > 0 ? (
+        <div className="w-full max-w-6xl  flex flex-col gap-4">
+          {filteredPrograms.map((program) => (
+            <div key={program.id} className="border bg-white p-4 rounded-xl flex flex-col gap-6">
+              <div className="flex flex-col gap-1">
+                <div className="text-lg font-semibold">
+                {program.name}
+              </div>
+              <div>
+                <div className="mt-2 text-sm text-gray-600">
+                {program.description}
+              </div>
+                {/* <Button value="View program details"   onClick={() => handleOpen(program)}/> */}
+              </div>
+              
+              </div>
+
+              
+
+              {program?.prerequisites?.length!==0&&<div className="flex flex-col gap-1">
+                <div className="text-sm font-semibold flex gap-2">
+                  <Square3Stack3DIcon className="w-5"/>
+                  Prerequisite
+                </div>
+                <div className="flex gap-6">
+                  {program?.prerequisites?.map((prerequisite) => (
+                    <div key={prerequisite} className="text-sm  bg-gray-100 p-1 rounded-md">
+                      {prerequisite}
+                    </div>
+                  ))}
+                </div>
+              </div>}
+
+              <div className="flex flex-col gap-1">
+                <div className="text-sm font-semibold flex gap-2">
+                 <UserGroupIcon className="w-5"/> Facilitators
+                </div>
+                <div className="flex flex-wrap gap-6 mt-1">
+                  {Array.from(
+                    new Set(program.courses?.map((course) => course.facilitator).filter(Boolean))
+                  ).map((facilitator) => (
+                    <div key={facilitator} className="text-sm flex gap-2 items-center">
+                      <div className="rounded-full bg-gray-100 px-2 py-1 font-medium">
+                        {getInitials(facilitator)}
+                      </div>
+                      <div className="font-medium">{facilitator}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="text-sm font-semibold flex gap-2">
+                 <Squares2X2Icon className="w-5"/> Cohort
+                </div>
+                <div className="flex gap-6 mt-1">
+                  
+                  <div className="text-sm flex gap-2 items-center">
+                    <div className="font-medium">
+                      {program.upcomingCohort}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr />
+              <div className="flex justify-end">
+                <Button value="View program details"   onClick={() => handleOpen(program)}/>
+              </div>
+            </div>
+            // <ProgramCard key={program.id} program={program} onOpen={() => handleOpen(program)} />
           ))}
         </div>
       ) : (
@@ -92,8 +210,11 @@ const ProgramApply = () => {
           We will be adding more programs soon.
         </div>
       )}
+      </div>
 
-      <Modal open={open} persist onClose={() => setOpen(false)}>
+      
+    </div>
+    <Modal open={open} persist onClose={() => setOpen(false)}>
         <ProgramDetailsModal
           program={activeProgram}
           selectedClassId={selectedClassId}
@@ -103,7 +224,7 @@ const ProgramApply = () => {
           submitting={postLoading}
         />
       </Modal>
-    </div>
+    </main>
   );
 };
 

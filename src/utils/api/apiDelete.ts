@@ -64,6 +64,11 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`program/course`, query);
   };
 
+  // delete Topic
+  deleteTopic = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`program/topic`, query);
+  }
+
   /* Visitor Management */
   deleteVisitor = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`visitor/visitor`, query);

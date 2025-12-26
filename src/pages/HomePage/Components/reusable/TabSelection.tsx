@@ -21,7 +21,7 @@ const TabSelection = <T extends string = string>({
   };
 
   return (
-    <div className="w-full min-w-0"> {/* important for horizontal scrolling */}
+    <div className="w-fit min-w-0"> {/* important for horizontal scrolling */}
       <div
         role="tablist"
         aria-label="Tabs"

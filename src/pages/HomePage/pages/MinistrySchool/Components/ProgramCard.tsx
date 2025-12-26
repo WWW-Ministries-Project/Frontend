@@ -85,18 +85,7 @@ export const ProgramsCard = ({
                 </li> */}
                 {cohorts.length > 0 && (
                   <>
-                    {" "}
-                    {/* <li>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30"
-                        onClick={() => {
-                          handleCopyLink(program.id);
-                          setIsMenuOpen(false);
-                        }}
-                      >
-                        Copy Application Link
-                      </button>
-                    </li> */}
+                    
                     <li>
                       <button
                         className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30"
