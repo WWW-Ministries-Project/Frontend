@@ -58,7 +58,7 @@ const BannerWrapper = ({children, imgSrc}: {children: ReactNode, imgSrc?: string
       {/* Content container */}
       <div 
         className={`
-          relative z-10 h-full flex items-center mx-auto max-w-[2000px]
+          relative z-10 h-full flex items-center mx-auto 
           transition-all duration-300 ease-in-out
           ${isSticky 
             ? 'py-6 px-4 lg:px-16 xl:px-32 3xl:px-64' 

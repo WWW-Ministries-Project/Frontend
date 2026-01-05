@@ -7,6 +7,8 @@ import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/Learn
 import { api, ProgramTopic, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
+import { Modal } from "@/components/Modal";
+import  CertificateTemplate  from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateTemplate";
 
 
 type NavItem = { id: string | number; name: string; active: boolean };
@@ -34,31 +36,38 @@ const EnrolledProgram: React.FC = () => {
 );
 
 
-  useEffect(() => {
-    if (!data?.data) return;
+ useEffect(() => {
+  if (!data?.data) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    const program = data.data;
-    const backendTopics = program.topics ?? [];
+  const program = data.data;
+  const backendTopics = program.topics ?? [];
 
-    setTopics(backendTopics);
+  setTopics(backendTopics);
 
-    if (backendTopics.length > 0) {
-      const items = backendTopics.map((t, idx) => ({
-        id: t.id,
-        name: t.name,
-        active: idx === 0,
-      }));
-      setNavItems(items);
-      setSelectedTopicId(backendTopics[0].id);
-    } else {
-      setNavItems([]);
-      setSelectedTopicId(null);
-    }
+  if (backendTopics.length > 0) {
+    // Find first incomplete topic
+    const firstIncompleteTopic =
+      backendTopics.find((t) => !t.completed) ?? backendTopics[0];
 
-    setIsLoading(false);
-  }, [data]);
+    const items = backendTopics.map((t) => ({
+      id: t.id,
+      name: t.name,
+      active: t.id === firstIncompleteTopic.id,
+      completed: t.completed || false,
+      type:t.learningUnit.type
+    }));
+
+    setNavItems(items);
+    setSelectedTopicId(firstIncompleteTopic.id);
+  } else {
+    setNavItems([]);
+    setSelectedTopicId(null);
+  }
+
+  setIsLoading(false);
+}, [data]);
 
   const handleTopicSelect = (navId: string | number) => {
     setNavItems((items) =>
@@ -89,8 +98,8 @@ const EnrolledProgram: React.FC = () => {
     <div className="w-full">
       {/* Banner Section */}
       <BannerWrapper>
-        <div className="space-y-4 max-w-4xl">
-          <div className="flex items-start justify-between gap-4">
+        <div className="space-y-4 w-full">
+          <div className="flex items-center justify-between gap-4">
             <div className="space-y-3 flex-1">
               <h1 className="font-bold text-2xl md:text-3xl lg:text-4xl ">
                 {data?.data?.title}
@@ -99,6 +108,13 @@ const EnrolledProgram: React.FC = () => {
                 {data?.data?.description}
               </p>
             </div>
+            {data?.data.completed&&<div>
+              <Button
+                value="Download Certificate"
+                variant="primary"
+                className="bg-white text-primary"
+              />
+            </div>}
           </div>
         </div>
       </BannerWrapper>
@@ -112,6 +128,7 @@ const EnrolledProgram: React.FC = () => {
             aria-label="Course topics navigation"
           >
             <div className="">
+              {console.log("NavItems", navItems)}
               
               <CourseSidebar
                 navItems={navItems}
@@ -193,6 +210,12 @@ const EnrolledProgram: React.FC = () => {
           </aside> */}
         </div>
       </main>
+      <Modal open={true} className="w-[70vw] h-[90vh] ">
+        <CertificateTemplate
+
+        
+        />
+      </Modal>
     </div>
   );
 };

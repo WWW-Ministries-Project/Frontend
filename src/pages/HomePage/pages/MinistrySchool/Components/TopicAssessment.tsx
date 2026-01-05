@@ -5,7 +5,7 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { DivideIcon } from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
-import { CertificateTemplate } from "./CertificateTemplate";
+// import { CertificateTemplate } from "./CertificateTemplate";
 import { EnrollmentDataType } from "@/utils";
 
 export const TopicAssessment = ({
@@ -304,7 +304,7 @@ export const TopicAssessment = ({
             
             {/* Certificate Content */}
             <div className="p-4 sm:p-6 md:p-8">
-              <CertificateTemplate data={certificateData} closeModal={()=>setShowCertificate(false)}/>
+              {/* <CertificateTemplate data={certificateData} closeModal={()=>setShowCertificate(false)}/> */}
             </div>
           </div>
         </div>

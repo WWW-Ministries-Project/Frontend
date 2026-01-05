@@ -3,188 +3,148 @@
 import ChurchLogo from "@/components/ChurchLogo"
 import { ArrowDownIcon, TrophyIcon } from "@heroicons/react/24/outline"
 import type React from "react"
+// import { Award } from 'lucide-react';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
-// import { Button } from "@/components/ui/button"
-// import { Card } from "@/components/ui/card"
-// import { Download, Award } from "lucide-react"
-import { useRef } from "react"
-
-interface CertificateData {
-  recipientName: string
-  achievement: string
-  description: string
-  date: string
-  issuer: string
-  signatory: string
-  signatoryTitle: string
+interface CertificateProps {
+  recipientName?: string;
+  description?: string;
+  leftSignature?: string;
+  rightSignature?: string;
 }
 
-interface CertificateTemplateProps {
-  data: CertificateData
-  closeModal?: () => void
-}
+export default function Certificate({
+  recipientName = "Marcia Cardenas",
+  description = "In recognition of active participation and successful engagement in the program. This certificate is awarded to acknowledge commitment, learning, and meaningful contribution throughout the duration of the session",
+  leftSignature = "President Director",
+  rightSignature = "General Manager"
+}: CertificateProps) {
+  const handleDownloadPDF = async () => {
+    const certificateElement = document.getElementById("certificate-a4");
 
-export function CertificateTemplate({ data, closeModal }: CertificateTemplateProps) {
-  const certificateRef = useRef<HTMLDivElement>(null)
+    if (!certificateElement) return;
 
-  const exportToPDF = async () => {
-    if (!certificateRef.current) return
+    const canvas = await html2canvas(certificateElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
 
-    try {
-      // Dynamic import to avoid SSR issues
-      const html2canvas = (await import("html2canvas")).default
-      const jsPDF = (await import("jspdf")).default
+    const imgData = canvas.toDataURL("image/png");
 
-      const canvas = await html2canvas(certificateRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-      })
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
 
-      const imgData = canvas.toDataURL("image/png")
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-      })
+    const pdfWidth = 297;
+    const pdfHeight = 210;
 
-      const imgWidth = 297 // A4 landscape width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight)
-      pdf.save(`certificate-${data.recipientName.replace(/\s+/g, "-").toLowerCase()}.pdf`)
-    } catch (error) {
-      console.error("Error generating PDF:", error)
-    }
-  }
-
-  const certificateStyles = {
-    "--cert-primary": "#155e75", // cyan-800 equivalent
-    "--cert-accent": "#ae6b23", // green-500 equivalent
-    "--cert-border": "#334155", // slate-700 equivalent
-    "--cert-text": "#374151", // slate-600 equivalent
-    "--cert-text-dark": "#374151", // slate-700 equivalent
-  } as React.CSSProperties
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("certificate.pdf");
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button onClick={exportToPDF} className="flex items-center gap-2 border bg-primary text-white p-1 px-3 rounded-lg hover:bg-gray-100 hover:text-primary transition-colors">
-          {/* <ArrowDownIcon className="w-4 h-4" /> */}
-          Export as PDF
-        </button>
-        {closeModal && (
-          <button onClick={closeModal} className="ml-4 flex items-center gap-2 border p-1 px-3 rounded-lg hover:bg-gray-100 transition-colors">
-            Close
-          </button>
-        )}
-      </div>
+    <div className="w-full flex flex-col items-center gap-4">
+       <button
+      onClick={handleDownloadPDF}
+      className="px-4 py-2 rounded-md bg-[#2d3e6f] text-white text-sm hover:opacity-90"
+    >
+      Download Certificate (PDF)
+    </button>
+      <div
+        id="certificate-a4"
+        className="relative bg-white shadow-2xl w-full max-w-[1123px]"
+        style={{ aspectRatio: "297 / 210" }}
+      >
+          {/* Outer border */}
+          <div className="absolute inset-4 border-2 border-gray-300">
+            {/* Inner certificate content */}
+            <div className="relative w-full h-full overflow-hidden">
 
-      <div className="overflow-hidden">
-        <div ref={certificateRef} className="bg-white p-4 aspect-[297/210] font-sans" style={certificateStyles}>
-          <div className="h-full relative rounded-lg border-8 border-double" style={{ borderColor: "var(--cert-border)" }}>
-            <div className="h-full p-8 flex flex-col  border-4" style={{ borderColor: "var(--cert-border)" }}>
-              {/* Header Section */}
-              <div className="text-center space-y-6 mb-8">
-                <div className="flex justify-center mb-4">
-                  <div
-                    className=" rounded-full flex items-center justify-center"
-                    
-                  >
-                    {/* <TrophyIcon className="w-8 h-8 text-white" /> */}
-                    <ChurchLogo show />
+              {/* Decorative curved elements - Left side */}
+              <div className="absolute left-0 top-0 h-full w-48 overflow-hidden">
+                <div className="absolute -left-24 top-1/4 w-64 h-64 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 opacity-60"></div>
+                <div className="absolute -left-16 top-1/3 w-48 h-48 rounded-full bg-gradient-to-br from-[#2d3e6f] to-[#1e2847]"></div>
+              </div>
+
+              {/* Decorative curved elements - Right side */}
+              <div className="absolute right-0 top-0 h-full w-48 overflow-hidden">
+                <div className="absolute -right-24 top-1/4 w-64 h-64 rounded-full bg-gradient-to-bl from-gray-100 to-gray-200 opacity-60"></div>
+                <div className="absolute -right-16 top-1/3 w-48 h-48 rounded-full bg-gradient-to-bl from-[#2d3e6f] to-[#1e2847]"></div>
+              </div>
+
+              {/* Main content */}
+              <div className="relative z-50 flex flex-col items-center justify-center h-full px-16 py-16">
+
+                {/* logo */}
+
+                {/* Header */}
+                <div className="text-center mb-16">
+                  <h1 className="text-5xl font-serif tracking-[0.3em] text-gray-800 mb-2">
+                    CERTIFICATE
+                  </h1>
+                  <div className="flex items-center justify-center gap-4 mb-8">
+                    <div className="h-px w-24 bg-gray-400"></div>
+                    <h2 className="text-sm tracking-[0.2em] text-gray-600 font-light">
+                      OF Participation
+                    </h2>
+                    <div className="h-px w-24 bg-gray-400"></div>
+                  </div>
+                  <p className="text-xs tracking-wider text-gray-500 font-light">
+                    THIS CERTIFICATE IS PROUDLY PRESENTED TO :
+                  </p>
+                </div>
+
+                {/* Recipient name */}
+                <div className="mb-6">
+                  <h2 className="text-6xl font-serif  text-gray-800 text-center" style={{ fontFamily: 'Georgia, serif' }}>
+                    {recipientName}
+                  </h2>
+                  <div className="h-px w-[35vw] bg-gray-400"></div>
+                </div>
+
+                {/* Description */}
+                <div className="max-w-2xl mb-12">
+                  <p className="text-center text-sm leading-relaxed text-gray-600">
+                    {description}
+                  </p>
+                </div>
+
+                {/* Signature section */}
+                <div className="w-full max-w-2xl flex justify-between items-end mt-auto pt-8">
+                  {/* Left signature */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-40 border-t border-gray-400 mb-2"></div>
+                    <p className="text-xs tracking-wider text-gray-600 font-light">
+                      {leftSignature}
+                    </p>
+                  </div>
+
+                  {/* Center badge */}
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2d3e6f] to-[#1e2847] flex items-center justify-center shadow-lg">
+                      {/* <Award className="w-8 h-8 text-amber-400" strokeWidth={2} /> */}
+                    </div>
+                  </div>
+
+                  {/* Right signature */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-40 border-t border-gray-400 mb-2"></div>
+                    <p className="text-xs tracking-wider text-gray-600 font-light">
+                      {rightSignature}
+                    </p>
                   </div>
                 </div>
 
-                <h1 className="text-4xl font-bold font-serif" style={{ color: "var(--cert-border)" }}>
-                  CERTIFICATE OF COMPLETION
-                </h1>
-
-                <div className="w-32 h-1 mx-auto" style={{ backgroundColor: "var(--cert-accent)" }}></div>
               </div>
-
-              {/* Content Section */}
-              <div className="flex-1 flex flex-col justify-center space-y-8 text-center">
-                <div className="space-y-4">
-                  <p className="text-lg font-medium" style={{ color: "var(--cert-text)" }}>
-                    This is to certify that
-                  </p>
-
-                  <h2
-                    className="text-5xl font-bold pb-2 inline-block font-serif  border-slate-300"
-                    style={{ color: "var(--cert-primary)" }}
-                  >
-                    {data?.recipientName}
-                  </h2>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-lg" style={{ color: "var(--cert-text)" }}>
-                    has successfully completed
-                  </p>
-
-                  <h3 className="text-3xl font-bold font-serif" style={{ color: "var(--cert-primary)" }}>
-                    {data?.achievement}
-                  </h3>
-
-                  <p className="text-base max-w-2xl mx-auto leading-relaxed" style={{ color: "var(--cert-text)" }}>
-                    {data?.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Footer Section */}
-              <div className="flex justify-between items-end mt-8">
-                <div className="text-left">
-                  <p className="text-sm mb-1" style={{ color: "var(--cert-text)" }}>
-                    Date of Issue
-                  </p>
-                  <p className="text-lg font-semibold" style={{ color: "var(--cert-text-dark)" }}>
-                    {data?.date}
-                  </p>
-                </div>
-
-                <div className="text-center">
-                  <p className="text-sm mb-1" style={{ color: "var(--cert-text)" }}>
-                    Issued by
-                  </p>
-                  <p className="text-xl font-bold font-serif" style={{ color: "var(--cert-primary)" }}>
-                    {data?.issuer}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <div className="w-full mb-2 border-b border-slate-400"></div>
-                  <p className="text-lg font-semibold" style={{ color: "var(--cert-text-dark)" }}>
-                    {data?.signatory}
-                  </p>
-                  <p className="text-sm" style={{ color: "var(--cert-text)" }}>
-                    {data?.signatoryTitle}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className="absolute top-4 left-4 w-8 h-8 border-l-4 border-t-4"
-                style={{ borderColor: "var(--cert-accent)" }}
-              ></div>
-              <div
-                className="absolute top-4 right-4 w-8 h-8 border-r-4 border-t-4"
-                style={{ borderColor: "var(--cert-accent)" }}
-              ></div>
-              <div
-                className="absolute bottom-4 left-4 w-8 h-8 border-l-4 border-b-4"
-                style={{ borderColor: "var(--cert-accent)" }}
-              ></div>
-              <div
-                className="absolute bottom-4 right-4 w-8 h-8 border-r-4 border-b-4"
-                style={{ borderColor: "var(--cert-accent)" }}
-              ></div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  )
+
+   
+  </div>
+  );
 }

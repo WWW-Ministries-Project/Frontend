@@ -50,18 +50,21 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, complete
   const [submitted, setSubmitted] = useState(false);
 
 
-  const markCompleted = () => {
-    let payload= {
+  const markCompleted = async () => {
+  try {
+    const payload = {
       topicId,
-      userId
+      userId,
+    };
 
-    }
-    // updateProgress(100);
     console.log("updating completion", payload);
-    
-    markTopicAsCompleted(payload)
-    refetch()
-  };
+
+    await markTopicAsCompleted(payload); // wait for backend update
+    await refetch();                     // refetch AFTER success
+  } catch (error) {
+    console.error("Failed to mark topic as completed", error);
+  }
+};
 
   const badge = unit ? typeBadgeMap[unit.type] : undefined;
   console.log("Unit", unit);
