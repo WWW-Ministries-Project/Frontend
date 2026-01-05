@@ -1,23 +1,30 @@
 import React from "react";
 import { cn } from "@/utils/cn";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, } from "@heroicons/react/24/solid";
 
-interface NavItem {
+export interface NavItem {
   id: string | number;
   name: string;
   active: boolean;
 }
 
+export type NavItems = NavItem[];
+
 type CourseSidebarProps = {
-  navItems: NavItem[];
+  navItems?: NavItems;
   heading?: string;
   /** Called when an item is clicked. Parent should update active state. */
   onSelect?: (id: string | number) => void;
 };
 
-const CourseSidebar: React.FC<CourseSidebarProps> = ({ navItems, heading = "Topic", onSelect }) => {
+const CourseSidebar: React.FC<CourseSidebarProps> = ({
+  navItems = [],
+  heading = "Topic",
+  onSelect,
+}) => {
   return (
-    <aside className="w-full  lg:flex-shrink-0" aria-label={`${heading} sidebar`}>
+    <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading} sidebar`}>
       <div className="rounded-xl border border-border bg-white p-4">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {heading}
@@ -38,7 +45,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({ navItems, heading = "Topi
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <span className="truncate">{nav.name}</span>
+              
+              <span className="flex items-center gap-4">
+                <div><CheckCircleIcon className="h-6 w-6 text-lime-700"/>
+                </div> {nav.name}</span>
               <ChevronRightIcon className="h-4 w-4" />
             </button>
           ))}

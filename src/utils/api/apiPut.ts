@@ -170,6 +170,15 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData(`program/topic`, payload, query);
   }
 
+  // mark topic as completed
+  markTopicAsCompleted = (
+    payload: unknown,
+    // query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/complete-topic
+`, payload);
+  }
+
   /* Visitor Management */
 
   updateVisitor = (

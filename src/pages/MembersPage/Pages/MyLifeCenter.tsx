@@ -5,6 +5,7 @@ import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils/api/apiCalls";
 import { CalendarIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import BannerWrapper from "../layouts/BannerWrapper";
+import lifecenter from "@/assets/banner/lifecenter.svg";
 
 
 const MyLifeCenter = () => {
@@ -15,7 +16,7 @@ const MyLifeCenter = () => {
     
     return ( 
        <div className="space-y-4">
-       <BannerWrapper>
+       <BannerWrapper imgSrc={lifecenter}>
                 <div className="space-y-4 ">
                     <div className="font-bold text-2xl">
                     {lifeCenterData?.name || "No name"}

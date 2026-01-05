@@ -324,3 +324,255 @@ export const dummyProgData = [
     "prerequisitePrograms": [11]
   }
 ]
+
+export const progTopic = {
+  id: 1,
+  progId: 12,
+  name: "Test Program",
+  description: "test description",
+  topic: [
+    {
+      id: 101,
+      name: "Lesson Note: Product Discovery Fundamentals",
+      order: 1,
+      completed: false,
+      description:
+        "<p>This lesson introduces the fundamentals of product discovery and why it is critical to building successful products.</p>",
+      learningUnit: {
+        type: "lesson-note",
+        data: {
+          content: `
+            <h3>Introduction</h3>
+            <p>
+              Product discovery is the process of understanding <strong>real user problems</strong>
+              and validating potential solutions <em>before</em> investing significant time and
+              resources into development. Many products fail not because teams lack technical
+              skills, but because they build solutions that users do not truly need.
+            </p>
+
+            <p>
+              By practicing effective product discovery, teams can reduce uncertainty, make
+              evidence-based decisions, and ensure alignment between business goals and user needs.
+              Discovery helps teams learn early, fail cheaply, and improve outcomes.
+            </p>
+
+            <h3>Why Product Discovery Matters</h3>
+            <p>
+              When discovery is skipped or rushed, assumptions often replace facts. This can lead
+              to wasted development effort, poor user adoption, and missed business opportunities.
+            </p>
+
+            <ul>
+              <li>Validates real user needs and pain points</li>
+              <li>Reduces waste by avoiding unnecessary features</li>
+              <li>Aligns stakeholders around evidence, not opinions</li>
+              <li>Increases the likelihood of product success</li>
+            </ul>
+
+            <h3>Key Activities in Product Discovery</h3>
+            <p>
+              Product discovery is not a one-time phase. It is a continuous process that happens
+              throughout the product lifecycle. Common discovery activities include:
+            </p>
+
+            <ol>
+              <li>User interviews and field research</li>
+              <li>Problem framing and assumption mapping</li>
+              <li>Rapid prototyping and usability testing</li>
+              <li>Experimentation and learning from feedback</li>
+            </ol>
+
+            <p>
+              <strong>Key takeaway:</strong> The goal of product discovery is not to find perfect
+              answers, but to learn quickly and make informed decisions with confidence.
+            </p>
+          `,
+        },
+      },
+    },
+
+    {
+      id: 102,
+      name: "Video: Product Discovery Overview",
+      order: 2,
+      completed: false,
+      description:
+        "<p>Watch a short video introducing the key ideas behind product discovery.</p>",
+      learningUnit: {
+        type: "video",
+        data: {
+          value: "https://www.youtube.com/embed/1wfeqDyMUx4",
+        },
+      },
+    },
+
+    {
+      id: 103,
+      name: "PDF: Product Discovery Guide",
+      order: 3,
+      completed: false,
+      description:
+        "<p>Download and read the detailed product discovery guide.</p>",
+      learningUnit: {
+        type: "pdf",
+        data: {
+          link: "https://example.com/product-discovery.pdf",
+        },
+      },
+    },
+
+    {
+      id: 104,
+      name: "PPT: Discovery Workshop Slides",
+      order: 4,
+      completed: false,
+      description:
+        "<p>Slides used during the product discovery workshop.</p>",
+      learningUnit: {
+        type: "ppt",
+        data: {
+          link: "https://example.com/discovery-workshop.pptx",
+        },
+      },
+    },
+
+    {
+      id: 105,
+      name: "Live Session: Discovery Q&A",
+      order: 5,
+      completed: false,
+      description:
+        "<p>Join the live session to ask questions and discuss product discovery concepts.</p>",
+      learningUnit: {
+        type: "live",
+        data: {
+          value: "https://zoom.us/j/1234567890",
+        },
+      },
+    },
+
+    {
+      id: 106,
+      name: "In-Person Discovery Workshop",
+      order: 6,
+      completed: false,
+      description:
+        "<p>Attend the in-person discovery workshop at the Accra campus.</p>",
+      learningUnit: {
+        type: "in-person",
+        data: {
+          value: "ICON Institute, Accra Campus",
+        },
+      },
+    },
+
+    {
+      id: 107,
+      name: "Assignment (MCQ): Product Discovery Quiz",
+      order: 7,
+      completed: false,
+      description:
+        "<p>Test your understanding of product discovery concepts.</p>",
+      learningUnit: {
+        type: "assignment",
+        data: {
+          questions: [
+            {
+              id: "q1",
+              question: "What is the primary goal of product discovery?",
+              correctOptionId: "q1o2",
+              options: [
+                { id: "q1o1", text: "To write production code early" },
+                { id: "q1o2", text: "To validate user problems and solutions" },
+                { id: "q1o3", text: "To deploy features faster" },
+              ],
+            },
+            {
+              id: "q2",
+              question: "Which activity is most associated with product discovery?",
+              correctOptionId: "q2o1",
+              options: [
+                { id: "q2o1", text: "User interviews" },
+                { id: "q2o2", text: "Database optimization" },
+                { id: "q2o3", text: "Infrastructure scaling" },
+              ],
+            },
+            {
+              id: "q3",
+              question: "What is a key risk of skipping product discovery?",
+              correctOptionId: "q3o3",
+              options: [
+                { id: "q3o1", text: "Slower development speed" },
+                { id: "q3o2", text: "Higher server costs" },
+                { id: "q3o3", text: "Building the wrong product" },
+              ],
+            },
+            {
+              id: "q4",
+              question: "Who is primarily responsible for product discovery?",
+              correctOptionId: "q4o2",
+              options: [
+                { id: "q4o1", text: "System Administrator" },
+                { id: "q4o2", text: "Product Manager" },
+                { id: "q4o3", text: "Network Engineer" },
+              ],
+            },
+            {
+              id: "q5",
+              question: "What is a common output of product discovery?",
+              correctOptionId: "q5o1",
+              options: [
+                { id: "q5o1", text: "Validated assumptions" },
+                { id: "q5o2", text: "Final codebase" },
+                { id: "q5o3", text: "Deployed infrastructure" },
+              ],
+            },
+            {
+              id: "q6",
+              question: "Which technique helps validate ideas quickly?",
+              correctOptionId: "q6o3",
+              options: [
+                { id: "q6o1", text: "Long-term roadmap planning" },
+                { id: "q6o2", text: "Full system implementation" },
+                { id: "q6o3", text: "Prototyping and testing" },
+              ],
+            },
+            {
+              id: "q7",
+              question: "When should product discovery ideally occur?",
+              correctOptionId: "q7o1",
+              options: [
+                { id: "q7o1", text: "Before development begins" },
+                { id: "q7o2", text: "After product launch" },
+                { id: "q7o3", text: "Only when issues arise" },
+              ],
+            },
+          ],
+        },
+      },
+    },
+
+    {
+      id: 108,
+      name: "Assignment (Essay): Discovery Reflection",
+      order: 8,
+      completed: false,
+      description:
+        "<p>Reflect on the importance of product discovery.</p>",
+      learningUnit: {
+        type: "assignment-essay",
+        data: {
+          question: `
+            <p>
+              Explain how product discovery helps reduce waste and improve the likelihood of
+              building successful products. Use examples where possible.
+            </p>
+            <p>
+              Students are required to submit their answers by uploading a document.
+            </p>
+          `,
+        },
+      },
+    },
+  ],
+};

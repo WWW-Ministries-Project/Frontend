@@ -49,11 +49,76 @@ export function VisitorManagement() {
   } = usePut(api.put.updateVisitor);
 
   const [filterVisitors, setFilterVisitors] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterVisitors(e.target.value);
   };
 
-  const visitors = useMemo(() => data?.data || [], [data]);
+  const currentMonth = `${new Date().getFullYear()}-${String(
+    new Date().getMonth() + 1
+  ).padStart(2, "0")}`;
+
+  const [filters, setFilters] = useState({
+    createdMonth: currentMonth,
+    visitMonth: currentMonth,
+    event: "",
+    referral: "",
+  });
+
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const visitors = useMemo(() => {
+    if (!data?.data) return [];
+
+    return data.data.filter((visitor: VisitorType) => {
+      const createdDate = new Date(visitor.createdAt);
+      const visitDate = new Date(visitor.visitDate);
+
+      const createdMatch = filters.createdMonth
+        ? `${createdDate.getFullYear()}-${String(
+            createdDate.getMonth() + 1
+          ).padStart(2, "0")}` === filters.createdMonth
+        : true;
+
+      const visitMatch = filters.visitMonth
+        ? `${visitDate.getFullYear()}-${String(
+            visitDate.getMonth() + 1
+          ).padStart(2, "0")}` === filters.visitMonth
+        : true;
+
+      const eventMatch = filters.event
+        ? visitor.eventName
+            ?.toLowerCase()
+            .includes(filters.event.toLowerCase())
+        : true;
+
+      const referralMatch = filters.referral
+        ? visitor.howHeard
+            ?.toLowerCase()
+            .includes(filters.referral.toLowerCase())
+        : true;
+
+      return createdMatch && visitMatch && eventMatch && referralMatch;
+    });
+  }, [data, filters]);
+
+  const eventOptions = useMemo(() => {
+    if (!data?.data) return [];
+    return Array.from(
+      new Set(data.data.map((v: VisitorType) => v.eventName).filter(Boolean))
+    );
+  }, [data]);
+
+  const referralOptions = useMemo(() => {
+    if (!data?.data) return [];
+    return Array.from(
+      new Set(data.data.map((v: VisitorType) => v.howHeard).filter(Boolean))
+    );
+  }, [data]);
+
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "Visitor", link: "" },
@@ -182,39 +247,101 @@ export function VisitorManagement() {
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"
             btnName={permissions.manage_visitors ? "Register visitor" : ""}
+            hasFilter
+            hasSearch
+            showFilter={showFilter}
+            setShowFilter={setShowFilter}
+            showSearch={showSearch}
+            setShowSearch={setShowSearch}
             screenWidth={window.innerWidth}
             handleClick={() => {
               setIsModalOpen(true);
               setSelectedVisitor(undefined);
             }}
           />
-          <div>
-            {visitors.length === 0 ? (
-              <EmptyState msg={"No visitor found"} />
-            ) : (
-              <>
-                <div className={`w-full flex gap-2`}>
-                  <SearchBar
-                    className="h-10 mb-4 max-w-xs"
-                    placeholder="Search visitors here..."
-                    value={filterVisitors}
-                    onChange={handleSearchChange}
-                    id="searchVisitors"
-                  />
-                </div>
-                <TableComponent
-                  data={visitors}
-                  columns={headings}
-                  columnVisibility={{
-                    actions: permissions.manage_visitors,
-                    firstName: false,
-                  }}
-                  filter={filterVisitors}
-                  setFilter={setFilterVisitors}
+          {(showFilter || showSearch) && (
+            <div className="w-full flex flex-wrap gap-3 mb-4">
+              {showSearch && (
+                <SearchBar
+                  className="h-10 max-w-xs"
+                  placeholder="Search visitors..."
+                  value={filterVisitors}
+                  onChange={handleSearchChange}
+                  id="searchVisitors"
                 />
-              </>
-            )}
-          </div>
+              )}
+              {showFilter && (
+                <>
+                  <input
+                    type="month"
+                    className="h-10 border rounded px-3"
+                    value={filters.createdMonth}
+                    onChange={(e) => handleFilterChange("createdMonth", e.target.value)}
+                  />
+
+                  <input
+                    type="month"
+                    className="h-10 border rounded px-3"
+                    value={filters.visitMonth}
+                    onChange={(e) => handleFilterChange("visitMonth", e.target.value)}
+                  />
+
+                  <select
+                    className="h-10 border rounded px-3"
+                    value={filters.event}
+                    onChange={(e) => handleFilterChange("event", e.target.value)}
+                  >
+                    <option value="">All Events</option>
+                    {eventOptions.map((event) => (
+                      <option key={event} value={event}>
+                        {event}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    className="h-10 border rounded px-3"
+                    value={filters.referral}
+                    onChange={(e) => handleFilterChange("referral", e.target.value)}
+                  >
+                    <option value="">All Referrals</option>
+                    {referralOptions.map((ref) => (
+                      <option key={ref} value={ref}>
+                        {ref}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    className="h-10 px-4 border rounded text-sm"
+                    onClick={() =>
+                      setFilters({
+                        createdMonth: "",
+                        visitMonth: "",
+                        event: "",
+                        referral: "",
+                      })
+                    }
+                  >
+                    Clear Filters
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {visitors.length === 0 && <EmptyState msg={"No visitor found"} />}
+          {visitors.length > 0 && (
+            <TableComponent
+              data={visitors}
+              columns={headings}
+              columnVisibility={{
+                actions: permissions.manage_visitors,
+                firstName: false,
+              }}
+              filter={filterVisitors}
+              setFilter={setFilterVisitors}
+            />
+          )}
         </div>
       )}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>

@@ -44,7 +44,7 @@ export type CohortType = {
   createdAt: string;
   updatedAt: string;
   courses: [];
-  program: DetailedProgramType;
+  program: Program;
   
 };
 export type CohortPayloadType = {
@@ -138,29 +138,29 @@ export type TopicAssignment = {
   updatedAt: string;
 };
 
-export type Topic = {
-  id: number;
-  name: string;
-  programId: number;
-  score: number;
-  progressId: number;
-  status: "PENDING" | "PASS" | "FAIL";
-  completedAt: string | null;
-  notes?: string;
-};
+// export type Topic = {
+//   id: number;
+//   name: string;
+//   programId: number;
+//   score: number;
+//   progressId: number;
+//   status: "PENDING" | "PASS" | "FAIL";
+//   completedAt: string | null;
+//   notes?: string;
+// };
 
-type DetailedProgramType = {
-  id: number;
-  title: string;
-  description: string;
-  member_required: boolean;
-  leader_required: boolean;
-  ministry_required: boolean;
-  completed: boolean;
-  createdAt: string;
-  updatedAt: string;
-  topics: Topic[];
-}
+// type DetailedProgramType = {
+//   id: number;
+//   title: string;
+//   description: string;
+//   member_required: boolean;
+//   leader_required: boolean;
+//   ministry_required: boolean;
+//   completed: boolean;
+//   createdAt: string;
+//   updatedAt: string;
+//   topics: Topic[];
+// }
 
 // type CohortType = {
 //   id: number;
@@ -231,25 +231,77 @@ export type Programs = {
   leader_required: boolean
   ministry_required: boolean
   upcomingCohort: string
-  topics: string[]
+  topics: Topic[]
   description: string
   prerequisites: string[] | undefined
   courses: ClassOption[]
+  completed?: boolean
 }
-export type TopicPayload = {
-  id: string | number;
-  name: string;
-  description?: string;
-  type: LearningUnitType;
-  url?: string;
-  programId: number;
-  learningUnit?: LearningUnit
+
+export type LessonNoteLearningUnit = {
+  type: "lesson-note";
+  data: {
+    content: string;
+  };
 };
 
-export type LearningUnit = {
- 
-  type: LearningUnitType;
-  data: any;
+export type MediaLearningUnit = {
+  type: "video" | "live" | "in-person";
+  data: {
+    value: string;
+  };
+};
+
+export type FileLearningUnit = {
+  type: "pdf" | "ppt";
+  data: {
+    link: string;
+  };
+};
+
+export type AssignmentOption = {
+  id: string;
+  text: string;
+};
+
+export type AssignmentQuestion = {
+  id: string;
+  question: string;
+  options: AssignmentOption[];
+  correctOptionId: string | null;
+};
+
+export type AssignmentLearningUnit = {
+  type: "assignment";
+  data: {
+    questions: AssignmentQuestion[];
+  };
+};
+
+export type AssignmentEssayLearningUnit = {
+  type: "assignment-essay";
+  data: {
+    question: string;
+  };
+};
+
+export type LearningUnit =
+  | LessonNoteLearningUnit
+  | MediaLearningUnit
+  | FileLearningUnit
+  | AssignmentLearningUnit
+  | AssignmentEssayLearningUnit;
+
+export type Topic = {
+  id: string | number;
+  order?: number;
+  name: string;
+  description?: string | TrustedHTML | null | undefined;
+  type?: LearningUnitType;
+  url?: string;
+  programId?: number;
+  learningUnit?: LearningUnit
+  completed?: boolean;
 };
 
 export type LearningUnitType =
@@ -261,3 +313,54 @@ export type LearningUnitType =
   | "lesson-note"
   | "assignment"
   | "assignment-essay";
+
+export type ProgramTopic = {
+  id: number;
+  name: string;
+  programId: number;
+  description?: string | TrustedHTML | null | undefined;
+  topic: Topic[];
+}
+
+export type EnrolledProgramResponse = {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  completed: boolean;
+  completedAt: string | null;
+  instructor: {
+    id: number;
+    name: string;
+  };
+  cohort: {
+    id: number;
+    name: string;
+    status: string;
+    startDate: string;
+    duration: string;
+  };
+  program: {
+    id: number;
+    title: string;
+  };
+  course: {
+    id: number;
+    name: string;
+    schedule: string;
+    classFormat: string;
+    location: string;
+    meetingLink: string;
+  };
+}
+
+export interface CertificateData {
+  recipientFullName: string;
+  programTitle: string;
+  completionDate: string;
+  issueDate: string;
+  certificateId: string;
+  signatoryName: string;
+  signatoryTitle: string;
+  verificationUrl: string;
+}

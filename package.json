@@ -23,6 +23,7 @@
     "@types/react-datepicker": "^6.2.0",
     "axios": "^1.4.0",
     "chart.js": "^4.4.2",
+    "dompurify": "^3.3.1",
     "exceljs": "^4.4.0",
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
@@ -30,6 +31,7 @@
     "jwt-decode": "^4.0.0",
     "libphonenumber-js": "^1.12.8",
     "luxon": "^3.4.3",
+    "pdf-lib": "^1.17.1",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-datepicker": "^7.2.0",
@@ -42,8 +44,10 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@types/blob-stream": "^0.1.33",
     "@types/js-cookie": "^3.0.6",
     "@types/luxon": "^3.4.2",
+    "@types/pdfkit": "^0.17.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.29.1",

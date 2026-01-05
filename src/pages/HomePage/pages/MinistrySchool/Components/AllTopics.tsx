@@ -7,12 +7,15 @@ import { Modal } from '@/components/Modal';
 import TopicBasicInfoForm from './TopicBasicInfoForm';
 import { api } from '@/utils/api/apiCalls';
 import { useDelete } from '@/CustomHooks/useDelete';
+import DOMPurify from "dompurify";
+import { Badge } from '@/components/Badge';
 
 interface ITopic {
   id: string;
   name: string;
-  materials?: number;
-  assignments?: number;
+  description: string;
+  learningUnit: string;
+  type: string;
 }
 
 interface IProps {
@@ -73,16 +76,23 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
         </div>
 
         {/* Created Topics */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='grid grid-cols-1  gap-4'>
           {topics.map((topic) => (
             <div key={topic.id} className="border rounded-lg p-4 flex justify-between items-center ">
               <div>
-                <div className="font-medium">
+                <div>
+                  <div className="font-medium">
                   {topic.name}
                 </div>
+                {topic.type && <Badge>{topic.type}</Badge>}
+                </div>
                 <div className="gap-x-4 flex text-sm text-gray-600">
-                  <div>{topic.materials} materials</div>
-                  <div>{topic.assignments} assignments</div>
+                  <div 
+  dangerouslySetInnerHTML={{
+    __html: DOMPurify.sanitize(topic.description),
+  }}
+/>
+                  <div>Type: {topic.type}</div>
                 </div>
               </div>
               <div>
@@ -104,12 +114,12 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                       className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
                     >
                       <ul className="py-1">
-                        <li
+                        {/* <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
                           onClick={() => navigate(`topic/${topic.id}`)}
                         >
                           Manage topic
-                        </li>
+                        </li> */}
                         <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
                           onClick={() => handleEdit(topic)}

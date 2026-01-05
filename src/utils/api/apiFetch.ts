@@ -243,6 +243,12 @@ export class ApiCalls {
     return this.fetchFromApi(`program/my-enrollment`, query);
   };
 
+  fetchMyProgram = (
+    query?:QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("program/program-completion-status", query);
+  };
+
   // Follow-Up Management
   fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("followup", query);
