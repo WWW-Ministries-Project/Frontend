@@ -7,17 +7,22 @@ import { api, formatDate } from "@/utils";
 import { useState } from "react";
 import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
 import edit from "/src/assets/edit.svg";
+import AddAnotherConfirmation from "@/pages/HomePage/Components/reusable/AddAnotherConfirmation";
 
 interface IProps {
   followUps: FollowUp[];
   visitorId: string;
+  onRefetch?: () => Promise<void>;
 }
 
-export const FollowUps = ({ visitorId, followUps }: IProps) => {
+export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
   const [selectedFollowUp, setSelectedFollowUp] = useState<
     FollowUp | undefined
   >(undefined); // Store selected visit for editing
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
+
+  const [showRegisterAnother, setShowRegisterAnother] = useState(false);
+  const [formResetKey, setFormResetKey] = useState(0);
 
   /* api calls */
   const { postData: postFollowUp, loading: postLoading } = usePost(
@@ -32,10 +37,25 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
       ...data,
       visitorId: visitorId,
     };
-    if (selectedFollowUp)
+
+    if (selectedFollowUp) {
       await updateFollowUp(payload, { id: String(selectedFollowUp.id) });
-    else await postFollowUp(payload);
-    setIsModalOpen(false);
+      if (onRefetch) {
+        await onRefetch();
+      }
+
+      setIsModalOpen(false);
+      setSelectedFollowUp(undefined);
+      setShowRegisterAnother(false);
+    } else {
+      await postFollowUp(payload);
+      if (onRefetch) {
+        await onRefetch();
+      }
+
+      // KEEP MODAL OPEN, show confirmation
+      setShowRegisterAnother(true);
+    }
   };
 
   const sortedFollowUps = [...followUps].sort(
@@ -48,6 +68,9 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
         subtitle="Record of all visits to services and events"
         btnName="Add Follow-up"
         handleClick={() => {
+          setSelectedFollowUp(undefined);
+          setShowRegisterAnother(false);
+          setFormResetKey((k) => k + 1);
           setIsModalOpen(true);
         }}
         screenWidth={window.innerWidth}
@@ -106,12 +129,44 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
           setSelectedFollowUp(undefined);
         }}
       >
-        <FollowUpForm
-          onSubmit={handleSubmit}
-          onClose={() => setIsModalOpen(false)}
-          initialData={selectedFollowUp}
-          loading={postLoading || putLoading}
-        />
+        {showRegisterAnother ? (
+          <AddAnotherConfirmation
+            content={
+              <div>
+                <h3 className="text-lg font-semibold">
+                  Record another follow-up?
+                </h3>
+                <p className="text-sm text-gray-600">
+                  The follow-up was recorded successfully. Would you like to add another?
+                </p>
+              </div>
+            }
+            confirmationAction={() => {
+              setShowRegisterAnother(false);
+              setSelectedFollowUp(undefined);
+              setFormResetKey((k) => k + 1);
+              setIsModalOpen(true);
+            }}
+            cancelAction={() => {
+              setShowRegisterAnother(false);
+              setIsModalOpen(false);
+              setSelectedFollowUp(undefined);
+            }}
+          />
+        ) : (
+          <FollowUpForm
+            key={formResetKey}
+            onSubmit={handleSubmit}
+            onClose={() => {
+              // parent controls modal lifecycle
+              setIsModalOpen(false);
+              setSelectedFollowUp(undefined);
+              setShowRegisterAnother(false);
+            }}
+            initialData={selectedFollowUp}
+            loading={postLoading || putLoading}
+          />
+        )}
       </Modal>
     </>
   );

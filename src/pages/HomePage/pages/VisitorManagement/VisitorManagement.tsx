@@ -23,6 +23,8 @@ import SkeletonLoader from "../../Components/TableSkeleton";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
 import { mapVisitorToForm } from "./utils";
+import AddAnotherConfirmation from "../../Components/reusable/AddAnotherConfirmation";
+import { Button } from "@/components";
 
 export function VisitorManagement() {
   const {
@@ -209,7 +211,11 @@ export function VisitorManagement() {
 
     if (putSuccess) {
       showNotification("Visitor updated successfully", "success");
-      refetch().then(() => setIsModalOpen(false));
+      refetch().then(() => {
+        setIsModalOpen(false);
+        setShowRegisterAnother(false);
+        setSelectedVisitor(undefined);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postSuccess, putSuccess]);
@@ -236,6 +242,8 @@ export function VisitorManagement() {
     setSelectedVisitor(undefined);
   };
   const handleSubmit = (visitor: IVisitorForm & { id?: string }) => {
+    console.log("Visitor data", visitor);
+    
     if (selectedVisitor) updateData(visitor, { id: selectedVisitor.id });
     else postData(visitor);
   };
@@ -244,77 +252,77 @@ export function VisitorManagement() {
     executeDelete({ id: String(visitorId) });
   };
 
-  const headings: ColumnDef<VisitorType>[] = [
-    {
-      header: "Full Name",
-      accessorKey: "lastName",
-      cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
-    },
-    {
-      accessorKey: "firstName",
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "phone",
-      header: "Phone",
-      cell: ({ row }) =>
-        formatPhoneNumber(row.original.country_code, row.original.phone) || "",
-    },
-    {
-      accessorKey: "visitDate",
-      header: "Visit Date",
-      cell: ({ row }) => formatDate(row.original.visitDate || "") || "",
-    },
+  // const headings: ColumnDef<VisitorType>[] = [
+  //   {
+  //     header: "Full Name",
+  //     accessorKey: "lastName",
+  //     cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
+  //   },
+  //   {
+  //     accessorKey: "firstName",
+  //   },
+  //   {
+  //     accessorKey: "email",
+  //     header: "Email",
+  //   },
+  //   {
+  //     accessorKey: "phone",
+  //     header: "Phone",
+  //     cell: ({ row }) =>
+  //       formatPhoneNumber(row.original.country_code, row.original.phone) || "",
+  //   },
+  //   {
+  //     accessorKey: "visitDate",
+  //     header: "Visit Date",
+  //     cell: ({ row }) => formatDate(row.original.visitDate || "") || "",
+  //   },
 
-    {
-      accessorKey: "eventName",
-      header: "Event Name",
-    },
-    {
-      accessorKey: "howHeard",
-      header: "Referral",
-    },
-    {
-      accessorKey: "followUp",
-      header: "Follow-Up Status",
-    },
-    {
-      accessorKey: "visitCount",
-      header: "Visits",
-    },
-    {
-      header: "Actions",
-      accessorKey: "actions",
-      cell: ({ row }) => (
-        <div onClick={() => handleShowOptions(row.original.id)}>
-          <ActionButton
-            showOptions={row.original.id == selectedId}
-            hideDelete={false}
-            onView={() => {
-              navigate(`visitor/${row.original.id}`);
-            }}
-            onEdit={() => {
-              setSelectedVisitor(mapVisitorToForm(row.original));
-              setIsModalOpen(true);
-            }}
-            onDelete={() => {
-              showDeleteDialog(
-                {
-                  name:
-                    row.original.lastName + " " + row.original?.firstName || "",
-                  id: row.original.id,
-                },
-                deleteVisitor
-              );
-            }}
-          />
-        </div>
-      ),
-    },
-  ];
+  //   {
+  //     accessorKey: "eventName",
+  //     header: "Event Name",
+  //   },
+  //   {
+  //     accessorKey: "howHeard",
+  //     header: "Referral",
+  //   },
+  //   {
+  //     accessorKey: "followUp",
+  //     header: "Follow-Up Status",
+  //   },
+  //   {
+  //     accessorKey: "visitCount",
+  //     header: "Visits",
+  //   },
+  //   {
+  //     header: "Actions",
+  //     accessorKey: "actions",
+  //     cell: ({ row }) => (
+  //       <div onClick={() => handleShowOptions(row.original.id)}>
+  //         <ActionButton
+  //           showOptions={row.original.id == selectedId}
+  //           hideDelete={false}
+  //           onView={() => {
+  //             navigate(`visitor/${row.original.id}`);
+  //           }}
+  //           onEdit={() => {
+  //             setSelectedVisitor(mapVisitorToForm(row.original));
+  //             setIsModalOpen(true);
+  //           }}
+  //           onDelete={() => {
+  //             showDeleteDialog(
+  //               {
+  //                 name:
+  //                   row.original.lastName + " " + row.original?.firstName || "",
+  //                 id: row.original.id,
+  //               },
+  //               deleteVisitor
+  //             );
+  //           }}
+  //         />
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   // Determine if backend returned any data at all
   const hasBackendData = Boolean(data?.data && data.data.length > 0);
@@ -502,6 +510,8 @@ export function VisitorManagement() {
                           onEdit={() => {
                             setSelectedVisitor(mapVisitorToForm(visitor));
                             setIsModalOpen(true);
+                            console.log("Visitor to Edit", mapVisitorToForm(visitor));
+                            
                           }}
                           onDelete={() => {
                             showDeleteDialog(
@@ -516,7 +526,7 @@ export function VisitorManagement() {
                       </div>
                       <div className="space-y-2">
                         <div className="text-base font-semibold text-gray-900">
-                          {visitor.firstName} {visitor.lastName}
+                          {visitor.title} {visitor.firstName} {visitor.lastName}
                         </div>
 
                         <div className="text-sm text-gray-600">
@@ -539,12 +549,12 @@ export function VisitorManagement() {
                           {visitor.followUp || "—"}
                         </div>
 
-                        <button
-                          className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline"
+                        <Button
+                        value="View full profile"
+                        variant="secondary"
+                          className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline w-full"
                           onClick={() => navigate(`visitor/${visitor.id}`)}
-                        >
-                          View full profile →
-                        </button>
+                        />
                       </div>
                     </div>
                   ))}
@@ -570,38 +580,30 @@ export function VisitorManagement() {
           setShowRegisterAnother(false);
         }}
       >
-        <div className="p-6 space-y-4">
-          <h3 className="text-lg font-semibold">
-            Register another visitor?
-          </h3>
-          <p className="text-sm text-gray-600">
-            The visitor was registered successfully. Would you like to add another?
-          </p>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              className="px-4 py-2 border rounded"
-              onClick={() => {
-                setShowRegisterAnother(false);
-                setIsModalOpen(false);
-              }}
-            >
-              No, close
-            </button>
-
-            <button
-              className="px-4 py-2 bg-primary text-white rounded"
-              onClick={() => {
-                setShowRegisterAnother(false);
-                setSelectedVisitor(undefined);
-                setFormResetKey((k) => k + 1);
-                setIsModalOpen(true)
-              }}
-            >
-              Yes, add another
-            </button>
-          </div>
-        </div>
+        <AddAnotherConfirmation
+          content={
+            <div>
+              <h3 className="text-lg font-semibold">
+                Register another visitor?
+              </h3>
+              <p className="text-sm text-gray-600">
+                The visitor was registered successfully. Would you like to add another?
+              </p>
+            </div>
+          }
+          confirmationAction={() => {
+            setShowRegisterAnother(false);
+            setSelectedVisitor(undefined);
+            setFormResetKey((k) => k + 1);
+            setIsModalOpen(true);
+          }}
+          cancelAction={() => {
+            setShowRegisterAnother(false);
+            setIsModalOpen(false);
+            setSelectedVisitor(undefined);
+          }}
+        />
+       
       </Modal>
     </PageOutline>
   );

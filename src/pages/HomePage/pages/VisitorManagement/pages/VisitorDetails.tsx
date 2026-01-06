@@ -20,7 +20,7 @@ export const VisitorDetails = () => {
   const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
 
-  const { data, loading } = useFetch(api.fetch.fetchVisitorById, {
+  const { data, loading, refetch } = useFetch(api.fetch.fetchVisitorById, {
     id: visitorId!,
   });
   const visitor = useMemo(() => data?.data, [data]);
@@ -106,7 +106,13 @@ export const VisitorDetails = () => {
             <div className="space-y-4">
               {selectedTab === "Visit" && (
                 <div className="overflow-x-auto">
-                  <Visits visits={visitor?.visits || []} visitorId={visitorId!} />
+                  <Visits
+                    visits={visitor?.visits || []}
+                    visitorId={visitorId!}
+                    onRefetch={async () => {
+                      await refetch();
+                    }}
+                  />
                 </div>
               )}
 
@@ -115,6 +121,9 @@ export const VisitorDetails = () => {
                   <FollowUps
                     followUps={visitor?.followUps || []}
                     visitorId={visitorId!}
+                    onRefetch={async () => {
+                      await refetch();
+                    }}
                   />
                 </div>
               )}
@@ -171,5 +180,3 @@ export const VisitorDetails = () => {
     </div>
   );
 };
-
-

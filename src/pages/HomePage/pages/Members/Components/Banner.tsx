@@ -33,10 +33,10 @@ export const Banner = ({children, imgSrc=learning, isAdmin=false}: {children: Re
     <div className="w-full  relative bg-primary text-white rounded-t-lg">
       
       {/* Decorative Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 overflow-hidden">
         {/* Geometric circles */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/3"></div>
-        {/* <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/3 -translate-x-1/4"></div> */}
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/3 -translate-x-1/4"></div>
         
         {/* Diagonal lines pattern */}
         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">

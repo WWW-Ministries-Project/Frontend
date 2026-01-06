@@ -1,7 +1,6 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
@@ -10,24 +9,23 @@ import { api, formatDate, VisitType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { IVisitForm, VisitForm } from "./VisitForm";
+import AddAnotherConfirmation from "@/pages/HomePage/Components/reusable/AddAnotherConfirmation";
 
 interface IProps {
   visitorId: string;
   visits: Visit[];
+  onRefetch?: () => Promise<void>;
 }
-export const Visits = ({ visitorId, visits }: IProps) => {
+export const Visits = ({ visitorId, visits, onRefetch }: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>(""); // Track selected row for actions
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal open state
   const [selectedVisit, setSelectedVisit] = useState<
     (IVisitForm & { id: string | number }) | undefined
   >(undefined); // Store selected visit for editing
 
-  //API
-  const { refetch: fetchVisits } = useFetch(
-    api.fetch.fetchAllVisitsByVisitorId,
-    { id: visitorId },
-    true
-  );
+  const [showRegisterAnother, setShowRegisterAnother] = useState(false);
+  const [formResetKey, setFormResetKey] = useState(0);
+
   const { postData: postVisit, loading: postLoading } = usePost(
     api.post.createVisit
   );
@@ -45,19 +43,34 @@ export const Visits = ({ visitorId, visits }: IProps) => {
 
   // Function to delete a visit
   const deleteVisit = async (id: number) => {
-    executeDelete({ id: String(id) });
+    await executeDelete({ id: String(id) });
+    if (onRefetch) {
+      await onRefetch();
+    }
   };
   const handleSubmit = async (data: IVisitForm) => {
     const payload = {
       ...data,
       visitorId: visitorId,
     };
+
     if (selectedVisit) {
-      await updateVisit(payload, { id: String(selectedVisit.id) }).then(() =>
-        fetchVisits()
-      );
-    } else await postVisit(payload).then(() => fetchVisits());
-    setIsModalOpen(false);
+      await updateVisit(payload, { id: String(selectedVisit.id) });
+      if (onRefetch) {
+        await onRefetch();
+      }
+
+      setIsModalOpen(false);
+      setSelectedVisit(undefined);
+      setShowRegisterAnother(false);
+    } else {
+      await postVisit(payload);
+      if (onRefetch) {
+        await onRefetch();
+      }
+
+      setShowRegisterAnother(true);
+    }
   };
   // Table columns configuration
   const header: ColumnDef<VisitType>[] = [
@@ -101,12 +114,39 @@ export const Visits = ({ visitorId, visits }: IProps) => {
       </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <VisitForm
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleSubmit}
-          initialData={selectedVisit} // Pass the selected visit data for editing
-          loading={postLoading || putLoading}
-        />
+        {showRegisterAnother ? (
+          <AddAnotherConfirmation
+            content={
+              <div>
+                <h3 className="text-lg font-semibold">
+                  Record another visit?
+                </h3>
+                <p className="text-sm text-gray-600">
+                  The visit was recorded successfully. Would you like to add another?
+                </p>
+              </div>
+            }
+            confirmationAction={() => {
+              setShowRegisterAnother(false);
+              setSelectedVisit(undefined);
+              setFormResetKey((k) => k + 1);
+              setIsModalOpen(true);
+            }}
+            cancelAction={() => {
+              setShowRegisterAnother(false);
+              setIsModalOpen(false);
+              setSelectedVisit(undefined);
+            }}
+          />
+        ) : (
+          <VisitForm
+            key={formResetKey}
+            onClose={() => setIsModalOpen(false)}
+            onSubmit={handleSubmit}
+            initialData={selectedVisit}
+            loading={postLoading || putLoading}
+          />
+        )}
       </Modal>
     </>
   );

@@ -12,7 +12,7 @@ export type VisitorType = {
   city: string;
   state: string;
   zipCode: string | null;
-  visitDate?: string;
+  visitDate?: string | number | Date;
   is_member: boolean;
   howHeard: string;
   consentToContact: boolean;
@@ -21,6 +21,8 @@ export type VisitorType = {
   updatedAt: string;
   visitCount: number;
   followUp: string;
+  eventId: string;
+  eventName:string
 };
 
 export type VisitorResponseType = {

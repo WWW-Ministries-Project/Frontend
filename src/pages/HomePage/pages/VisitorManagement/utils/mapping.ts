@@ -23,7 +23,7 @@ export const mapVisitorToForm = (
     visit: {
       date: formatInputDate(visitor.visitDate) || "",
       howHeard: visitor.howHeard,
-      eventId: "", // or handle this if you have a way to get it
+      eventId: String(visitor.eventId)
     },
     consentToContact: visitor.consentToContact ? "yes" : "no",
     membershipWish: visitor.membershipWish ? "yes" : "no",
