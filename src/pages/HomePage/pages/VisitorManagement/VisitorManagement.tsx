@@ -32,9 +32,11 @@ export function VisitorManagement() {
   const [selectedId, setSelectedId] = useState<number | string>("");
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showRegisterAnother, setShowRegisterAnother] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<
     (IVisitorForm & { id: string }) | undefined
   >(undefined);
+  const [formResetKey, setFormResetKey] = useState(0);
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
   console.log("visitors data", data);
@@ -129,7 +131,8 @@ export function VisitorManagement() {
 
       if (groupBy === "date") {
         const d = new Date(visitor.visitDate);
-        key = `${d.toLocaleString("default", { month: "long" })} ${d.getFullYear()}`;
+        // Use sortable key internally
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       } else {
         key = visitor.eventName || "No Event";
       }
@@ -137,6 +140,19 @@ export function VisitorManagement() {
       if (!groups[key]) groups[key] = [];
       groups[key].push(visitor);
     });
+
+    // Sort date groups (latest first) and convert keys to readable labels
+    if (groupBy === "date") {
+      return Object.fromEntries(
+        Object.entries(groups)
+          .sort(([a], [b]) => new Date(b + "-01").getTime() - new Date(a + "-01").getTime())
+          .map(([key, value]) => {
+            const d = new Date(key + "-01");
+            const label = `${d.toLocaleString("default", { month: "long" })} ${d.getFullYear()}`;
+            return [label, value];
+          })
+      );
+    }
 
     return groups;
   }, [visitors, groupBy]);
@@ -185,11 +201,14 @@ export function VisitorManagement() {
   }, [success]);
 
   useEffect(() => {
-    if (postSuccess || putSuccess) {
-      showNotification(
-        `Visitor ${putSuccess ? "updated" : "added"} successfully`,
-        "success"
-      );
+    if (postSuccess) {
+      showNotification("Visitor added successfully", "success");
+      refetch();
+      setShowRegisterAnother(true);
+    }
+
+    if (putSuccess) {
+      showNotification("Visitor updated successfully", "success");
       refetch().then(() => setIsModalOpen(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -394,12 +413,14 @@ export function VisitorManagement() {
                       </select>
                     </div>
                   </div>
-                  <button
+                 <div className="flex flex-col ">
+                      <label className="text-xs text-gray-600 mb-1">Reset</label>
+                    <button
                     className="h-10 px-4 border rounded text-sm"
                     onClick={() =>
                       setFilters({
-                        createdMonth: currentMonth,
-                        visitMonth: currentMonth,
+                        createdMonth: '',
+                        visitMonth: '',
                         event: "",
                         referral: "",
                       })
@@ -407,16 +428,10 @@ export function VisitorManagement() {
                   >
                     Reset Filters
                   </button>
+                  </div>
                 </>
               )}
             </div>
-          )}
-          {!hasBackendData && !loading && (
-            <EmptyState msg="No visitor found" />
-          )}
-
-          {hasBackendData && visitors.length === 0 && (
-            <EmptyState msg="No visitors match the selected filters" />
           )}
 
           <div className="flex gap-2 mb-4">
@@ -437,6 +452,16 @@ export function VisitorManagement() {
               Group by Event
             </button>
           </div>
+
+          {!hasBackendData && !loading && (
+            <EmptyState msg="No visitor found" />
+          )}
+
+          {hasBackendData && visitors.length === 0 && (
+            <EmptyState msg="No visitors match the selected filters" />
+          )}
+
+          
 
           {Object.entries(groupedVisitors).map(([group, items]) => (
             <div key={group} className="space-y-3">
@@ -531,11 +556,52 @@ export function VisitorManagement() {
       )}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <VisitorForm
+          key={formResetKey}
           onClose={handleModalClose}
           selectedVisitor={selectedVisitor}
           onSubmit={handleSubmit}
           loading={postLoading || putLoading}
         />
+      </Modal>
+
+      <Modal
+        open={showRegisterAnother}
+        onClose={() => {
+          setShowRegisterAnother(false);
+        }}
+      >
+        <div className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold">
+            Register another visitor?
+          </h3>
+          <p className="text-sm text-gray-600">
+            The visitor was registered successfully. Would you like to add another?
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              className="px-4 py-2 border rounded"
+              onClick={() => {
+                setShowRegisterAnother(false);
+                setIsModalOpen(false);
+              }}
+            >
+              No, close
+            </button>
+
+            <button
+              className="px-4 py-2 bg-primary text-white rounded"
+              onClick={() => {
+                setShowRegisterAnother(false);
+                setSelectedVisitor(undefined);
+                setFormResetKey((k) => k + 1);
+                setIsModalOpen(true)
+              }}
+            >
+              Yes, add another
+            </button>
+          </div>
+        </div>
       </Modal>
     </PageOutline>
   );
