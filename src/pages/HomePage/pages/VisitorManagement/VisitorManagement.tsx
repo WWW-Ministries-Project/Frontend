@@ -41,7 +41,7 @@ export function VisitorManagement() {
   const [formResetKey, setFormResetKey] = useState(0);
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
-  console.log("visitors data", data);
+
   
   const {
     postData,
@@ -242,7 +242,6 @@ export function VisitorManagement() {
     setSelectedVisitor(undefined);
   };
   const handleSubmit = (visitor: IVisitorForm & { id?: string }) => {
-    console.log("Visitor data", visitor);
     
     if (selectedVisitor) updateData(visitor, { id: selectedVisitor.id });
     else postData(visitor);
@@ -510,7 +509,6 @@ export function VisitorManagement() {
                           onEdit={() => {
                             setSelectedVisitor(mapVisitorToForm(visitor));
                             setIsModalOpen(true);
-                            console.log("Visitor to Edit", mapVisitorToForm(visitor));
                             
                           }}
                           onDelete={() => {
