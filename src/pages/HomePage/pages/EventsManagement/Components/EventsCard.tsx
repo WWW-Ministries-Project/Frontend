@@ -4,9 +4,9 @@ import CardWrapper from "@/Wrappers/CardWrapper";
 import { eventTypeColors } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
 import calendar from "/src/assets/calendar.svg";
-import Elipse from "/src/assets/ellipse.svg";
-import defaultImage1 from "/src/assets/image.svg";
 import location from "/src/assets/location.svg";
+import defaultImage1 from "/src/assets/image.svg";
+import Elipse from "/src/assets/ellipse.svg";
 import { relativePath } from "@/utils";
 
 interface IProps {
@@ -19,121 +19,117 @@ interface IProps {
 }
 
 export const EventsCard = (props: IProps) => {
-  const handleNavigation = (path: string) => {
-    props.onNavigate(path);
-  };
-
-  const handleShowOptions = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    props.onShowOptions(props.event.id);
-  };
-
-  // Format the date dynamically
   const eventDate = new Date(props.event.start_date);
-  const dayOfWeek = eventDate.toLocaleString("en-US", { weekday: "short" });
-  const dayOfMonth = eventDate.getDate();
+  const month = eventDate.toLocaleString("en-US", { month: "short" });
+  const day = eventDate.getDate();
+
+  const isPast = compareDates(props.event.start_date + "");
 
   return (
-    <div
-      className={`rounded-xl pb-1`}
-      style={{
-        backgroundColor: props.event.event_type
-          ? eventTypeColors[props.event.event_type]
-          : "#00000050",
-      }}
-    >
-      <CardWrapper
-        className={
-          "text-gray gap-2 pb-2 flex flex-col rounded-xl relative border border-lightGray"
+    <CardWrapper className="group rounded-xl overflow-hidden border border-lightGray bg-white hover:shadow-lg transition-shadow duration-200">
+      {/* Poster */}
+      <div
+        className="relative h-44 cursor-pointer"
+        onClick={() =>
+          props.onNavigate(
+            `${relativePath.home.events.view}?event_id=${props.event.id}`
+          )
         }
       >
-        <div
-          className={`rounded-xl bg-[#00000050] border-b `}
-          style={{
-            borderColor: props.event.event_type
-              ? eventTypeColors[props.event.event_type]
-              : "#00000050",
-          }}
-        >
-          <img
-            className="max-w-[70vw] rounded-xl w-full h-44"
-            src={props.event.poster || defaultImage1}
-            alt="poster for event"
-          />
+        <img
+          src={props.event.poster || defaultImage1}
+          alt="event poster"
+          className="w-full h-full object-cover"
+        />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+        {/* Date badge */}
+        <div className="absolute top-3 left-3 bg-white rounded-lg shadow px-3 py-2 text-center">
+          <p className="text-xs uppercase text-gray-500">{month}</p>
+          <p className="text-lg font-bold">{day}</p>
         </div>
 
+        {/* Options */}
         <div
-          className="flex px-3 gap-1 text-sm"
-          onClick={() =>
-            handleNavigation(
-              `${relativePath.home.events.view}?event_id=${props.event.id}`
-            )
-          }
-        >
-          <div
-            className={`border rounded-lg py-2 px-3 flex justify-center items-center flex-col ${
-              compareDates(props.event.start_date + "")
-                ? "bg-[#FF576510] border-[#FF576550]"
-                : "bg-green/10 border-green/50"
-            }`}
-          >
-            <div className="font-medium">{dayOfWeek}</div>
-            <div className="font-bold text-lg">{dayOfMonth}</div>
-          </div>
-          <div className="space-y-1">
-            <div
-              className="flex px-3  items-center font-bold cursor-pointer"
-              onClick={() =>
-                handleNavigation(
-                  `${relativePath.home.events.view}?event_id=${props.event.id}`
-                )
-              }
-            >
-              <div
-                className={`${
-                  compareDates(props.event.start_date + "")
-                    ? "bg-[#FF5765]"
-                    : "bg-green"
-                } rounded-full ${props.indicatorClass} `}
-              />
-              <p className="text-md">{props.event.name}</p>
-            </div>
-            <div className="flex px-3 gap-1 items-center text-sm">
-              <img src={calendar} alt="clock icon" />
-              <p>
-                {formatDate(props.event.start_date + "") || "TBD"} |
-                <span className="text-sm">{props.event.start_time}</span>
-                <span className="text-sm">- {props.event.end_time} </span>
-              </p>
-            </div>
-            <div className="flex px-3 gap-1 text-sm">
-              <img src={location} alt="location" />
-              <p>{props.event.location || "-"}</p>
-            </div>
-          </div>
-        </div>
-        <div
-          className={`absolute right-0 flex flex-col items-end m-4 rounded-md w-1/4 text-center`}
-          onClick={handleShowOptions}
+          className="absolute top-3 right-3"
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onShowOptions(props.event.id);
+          }}
         >
           <img src={Elipse} alt="options" className="cursor-pointer" />
           {props.showOptions && (
             <Action
               onDelete={() => props.onDelete(props.event)}
               onView={() =>
-                handleNavigation(
+                props.onNavigate(
                   `${relativePath.home.events.view}?event_id=${props.event.id}`
                 )
               }
               onEdit={() =>
-                handleNavigation(
+                props.onNavigate(
                   `/home/manage-event?event_id=${props.event.id}`
                 )
               }
             />
           )}
         </div>
-      </CardWrapper>
-    </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        {/* Title */}
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() =>
+            props.onNavigate(
+              `${relativePath.home.events.view}?event_id=${props.event.id}`
+            )
+          }
+        >
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${
+              isPast ? "bg-gray-400" : "bg-green-500"
+            }`}
+          />
+          <h3 className="font-semibold text-gray-900 line-clamp-2">
+            {props.event.event_name}
+          </h3>
+        </div>
+
+        {/* Date & time */}
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <img src={calendar} alt="calendar" className="h-4 w-4" />
+          <span>
+            {formatDate(props.event.start_date + "") || "TBD"} •{" "}
+            {props.event.start_time} – {props.event.end_time}
+          </span>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <img src={location} alt="location" className="h-4 w-4" />
+          <span className="truncate">
+            {props.event.location || "No location specified"}
+          </span>
+        </div>
+
+        {/* Event type pill */}
+        {props.event.event_type && (
+          <span
+            className="inline-block mt-2 text-xs font-medium px-3 py-1 rounded-full"
+            style={{
+              backgroundColor:
+                eventTypeColors[props.event.event_type] + "20",
+              color: eventTypeColors[props.event.event_type],
+            }}
+          >
+            {props.event.event_type}
+          </span>
+        )}
+      </div>
+    </CardWrapper>
   );
 };
