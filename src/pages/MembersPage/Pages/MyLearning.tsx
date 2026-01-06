@@ -48,7 +48,7 @@ const MyLearning: React.FC = () => {
   return (
     <div>
       <BannerWrapper imgSrc={mylearning}>
-          <div className="space-y-4">
+          <div className="space-y-4 w-full">
             <div className="font-bold text-3xl">My Learning</div>
             <div>Overview of your learning progress and materials.</div>
           </div>

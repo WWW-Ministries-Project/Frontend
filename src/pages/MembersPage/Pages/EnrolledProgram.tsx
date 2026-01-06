@@ -9,6 +9,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
 import { Modal } from "@/components/Modal";
 import  CertificateTemplate  from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateTemplate";
+import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
 
 
 type NavItem = { id: string | number; name: string; active: boolean };
@@ -28,6 +29,8 @@ const EnrolledProgram: React.FC = () => {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewCertificate, setViewCertificate] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const { data, loading, refetch } = useFetch(
   api.fetch.fetchMyProgram,
@@ -68,6 +71,18 @@ const EnrolledProgram: React.FC = () => {
 
   setIsLoading(false);
 }, [data]);
+
+useEffect(() => {
+  if (!data?.data?.completed || !user || !programId) return;
+
+  const celebrationKey = `program_completed_${programId}_${user.id}`;
+  const hasCelebrated = localStorage.getItem(celebrationKey);
+
+  if (!hasCelebrated) {
+    setShowCelebration(true);
+    localStorage.setItem(celebrationKey, "true");
+  }
+}, [data, user, programId]);
 
   const handleTopicSelect = (navId: string | number) => {
     setNavItems((items) =>
@@ -110,9 +125,10 @@ const EnrolledProgram: React.FC = () => {
             </div>
             {data?.data.completed&&<div>
               <Button
-                value="Download Certificate"
+                value="View Certificate"
                 variant="primary"
                 className="bg-white text-primary"
+                onClick={() =>setViewCertificate(true)}
               />
             </div>}
           </div>
@@ -128,7 +144,6 @@ const EnrolledProgram: React.FC = () => {
             aria-label="Course topics navigation"
           >
             <div className="">
-              {console.log("NavItems", navItems)}
               
               <CourseSidebar
                 navItems={navItems}
@@ -161,7 +176,7 @@ const EnrolledProgram: React.FC = () => {
                     unit={selectedTopic.learningUnit ?? undefined} 
                     topicId={selectedTopic.id} userId ={user!.id} 
                     completed={selectedTopic.completed}
-                    refetch={()=>refetch()}
+                    refetch={refetch}
                     />
                   </div>
                 ) : (
@@ -210,11 +225,50 @@ const EnrolledProgram: React.FC = () => {
           </aside> */}
         </div>
       </main>
-      <Modal open={true} className="w-[70vw] h-[90vh] ">
+      <Modal open={viewCertificate} onClose={()=>setViewCertificate(false)} className="w-[70vw]  ">
         <CertificateTemplate
-
-        
+          recipientName={user.name}
+          program={data?.data?.title}
+          onClose={()=>setViewCertificate(false)}
         />
+      </Modal>
+
+      <Modal
+        open={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        className="max-w-md text-center"
+      >
+        <div className="space-y-6 p-6">
+          <div className="flex justify-center">
+            <TrophyIcon className="h-16 w-16 text-yellow-500" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Congratulations 🎉
+            </h2>
+            <p className="text-sm text-gray-600">
+              You have successfully completed the program.
+              We’re proud of your dedication and commitment.
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-3">
+            <Button
+              value="View Certificate"
+              variant="primary"
+              onClick={() => {
+                setShowCelebration(false);
+                setViewCertificate(true);
+              }}
+            />
+            <Button
+              value="Close"
+              variant="secondary"
+              onClick={() => setShowCelebration(false)}
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   );

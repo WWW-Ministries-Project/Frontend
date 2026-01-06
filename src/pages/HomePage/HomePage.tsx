@@ -149,7 +149,7 @@ export function HomePage() {
                </div>
     </div>
     <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
-       <AutoBreadcrumb/>
+       {/* <AutoBreadcrumb/> */}
       <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto">
        
      <Outlet

@@ -29,6 +29,9 @@ const VisitorFormComponent = ({
 }: IProps) => {
   const { eventsOptions } = useStore();
 
+  console.log(eventsOptions);
+  
+
   return (
     <div className="bg-white  rounded-lg w-full  mx-auto">
       <Formik
@@ -150,6 +153,7 @@ export interface IVisitorForm {
   };
   consentToContact: string;
   membershipWish: string;
+  
 }
 
 const initialValues: IVisitorForm = {

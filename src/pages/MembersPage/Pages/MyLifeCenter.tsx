@@ -15,9 +15,9 @@ const MyLifeCenter = () => {
     const lifeCenterData = data?.data;
     
     return ( 
-       <div className="space-y-4">
+       <div className="space-y-4 ">
        <BannerWrapper imgSrc={lifecenter}>
-                <div className="space-y-4 ">
+                <div className="space-y-4 w-full">
                     <div className="font-bold text-2xl">
                     {lifeCenterData?.name || "No name"}
                 </div>

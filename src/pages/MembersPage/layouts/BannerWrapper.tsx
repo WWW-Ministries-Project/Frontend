@@ -1,8 +1,11 @@
 import learning from "@/assets/banner/learning.svg";
-import { Children, ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
-const BannerWrapper = ({children, imgSrc}: {children: ReactNode, imgSrc?: string}) => {
+const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, imgSrc?: string, isAdmin?:boolean}) => {
   const [isSticky, setIsSticky] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,15 +17,18 @@ const BannerWrapper = ({children, imgSrc}: {children: ReactNode, imgSrc?: string
   }, []);
 
   return ( 
-   <div 
-      className={`
-        bg-primary text-white 
-        ${isSticky 
-          ? 'fixed top-20 left-0 right-0 z-50  shadow-lg w-full ' 
-          : 'w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]'
-        }
-      `}
-    >
+   <div
+  className={`
+    bg-primary text-white
+    ${
+      isAdmin
+        ? "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
+        : (isSticky
+        ? "fixed top-20 left-0 right-0 z-50 shadow-lg w-full"
+        : "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")
+    }
+  `}
+>
       {/* Decorative Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         {/* Geometric circles */}
@@ -58,7 +64,7 @@ const BannerWrapper = ({children, imgSrc}: {children: ReactNode, imgSrc?: string
       {/* Content container */}
       <div 
         className={`
-          relative z-10 h-full flex items-center mx-auto 
+          relative z-10 h-full flex flex-col items-center mx-auto 
           transition-all duration-300 ease-in-out
           ${isSticky 
             ? 'py-6 px-4 lg:px-16 xl:px-32 3xl:px-64' 
@@ -66,6 +72,16 @@ const BannerWrapper = ({children, imgSrc}: {children: ReactNode, imgSrc?: string
           }
         `}
       >
+        <div className="w-full mb-4 flex justify-start">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm text-white/90 hover:text-white transition"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+            <span>Back</span>
+          </button>
+        </div>
+        
         {children}
       </div>
 

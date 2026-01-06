@@ -3,9 +3,7 @@ import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { api, formatDate } from "@/utils";
-import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
 import edit from "/src/assets/edit.svg";
@@ -40,43 +38,9 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
     setIsModalOpen(false);
   };
 
-  const header: ColumnDef<FollowUp>[] = [
-    { accessorFn: (row) => formatDate(row.date), header: "Date" },
-    { accessorKey: "type", header: "Type" },
-    { accessorKey: "notes", header: "Notes" },
-    { accessorKey: "assignedTo", header: "Assigned To" },
-    {
-      header: "Actions",
-      cell: ({ row }) => (
-        <div
-          className={
-            "text-sm h-6 flex items-center  gap-2 rounded-lg text-center text-white "
-          }
-        >
-          <img
-            src={edit}
-            alt="edit icon"
-            className="cursor-pointer"
-            onClick={() => {
-              // setSelectedFollowUp(row.original);
-              setIsModalOpen(true);
-            }}
-          />
-          {/* <img
-            src={deleteIcon}
-            alt="delete icon"
-            className="cursor-pointer"
-            onClick={() => {
-              showDeleteDialog(
-                { id: row.original.id, name: "this record" },
-                executeDelete
-              );
-            }}
-          /> */}
-        </div>
-      ),
-    },
-  ];
+  const sortedFollowUps = [...followUps].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
   return (
     <>
       <HeaderControls
@@ -88,7 +52,53 @@ export const FollowUps = ({ visitorId, followUps }: IProps) => {
         }}
         screenWidth={window.innerWidth}
       />
-      <TableComponent data={followUps} columns={header} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {followUps.length === 0 && (
+          <div className="text-sm text-gray-500">
+            No follow-ups recorded for this visitor.
+          </div>
+        )}
+
+        {sortedFollowUps.map((item) => (
+          <div
+            key={item.id}
+            className="border rounded-lg p-4 space-y-2 shadow-sm bg-white"
+          >
+            <div className="flex justify-end">
+              <img
+                src={edit}
+                alt="edit icon"
+                className="cursor-pointer w-4 h-4 opacity-60 hover:opacity-100"
+                onClick={() => {
+                  setSelectedFollowUp(item);
+                  setIsModalOpen(true);
+                }}
+              />
+            </div>
+            <div className="text-sm leading-relaxed whitespace-pre-wrap">
+              <span className="block text-xs text-gray-500 mb-1">Notes</span>
+              {item.notes}
+            </div>
+            <div className="pt-3 mt-3 border-t text-xs text-gray-600 space-y-1">
+              <div>
+                <span className="font-medium">Date:</span> {formatDate(item.date)}
+              </div>
+              <div>
+                <span className="font-medium">Type:</span> {item.type}
+              </div>
+              <div>
+                <span className="font-medium">Status:</span> {item.status}
+              </div>
+              {item.assignedTo && (
+                <div>
+                  <span className="font-medium">Assigned to:</span> {item.assignedTo}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {console.log("FollowUps", followUps)}
       <Modal
         open={isModalOpen}
         onClose={() => {

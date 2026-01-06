@@ -12,7 +12,7 @@ interface Props {
   unit: LearningUnit | null | undefined;
   userId?: string | number;
   completed?:boolean;
-  refetch?:(() => void | undefined) | undefined
+  refetch?:  void | undefined;
 }
 
 const typeBadgeMap: Record<
@@ -76,7 +76,6 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, complete
         <Badge className={`text-xs `}>{badge?.label}</Badge>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">{progress}%</span>
           <button
             type="button"
             onClick={completed ? undefined : markCompleted}
@@ -249,7 +248,7 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, complete
           </p>
         </div>
       )}
-      <DownloadCertificate/>
+      {/* <DownloadCertificate/> */}
     </div>
   );
 };

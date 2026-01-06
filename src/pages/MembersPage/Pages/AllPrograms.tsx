@@ -7,7 +7,7 @@ const AllPrograms = () => {
     return ( 
         <div>
             < BannerWrapper imgSrc={exploreprogram} >
-                <div className="space-y-4 ">
+                <div className="space-y-4 w-full">
                     <div className="font-bold text-2xl">
                     School of Ministry
                 </div>

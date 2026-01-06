@@ -35,7 +35,7 @@ const MembersPage = () => {
 
             {/* Header Section */}
             <header 
-                className="sticky top-0 z-10 w-full bg-white border-b border-gray-200 shadow-sm"
+                className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-sm"
                 role="banner"
             >
                 <div className="mx-auto px-4 lg:px-16 xl:px-32 3xl:px-64 py-4 max-w-[2000px]">

@@ -9,6 +9,9 @@ import { Outlet, useNavigate, useParams, useLocation } from "react-router-dom";
 import useState from "react-usestateref";
 import { Banner } from "../Components/Banner";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import BannerWrapper from "@/pages/MembersPage/layouts/BannerWrapper";
+import { Button, ProfilePicture } from "@/components";
+import { Badge } from "@/components/Badge";
 
 export const ProfileDetails = () => {
   const navigate = useNavigate();
@@ -81,9 +84,9 @@ export const ProfileDetails = () => {
   };
 
   return (
-    <div className="px-4">
+    <div className="">
       <div className="sticky top-0 z-40 w-full">
-        <Banner
+        {/* <Banner
           onClick={handleEdit}
           src={details?.photo || ""}
           name={details?.name}
@@ -95,7 +98,63 @@ export const ProfileDetails = () => {
           status={details?.status}
           id={details?.id || ""}
           showButton={permissions.manage_members}
-        />
+        /> */}
+        <Banner >
+          <div className="w-full  relative text-white rounded-t-lg">
+                <div
+                  className="rounded-t-lg left-0 w-full h-full flex items-center justify-between  bg-cover"
+                  style={{
+                    // backgroundImage: `url(${coverImage1})`,
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                >
+                  <div className="flex justify-between items-cente  container mx-auto">
+                    <div className="flex gap-4 items-center  ">
+                      <ProfilePicture
+                        className="w-24 h-24 outline outline-white"
+                        src={details?.photo || ""}
+                        alt="cover Image"
+                        name={details?.name}
+                        id="coverPic"
+                      />
+                      <article className="xs:hidden md:inline space-y-2">
+                        <div className="font-bold text-2xl ">
+                          {details?.name || "No Name"}
+                        </div>
+                        <div className="">{`${details?.department?.name ?? ""} ${
+                          details?.department && details?.position?.name ? "|" : ""
+                        } ${details?.position ?? ""} `}</div>
+                        <div className="">
+                          {(details?.email || "No Email") +
+                            " | " +
+                            (details?.primary_number || "No Phone")}
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="text-sm  border-primary bg-white border text-primary w-fit ">
+                            {details?.membership_type === "ONLINE"
+                ? "Online e-church family"
+                : details?.membership_type === "IN_HOUSE"? "In-person church family" :""}
+                          </Badge>
+                          <Badge className="text-sm border-primary bg-white border text-primary normal-case ">
+                            {details?.status ?? ""}
+                          </Badge>
+                        </div>
+                      </article>
+                    </div>
+                    {permissions.manage_members && (
+                      <div>
+                        <Button
+                          value="Edit Profile"
+                          onClick={()=>handleEdit(details?.id)}
+                          className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+        </Banner>
       </div>
       <section className="bg-white w-full h-full mb-4 mx-auto">
         <div className="flex p-4">
