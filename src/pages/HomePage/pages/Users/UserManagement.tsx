@@ -14,16 +14,22 @@ import edit from "/src/assets/edit.svg";
 import { Modal } from "@/components/Modal";
 import { ViewUser } from "./pages/ViewUser";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { useQueryParams } from "@/CustomHooks/useQueryParams";
 
 export const UserManagement = () => {
-  const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
-    is_user: "true",
-  });
+  const { data: registeredMembers, refetch: refetchMembers } = useFetch(
+    api.fetch.fetchAllMembers,
+    {
+      is_user: "true",
+    }
+  );
   const [searchedUser, setSearchedUser] = useState("");
   const [showSearch, setShowSearch] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState<string>()
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string>();
   const navigate = useNavigate();
+  const { params, updateParam } = useQueryParams(["search"]);
+
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "User Management", link: "" },
@@ -33,10 +39,20 @@ export const UserManagement = () => {
     setSearchedUser(e.target.value);
   };
 
-  const handleEditing = (id:string) => {
-    setSelectedUserId(id)
-    setIsModalOpen(true)
-  }
+  const handleSearchSubmit = () => {
+    updateParam("search", searchedUser);
+    refetchMembers({
+      ...(searchedUser && { name: searchedUser }),
+      is_user: "true",
+      page: "1",
+      limit: "12",
+    });
+  };
+
+  const handleEditing = (id: string) => {
+    setSelectedUserId(id);
+    setIsModalOpen(true);
+  };
 
   //displayed headers for table
   const usersColumns: ColumnDef<User>[] = [
@@ -44,10 +60,7 @@ export const UserManagement = () => {
       header: "Name",
       accessorKey: "name",
       cell: ({ row }) => (
-        <div
-          className="flex items-center gap-2 "
-          
-        >
+        <div className="flex items-center gap-2 ">
           <ProfilePicture
             src={row.original.photo}
             name={row.original.name}
@@ -97,11 +110,10 @@ export const UserManagement = () => {
             "text-sm h-6 flex  gap-2 rounded-lg text-center text-white "
           }
           onClick={() => {
-              handleEditing(`${row.original.id}`)
-            }}
+            handleEditing(`${row.original.id}`);
+          }}
         >
-          
-          <PencilSquareIcon height={24} className="text-gray-800"/>
+          <PencilSquareIcon height={24} className="text-gray-800" />
         </div>
       ),
     },
@@ -127,20 +139,21 @@ export const UserManagement = () => {
           id="searchUsers"
           value={searchedUser}
           onChange={handleSearchChange}
+          onSubmit={handleSearchSubmit}
         />
       )}
       <TableComponent
         columns={usersColumns}
         data={users}
-        filter={searchedUser}
-        setFilter={setSearchedUser}
+        filter={params.search}
+        setFilter={()=>{}}
         columnFilters={[]}
         setColumnFilters={() => {}}
       />
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ViewUser 
-        id={`${selectedUserId}`}
-        onClose={()=>setIsModalOpen(false)}
+        <ViewUser
+          id={`${selectedUserId}`}
+          onClose={() => setIsModalOpen(false)}
         />
       </Modal>
     </PageOutline>

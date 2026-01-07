@@ -5,7 +5,7 @@ import useState from "react-usestateref";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { useSearchQueryParams } from "@/CustomHooks/useSearchQueryParams";
+import { useQueryParams } from "@/CustomHooks/useQueryParams";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
@@ -43,12 +43,13 @@ export function Members() {
   const members = allMembers?.data||[];
   const total = allMembers?.meta?.total||0;
 
-  const { inputValue: filterMembers, setInputValue: setFilterMembers, submittedValue: submittedFilter, setSearch } = useSearchQueryParams();
+  const { params, updateParam } = useQueryParams(["search", "membership_type", "ministry_worker"]);
+  const [searchInput, setSearchInput] = useState(params.search || "");
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const columnVisibility = useMemo(() => {
     return {
       membership_type: false,
-      is_user: false,
+      ministry_worker: false,
       department_id: false,
       Actions: permissions.manage_members,
     };
@@ -117,12 +118,18 @@ export function Members() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFilterMembers(value);
+    setSearchInput(value);
   };
 
   const handleSearchSubmit = () => {
-    setSearch(filterMembers);
-    refetchMembers({ name: filterMembers, page: "1", limit: "12" });
+    updateParam("search", searchInput);
+    refetchMembers({
+      ...(searchInput && { name: searchInput }),
+      page: "1",
+      limit: "12",
+      ...(params.membership_type && { membership_type: params.membership_type }),
+      ...(params.ministry_worker && { ministry_worker: params.ministry_worker }),
+    });
   };
 
   const handleNavigation = () => {
@@ -147,14 +154,54 @@ export function Members() {
     setTableView(bol);
   };
 
-  const handleFilterChange = (val: string, id: string) => {
+  const buildBackendFilterParams = (id: string, val: string): Record<string, string> => {
+    const filterParams: Record<string, string> = {};
+
+    if (id === "membership_type") {
+      if (val) filterParams.membership_type = val;
+      if (params.ministry_worker) filterParams.ministry_worker = params.ministry_worker;
+    }
+
+    if (id === "ministry_worker") {
+      if (val) filterParams.ministry_worker = val;
+      if (params.membership_type) filterParams.membership_type = params.membership_type;
+    }
+
+    return filterParams;
+  };
+
+  const handleBackendFilter = (val: string, id: string) => {
+    updateParam(id, val);
+    const filterParams = buildBackendFilterParams(id, val);
+
+    refetchMembers({
+      page: "1",
+      limit: "12",
+      ...(params.search && { name: params.search }),
+      ...filterParams,
+    });
+  };
+
+  const handleClientSideFilter = (val: string, id: string) => {
     setColumnFilters((prev) => {
       if (!val) return prev.filter((f) => f.id !== id);
+
       const exists = prev.some((f) => f.id === id);
-      return exists
-        ? prev.map((f) => (f.id === id ? { id, value: val } : f))
-        : [...prev, { id, value: val }];
+      if (exists) {
+        return prev.map((f) => (f.id === id ? { id, value: val } : f));
+      }
+      return [...prev, { id, value: val }];
     });
+  };
+
+  const handleFilterChange = (val: string, id: string) => {
+    const isBackendFilter = id === "membership_type" || id === "ministry_worker";
+
+    if (isBackendFilter) {
+      handleBackendFilter(val, id);
+    } else {
+      handleClientSideFilter(val, id);
+    }
   };
 
   const membersCount = [
@@ -212,7 +259,7 @@ export function Members() {
           <SearchBar
             className="h-10"
             placeholder="Search members here..."
-            value={filterMembers}
+            value={searchInput}
             onChange={handleSearchChange}
             onSubmit={handleSearchSubmit}
             id="searchMembers"
@@ -220,7 +267,11 @@ export function Members() {
         </div>
 
         <div className={`${showFilter ? "block" : "hidden"} w-full flex gap-2`}>
-          <MembersFilter onChange={handleFilterChange} />
+          <MembersFilter
+            onChange={handleFilterChange}
+            membershipType={params.membership_type}
+            ministryWorker={params.ministry_worker}
+          />
         </div>
 
         {/* Members & Visitors Count */}
@@ -241,7 +292,7 @@ export function Members() {
               data={members}
               displayedCount={12}
               total={total}
-              filter={submittedFilter}
+              filter={params.search}
               setFilter={() => {}}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
@@ -250,7 +301,9 @@ export function Members() {
                 refetchMembers({
                   limit: String(limit),
                   page: String(page),
-                  ...(submittedFilter && { name: submittedFilter })
+                  ...(params.search && { name: params.search }),
+                  ...(params.membership_type && { membership_type: params.membership_type }),
+                  ...(params.ministry_worker && { ministry_worker: params.ministry_worker }),
                 });
               }}
             />
@@ -260,7 +313,7 @@ export function Members() {
               data={members}
               displayedCount={24}
               total={total}
-              filter={submittedFilter}
+              filter={params.search}
               setFilter={() => {}}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
@@ -269,7 +322,9 @@ export function Members() {
                 refetchMembers({
                   limit: String(limit),
                   page: String(page),
-                  ...(submittedFilter && { name: submittedFilter })
+                  ...(params.search && { name: params.search }),
+                  ...(params.membership_type && { membership_type: params.membership_type }),
+                  ...(params.ministry_worker && { ministry_worker: params.ministry_worker }),
                 });
               }}
               renderRow={(row) => (

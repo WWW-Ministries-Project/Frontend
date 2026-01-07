@@ -5,8 +5,12 @@ import Filter from "@/pages/HomePage/Components/reusable/Filter";
 
 const MembersFilter = ({
   onChange,
+  membershipType,
+  ministryWorker,
 }: {
   onChange: (name: string, value: string) => void;
+  membershipType?: string;
+  ministryWorker?: string;
 }) => {
   // const departments = useSettingsStore((state) => state.departments);
   // const departmentOptions = departments.map((department) => ({
@@ -24,6 +28,7 @@ const MembersFilter = ({
           <Filter
             name="membership_type"
             className="w-52"
+            value={membershipType}
             options={[
               { label: "All", value: "" },
               { label: "In House", value: "IN_HOUSE" },
@@ -35,8 +40,9 @@ const MembersFilter = ({
         <div className={` flex flex-col gap-2`}>
           <div className="text-sm">Ministry workers</div>
           <Filter
-            name="is_user"
+            name="ministry_worker"
             className="w-52"
+            value={ministryWorker}
             options={[
               { label: "All", value: "" },
               { label: "Worker", value: "true" },
