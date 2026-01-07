@@ -59,6 +59,10 @@ export function Members() {
 
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({
+    page: "1",
+    limit: "12",
+  });
 
   const { screenWidth } = useWindowSize();
   const { executeDelete, success } = useDelete(api.delete.deleteMember);
@@ -140,13 +144,15 @@ export function Members() {
   };
 
   const handleFilterChange = (val: string, id: string) => {
-    setColumnFilters((prev) => {
-      if (!val) return prev.filter((f) => f.id !== id);
-      const exists = prev.some((f) => f.id === id);
-      return exists
-        ? prev.map((f) => (f.id === id ? { id, value: val } : f))
-        : [...prev, { id, value: val }];
-    });
+    // setColumnFilters((prev) => {
+    //   if (!val) return prev.filter((f) => f.id !== id);
+    //   const exists = prev.some((f) => f.id === id);
+    //   return exists
+    //     ? prev.map((f) => (f.id === id ? { id, value: val } : f))
+    //     : [...prev, { id, value: val }];
+    // });
+    
+    setFilters((prev) => ({ ...prev, page: "1", limit: "12", [id]: val }));
   };
 
   const membersCount = [
@@ -176,6 +182,10 @@ export function Members() {
       label: "Children female",
     },
   ];
+
+  useEffect(()=>{
+    refetchMembers(filters);
+  },[filters, refetchMembers]);
 
   return (
     <PageOutline crumbs={crumbs}>
@@ -207,6 +217,10 @@ export function Members() {
             value={filterMembers}
             onChange={handleSearchChange}
             id="searchMembers"
+            onSubmit={()=>{
+              refetchMembers({ page: "1", limit: "12", name: filterMembers });
+              setFilters((prev) => ({ ...prev, page: "1", limit: "12", name: filterMembers }));
+            }}
           />
         </div>
 
@@ -232,13 +246,14 @@ export function Members() {
               data={members}
               displayedCount={12}
               total={total}
-              filter={filterMembers}
-              setFilter={setFilterMembers}
+              // filter={filterMembers}
+              // setFilter={setFilterMembers}
               columnFilters={columnFilters}
               setColumnFilters={setColumnFilters}
               columnVisibility={columnVisibility}
               onPageChange={(page, limit) => {
-                refetchMembers({ limit: String(limit), page: String(page) });
+                // refetchMembers({ limit: String(limit), page: String(page) });
+                setFilters((prev) => ({ ...prev, page: String(page), limit: String(limit) }));
               }}
             />
           ) : (
