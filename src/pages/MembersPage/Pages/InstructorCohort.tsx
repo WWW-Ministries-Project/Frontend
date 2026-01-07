@@ -1,14 +1,14 @@
-import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
-import CourseSidebar from "../Component/CourseSidebar";
-import BannerWrapper from "../layouts/BannerWrapper";
-import { useEffect, useState } from "react";
 import { Button } from "@/components";
+import BannerWrapper from "../layouts/BannerWrapper";
 import { useNavigate } from "react-router-dom";
+import { relativePath } from "@/utils";
+import CourseSidebar from "../Component/CourseSidebar";
+import { useEffect, useState } from "react";
+import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 
 type Program = typeof dummyProgData[number];
 
-const InstructorProg = () => {
-
+const InstructorCohort = () => {
     const navigate = useNavigate();
     const [programs, setPrograms] = useState<Program[]>([]);
       const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("in-progress");
@@ -35,7 +35,7 @@ const InstructorProg = () => {
     return ( 
         <div>
             <div className="text-xl font-semibold">
-              All Program
+              All Cohort
             </div>
 
         {/* Section */}
@@ -71,8 +71,8 @@ const InstructorProg = () => {
                               {/* <span className="text-sm text-muted-foreground">{program.status}</span> */}
                               <Button
                                 variant="secondary"
-                                value="View program"
-                                onClick={() => navigate(`${program.id}/cohort`)}
+                                value="View details"
+                                onClick={() => navigate(`${program.id}`)}
                               />
                             </div>
                           </div>
@@ -85,4 +85,4 @@ const InstructorProg = () => {
      );
 }
  
-export default InstructorProg;
+export default InstructorCohort;

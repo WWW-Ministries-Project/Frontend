@@ -7,7 +7,7 @@ export interface NavItem {
   id: string | number;
   name: string;
   active: boolean;
-  completed:boolean;
+  completed?:boolean;
   type?: string;
 }
 
