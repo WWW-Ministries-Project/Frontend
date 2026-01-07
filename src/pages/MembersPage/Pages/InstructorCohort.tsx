@@ -64,7 +64,7 @@ const InstructorCohort = () => {
     }, [data]);
 
     const programStatus = [
-      { id: 1, name: "All", key: "all", active: filter === "all" },
+      // { id: 1, name: "All", key: "all", active: filter === "all" },
       { id: 2, name: "Active", key: "active", active: filter === "active" },
       { id: 3, name: "Ended", key: "completed", active: filter === "completed" },
     ];
