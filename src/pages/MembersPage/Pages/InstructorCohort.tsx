@@ -4,10 +4,35 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api, relativePath } from "@/utils";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useEffect, useState } from "react";
-import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { Badge } from "@/components/Badge";
 
-type Program = typeof dummyProgData[number];
+
+type ApiResponse<T> = {
+  data: T;
+  message?: string;
+};
+
+type BackendCohort = {
+  id: number;
+  name: string;
+  startDate: string;
+  status: "Upcoming" | "Ongoing" | "Completed";
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CohortView = {
+  id: number;
+  name: string;
+  status: "Upcoming" | "Ongoing" | "Completed";
+  startDate: string;
+  duration: string;
+};
 
 const InstructorCohort = () => {
     const navigate = useNavigate();
@@ -18,28 +43,44 @@ const InstructorCohort = () => {
 );
   console.log("instructor program", data);
   
-    const [programs, setPrograms] = useState<Program[]>([]);
-      const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("in-progress");
+    const [cohorts, setCohorts] = useState<CohortView[]>([]);
+    const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
 
-      useEffect(() => {
-          // load dummy data (sync)
-          setPrograms(dummyProgData as Program[]);
-        }, []);
+    useEffect(() => {
+      if (!data || !("data" in data)) return;
+
+      const response = data as ApiResponse<BackendCohort[]>;
+      if (!Array.isArray(response.data)) return;
+
+      const mapped: CohortView[] = response.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        status: item.status,
+        startDate: item.startDate,
+        duration: item.duration,
+      }));
+
+      setCohorts(mapped);
+    }, [data]);
 
     const programStatus = [
-    // { id: 1, name: "All", key: "all", active: filter === "all" },
-    { id: 2, name: "On-going", key: "in-progress", active: filter === "in-progress" },
-    { id: 3, name: "Ended", key: "completed", active: filter === "completed" },
-  ];
+      { id: 1, name: "All", key: "all", active: filter === "all" },
+      { id: 2, name: "Active", key: "active", active: filter === "active" },
+      { id: 3, name: "Ended", key: "completed", active: filter === "completed" },
+    ];
 
-  const filteredPrograms = programs.filter((p) => (filter === "all" ? true : p.status === filter));
+  const filteredCohorts = cohorts.filter((c) => {
+    if (filter === "all") return true;
+    if (filter === "completed") return c.status === "Completed";
+    // active = Upcoming + Ongoing
+    return c.status === "Upcoming" || c.status === "Ongoing";
+  });
 
-     const handleStatusSelect = (id: string | number) => {
-    // map sidebar id to filter key
-    if (id === 1 || id === "1") setFilter("all");
-    if (id === 2 || id === "2") setFilter("in-progress");
-    if (id === 3 || id === "3") setFilter("completed");
-  };
+    const handleStatusSelect = (id: string | number) => {
+      const selected = programStatus.find((s) => s.id === Number(id));
+      if (!selected) return;
+      setFilter(selected.key as typeof filter);
+    };
     return ( 
         <div>
             <div className="text-xl font-semibold">
@@ -60,32 +101,37 @@ const InstructorCohort = () => {
           </div>
 
           <div className="flex flex-col gap-4 lg:flex-1">
-                      {filteredPrograms.length === 0 ? (
-                        <div className="rounded-xl border border-gray-300 p-6 bg-white">No programs match the selected state.</div>
-                      ) : (
-                        filteredPrograms.map((program) => (
-                          <div
-                            key={program.id}
-                            className="flex items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
-                          >
-                            <div>
-                              <h3 className="font-medium text-lg mb-2">{program.title}</h3>
-                              <div className="flex gap-4 text-sm">
-                                
-                              </div>
-                            </div>
-          
-                            <div className="flex items-center gap-3">
-                              {/* <span className="text-sm text-muted-foreground">{program.status}</span> */}
-                              <Button
-                                variant="secondary"
-                                value="View details"
-                                onClick={() => navigate(`${program.id}`)}
-                              />
-                            </div>
-                          </div>
-                        ))
-                      )}
+            {filteredCohorts.length === 0 ? (
+              <div className="rounded-xl border border-gray-300 p-6 bg-white">
+                No cohorts match the selected state.
+              </div>
+            ) : (
+              filteredCohorts.map((cohort) => (
+                <div
+                  key={cohort.id}
+                  className="flex  items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
+                >
+                  <div className="flex flex-col gap-y-2">
+                    <div className="flex items-center gap-x-2">
+                      <h3 className="font-medium text-lg">{cohort.name}</h3>
+                      <Badge>{cohort.status}</Badge>
+                    </div>
+                    <div className="flex gap-4 text-sm text-gray-600">
+                      <span>Starts: {new Date(cohort.startDate).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>{cohort.duration}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="secondary"
+                      value="View details"
+                      onClick={() => navigate(`${cohort.id}`)}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
                     </div>
           </div>
             </main>
