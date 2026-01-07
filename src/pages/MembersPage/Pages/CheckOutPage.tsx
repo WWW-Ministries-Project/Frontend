@@ -8,12 +8,13 @@ import {
 import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
 import { api, decodeToken, relativePath } from "@/utils";
 import { useLocation } from "react-router-dom";
+import { useCartDetails } from "@/pages/HomePage/pages/MarketPlace/utils/useCartDetails";
 
 export function CheckOutPage() {
-  const { getTotalPrice, cartItems, setBillinDetails } = useCart();
+  const { setBillinDetails } = useCart();
   const { postData, data, loading } = usePost(api.post.createOrder);
+  const { items: cartItems, totalPrice, clearCart } = useCartDetails();
 
-  const totalAmount = getTotalPrice();
   const location = useLocation();
   const is_member = location.pathname.includes("member");
 
@@ -22,7 +23,7 @@ export function CheckOutPage() {
   const user = decodeToken();
 
   const amount = is_member
-    ? totalAmount
+    ? totalPrice
     : my_cart?.price_amount * my_cart?.quantity;
 
   const url = is_member
@@ -59,8 +60,10 @@ export function CheckOutPage() {
   useEffect(() => {
     if (data) {
       window.location.href = data.data.checkoutUrl;
+      clearCart();
+      localStorage.removeItem("my_cart");
     }
-  }, [data]);
+  }, [data, clearCart]);
 
   return (
     <>

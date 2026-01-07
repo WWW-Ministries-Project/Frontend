@@ -1,11 +1,20 @@
 import { matchRoutes, Outlet, useNavigate } from "react-router-dom";
 
-import { MarketLayout } from "../layouts/MarketLayout";
+import { useFetch } from "@/CustomHooks/useFetch";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { routes } from "@/routes/appRoutes";
+import { api } from "@/utils";
+import { MarketLayout } from "../layouts/MarketLayout";
+import { useStore } from "@/store/useStore";
+import { useEffect } from "react";
 
 const Market = () => {
+  const {
+    data: products,
+    loading,
+  } = useFetch(api.fetch.fetchAllProducts);
   const naviggate = useNavigate();
+  const { setProducts, setLoading } = useStore();
 
   const handleSelectedTab = (tab: string) => {
     if (tab === "Products") {
@@ -14,6 +23,19 @@ const Market = () => {
       naviggate(`${tab.toLowerCase()}`);
     }
   };
+
+  useEffect(() => {
+    if (loading) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+    if (products) {
+      setProducts(products.data);
+    }
+
+    
+  }, [loading, products]);
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.[matches.length - 1]?.route.name;
