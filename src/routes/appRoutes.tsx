@@ -307,7 +307,6 @@ export const routes: AppRoute[] = [
             path: "roles",
             name: "Life Center Roles",
             element: <LifeCenterRoles />,
-            sideTab: true,
           },
           {
             path: "life-center-analytics",
@@ -421,13 +420,13 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_access_rights",
           },
           {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_users",
-        sideTab: true,
-      },
+            path: "users",
+            name: "Users",
+            element: <UserManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_users",
+            sideTab: true,
+          },
         ],
       },
       {

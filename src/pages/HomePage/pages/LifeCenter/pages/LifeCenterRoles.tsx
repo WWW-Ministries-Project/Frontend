@@ -13,6 +13,7 @@ import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ILifeCernterRoles, RolesForm } from "../components/RolesForm";
+import { Banner } from "../../Members/Components/Banner";
 
 export function LifeCenterRoles() {
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
@@ -119,19 +120,25 @@ export function LifeCenterRoles() {
   );
 
   return (
-    <PageOutline className="p-6">
-      <PageHeader
+    <PageOutline className="p-0">
+      <Banner>
+      <div className="w-full">
+        <PageHeader
         title="Life Center Roles"
         buttonValue="Create Role"
         onClick={openCreateModal}
       />
+      </div>
+      </Banner>
 
-      <TableComponent
+      <div className="p-4">
+        <TableComponent
         columns={columns}
         data={roles?.data || []}
         displayedCount={10}
       />
 
+      </div>
       {roles?.data?.length === 0 && (
         <EmptyState msg={"No roles found"}/>
       )}

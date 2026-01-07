@@ -27,9 +27,7 @@ export function ViewLifeCenter() {
             {lifeCenterData?.description && (
               <p>{lifeCenterData?.description || ""}</p>
             )}
-          </div>
-
-          <div className="flex gap-5 items-center w-full">
+            <div className="flex gap-5 items-center w-full">
             {lifeCenterData?.location && (
               <InfoRow
                 icon={<MapPinIcon className="h-6 w-6 " />}
@@ -42,11 +40,14 @@ export function ViewLifeCenter() {
                 <InfoRow
                   icon={<CalendarIcon className="h-6 w-6 " />}
                   label={
-                    <ul className="border flex divide-x-[1px] w-fit">
+                    <ul className="flex gap-2 divide-x-[1px] w-fit">
                       {lifeCenterData?.meeting_dates.map((date, index) => (
-                        <li key={index} className="px-2">
+                        <span
+                          key={index}
+                          className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700"
+                        >
                           {date.slice(0, 3)}
-                        </li>
+                        </span>
                       ))}
                     </ul>
                   }
@@ -54,10 +55,40 @@ export function ViewLifeCenter() {
               </div>
             )}
           </div>
+          </div>
+
+          {/* <div className="flex gap-5 items-center w-full">
+            {lifeCenterData?.location && (
+              <InfoRow
+                icon={<MapPinIcon className="h-6 w-6 " />}
+                label={lifeCenterData?.location || "No location"}
+              />
+            )}
+
+            {lifeCenterData?.meeting_dates && (
+              <div className="flex items-center gap-2">
+                <InfoRow
+                  icon={<CalendarIcon className="h-6 w-6 " />}
+                  label={
+                    <ul className="flex gap-2 divide-x-[1px] w-fit">
+                      {lifeCenterData?.meeting_dates.map((date, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700"
+                        >
+                          {date.slice(0, 3)}
+                        </span>
+                      ))}
+                    </ul>
+                  }
+                />
+              </div>
+            )}
+          </div> */}
         </Banner>
 
         <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  px-8">
-          <div className="border border-lightGray rounded-lg xs:w-full p-4 w-full md:w-6/9 ">
+          <div className="rounded-lg xs:w-full p-4 w-full md:w-6/9 ">
             <SoulsWon
               soulsWon={lifeCenterData?.soulsWon || []}
               handleSuccess={refetch}
@@ -66,7 +97,11 @@ export function ViewLifeCenter() {
               leader={lifeCenterData?.members[0]}
             />
           </div>
-          <div className="border border-lightGray w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
+          <div className="hidden lg:flex justify-center">
+            <div className="w-px bg-gray-200 h-full" />
+          </div>
+          
+          <div className=" w-[35%] xs:w-full sm:w-full md:w-1/2 rounded-lg h-fit">
             <LifeCenterMembers
               refetchLifeCenter={refetch}
               lifeCenterId={id}
