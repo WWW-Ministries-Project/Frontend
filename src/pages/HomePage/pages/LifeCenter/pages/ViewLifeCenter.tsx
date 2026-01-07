@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import { InfoRow } from "../components/LifeCenterCard";
 import { LifeCenterMembers } from "../components/LifeCenterMembers";
 import { SoulsWon } from "../components/SoulsWon";
+import { Banner } from "../../Members/Components/Banner";
 
 export function ViewLifeCenter() {
   const { id: lifeCenterId } = useParams();
@@ -16,10 +17,10 @@ export function ViewLifeCenter() {
   const lifeCenterData = data?.data;
 
   return (
-    <PageOutline className="p-0">
+    <PageOutline className="p-0 ">
       <div className="space-y-5">
-        <div className="bg-primary text-white p-4 px-8 rounded-t-lg space-y-3">
-          <div className="space-y-1">
+        <Banner>
+          <div className="space-y-1 w-full">
             <p className="text-2xl font-semibold">
               {lifeCenterData?.name || "No name"}
             </p>
@@ -28,7 +29,7 @@ export function ViewLifeCenter() {
             )}
           </div>
 
-          <div className="flex gap-5 items-center ">
+          <div className="flex gap-5 items-center w-full">
             {lifeCenterData?.location && (
               <InfoRow
                 icon={<MapPinIcon className="h-6 w-6 " />}
@@ -53,7 +54,7 @@ export function ViewLifeCenter() {
               </div>
             )}
           </div>
-        </div>
+        </Banner>
 
         <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  px-8">
           <div className="border border-lightGray rounded-lg xs:w-full p-4 w-full md:w-6/9 ">

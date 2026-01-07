@@ -150,7 +150,7 @@ export function HomePage() {
     </div>
     <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
        {/* <AutoBreadcrumb/> */}
-      <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto">
+      <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto border border-t-4 border-t-[#ac6a22]">
        
      <Outlet
                   context={{

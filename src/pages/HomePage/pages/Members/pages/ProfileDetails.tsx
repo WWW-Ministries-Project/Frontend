@@ -12,6 +12,7 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import BannerWrapper from "@/pages/MembersPage/layouts/BannerWrapper";
 import { Button, ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
+import { AtSymbolIcon, EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 
 export const ProfileDetails = () => {
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ export const ProfileDetails = () => {
                   <div className="flex justify-between items-cente  container mx-auto">
                     <div className="flex gap-4 items-center  ">
                       <ProfilePicture
-                        className="w-24 h-24 outline outline-white"
+                        className="w-32 h-32 outline outline-white"
                         src={details?.photo || ""}
                         alt="cover Image"
                         name={details?.name}
@@ -122,13 +123,13 @@ export const ProfileDetails = () => {
                         <div className="font-bold text-2xl ">
                           {details?.name || "No Name"}
                         </div>
-                        <div className="">{`${details?.department?.name ?? ""} ${
-                          details?.department && details?.position?.name ? "|" : ""
-                        } ${details?.position ?? ""} `}</div>
-                        <div className="">
-                          {(details?.email || "No Email") +
-                            " | " +
-                            (details?.primary_number || "No Phone")}
+                        <div className="flex gap-2 text-sm">
+                          <span>#</span><span>{details?.member_id}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {details?.email&&<p className="flex items-center gap-2"><span><EnvelopeIcon className="h-4"/></span><span>{details?.email}</span></p>}
+                          {(details?.primary_number&&details?.email)&&<p>|</p>}
+                          {details?.primary_number&&<p className="flex items-center gap-2"><span><PhoneIcon className="h-4"/></span><span>{details?.primary_number}</span></p>}
                         </div>
                         <div className="flex gap-2">
                           <Badge className="text-sm  border-primary bg-white border text-primary w-fit ">
@@ -158,11 +159,11 @@ export const ProfileDetails = () => {
       </div>
       <section className="bg-white w-full h-full mb-4 mx-auto">
         <div className="flex p-4">
-          <TabSelection
+          {/* <TabSelection
             tabs={["Member information", "Family information"]}
             selectedTab={selectedTab}
             onTabSelect={handleTabSelect}
-          />
+          /> */}
         </div>
         <div className="hideScrollbar pb-4 mx-auto rounded-b-xl overflow-y-auto">
           <Outlet

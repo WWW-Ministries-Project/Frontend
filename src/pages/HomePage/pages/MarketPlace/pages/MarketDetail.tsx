@@ -102,9 +102,9 @@ export function MarketDetails() {
   }
 
   return (
-    <PageOutline className="">
+    <PageOutline className="p-0">
       <MarketHeader market={market?.data} />
-      <div className="px-6">
+      <div className="p-6">
         <div className="w-fit mb-3">
           <TabSelection
             tabs={[`Products`, "Orders"]}

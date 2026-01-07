@@ -9,6 +9,7 @@ import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import { CohortForm } from "./CohortForm";
 import TopicForm from "./TopicForm";
+import { Banner } from "../../Members/Components/Banner";
 
 const ViewPageTemplateInner = () => {
   const { loading, data: Data, details } = useViewPage();
@@ -32,7 +33,7 @@ const ViewPageTemplateInner = () => {
   return (
     <PageOutline className="p-0 ">
       <section className="sticky top-0">
-        <div className="bg-gradient-to-r from-primary to-primary/90 rounded-t-lg text-white flex p-4 px-6 justify-between items-center">
+        <Banner >
           <div className="container mx-auto  space-y-4">
             <div>
               <div className="flex justify-between items-center">
@@ -81,79 +82,10 @@ const ViewPageTemplateInner = () => {
               <div>{details}</div>
             )}
 
-            {/* Topics */}
-            {/* {loading
-              ? Data?.topics &&
-                Data?.showTopic && (
-                  <div className="space-y-2 animate-pulse">
-                    <div className="h-4 bg-lightGray rounded w-20"></div>
-                    <div className="flex gap-2">
-                      {Array.from({ length: 9 }).map((_, index) => (
-                        <div
-                          className="h-4 bg-lightGray rounded-full w-20"
-                          key={index}
-                        ></div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              : Data?.topics &&
-                Data?.showTopic && (
-                  <div className="space-y-1">
-                    <p className="text-white text-lg font-semibold">Topics</p>
-                    <div className="flex flex-wrap gap-2">
-                      {Data?.topics.map((topic, index) => (
-                        <Badge
-                          key={index}
-                          className="bg-lightGray border-lightGray font-medium text-sm text-primary"
-                        <button
-                          ref={buttonRef} // Reference to the button
-                          className="text-primary"
-                          onClick={handleMenuToggle}
-                        >
-                  </div>
-                )} */}
-          </div>
-          <div className="flex gap-4">
-            {/* <div >
-              <Button
-                value="Manage class"
-                className="  text-primary min-h-10 max-h-14 bg-white"
-                onClick={() => {}}
-              />
-            </div> */}
-            {/* <div className="relative">
-            
-            {isMenuOpen  && (
-              <div
-                ref={menuRef}
-                className="absolute right-0  mt-2 w-48 bg-white text-primary border border-lightGray rounded-lg shadow-lg"
-              >
-                <ul className="py-1">
-                  <li
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                                        onClick={() => {
-                      setIsCohortModalOpen(true);
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    Cohort
-                  </li>
-                  <li
-                    className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                    onClick={() => setIsTopicModalOpen(true)}
-                  >
-                    Topic
-                  </li>
-
-                  
-                </ul>
-              </div>
-            )}
-          </div> */}
             
           </div>
-        </div>
+          
+        </Banner>
       </section>
 
       {/* Render dynamic content (children) */}
