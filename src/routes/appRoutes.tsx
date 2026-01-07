@@ -276,14 +276,14 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "manage_asset",
       },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_users",
-        sideTab: true,
-      },
+      // {
+      //   path: "users",
+      //   name: "Users",
+      //   element: <UserManagement />,
+      //   isPrivate: true,
+      //   permissionNeeded: "view_users",
+      //   sideTab: true,
+      // },
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
@@ -420,6 +420,14 @@ export const routes: AppRoute[] = [
             isPrivate: false,
             permissionNeeded: "view_access_rights",
           },
+          {
+        path: "users",
+        name: "Users",
+        element: <UserManagement />,
+        isPrivate: true,
+        permissionNeeded: "view_users",
+        sideTab: true,
+      },
         ],
       },
       {

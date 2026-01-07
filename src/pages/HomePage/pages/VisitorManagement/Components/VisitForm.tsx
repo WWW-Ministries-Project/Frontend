@@ -4,9 +4,27 @@ import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils";
-import { Field, Form, Formik } from "formik";
-import { useMemo } from "react";
+import { Field, Form, Formik, useFormikContext } from "formik";
+import { useEffect, useMemo } from "react";
 import { date, object, string } from "yup";
+
+const AutoPopulateVisitDate = ({ eventsOptions }: { eventsOptions: any[] }) => {
+  const { values, setFieldValue } = useFormikContext<IVisitForm>();
+
+  useEffect(() => {
+    if (!values.eventId) return;
+
+    const selectedEvent = eventsOptions?.find(
+      (event) => String(event.value) === String(values.eventId)
+    );
+
+    if (selectedEvent?.date) {
+      setFieldValue("date", formatInputDate(selectedEvent.date));
+    }
+  }, [values.eventId, eventsOptions, setFieldValue]);
+
+  return null;
+};
 
 interface IProps {
   onClose: () => void;
@@ -35,69 +53,71 @@ const VisitFormComponent = ({
     validationSchema={validationSchema}
     onSubmit={(values) => onSubmit(values)}
   >
-    {({ handleSubmit,values }) => (
-      
-      <Form className="flex flex-col  ">
-        <div className="sticky top-0 z-10 ">
-            <FormHeader>
-              <p className="text-lg font-semibold">{initialData ? "Edit Visit" : "Record a Visit"}</p>
-              <p className="text-sm text-white">
-                Provide the details of the visits.
-              </p>
-            </FormHeader>
-            
+    {({ handleSubmit, values }) => (
+      <>
+        <AutoPopulateVisitDate eventsOptions={eventsOptions} />
+        <Form className="flex flex-col">
+          <div className="sticky top-0 z-10 ">
+              <FormHeader>
+                <p className="text-lg font-semibold">{initialData ? "Edit Visit" : "Record a Visit"}</p>
+                <p className="text-sm text-white">
+                  Provide the details of the visits.
+                </p>
+              </FormHeader>
+              
+            </div>
+
+           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field
+            component={FormikSelectField}
+            options={eventsOptions}
+            label="Event *"
+            placeholder="Select an event"
+            id="eventId"
+            name="eventId"
+          />
+            <Field
+            component={FormikInputDiv}
+            type="date"
+            placeholder="When did you visit?"
+            label="Visit Date *"
+            value = {formatInputDate(values?.date)}
+            id="date"
+            name="date"
+          />
+          
+          </div>
+          <Field
+            component={FormikInputDiv}
+            type="textarea"
+            label="Note *"
+            placeholder="Enter any notes about the visit"
+            id="notes"
+            name="notes"
+          />
           </div>
 
-         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field
-          component={FormikSelectField}
-          options={eventsOptions}
-          label="Event *"
-          placeholder="Select an event"
-          id="eventId"
-          name="eventId"
-        />
-          <Field
-          component={FormikInputDiv}
-          type="date"
-          placeholder="When did you visit?"
-          label="Visit Date *"
-          value = {formatInputDate(values?.date)}
-          id="date"
-          name="date"
-        />
-        
-        </div>
-        <Field
-          component={FormikInputDiv}
-          type="textarea"
-          label="Note *"
-          placeholder="Enter any notes about the visit"
-          id="notes"
-          name="notes"
-        />
-        </div>
-
-        <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
-          <div className="flex items-center justify-end gap-3">
-                <Button
-                  value="Submit"
-                  variant="primary"
-                  type="submit"
-                  disabled={loading}
-                  loading={loading}
-                  onClick={handleSubmit}
-                />
-                <Button
-                  value="Cancel"
-                  variant="secondary"
-                  onClick={onClose}
-                  disabled={loading}
-                />    
+          <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+            <div className="flex items-center justify-end gap-3">
+                  <Button
+                    value="Submit"
+                    variant="primary"
+                    type="submit"
+                    disabled={loading}
+                    loading={loading}
+                    onClick={handleSubmit}
+                  />
+                  <Button
+                    value="Cancel"
+                    variant="secondary"
+                    onClick={onClose}
+                    disabled={loading}
+                  />    
+            </div>
           </div>
-        </div>
-      </Form>
+        </Form>
+      </>
     )}
   </Formik>
 </div>

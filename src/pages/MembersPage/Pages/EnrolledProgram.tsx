@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useParams, useNavigate } from "react-router-dom";
-import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
 import BannerWrapper from "../layouts/BannerWrapper";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
+import { api, ProgramTopic, Topic } from "@/utils";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { useAuth } from "@/context/AuthWrapper";
+import { Modal } from "@/components/Modal";
+import  CertificateTemplate  from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateTemplate";
+import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
 
-type Program = typeof dummyProgData[number];
+
 type NavItem = { id: string | number; name: string; active: boolean };
 
 /**
@@ -15,33 +20,69 @@ type NavItem = { id: string | number; name: string; active: boolean };
  */
 const EnrolledProgram: React.FC = () => {
   const { programId } = useParams<{ programId: string }>();
+  
   const navigate = useNavigate();
   const id = Number(programId);
+  const { user } = useAuth();
 
-  const [program, setProgram] = useState<Program | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewCertificate, setViewCertificate] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  useEffect(() => {
-    // Simulate data loading
-    setIsLoading(true);
+  const { data, loading, refetch } = useFetch(
+  api.fetch.fetchMyProgram,
+     { programId, userId: user!.id }
     
-    const found = dummyProgData.find((p) => p.id === id) || null;
-    setProgram(found);
+);
 
-    if (found?.topics?.length) {
-      const items = found.topics.map((t, idx) => ({
-        id: t.id,
-        name: t.title,
-        active: idx === 0,
-      }));
-      setNavItems(items);
-      setSelectedTopicId(found.topics[0].id);
-    }
 
-    setIsLoading(false);
-  }, [id]);
+ useEffect(() => {
+  if (!data?.data) return;
+
+  setIsLoading(true);
+
+  const program = data.data;
+  const backendTopics = program.topics ?? [];
+
+  setTopics(backendTopics);
+
+  if (backendTopics.length > 0) {
+    // Find first incomplete topic
+    const firstIncompleteTopic =
+      backendTopics.find((t) => !t.completed) ?? backendTopics[0];
+
+    const items = backendTopics.map((t) => ({
+      id: t.id,
+      name: t.name,
+      active: t.id === firstIncompleteTopic.id,
+      completed: t.completed || false,
+      type:t.learningUnit.type
+    }));
+
+    setNavItems(items);
+    setSelectedTopicId(firstIncompleteTopic.id);
+  } else {
+    setNavItems([]);
+    setSelectedTopicId(null);
+  }
+
+  setIsLoading(false);
+}, [data]);
+
+useEffect(() => {
+  if (!data?.data?.completed || !user || !programId) return;
+
+  const celebrationKey = `program_completed_${programId}_${user.id}`;
+  const hasCelebrated = localStorage.getItem(celebrationKey);
+
+  if (!hasCelebrated) {
+    setShowCelebration(true);
+    localStorage.setItem(celebrationKey, "true");
+  }
+}, [data, user, programId]);
 
   const handleTopicSelect = (navId: string | number) => {
     setNavItems((items) =>
@@ -51,7 +92,9 @@ const EnrolledProgram: React.FC = () => {
   };
 
   const selectedTopic =
-    program?.topics?.find((t) => t.id === selectedTopicId) ?? null;
+    topics.find((t) => t.id === selectedTopicId) ?? null;
+
+    
 
   // Loading state
   if (isLoading) {
@@ -65,72 +108,43 @@ const EnrolledProgram: React.FC = () => {
     );
   }
 
-  // Error state - Program not found
-  if (!program) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="max-w-md text-center space-y-4 p-6">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-            <svg
-              className="w-8 h-8 text-red-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            Program Not Found
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            We couldn't find a program with ID: <strong>{id}</strong>
-          </p>
-          {/* <Button
-            onClick={() => navigate("/programs")}
-            className="mt-4"
-          >
-            Browse Programs
-          </Button> */}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
       {/* Banner Section */}
       <BannerWrapper>
-        <div className="space-y-4 max-w-4xl">
-          <div className="flex items-start justify-between gap-4">
+        <div className="space-y-4 w-full">
+          <div className="flex items-center justify-between gap-4">
             <div className="space-y-3 flex-1">
               <h1 className="font-bold text-2xl md:text-3xl lg:text-4xl ">
-                {program.title}
+                {data?.data?.title}
               </h1>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                {program.description}
+                {data?.data?.description}
               </p>
             </div>
+            {data?.data.completed&&<div>
+              <Button
+                value="View Certificate"
+                variant="primary"
+                className="bg-white text-primary"
+                onClick={() =>setViewCertificate(true)}
+              />
+            </div>}
           </div>
-
-          
         </div>
       </BannerWrapper>
 
       {/* Main Content Area */}
-      <main className="mx-auto py-8 ">
+      <main className="mx-auto py-8 min-h-[calc(100vh-12rem)]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* Topics Sidebar - Left */}
-          <aside 
-            className="w-full lg:w-[280px] shrink-0"
+          <aside
+            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-[13rem] lg:h-[calc(100vh-13rem)] lg:overflow-y-auto"
             aria-label="Course topics navigation"
           >
-            <div className="lg:sticky lg:top-24">
+            <div className="">
+              
               <CourseSidebar
                 navItems={navItems}
                 onSelect={handleTopicSelect}
@@ -141,16 +155,16 @@ const EnrolledProgram: React.FC = () => {
 
           {/* Main Content - Center */}
           <section 
-            className="flex-1 min-w-0"
+            className="flex-1 min-w-0 lg:h-[calc(100vh-13rem)] lg:overflow-y-auto"
             aria-label="Topic content"
           >
-            <div className="bg-white  overflow-hidden">
+            <div>
               <div className="">
                 {selectedTopic ? (
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <h2 className="text-xl font-semibold text-gray-900">
-                        {selectedTopic.title}
+                        {selectedTopic.name}
                       </h2>
                       <div
                         className="prose max-w-none text-gray-700"
@@ -158,7 +172,12 @@ const EnrolledProgram: React.FC = () => {
                       />
                     </div>
 
-                    <LearningUnit unit={selectedTopic.learningUnit} />
+                    <LearningUnit 
+                    unit={selectedTopic.learningUnit ?? undefined} 
+                    topicId={selectedTopic.id} userId ={user!.id} 
+                    completed={selectedTopic.completed}
+                    refetch={refetch}
+                    />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-[300px]">
@@ -206,6 +225,51 @@ const EnrolledProgram: React.FC = () => {
           </aside> */}
         </div>
       </main>
+      <Modal open={viewCertificate} onClose={()=>setViewCertificate(false)} className="w-[70vw]  ">
+        <CertificateTemplate
+          recipientName={user.name}
+          program={data?.data?.title}
+          onClose={()=>setViewCertificate(false)}
+        />
+      </Modal>
+
+      <Modal
+        open={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        className="max-w-md text-center"
+      >
+        <div className="space-y-6 p-6">
+          <div className="flex justify-center">
+            <TrophyIcon className="h-16 w-16 text-yellow-500" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Congratulations 🎉
+            </h2>
+            <p className="text-sm text-gray-600">
+              You have successfully completed the program.
+              We’re proud of your dedication and commitment.
+            </p>
+          </div>
+
+          <div className="flex justify-center gap-3">
+            <Button
+              value="View Certificate"
+              variant="primary"
+              onClick={() => {
+                setShowCelebration(false);
+                setViewCertificate(true);
+              }}
+            />
+            <Button
+              value="Close"
+              variant="secondary"
+              onClick={() => setShowCelebration(false)}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

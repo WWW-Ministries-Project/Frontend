@@ -205,9 +205,9 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                         id="recurring.frequency"
                         name="recurring.frequency"
                         options={[
-                          { name: "Days", value: "daily" },
-                          { name: "Weeks", value: "weekly" },
-                          { name: "Months", value: "monthly" },
+                          { label: "Days", value: "daily" },
+                          { label: "Weeks", value: "weekly" },
+                          { label: "Months", value: "monthly" },
                         ]}
                       />
                       <Field

@@ -8,6 +8,7 @@
 
 :root {
 	--ck-content-font-family: 'Lato';
+  --app-header-height: 64px;
 }
 
 .main-container {

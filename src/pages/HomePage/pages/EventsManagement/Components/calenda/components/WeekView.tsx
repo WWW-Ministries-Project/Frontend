@@ -1,6 +1,17 @@
 import React, { useMemo } from 'react'
 import { calculateEventPosition, DAYS_OF_WEEK_SHORT, formatTime, getWeekDates, resolveEventOverlaps } from '../utils/CalendaHelpers'
 
+const addTwoHours = (startTime: string): string => {
+  const [h, m] = startTime.split(':').map(Number);
+  const date = new Date();
+  date.setHours(h, m || 0, 0, 0);
+  date.setHours(date.getHours() + 2);
+
+  return `${date.getHours().toString().padStart(2, '0')}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}`;
+};
 
 export interface EventData {
   id: string
@@ -50,11 +61,16 @@ const WeekView: React.FC<WeekViewProps> = ({
       const dayEvents = eventsByDate[iso] || []
 
       const validPositions = dayEvents
-        .filter(e => e.start_time && e.end_time)
-        .map(e => ({
-          ...e,
-          ...calculateEventPosition(e.start_time, e.end_time, slotHeight),
-        }))
+        .filter(e => e.start_time)
+        .map(e => {
+          const endTime = e.end_time || addTwoHours(e.start_time);
+
+          return {
+            ...e,
+            end_time: endTime,
+            ...calculateEventPosition(e.start_time, endTime, slotHeight),
+          };
+        });
 
       positioned[iso] = resolveEventOverlaps(validPositions)
     })

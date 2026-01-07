@@ -9,8 +9,29 @@ import {
 } from "@/components/subform";
 import { FormHeader, FormLayout } from "@/components/ui";
 import { useStore } from "@/store/useStore";
-import { Field, Form, Formik } from "formik";
+import { Field, Form, Formik, useFormikContext } from "formik";
 import { date, object, string } from "yup";
+import React from "react";
+
+const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | number; date?: string }[] }) => {
+  const { values, setFieldValue } = useFormikContext<any>();
+
+  React.useEffect(() => {
+    const eventId = values?.visit?.eventId;
+    if (!eventId) return;
+
+    const selected = eventsOptions.find(
+      e => String(e.value) === String(eventId)
+    );
+
+    if (selected?.date) {
+      const formattedDate = selected.date.split("T")[0];
+      setFieldValue("visit.date", formattedDate);
+    }
+  }, [values?.visit?.eventId, eventsOptions, setFieldValue]);
+
+  return null;
+};
 
 interface IProps {
   onClose: () => void;
@@ -29,6 +50,9 @@ const VisitorFormComponent = ({
 }: IProps) => {
   const { eventsOptions } = useStore();
 
+  console.log(eventsOptions);
+  
+
   return (
     <div className="bg-white  rounded-lg w-full  mx-auto">
       <Formik
@@ -39,6 +63,7 @@ const VisitorFormComponent = ({
       >
         {({ handleSubmit }) => (
           <Form className="flex flex-col h-[80vh]  xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+            <SyncEventDate eventsOptions={eventsOptions} />
             {showHeader && (
               <div className="sticky top-0 z-10">
                 <FormHeader>
@@ -66,8 +91,8 @@ const VisitorFormComponent = ({
                   options={eventsOptions}
                   label="Event"
                   placeholder="Select event"
-                  name="eventId"
-                  id="eventId"
+                  name="visit.eventId"
+                  id="visit.eventId"
                 />
                 <Field
                   component={FormikInputDiv}
@@ -150,6 +175,7 @@ export interface IVisitorForm {
   };
   consentToContact: string;
   membershipWish: string;
+  
 }
 
 const initialValues: IVisitorForm = {

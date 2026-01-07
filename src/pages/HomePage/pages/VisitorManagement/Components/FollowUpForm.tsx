@@ -27,7 +27,7 @@ const FollowUpFormComponent = ({
   );
 
   return (
-    <div className="bg-white rounded-lg w-full  mx-auto">
+    <div className="bg-white rounded-lg w-full  mx-auto z-40">
       
       <Formik
         initialValues={initial}
@@ -36,7 +36,7 @@ const FollowUpFormComponent = ({
       >
         {({ handleSubmit }) => (
           <Form className="flex flex-col  bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="sticky top-0 z-10">
+            <div className="sticky top-0 z-40">
                 <FormHeader>
                   <p className="text-lg font-semibold">{initialData ? "Edit Follow-up" : "Record a Follow-up"}</p>
                   <p className="text-sm text-white">

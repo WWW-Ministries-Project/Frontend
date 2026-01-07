@@ -110,15 +110,16 @@ export const SideBar = ({ className }: IProps) => {
 
   return (
     <div
-      className={` flex flex-col transition-all duration-300 ${
+      className={`flex flex-col transition-all duration-300 ${
         isExpanded ? "w-64" : "w-16"
       } ${className || ""}`}
+      style={{ height: "calc(100vh - var(--app-header-height))" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Scrollable navigation area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll ">
-        <div className="flex flex-col space-y-2 py-4 min-h-full h-full">
+        <div className="flex flex-col space-y-2 py-4">
           {/* Render sidebar items */}
           {filteredTabs.map((item) => {
             const IconComponent = sidebarIcons[item.name!];

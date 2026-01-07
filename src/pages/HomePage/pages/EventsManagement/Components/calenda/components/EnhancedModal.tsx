@@ -1,139 +1,194 @@
-import React, { useState, useEffect, ReactNode, MutableRefObject } from 'react'
+import React, {
+  ReactNode,
+  MutableRefObject,
+  useLayoutEffect,
+  useRef,
+} from 'react';
+import { createPortal } from 'react-dom';
 
-import { calculateDynamicModalPosition } from '../utils/CalendaHelpers'
-import { debounce } from '../utils/CalendaHelpers'
+interface EnhancedModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  anchor?: { x: number; y: number } | null;
+  children: ReactNode;
+  modalRef?: MutableRefObject<HTMLElement | null>;
+  className?: string;
+}
 
-export interface EnhancedModalProps {
-  /** Whether the modal is open */
-  isOpen: boolean
-  /** Callback to close the modal */
-  onClose: () => void
-  /** Reference element to position the modal against */
-  triggerElement: HTMLElement | null
-  /** Modal contents */
-  children: ReactNode
-  /** Ref for the modal container */
-  modalRef?: MutableRefObject<HTMLElement | null>
-  /** Width & height of modal */
-  dimensions?: { width: number; height: number }
-  /** Extra wrapper classes */
-  className?: string
+const PADDING = 8;
+
+const placements = [
+  'bottom-right',
+  'bottom-left',
+  'top-right',
+  'top-left',
+] as const;
+
+function computePosition(
+  anchor: { x: number; y: number },
+  rect: DOMRect
+) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  for (const p of placements) {
+    let left = 0;
+    let top = 0;
+
+    switch (p) {
+      case 'bottom-right':
+        left = anchor.x + PADDING;
+        top = anchor.y + PADDING;
+        break;
+      case 'bottom-left':
+        left = anchor.x - rect.width - PADDING;
+        top = anchor.y + PADDING;
+        break;
+      case 'top-right':
+        left = anchor.x + PADDING;
+        top = anchor.y - rect.height - PADDING;
+        break;
+      case 'top-left':
+        left = anchor.x - rect.width - PADDING;
+        top = anchor.y - rect.height - PADDING;
+        break;
+    }
+
+    const fits =
+      left >= 0 &&
+      top >= 0 &&
+      left + rect.width <= vw &&
+      top + rect.height <= vh;
+
+    if (fits) return { left, top };
+  }
+
+  // fallback: centered
+  return {
+    left: (vw - rect.width) / 2,
+    top: (vh - rect.height) / 2,
+  };
 }
 
 const EnhancedModal: React.FC<EnhancedModalProps> = ({
   isOpen,
   onClose,
-  triggerElement,
+  anchor,
   children,
   modalRef,
-  dimensions = { width: 300, height: 300 },
   className = '',
 }) => {
-  const [position, setPosition] = useState<{ top: string; left: string }>({ top: '50%', left: '50%' })
-  const [placement, setPlacement] = useState<string>('bottom')
-  const [isPositioned, setIsPositioned] = useState<boolean>(false)
+  const hasPositionedRef = useRef(false);
 
-  // Calculate initial position whenever opened or trigger changes
-  useEffect(() => {
-    if (isOpen && triggerElement) {
-      const pos = calculateDynamicModalPosition(triggerElement, dimensions, {
-        preferredPosition: 'auto',
-        offset: 12,
-        centerIfNoSpace: true,
-      })
-      setPosition({ top: pos.top, left: pos.left })
-      setPlacement(pos.placement)
-      setIsPositioned(true)
-    } else {
-      setIsPositioned(false)
-    }
-  }, [isOpen, triggerElement, dimensions])
+  useLayoutEffect(() => {
+    if (!isOpen || !modalRef?.current) return;
 
-  // Reposition on scroll/resize
-  useEffect(() => {
-    if (!isOpen || !triggerElement) return
-    const reposition = () => {
-      const pos = calculateDynamicModalPosition(triggerElement, dimensions, {
-        preferredPosition: 'auto',
-        offset: 12,
-        centerIfNoSpace: true,
-      })
-      setPosition({ top: pos.top, left: pos.left })
-    }
-    const debounced = debounce(reposition, 50)
-    window.addEventListener('resize', debounced)
-    window.addEventListener('scroll', debounced, true)
+    hasPositionedRef.current = false;
+
+    // Reset any previous inline styles
+    Object.assign(modalRef.current.style, {
+      left: '',
+      top: '',
+      transform: '',
+    });
+  }, [isOpen, modalRef]);
+
+  useLayoutEffect(() => {
+    if (
+      !isOpen ||
+      !modalRef?.current ||
+      !anchor ||
+      hasPositionedRef.current
+    )
+      return;
+
+    const modal = modalRef.current;
+
+    // Ensure modal has intrinsic size before measuring
+    modal.style.position = 'fixed';
+    modal.style.left = '0px';
+    modal.style.top = '0px';
+    modal.style.visibility = 'hidden';
+
+    const rect = modal.getBoundingClientRect();
+    const { left, top } = computePosition(anchor, rect);
+
+    Object.assign(modal.style, {
+      left: `${left}px`,
+      top: `${top}px`,
+      zIndex: '10000',
+      visibility: 'visible',
+    });
+
+    hasPositionedRef.current = true;
+  }, [isOpen, anchor, modalRef]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const handler = (e: MouseEvent) => {
+      if (!modalRef?.current) return;
+      if (!modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Delay binding to avoid immediate close on open
+    const id = requestAnimationFrame(() => {
+      document.addEventListener('mousedown', handler);
+    });
+
     return () => {
-      window.removeEventListener('resize', debounced)
-      window.removeEventListener('scroll', debounced, true)
-      debounced.cancel()
-    }
-  }, [isOpen, triggerElement, dimensions])
+      cancelAnimationFrame(id);
+      document.removeEventListener('mousedown', handler);
+    };
+  }, [isOpen, onClose, modalRef]);
 
-  if (!isOpen) return null
+  useLayoutEffect(() => {
+    if (!isOpen || !modalRef?.current || !anchor) return;
 
-  const modalClasses = [
-    'inline-block',
-    'align-bottom',
-    'bg-white',
-    'rounded-xl',
-    'text-left',
-    'overflow-hidden',
-    'shadow-xl',
-    'transform',
-    'transition-all',
-    'duration-200',
-    'ease-out',
-    className,
-    isPositioned ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
-  ].join(' ')
+    const reposition = () => {
+      const rect = modalRef.current!.getBoundingClientRect();
+      const { left, top } = computePosition(anchor, rect);
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Backdrop */}
-        <div
-          className={`fixed inset-0 bg-gray-500 transition-opacity duration-200 ${
-            isPositioned ? 'opacity-75' : 'opacity-0'
-          }`}
-          onClick={onClose}
-        />
+      Object.assign(modalRef.current!.style, {
+        left: `${left}px`,
+        top: `${top}px`,
+      });
+    };
 
-        {/* Spacer for vertical centering */}
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+    window.addEventListener('resize', reposition, { passive: true });
+    window.addEventListener('scroll', reposition, true);
 
-        {/* Modal container */}
-        <div
-          className={modalClasses}
-          style={{
-            position: 'absolute',
-            top: position.top,
-            left: position.left,
-            width: dimensions.width,
-            height: dimensions.height,
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            zIndex: 60,
-          }}
-          ref={modalRef as any}
-          data-placement={placement}
-        >
-          {/* Close button */}
-          <button
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 z-10 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors duration-150"
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+    };
+  }, [isOpen, anchor, modalRef]);
 
-          {children}
-        </div>
-      </div>
-    </div>
-  )
-}
+  if (!isOpen) return null;
 
-export default EnhancedModal
+  return createPortal(
+    <div
+      ref={modalRef as any}
+      className={`bg-white rounded-xl shadow-xl max-w-[90vw] max-h-[90vh] overflow-hidden ${className}`}
+      onClick={(e) => e.stopPropagation()}
+      style={
+        !anchor
+          ? {
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 10000,
+            }
+          : undefined
+      }
+    >
+      {children}
+    </div>,
+    document.body
+  );
+};
+
+export default EnhancedModal;

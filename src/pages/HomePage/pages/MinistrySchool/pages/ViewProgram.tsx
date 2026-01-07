@@ -15,6 +15,8 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import TopicBasicInfoForm from "../Components/TopicBasicInfoForm";
 
+const TAB_STORAGE_KEY = "view_program_selected_tab";
+
 export const ViewProgram = () => {
   //api
   const { id: programId } = useParams();
@@ -51,10 +53,16 @@ export const ViewProgram = () => {
     }
   }, [success, refetch]);
 
-  const [selectedTab, setSelectedTab] = useState<"Cohorts" | "Topics">("Cohorts");
+  const [selectedTab, setSelectedTab] = useState<"Cohorts" | "Topics">(() => {
+    const savedTab = localStorage.getItem(TAB_STORAGE_KEY);
+    return savedTab === "Topics" || savedTab === "Cohorts"
+      ? savedTab
+      : "Cohorts";
+  });
 
   const handleTabSelect = (tab: "Cohorts" | "Topics") => {
     setSelectedTab(tab);
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
   };
 
   const handleEdit = (cohort: CohortType): void => {

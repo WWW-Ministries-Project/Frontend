@@ -7,45 +7,19 @@ import BannerWrapper from "../layouts/BannerWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import { useAuth } from "@/context/AuthWrapper";
+import mylearning from "@/assets/banner/mylearning.svg";
+import { EnrolledProgramResponse } from "@/utils";
 
-interface BackendProgram {
-  id: number;
-  user_id: number;
-  course_id: number;
-  enrolledAt: string;
-  completed: boolean;
-  completedAt: string | null;
-  instructor: {
-    id: number;
-    name: string;
-  };
-  cohort: {
-    id: number;
-    name: string;
-    status: string;
-    startDate: string;
-    duration: string;
-  };
-  program: {
-    id: number;
-    title: string;
-  };
-  course: {
-    id: number;
-    name: string;
-    schedule: string;
-    classFormat: string;
-    location: string;
-    meetingLink: string;
-  };
-}
+
 
 const MyLearning: React.FC = () => {
   const { user } = useAuth();
   // api
   const {data, loading, refetch} = useFetch(api.fetch.fetchUserEnrolledPrograms, user?.id);
 
-  const programsData = useMemo(() => data?.data || [], [data]);
+  const programsData = useMemo<EnrolledProgramResponse>(() => {
+    return data?.data ?? [];
+  }, [data]);
   console.log("My Prog data", programsData);
   console.log("user data", user);
   
@@ -53,9 +27,7 @@ const MyLearning: React.FC = () => {
 
   const [filter, setFilter] = useState<"in-progress" | "completed">("in-progress");
 
-  const programs = useMemo<BackendProgram[]>(() => {
-    return programsData || [];
-  }, [programsData]);
+  const programs = programsData;
 
   const programStatus = [
     { id: 1, name: "In Progress", key: "in-progress", active: filter === "in-progress" },
@@ -75,8 +47,8 @@ const MyLearning: React.FC = () => {
 
   return (
     <div>
-      <BannerWrapper>
-          <div className="space-y-4">
+      <BannerWrapper imgSrc={mylearning}>
+          <div className="space-y-4 w-full">
             <div className="font-bold text-3xl">My Learning</div>
             <div>Overview of your learning progress and materials.</div>
           </div>
@@ -121,7 +93,7 @@ const MyLearning: React.FC = () => {
                     <Button
                       variant="secondary"
                       value="View program"
-                      onClick={() => navigate(String(program.course.id))}
+                      onClick={() => navigate(String(program.program.id))}
                     />
                   </div>
                 </div>

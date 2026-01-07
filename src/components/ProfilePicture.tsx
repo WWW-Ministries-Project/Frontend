@@ -32,7 +32,7 @@ export const ProfilePicture = (props: IProps) => {
 
   return (
     <div className="flex">
-      <div className={`rounded-[50%] relative bg-lightGray/50 border  ${props.className}`}>
+      <div className={`rounded-xl relative bg-lightGray/50 border  ${props.className}`}>
         {props.src ? (
           <img
             src={props.src}
@@ -42,7 +42,7 @@ export const ProfilePicture = (props: IProps) => {
           />
         ) : (
           <div
-            className={`w-full rounded-full h-full flex justify-center items-center ${props.textClass}`}
+            className={`w-full rounded-xl h-full flex justify-center items-center ${props.textClass}`}
           >
             {getInitials(props.name)}
           </div>
@@ -52,7 +52,7 @@ export const ProfilePicture = (props: IProps) => {
             className="absolute left-2/3 bottom-0 cursor-pointer"
             htmlFor={props.id}
           >
-            <div className="bg-white border border-lightGray rounded-full p-1">
+            <div className="bg-white border border-lightGray rounded-xl p-1">
               <img src={props.icon || icon} alt="" />
             </div>
           </label>

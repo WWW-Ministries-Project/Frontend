@@ -1,7 +1,7 @@
 import TextEditor from "@/components/TextEditor";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { api, LearningUnitType, TopicPayload } from "@/utils";
+import { api, LearningUnitType, Topic } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -57,8 +57,8 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
 
     const [learningUnit, setLearningUnit] = useState<LearningUnit | null>(null);
 
-    const {postData: postTopic, loading: postLoading} = usePost<unknown, TopicPayload>(api.post.createTopic);
-    const {updateData: putTopic, loading: updateLoading} = usePut<unknown, TopicPayload>(api.put.updateTopic);
+    const {postData: postTopic, loading: postLoading} = usePost<unknown, Topic>(api.post.createTopic);
+    const {updateData: putTopic, loading: updateLoading} = usePut<unknown, Topic>(api.put.updateTopic);
 
     const LEARNING_UNIT_TYPES: { label: string; value: LearningUnitType }[] = [
       { label: "Playback Video", value: "video" },
@@ -141,7 +141,7 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
 /**
  * Create a new Topic
  */
-const createTopic = (payload: TopicPayload) => {
+const createTopic = (payload: Topic) => {
   console.log("Creating topic with payload:", payload);
   postTopic(payload);
 };
@@ -149,7 +149,7 @@ const createTopic = (payload: TopicPayload) => {
 /**
  * Update an existing Topic
  */
-const updateTopic = (payload: TopicPayload, id: any) => {
+const updateTopic = (payload: Topic, id: any) => {
   console.log("Updating topic with payload:", payload);
   putTopic(payload, {id: id});
 };
@@ -167,7 +167,7 @@ const handleSubmit = () => {
     return;
   }
 
-  const payload: TopicPayload = {
+  const payload: Topic = {
     id: topicToEdit ? topicToEdit.id : 0,
     name: topicForm.topicName,
     description: topicForm.topicDescription,
@@ -211,7 +211,7 @@ const handleSubmit = () => {
                 setTopicForm((old) => ({ ...old, topicName: e.target.value }))
               }
               placeholder="Enter topic name"
-              disabled={!topicToEdit}
+              // disabled={!topicToEdit}
             />
           </div>
           <div className="space-y-1">
@@ -225,7 +225,7 @@ const handleSubmit = () => {
                 }))
               }
               placeholder="Enter topic description"
-              readOnly={!topicToEdit}
+              // readOnly={!topicToEdit}
             />
           </div>
 

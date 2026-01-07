@@ -14,35 +14,58 @@ import { ListDetailComp } from "../../DashBoard/Components/ListDetailComp";
 import { Banner } from "../../Members/Components/Banner";
 import { FollowUps } from "../Components/FollowUps";
 import { Visits } from "../Components/Visit";
+import { ProfilePicture } from "@/components";
 
 export const VisitorDetails = () => {
   const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
 
-  const { data, loading } = useFetch(api.fetch.fetchVisitorById, {
+  const { data, loading, refetch } = useFetch(api.fetch.fetchVisitorById, {
     id: visitorId!,
   });
   const visitor = useMemo(() => data?.data, [data]);
 
   const handleTabSelect = (tab: string) => setSelectedTab(tab);
+  const profileImg = "https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="
 
   return (
-    <PageOutline>
+    <div>
+      
       {loading ? (
         <BannerSkeletonLoader />
       ) : (
         visitor && (
-          <Banner
-            name={`${visitor.firstName} ${visitor.lastName}`}
-            id={visitor.id}
-            src="https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="
-            email={visitor?.email}
-            primary_number={visitor?.phone}
-            onClick={() => {}}
-          />
+          <div className="sticky top-0 z-10 w-full">
+          <Banner>
+            <div className="flex justify-between items-cente  container mx-auto">
+                                <div className="flex gap-4 items-center  ">
+                                  <ProfilePicture
+                                    className="w-24 h-24 outline outline-white"
+                                    src={profileImg || ""}
+                                    alt="cover Image"
+                                    name={`${visitor.firstName} ${visitor.lastName}`}
+                                    id="coverPic"
+                                  />
+                                  <article className="xs:hidden md:inline space-y-2">
+                                    <div className="font-bold text-2xl ">
+                                      {`${visitor.firstName} ${visitor.lastName}` || "No Name"}
+                                    </div>
+                                    
+                                    <div className="">
+                                      {(visitor?.email || "No Email") +
+                                        " | " +
+                                        (visitor?.phone || "No Phone")}
+                                    </div>
+                                    
+                                  </article>
+                                </div>
+                                
+                              </div>
+          </Banner>
+          </div>
         )
       )}
-
+      <PageOutline>
       {/* Main layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 sm:p-4">
         {/* Left: content */}
@@ -83,7 +106,13 @@ export const VisitorDetails = () => {
             <div className="space-y-4">
               {selectedTab === "Visit" && (
                 <div className="overflow-x-auto">
-                  <Visits visits={visitor?.visits || []} visitorId={visitorId!} />
+                  <Visits
+                    visits={visitor?.visits || []}
+                    visitorId={visitorId!}
+                    onRefetch={async () => {
+                      await refetch();
+                    }}
+                  />
                 </div>
               )}
 
@@ -92,6 +121,9 @@ export const VisitorDetails = () => {
                   <FollowUps
                     followUps={visitor?.followUps || []}
                     visitorId={visitorId!}
+                    onRefetch={async () => {
+                      await refetch();
+                    }}
                   />
                 </div>
               )}
@@ -145,10 +177,6 @@ export const VisitorDetails = () => {
         </section>
       </div>
     </PageOutline>
+    </div>
   );
 };
-
-/* Tailwind helpers (optional)
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-*/

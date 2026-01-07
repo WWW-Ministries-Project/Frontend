@@ -111,7 +111,7 @@ const assignments = filter
     return ( 
         <div>
             <BannerWrapper>
-            <div className="space-y-4">
+            <div className="space-y-4 w-full">
                 <div className="font-bold text-3xl">Instructor Assessment Management</div>
                 <div>Manage assessments for your programs here.</div>
             </div>

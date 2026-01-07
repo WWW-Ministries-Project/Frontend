@@ -246,7 +246,7 @@ export const ProgramDetailsModal: FC<{
 
       {/* Footer */}
       <div className="sticky bottom-0 z-20 bg-white border-gray-100 px-6 py-4">
-        <Actions onCancel={onClose} onSubmit={onSubmit} loading={!!submitting} />
+        <Actions onCancel={onClose} onSubmit={onSubmit} loading={!!submitting} SubmitLabel={'Enroll'}/>
       </div>
     </div>
   );
