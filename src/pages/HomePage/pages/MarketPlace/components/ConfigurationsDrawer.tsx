@@ -158,7 +158,7 @@ export const ConfigurationsDrawer = ({
       />
 
       <div
-        className={`fixed top-0 -right-10 h-screen w-[424px] xs:w-[100%] sm:w-[400px] md:w-[424px]  bg-white shadow-lg z-50 transition-transform duration-300 text-[#474D66] ${
+        className={`fixed top-0 -right-5 h-screen w-[424px] xs:w-[100%] sm:w-[400px] md:w-[424px]  bg-white shadow-lg z-50 transition-transform duration-300 text-[#474D66] ${
           isOpen ? "-translate-x-4" : "translate-x-full"
         }`}
       >
