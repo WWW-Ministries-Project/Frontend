@@ -41,7 +41,7 @@ export function ProductForm({
     >
       {({ handleSubmit }) => {
         return (
-          <Form className="px-5 space-y-6">
+          <Form className="py-5 space-y-6">
             <FormLayout>
               <Field
                 name="name"

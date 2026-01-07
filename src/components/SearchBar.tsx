@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import search from "/src/assets/search.svg";
+import { useEffect } from "react";
 
 interface IProps {
   id?: string;
@@ -7,12 +8,26 @@ interface IProps {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
+  onSubmit?: () => void;
 }
 export const SearchBar = (props: IProps): JSX.Element => {
+   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+     e.preventDefault();
+     props.onSubmit?.();
+   };
+
+   useEffect(() => {
+     if (!props.value?.trim()) {
+       props.onSubmit?.();
+     }
+   }, [props.value]);
   return (
     <>
       <div className={"flex items-center bg-white  " + props.className}>
-        <form className="w-full text-primary flex items-center   font-normal leading-6">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full text-primary flex items-center   font-normal leading-6"
+        >
           <img
             role="submit button"
             src={search}
@@ -41,4 +56,5 @@ SearchBar.propTypes = {
   placeholder: PropTypes.string,
   onChange: PropTypes.func,
   className: PropTypes.string,
+  onSubmit: PropTypes.func,
 };

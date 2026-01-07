@@ -117,7 +117,7 @@ export function MarketPlace() {
         btnName="Create market"
         handleClick={handleOpenModal}
       />
-      <div className="w-fit">
+      <div className="w-fit mb-3">
         <TabSelection
           tabs={["Upcoming", "Active", "Ended"]}
           selectedTab={tab}
@@ -140,7 +140,7 @@ export function MarketPlace() {
           />
         )}
       />
-      {markets?.data.length === 0 && <EmptyState msg={"No markets found"} />}
+      {filteredMarkets?.length === 0 && <EmptyState msg={"No markets found"} />}
 
       <Modal open={openModal} onClose={handleCloseModal}>
         <AddMarketForm

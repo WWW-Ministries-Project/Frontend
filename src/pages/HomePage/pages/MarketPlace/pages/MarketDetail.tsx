@@ -104,7 +104,7 @@ export function MarketDetails() {
   return (
     <PageOutline className="">
       <MarketHeader market={market?.data} />
-      <div className="px-6">
+      <div className="py-6">
         <div className="w-fit mb-3">
           <TabSelection
             tabs={[`Products`, "Orders"]}
