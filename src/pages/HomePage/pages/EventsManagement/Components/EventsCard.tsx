@@ -30,11 +30,11 @@ export const EventsCard = (props: IProps) => {
       {/* Poster */}
       <div
         className="relative h-44 cursor-pointer"
-        onClick={() =>
-          props.onNavigate(
-            `${relativePath.home.events.view}?event_id=${props.event.id}`
-          )
-        }
+        // onClick={() =>
+        //   props.onNavigate(
+        //     `${relativePath.home.events.view}?event_id=${props.event.id}`
+        //   )
+        // }
       >
         <img
           src={props.event.poster || defaultImage1}
@@ -63,11 +63,11 @@ export const EventsCard = (props: IProps) => {
           {props.showOptions && (
             <Action
               onDelete={() => props.onDelete(props.event)}
-              onView={() =>
-                props.onNavigate(
-                  `${relativePath.home.events.view}?event_id=${props.event.id}`
-                )
-              }
+              // onView={() =>
+              //   props.onNavigate(
+              //     `${relativePath.home.events.view}?event_id=${props.event.id}`
+              //   )
+              // }
               onEdit={() =>
                 props.onNavigate(
                   `/home/manage-event?event_id=${props.event.id}`
@@ -83,11 +83,11 @@ export const EventsCard = (props: IProps) => {
         {/* Title */}
         <div
           className="flex items-center gap-2 cursor-pointer"
-          onClick={() =>
-            props.onNavigate(
-              `${relativePath.home.events.view}?event_id=${props.event.id}`
-            )
-          }
+          // onClick={() =>
+          //   props.onNavigate(
+          //     `${relativePath.home.events.view}?event_id=${props.event.id}`
+          //   )
+          // }
         >
           <span
             className={`h-2.5 w-2.5 rounded-full ${

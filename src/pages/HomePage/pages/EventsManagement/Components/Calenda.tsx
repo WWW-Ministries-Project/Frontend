@@ -29,6 +29,8 @@ import WeekView from './calenda/components/WeekView';
 import DayView from './calenda/components/DayView';
 import EnhancedModal from './calenda/components/EnhancedModal';
 import EventDetailsModal from './EventDetailsModal';
+import { EventCard } from '../../DashBoard/Components/EventCard';
+import { EventsCard } from './EventsCard';
 
 interface CalendarProps {
   events?: CalendarEvent[];
@@ -65,24 +67,20 @@ function useResponsiveEventsToShow(): number {
 }
 
 function useClickOutside(
-  refs: RefObject<HTMLElement>[],
-  callbacks: Array<() => void>
+  ref: RefObject<HTMLElement>,
+  callback: () => void
 ): void {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      refs.forEach((ref, i) => {
-        if (
-          ref.current &&
-          !ref.current.contains(event.target as Node)
-        ) {
-          callbacks[i]();
-        }
-      });
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        callback();
+      }
     }
+
     document.addEventListener('mousedown', handleClickOutside);
     return () =>
       document.removeEventListener('mousedown', handleClickOutside);
-  }, [refs, callbacks]);
+  }, [ref, callback]);
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -107,23 +105,27 @@ const Calendar: React.FC<CalendarProps> = ({
     CalendarEvent[]
   >([]);
 
-  const [dayModalTrigger, setDayModalTrigger] =
-    useState<HTMLElement | null>(null);
-  const [eventModalTrigger, setEventModalTrigger] =
-    useState<HTMLElement | null>(null);
+  const [anchor, setAnchor] =
+    useState<{ x: number; y: number } | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const eventModalRef = useRef<HTMLDivElement>(null);
 
   const eventsToShow = useResponsiveEventsToShow();
 
-  useClickOutside(
-    [modalRef, eventModalRef],
-    [
-      () => setModalIsOpen(false),
-      () => setEventModalOpen(false),
-    ]
-  );
+  useClickOutside(modalRef, () => {
+    if (modalIsOpen) {
+      setModalIsOpen(false);
+      setAnchor(null);
+    }
+  });
+
+  useClickOutside(eventModalRef, () => {
+    if (eventModalOpen) {
+      setEventModalOpen(false);
+      setAnchor(null);
+    }
+  });
 
   const today = useMemo(() => new Date(), []);
   const todayString = useMemo(
@@ -131,14 +133,21 @@ const Calendar: React.FC<CalendarProps> = ({
     [today]
   );
 
+  const getDateKey = (date: string) =>
+    new Date(date).toISOString().split('T')[0];
+
   const eventsByDate = useMemo<Record<string, CalendarEvent[]>>(() => {
-    if (!isArray(events)) return {};
-    return events.reduce((acc, ev) => {
-      const dateKey = ev.start_date.split('T')[0];
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(ev);
-      return acc;
-    }, {} as Record<string, CalendarEvent[]>);
+    if (!Array.isArray(events)) return {};
+
+    const map: Record<string, CalendarEvent[]> = {};
+
+    for (const ev of events) {
+      if (!ev.start_date) continue;
+      const key = getDateKey(ev.start_date);
+      (map[key] ||= []).push(ev);
+    }
+
+    return map;
   }, [events]);
 
   const calendarData = useMemo<CalendarData>(() => {
@@ -208,14 +217,16 @@ const Calendar: React.FC<CalendarProps> = ({
       isEvent: boolean = false
     ) => {
       e.stopPropagation();
+
+      // Create a fresh virtual anchor (cursor point)
+      setAnchor({ x: e.clientX, y: e.clientY });
+
       if (isEvent) {
         setSelectedEvent(data as CalendarEvent);
-        setEventModalTrigger(e.currentTarget);
         setModalIsOpen(false);
         setEventModalOpen(true);
       } else {
         setSelectedDayEvents(data as CalendarEvent[]);
-        setDayModalTrigger(e.currentTarget);
         setEventModalOpen(false);
         setModalIsOpen(true);
       }
@@ -240,6 +251,7 @@ const Calendar: React.FC<CalendarProps> = ({
   const handleCloseEventModal = useCallback(() => {
     setSelectedEvent(null);
     setEventModalOpen(false);
+    setAnchor(null);
   }, []);
 
   const handleNavigation = useCallback(
@@ -276,6 +288,17 @@ const Calendar: React.FC<CalendarProps> = ({
     }
   }, [currentDate, currentView]);
 
+  const renderCalendarEvent = useCallback(
+    (ev: CalendarEvent, onClick: () => void) => (
+      <EventItem
+        label={ev.event_name ?? ''}
+        event={ev}
+        onClick={onClick}
+      />
+    ),
+    []
+  );
+
   const renderDays = useCallback((): JSX.Element[] => {
     const days: JSX.Element[] = [];
     const {
@@ -306,9 +329,7 @@ const Calendar: React.FC<CalendarProps> = ({
           eventsToShow={eventsToShow}
           onEventClick={handleEventClick}
           onDayClick={handleDayClick}
-          renderEvent={(ev, onClick) => (
-            <EventItem label={ev.event_name ?? ''} event={ev} onClick={onClick} />
-          )}
+          renderEvent={renderCalendarEvent}
           renderMoreEvents={(cnt, onClick) => (
             <MoreEventsIndicator count={cnt} onClick={onClick} />
           )}
@@ -332,9 +353,7 @@ const Calendar: React.FC<CalendarProps> = ({
           eventsToShow={eventsToShow}
           onEventClick={handleEventClick}
           onDayClick={handleDayClick}
-          renderEvent={(ev, onClick) => (
-            <EventItem label={ev.event_name??""} event={ev} onClick={onClick} />
-          )}
+          renderEvent={renderCalendarEvent}
           renderMoreEvents={(cnt, onClick) => (
             <MoreEventsIndicator count={cnt} onClick={onClick} />
           )}
@@ -358,9 +377,7 @@ const Calendar: React.FC<CalendarProps> = ({
           eventsToShow={eventsToShow}
           onEventClick={handleEventClick}
           onDayClick={handleDayClick}
-          renderEvent={(ev, onClick) => (
-            <EventItem label={ev.event_name??""} event={ev} onClick={onClick} />
-          )}
+          renderEvent={renderCalendarEvent}
           renderMoreEvents={(cnt, onClick) => (
             <MoreEventsIndicator count={cnt} onClick={onClick} />
           )}
@@ -376,6 +393,7 @@ const Calendar: React.FC<CalendarProps> = ({
     todayString,
     handleEventClick,
     handleDayClick,
+    renderCalendarEvent,
   ]);
 
   return (
@@ -461,13 +479,12 @@ const Calendar: React.FC<CalendarProps> = ({
       {/* Day Modal */}
       <EnhancedModal
         isOpen={modalIsOpen}
-        onClose={() => setModalIsOpen(false)}
-        triggerElement={dayModalTrigger}
-        modalRef={modalRef}
-        dimensions={{
-          width: 320,
-          height: Math.min(400, selectedDayEvents.length * 60 + 100),
+        onClose={() => {
+          setModalIsOpen(false);
+          setAnchor(null);
         }}
+        anchor={anchor}
+        modalRef={modalRef}
       >
         <div className="bg-white p-6 min-w-[300px]">
           <h2 className="text-lg font-bold text-center mb-4">Events</h2>
@@ -496,22 +513,30 @@ const Calendar: React.FC<CalendarProps> = ({
       <EnhancedModal
         isOpen={eventModalOpen}
         onClose={handleCloseEventModal}
-        triggerElement={eventModalTrigger}
+        anchor={anchor}
         modalRef={eventModalRef}
-        dimensions={{ width: 350, height: 400 }}
       >
         {selectedEvent! && (
-          <EventDetailsModal
-            event={selectedEvent!}
-            isOpen
-            onClose={handleCloseEventModal}
-            modalRef={eventModalRef}
-            onNavigate={handleNavigation}
-            calendarView
-            onDelete={onDelete}
-            onShowOptions={onShowOptions}
+          // <EventDetailsModal
+          //   event={selectedEvent!}
+          //   isOpen
+          //   onClose={handleCloseEventModal}
+          //   modalRef={eventModalRef}
+          //   onNavigate={handleNavigation}
+          //   calendarView
+          //   onDelete={onDelete}
+          //   onShowOptions={onShowOptions}
+          //   showOptions={showOptions}
+          // />
+          <EventsCard
+          event={selectedEvent}
+          key={selectedEvent.id}
+          onNavigate={handleNavigation}
+          onDelete={onDelete}
+          onShowOptions={onShowOptions}
             showOptions={showOptions}
           />
+
         )}
       </EnhancedModal>
     </div>
