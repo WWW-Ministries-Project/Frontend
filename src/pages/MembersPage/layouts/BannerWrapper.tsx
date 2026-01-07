@@ -19,7 +19,7 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
   return ( 
    <div
   className={`
-    bg-primary text-white
+    bg-primary text-white overflow-hidden
     ${
       isAdmin
         ? "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"

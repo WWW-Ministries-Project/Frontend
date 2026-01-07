@@ -1,15 +1,23 @@
 import { Button } from "@/components";
 import BannerWrapper from "../layouts/BannerWrapper";
-import { useNavigate } from "react-router-dom";
-import { relativePath } from "@/utils";
+import { useNavigate, useParams } from "react-router-dom";
+import { api, relativePath } from "@/utils";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useEffect, useState } from "react";
 import { dummyProgData } from "@/pages/HomePage/utils/dummyProgData";
+import { useFetch } from "@/CustomHooks/useFetch";
 
 type Program = typeof dummyProgData[number];
 
 const InstructorCohort = () => {
     const navigate = useNavigate();
+    const { programId } = useParams<{ programId: string }>();
+
+  const { data, loading, refetch } = useFetch(
+  api.fetch.fetchCohortsByProgram, { programId: programId!} 
+);
+  console.log("instructor program", data);
+  
     const [programs, setPrograms] = useState<Program[]>([]);
       const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("in-progress");
 

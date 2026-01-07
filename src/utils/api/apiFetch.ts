@@ -205,6 +205,20 @@ export class ApiCalls {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
   };
 
+  // New method to fetch cohorts by program (query-based)
+  fetchCohortsByProgram = (
+    query?: QueryType
+  ): Promise<ApiResponse<DetailedCohortType[]>> => {
+    return this.fetchFromApi("program/get-cohorts-by-program", query);
+  };
+
+  // New method to fetch instructor programs
+  fetchInstructorPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<ProgramResponse[]>> => {
+    return this.fetchFromApi("program/get-instructor-programs", query);
+  };
+
   // Course Management
   fetchAllCourses = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/courses", query);

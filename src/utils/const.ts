@@ -92,9 +92,9 @@ export const relativePath = {
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
       programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
       instructorPortal: "school-of-ministries/programs/instructor-portal",
-      instructorCohort: ":progId/cohort",
-      instructorAssMan: ":progId/cohort/:cohortId",
-      InstructorGradingPanel:":progId/cohort/:cohortId/grades/:topicId"
+      instructorCohort: ":programId/cohort",
+      instructorAssMan: ":programId/cohort/:cohortId",
+      InstructorGradingPanel:":programId/cohort/:cohortId/grades/:topicId"
     },
   },
   registerMember: "/register-member",

@@ -4,12 +4,19 @@ import BannerWrapper from "../layouts/BannerWrapper";
 import { useEffect, useState } from "react";
 import { Button } from "@/components";
 import { useNavigate } from "react-router-dom";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
+import { useUserStore } from "@/store/userStore";
 
 type Program = typeof dummyProgData[number];
 
 const InstructorProg = () => {
-
-    const navigate = useNavigate();
+  const userData = useUserStore((state) => state);
+    const user_id = userData.id;
+  const { data, loading, refetch } = useFetch(api.fetch.fetchInstructorPrograms,{instructorId: user_id});
+  console.log("instructor program", data);
+  
+  const navigate = useNavigate();
     const [programs, setPrograms] = useState<Program[]>([]);
       const [filter, setFilter] = useState<"all" | "in-progress" | "completed">("in-progress");
 
