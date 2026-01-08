@@ -6,7 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { Formik } from "formik";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
@@ -31,6 +31,11 @@ export function ManageMember() {
     loading: updateLoading,
     data: updatedData,
   } = usePut(api.put.updateMember);
+
+  const stepControls = useRef<{
+    goNext: () => void;
+    goBack: () => void;
+  } | null>(null);
 
   useEffect(() => {
     if (id) refetch();
@@ -89,7 +94,7 @@ export function ManageMember() {
 
   return (
     <div className="p-4">
-      <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
+      <section className="mx-auto p-8 container lg:w-5/6 bg-white rounded-xl">
         <div className="flex flex-col gap-4 items-center tablet:items-start">
           <div className="font-bold text-xl">Member Information</div>
           <div className="text text-[#8F95B2] mt-">
@@ -104,10 +109,16 @@ export function ManageMember() {
         >
           {({ handleSubmit }) => (
             <>
-              <MembersForm />
+              <MembersForm
+                onRegisterControls={(controls) => {
+                  stepControls.current = controls;
+                }}
+              />
 
               <section className="w-full pt-5 sticky bottom-0 bg-white">
                 <Actions
+                  goBack={() => stepControls.current?.goBack()}
+                  goNext={() => stepControls.current?.goNext()}
                   onCancel={handleCancel}
                   onSubmit={handleSubmit}
                   loading={loading || updateLoading}
