@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   UserIcon,
   PhoneIcon,
@@ -25,6 +25,9 @@ const TabSelection = <T extends string = string>({
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const listRef = useRef<HTMLDivElement | null>(null);
   const [isOverflowing, setIsOverflowing] = React.useState(false);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const i = tabs.indexOf(selectedTab);
@@ -62,6 +65,17 @@ const TabSelection = <T extends string = string>({
     return () => window.removeEventListener("resize", checkOverflow);
   }, [tabs]);
 
+  useEffect(() => {
+    const onResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const useVerticalLayout = isMobile && isOverflowing;
+
   return (
     <div className="relative w-full flex items-center gap-2">
       {/* Left Arrow (desktop only) */}
@@ -89,13 +103,14 @@ const TabSelection = <T extends string = string>({
         role="tablist"
         aria-label="Tabs"
         onKeyDown={onKeyDown}
-        className="
+        className={`
           w-full
           border border-lightGray rounded-lg p-1
-          flex flex-col md:flex-row
+          flex ${useVerticalLayout ? "flex-col" : "flex-row"}
+          md:flex-row
           gap-1 md:gap-2
-          md:overflow-x-auto
-        "
+          ${!useVerticalLayout ? "overflow-x-auto" : ""}
+        `}
       >
         {tabs.map((tab) => {
           const active = selectedTab === tab;
@@ -111,8 +126,8 @@ const TabSelection = <T extends string = string>({
               onClick={() => onTabSelect(tab)}
               aria-label={tab}
               className={`
-                w-full md:w-auto
-                text-left md:text-center
+                ${useVerticalLayout ? "w-full text-left" : "w-auto text-center"}
+                md:w-auto md:text-center
                 rounded-lg px-4 py-3 sm:px-4 sm:py-2.5
                 select-none
                 text-primary text-sm sm:text-base

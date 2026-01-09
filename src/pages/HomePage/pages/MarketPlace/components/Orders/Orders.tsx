@@ -35,7 +35,7 @@ const getStatusBadge = (status: PaymentStatus) => {
   }
 };
 
-const isMobileScreen = () => typeof window !== "undefined" && window.innerWidth < 768;
+const isMobileScreen = () => typeof window !== "undefined" && window.innerWidth <= 1024;
 
 const OrderCard = ({ order }: { order: IOrders }) => {
   const total = (order.price_amount * order.quantity).toFixed(2);
@@ -181,7 +181,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
         />
       }
       {isMobile ? (
-        <div className="space-y-4">
+        <div className=" grid sm:grid-cols-2 gap-4">
           {allOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}

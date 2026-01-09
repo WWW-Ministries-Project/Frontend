@@ -24,7 +24,7 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
       isAdmin
         ? "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
         : (isSticky
-        ? "fixed top-20 left-0 right-0 z-50 shadow-lg w-full"
+        ? "fixed top-20 left-0 right-0 z-30 shadow-lg w-full"
         : "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")
     }
   `}
