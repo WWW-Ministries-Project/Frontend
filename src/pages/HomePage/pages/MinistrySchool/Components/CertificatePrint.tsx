@@ -1,12 +1,8 @@
 "use client"
 
 import ChurchLogo from "@/components/ChurchLogo"
-
 // import { Award } from 'lucide-react';
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { formatDatefull } from "@/utils";
-import { Button } from "@/components";
 
 interface CertificateProps {
   recipientName?: string;
@@ -16,53 +12,33 @@ interface CertificateProps {
   rightSignature?: string;
   rightSignatureLabel?: string;
   program?:string;
-  onClose?: () => void;
 }
 
 export default function Certificate({
   program,
   recipientName = "",
-  description = `In recognition of active participation and successful engagement in ${program?`${program} program`:'the program'}. This certificate is awarded to acknowledge commitment, learning, and meaningful contribution throughout the duration of the session`,
+  description,
   leftSignature = "Prophet John Anokye",
   leftSignatureLabel = "Prelate",
   rightSignature = formatDatefull(new Date().toISOString()),
   rightSignatureLabel  = "Date issued",
-  onClose
   
 }: CertificateProps) {
-  const handleDownloadPDF = async () => {
-    const certificateElement = document.getElementById("certificate-a4");
-
-    if (!certificateElement) return;
-
-    const canvas = await html2canvas(certificateElement, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    });
-
-    const pdfWidth = 297;
-    const pdfHeight = 210;
-
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("certificate.pdf");
-  };
+  const finalDescription =
+    description ??
+    `In recognition of active participation and successful engagement in ${
+      program ? `${program} program` : "the program"
+    }. This certificate is awarded to acknowledge commitment, learning, and meaningful contribution throughout the duration of the session.`;
 
   return (
-    <div className="w-full flex flex-col items-center gap-4 p-8 bg-white rounded-lg z-30">
        
       <div
         id="certificate-a4"
-        className="relative bg-white shadow-2xl w-full max-w-[1123px] overflow-x-hidden drop-shadow-sm "
-        style={{ aspectRatio: "297 / 210" }}
+        className="relative bg-white shadow-2xl overflow-hidden drop-shadow-sm"
+        style={{
+          width: "1123px",   // A4 landscape @ 96dpi
+          height: "794px",
+        }}
       >
           {/* Outer border */}
           <div className="absolute inset-6 border-2 border-primary ">
@@ -94,18 +70,18 @@ export default function Certificate({
                     {/* <TrophyIcon className="w-8 h-8 text-white" /> */}
                     <ChurchLogo show />
                   </div>
-                  <h1 className="text-5xl font-serif tracking-[0.3em] text-gray-800 mb-2 pb-2">
+                  <div className="text-5xl font-serif tracking-[0.3em] text-gray-800 mb-2 pb-2">
                     CERTIFICATE
-                  </h1>
-                  <div className="flex items-center justify-center gap-4 mb-8 pb-8">
+                  </div>
+                  <div className="flex items-center justify-center gap-4 my-8 pb-8">
                     <div className="h-px w-24 bg-gray-400"></div>
-                    <h2 className="text-sm tracking-[0.2em] text-gray-600 font-light uppercase">
+                    <div className="text-sm tracking-[0.2em] text-gray-600 font-light uppercase">
                       OF Participation
-                    </h2>
+                    </div>
                     <div className="h-px w-24 bg-gray-400"></div>
                   </div>
                   <p className="text-xs tracking-wider text-gray-500 font-light">
-                    THIS CERTIFICATE IS PROUDLY PRESENTED TO :
+                    THIS CERTIFICATE IS PROUDLY PRESENTED TO 
                   </p>
                 </div>
 
@@ -120,7 +96,7 @@ export default function Certificate({
                 {/* Description */}
                 <div className="max-w-2xl mb-12">
                   <p className="text-center text-sm leading-relaxed text-gray-600">
-                    {description}
+                    {finalDescription}
                   </p>
                 </div>
 
@@ -155,18 +131,5 @@ export default function Certificate({
           </div>
         </div>
 
-        <div className="flex gap-4">
-        <Button
-       value="Download Certificate"
-      onClick={handleDownloadPDF}
-      className=""
-    />
-    <Button
-    variant="secondary"
-      value="Close"
-      onClick={onClose}
-    />
-       </div>
-  </div>
   );
 }

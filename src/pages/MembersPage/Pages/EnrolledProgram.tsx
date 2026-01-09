@@ -8,8 +8,8 @@ import { api, ProgramTopic, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
 import { Modal } from "@/components/Modal";
-import  CertificateTemplate  from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateTemplate";
 import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
+import CertificateModal from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateModal";
 
 
 type NavItem = { id: string | number; name: string; active: boolean };
@@ -225,10 +225,11 @@ useEffect(() => {
           </aside> */}
         </div>
       </main>
-      <Modal open={viewCertificate} onClose={()=>setViewCertificate(false)} className="w-[70vw]  ">
-        <CertificateTemplate
+      <Modal open={viewCertificate} onClose={()=>setViewCertificate(false)} className="">
+        <CertificateModal
+          open={viewCertificate}
           recipientName={user.name}
-          program={data?.data?.title}
+          program={data?.data?.title!}
           onClose={()=>setViewCertificate(false)}
         />
       </Modal>
