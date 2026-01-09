@@ -67,6 +67,9 @@ import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
 import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel.js";
 import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
+import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
+import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
+import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -307,7 +310,6 @@ export const routes: AppRoute[] = [
             path: "roles",
             name: "Life Center Roles",
             element: <LifeCenterRoles />,
-            sideTab: true,
           },
           {
             path: "life-center-analytics",
@@ -421,13 +423,13 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_access_rights",
           },
           {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_users",
-        sideTab: true,
-      },
+            path: "users",
+            name: "Users",
+            element: <UserManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_users",
+            sideTab: true,
+          },
         ],
       },
       {
@@ -624,23 +626,41 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.schoolOfMinistries.instructorPortal,
         name: "member_school_of_ministries",
-        element: <InstructorProg />,
+        element: <Instructor />,
         isPrivate: false,
-        // children: [
-        //   {
-        //     path: relativePath.member.schoolOfMinistries.instructorAssMan,
-        //     name: "instructor_assessment_management",
-        //     element: <InstructorAssMan />,
-        //     isPrivate: false,
-        //   },
-        // ],
-      },
-      {
-            path: relativePath.member.schoolOfMinistries.instructorAssMan,
+        children: [
+          {
+            path: '',
             name: "instructor_assessment_management",
+            element: <InstructorProg />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.schoolOfMinistries.instructorCohort,
+            name: "instructor_assessment_management",
+            element: <InstructorCohort />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.schoolOfMinistries.instructorAssMan,
+            name: "instructor_assessment_managementewe",
             element: <InstructorAssMan />,
             isPrivate: false,
           },
+          {
+            path: relativePath.member.schoolOfMinistries.InstructorGradingPanel,
+            name: "instructor_assessment_managementewe",
+            element: <GradingPanel />,
+            isPrivate: false,
+          },
+        ],
+      },
+      // {
+      //       path: relativePath.member.schoolOfMinistries.instructorAssMan,
+      //       name: "instructor_assessment_management",
+      //       element: <InstructorAssMan />,
+      //       isPrivate: false,
+      //     },
       // {
       //   path: relativePath.member.schoolOfMinistries.myClass,
       //   name: "member_school_of_ministries",

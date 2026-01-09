@@ -1,5 +1,12 @@
+import {
+  PhoneIcon,
+  MapPinIcon,
+  CalendarDaysIcon,
+  UserIcon,
+} from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { format, getYear, getMonth, getWeek } from "date-fns";
 
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
@@ -34,6 +41,7 @@ export const SoulsWon = ({
   leader,
 }: IProps) => {
   const [selectedId, setSelectedId] = useState<number | string>("");
+  const [openMonth, setOpenMonth] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [soulWon, setSoulWon] = useState<ISoulsWonForm | null>(null);
   const [showAccessDeniedModal, setShowAccessDeniedModal] = useState(false);
@@ -110,49 +118,36 @@ export const SoulsWon = ({
     setAccessDeniedAction('');
   };
 
-  const tableColumns: ColumnDef<ISoulsWonForm>[] = useMemo(
-    () => [
-      {
-        header: "NAME",
-        cell: ({ row }) => (
-          <div>{`${row.original.first_name} ${row.original.last_name}`}</div>
-        ),
-      },
-      {
-        header: "CONTACT",
-        accessorKey: "contact_number",
-      },
-      {
-        header: "LOCATION",
-        accessorKey: "country",
-      },
-      {
-        header: "DATE WON",
-        accessorKey: "date_won",
-      },
-      {
-        header: "WON BY",
-        accessorKey: "wonByName",
-      },
-      {
-        header: "ACTION",
-        cell: ({ row }) => {
-          const { id, first_name, last_name } = row.original;
-          const name = `${first_name} ${last_name}`;
-          return (
-            <div onClick={() => handleShowOptions(id)}>
-              <ActionButton
-                showOptions={id === selectedId}
-                onDelete={() => handleDeleteSoul(id, name)}
-                onEdit={() => handleEdit(row.original)}
-              />
-            </div>
-          );
-        },
-      },
-    ],
-    [selectedId, handleDeleteSoul, handleShowOptions, handleEdit]
-  );
+  
+
+  const groupedSouls = useMemo(() => {
+    const groups: Record<string, Record<number, ISoulsWonForm[]>> = {};
+
+    soulsWon.forEach((soul) => {
+      const date = new Date(soul.date_won);
+      const yearMonthKey = format(date, "MMMM yyyy");
+      const week = getWeek(date); // 1–54
+
+      if (!groups[yearMonthKey]) groups[yearMonthKey] = {};
+      if (!groups[yearMonthKey][week]) groups[yearMonthKey][week] = [];
+
+      groups[yearMonthKey][week].push(soul);
+    });
+
+    return groups;
+  }, [soulsWon]);
+
+  useEffect(() => {
+    const sortedMonths = Object.keys(groupedSouls).sort((a, b) => {
+      const da = new Date(a);
+      const db = new Date(b);
+      return db.getTime() - da.getTime();
+    });
+
+    if (sortedMonths.length > 0 && !openMonth) {
+      setOpenMonth(sortedMonths[0]);
+    }
+  }, [groupedSouls, openMonth]);
 
   useEffect(() => {
     if (postResponse?.data) {
@@ -189,20 +184,112 @@ export const SoulsWon = ({
       <hr />
 
       {soulsWon.length > 0 ? (
-        <TableComponent
-          columns={tableColumns}
-          data={soulsWon}
-          displayedCount={10}
-          className="relative"
-        />
+        <div className="space-y-6">
+          {Object.entries(groupedSouls)
+            .sort((a, b) => {
+              const da = new Date(a[0]);
+              const db = new Date(b[0]);
+              return db.getTime() - da.getTime();
+            })
+            .map(([monthYear, weeks]) => (
+              <details
+                key={monthYear}
+                open={openMonth === monthYear}
+                className="rounded-lg"
+              >
+                <summary
+                  className="cursor-pointer px-4 py-3 font-semibold bg-gray-50 flex items-center justify-between gap-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenMonth((prev) => (prev === monthYear ? null : monthYear));
+                  }}
+                >
+                  <div className="flex gap-2">
+                    <span>{monthYear}</span>
+                  <span className=" font-semibold text-gray-600">
+                    ({Object.values(weeks).reduce((acc, curr) => acc + curr.length, 0)})
+                  </span>
+                  </div>
+                  <div className="text-lg font-bold text-gray-500">
+                    {openMonth === monthYear ? "–" : "+"}
+                  </div>
+                </summary>
+
+                <div className="p-4 space-y-4">
+                  {Object.entries(weeks)
+                    .sort((a, b) => Number(a[0]) - Number(b[0]))
+                    .map(([week, records]) => (
+                      <div key={week}>
+                        <h4 className="flex items-center justify-between font-semibold text-sm mb-2">
+                          <div className="flex gap-2">
+                            <span>Week {week}</span>
+                          <span className="text-sm font-medium text-gray-500">
+                            ({records.length})
+                          </span>
+                          </div>
+                        </h4>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {records.map((record) => (
+                            <div
+                              key={record.id}
+                              className="relative border rounded-lg p-4 shadow-sm bg-white space-y-2"
+                            >
+                              <div className="font-medium">
+                                {record.first_name} {record.last_name}
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <PhoneIcon className="h-4 w-4 text-gray-500" />
+                                <span>{record.contact_number}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <MapPinIcon className="h-4 w-4 text-gray-500" />
+                                <span>{record.country}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <CalendarDaysIcon className="h-4 w-4 text-gray-500" />
+                                <span>{format(new Date(record.date_won), "dd MMM yyyy")}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <UserIcon className="h-4 w-4 text-gray-500" />
+                                <span>{record.wonByName}</span>
+                              </div>
+
+                              <div
+                                className="pt-2 absolute right-2 top-1"
+                                onClick={() => handleShowOptions(record.id)}
+                              >
+                                <ActionButton
+                                  showOptions={record.id === selectedId}
+                                  onDelete={() =>
+                                    handleDeleteSoul(
+                                      String(record.id),
+                                      `${record.first_name} ${record.last_name}`
+                                    )
+                                  }
+                                  onEdit={() => handleEdit(record)}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </details>
+            ))}
+        </div>
       ) : (
-        <div className=" flex flex-col items-center justify-center py-12rounded-lg ">
+        <div className="flex flex-col items-center justify-center py-12 rounded-lg">
           <h3 className="text-xl font-medium text-gray-500 mb-2">
             No Souls Records Yet
           </h3>
           <p className="text-gray-400 mb-6 max-w-md text-center">
-            You haven&apos;t recorded any souls yet. Start by adding your first
-            record.
+            You haven&apos;t recorded any souls yet. Start by adding your first record.
           </p>
         </div>
       )}

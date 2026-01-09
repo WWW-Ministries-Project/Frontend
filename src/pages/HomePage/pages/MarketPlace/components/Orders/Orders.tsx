@@ -1,17 +1,102 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workbook } from "exceljs";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders, PaymentStatus } from "@/utils";
 import { OrderFilters } from "./OrderFilters";
-interface IProps {
-  orders: IOrders[] | null;
-  tableColumns: ColumnDef<IOrders>[];
-  showExport?: boolean;
-}
+
+const getStatusBadge = (status: PaymentStatus) => {
+  const base =
+    "px-2 py-1 rounded-full text-xs font-medium capitalize inline-flex items-center";
+
+  switch (status) {
+    case "success":
+    case "delivered":
+      return (
+        <span className={`${base} bg-green-100 text-green-700`}>
+          {status}
+        </span>
+      );
+    case "pending":
+      return (
+        <span className={`${base} bg-yellow-100 text-yellow-700`}>
+          {status}
+        </span>
+      );
+    default:
+      return (
+        <span className={`${base} bg-red-100 text-red-700`}>
+          {status}
+        </span>
+      );
+  }
+};
+
+const isMobileScreen = () => typeof window !== "undefined" && window.innerWidth <= 1024;
+
+const OrderCard = ({ order }: { order: IOrders }) => {
+  const total = (order.price_amount * order.quantity).toFixed(2);
+
+  return (
+    <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+      {/* Header */}
+      <div className="flex items-start gap-3">
+        <img
+          src={order.image_url}
+          alt={order.name}
+          className="w-14 h-14 rounded-md object-cover flex-shrink-0"
+        />
+        <div className="flex-1">
+          <p className="font-semibold text-gray-900">{order.name}</p>
+          <p className="text-xs text-gray-500">{order.order_number}</p>
+        </div>
+      </div>
+
+      {/* Price + Status */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">
+          GHC {total} • Qty {order.quantity}
+        </p>
+        {getStatusBadge(order.payment_status)}
+      </div>
+
+      {/* Attributes */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <div>
+          <span className="text-gray-500">Type</span>
+          <p>{order.product_type}</p>
+        </div>
+        <div>
+          <span className="text-gray-500">Category</span>
+          <p>{order.product_category}</p>
+        </div>
+        <div>
+          <span className="text-gray-500">Size</span>
+          <p>{order.size}</p>
+        </div>
+        <div>
+          <span className="text-gray-500">Color</span>
+          <div
+            className="w-6 h-4 rounded"
+            style={{ backgroundColor: order.color }}
+          />
+        </div>
+      </div>
+
+      {/* Customer */}
+      <div className="pt-2 border-t text-sm">
+        <p className="font-medium">
+          {order.first_name} {order.last_name}
+        </p>
+        <p className="text-gray-500">{order.country}</p>
+      </div>
+    </div>
+  );
+};
+
 export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -23,6 +108,14 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
     size: "",
     payment_status: "success",
   });
+
+  const [isMobile, setIsMobile] = useState(isMobileScreen());
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(isMobileScreen());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const filteredOrders = useCallback(() => {
     return orders!.filter((order) => {
@@ -38,6 +131,8 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   }, [filterOrders, orders]);
 
   const allOrders = filteredOrders();
+  console.log(allOrders);
+  
 
   const handleExport = useCallback(() => {
     exportToExcel(allOrders);
@@ -85,12 +180,20 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
           sizes={allSizes}
         />
       }
-      <TableComponent
-        columns={tableColumns}
-        data={allOrders || []}
-        displayedCount={10}
-        className="relative"
-      />
+      {isMobile ? (
+        <div className=" grid sm:grid-cols-2 gap-4">
+          {allOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
+      ) : (
+        <TableComponent
+          columns={tableColumns}
+          data={allOrders || []}
+          displayedCount={10}
+          className="relative"
+        />
+      )}
       {allOrders?.length === 0 && <EmptyState msg="No Orders found" />}
     </>
   );

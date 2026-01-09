@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { Modal } from "@/components/Modal";
+import { formatDatefull } from "@/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Submission {
      id: string;
@@ -25,6 +27,8 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
     const [selectedAssignment, setLocalSelectedAssignment] = React.useState<AssignmentTopic | null>(null);
     const [dueDate, setDueDate] = React.useState("");
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
+
+    const navigate = useNavigate()
 
     React.useEffect(() => {
       const now = new Date();
@@ -58,12 +62,20 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                     <div>
                                       <div className="flex items-center gap-3">
                                         <h3 className="font-medium text-lg text-foreground">{topic.title}</h3>
-                                        <Badge className="text-xs border-primary bg-white border text-primary normal-case ">
+                                        <Badge
+                                          className={`text-xs border normal-case text-white ${
+                                            topic.isActive
+                                              ? "border-green-500 bg-green-400"
+                                              : "border-gray-400 bg-gray-400"
+                                          }`}
+                                        >
                                           {topic.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                       </div>
                                       <div className="flex gap-4 text-sm text-muted-foreground">
-                                        <div>Due: {topic.dueDate || "N/A"}</div>
+                                        <div>
+                                          Due: {topic?.dueDate ? formatDatefull(topic.dueDate) : "N/A"}
+                                        </div>
                                         <div>Submissions: {topic.submissions.length}</div>
                                         <div>Pending: {topic.submissions.filter(s => s.status === 'pending').length}</div>
                                       </div>
@@ -83,7 +95,7 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                           <Button
                                             variant="primary"
                                             value="Grade"
-                                            onClick={() => setSelectedAssignment(topic)}
+                                            onClick={() => navigate(`grades/${"1"}`)}
                                           />
                                         </>
                                       ) : (

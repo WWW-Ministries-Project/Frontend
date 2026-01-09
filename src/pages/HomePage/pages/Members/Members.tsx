@@ -16,7 +16,6 @@ import { SearchBar } from "../../../../components/SearchBar";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { MembersCount } from "../../Components/reusable/MembersCount";
-import TableComponent from "../../Components/reusable/TableComponent";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { MemberCard } from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
@@ -51,9 +50,6 @@ export function Members() {
       Actions: permissions.manage_members,
     };
   }, [permissions]);
-  const [tableView, setTableView] = useState(
-    localStorage.getItem("membersTableView") === "false" ? false : true
-  );
   const [showOptions, setShowOptions] = useState(false);
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | object>({});
 
@@ -79,16 +75,6 @@ export function Members() {
     { label: "Home", link: "/home" },
     { label: "Members", link: "/members" },
   ];
-
-  useEffect(() => {
-    const switchElement = document.getElementById("switch");
-    if (screenWidth <= 540) {
-      setTableView(false);
-      switchElement?.classList.add("hidden");
-    } else {
-      switchElement?.classList.remove("hidden");
-    }
-  }, [screenWidth]);
 
   // Handle notifications on delete
   useEffect(() => {
@@ -136,11 +122,6 @@ export function Members() {
       setDataToDelete(val);
       showDeleteDialog(val, handleDelete);
     }
-  };
-
-  const handleViewMode = (bol: boolean) => {
-    localStorage.setItem("membersTableView", bol + "");
-    setTableView(bol);
   };
 
   const handleFilterChange = (val: string, id: string) => {
@@ -196,8 +177,6 @@ export function Members() {
           title={`Church Memberships (${
             userStats.online?.total_members + userStats.inhouse?.total_members
           })`}
-          tableView={tableView}
-          handleViewMode={handleViewMode}
           hasFilter={true}
           hasSearch={true}
           showFilter={showFilter}
@@ -206,7 +185,7 @@ export function Members() {
           setShowSearch={setShowSearch}
           handleClick={handleNavigation}
           screenWidth={screenWidth}
-          btnName={permissions?.manage_members ? "Add Membership" : ""}
+          btnName={permissions?.manage_members ? "Add Member" : ""}
         />
 
         {/* Search & Filter Components */}
@@ -234,54 +213,34 @@ export function Members() {
           <MembersCount items={visitorsCount} />
         </div>
 
-        {/* Table or Grid View */}
+        {/* Grid View */}
         <div
-          className={`w-full mx-auto ${
-            tableView ? "bg-white p-2" : "bg-transparent"
-          } rounded-xl`}
+          className={`w-full mx-auto bg-transparent rounded-xl`}
         >
-          {tableView ? (
-            <TableComponent<UserType>
-              columns={columns}
-              data={members}
-              displayedCount={12}
-              total={total}
-              // filter={filterMembers}
-              // setFilter={setFilterMembers}
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-              columnVisibility={columnVisibility}
-              onPageChange={(page, limit) => {
-                // refetchMembers({ limit: String(limit), page: String(page) });
-                setFilters((prev) => ({ ...prev, page: String(page), limit: String(limit) }));
-              }}
-            />
-          ) : (
-            <GridComponent
-              columns={columns}
-              data={members}
-              displayedCount={24}
-              total={total}
-              filter={filterMembers}
-              setFilter={setFilterMembers}
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-              columnVisibility={columnVisibility}
-              onPageChange={(page, limit) => {
-                refetchMembers({ limit: String(limit), page: String(page) });
-              }}
-              renderRow={(row) => (
-                <MemberCard
-                  member={row.original}
-                  key={row.id}
-                  showOptions={showOptions === row.original.id}
-                  onShowOptions={() => setShowOptions(row.original.id)}
-                  onDelete={handleDeleteModal}
-                  canManage={permissions?.manage_members}
-                />
-              )}
-            />
-          )}
+          <GridComponent
+            columns={columns}
+            data={members}
+            displayedCount={24}
+            total={total}
+            filter={filterMembers}
+            setFilter={setFilterMembers}
+            columnFilters={columnFilters}
+            setColumnFilters={setColumnFilters}
+            columnVisibility={columnVisibility}
+            onPageChange={(page, limit) => {
+              refetchMembers({ limit: String(limit), page: String(page) });
+            }}
+            renderRow={(row) => (
+              <MemberCard
+                member={row.original}
+                key={row.id}
+                showOptions={showOptions === row.original.id}
+                onShowOptions={() => setShowOptions(row.original.id)}
+                onDelete={handleDeleteModal}
+                canManage={permissions?.manage_members}
+              />
+            )}
+          />
         </div>
       </section>
     </PageOutline>

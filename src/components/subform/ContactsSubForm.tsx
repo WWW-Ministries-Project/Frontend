@@ -15,7 +15,7 @@ const ContactsSubFormComponent = ({
     <>
       <ContactInput
         disabled={disabled}
-        label={"Enter phone number"}
+        label={"Phone number *"}
         prefix={prefix}
       />
       <Field

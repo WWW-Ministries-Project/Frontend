@@ -6,18 +6,18 @@ export function MembersCount(props: Readonly<MembersCountProps>) {
     <div className="flex gap-1 border p-3 items-center justify-between border-lightGray rounded-lg w-full divide-x-2 divide-lightGray shadow-sm">
       {props.items.map((item, index) => (
         <div
-          className="flex gap-1 flex-col px-3 items-center justify-center mx-auto"
+          className="text-sm flex gap-1 flex-col px-3 items-center justify-center mx-auto"
           key={item.label}
         >
           <p
-            className={`text-primary text-4xl  ${
+            className={`text-primary text-lg  ${
               index === 0 ? "font-bold " : ""
             }`}
           >
             {item.count}
           </p>
           <p
-            className={`text-primary text-sm text-center ${
+            className={`text-primary text-xs text-center ${
               index === 0 ? "font-bold" : ""
             }`}
           >

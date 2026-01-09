@@ -22,7 +22,7 @@ interface SelectFieldProps {
 
   disabled?: boolean;
   error?: string;
-
+  helperText?: string;
   searchable?: boolean;
   searchPlaceholder?: string;
 
@@ -43,6 +43,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   searchPlaceholder = "Search...",
   className,
   inputClassName,
+  helperText
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,7 +134,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             </option>
           ))}
         </select>
-
+          {(!error&&helperText) && <span className="text-xs text-gray-600">{helperText}</span>}
         {error && <span className="text-xs text-error">{error}</span>}
       </div>
     );
@@ -226,6 +227,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         )}
       </div>
 
+      {(!error&&helperText) && <span className="text-xs text-gray-600">{helperText}</span>}
       {error && <span className="text-xs text-error">{error}</span>}
     </div>
   );

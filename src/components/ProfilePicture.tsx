@@ -32,7 +32,7 @@ export const ProfilePicture = (props: IProps) => {
 
   return (
     <div className="flex">
-      <div className={`rounded-xl relative bg-lightGray/50 border  ${props.className}`}>
+      <div className={`rounded-xl relative bg-lightGray/50 border   ${props.className}`}>
         {props.src ? (
           <img
             src={props.src}

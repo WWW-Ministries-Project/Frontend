@@ -47,17 +47,17 @@ const EventsManagement = () => {
     }
   });
 
-  const [onlyThisYear, setOnlyThisYear] = useState<boolean>(() => {
+  const [showUpcoming, setShowUpcoming] = useState<boolean>(() => {
     try {
-      return JSON.parse(localStorage.getItem("onlyThisYear") || "false");
+      return JSON.parse(localStorage.getItem("showUpcoming") || "false");
     } catch {
       return false;
     }
   });
 
   useEffect(() => {
-    localStorage.setItem("onlyThisYear", JSON.stringify(onlyThisYear));
-  }, [onlyThisYear]);
+    localStorage.setItem("showUpcoming", JSON.stringify(showUpcoming));
+  }, [showUpcoming]);
 
   type GroupMode = "date" | "type";
 
@@ -132,9 +132,10 @@ const EventsManagement = () => {
     setFilterDate('');
     setGroupMode("date");
     setOpenAccordions({});
+    setShowUpcoming(false);
 
     // clear persisted filters
-    localStorage.removeItem("onlyThisYear");
+    localStorage.removeItem("showUpcoming");
 
     // refetch default data (current month/year)
     const response = await refetch({
@@ -208,24 +209,31 @@ const EventsManagement = () => {
     [handleDelete]
   );
 
-  const isEventInCurrentYear = (event: eventType) => {
+  const isPresentOrUpcomingEvent = (event: eventType) => {
     if (!event.start_date) return false;
-    return new Date(event.start_date).getFullYear() === currentYear;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const eventDate = new Date(event.start_date);
+    eventDate.setHours(0, 0, 0, 0);
+
+    return eventDate >= today;
   };
 
   // Filtered events based on search and year filter
   const filteredEvents = useMemo(() => {
     return events
       .filter((event) => {
-        if (onlyThisYear) {
-          return isEventInCurrentYear(event);
+        if (showUpcoming) {
+          return isPresentOrUpcomingEvent(event);
         }
         return true;
       })
       .filter((event) =>
         event?.event_name?.toLowerCase().includes(filterEvents.toLowerCase())
       );
-  }, [events, filterEvents, onlyThisYear]);
+  }, [events, filterEvents, showUpcoming]);
 
   const getMonthKey = (label: string) => {
     const date = new Date(label);
@@ -307,11 +315,11 @@ const EventsManagement = () => {
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
-            checked={onlyThisYear}
-            onChange={(e) => setOnlyThisYear(e.target.checked)}
+            checked={showUpcoming}
+            onChange={(e) => setShowUpcoming(e.target.checked)}
             className="accent-primary"
           />
-          Show only this year ({currentYear})
+          Show present & upcoming events
         </label>
       </div>
       {!tableView && (

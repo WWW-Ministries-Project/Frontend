@@ -110,24 +110,14 @@ const assignments = filter
 
     return ( 
         <div>
-            <BannerWrapper>
-            <div className="space-y-4 w-full">
-                <div className="font-bold text-3xl">Instructor Assessment Management</div>
-                <div>Manage assessments for your programs here.</div>
+            <div className="text-xl font-semibold">
+              All Program
             </div>
-            </BannerWrapper>
 
             {/* Section */}
             <main className="mx-auto py-8 ">
         <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="w-full lg:w-64">
-            {/* Use CourseSidebar to render topic status filters */}
-            <CourseSidebar
-              heading="State"
-              navItems={Topics.map((s) => ({ id: s.id, name: s.name, active: filter === s.id }))}
-              onSelect={handleStatusSelect}
-            />
-          </div>
+          
           {!selectedAssignment &&<Assignmentmanager assignments={assignments} setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)} />}
             {selectedAssignment && (
               <GradingPanel

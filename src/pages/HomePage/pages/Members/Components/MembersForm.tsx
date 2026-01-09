@@ -7,16 +7,16 @@ import {
   ChildrenSubForm,
   ContactsSubForm,
   EmergencyContact,
-  IChildrenSubForm,
   IContactsSubForm,
   IEmergencyContact,
   IUserSubForm,
   IWorkInfoSubForm,
   UserSubForm,
   WorkInfoSubForm,
+  IFamilySubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { array, boolean, date, object, string } from "yup";
 import {
   DepartmentPositionSubForm,
@@ -24,13 +24,111 @@ import {
 } from "./DepartmentPosition";
 import { RadioInput } from "./RadioInput";
 
+type StepKey = "basic" | "contact" | "church" | "work" | "family";
+
+const getSteps = (hasChildren: boolean) => {
+  const steps = [
+    {
+      key: "basic",
+      title: "Basic Information",
+      description: "Who the member is",
+    },
+    {
+      key: "contact",
+      title: "Contact Information",
+      description: "How we can reach them",
+    },
+    {
+      key: "church",
+      title: "Church Information",
+      description: "Membership & ministry details",
+    },
+    {
+      key: "work",
+      title: "Employment / Schooling",
+      description: "What they currently do",
+      skippable: true,
+    },
+  ] as {
+    key: StepKey;
+    title: string;
+    description: string;
+    skippable?: boolean;
+  }[];
+
+  if (hasChildren) {
+    steps.push({
+      key: "family",
+      title: "Family Information",
+      description: "Children details",
+    });
+  }
+
+  return steps;
+};
+
 interface IProps {
   disabled?: boolean;
+  onRegisterControls?: (controls: {
+    goNext: () => void;
+    goBack: () => void;
+    isLastStep: boolean;
+  }) => void;
 }
 
-const MembersFormComponent = ({ disabled = false }: IProps) => {
-  const { values, setFieldValue } = useFormikContext<IMembersForm>();
+const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) => {
+  const { values, errors, touched, setFieldValue } =
+    useFormikContext<IMembersForm>();
   const has_children = values.personal_info?.has_children ?? false;
+
+  const steps = getSteps(has_children);
+
+  const [currentStep, setCurrentStep] = useState<StepKey>("basic");
+
+  const currentIndex = steps.findIndex((s) => s.key === currentStep);
+
+  const isStepValid = (step: StepKey) => {
+    switch (step) {
+      case "basic":
+        return !errors.personal_info;
+      case "contact":
+        return !errors.contact_info && !errors.emergency_contact;
+      case "church":
+        if (errors.church_info) return false;
+        if (values.is_user && errors.department_positions) return false;
+        return true;
+      case "work":
+        return !errors.work_info;
+      case "family":
+        return !errors.family;
+      default:
+        return false;
+    }
+  };
+
+  const goNext = () => {
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1].key);
+    }
+  };
+
+  const goBack = () => {
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1].key);
+    }
+  };
+
+  const skipStep = () => {
+    goNext();
+  };
+
+  useEffect(() => {
+    onRegisterControls?.({
+      goNext,
+      goBack,
+      isLastStep: currentIndex === steps.length - 1,
+    });
+  }, [goNext, goBack, currentIndex, steps.length]);
 
   useEffect(() => {
     if (!values.is_user) {
@@ -43,99 +141,178 @@ const MembersFormComponent = ({ disabled = false }: IProps) => {
 
   useEffect(() => {
     if (has_children) {
-      setFieldValue("children", initialValues.children);
+      setFieldValue("family", initialValues.family);
     } else {
-      setFieldValue("children", []);
+      setFieldValue("family", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [has_children]);
 
+  useEffect(() => {
+    if (!has_children && currentStep === "family") {
+      setCurrentStep("work");
+    }
+  }, [has_children, currentStep]);
+
   return (
-    <FormLayout>
-      <FormHeader className={"text-primary font-bold "}>Personal Information</FormHeader>
-      <FullWidth>
-        <div className="flex flex-col items-center justify-center w-full">
-          <ProfilePicture
-            className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
-            id="profile_picture"
-            name="profile_picture"
-            src={values.picture.src}
-            alt="Profile Picture"
-            editable={!disabled}
-            onChange={(obj) => {
-              setFieldValue(`picture`, obj);
-            }}
-            textClass={"text-3xl text-primary"}
-          />
-          <p className="text-sm ">
-            Click on the <strong>pen icon</strong> to upload your profile image{" "}
-          </p>
-        </div>
-      </FullWidth>
-      <UserSubForm prefix="personal_info" />
-      <HorizontalLine />
+    <div>
+      <div className="flex items-center justify-between mb-8 w-full overflow-auto">
+        {steps.map((step, index) => {
+          const isActive = step.key === currentStep;
+          const isCompleted = isStepValid(step.key);
 
-      <FormHeader className={"text-primary font-bold "}>Contacts Information</FormHeader>
-      <ContactsSubForm disabled={disabled} prefix="contact_info" />
-      <HorizontalLine />
+          return (
+            <div
+              key={step.key}
+              onClick={() => {
+                setCurrentStep(step.key);
+              }}
+              className={`
+                relative flex items-center gap-3 flex-1 cursor-pointer group w-full p-3  transition-all
+                ${
+                  isActive
+                    ? "bg-white border-t border-x border-gray-300 rounded-t-xl  -mb-px"
+                    : isCompleted
+                    ? "bg-green-50 border-b border-gray-300  hover:bg-green-50"
+                    : "bg-gray-50 border-b border-gray-300  hover:bg-gray-50"
+                }
+              `}
+            >
+              {/* {isActive && (
+                <div className="absolute inset-x-12 -bottom-1 h-1 bg-primary rounded-full" />
+              )} */}
+              <div
+                className={`
+                  h-10 min-w-10 rounded-lg flex items-center justify-center font-semibold transition-all
+                  ${
+                    isActive
+                      ? "bg-primary text-white"
+                      : isCompleted
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-300 text-gray-700 group-hover:bg-primary/20"
+                  }
+                `}
+              >
+                {index + 1}
+              </div>
+              <div className="hidden md:block truncate">
+                <p
+                  className={`font-medium leading-tight truncate ${
+                    isActive ? "text-primary" : isCompleted ? "text-green-700" : "text-gray-700"
+                  }`}
+                >
+                  {step.title}
+                </p>
+                <p className="text-xs text-gray-500">{step.description}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-      <FormHeader className={"text-primary font-bold "}>Emergency Contact</FormHeader>
-      <EmergencyContact disabled={disabled} prefix="emergency_contact" />
-      <HorizontalLine />
-
-      <FormHeader className={"text-primary font-bold "}>Membership Status</FormHeader>
-      <Field
-        component={FormikSelectField}
-        label="Membership Type"
-        placeholder="Select membership type"
-        id="church_info.membership_type"
-        name="church_info.membership_type"
-        options={[
-          { label: "Online e-church family", value: "ONLINE" },
-          { label: "In-person church family", value: "IN_HOUSE" },
-        ]}
-        disabled={disabled}
-      />
-      <Field
-        component={FormikInputDiv}
-        label="Date joined"
-        id="church_info.member_since"
-        name="church_info.member_since"
-        placeholder="Select date joined"
-        type="date"
-        max={new Date().toISOString().split("T")[0]}
-        disabled={disabled}
-      />
-      <FullWidth>
-        <div className="flex flex-col">
-          <p className="text-dark900 leading-5 mb-2">
-            Is this member a ministry worker?
-          </p>
-          <RadioInput name="is_user" />
-        </div>
-      </FullWidth>
-
-      {values.is_user && (
+      <FormLayout>
+      {currentStep === "basic" && (
         <>
-          <FormHeader className={"text-primary font-bold "}>Ministry/Department & Positions</FormHeader>
-          <DepartmentPositionSubForm
-            disabled={disabled}
-            prefix="department_positions"
-          />
+          <FormHeader className="text-primary font-bold">Personal Information</FormHeader>
+          <FullWidth>
+            <div className="flex flex-col  w-full">
+              <ProfilePicture
+                className="h-[8rem] w-[8rem] outline-lightGray  profilePic transition-all outline outline-1 duration-1000 mb-2"
+                id="profile_picture"
+                name="profile_picture"
+                src={values.picture.src}
+                alt="Profile Picture"
+                editable={!disabled}
+                onChange={(obj) => {
+                  setFieldValue(`picture`, obj);
+                }}
+                textClass={"text-3xl text-primary"}
+              />
+              <p className="text-sm ">
+                Click on the <strong>pen icon</strong> to upload your profile image{" "}
+              </p>
+            </div>
+          </FullWidth>
+          <UserSubForm prefix="personal_info" />
         </>
       )}
 
-      <HorizontalLine />
+      {currentStep === "contact" && (
+        <>
+          <FormHeader className="text-primary font-bold">Contact Information</FormHeader>
+          <ContactsSubForm disabled={disabled} prefix="contact_info" />
+          <HorizontalLine />
+          <FormHeader className="text-primary font-bold">Emergency Contact</FormHeader>
+          <EmergencyContact disabled={disabled} prefix="emergency_contact" />
+        </>
+      )}
 
-      <WorkInfoSubForm disabled={disabled} prefix="work_info" />
-      <HorizontalLine />
-      {has_children && <ChildrenSubForm disabled={disabled} />}
-    </FormLayout>
+      {currentStep === "church" && (
+        <>
+          <FormHeader className="text-primary font-bold">Church Information</FormHeader>
+
+          <Field
+            component={FormikSelectField}
+            label="Membership Type"
+            placeholder="Select membership type"
+            id="church_info.membership_type"
+            name="church_info.membership_type"
+            options={[
+              { label: "Online e-church family", value: "ONLINE" },
+              { label: "In-person church family", value: "IN_HOUSE" },
+            ]}
+            disabled={disabled}
+          />
+          <Field
+            component={FormikInputDiv}
+            label="Date joined"
+            id="church_info.member_since"
+            name="church_info.member_since"
+            placeholder="Select date joined"
+            type="date"
+            max={new Date().toISOString().split("T")[0]}
+            disabled={disabled}
+          />
+
+          <FullWidth>
+            <div className="flex flex-col">
+              <p className="text-dark900 mb-2">Is this member a ministry worker?</p>
+              <RadioInput name="is_user" />
+            </div>
+          </FullWidth>
+
+          {values.is_user && (
+            <DepartmentPositionSubForm disabled={disabled} prefix="department_positions" />
+          )}
+        </>
+      )}
+
+      {currentStep === "work" && (
+        <>
+          <FormHeader className="text-primary font-bold">
+            Employment / Schooling Information
+          </FormHeader>
+          <WorkInfoSubForm disabled={disabled} prefix="work_info" />
+        </>
+      )}
+
+      {currentStep === "family" && (
+        <>
+          <FormHeader className="text-primary font-bold">
+            Family Information
+          </FormHeader>
+          <ChildrenSubForm disabled={disabled} />
+        </>
+      )}
+      
+      </FormLayout>
+      
+    </div>
   );
 };
 
 export type membersType = "ONLINE" | "IN_HOUSE";
-export interface IMembersForm extends IChildrenSubForm {
+export interface IMembersForm extends IFamilySubForm {
   personal_info: IUserSubForm;
   picture: {
     src: string;

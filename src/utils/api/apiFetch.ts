@@ -18,7 +18,7 @@ import type {
   IProductType,
   IProductTypeResponse,
 } from "./marketPlace/interface";
-import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
   DetailedCohortType,
   DetailedCourseType,
@@ -60,6 +60,10 @@ export class ApiCalls {
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
+  };
+
+  fetchMemberFamily = (query?: QueryType): Promise<ApiResponse<IFamilyInformationRaw>> => {
+    return this.fetchFromApi("user/get-user-family", query);
   };
 
   fetchUserStats = (): Promise<ApiResponse<UserStatsType>> => {
@@ -203,6 +207,20 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
+  };
+
+  // New method to fetch cohorts by program (query-based)
+  fetchCohortsByProgram = (
+    query?: QueryType
+  ): Promise<ApiResponse<DetailedCohortType[]>> => {
+    return this.fetchFromApi("program/get-cohorts-by-program", query);
+  };
+
+  // New method to fetch instructor programs
+  fetchInstructorPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<ProgramResponse[]>> => {
+    return this.fetchFromApi("program/get-instructor-programs", query);
   };
 
   // Course Management

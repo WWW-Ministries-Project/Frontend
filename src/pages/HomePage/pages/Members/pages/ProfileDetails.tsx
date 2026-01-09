@@ -2,7 +2,7 @@ import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { navigateRef } from "@/pages/HomePage/HomePage";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
-import { IMemberInfo } from "@/utils";
+import { IFamilyInformationRaw, IMemberInfo } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useCallback, useEffect } from "react";
 import { Outlet, useNavigate, useParams, useLocation } from "react-router-dom";
@@ -12,6 +12,7 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import BannerWrapper from "@/pages/MembersPage/layouts/BannerWrapper";
 import { Button, ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
+import { AtSymbolIcon, EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 
 export const ProfileDetails = () => {
   const navigate = useNavigate();
@@ -20,12 +21,15 @@ export const ProfileDetails = () => {
     user: { permissions },
   } = useAuth();
   const [details, setDetails] = useState<IMemberInfo | undefined>();
+  const [familyData, setFamilyData] = useState<IFamilyInformationRaw | undefined>()
   const { id } = useParams();
   const user_id = id ? decodeQuery(id) : undefined;
   const { data } = useFetch(api.fetch.fetchAMember, {
     user_id: user_id!,
   });
-
+  const { data:familydata } = useFetch(api.fetch.fetchMemberFamily, {
+    user_id: user_id!,
+  });
   // Function to get tab based on current route
   const getTabFromRoute = useCallback(
     (pathname: string): string => {
@@ -73,6 +77,12 @@ export const ProfileDetails = () => {
     }
   }, [data, user_id]);
 
+  useEffect(() => {
+    if (familydata) {
+      setFamilyData(familydata.data)
+    }
+  }, [familydata]);
+
   const handleEdit = (id: number | string) => {
     if (navigateRef.current)
       navigateRef.current(
@@ -86,19 +96,7 @@ export const ProfileDetails = () => {
   return (
     <div className="">
       <div className="sticky top-0 z-40 w-full">
-        {/* <Banner
-          onClick={handleEdit}
-          src={details?.photo || ""}
-          name={details?.name}
-          department={details?.department?.name || ""}
-          position={details?.position?.name || ""}
-          email={details?.email || ""}
-          primary_number={details?.primary_number || ""}
-          membership_type={details?.membership_type}
-          status={details?.status}
-          id={details?.id || ""}
-          showButton={permissions.manage_members}
-        /> */}
+        
         <Banner >
           <div className="w-full  relative text-white rounded-t-lg">
                 <div
@@ -109,28 +107,28 @@ export const ProfileDetails = () => {
                     backgroundRepeat: "no-repeat",
                   }}
                 >
-                  <div className="flex justify-between items-cente  container mx-auto">
+                  <div className="sm:flex justify-between items-cente  container mx-auto">
                     <div className="flex gap-4 items-center  ">
                       <ProfilePicture
-                        className="w-24 h-24 outline outline-white"
+                        className=" w-24 h-24 md:w-32 md:h-32 outline outline-white"
                         src={details?.photo || ""}
                         alt="cover Image"
                         name={details?.name}
                         id="coverPic"
                       />
-                      <article className="xs:hidden md:inline space-y-2">
-                        <div className="font-bold text-2xl ">
+                      <article className=" md:inline space-y-2 ">
+                        <div className="font-bold text-sm md:text-2xl ">
                           {details?.name || "No Name"}
                         </div>
-                        <div className="">{`${details?.department?.name ?? ""} ${
-                          details?.department && details?.position?.name ? "|" : ""
-                        } ${details?.position ?? ""} `}</div>
-                        <div className="">
-                          {(details?.email || "No Email") +
-                            " | " +
-                            (details?.primary_number || "No Phone")}
+                        <div className="flex gap-2 text-xs md:text-sm">
+                          <span>#</span><span>{details?.member_id}</span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className=" md:flex items-center gap-2  text-xs md:text-sm">
+                          {details?.email&&<p className="flex items-center gap-2"><span><EnvelopeIcon className="h-4"/></span><span>{details?.email}</span></p>}
+                          <div className="hidden md:block">{(details?.primary_number&&details?.email)&&<p >|</p>}</div>
+                          {details?.primary_number&&<p className="flex items-center gap-2 pt-2 md:pt-0"><span><PhoneIcon className="h-4"/></span><span>{details?.primary_number}</span></p>}
+                        </div>
+                        <div className="hidden md:flex gap-2">
                           <Badge className="text-sm  border-primary bg-white border text-primary w-fit ">
                             {details?.membership_type === "ONLINE"
                 ? "Online e-church family"
@@ -143,11 +141,11 @@ export const ProfileDetails = () => {
                       </article>
                     </div>
                     {permissions.manage_members && (
-                      <div>
+                      <div className="pt-4 md:pt-0">
                         <Button
                           value="Edit Profile"
-                          onClick={()=>handleEdit(details?.id)}
-                          className="w-full  px-5 py-3 bg-transparent min-h-8  md:bg-white md:text-primary"
+                          onClick={()=>handleEdit(details?.id!)}
+                          className="w-full  px-5 py-3 bg-transparent min-h-8  bg-white text-primary text-xs md:text-sm lg:text-base "
                         />
                       </div>
                     )}
@@ -158,17 +156,19 @@ export const ProfileDetails = () => {
       </div>
       <section className="bg-white w-full h-full mb-4 mx-auto">
         <div className="flex p-4">
-          <TabSelection
+          {/* <TabSelection
             tabs={["Member information", "Family information"]}
             selectedTab={selectedTab}
             onTabSelect={handleTabSelect}
-          />
+          /> */}
         </div>
         <div className="hideScrollbar pb-4 mx-auto rounded-b-xl overflow-y-auto">
+          
           <Outlet
             context={{
               handleEdit,
               details: details || {},
+              familyData: familyData
             }}
           />
         </div>

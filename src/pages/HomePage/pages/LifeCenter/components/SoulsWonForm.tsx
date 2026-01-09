@@ -137,6 +137,8 @@ export interface ISoulsWonForm extends INameInfo {
   city: string;
   date_won: string;
   wonById: string;
+  wonByName: string;
+  contact_number: string;
   id: string;
   lifeCenterId: string;
 }

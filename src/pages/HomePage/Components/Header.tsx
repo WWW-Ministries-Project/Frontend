@@ -9,6 +9,7 @@ import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 
 interface IProps {
   handleShowNav?: () => void;
@@ -20,11 +21,17 @@ export const Header = ({ handleShowNav }: IProps) => {
   const { logout } = useAuth();
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSchoolMenuOpen, setIsSchoolMenuOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const schoolRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [showLogoText, setShowLogoText] = useState(true);
 
   const token = decodeToken();
   const profileImg = token?.profile_img ?? "";
@@ -54,6 +61,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   const handleNavigate = (path: string) => {
     navigate(path);
     setIsMobileNavOpen(false);
+    setIsMobileSchoolOpen(false);
     setIsSchoolMenuOpen(false);
     setIsProfileMenuOpen(false);
   };
@@ -64,45 +72,101 @@ export const Header = ({ handleShowNav }: IProps) => {
     navigate("/login");
   };
 
-  /* Close dropdowns on outside click */
+  /* Close dropdowns & mobile nav on outside click */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
       if (
         profileRef.current &&
-        !profileRef.current.contains(e.target as Node)
+        !profileRef.current.contains(target)
       ) {
         setIsProfileMenuOpen(false);
       }
 
       if (
         schoolRef.current &&
-        !schoolRef.current.contains(e.target as Node)
+        !schoolRef.current.contains(target)
       ) {
         setIsSchoolMenuOpen(false);
+      }
+
+      if (
+        isMobileNavOpen &&
+        mobileNavRef.current &&
+        !mobileNavRef.current.contains(target) &&
+        !mobileToggleRef.current?.contains(target)
+      ) {
+        setIsMobileNavOpen(false);
+        setIsMobileSchoolOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isMobileNavOpen]);
 
-  /* Auto close mobile nav on resize */
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 1024) {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isMobileNavOpen) {
         setIsMobileNavOpen(false);
+        setIsMobileSchoolOpen(false);
       }
     };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isMobileNavOpen]);
+
+  /* Measure header height and handle resize */
+  useEffect(() => {
+    const measureHeader = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+
+    measureHeader();
+
+    window.addEventListener("resize", measureHeader);
+    return () => window.removeEventListener("resize", measureHeader);
+  }, []);
+
+  /* Control logo text visibility on small screens */
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+
+    const handleChange = () => {
+      setShowLogoText(mq.matches);
+    };
+
+    handleChange(); // initial check
+    mq.addEventListener("change", handleChange);
+
+    return () => mq.removeEventListener("change", handleChange);
   }, []);
 
   return (
-    <header className="sticky top-0  bg-white md:text-sm lg:text-md">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 bg-white md:text-sm lg:text-md"
+    >
       <div className="flex items-center justify-between px-4 ">
         {/* Left */}
         <div className="flex items-center gap-3">
-          <ChurchLogo show />
+          {isMemberRoute && (
+            <button
+              ref={mobileToggleRef}
+              aria-label="Toggle navigation"
+              aria-expanded={isMobileNavOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setIsMobileNavOpen(v => !v)}
+              className="lg:hidden p-2 rounded-md bg-primary/5 hover:bg-primary/10"
+            >
+              <Bars3Icon className="h-6"/>
+            </button>
+          )}
+          <ChurchLogo show={showLogoText} />
 
           {!isMemberRoute && (
             <img
@@ -113,16 +177,7 @@ export const Header = ({ handleShowNav }: IProps) => {
             />
           )}
 
-          {isMemberRoute && (
-            <button
-              aria-label="Toggle navigation"
-              aria-expanded={isMobileNavOpen}
-              onClick={() => setIsMobileNavOpen(v => !v)}
-              className="lg:hidden p-2 rounded-md hover:bg-primary/10"
-            >
-              ☰
-            </button>
-          )}
+          
         </div>
 
         {/* Desktop Nav */}
@@ -145,6 +200,11 @@ export const Header = ({ handleShowNav }: IProps) => {
             <div ref={schoolRef} className="relative">
               <button
                 aria-expanded={isSchoolMenuOpen}
+                aria-haspopup="menu"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setIsSchoolMenuOpen(false);
+                  if (e.key === "Enter" || e.key === " ") setIsSchoolMenuOpen(v => !v);
+                }}
                 onClick={() => setIsSchoolMenuOpen(v => !v)}
                 className={`px-4 py-2 rounded-md flex items-center gap-1 font-semibold ${
                   isSchoolRoute
@@ -156,9 +216,15 @@ export const Header = ({ handleShowNav }: IProps) => {
               </button>
 
               {isSchoolMenuOpen && (
-                <div role="menu" className="absolute mt-2 w-56 bg-white border rounded-md shadow-lg">
+                <div
+                  role="menu"
+                  aria-label="School of Ministries"
+                  className="absolute mt-2 w-56 bg-white border rounded-md shadow-lg"
+                >
                   {schoolItems.map(item => (
                     <button
+                      role="menuitem"
+                      tabIndex={0}
                       key={item.label}
                       onClick={() => handleNavigate(item.path)}
                       className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
@@ -214,22 +280,76 @@ export const Header = ({ handleShowNav }: IProps) => {
       {/* Mobile Nav */}
       {isMemberRoute && (
         <div
-          className={`lg:hidden transition-all duration-300 overflow-hidden ${
-            isMobileNavOpen ? "max-h-[500px] border-t" : "max-h-0"
-          }`}
+          ref={mobileNavRef}
+          id="mobile-nav"
+          aria-hidden={!isMobileNavOpen}
+          style={{
+            top: headerHeight,
+          }}
+          className={`lg:hidden fixed left-0 right-0 z-40 bg-white border-t
+            transform transition-transform duration-300 ease-out shadow-lg
+            ${isMobileNavOpen
+              ? "translate-y-0 visible pointer-events-auto"
+              : "-translate-y-full invisible pointer-events-none"
+            }
+          `}
         >
-          <nav className="px-4 py-3 space-y-2">
-            {[...memberNavItems, { label: "School of Ministries", path: relativePath.member.schoolOfMinistries.allPrograms }].map(
-              item => (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavigate(item.path)}
-                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary/10"
+          <nav
+            className="px-4 py-3 space-y-2 overflow-y-auto"
+            style={{ maxHeight: `calc(100vh - ${headerHeight}px)` }}
+          >
+            {memberNavItems.map(item => (
+              <button
+                key={item.label}
+                onClick={() => handleNavigate(item.path)}
+                className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary/10"
+              >
+                {item.label}
+              </button>
+            ))}
+
+            {/* Mobile School of Ministries */}
+            <div>
+              <button
+                onClick={() => setIsMobileSchoolOpen(v => !v)}
+                aria-expanded={isMobileSchoolOpen}
+                aria-controls="mobile-school-items"
+                className="w-full flex justify-between items-center px-4 py-3 rounded-md hover:bg-primary/10 font-medium"
+              >
+                <span>School of Ministries</span>
+                <svg
+                  className={`h-4 w-4 transform transition-transform ${
+                    isMobileSchoolOpen ? "rotate-180" : ""
+                  }`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
                 >
-                  {item.label}
-                </button>
-              )
-            )}
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.08 1.04l-4.25 4.65a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              <div
+                id="mobile-school-items"
+                className={`overflow-hidden transition-[max-height] duration-200 ${
+                  isMobileSchoolOpen ? "max-h-96" : "max-h-0"
+                }`}
+              >
+                {schoolItems.map(item => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleNavigate(item.path)}
+                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </nav>
         </div>
       )}
