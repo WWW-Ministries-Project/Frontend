@@ -85,8 +85,8 @@ const ContactInputComponent = ({
 
   return (
     <div className="mb-4">
-      <label className="text-primary font-semibold block ">{label}</label>
-      <div className="flex items-center w-full relative ">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex gap-2 items-center w-full relative ">
         {/* Country Code Input */}
         <div className="w-20">
           <InputDiv

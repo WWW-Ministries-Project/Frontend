@@ -1,91 +1,138 @@
-import { formatDate } from "@/utils";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api, formatDate, IFamilyInformationRaw, IFamilyPerson, IFamilyRelationRaw, IMemberInfo } from "@/utils";
 import { useOutletContext } from "react-router-dom";
-//TODO : Correct interface to have the same source of truth as source once the API is ready
 
-interface IChild {
-  name: string;
-  gender: string;
-  date_of_birth: string;
-  nationality: string;
-}
+// Define interfaces matching backend response with nested user_info
 
-interface IMemberInfo {
-  member_id: string;
-  spousal_info: {
-    name: string;
-    primary_number: string;
-  };
-  children: IChild[];
-}
 
 export const FamilyInformation = () => {
-  const { details: user } = useOutletContext<{
-    details: IMemberInfo;
+  const { familyData:data } = useOutletContext<{
+    familyData: IFamilyInformationRaw;
   }>();
 
-  return (
-    <div className="bg-white rounded-b-lg p-6 pt-0 mx-auto text-gray-800">
-      <Section title="Spousal Information">
-        {user.spousal_info &&
-        (user.spousal_info.name || user.spousal_info.primary_number) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-            <InfoField
-              label="Spouse Name"
-              value={
-                <div className="flex items-center">
-                  <span>{user.spousal_info?.name || "-"}</span>
-                  <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    Active Member
-                  </span>
-                </div>
-              }
-            />
-            <InfoField
-              label="Contact number"
-              value={user.spousal_info?.primary_number}
-            />
-          </div>
-        ) : (
-          <div className="text-gray-500 italic">
-            No spousal information available
-          </div>
-        )}
-      </Section>
+  console.log("family data", data);
 
-      <hr />
+  // Normalize backend relation data to flat structure for UI consumption
+  const normalizeRelation = (
+    items: IFamilyRelationRaw[] = []
+  ): IFamilyPerson[] =>
+    items.map((item) => {
+      const info = item.user_info;
 
-      <Section title="Children Information">
-        {user.children && user.children.length > 0 ? (
-          user.children.map((child, index) => (
-            <div key={index} className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                <InfoField
-                  label="Name"
-                  value={
-                    <div className="flex items-center">
-                      <span>{child.name || "-"}</span>
-                      <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        Child
-                      </span>
-                    </div>
-                  }
-                />
-                <InfoField label="Gender" value={child.gender} />
-                <InfoField
-                  label="Date of birth"
-                  value={formatDate(child.date_of_birth)}
-                />
-                <InfoField label="Nationality" value={child.nationality} />
-              </div>
-              {index < user.children.length - 1 && <hr className="mt-4" />}
+      return {
+        id: item.id,
+        name:
+          info?.first_name || info?.last_name
+            ? `${info?.first_name ?? ""} ${info?.last_name ?? ""}`.trim()
+            : item.name || "-",
+        gender: info?.gender,
+        date_of_birth: info?.date_of_birth,
+        nationality: info?.nationality,
+        primary_number: info?.primary_number,
+        email: info?.email ?? item.email,
+        is_member: item.is_user,
+      };
+    });
+
+  const hasAnyFamilyData = () => {
+    return (
+      normalizeRelation(data?.spouses).length > 0 ||
+      normalizeRelation(data?.children).length > 0 ||
+      normalizeRelation(data?.parents).length > 0 ||
+      normalizeRelation(data?.siblings).length > 0 ||
+      normalizeRelation(data?.others).length > 0
+    );
+  };
+
+  // Generic relation section renderer
+  const renderRelationSection = (
+    title: string,
+    items: IFamilyPerson[],
+    badgeLabel: string
+  ) => {
+    if (!items || items.length === 0) {
+      return null;
+    }
+
+    return (
+      <Section title={title}>
+        {items.map((person, index) => (
+          <div key={index} className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+              <InfoField
+                label="Name"
+                value={
+                  <div className="flex items-center">
+                    <span>{person.name || "-"}</span>
+                    <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {badgeLabel}
+                    </span>
+                  </div>
+                }
+              />
+              <InfoField label="Gender" value={person.gender || "-"} />
+              <InfoField
+                label="Date of birth"
+                value={
+                  person.date_of_birth
+                    ? formatDate(person.date_of_birth)
+                    : "-"
+                }
+              />
+              <InfoField
+                label="Nationality"
+                value={person.nationality || "-"}
+              />
+              <InfoField
+                label="Contact"
+                value={person.primary_number || "-"}
+              />
             </div>
-          ))
-        ) : (
-          <div className="text-gray-500 italic">
-            No children information available
+
+            {index < items.length - 1 && <hr className="mt-4" />}
           </div>
-        )}
+        ))}
       </Section>
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-b-lg pt-0 mx-auto text-gray-800">
+      {!hasAnyFamilyData() ? (
+        <EmptyState />
+      ) : (
+        <>
+          {renderRelationSection(
+            "Spouses",
+            normalizeRelation(data?.spouses),
+            "Spouse"
+          )}
+
+          {renderRelationSection(
+            "Children",
+            normalizeRelation(data?.children),
+            "Child"
+          )}
+
+          {renderRelationSection(
+            "Parents",
+            normalizeRelation(data?.parents),
+            "Parent"
+          )}
+
+          {renderRelationSection(
+            "Siblings",
+            normalizeRelation(data?.siblings),
+            "Sibling"
+          )}
+
+          {renderRelationSection(
+            "Others",
+            normalizeRelation(data?.others),
+            "Relation"
+          )}
+        </>
+      )}
     </div>
   );
 };
@@ -123,4 +170,15 @@ const Section = ({
     </h2>
     {children}
   </section>
+);
+
+const EmptyState = () => (
+  <div className="py-12 flex flex-col items-center justify-center text-center text-gray-500">
+    <p className="text-lg font-semibold text-gray-700 mb-2">
+      No family information available
+    </p>
+    <p className="max-w-md">
+      Family relationships have not been added for this member yet.
+    </p>
+  </div>
 );

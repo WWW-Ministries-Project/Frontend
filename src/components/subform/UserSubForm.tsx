@@ -11,10 +11,15 @@ const UserSubFormComponent = ({ prefix }: { prefix: string }) => {
     <>
       <PersonalDetails prefix={prefix} />
       <FullWidth>
-        <div className="flex flex-col">
-          <p className="text-primary leading-5 mb-2">
-            Are your children members of the church?
+        <div className="flex flex-col gap-y-2">
+          <div className="flex flex-col ">
+            <p className="text-sm font-medium text-gray-700 leading-5 ">
+            Do any of your family members belong to this church?          
           </p>
+          <p className="text-sm font-light">
+            (e.g., spouse, children, parents, siblings)
+          </p>
+          </div>
           <RadioInput name={`${prefix}.has_children`} />
         </div>
       </FullWidth>

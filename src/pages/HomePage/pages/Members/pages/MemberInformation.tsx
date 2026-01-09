@@ -1,9 +1,16 @@
 import { useState } from "react";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { formatDate, formatPhoneNumber } from "@/utils";
-import { DivideIcon } from "@heroicons/react/24/outline";
+import {
+  UserIcon,
+  PhoneIcon,
+  BuildingLibraryIcon,
+  BriefcaseIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 
 import { useOutletContext } from "react-router-dom";
+import { FamilyInformation } from "./FamilyInformation";
 
 //TODO: TAKE A SECOND LOOK AT INFOFIELD AND SECTION
 //TODO: FIND A BETTER STRUCTURE FOR TYPING DATA FROM BE
@@ -25,16 +32,24 @@ export function MemberInformation() {
       : user.membership_type === "IN_HOUSE"? "In-person church family" :"";
 
   return (
-    <div className="bg-white rounded-b-lg shadow-sm p-6 pt-0 mx-auto text-gray-800 ">
+    <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
       <TabSelection
         tabs={[
           "Basic Information",
           "Contact Information",
           "Church Information",
           "Employment/Schooling Information",
+          "Family Information",
         ]}
         selectedTab={selectedTab}
         onTabSelect={handleTabSelect}
+        tabIcons={{
+          "Basic Information": <UserIcon className="h-4 w-4" />,
+          "Contact Information": <PhoneIcon className="h-4 w-4" />,
+          "Church Information": <BuildingLibraryIcon className="h-4 w-4" />,
+          "Employment/Schooling Information": <BriefcaseIcon className="h-4 w-4" />,
+          "Family Information": <UsersIcon className="h-4 w-4" />,
+        }}
       />
       
       {selectedTab === "Basic Information" && (
@@ -178,6 +193,12 @@ export function MemberInformation() {
             <InfoField label="Position" value={user.work_info?.position} />
           </div>
         </Section>
+      )}
+
+      {selectedTab=="Family Information" && (
+        // <Section title="">
+          <FamilyInformation/>
+        // </Section>
       )}
     </div>
   );

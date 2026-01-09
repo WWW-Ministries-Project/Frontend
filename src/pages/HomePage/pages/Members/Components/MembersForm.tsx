@@ -7,13 +7,13 @@ import {
   ChildrenSubForm,
   ContactsSubForm,
   EmergencyContact,
-  IChildrenSubForm,
   IContactsSubForm,
   IEmergencyContact,
   IUserSubForm,
   IWorkInfoSubForm,
   UserSubForm,
   WorkInfoSubForm,
+  IFamilySubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
@@ -72,6 +72,7 @@ interface IProps {
   onRegisterControls?: (controls: {
     goNext: () => void;
     goBack: () => void;
+    isLastStep: boolean;
   }) => void;
 }
 
@@ -99,7 +100,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
       case "work":
         return !errors.work_info;
       case "family":
-        return !errors.children;
+        return !errors.family;
       default:
         return false;
     }
@@ -125,8 +126,9 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
     onRegisterControls?.({
       goNext,
       goBack,
+      isLastStep: currentIndex === steps.length - 1,
     });
-  }, [goNext, goBack]);
+  }, [goNext, goBack, currentIndex, steps.length]);
 
   useEffect(() => {
     if (!values.is_user) {
@@ -139,9 +141,9 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
   useEffect(() => {
     if (has_children) {
-      setFieldValue("children", initialValues.children);
+      setFieldValue("family", initialValues.family);
     } else {
-      setFieldValue("children", []);
+      setFieldValue("family", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [has_children]);
@@ -154,7 +156,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8 w-full">
+      <div className="flex items-center justify-between mb-8 w-full overflow-auto">
         {steps.map((step, index) => {
           const isActive = step.key === currentStep;
           const isCompleted = isStepValid(step.key);
@@ -169,10 +171,10 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
                 relative flex items-center gap-3 flex-1 cursor-pointer group w-full p-3  transition-all
                 ${
                   isActive
-                    ? "bg-white border-t border-x border-primary rounded-t-xl shadow-sm -mb-px"
+                    ? "bg-white border-t border-x border-gray-300 rounded-t-xl  -mb-px"
                     : isCompleted
-                    ? "bg-green-50 border-b border-primary hover:bg-green-50"
-                    : "bg-gray-50 border-b border-primary hover:bg-gray-50"
+                    ? "bg-green-50 border-b border-gray-300  hover:bg-green-50"
+                    : "bg-gray-50 border-b border-gray-300  hover:bg-gray-50"
                 }
               `}
             >
@@ -213,9 +215,9 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
         <>
           <FormHeader className="text-primary font-bold">Personal Information</FormHeader>
           <FullWidth>
-            <div className="flex flex-col items-center justify-center w-full">
+            <div className="flex flex-col  w-full">
               <ProfilePicture
-                className="h-[8rem] w-[8rem] outline-lightGray mt-3 profilePic transition-all outline outline-1 duration-1000 mb-2"
+                className="h-[8rem] w-[8rem] outline-lightGray  profilePic transition-all outline outline-1 duration-1000 mb-2"
                 id="profile_picture"
                 name="profile_picture"
                 src={values.picture.src}
@@ -310,7 +312,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 };
 
 export type membersType = "ONLINE" | "IN_HOUSE";
-export interface IMembersForm extends IChildrenSubForm {
+export interface IMembersForm extends IFamilySubForm {
   personal_info: IUserSubForm;
   picture: {
     src: string;

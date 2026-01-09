@@ -2,7 +2,7 @@ import { Button } from "@/components/Button";
 
 interface IProps {
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   loading: boolean;
   SubmitLabel?: string
   goNext?: () => void
@@ -30,14 +30,7 @@ export const Actions = ({
           />
         )}
 
-        {goNext && (
-          <Button
-            value="Next"
-            variant="primary"
-            onClick={goNext}
-            disabled={loading}
-          />
-        )}
+        
       </div>
 
       {/* Right: Global actions */}
@@ -48,14 +41,24 @@ export const Actions = ({
           onClick={onCancel}
           disabled={loading}
         />
-        <Button
-          value={SubmitLabel}
-          variant="primary"
-          type="submit"
-          disabled={loading}
-          loading={loading}
-          onClick={onSubmit}
-        />
+        {onSubmit && (
+          <Button
+            value={SubmitLabel}
+            variant="primary"
+            type="submit"
+            disabled={loading}
+            loading={loading}
+            onClick={onSubmit}
+          />
+        )}
+        {goNext && (
+          <Button
+            value="Next"
+            variant="primary"
+            onClick={goNext}
+            disabled={loading}
+          />
+        )}
       </div>
     </div>
   );

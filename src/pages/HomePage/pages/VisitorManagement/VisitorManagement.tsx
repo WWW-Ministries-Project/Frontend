@@ -40,6 +40,23 @@ export function VisitorManagement() {
   >(undefined);
   const [formResetKey, setFormResetKey] = useState(0);
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
+
+  const visitorsArray: VisitorType[] = useMemo(() => {
+    if (!data?.data) return [];
+
+    // Case 1: API returns array directly
+    if (Array.isArray(data.data)) {
+      return data.data;
+    }
+
+    // Case 2: API returns paginated object { data: [], meta: {} }
+    if (Array.isArray((data.data as any)?.data)) {
+      return (data.data as any).data;
+    }
+
+    console.warn("Unexpected visitors response shape:", data.data);
+    return [];
+  }, [data]);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
 
   
@@ -77,11 +94,9 @@ export function VisitorManagement() {
   };
 
   const visitors = useMemo(() => {
-    if (!data?.data) return [];
-
-    return data.data.filter((visitor: VisitorType) => {
+    return visitorsArray.filter((visitor: VisitorType) => {
       const createdDate = new Date(visitor.createdAt);
-      const visitDate = new Date(visitor.visitDate);
+      const visitDate = new Date(visitor.visitDate!);
 
       const createdMatch = filters.createdMonth
         ? `${createdDate.getFullYear()}-${String(
@@ -119,7 +134,7 @@ export function VisitorManagement() {
         searchMatch
       );
     });
-  }, [data, filters, filterVisitors]);
+  }, [visitorsArray, filters, filterVisitors]);
 
   const [groupBy, setGroupBy] = useState<"date" | "event">("date");
 
@@ -132,7 +147,7 @@ export function VisitorManagement() {
       let key = "";
 
       if (groupBy === "date") {
-        const d = new Date(visitor.visitDate);
+        const d = new Date(visitor.visitDate!);
         // Use sortable key internally
         key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       } else {
@@ -176,18 +191,16 @@ export function VisitorManagement() {
   }, [groupedVisitors, groupBy]);
 
   const eventOptions = useMemo(() => {
-    if (!data?.data) return [];
     return Array.from(
-      new Set(data.data.map((v: VisitorType) => v.eventName).filter(Boolean))
+      new Set(visitorsArray.map((v) => v.eventName).filter(Boolean))
     );
-  }, [data]);
+  }, [visitorsArray]);
 
   const referralOptions = useMemo(() => {
-    if (!data?.data) return [];
     return Array.from(
-      new Set(data.data.map((v: VisitorType) => v.howHeard).filter(Boolean))
+      new Set(visitorsArray.map((v) => v.howHeard).filter(Boolean))
     );
-  }, [data]);
+  }, [visitorsArray]);
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
@@ -324,7 +337,7 @@ export function VisitorManagement() {
   // ];
 
   // Determine if backend returned any data at all
-  const hasBackendData = Boolean(data?.data && data.data.length > 0);
+  const hasBackendData = visitorsArray.length > 0;
 
   return (
     <PageOutline crumbs={crumbs} className="p-6">
@@ -473,7 +486,7 @@ export function VisitorManagement() {
           {Object.entries(groupedVisitors).map(([group, items]) => (
             <div key={group} className="space-y-3">
               <button
-                className="w-full flex justify-between items-center font-semibold text-lg py-2"
+                className="w-full flex justify-between items-center font-semibold text-lg py-2 px-4 bg-gray-50 rounded-lg"
                 onClick={() =>
                   setOpenGroups((prev) => ({
                     ...prev,
@@ -481,7 +494,7 @@ export function VisitorManagement() {
                   }))
                 }
               >
-                <span>{group}</span>
+                <div className="flex gap-x-2"><span>{group}</span>({items.length})</div>
                 <span className="text-sm">
                   {openGroups[group] ? "−" : "+"}
                 </span>
@@ -529,7 +542,7 @@ export function VisitorManagement() {
 
                         <div className="text-sm text-gray-600">
                           <span className="font-medium text-gray-700">Visit date:</span>{" "}
-                          {formatDate(visitor.visitDate)}
+                          {formatDate(visitor?.visitDate!)}
                         </div>
 
                         <div className="text-sm text-gray-600">
@@ -550,7 +563,7 @@ export function VisitorManagement() {
                         <Button
                         value="View full profile"
                         variant="secondary"
-                          className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline w-full"
+                          className="mt-2 inline-flex items-center text-sm font-medium border-gray-200 text-primary hover:underline w-full"
                           onClick={() => navigate(`visitor/${visitor.id}`)}
                         />
                       </div>

@@ -185,7 +185,7 @@ export function Members() {
           setShowSearch={setShowSearch}
           handleClick={handleNavigation}
           screenWidth={screenWidth}
-          btnName={permissions?.manage_members ? "Add Membership" : ""}
+          btnName={permissions?.manage_members ? "Add Member" : ""}
         />
 
         {/* Search & Filter Components */}

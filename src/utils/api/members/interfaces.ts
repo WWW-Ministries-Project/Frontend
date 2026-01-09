@@ -105,3 +105,40 @@ export interface IMemberInfo {
   photo: string;
   country: string;
 }
+
+export interface IFamilyUserInfo {
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  primary_number?: string;
+  email?: string;
+}
+
+export interface IFamilyRelationRaw {
+  id: number;
+  name?: string;
+  email?: string;
+  is_user?: boolean;
+  user_info?: IFamilyUserInfo | null;
+}
+
+export interface IFamilyPerson {
+  id?: number;
+  name: string;
+  gender?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  primary_number?: string;
+  email?: string;
+  is_member?: boolean;
+}
+
+export interface IFamilyInformationRaw {
+  spouses: IFamilyRelationRaw[];
+  children: IFamilyRelationRaw[];
+  parents: IFamilyRelationRaw[];
+  siblings: IFamilyRelationRaw[];
+  others: IFamilyRelationRaw[];
+}
