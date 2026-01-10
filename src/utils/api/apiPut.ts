@@ -179,6 +179,26 @@ export class ApiUpdateCalls {
 `, payload);
   }
 
+  // activate assignment
+  activateCohortAssignment = (
+    payload: unknown,
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/activate-cohort-assignment",
+      payload
+    );
+  };
+
+  // deactivate assignment
+  deactivateCohortAssignment = (
+    payload: unknown,
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/deactivate-cohort-assignment",
+      payload
+    );
+  };
+
   /* Visitor Management */
 
   updateVisitor = (

@@ -118,16 +118,18 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
   }, []);
 
   const filteredOrders = useCallback(() => {
-    return orders!.filter((order) => {
-      return Object.entries(filterOrders).every(([key, value]) => {
-        if (!value) return true;
-        const orderValue = order[key as keyof IOrders];
-        return (
-          orderValue &&
-          orderValue.toString().toLowerCase().includes(value.toLowerCase())
-        );
+    return orders!
+      .filter((order) => order.market_status === "Ended")
+      .filter((order) => {
+        return Object.entries(filterOrders).every(([key, value]) => {
+          if (!value) return true;
+          const orderValue = order[key as keyof IOrders];
+          return (
+            orderValue &&
+            orderValue.toString().toLowerCase().includes(value.toLowerCase())
+          );
+        });
       });
-    });
   }, [filterOrders, orders]);
 
   const allOrders = filteredOrders();

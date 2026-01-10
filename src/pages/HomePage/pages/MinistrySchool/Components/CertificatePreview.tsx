@@ -42,11 +42,11 @@ const CertificatePreview: React.FC<CertificatePreviewProps> = ({
             {recipientName}
           </h1>
 
-          {programName && (
+          {/* {programName && (
             <p className="mt-3 text-sm text-gray-700 font-medium">
               {programName}
             </p>
-          )}
+          )} */}
 
           {description && (
             <p className="mt-4 text-sm text-gray-600 leading-relaxed">

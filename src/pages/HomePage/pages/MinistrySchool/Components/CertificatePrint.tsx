@@ -47,15 +47,15 @@ export default function Certificate({
 
               {/* Decorative curved elements - Left side */}
               <div className="absolute -left-10 -top-8 h-full w-48 overflow-hidden">
-                <div className="absolute -translate-x-20  -rotate-45 -left-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-primary"></div>
-                <div className="absolute -translate-x-9  -rotate-45 -left-36  w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-gray-100 to-white drop-shadow-xl shadow-xl border-2 border-white"></div>
+                <div className="absolute -translate-x-20  -rotate-45 -left-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-br from-gray-200 to-secondary drop-shadow-xl shadow-xl border-2 "></div>
+                <div className="absolute -translate-x-9  -rotate-45 -left-36  w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
               </div>
 
               {/* Decorative curved elements - Right side */}
               <div className="absolute -right-10 -top-8 h-full w-48 overflow-hidden ">
                 
-                <div className="absolute translate-x-20  -rotate-45 -right-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-primary"></div>
-                <div className="absolute translate-x-9  rotate-45 -right-36  w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-gray-200 to-white drop-shadow-xl shadow-xl border-2 border-white"></div>
+                <div className="absolute translate-x-20  -rotate-45 -right-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-tl  from-gray-200 to-secondary drop-shadow-xl shadow-xl border-2 "></div>
+                <div className="absolute translate-x-9  rotate-45 -right-36  w-72 h-72 rounded-[6vw] bg-gradient-to-tl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
               </div>
 
               {/* Main content */}

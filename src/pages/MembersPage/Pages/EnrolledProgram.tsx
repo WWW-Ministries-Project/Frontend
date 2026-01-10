@@ -174,7 +174,9 @@ useEffect(() => {
 
                     <LearningUnit 
                     unit={selectedTopic.learningUnit ?? undefined} 
-                    topicId={selectedTopic.id} userId ={user!.id} 
+                    topicId={selectedTopic.id} 
+                    userId ={user!.id} 
+                    programId= {programId}
                     completed={selectedTopic.completed}
                     refetch={refetch}
                     />
@@ -230,6 +232,9 @@ useEffect(() => {
           open={viewCertificate}
           recipientName={user.name}
           program={data?.data?.title!}
+          description={`For the success completion of ${
+      data?.data?.title! ? `${data?.data?.title!} program` : "the program"
+    }. `}
           onClose={()=>setViewCertificate(false)}
         />
       </Modal>
