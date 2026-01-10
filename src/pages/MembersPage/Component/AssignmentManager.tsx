@@ -23,28 +23,61 @@ interface AssignmentTopic {
       submissions: Submission[];
 }
 
-const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments: AssignmentTopic[]; setSelectedAssignment: (assignment: AssignmentTopic) =>void }) => {
+const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment, refetch }: { 
+  cohortId: string; 
+  assignments: AssignmentTopic[]; 
+  setSelectedAssignment: (assignment: AssignmentTopic) => void;
+  refetch: () => void;
+}) => {
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [selectedAssignment, setLocalSelectedAssignment] = React.useState<AssignmentTopic | null>(null);
     const [dueDate, setDueDate] = React.useState("");
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
 
     const {
-        updateData,
-        loading: putLoading,
-        data: putSuccess,
+        updateData: activateAssignment,
+        loading: activating,
       } = usePut(api.put.activateCohortAssignment);
 
-    // const {
-    //     updateData,
-    //     loading: putLoading,
-    //     data: putSuccess,
-    //   } = usePut(api.put.deactivateCohortAssignment);
+    const {
+        updateData: deactivateAssignment,
+        loading: deactivating,
+      } = usePut(api.put.deactivateCohortAssignment);
+
+    const handleAssignmentActivation = async (
+      action: "activate" | "deactivate",
+      assignment: AssignmentTopic,
+      dueDate?: string
+    ) => {
+      if (!assignment?.topicId) return;
+
+      const payload = {
+        cohortId,
+        topicId: assignment.topicId,
+        ...(action === "activate" && dueDate
+          ? { dueDate: new Date(dueDate).toISOString() }
+          : {}),
+      };
+
+      try {
+        if (action === "activate") {
+          await activateAssignment(payload);
+        } else {
+          await deactivateAssignment(payload);
+        }
+
+        refetch();
+      } catch (error) {
+        console.error(`Failed to ${action} assignment`, error);
+      }
+    };
 
     const navigate = useNavigate()
 
     React.useEffect(() => {
       const now = new Date();
+      console.log("assignments", assignments);
+      
 
       assignments.forEach((assignment) => {
         if (
@@ -95,7 +128,7 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                     </div>
                   
                                     <div className="flex items-center gap-3">
-                                      {topic.dueDate ? (
+                                      {topic.isActive ? (
                                         <>
                                           <Button
                                             variant="secondary"
@@ -108,7 +141,7 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                           <Button
                                             variant="primary"
                                             value="Grade"
-                                            onClick={() => navigate(`grades/${"1"}`)}
+                                            onClick={() => navigate(`grades/${topic.topicId}`)}
                                           />
                                         </>
                                       ) : (
@@ -164,18 +197,12 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                       <Button
                                         variant="primary"
                                         value="Activate"
-                                        disabled={!dueDate}
-                                        onClick={() => {
-                                          const updatedAssignment = {
-                                            ...selectedAssignment,
-                                            dueDate,
-                                            isActive: true,
-                                          };
-
-                                          console.log("Activated Assignment:", updatedAssignment);
-
+                                        disabled={!dueDate || activating}
+                                        onClick={async () => {
+                                          await handleAssignmentActivation("activate", selectedAssignment, dueDate);
                                           setIsModalOpen(false);
                                           setLocalSelectedAssignment(null);
+                                          setDueDate("");
                                         }}
                                       />
                                     </div>
@@ -207,14 +234,9 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
                                       <Button
                                         variant="primary"
                                         value="Deactivate"
-                                        onClick={() => {
-                                          const updatedAssignment = {
-                                            ...selectedAssignment,
-                                            isActive: false,
-                                          };
-
-                                          console.log("Manually deactivated Assignment:", updatedAssignment);
-
+                                        disabled={deactivating}
+                                        onClick={async () => {
+                                          await handleAssignmentActivation("deactivate", selectedAssignment);
                                           setIsDeactivateModalOpen(false);
                                           setLocalSelectedAssignment(null);
                                         }}

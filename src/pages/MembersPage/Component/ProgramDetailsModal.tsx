@@ -128,7 +128,7 @@ export const ProgramDetailsModal: FC<{
   const hasCourses = (program.courses?.length ?? 0) > 0;
 
   return (
-    <div className="w-[95vw] max-w-2xl max-h-[80vh] bg-white rounded-xl shadow-sm flex flex-col">
+    <div className="w-[95vw] max-w-2xl h-[80vh] bg-white rounded-xl shadow-sm flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white flex items-start justify-between p-6 pb-5 border-b border-gray-100">
         <div className="flex-1 pr-4">
@@ -148,7 +148,7 @@ export const ProgramDetailsModal: FC<{
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 pr-4 space-y-6 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-500">
         {/* Description */}
         {program.description && (
           <section aria-labelledby="about-program">
@@ -204,14 +204,18 @@ export const ProgramDetailsModal: FC<{
             <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">
               Topics Covered
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {program.topics.map((topic) => (
-                <span
-                  key={topic}
+            <div className="flex flex-col gap-2">
+              {program.topics.map((topic, index) => (
+                <div
+                  key={index}
                   className="px-3 py-1.5 bg-gray-50 text-sm text-gray-700 rounded"
                 >
-                  {topic}
-                </span>
+                  <p className="font-medium">{topic.name}</p>
+                  <p
+                  className="font-light"
+                  dangerouslySetInnerHTML={{ __html: topic.description }}
+                  />
+                </div>
               ))}
             </div>
           </section>

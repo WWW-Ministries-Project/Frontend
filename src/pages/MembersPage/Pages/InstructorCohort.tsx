@@ -41,7 +41,6 @@ const InstructorCohort = () => {
   const { data, loading, refetch } = useFetch(
   api.fetch.fetchCohortsByProgram, { programId: programId!} 
 );
-  console.log("instructor program", data);
   
     const [cohorts, setCohorts] = useState<CohortView[]>([]);
     const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
