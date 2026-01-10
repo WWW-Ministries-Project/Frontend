@@ -1,6 +1,7 @@
 import { IMarket } from "@/utils/api/marketPlace/interface";
 import { CalendarIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { MarketStatusChip } from "./chips/MarketStatusChip";
+import { Banner } from "../../Members/Components/Banner";
 
 interface HeaderProps {
   market: IMarket;
@@ -8,7 +9,8 @@ interface HeaderProps {
 
 export function MarketHeader({ market }: HeaderProps) {
   return (
-    <div className="bg-primary text-white rounded-t-2xl p-6">
+    <Banner>
+    <div className="w-full">
       <div className="flex items-center gap-2">
         <h2 className="text-xl font-semibold">{market?.name || "N/A"}</h2>
         <MarketStatusChip
@@ -31,5 +33,6 @@ export function MarketHeader({ market }: HeaderProps) {
         </div>
       </div>
     </div>
+    </Banner>
   );
 }

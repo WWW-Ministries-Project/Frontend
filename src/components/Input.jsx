@@ -7,12 +7,16 @@ const Input = (props) => {
   const emailInputRef = useRef();
   return (
     <div className={"inputBox  rounded-lg W px-5 " + props.className}>
-      <label
-        className=" text-left text-white p-2  "
-        htmlFor={props.id}>
-        {props.label}
-      </label>
-      <br />
+      {props.label && (
+        <>
+          <label
+            className=" text-left text-white p-2  "
+            htmlFor={props.id}>
+            {props.label}
+          </label>
+          <br />
+        </>
+      )}
       <input
         className={
           "w-[98%] border p-2 rounded-md focus:border focus:outline-none invalid:border-error placeholder:text-gray  " +
@@ -27,6 +31,7 @@ const Input = (props) => {
         onBlur={props.onBlur}
         placeholder={props.placeholder}
         ref={emailInputRef}
+        onKeyDown={props?.onKeyDown}
       />
       <br />
       {props.isRequired ? (
@@ -50,7 +55,8 @@ Input.propTypes = {
   handleBlur: PropTypes.func,
   onChange: PropTypes.func,
   className: PropTypes.string,
-  labelClassName:PropTypes.string
+  labelClassName: PropTypes.string,
+  
 };
 
 export default Input;

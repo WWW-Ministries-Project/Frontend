@@ -1,3 +1,5 @@
+import Instructor from "@/pages/MembersPage/Pages/Instructor";
+
 export interface pictureType {
   picture: Blob | string;
   src: string;
@@ -52,6 +54,7 @@ export interface userType {
   ministry_worker:boolean;
   department?: string[];
   life_center_leader?:boolean
+  instructor?:boolean
 }
 export interface userTypeWithToken extends userType {
   iat: number;

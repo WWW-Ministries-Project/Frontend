@@ -4,6 +4,8 @@ import { SoulsWon } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWon"
 import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils/api/apiCalls";
 import { CalendarIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import BannerWrapper from "../layouts/BannerWrapper";
+import lifecenter from "@/assets/banner/lifecenter.svg";
 
 
 const MyLifeCenter = () => {
@@ -13,11 +15,9 @@ const MyLifeCenter = () => {
     const lifeCenterData = data?.data;
     
     return ( 
-       <div className="space-y-4">
-       <div className="w-screen bg-primary h-[10rem] text-white relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-        
-            <div className="h-full flex items-center py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
-                <div className="space-y-4 ">
+       <div className="space-y-4 ">
+       <BannerWrapper imgSrc={lifecenter}>
+                <div className="space-y-4 w-full">
                     <div className="font-bold text-2xl">
                     {lifeCenterData?.name || "No name"}
                 </div>
@@ -48,8 +48,7 @@ const MyLifeCenter = () => {
             
           </div>
                 </div>
-            </div>
-            </div>
+            </BannerWrapper>
             <div className=" rounded-lg  ">
                 <SoulsWon
                     soulsWon={lifeCenterData?.soulsWon || []}

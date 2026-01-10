@@ -1,14 +1,69 @@
-import AngleRight from "@/assets/AngleRight";
+import { routes } from "@/routes/appRoutes";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, matchRoutes } from "react-router-dom";
 
-interface IProps {
-  items: BreadcrumbItemType[];
+
+// Types
+export type BreadcrumbLink = string | (() => void);
+
+export interface BreadcrumbItem {
+  label: string;
+  link?: BreadcrumbLink;
+  icon?: React.ReactNode;
 }
 
-export const Breadcrumbs = ({ items }: IProps) => {
+export interface AutoBreadcrumbProps {
+  separator?: React.ReactNode;
+  className?: string;
+  navClassName?: string;
+  itemClassName?: string;
+  activeItemClassName?: string;
+  separatorClassName?: string;
+  onNavigate?: (link: BreadcrumbLink) => void;
+  maxItems?: number;
+  ariaLabel?: string;
+}
+
+// Default separator component
+const DefaultSeparator = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M6 12L10 8L6 4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const AutoBreadcrumb: React.FC<AutoBreadcrumbProps> = ({
+  separator = <DefaultSeparator />,
+  className = "",
+  navClassName = "",
+  itemClassName = "",
+  activeItemClassName = "",
+  separatorClassName = "",
+  onNavigate,
+  maxItems,
+  ariaLabel = "breadcrumb",
+}) => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const handleClick = (link: string | number | (() => void)) => {
+
+  const handleClick = (link: BreadcrumbLink) => {
+    if (onNavigate) {
+      onNavigate(link);
+      return;
+    }
+
     if (typeof link === "string") {
       navigate(link);
     } else if (typeof link === "function") {
@@ -16,40 +71,96 @@ export const Breadcrumbs = ({ items }: IProps) => {
     }
   };
 
-  if (!items) return null;
+  const generateBreadcrumbs = (): BreadcrumbItem[] => {
+    const matches = matchRoutes(routes as any, location);
+    if (!matches) return [];
+
+    // Only include routes that actually contribute to navigation meaning
+    const namedMatches = matches.filter(
+      (m) => m.route?.name && m.pathname !== undefined
+    );
+
+    return namedMatches.map((match, index) => {
+      const isLast = index === namedMatches.length - 1;
+
+      return {
+        label: match.route.name,
+        link: isLast ? undefined : match.pathname,
+      };
+    });
+  };
+
+  const items = generateBreadcrumbs();
+
+  // Handle maxItems truncation
+  let displayItems = items;
+  if (maxItems && items.length > maxItems) {
+    const firstItem = items[0];
+    const lastItems = items.slice(-(maxItems - 1));
+    displayItems = [
+      firstItem,
+      { label: "...", link: undefined },
+      ...lastItems,
+    ];
+  }
+
+  if (displayItems.length === 0) return null;
 
   return (
-    <div className="py-2 container text-primary rounded-lg z-10">
-      <nav aria-label="breadcrumb" className="px-5 rounded">
+    <div className={`py-2 ${className}`}>
+      <nav aria-label={ariaLabel} className={`px-5 rounded ${navClassName}`}>
         <ol className="flex space-x-2 items-center">
-          {items.map((item, index) => {
-            const isLast = index === items.length - 1;
+          {displayItems.map((item, index) => {
+            const isLast = index === displayItems.length - 1;
+            const isEllipsis = item.label === "...";
+
             return (
-              <React.Fragment key={index}>
+              <React.Fragment key={`${item.label}-${index}`}>
                 {index > 0 && (
-                  <li className="text-primary">
-                    <AngleRight />
+                  <li
+                    className={`flex items-center ${separatorClassName}`}
+                    aria-hidden="true"
+                  >
+                    {separator}
                   </li>
                 )}
                 {isLast ? (
                   <li
-                    className="text-primary inverted-colors font-bold"
+                    className={`font-bold ${activeItemClassName} ${itemClassName}`}
                     aria-current="page"
                   >
+                    {item.icon && (
+                      <span className="inline-flex items-center mr-1">
+                        {item.icon}
+                      </span>
+                    )}
                     {item.label}
                   </li>
                 ) : (
-                  <li>
-                    {item.link !== undefined ? (
+                  <li className={itemClassName}>
+                    {item.link !== undefined && !isEllipsis ? (
                       <button
                         type="button"
-                        className="text-primary hover:font-bold focus:outline-none"
+                        className="hover:font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded transition-all inline-flex items-center"
                         onClick={() => handleClick(item.link!)}
+                        aria-label={`Navigate to ${item.label}`}
                       >
+                        {item.icon && (
+                          <span className="inline-flex items-center mr-1">
+                            {item.icon}
+                          </span>
+                        )}
                         {item.label}
                       </button>
                     ) : (
-                      <span>{item.label}</span>
+                      <span className="inline-flex items-center">
+                        {item.icon && !isEllipsis && (
+                          <span className="inline-flex items-center mr-1">
+                            {item.icon}
+                          </span>
+                        )}
+                        {item.label}
+                      </span>
                     )}
                   </li>
                 )}
@@ -62,7 +173,4 @@ export const Breadcrumbs = ({ items }: IProps) => {
   );
 };
 
-export type BreadcrumbItemType = {
-  label: string;
-  link?: string | number | (() => void);
-};
+export default AutoBreadcrumb;

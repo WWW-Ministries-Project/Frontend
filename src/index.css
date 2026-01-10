@@ -3,7 +3,9 @@
 @tailwind utilities;
 :root {
   --primary: #6539C3;
+  --app-header-height: 64px;
 }
+
 * {
   box-sizing: border-box;
   font-family: "Work Sans", sans-serif;

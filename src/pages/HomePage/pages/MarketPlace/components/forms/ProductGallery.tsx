@@ -12,7 +12,7 @@ const ProductGallery = () => {
 
   return (
     <FieldArray name="product_colours">
-      {({ push }) => (
+      {({ push, remove }) => (
         <div className="col-span-2">
           <p className="text-primary font-semibold py-1">Stock management</p>
           <div className="mt-1 mb-3 flex gap-4 text-900">
@@ -30,7 +30,16 @@ const ProductGallery = () => {
           <p className="text-primary font-semibold py-2">Product Gallery</p>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {values.product_colours.map((product_colours, index) => (
-              <div key={index} className="space-y-3 cursor-pointer">
+              <div key={index} className="space-y-3 relative border border-gray-200 rounded-lg p-3">
+                {values.product_colours.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="absolute top-2 right-2 text-sm text-red-600 hover:text-red-800"
+                  >
+                    Remove
+                  </button>
+                )}
                 <Field
                   name={`product_colours[${index}].colour`}
                   type="color"

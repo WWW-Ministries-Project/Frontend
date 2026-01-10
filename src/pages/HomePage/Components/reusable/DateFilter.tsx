@@ -32,11 +32,11 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
 
   const CustomInput = forwardRef(({ value, onClick }, ref) => (
     <input
-      className="input cursor-pointer"
+      className=" border p-2 rounded-lg border-primary cursor-pointer"
       onClick={onClick}
       ref={ref}
       defaultValue={value}
-      placeholder="filter by date"
+      placeholder="Filter by date"
     />
   ));
 

@@ -94,6 +94,18 @@ export class ApiCreationCalls {
     return this.postToApi("program/enroll", payload);
   };
 
+  createTopic = (payload: unknown): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/topic", payload);
+  }
+
+  // Submit MCQ Assignment
+  submitMCQAssignment = <T>(payload: unknown): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("program/submit-mcq-assignment", payload);
+  };
+
+  // Submit Assignments
+  
+
   // Unenroll User
   // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
   //   return this.postToApi<T>("program/unenroll", payload);

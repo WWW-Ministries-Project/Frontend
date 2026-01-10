@@ -52,7 +52,7 @@ export const MemberCard = (props: IProps) => {
                       onDelete={handleDelete}
                       onView={() =>
                         handleClick(
-                          `/home/members/${encodeQuery(props.member.id)}/info`
+                          `/home/members/${encodeQuery(props.member.id)}`
                         )
                       }
                       onEdit={() =>
@@ -100,7 +100,7 @@ export const MemberCard = (props: IProps) => {
         <Button
           value={"View "}
           onClick={() =>
-            handleClick(`/home/members/${encodeQuery(props.member.id)}/info`)
+            handleClick(`/home/members/${encodeQuery(props.member.id)}`)
           }
           className="w-full mt-2 bg-transparent text-sm p-2.5 border border-[#D8DAE5] text-primary"
         />

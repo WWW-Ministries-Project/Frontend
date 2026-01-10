@@ -1,8 +1,6 @@
 import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import type { CohortType } from "@/utils";
 import { api } from "@/utils";
@@ -11,6 +9,13 @@ import { useParams } from "react-router-dom";
 import { AllCohorts } from "../Components/AllCohort";
 import { CohortForm, ICohortForm } from "../Components/CohortForm";
 import { useViewPage } from "../customHooks/ViewPageContext";
+import { Button } from "@/components";
+import AllTopics from "../Components/AllTopics";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import TopicBasicInfoForm from "../Components/TopicBasicInfoForm";
+
+const TAB_STORAGE_KEY = "view_program_selected_tab";
 
 export const ViewProgram = () => {
   //api
@@ -18,17 +23,9 @@ export const ViewProgram = () => {
   const { data, refetch } = useFetch(api.fetch.fetchProgramById, {
     id: programId!,
   });
-  //cohort api
-  const {
-    postData: postCohort,
-    loading: postLoading,
-    data: postedData,
-  } = usePost(api.post.createCohort);
-  const {
-    updateData: updateCohort,
-    loading: updateLoading,
-    data: updatedData,
-  } = usePut(api.put.updateCohort);
+
+  console.log(programId);
+  
 
   const { executeDelete, success } = useDelete(api.delete.deleteCohort);
 
@@ -37,6 +34,8 @@ export const ViewProgram = () => {
   const [selectedCohort, setSelectedCohort] = useState<ICohortForm | undefined>(
     undefined
   );
+
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
 
   const { setLoading, setData } = useViewPage();
   useEffect(() => {
@@ -47,24 +46,24 @@ export const ViewProgram = () => {
       topics: program?.topics || [],
     });
   }, [setData, program]);
-  // useEffect(() => {
-  //   setLoading(loading);
-  //   console.log(loading,"loading")
-  // }, [loading, setLoading]);
 
-  // const fetchProgramData = async () => {};
-  useEffect(() => {
-    if (updatedData || postedData) {
-      refetch();
-      setIsModalOpen(false);
-      setSelectedCohort(undefined);
-    }
-  }, [updatedData, postedData, refetch]);
   useEffect(() => {
     if (success) {
       refetch();
     }
   }, [success, refetch]);
+
+  const [selectedTab, setSelectedTab] = useState<"Cohorts" | "Topics">(() => {
+    const savedTab = localStorage.getItem(TAB_STORAGE_KEY);
+    return savedTab === "Topics" || savedTab === "Cohorts"
+      ? savedTab
+      : "Cohorts";
+  });
+
+  const handleTabSelect = (tab: "Cohorts" | "Topics") => {
+    setSelectedTab(tab);
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  };
 
   const handleEdit = (cohort: CohortType): void => {
     const formattedCohort: ICohortForm = {
@@ -80,21 +79,6 @@ export const ViewProgram = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (values: ICohortForm) => {
-    if (!programId || isNaN(parseInt(programId, 10))) return;
-    if (selectedCohort?.id) {
-      updateCohort(
-        {
-          ...values,
-          id: selectedCohort.id,
-          programId: Number(programId),
-        },
-        { id: String(selectedCohort.id) }
-      );
-    } else {
-      postCohort({ ...values, programId: Number(programId) });
-    }
-  };
   const handleClose = () => {
     setSelectedCohort(undefined);
     setIsModalOpen(false);
@@ -106,27 +90,61 @@ export const ViewProgram = () => {
     );
   };
 
+
+
   return (
-    <div className="">
+    <PageOutline className=" ">
       
-      <AllCohorts
-        cohorts={program?.cohorts || []}
-        onCreate={() => {
-          setSelectedCohort(undefined);
-          setIsModalOpen(true);
-        }}
-        onEdit={handleEdit}
-        onDelete={(cohortId) => deleteCohort(cohortId)}
-      />
+      <div className="py-6 flex flex-col gap-6">
+        <TabSelection
+          tabs={["Cohorts", "Topics"]}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+        />
+
+        {selectedTab === "Cohorts" && (
+          <div className="">
+            <AllCohorts
+              cohorts={program?.cohorts || []}
+              onCreate={() => {
+                setSelectedCohort(undefined);
+                setIsModalOpen(true);
+              }}
+              onEdit={handleEdit}
+              onDelete={(cohortId) => deleteCohort(cohortId)}
+            />
+          </div>
+        )}
+
+        {selectedTab === "Topics" && (
+          <AllTopics
+            topics={program?.topics || []}
+            refetchProgram={refetch}
+            
+          />
+        )}
+      </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <CohortForm
-          onClose={() => handleClose()}
-          onSubmit={handleSubmit}
-          loading={postLoading || updateLoading}
+          onClose={handleClose}
           cohort={selectedCohort}
+          programId={programId ? Number(programId) : NaN}
+          onSuccess={() => {
+            refetch();
+            handleClose();
+          }}
         />
       </Modal>
-    </div>
+
+      {/* Topic creation */}
+      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
+        <TopicBasicInfoForm
+          onClose={() => setIsTopicModalOpen(false)}
+        />
+      </Modal>
+    </PageOutline>
   );
 };
+
+export default ViewProgram;

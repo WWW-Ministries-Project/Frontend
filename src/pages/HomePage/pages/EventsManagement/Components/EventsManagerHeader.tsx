@@ -1,3 +1,4 @@
+import { Button } from "@/components";
 import { SearchBar } from "@/components/SearchBar";
 import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
 
@@ -10,6 +11,7 @@ interface IProps {
   filterDate: Date;
   showSearch: boolean;
   showFilter: boolean;
+  onResetFilters: ()=>void
 }
 
 export const EventsManagerHeader = (props: IProps) => {
@@ -26,8 +28,15 @@ export const EventsManagerHeader = (props: IProps) => {
       {/* <div className="flex gap-4"> */}
       {props.viewfilter && props.showFilter && (
         <div>
-          <div className="text-primary text-lg font-bold">Filter events</div>
-          <DateFilter onChange={handleFilter} value={props.filterDate} />
+          <div className="text-primary text-sm font-bold">Filter events</div>
+          <div className="flex gap-4">
+            <DateFilter onChange={handleFilter} value={props.filterDate} />
+          <Button
+            value="Reset filter"
+            variant="secondary"
+            onClick={props.onResetFilters}
+          />
+          </div>
         </div>
       )}
 

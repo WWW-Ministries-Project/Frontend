@@ -102,16 +102,16 @@ export function MarketDetails() {
   }
 
   return (
-    <PageOutline className="">
+    <PageOutline className="p-0">
       <MarketHeader market={market?.data} />
-      <div className="px-6">
-        <div className="w-fit mb-3">
+      <div className="p-6">
+        {/* <div className="w-full mb-3"> */}
           <TabSelection
             tabs={[`Products`, "Orders"]}
             selectedTab={tab}
             onTabSelect={(tab) => setTab(tab)}
           />
-        </div>
+        {/* </div> */}
         <div className="flex items-end justify-end "></div>
         {tab === "Products" && (
           <HeaderControls

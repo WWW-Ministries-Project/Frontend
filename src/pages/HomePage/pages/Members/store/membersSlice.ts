@@ -9,6 +9,7 @@ export const createMemberSlice: StateCreator<
 > = (set) => ({
   // members: [],
   total: 0,
+  familyByMemberId: {},
   membersOptions: [],
   userStats: {
     online: {
@@ -81,5 +82,27 @@ export const createMemberSlice: StateCreator<
         value: String(member.id),
       })),
     }));
+  },
+  setFamilyCache: (memberId, data) => {
+    set((state) => ({
+      familyByMemberId: {
+        ...state.familyByMemberId,
+        [memberId]: {
+          data,
+          fetchedAt: Date.now(),
+        },
+      },
+    }));
+  },
+  invalidateFamilyCache: (memberId) => {
+    set((state) => {
+      if (!memberId) {
+        return { familyByMemberId: {} };
+      }
+
+      const next = { ...state.familyByMemberId };
+      delete next[memberId];
+      return { familyByMemberId: next };
+    });
   },
 });

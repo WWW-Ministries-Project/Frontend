@@ -39,6 +39,7 @@ const createEventSlice = (set: any, get: any): EventSlice => ({
         ? state.events.map((event: eventType) => ({
             label: event.event_name + " - " + formatDate(event.start_date),
             value: event.id,
+            date: event.start_date
           }))
         : [],
     }));

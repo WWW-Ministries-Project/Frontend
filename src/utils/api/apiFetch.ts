@@ -18,7 +18,7 @@ import type {
   IProductType,
   IProductTypeResponse,
 } from "./marketPlace/interface";
-import { IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
   DetailedCohortType,
   DetailedCourseType,
@@ -60,6 +60,10 @@ export class ApiCalls {
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
+  };
+
+  fetchMemberFamily = (query?: QueryType): Promise<ApiResponse<IFamilyInformationRaw>> => {
+    return this.fetchFromApi("user/get-user-family", query);
   };
 
   fetchUserStats = (): Promise<ApiResponse<UserStatsType>> => {
@@ -168,6 +172,14 @@ export class ApiCalls {
   ): Promise<ApiResponse<ProgramResponse>> => {
     return this.fetchFromApi(`program/program`, query);
   };
+
+  // Fetch user enrolled programs
+  fetchUserEnrolledPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<Programs[]>> => {
+    return this.fetchFromApi(`program/user-enrollment/${query}`);
+  };
+
   // @Jojo please the name is confusing
   fetchMembers = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/users", query);
@@ -195,6 +207,20 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi(`program/program-cohorts/${programId}`, query);
+  };
+
+  // New method to fetch cohorts by program (query-based)
+  fetchCohortsByProgram = (
+    query?: QueryType
+  ): Promise<ApiResponse<DetailedCohortType[]>> => {
+    return this.fetchFromApi("program/get-cohorts-by-program", query);
+  };
+
+  // New method to fetch instructor programs
+  fetchInstructorPrograms = (
+    query?: QueryType
+  ): Promise<ApiResponse<ProgramResponse[]>> => {
+    return this.fetchFromApi("program/get-instructor-programs", query);
   };
 
   // Course Management
@@ -233,6 +259,19 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<EnrollmentDataType>> => {
     return this.fetchFromApi(`program/my-enrollment`, query);
+  };
+
+  fetchMyProgram = (
+    query?:QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("program/program-completion-status", query);
+  };
+
+  // get active assignment
+  fetchActiveAssignment = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("program/is-assignment-active", query);
   };
 
   // Follow-Up Management

@@ -34,6 +34,11 @@ export type UserStats = {
   inhouse: statsType;
 };
 
+export interface FamilyCacheEntry<T = any> {
+  data: T;
+  fetchedAt: number;
+}
+
 export interface MemberSlice {
   // members: UserType[];
   total: number;
@@ -45,6 +50,9 @@ export interface MemberSlice {
   // setMembers: (members: UserType[],total: number) => void;
   setMemberOptions: (members: UserType[]) => void;
   setUserStats: (userStats: UserStats) => void;
+  familyByMemberId: Record<string, FamilyCacheEntry>;
+  setFamilyCache: (memberId: string, data: any) => void;
+  invalidateFamilyCache: (memberId?: string) => void;
 }
 
 export type StoreState = MemberSlice;

@@ -14,11 +14,14 @@ import GridComponent from "../../Components/reusable/GridComponent";
 import { showDeleteDialog } from "../../utils";
 import { LifeCenterCard } from "./components/LifeCenterCard";
 import { LifeCenterForm } from "./components/LifeCenterForm";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 export function LifeCenter() {
   const [lifeCenters, setLifeCenters] = useState<LifeCenterType[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [currentData, setCurrentData] = useState<LifeCenterType | null>(null);
+  const navigate = useNavigate()
 
   const { data: lcData } = useFetch(api.fetch.fetchAllLifeCenters);
   const { executeDelete } = useDelete(api.delete.deleteLifeCenter);
@@ -111,6 +114,14 @@ export function LifeCenter() {
         screenWidth={window.innerWidth}
         btnName="Create Life Center"
         handleClick={handleModalOpenForCreate}
+        customIcon={
+              <div
+                onClick={() => navigate("/home/life-centers/roles")}
+                className="size-12 border rounded-lg flex items-center justify-center cursor-pointer hover:shadow-sm"
+              >
+                <Cog6ToothIcon className="w-10" />
+              </div>
+            }
       />
 
       <GridComponent

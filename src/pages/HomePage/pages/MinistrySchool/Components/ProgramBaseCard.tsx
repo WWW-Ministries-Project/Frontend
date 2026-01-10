@@ -61,9 +61,9 @@ export const ProgramBaseCard = ({ program, cohorts = [], applyCard = false, chil
         </div>
       </div>
 
-      {!applyCard && <hr className="border-gray-100" />}
+      {/* {!applyCard && <hr className="border-gray-100" />} */}
 
-      <div className="space-y-3">
+      {/* <div className="space-y-3">
         <h4 className="text-sm font-semibold">Cohorts</h4>
         <div className="space-y-2">
           {cohorts.length > 0 ? (
@@ -94,7 +94,7 @@ export const ProgramBaseCard = ({ program, cohorts = [], applyCard = false, chil
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       <div className="flex-grow" />
       {!applyCard && <hr className="my-0 w-[calc(100%+32px)] -mx-4 border-t-1 border-gray-100" />}

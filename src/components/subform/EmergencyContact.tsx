@@ -38,21 +38,22 @@ const EmergencyContactComponent = ({
         id={`${prefix}.emergency_contact_phone_number`}
         name={`${prefix}.emergency_contact_phone_number`}
       /> */}
-      <ContactInput prefix={prefix} />
+      <ContactInput prefix={prefix} label="Phone number *"/>
     </>
   );
 };
 
-const relationOptions:ISelectOption[] = [
+export const relationOptions:ISelectOption[] = [
   { label: "Brother", value: "brother" },
   { label: "Sister", value: "sister" },
   { label: "Father", value: "father" },
   { label: "Mother", value: "mother" },
-  { label: "Husband", value: "husband" },
-  { label: "Wife", value: "wife" },
+  // { label: "Husband", value: "husband" },
+  // { label: "Wife", value: "wife" },
   { label: "Son", value: "son" },
   { label: "Daughter", value: "daughter" },
   { label: "Other", value: "other" },
+  {label: "Spouse", value: "spouse"}
 ];
 
 export interface IEmergencyContact {

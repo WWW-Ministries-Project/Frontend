@@ -27,7 +27,7 @@ export default {
       // },
       colors: {
         primary: "#080D2D", // Deep Dark Blue (Main Theme)
-        secondary: "#FFD700", // Gold for Highlights, CTAs, and Accents
+        secondary: "#ac6a22", // Gold for Highlights, CTAs, and Accents
         background: "#FFFFFF", // White for Clean UI and Readability
     
         // Grayscale Tones (Adjusted for Contrast & Usability)

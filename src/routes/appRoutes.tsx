@@ -41,7 +41,7 @@ import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/V
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
-import { ViewProgram } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
+import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
@@ -60,6 +60,16 @@ import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
+import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
+import EnrolledClass from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
+import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
+import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel.js";
+import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
+import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
+import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
+import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
+import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -143,7 +153,7 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_members",
         children: [
           {
-            path: "info",
+            path: "",
             name: "Info",
             element: <MemberInformation />,
             isPrivate: true,
@@ -269,14 +279,14 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "manage_asset",
       },
-      {
-        path: "users",
-        name: "Users",
-        element: <UserManagement />,
-        isPrivate: true,
-        permissionNeeded: "view_users",
-        sideTab: true,
-      },
+      // {
+      //   path: "users",
+      //   name: "Users",
+      //   element: <UserManagement />,
+      //   isPrivate: true,
+      //   permissionNeeded: "view_users",
+      //   sideTab: true,
+      // },
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
@@ -300,7 +310,6 @@ export const routes: AppRoute[] = [
             path: "roles",
             name: "Life Center Roles",
             element: <LifeCenterRoles />,
-            sideTab: true,
           },
           {
             path: "life-center-analytics",
@@ -344,13 +353,18 @@ export const routes: AppRoute[] = [
           },
           {
             path: `${relativePath.home.ministrySchool.program}/:id`,
-            name: "View Template",
+            name: "",
             element: <ViewPageTemplate />,
             children: [
               {
                 path: "",
                 name: "View Program",
                 element: <ViewProgram />,
+              },
+              {
+                path: `${relativePath.home.ministrySchool.topic}`,
+                name: "View Topic",
+                element: <ViewTopic />,
               },
               {
                 path: relativePath.home.ministrySchool.cohort,
@@ -407,6 +421,14 @@ export const routes: AppRoute[] = [
             element: <ManageAccess />,
             isPrivate: false,
             permissionNeeded: "view_access_rights",
+          },
+          {
+            path: "users",
+            name: "Users",
+            element: <UserManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_users",
+            sideTab: true,
           },
         ],
       },
@@ -590,11 +612,61 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: relativePath.member.schoolOfMinistries.myClass,
+        path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
-        element: <MyClass />,
+        element: <MyLearning />,
         isPrivate: false,
       },
+      {
+        path: relativePath.member.schoolOfMinistries.programDetails,
+        name: "member_school_of_ministries",
+        element: <EnrolledProgram />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.instructorPortal,
+        name: "member_school_of_ministries",
+        element: <Instructor />,
+        isPrivate: false,
+        children: [
+          {
+            path: '',
+            name: "instructor_assessment_management",
+            element: <InstructorProg />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.schoolOfMinistries.instructorCohort,
+            name: "instructor_assessment_management",
+            element: <InstructorCohort />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.schoolOfMinistries.instructorAssMan,
+            name: "instructor_assessment_managementewe",
+            element: <InstructorAssMan />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.schoolOfMinistries.InstructorGradingPanel,
+            name: "instructor_assessment_managementewe",
+            element: <GradingPanel />,
+            isPrivate: false,
+          },
+        ],
+      },
+      // {
+      //       path: relativePath.member.schoolOfMinistries.instructorAssMan,
+      //       name: "instructor_assessment_management",
+      //       element: <InstructorAssMan />,
+      //       isPrivate: false,
+      //     },
+      // {
+      //   path: relativePath.member.schoolOfMinistries.myClass,
+      //   name: "member_school_of_ministries",
+      //   element: <EnrolledClass />,
+      //   isPrivate: false,
+      // },
     ],
   },
 ];

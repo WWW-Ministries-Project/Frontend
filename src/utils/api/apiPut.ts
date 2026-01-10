@@ -128,7 +128,7 @@ export class ApiUpdateCalls {
     payload: CohortPayloadType & { id: number },
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/cohorts`, payload, query);
+    return this.apiExecution.updateData(`program/cohort`, payload, query);
   };
 
   // Update Class
@@ -136,7 +136,7 @@ export class ApiUpdateCalls {
     payload: unknown,
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/courses`, payload, query);
+    return this.apiExecution.updateData(`program/course`, payload, query);
   };
   // Update Cohort
   updateStudentProgress = (
@@ -159,6 +159,43 @@ export class ApiUpdateCalls {
       "program/enrollments/update-enrollment",
       payload,
       query
+    );
+  };
+
+  // Update Topic
+  updateTopic = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/topic`, payload, query);
+  }
+
+  // mark topic as completed
+  markTopicAsCompleted = (
+    payload: unknown,
+    // query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/complete-topic
+`, payload);
+  }
+
+  // activate assignment
+  activateCohortAssignment = (
+    payload: unknown,
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/activate-cohort-assignment",
+      payload
+    );
+  };
+
+  // deactivate assignment
+  deactivateCohortAssignment = (
+    payload: unknown,
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "program/deactivate-cohort-assignment",
+      payload
     );
   };
 

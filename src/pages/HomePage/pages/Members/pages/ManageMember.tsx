@@ -6,7 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { Formik } from "formik";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
@@ -15,7 +15,9 @@ import { mapUserData } from "../utils";
 
 export function ManageMember() {
   const navigate = useNavigate();
-  const { refetchMembers } = useOutletContext<{ refetchMembers: () => void }>();
+  const outletContext = useOutletContext<{
+    refetchMembers?: () => void;
+  }>();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = decodeQuery(params.get("member_id") || "");
@@ -32,6 +34,12 @@ export function ManageMember() {
     data: updatedData,
   } = usePut(api.put.updateMember);
 
+  const stepControls = useRef<{
+    goNext: () => void;
+    goBack: () => void;
+    isLastStep: boolean;
+  } | null>(null);
+
   useEffect(() => {
     if (id) refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,11 +55,16 @@ export function ManageMember() {
 
   useEffect(() => {
     if (data || updatedData) {
-      refetchMembers();
-      navigate("/home/members", { state: { task: data ? "add" : "update" } });
+      if (typeof outletContext?.refetchMembers === "function") {
+        outletContext.refetchMembers();
+      }
+
+      navigate("/home/members", {
+        state: { task: data ? "add" : "update" },
+      });
     }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, member, updatedData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, updatedData]);
 
   const handleCancel = () => {
     navigate(-1);
@@ -89,10 +102,10 @@ export function ManageMember() {
 
   return (
     <div className="p-4">
-      <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
-        <div className="flex flex-col gap-4 items-center tablet:items-start">
+      <section className="mx-auto p-6 container lg:w-5/6 bg-white rounded-xl">
+        <div className="flex flex-col gap-1 items-center tablet:items-start">
           <div className="font-bold text-xl">Member Information</div>
-          <div className="text text-[#8F95B2] mt-">
+          <div className="text text-[#8F95B2] mb-4">
             Fill the form below with the member information
           </div>
         </div>
@@ -104,12 +117,26 @@ export function ManageMember() {
         >
           {({ handleSubmit }) => (
             <>
-              <MembersForm />
+              <MembersForm
+                onRegisterControls={(controls) => {
+                  stepControls.current = controls;
+                }}
+              />
 
-              <section className="w-full pt-5 sticky bottom-0 bg-white">
+              <section className="w-full py-5 sticky bottom-0 bg-white">
                 <Actions
+                  goBack={() => stepControls.current?.goBack()}
+                  goNext={
+                    stepControls.current?.isLastStep
+                      ? undefined
+                      : () => stepControls.current?.goNext()
+                  }
                   onCancel={handleCancel}
-                  onSubmit={handleSubmit}
+                  onSubmit={
+                    stepControls.current?.isLastStep
+                      ? handleSubmit
+                      : undefined
+                  }
                   loading={loading || updateLoading}
                 />
               </section>

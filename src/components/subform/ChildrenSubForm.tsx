@@ -5,54 +5,157 @@ import {
 } from "@/components/subform/PersonalDetails";
 import { FormHeader, FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { FieldArray, getIn, useFormikContext } from "formik";
+import { Field, FieldArray, getIn, useFormikContext } from "formik";
 import { Fragment, useMemo } from "react";
 import { array, object } from "yup";
+import FormikSelectField from "../FormikSelect";
+import { relationOptions } from "./EmergencyContact";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
+import { useStore } from "@/store/useStore";
 
 const ChildrenSubFormComponent = ({
   disabled = false,
 }: {
   disabled?: boolean;
 }) => {
-  const { values: entire } = useFormikContext<object>();
-  const children: IChildrenSubForm["children"] = useMemo(
-    () => getIn(entire, "children") || initialValues.children,
+  const { values: entire, setFieldValue } =
+    useFormikContext<IChildrenSubForm>();
+  const family = useMemo(
+    () => getIn(entire, "family") || initialValues.family,
     [entire]
   );
 
+   const {
+      data,
+      refetch: fetchAMembers,
+      loading: memberLoading,
+    } = useFetch(api.fetch.fetchAMember, {}, true);
+    const memberData = data?.data || null;
+    const membersOptions = useStore((state) => state.membersOptions);
+
+    const selectedUserIds = useMemo(
+      () => family.map((f) => f.user_id).filter(Boolean),
+      [family]
+    );
+
+    const handleResetMember = (index: number) => {
+      setFieldValue(`family.${index}`, {
+        ...PersonalDetails.initialValues,
+        relation: family[index]?.relation ?? "",
+      });
+    };
+
   return (
     <>
-      <FormHeader>Children</FormHeader>
-      <FieldArray name="children">
+      {/* <FormHeader className={"text-primary font-bold "}>Children</FormHeader> */}
+      <FieldArray name="family">
         {({ unshift, remove }) => (
           <>
             
-            {children.map((_, index) => (
-              <Fragment key={index}>
-                {index > 0 && <HorizontalLine />}
-                {index > 0 && (
-                  <FullWidth $justify={"right"}>
-                    <Button
-                      value="Remove"
-                      variant="secondary"
-                      type="button"
-                      onClick={() => remove(index)}
-                    />
+            {family.map((_, index) => {
+              const availableMembers = membersOptions.filter(
+                (opt) =>
+                  !selectedUserIds.includes(opt.value) ||
+                  opt.value === family[index]?.user_id
+              );
+              return (
+                <Fragment key={index}>
+                  {index > 0 && <HorizontalLine />}
+                  {index > 0 && (
+                    <FullWidth $justify={"right"}>
+                      <Button
+                        value="Remove"
+                        variant="secondary"
+                        type="button"
+                        onClick={() => remove(index)}
+                      />
+                    </FullWidth>
+                  )}
+                  <FullWidth>
+                  <Field
+                    className="w-full"
+                    component={FormikSelectField}
+                    options={availableMembers}
+                    onChange={async (_: string, selectedOption: string | null) => {
+                      if (!selectedOption) {
+                        setFieldValue(`family.${index}.user_id`, "");
+                        return;
+                      }
+
+                      const result = await fetchAMembers({ user_id: selectedOption });
+                      const member = result?.data;
+
+                      if (!member) return;
+
+                      setFieldValue(`family.${index}`, {
+                        ...PersonalDetails.initialValues,
+                        user_id: String(member.id),
+                        title: member.title ?? "",
+                        first_name: member.first_name ?? "",
+                        last_name: member.last_name ?? "",
+                        other_name: member.other_name ?? "",
+                        email: member.email ?? "",
+                        date_of_birth: member.date_of_birth ?? "",
+                        gender: member.gender ?? "",
+                        marital_status: member.marital_status ?? "",
+                        nationality: member.nationality ?? "",
+                      });
+                    }}
+                    name={`family.${index}.user_id`}
+                    id={`family.${index}.user_id`}
+                    label="Find family member"
+                    placeholder="Select the member ..."
+                    searchable
+                    clearable
+                    helperText="Search and select if the person already exists in the system."
+                  />
                   </FullWidth>
-                )}
-                <PersonalDetails
-                  key={index}
-                  disabled={disabled}
-                  prefix={`children.${index}`}
-                />
-              </Fragment>
-            ))}
+                  {family[index]?.user_id && (
+                    <FullWidth>
+                      <Button
+                        value="Reset selected member"
+                        variant="ghost"
+                        type="button"
+                        onClick={() => handleResetMember(index)}
+                      />
+                    </FullWidth>
+                  )}
+                  <FullWidth>
+                    <hr/>
+                  </FullWidth>
+                  
+
+                  <FullWidth>
+                  <Field
+                  className='w-full md:w-1/2'
+                    component={FormikSelectField}
+                    label="Relation *"
+                    disabled={disabled}
+                    placeholder="Select relation"
+                    id={`family.${index}.relation`}
+                    name={`family.${index}.relation`}
+                    options={relationOptions}
+                  />
+                  </FullWidth>
+
+                  
+                  <PersonalDetails
+                    key={index}
+                    disabled={!!family[index]?.user_id}
+                    prefix={`family.${index}`}
+                  />
+
+                  
+                </Fragment>
+              )
+            })}
             <FullWidth $justify={"right"}>
               <Button
-                value="Add Another Child"
+                value="+ Add another family member"
                 variant="ghost"
                 type="button"
-                onClick={() => unshift(initialValues.children[0])}
+                onClick={() => unshift(PersonalDetails.initialValues)}
               />
             </FullWidth>
           </>
@@ -63,15 +166,15 @@ const ChildrenSubFormComponent = ({
 };
 
 export interface IChildrenSubForm {
-  children: IPersonalDetails[];
+  family: IPersonalDetails[];
 }
 
 const initialValues = {
-  children: [PersonalDetails.initialValues],
+  family: [PersonalDetails.initialValues],
 };
 
 const validationSchema = {
-  children: array()
+  family: array()
     .when("personal_info.has_children", {
       is: true,
       then: (schema) => schema.of(object().shape(PersonalDetails.validationSchema)).min(1),

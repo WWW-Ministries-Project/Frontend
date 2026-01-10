@@ -1,3 +1,5 @@
+import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel";
+import Instructor from "@/pages/MembersPage/Pages/Instructor";
 import Market from "@/pages/MembersPage/Pages/Market";
 
 export const relativePath = {
@@ -13,7 +15,7 @@ export const relativePath = {
       mainNew: "/home/members",
       manage: "members/manage-member",
       details: "members/:id",
-      info: "members/:id/info",
+      info: "members/:id",
     },
     visitors: {
       main: "visitors",
@@ -35,6 +37,7 @@ export const relativePath = {
     ministrySchool: {
       main: "ministry-school",
       program: "programs",
+      topic: "topic/:topicId",
       cohort: "cohort/:id",
       class: "class/:id",
       student: "student/:id",
@@ -86,6 +89,12 @@ export const relativePath = {
       main: "school-of-ministries",
       allPrograms: "school-of-ministries/programs",
       myClass: "school-of-ministries/my-class",
+      myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
+      programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
+      instructorPortal: "school-of-ministries/programs/instructor-portal",
+      instructorCohort: ":programId/cohort",
+      instructorAssMan: ":programId/cohort/:cohortId",
+      InstructorGradingPanel:":programId/cohort/:cohortId/grades/:topicId"
     },
   },
   registerMember: "/register-member",

@@ -1,12 +1,13 @@
 import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply";
+import BannerWrapper from "../layouts/BannerWrapper";
+import exploreprogram from "@/assets/banner/exploreprog.svg";
 
 const AllPrograms = () => {
 
     return ( 
         <div>
-            <div className="w-screen bg-primary h-[10rem] text-white relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-    <div className="h-full flex items-center py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
-                <div className="space-y-4 ">
+            < BannerWrapper imgSrc={exploreprogram} >
+                <div className="space-y-4 w-full">
                     <div className="font-bold text-2xl">
                     School of Ministry
                 </div>
@@ -15,9 +16,10 @@ const AllPrograms = () => {
                 </div>
                 
                 </div>
-            </div>
-        </div>
-        <ProgramApply />        
+            </BannerWrapper>
+        <ProgramApply />
+        
+                
 
         </div>
      );

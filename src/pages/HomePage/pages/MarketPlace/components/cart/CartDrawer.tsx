@@ -9,10 +9,11 @@ import { useCart } from "../../utils/cartSlice";
 import { ProductChip } from "../chips/ProductChip";
 import EmptyCartComponent from "./EmptyCartComponent";
 import { relativePath } from "@/utils";
+import { useCartDetails } from "../../utils/useCartDetails";
 
 export default function CartDrawer() {
-  const { cartItems, cartOpen, toggleCart, removeFromCart, getTotalPrice } =
-    useCart();
+  const { cartOpen, toggleCart, removeFromCart } = useCart();
+  const { items: cartWithDetails, totalPrice } = useCartDetails();
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -39,8 +40,6 @@ export default function CartDrawer() {
     removeFromCart(itemId);
   };
 
-  const totalPrice = getTotalPrice();
-
   return (
     <div
       className={`fixed top-[65px] right-0 w-96 h-fit   z-50 p-4 rounded-tl-md text-[#474D66] bg-white shadow-lg transform transition-transform duration-300 ${
@@ -58,11 +57,11 @@ export default function CartDrawer() {
         </button>
       </div>
       <div className="p-4 divide-y-[1px] max-h-[60vh] overflow-y-scroll">
-        {cartItems.length === 0 ? (
+        {cartWithDetails.length === 0 ? (
           <EmptyCartComponent />
         ) : (
           <>
-            {cartItems.map((item) => (
+            {cartWithDetails.map((item) => (
               <CartCard
                 key={item.item_uuid}
                 cartItem={item}
@@ -72,7 +71,7 @@ export default function CartDrawer() {
           </>
         )}
       </div>
-      {cartItems.length > 0 && (
+      {cartWithDetails.length > 0 && (
         <>
           <div className="pt-2 border-t">
             <div className="flex items-center justify-between">

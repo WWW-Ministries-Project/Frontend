@@ -25,9 +25,9 @@ export const SidebarItem = ({
   toggleSubMenu,
 }: IProps) => {
   return (
-    <div className="cursor-pointer">
+    <div className="cursor-pointer overflow-hidden">
       {item.children && item.children.some((child) => child.sideTab) ? (
-        <div>
+        <div className="overflow-hidden">
           {/* Submenu rendering */}
           <SideBarSubMenu
             item={{ ...item, children: item.children ?? [] }}
@@ -40,7 +40,7 @@ export const SidebarItem = ({
           </SideBarSubMenu>
         </div>
       ) : (
-        <div>
+        <div className="overflow-hidden">
           {/* Navigation link rendering */}
           {isActive && (
             <div className="flex justify-end relative">
@@ -50,7 +50,7 @@ export const SidebarItem = ({
           <NavigationLink item={item} show={isExpanded}>
             <IconComponent className="w-6 h-6 text-gray-600" />
             {isExpanded && (
-              <span className="ml-2 whitespace-nowrap transition-opacity duration-200">
+              <span className="ml-2 whitespace-nowrap truncate transition-opacity duration-200">
                 {item.name}
               </span>
             )}

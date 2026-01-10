@@ -15,6 +15,7 @@ import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import Breadcrumb, { AutoBreadcrumb } from "./Components/BreadCrumb";
 
 export const navigateRef = {
   current: null as
@@ -132,28 +133,26 @@ export function HomePage() {
 
   if (!token) return null;
   return (
-    <div className="lg:fixed ">
-      <main className="h-screen w-screen lg:p-3  ">
-        <div className="p-3 lg:p-0 lg:pb-3">
-          <Header handleShowNav={handleShowNav} />
-        </div>
-        <div className="flex">
-          <div className={` hidden sm:hidden md:hidden lg:inline  `}>
-            <SideBar className="" onClick={handleShowNav} show={show} />
-          </div>
-
-          <div className="inline lg:hidden">
-            <MobileSideBar show={show} onClick={handleShowNav} />
-          </div>
-          <div className="w-full ">
-            <div className="">
-              {/* <Header handleShowNav={handleShowNav} /> */}
-            </div>
-            <div
-              className={` my-auto lg:mr-3 xs:w-full   overflow-auto mx-auto rounded-xl border border-1 border-lightGray    bg-lightGray `}
-            >
-              <div className="hideScrollbar h-[calc(100%+60px)]  lg:h-[90.5vh] 2xl:h-[92.5vh] overflow-y-auto rounded-xl ">
-                <Outlet
+    <main className="h-screen w-screen p-3 flex flex-col gap-3">
+  <div className=" flex-shrink-0">
+    {/* Navbar */}
+   <Header handleShowNav={handleShowNav} />
+  </div>
+  <div className="flex-1 flex flex-col md:flex-row  min-h-0">
+    <div className="md:h-full rounded-xl flex-shrink-0">
+     <div className={` hidden sm:hidden md:hidden lg:inline  `}>
+                 <SideBar className="" onClick={handleShowNav} show={show} />
+               </div>
+     
+               <div className="inline lg:hidden">
+                 <MobileSideBar show={show} onClick={handleShowNav} />
+               </div>
+    </div>
+    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
+       {/* <AutoBreadcrumb/> */}
+      <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto border border-t-4 border-t-secondary">
+       
+     <Outlet
                   context={{
                     refetchMembersOptions,
                     filter,
@@ -164,14 +163,12 @@ export function HomePage() {
                     refetchDepartments,
                   }}
                 />
-              </div>
-            </div>
-          </div>
-        </div>
-        <NotificationCard />
-        <Dialog />
-        <LoaderComponent />
-      </main>
+                </div>
     </div>
+  </div>
+  <NotificationCard />
+          <Dialog />
+          <LoaderComponent />
+</main>
   );
 }

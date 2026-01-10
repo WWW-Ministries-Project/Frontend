@@ -97,7 +97,7 @@ export const ViewCohort = () => {
       classFormat: course.classFormat,
       location: course.location,
       meetingLink: course.meetingLink,
-      instructorId: course.instructor.id + "",
+      instructorId: course.instructor.id || undefined,
     };
     setSelectedClass(initialData);
     setIsModalOpen(true);

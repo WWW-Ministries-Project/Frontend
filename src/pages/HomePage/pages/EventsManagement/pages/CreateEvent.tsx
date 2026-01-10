@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { eventInput } from "../utils/eventHelpers";
 import { eventType } from "../utils/eventInterfaces";
 import EventsScheduleForm from "../Components/EventsScheduleForm";
+import { useNavigate } from "react-router-dom";
 
 const CreateEvent = () => {
   //@ts-expect-error handle this error
@@ -16,6 +17,7 @@ const CreateEvent = () => {
   const [inputValue, setInputValue] = useState(eventInput);
   // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const navigate = useNavigate()
   const {
     postData,
     loading: postLoading,
@@ -70,6 +72,8 @@ const CreateEvent = () => {
     } catch (error) {
       console.log(error);
       // setLoading(false);
+    } finally {
+      navigate("/home/events/events")
     }
   };
   return (
