@@ -20,6 +20,7 @@ import type {
 } from "./marketPlace/interface";
 import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
+  CohortAssignment,
   DetailedCohortType,
   DetailedCourseType,
   EnrollmentDataType,
@@ -267,12 +268,28 @@ export class ApiCalls {
     return this.fetchFromApi("program/program-completion-status", query);
   };
 
-  // get active assignment
-  fetchActiveAssignment = (
+  // Check active assignment
+  fetchIsActiveAssignment = (
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("program/is-assignment-active", query);
   };
+
+    // get active assignment
+  fetchCohortAssignments = (
+    query?: QueryType
+  ): Promise<ApiResponse<CohortAssignment>> => {
+    return this.fetchFromApi("program/get-cohort-assigments", query);
+  };
+
+  // Assignment Results
+  fetchAssignmentResults = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("program/assignment-results", query);
+  };
+
+
 
   // Follow-Up Management
   fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {

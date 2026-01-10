@@ -6,139 +6,108 @@ import { FC, useState } from "react";
 import { Badge } from "@/components/Badge";
 import GradingPanel from "./GradingPanel";
 import Assignmentmanager from "../Component/AssignmentManager";
+import { useParams } from "react-router-dom";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api, CohortAssignment } from "@/utils";
 
-export type Topic = {
-  id: string;
-  name: string;
-  assignments: Assignment[];
-};
 
-export type Assignment = {
-  id: string;
-  title: string;
-  topicId: string;
-  isActive: boolean;
-  dueDate: string | undefined;
-  submissions: Submission[];
-};
-
-export type Submission = {
-  id: string;
-  studentName: string;
-  submittedAt: string;
-  grade: number | null;
-  status: "pending" | "graded";
-};
-
-const Topics: Topic[] = [
-  {
-    id: "1",
-    name: "Introduction to Ministry",
-    assignments: [
-      {
-        id: "a1",
-        title: "Reflection on Calling",
-        topicId: "1",
-        isActive: true,
-        dueDate: "2024-02-15",
-        submissions: [
-          { id: "s1", studentName: "John Doe", submittedAt: "2024-02-10", grade: null, status: "pending" },
-          { id: "s2", studentName: "Jane Smith", submittedAt: "2024-02-11", grade: 85, status: "graded" },
-        ],
-      },
-      {
-        id: "a2",
-        title: "Ministry Vision Statement",
-        topicId: "1",
-        isActive: false,
-        dueDate: undefined,
-        submissions: [],
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Biblical Foundations",
-    assignments: [
-      {
-        id: "a3",
-        title: "Scripture Analysis",
-        topicId: "2",
-        isActive: true,
-        dueDate: "2024-02-20",
-        submissions: [
-          { id: "s3", studentName: "Mike Johnson", submittedAt: "2024-02-18", grade: null, status: "pending" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Leadership Principles",
-    assignments: [
-      {
-        id: "a4",
-        title: "Leadership Case Study",
-        topicId: "3",
-        isActive: false,
-        dueDate: undefined,
-        submissions: [],
-      },
-    ],
-  },
-];
 
 const InstructorAssMan: FC = () => {
+  const { cohortId } = useParams<{ cohortId: string }>();
+  console.log("cohortId from route:", cohortId);
 
-const [filter, setFilter] = useState<string | null>(null);
-const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const { data, loading, refetch } = useFetch<{
+    data: CohortAssignment[];
+    meta: unknown;
+    status: number;
+    success: boolean;
+    error: string;
+  }>(
+    api.fetch.fetchCohortAssignments,
+    { cohortId:cohortId }
+  );
 
-const assignments = filter
-    ? Topics.find((topic) => topic.id === filter)?.assignments || []
-    : Topics.flatMap((topic) => topic.assignments);
+  console.log("Cohort Assignment", data);
 
-    
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
-    const handleStatusSelect = (id: string | number): void => {
-        const selected = Topics.find((s) => s.id === id);
-        if (selected) {
-            setFilter(selected.id);
+  const groupedAssignments = (data?.data ?? [])
+    .slice()
+    .sort((a, b) => a.topic.order - b.topic.order)
+    .reduce<Record<string, { topicName: string; assignments: any[] }>>(
+      (acc, item) => {
+        const topicId = String(item.topic.id);
+        if (!acc[topicId]) {
+          acc[topicId] = {
+            topicName: item.topic.name,
+            assignments: [],
+          };
         }
-    };
 
+        acc[topicId].assignments.push({
+          id: String(item.learningUnitId),
+          title: item.topic.name,
+          topicId,
+          isActive: item.activation.isActive,
+          dueDate: item.activation.dueDate ?? undefined,
+          submissions: [],
+        });
 
+        return acc;
+      },
+      {}
+    );
 
-    return ( 
-        <div>
-            <div className="text-xl font-semibold">
-              Assignment
-            </div>
-
-            {/* Section */}
-            <main className="mx-auto py-8 ">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          
-          <Assignmentmanager 
-            assignments={assignments} 
-            setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)} 
-          />
-            {/* {selectedAssignment && (
-              <GradingPanel
-                assignment={selectedAssignment}
-                onGrade={(grade) => {
-                  // Handle grade submission here
-                  setSelectedAssignment(null);
-                }}
-                onBack={() => setSelectedAssignment(null)}
-              />
-            )} */}
-
-
+  return ( 
+      <div>
+          <div className="text-xl font-semibold">
+            Assignment
           </div>
-            </main>
-            
+
+          {/* Section */}
+          <main className="mx-auto py-8 ">
+      <div className="flex flex-col gap-6 ">
+        {loading && <div className="text-sm text-gray-500">Loading assignments...</div>}
+
+        {!loading && data?.data?.length === 0 && (
+          <div className="rounded-lg border border-dashed p-6 text-center text-gray-500">
+            No assignments have been created for this cohort yet.
+          </div>
+        )}
+
+        {Object.values(groupedAssignments).map((group) => (
+          <div key={group.topicName} className="flex flex-col space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              {group.topicName}
+            </h3>
+
+            <Assignmentmanager
+              assignments={group.assignments}
+              setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)}
+              cohortId={cohortId!}
+              refetch = {refetch}
+              // topicId={}
+            />
+          </div>
+        ))}
+
+          {/* {selectedAssignment && (
+            <GradingPanel
+              assignment={selectedAssignment}
+              onGrade={(grade) => {
+                // Handle grade submission here
+                setSelectedAssignment(null);
+              }}
+              onBack={() => setSelectedAssignment(null)}
+            />
+          )} */}
+
+
         </div>
-     );
+          </main>
+          
+      </div>
+   );
 }
  
  
