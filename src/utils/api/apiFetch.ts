@@ -267,6 +267,13 @@ export class ApiCalls {
     return this.fetchFromApi("program/program-completion-status", query);
   };
 
+  // get active assignment
+  fetchActiveAssignment = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("program/is-assignment-active", query);
+  };
+
   // Follow-Up Management
   fetchAllFollowUps = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("followup", query);

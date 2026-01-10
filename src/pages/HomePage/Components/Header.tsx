@@ -38,6 +38,10 @@ export const Header = ({ handleShowNav }: IProps) => {
   const name = token?.name ?? "";
   const isMinistryWorker = token?.ministry_worker;
   const isLifeCenterLeader = token?.life_center_leader;
+  const isInstructor = token?.instructor;
+
+
+  
 
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
@@ -55,7 +59,9 @@ export const Header = ({ handleShowNav }: IProps) => {
   const schoolItems = [
     { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
     { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms },
-    { label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal },
+    ...(isInstructor
+      ? [{ label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal }]
+      : []),
   ];
 
   const handleNavigate = (path: string) => {

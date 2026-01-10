@@ -2,8 +2,9 @@ import React from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { Modal } from "@/components/Modal";
-import { formatDatefull } from "@/utils";
+import { api, formatDatefull } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import { usePut } from "@/CustomHooks/usePut";
 
 interface Submission {
      id: string;
@@ -27,6 +28,18 @@ const AssignmentManager = ({ assignments, setSelectedAssignment }: { assignments
     const [selectedAssignment, setLocalSelectedAssignment] = React.useState<AssignmentTopic | null>(null);
     const [dueDate, setDueDate] = React.useState("");
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
+
+    const {
+        updateData,
+        loading: putLoading,
+        data: putSuccess,
+      } = usePut(api.put.activateCohortAssignment);
+
+    // const {
+    //     updateData,
+    //     loading: putLoading,
+    //     data: putSuccess,
+    //   } = usePut(api.put.deactivateCohortAssignment);
 
     const navigate = useNavigate()
 

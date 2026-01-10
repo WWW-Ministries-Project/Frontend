@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badge";
 import { api, LearningUnit, LearningUnitType } from "@/utils";
 import { DownloadCertificate } from "./DownloadCertificate";
 import { usePut } from "@/CustomHooks/usePut";
+import { usePost } from "@/CustomHooks/usePost";
 
 
 
@@ -11,6 +12,7 @@ interface Props {
   topicId?: string | number;
   unit: LearningUnit | null | undefined;
   userId?: string | number;
+  programId?: string | number;
   completed?:boolean;
   refetch?:  void | undefined;
 }
@@ -38,7 +40,13 @@ const typeBadgeMap: Record<
   },
 };
 
-export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, completed, refetch }) => {
+export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programId, completed, refetch }) => {
+
+  const {
+      postData,
+      loading: postLoading,
+      data: postSuccess,
+    } = usePost(api.post.submitMCQAssignment);
   // const [completed, setCompleted] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -197,7 +205,7 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, complete
               Object.keys(answers).length !== unit.data.questions.length
             }
             className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
-            onClick={() => {
+            onClick={async () => {
               let correct = 0;
 
               unit.data.questions.forEach((q) => {
@@ -210,13 +218,24 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, complete
                 (correct / unit.data.questions.length) * 100
               );
 
-              console.log("MCQ Assignment Submitted:", {
+              const payload = {
+                userId,
+                programId,
                 topicId,
                 answers,
-                score,
-              });
+              };
 
-              setSubmitted(true);
+              try {
+                await postData(payload);
+                setSubmitted(true);
+
+                // optionally mark topic as completed after successful submission
+                if (!completed) {
+                  await markCompleted();
+                }
+              } catch (error) {
+                console.error("Failed to submit MCQ assignment", error);
+              }
             }}
           >
             Submit Assignment

@@ -111,15 +111,18 @@ const assignments = filter
     return ( 
         <div>
             <div className="text-xl font-semibold">
-              All Program
+              Assignment
             </div>
 
             {/* Section */}
             <main className="mx-auto py-8 ">
         <div className="flex flex-col gap-6 lg:flex-row">
           
-          {!selectedAssignment &&<Assignmentmanager assignments={assignments} setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)} />}
-            {selectedAssignment && (
+          <Assignmentmanager 
+            assignments={assignments} 
+            setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)} 
+          />
+            {/* {selectedAssignment && (
               <GradingPanel
                 assignment={selectedAssignment}
                 onGrade={(grade) => {
@@ -128,7 +131,7 @@ const assignments = filter
                 }}
                 onBack={() => setSelectedAssignment(null)}
               />
-            )}
+            )} */}
 
 
           </div>
