@@ -1,53 +1,33 @@
 import { useFetch } from "@/CustomHooks/useFetch";
-import { api, formatDate, IFamilyInformationRaw, IFamilyPerson, IFamilyRelationRaw, IMemberInfo } from "@/utils";
+import { api, formatDate, formatPhoneNumber, IFamilyInformationRaw, IFamilyPerson, IFamilyRelationRaw, IMemberInfo } from "@/utils";
 import { useOutletContext } from "react-router-dom";
 
 // Define interfaces matching backend response with nested user_info
 
+const groupByRelation = (items: any[] = []) => {
+  return items.reduce((acc: Record<string, any[]>, item) => {
+    const key = item.relation || "other";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+};
 
-export const FamilyInformation = () => {
-  const { familyData:data } = useOutletContext<{
-    familyData: IFamilyInformationRaw;
-  }>();
+export const FamilyInformation = ({ familyData }: { familyData: any[] }) => {
+  // const { familyData:data } = useOutletContext<{
+  //   familyData: IFamilyInformationRaw;
+  // }>();
 
-  console.log("family data", data);
+  console.log("family data", familyData);
 
-  // Normalize backend relation data to flat structure for UI consumption
-  const normalizeRelation = (
-    items: IFamilyRelationRaw[] = []
-  ): IFamilyPerson[] =>
-    items.map((item) => {
-      const info = item.user_info;
+  const grouped = groupByRelation(familyData);
 
-      return {
-        id: item.id,
-        name:
-          info?.first_name || info?.last_name
-            ? `${info?.first_name ?? ""} ${info?.last_name ?? ""}`.trim()
-            : item.name || "-",
-        gender: info?.gender,
-        date_of_birth: info?.date_of_birth,
-        nationality: info?.nationality,
-        primary_number: info?.primary_number,
-        email: info?.email ?? item.email,
-        is_member: item.is_user,
-      };
-    });
-
-  const hasAnyFamilyData = () => {
-    return (
-      normalizeRelation(data?.spouses).length > 0 ||
-      normalizeRelation(data?.children).length > 0 ||
-      normalizeRelation(data?.parents).length > 0 ||
-      normalizeRelation(data?.siblings).length > 0 ||
-      normalizeRelation(data?.others).length > 0
-    );
-  };
+  const hasAnyFamilyData = familyData && familyData.length > 0;
 
   // Generic relation section renderer
   const renderRelationSection = (
     title: string,
-    items: IFamilyPerson[],
+    items: any[] = [],
     badgeLabel: string
   ) => {
     if (!items || items.length === 0) {
@@ -63,7 +43,7 @@ export const FamilyInformation = () => {
                 label="Name"
                 value={
                   <div className="flex items-center">
-                    <span>{person.name || "-"}</span>
+                    <span>{`${person.first_name ?? ""} ${person.last_name ?? ""}`.trim() || "-"}</span>
                     <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                       {badgeLabel}
                     </span>
@@ -85,7 +65,7 @@ export const FamilyInformation = () => {
               />
               <InfoField
                 label="Contact"
-                value={person.primary_number || "-"}
+                value={formatPhoneNumber(person.country_code, person.primary_number) || "-"}
               />
             </div>
 
@@ -98,37 +78,37 @@ export const FamilyInformation = () => {
 
   return (
     <div className="bg-white rounded-b-lg pt-0 mx-auto text-gray-800">
-      {!hasAnyFamilyData() ? (
+      {!hasAnyFamilyData ? (
         <EmptyState />
       ) : (
         <>
           {renderRelationSection(
             "Spouses",
-            normalizeRelation(data?.spouses),
+            grouped.spouse,
             "Spouse"
           )}
 
           {renderRelationSection(
             "Children",
-            normalizeRelation(data?.children),
+            grouped.child,
             "Child"
           )}
 
           {renderRelationSection(
             "Parents",
-            normalizeRelation(data?.parents),
+            grouped.parent,
             "Parent"
           )}
 
           {renderRelationSection(
             "Siblings",
-            normalizeRelation(data?.siblings),
+            grouped.sibling,
             "Sibling"
           )}
 
           {renderRelationSection(
             "Others",
-            normalizeRelation(data?.others),
+            grouped.other,
             "Relation"
           )}
         </>

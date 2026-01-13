@@ -22,7 +22,8 @@ const ViewStudent = () => {
     data: updatedData,
   } = usePut(api.put.updateStudentProgress);
   const [editMode, setEditMode] = useState(false);
-  const topics = studentData?.data.course?.cohort?.program?.topics;
+  const topics = studentData?.data.topics;
+  
 
   const { setLoading, setDetails, setData } = useViewPage();
   useEffect(() => {

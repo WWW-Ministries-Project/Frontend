@@ -11,7 +11,8 @@ import EmptyState from "@/components/EmptyState";
 import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
 import { Button } from "@/components";
 import UsersIcon from "@/assets/sidebar/UsersIcon";
-import { Square3Stack3DIcon, Squares2X2Icon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon, Square3Stack3DIcon, Squares2X2Icon, UserGroupIcon } from "@heroicons/react/24/outline";
+import { Badge } from "@/components/Badge";
 
 const ProgramApply = () => {
   const [open, setOpen] = useState(false);
@@ -118,9 +119,9 @@ const getInitials = (name: string) =>
     .toUpperCase();
 
   return (
-    <main className="mx-auto py-8 ">
+    <main className="mx-auto py-8 h-screen overflow-auto">
     <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="w-full lg:w-64 lg:sticky lg:top-6">
+      <div className="w-full lg:w-64 ">
             {/* Use CourseSidebar to render program status filters */}
             <CourseSidebar
               heading="State"
@@ -191,6 +192,22 @@ const getInitials = (name: string) =>
                   <div className="text-sm flex gap-2 items-center">
                     <div className="font-medium">
                       {program.upcomingCohort}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="text-sm ">
+                 <div className="font-semibold flex gap-2 items-center"><Squares2X2Icon className="w-5"/> Target group</div>
+                </div>
+                <div className="flex gap-6 mt-1">
+                  <div className="text-sm flex flex-col gap-2 ">
+                    <div>This program is structured for people who are or want to be: </div>
+                    <div className="font-medium flex gap-2">
+                      {program.leader_required && <Badge>Leaders</Badge>}
+                      {program.ministry_required && <Badge>Ministry workers</Badge>}
+                      {program.member_required && <Badge>Church members</Badge>}
                     </div>
                   </div>
                 </div>

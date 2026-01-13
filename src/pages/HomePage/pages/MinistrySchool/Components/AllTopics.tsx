@@ -78,21 +78,21 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
         {/* Created Topics */}
         <div className='grid grid-cols-1  gap-4'>
           {topics.map((topic) => (
-            <div key={topic.id} className="border rounded-lg p-4 flex justify-between items-center ">
+            <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center ">
               <div>
-                <div>
+                <div className='flex gap-4 items-center'>
                   <div className="font-medium">
-                  {topic.name}
+                  {topic?.name}
                 </div>
-                {topic.type && <Badge>{topic.type}</Badge>}
+                {topic?.LearningUnit?.type && <Badge>{topic?.LearningUnit?.type}</Badge>}
                 </div>
                 <div className="gap-x-4 flex text-sm text-gray-600">
                   <div 
-  dangerouslySetInnerHTML={{
-    __html: DOMPurify.sanitize(topic.description),
-  }}
-/>
-                  <div>Type: {topic.type}</div>
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(topic?.description),
+                    }}
+                  />
+                  
                 </div>
               </div>
               <div>
@@ -100,7 +100,7 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                   <button
                     ref={buttonRef}
                     className="text-primary"
-                    onClick={() => toggleMenu(topic.id)}
+                    onClick={() => toggleMenu(topic?.id)}
                   >
                     <img
                       src={ellipse}
@@ -108,7 +108,7 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                       className="cursor-pointer"
                     />
                   </button>
-                  {isMenuOpen === topic.id && (
+                  {isMenuOpen === topic?.id && (
                     <div
                       ref={menuRef}
                       className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
