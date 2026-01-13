@@ -12,7 +12,13 @@ import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
 import CertificateModal from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateModal";
 
 
-type NavItem = { id: string | number; name: string; active: boolean };
+type NavItem = { 
+  id: string | number; 
+  name: string; 
+  active: boolean; 
+  completed?: boolean;
+  type?: string | null;
+};
 
 /**
  * EnrolledProgram Component
@@ -59,7 +65,7 @@ const EnrolledProgram: React.FC = () => {
       name: t.name,
       active: t.id === firstIncompleteTopic.id,
       completed: t.completed || false,
-      type:t.learningUnit.type
+      type: t.learningUnit?.type ?? null,
     }));
 
     setNavItems(items);
@@ -136,11 +142,11 @@ useEffect(() => {
       </BannerWrapper>
 
       {/* Main Content Area */}
-      <main className="mx-auto py-8 min-h-[calc(100vh-12rem)]">
+      <main className="mx-auto py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* Topics Sidebar - Left */}
           <aside
-            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-[13rem] lg:h-[calc(100vh-13rem)] lg:overflow-y-auto"
+            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-[13rem]"
             aria-label="Course topics navigation"
           >
             <div className="">
@@ -155,7 +161,7 @@ useEffect(() => {
 
           {/* Main Content - Center */}
           <section 
-            className="flex-1 min-w-0 lg:h-[calc(100vh-13rem)] lg:overflow-y-auto"
+            className="flex-1 min-w-0"
             aria-label="Topic content"
           >
             <div>
@@ -177,7 +183,13 @@ useEffect(() => {
                     topicId={selectedTopic.id} 
                     userId ={user!.id} 
                     programId= {programId}
-                    completed={selectedTopic.completed}
+
+                    topicCompleted={selectedTopic.completed}
+                    topicStatus={selectedTopic.status}
+                    topicScore={selectedTopic.score}
+                    topicCompletedAt={selectedTopic.completedAt}
+                    activation={selectedTopic.activation}
+
                     refetch={refetch}
                     />
                   </div>

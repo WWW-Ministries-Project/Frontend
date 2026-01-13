@@ -1,8 +1,16 @@
+import { Button } from "@/components";
 import EmptyState from "@/components/EmptyState";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  ChartBarIcon,
+  EyeIcon,
+} from "@heroicons/react/24/outline";
 
 interface Student {
   id: number;
@@ -12,8 +20,10 @@ interface Student {
   email: string;
   phone: string;
   status: string;
-  attendance: number;
-  progress: number;
+  progress_completed: number;
+  progress_total: number;
+  progress_percent: number;
+  progress_status: string;
   memberType: string;
   userId?: string; // Added userId property
 }
@@ -27,6 +37,13 @@ export const AllStudents = ({
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredData = Data?.filter(
+    (student) =>
+      student?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // const filterStudents = () => {
   //   return Data?.filter(
@@ -55,25 +72,47 @@ export const AllStudents = ({
       accessorKey: "primary_number",
     },
     {
-      header: "Progress",
-      cell: ({ row }) => (
-        <div className="h-2 bg-lightGray rounded-full">
-          <div
-            className="h-2 bg-primaryViolet rounded-full"
-            style={{ width: `${row.original?.progress}%` }}
-          ></div>
-        </div>
+      id: "progress",
+      header: (
+        "Progress"
       ),
+      cell: ({ row }) => {
+        const {
+          progress_completed,
+          progress_total,
+          progress_percent,
+        } = row.original;
+
+        return (
+          <div className="space-y-1 min-w-[140px]">
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>
+                {progress_completed}/{progress_total} done
+              </span>
+              <span>{progress_percent}%</span>
+            </div>
+
+            <div className="h-2 bg-lightGray rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-primary rounded-full transition-all"
+                style={{ width: `${progress_percent}%` }}
+              />
+            </div>
+          </div>
+        );
+      },
     },
     {
       header: "Actions",
       cell: ({ row }) => (
-        <button
+        <Button
+          value={
+            "View"
+          }
+          variant="secondary"
           className="text-primary"
           onClick={() => navigate(`student/${row.original?.id}`)}
-        >
-          View
-        </button>
+        />
       ),
     },
   ];
@@ -126,15 +165,75 @@ export const AllStudents = ({
         </div> */}
       </div>
 
-      {Data?.length === 0 ? (
+      {filteredData?.length === 0 ? (
         <EmptyState msg={"No students found"} />
       ) : (
-        <TableComponent
-          data={Data}
-          columns={columns}
-          filter={searchQuery}
-          setFilter={setSearchQuery}
-        />
+        <>
+          {/* Desktop / Tablet Table View */}
+          <div className="hidden md:block">
+            <TableComponent
+              data={filteredData}
+              columns={columns}
+              filter={searchQuery}
+              setFilter={setSearchQuery}
+            />
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {filteredData.map((student) => (
+              <div
+                key={student.id}
+                className="rounded-xl border border-lightGray p-4 space-y-3 bg-white shadow-sm"
+              >
+                <div className="flex gap-y-2 justify-between items-start">
+                  <div className="flex flex-col gap-y-2">
+                    <p className="flex items-center gap-1 font-semibold text-gray-900">
+                      <UserIcon className="w-4 h-4 text-gray-500" />
+                      {student.first_name} {student.last_name}
+                    </p>
+
+                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                      <EnvelopeIcon className="w-4 h-4" />
+                      {student.email}
+                    </p>
+
+                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                      <PhoneIcon className="w-4 h-4" />
+                      {student?.primary_number}
+                    </p>
+                  </div>
+
+                  <Button
+                    value={
+                      "View"
+                    }
+                    variant="secondary"
+                    className="text-primary"
+                    onClick={() => navigate(`student/${student.id}`)}
+                  />
+                </div>
+
+                {/* Progress */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-gray-600">
+                    <span>
+                      {student.progress_completed}/{student.progress_total} done
+                    </span>
+                    <span>{student.progress_percent}%</span>
+                  </div>
+
+                  <div className="h-2 bg-lightGray rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-primary rounded-full transition-all"
+                      style={{ width: `${student.progress_percent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

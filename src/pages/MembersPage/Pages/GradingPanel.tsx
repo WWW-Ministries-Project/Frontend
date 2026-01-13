@@ -5,7 +5,9 @@ import { ArrowLeftIcon, CheckIcon, ClockIcon, UsersIcon } from "@heroicons/react
 import { useState, useMemo, useEffect } from "react";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
 
 
 interface Submission {
@@ -46,42 +48,43 @@ const submitBulkGradesToBackend = (payload: {
   console.log("Submitting bulk grades to backend:", payload);
 };
 
+const mapBackendResultsToAssignment = (results: any[]): Assignment => {
+  return {
+    title: "Assignment Results",
+    submissions: results.map((item) => ({
+      id: String(item.submission.id),
+      studentId: String(item.student.id),
+      studentName: item.student.name,
+      submittedAt: item.submission.submittedAt,
+      grade: item.submission.score ?? null,
+      status: item.submission.status === "GRADED" ? "graded" : "pending",
+    })),
+  };
+};
+
 const GradingPanel = () => {
   const navigate = useNavigate();
   const onBack = () => navigate(-1);
+  const { programId } = useParams<{ programId: string }>();
+  const { cohortId } = useParams<{ cohortId: string }>();
+  const { topicId } = useParams<{ topicId: string }>();
+
+  const { data, loading, refetch } = useFetch<{
+    message: string;
+    data: any[];
+  }>(api.fetch.fetchAssignmentResults, { 
+    programId: programId!,
+    cohortId: cohortId!,
+    topicId: topicId!
+  });
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
 
   useEffect(() => {
-    // Simulate backend fetch
-    const fakeBackendResponse: Assignment = {
-      title: "Reflection on Calling",
-      submissions: [
-        {
-          id: "s1",
-          studentId: "u1",
-          studentName: "John Doe",
-          submittedAt: "2024-02-10T09:30:00Z",
-          grade: null,
-          status: "pending",
-        },
-        {
-          id: "s2",
-          studentId: "u2",
-          studentName: "Jane Smith",
-          submittedAt: "2024-02-11T14:15:00Z",
-          grade: 85,
-          status: "graded",
-        },
-      ],
-    };
-
-    const timer = setTimeout(() => {
-      setAssignment(fakeBackendResponse);
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, []);
+    if (data?.data) {
+      setAssignment(mapBackendResultsToAssignment(data.data));
+    }
+  }, [data]);
 
   const onGrade = (submissionId: string, grade: number) => {
     setAssignment(prev => {
@@ -247,6 +250,14 @@ const GradingPanel = () => {
 
   const progress =
     totalCount === 0 ? 0 : Math.round((gradedCount / totalCount) * 100);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-muted-foreground">
+        Loading assignment results...
+      </div>
+    );
+  }
 
   if (!assignment) {
     return (

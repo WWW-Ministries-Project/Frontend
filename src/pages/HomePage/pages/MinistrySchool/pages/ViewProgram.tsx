@@ -95,12 +95,14 @@ export const ViewProgram = () => {
   return (
     <PageOutline className=" ">
       
-      <div className="py-6 flex flex-col gap-6">
-        <TabSelection
+      <div className="py-6 flex  flex-col gap-6">
+        <div className="w-fit">
+          <TabSelection
           tabs={["Cohorts", "Topics"]}
           selectedTab={selectedTab}
           onTabSelect={handleTabSelect}
         />
+        </div>
 
         {selectedTab === "Cohorts" && (
           <div className="">

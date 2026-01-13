@@ -27,7 +27,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       gender: input.gender || "",
       marital_status: input.marital_status || "",
       nationality: input.nationality || "",
-      has_children: input.children.length > 0,
+      has_children: input.family.length > 0,
     },
     picture: { src: input.photo || "", picture: null },
     contact_info: {
@@ -60,6 +60,6 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       position_id: input.position_id ?? undefined,
       member_since: formatDate(input.member_since),
     },
-    children: (input.children as IPersonalDetails[]) || [],
+    family: (input.family as IPersonalDetails[]) || [],
   };
 };

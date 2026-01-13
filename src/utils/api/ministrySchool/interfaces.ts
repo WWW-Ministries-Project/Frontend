@@ -304,6 +304,26 @@ export type Topic = {
   completed?: boolean;
 };
 
+export type BackendTopic = {
+  id: number;
+  name: string;
+  description: string;
+  order: number;
+};
+
+export type CohortAssignment = {
+  learningUnitId: number;
+  type: "assignment";
+  version: number;
+  topic: BackendTopic;
+  activation: {
+    isActive: boolean;
+    activatedAt: string | null;
+    dueDate: string | null;
+    closedAt: string | null;
+  };
+};
+
 export type LearningUnitType =
   | "video"
   | "live"
