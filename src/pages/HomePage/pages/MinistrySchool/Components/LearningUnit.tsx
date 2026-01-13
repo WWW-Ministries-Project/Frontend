@@ -11,10 +11,22 @@ import { usePost } from "@/CustomHooks/usePost";
 interface Props {
   topicId?: string | number;
   unit: LearningUnit | null | undefined;
+
+  // topic-level state (authoritative)
+  topicCompleted?: boolean;
+  topicStatus?: "PASS" | "FAIL" | "PENDING";
+  topicScore?: number;
+  topicCompletedAt?: string | null;
+  activation?: {
+    isActive: boolean;
+    activatedAt?: string | null;
+    dueDate?: string | null;
+    closedAt?: string | null;
+  };
+
   userId?: string | number;
   programId?: string | number;
-  completed?:boolean;
-  refetch?:  void | undefined;
+  refetch: () => void;
 }
 
 const typeBadgeMap: Record<
@@ -40,7 +52,18 @@ const typeBadgeMap: Record<
   },
 };
 
-export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programId, completed, refetch }) => {
+export const LearningUnits: React.FC<Props> = ({
+  unit,
+  topicId,
+  userId,
+  programId,
+  topicCompleted,
+  topicStatus,
+  topicScore,
+  topicCompletedAt,
+  activation,
+  refetch,
+}) => {
 
   const {
       postData,
@@ -55,8 +78,20 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programI
 
   // MCQ state
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+  // Removed: const [submitted, setSubmitted] = useState(false);
 
+  const [attempt, setAttempt] = useState(0);
+  const [result, setResult] = useState<{
+    score: number;
+    status: "PASS" | "FAIL";
+  } | null>(null);
+
+  const maxAttempt = unit?.data?.maxAttempt ?? 2;
+
+  // Added topic-driven derived state
+  const isAssignment = unit?.type === "assignment";
+  const isSubmitted = isAssignment && topicCompleted === true;
+  const assignmentStatus = topicStatus;
 
   const markCompleted = async () => {
   try {
@@ -77,6 +112,8 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programI
   const badge = unit ? typeBadgeMap[unit.type] : undefined;
   console.log("Unit", unit);
 
+  
+
   return (
     <div className="border border-lightGray rounded-lg p-4 space-y-4 bg-white">
       {/* Header */}
@@ -84,17 +121,19 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programI
         <Badge className={`text-xs `}>{badge?.label}</Badge>
 
         <div className="flex items-center gap-3">
+          {unit?.type !== "assignment" && (
           <button
             type="button"
-            onClick={completed ? undefined : markCompleted}
+            onClick={topicCompleted ? undefined : markCompleted}
             className={`text-xs px-3 py-1 rounded-md border ${
-              completed
+              topicCompleted
                 ? "bg-green-100 text-green-700 border-green-300"
                 : "bg-white text-gray-600 border-gray-300"
             }`}
           >
-            {completed ? "Completed" : "Mark as completed"}
+            {topicCompleted ? "Completed" : "Mark as completed"}
           </button>
+          )}
         </div>
       </div>
 
@@ -171,75 +210,123 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programI
 
       {/* Assignment (MCQ) */}
       {unit?.type === "assignment" && (
-        <div className="space-y-4">
-          {(unit.data.questions || []).map((q, idx) => (
-            <div key={q.id} className="space-y-2 border rounded-md p-3">
-              <p className="font-medium text-sm">
-                {idx + 1}. {q.question}
+        <div className="relative">
+          {!activation?.isActive && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-md text-center px-6">
+              <p className="text-sm text-gray-600">
+                This assignment is not yet active.<br />
+                You will be notified once it becomes available.
+                {activation?.isActive}
               </p>
-
-              {q.options.map((opt) => (
-                <label key={opt.id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name={q.id}
-                    disabled={submitted}
-                    checked={answers[q.id] === opt.id}
-                    onChange={() =>
-                      setAnswers((prev) => ({
-                        ...prev,
-                        [q.id]: opt.id,
-                      }))
-                    }
-                  />
-                  {opt.text}
-                </label>
-              ))}
             </div>
-          ))}
+          )}
 
-          <button
-            type="button"
-            disabled={
-              submitted ||
-              Object.keys(answers).length !== unit.data.questions.length
-            }
-            className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
-            onClick={async () => {
-              let correct = 0;
+          <div className={`${!activation?.isActive ? "pointer-events-none blur-sm opacity-60" : ""} space-y-4`}>
+            {!isSubmitted && (
+              <>
+                {(unit.data.questions || []).map((q, idx) => (
+                  <div key={q.id} className="space-y-2 border rounded-md p-3">
+                    <p className="font-medium text-sm">
+                      {idx + 1}. {q.question}
+                    </p>
 
-              unit.data.questions.forEach((q) => {
-                if (answers[q.id] === q.correctOptionId) {
-                  correct++;
-                }
-              });
+                    {q.options.map((opt) => (
+                      <label key={opt.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          name={q.id}
+                          disabled={isSubmitted}
+                          checked={answers[q.id] === opt.id}
+                          onChange={() =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [q.id]: opt.id,
+                            }))
+                          }
+                        />
+                        {opt.text}
+                      </label>
+                    ))}
+                  </div>
+                ))}
 
-              const score = Math.round(
-                (correct / unit.data.questions.length) * 100
-              );
+                <button
+                  type="button"
+                  disabled={
+                    isSubmitted ||
+                    Object.keys(answers).length !== unit.data.questions.length
+                  }
+                  className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
+                  onClick={async () => {
+                    let correct = 0;
 
-              const payload = {
-                userId,
-                programId,
-                topicId,
-                answers,
-              };
+                    unit.data.questions.forEach((q) => {
+                      if (answers[q.id] === q.correctOptionId) {
+                        correct++;
+                      }
+                    });
 
-              try {
-                await postData(payload);
-                setSubmitted(true);
+                    const score = Math.round(
+                      (correct / unit.data.questions.length) * 100
+                    );
 
-                // optionally mark topic as completed after successful submission
-                if (!completed) {
-                  await markCompleted();
-                }
-              } catch (error) {
-                console.error("Failed to submit MCQ assignment", error);
-              }
-            }}
-          >
-            Submit Assignment
-          </button>
+                    const payload = {
+                      userId,
+                      programId,
+                      topicId,
+                      answers,
+                    };
+
+                    try {
+                      await postData(payload);
+                      setAttempt((prev) => prev + 1);
+                      await refetch(); // backend updates completed, status, score
+                    } catch (error) {
+                      console.error("Failed to submit MCQ assignment", error);
+                    }
+                  }}
+                >
+                  Submit Assignment
+                </button>
+              </>
+            )}
+
+            {isSubmitted && (
+              <div className="space-y-4 text-center">
+                <p className="text-lg font-semibold">
+                  Score: {topicScore ?? 0}%
+                </p>
+
+                <Badge
+                  className={
+                    assignmentStatus === "PASS"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }
+                >
+                  {assignmentStatus}
+                </Badge>
+
+                <p className="text-xs text-gray-500">
+                  Completed on {topicCompletedAt
+                    ? new Date(topicCompletedAt).toLocaleString()
+                    : ""}
+                </p>
+
+                {assignmentStatus === "FAIL" && attempt < maxAttempt && (
+                  <button
+                    type="button"
+                    className="mt-4 px-4 py-2 text-sm rounded-md bg-gray-100 hover:bg-gray-200"
+                    onClick={() => {
+                      setAnswers({});
+                    }}
+                  >
+                    Retake Assignment
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -267,7 +354,6 @@ export const LearningUnits: React.FC<Props> = ({ unit, topicId, userId, programI
           </p>
         </div>
       )}
-      {/* <DownloadCertificate/> */}
     </div>
   );
 };

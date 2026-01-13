@@ -49,6 +49,9 @@ interface TopicBasicInfoFormProps {
 const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasicInfoFormProps) => {
     const { id: programId } = useParams();
 
+    console.log("topicToEdit",topicToEdit);
+    
+
     const [topicForm, setTopicForm] = useState<TopicForm>({
       topicName: '',
       topicDescription: '',
@@ -81,12 +84,62 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
     topicDescription: topicToEdit.description,
   });
 
-  setLearningUnit(topicToEdit.learningUnit);
-  // setIsEditing(false);
+  // Backend may send LearningUnit (capital L)
+  const rawUnit: any =
+    (topicToEdit as any).learningUnit ??
+    (topicToEdit as any).LearningUnit ??
+    null;
+
+  if (!rawUnit) {
+    setLearningUnit(null);
+    return;
+  }
+
+  // Assignment (MCQ)
+  if (rawUnit.type === "assignment") {
+    setLearningUnit({
+      type: rawUnit.type,
+      data: {
+        questions: rawUnit.data?.questions ?? [],
+        maxAttempts:
+          rawUnit.data?.maxAttempts ??
+          rawUnit.maxAttempts ??
+          2,
+        passMark:
+          rawUnit.data?.passMark ?? 50,
+      },
+    });
+    return;
+  }
+
+  // Lesson note
+  if (rawUnit.type === "lesson-note") {
+    setLearningUnit({
+      type: rawUnit.type,
+      data: {
+        content: rawUnit.data?.content ?? "",
+      },
+    });
+    return;
+  }
+
+  // All other learning unit types
+  setLearningUnit({
+    type: rawUnit.type,
+    data: rawUnit.data ?? {},
+  });
 }, [topicToEdit]);
 
     const validateAssignment = () => {
       if (!learningUnit || learningUnit.type !== "assignment") return true;
+      if (
+  learningUnit.data.maxAttempts < 1 ||
+  learningUnit.data.passMark < 0 ||
+  learningUnit.data.passMark > 100
+) {
+  alert("Please provide valid max attempts and pass mark values.");
+  return false;
+}
 
       const questions = learningUnit.data.questions as AssignmentQuestion[];
 
@@ -178,13 +231,12 @@ const handleSubmit = () => {
 
   if (topicToEdit) {
     updateTopic(payload, topicToEdit.id);
+    onClose?.();
     console.log("Id of topic to edit", topicToEdit.id);
-    
   } else {
     createTopic(payload);
+    onClose?.();
   }
-
-
 }
 
     return ( 
@@ -249,7 +301,7 @@ const handleSubmit = () => {
                     type: e.target.value as LearningUnitType,
                     data:
                       e.target.value === "assignment"
-                        ? { questions: [] }
+                        ? { questions: [], maxAttempts: 2, passMark: 50 }
                         : e.target.value === "lesson-note"
                         ? { content: "" }
                         : e.target.value === "assignment-essay"
@@ -345,6 +397,50 @@ const handleSubmit = () => {
 
                 {learningUnit.type === "assignment" && (
                   <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+  <div className="space-y-1">
+    <label className="text-xs font-medium text-gray-600">
+      Max Attempts
+    </label>
+    <input
+      type="number"
+      min={1}
+      className="w-full rounded-md border px-3 py-2 text-sm"
+      value={learningUnit.data.maxAttempts ?? 2}
+      onChange={(e) =>
+        setLearningUnit({
+          ...learningUnit,
+          data: {
+            ...learningUnit.data,
+            maxAttempts: Number(e.target.value),
+          },
+        })
+      }
+    />
+  </div>
+
+  <div className="space-y-1">
+    <label className="text-xs font-medium text-gray-600">
+      Pass Mark (%)
+    </label>
+    <input
+      type="number"
+      min={0}
+      max={100}
+      className="w-full rounded-md border px-3 py-2 text-sm"
+      value={learningUnit.data.passMark ?? 50}
+      onChange={(e) =>
+        setLearningUnit({
+          ...learningUnit,
+          data: {
+            ...learningUnit.data,
+            passMark: Number(e.target.value),
+          },
+        })
+      }
+    />
+  </div>
+</div>
                     {(learningUnit.data.questions as AssignmentQuestion[]).map((q, qIndex) => (
                       <div
                         key={q.id}

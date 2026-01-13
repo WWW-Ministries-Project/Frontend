@@ -183,7 +183,13 @@ useEffect(() => {
                     topicId={selectedTopic.id} 
                     userId ={user!.id} 
                     programId= {programId}
-                    completed={selectedTopic.completed}
+
+                    topicCompleted={selectedTopic.completed}
+                    topicStatus={selectedTopic.status}
+                    topicScore={selectedTopic.score}
+                    topicCompletedAt={selectedTopic.completedAt}
+                    activation={selectedTopic.activation}
+
                     refetch={refetch}
                     />
                   </div>

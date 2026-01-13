@@ -171,7 +171,7 @@ export function MemberInformation() {
                   label="Ministry/Department - Position"
                   value={user?.department_positions?.map((department_position, index) =>
                     <div key={index} className="py-1">
-                      <div>{ department_position.department_name} - <span className="font-medium">{department_position.position_name}</span></div>
+                      <div>{ department_position?.department_name} - <span className="font-medium">{department_position?.position_name}</span></div>
                     </div> 
                   )}
                 />
@@ -197,7 +197,7 @@ export function MemberInformation() {
 
       {selectedTab=="Family Information" && (
         // <Section title="">
-          <FamilyInformation/>
+          <FamilyInformation familyData={user?.family} />
         // </Section>
       )}
     </div>
@@ -238,7 +238,8 @@ interface IMemberInfo {
     phone_number: string;
     country_code:string
   };
-  department_positions: string[]
+  department_positions: string[];
+  family: unknown[];
   
 }
 const InfoField = ({

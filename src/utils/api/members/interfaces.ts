@@ -100,7 +100,7 @@ export interface IMemberInfo {
     phone_number?: string;
     country_code?: string;
   };
-  children: unknown[];
+  family: unknown[];
   department_positions: string[]
   photo: string;
   country: string;

@@ -4,7 +4,7 @@ import { Actions } from "@/components/ui/form/Actions";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { DivideIcon } from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // import { CertificateTemplate } from "./CertificateTemplate";
 import { EnrollmentDataType } from "@/utils";
 
@@ -35,7 +35,6 @@ export const TopicAssessment = ({
   }) => void;
   studentData?: EnrollmentDataType | null;
 }) => {
-  console.log("topic", topics);
   const [certificateData, setCertificateData] = useState({
     recipientName: studentData?.user?.name || "-",
     achievement: studentData?.course?.cohort?.program?.title || "-",
@@ -50,7 +49,12 @@ export const TopicAssessment = ({
     signatoryTitle: "Prelate of the Worldwide Word Ministries",
   });
   
-  const [updatedTopics, setUpdatedTopics] = useState<Topic[]>(topics);
+  const [updatedTopics, setUpdatedTopics] = useState<Topic[]>([]);
+
+  useEffect(() => {
+    setUpdatedTopics(topics ?? []);
+  }, [topics]);
+
   const [showCertificate, setShowCertificate] = useState(false);
   const [generatingCertificate, setGeneratingCertificate] = useState(false);
 
@@ -75,13 +79,13 @@ export const TopicAssessment = ({
     );
   };
 
-  const handleScoreChange = (id: number, newScore: number | undefined) => {
-    setUpdatedTopics((prevTopics) =>
-      prevTopics.map((topic) =>
-        topic.id === id ? { ...topic, score: newScore } : topic
-      )
-    );
-  };
+  // const handleScoreChange = (id: number, newScore: number | undefined) => {
+  //   setUpdatedTopics((prevTopics) =>
+  //     prevTopics.map((topic) =>
+  //       topic.id === id ? { ...topic, score: newScore } : topic
+  //     )
+  //   );
+  // };
 
   // Function to update the topics
   const updateTopics = async () => {
@@ -186,7 +190,7 @@ export const TopicAssessment = ({
                 type="text"
                 className="px-4 py-2 border border-lightGray rounded-lg w-full"
                 placeholder="Enter notes"
-                value={row.original.notes}
+                value={row.original.notes!}
                 onChange={(e) => {
                   setUpdatedTopics((prevTopics) =>
                     prevTopics.map((t) =>
@@ -239,13 +243,13 @@ export const TopicAssessment = ({
               </div>
               <div>
                 <p className="font-medium text-lg">Progress: </p>
-                <p>{progress}% Complete</p>
+                <p>{progress.toFixed(2)}% Complete</p>
               </div>
             </div>
           </div>
         </div>
 
-        <TableComponent columns={columns} data={updatedTopics} />
+        <TableComponent columns={columns} data={updatedTopics ?? []} />
 
         <div className="flex ">
           <div className="w-full">
@@ -256,59 +260,13 @@ export const TopicAssessment = ({
                 loading={loading}
               />
             )}
-            {!editMode && (
-              <div className="flex justify-end">
-                <button
-                  className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
-                    isGenerateEnabled && !generatingCertificate
-                      ? "bg-primary text-white hover:bg-primary-dark"
-                      : "bg-lightGray text-primary cursor-not-allowed"
-                  }`}
-                  disabled={!isGenerateEnabled || generatingCertificate}
-                  onClick={handleGenerateCertificate}
-                >
-                  {generatingCertificate && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  )}
-                  {generatingCertificate ? "Generating..." : "Generate Certificate"}
-                </button>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
 
       {/* Certificate Modal */}
-      {showCertificate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-5xl max-h-[95vh] overflow-auto bg-white rounded-lg shadow-2xl">
-            {/* Close button */}
-            {/* <button
-              onClick={handleCloseCertificate}
-              className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors"
-            >
-              <svg
-                className="w-6 h-6 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button> */}
-            
-            {/* Certificate Content */}
-            <div className="p-4 sm:p-6 md:p-8">
-              {/* <CertificateTemplate data={certificateData} closeModal={()=>setShowCertificate(false)}/> */}
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };
@@ -316,7 +274,9 @@ export const TopicAssessment = ({
 interface Topic {
   id: number;
   name: string;
-  score: number | undefined;
+  score: number | null;
   status: "PASS" | "FAIL" | "PENDING";
-  notes?: string;
+  notes?: string | null;
+  completedAt?: string | null;
+  progressId?: number;
 }
