@@ -1,4 +1,7 @@
 import { MembersIcon } from "@/assets";
+import AppointmentIcon from "@/assets/sidebar/AppointmentIcon";
+import AttendanceIcon from "@/assets/sidebar/AttendanceIcon";
+import CommunicationIcon from "@/assets/sidebar/CommunicationIcon";
 import DashboardIcon from "@/assets/sidebar/DashboardIcon";
 import InstrumentIcon from "@/assets/sidebar/InstrumentIcon";
 import LifeCenterIcon from "@/assets/sidebar/LifeCenterIcon";
@@ -18,6 +21,9 @@ export const sidebarIcons: Record<
   Visitors: VisitorIcon,
   Users: UsersIcon,
   Events: ManagementIcon,
+  Attendance: AttendanceIcon,
+  Communication: CommunicationIcon,
+  Appointments: AppointmentIcon,
   Assets: InstrumentIcon,
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,

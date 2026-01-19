@@ -25,7 +25,7 @@ interface ErrorState {
 
 function ResetPassword() {
   const [passwordValues, setPasswordValues] = useState<PasswordValues>({});
-  const [response, setResponse] = useState<ApiResponse<unknown>>();
+  const [response, setResponse] = useState<ApiResponse<unknown>>({} as ApiResponse<unknown>);
   const [error, setError] = useState<ErrorState>({});
   const [loading, setLoading] = useState(false);
   const [samePassword, setSamePassword] = useState(true);
@@ -47,7 +47,7 @@ function ResetPassword() {
         setResponse(response);
       } catch (error: unknown) {
         console.log(error, "error");
-        setResponse(error.response || {});
+        setResponse((error as any)?.response ?? {});
       } finally {
         setLoading(false);
       }
@@ -94,7 +94,7 @@ function ResetPassword() {
   return (
     <BackgroundWrapper>
       <OuterDiv>
-        {response.status == 200 ? (
+        {response?.status === 200 ? (
           <div className="pt-1 authForm rounded-lg mx-auto bg-wwmBlue">
             <NotificationCard
               className={""}

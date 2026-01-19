@@ -70,6 +70,11 @@ import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
+import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
+import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
+import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
+import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
+import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -159,13 +164,13 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_members",
           },
-          {
-            path: "fam-info",
-            name: "fam-info",
-            element: <FamilyInformation />,
-            isPrivate: true,
-            permissionNeeded: "view_members",
-          },
+          // {
+          //   path: "fam-info",
+          //   name: "fam-info",
+          //   element: <FamilyInformation />,
+          //   isPrivate: true,
+          //   permissionNeeded: "view_members",
+          // },
         ],
       },
       {
@@ -223,6 +228,65 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_events",
       },
+      {
+        path: "church-attendance",
+        name: "Attendance",
+        isPrivate: false,
+        permissionNeeded: "",
+        sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Church Attendance",
+            element: <ChurchAttendance />,
+            isPrivate: false,
+            sideTab: true,
+          },
+        ],
+      },
+
+      // Church Communication route
+      {
+        path: "communication",
+        name: "Communication",
+        isPrivate: false,
+        permissionNeeded: "",
+        sideTab: true,
+        children: [
+          {
+            path: "theme-manager",
+            name: "Annual Theme Manager",
+            element: <AnnualThemeManager />,
+            isPrivate: false,
+            sideTab: true,
+          },
+        ],
+      },
+
+      {
+        path: "appointments",
+        name: "Appointments",
+        isPrivate: false,
+        permissionNeeded: "",
+        sideTab: true,
+        children: [
+          {
+            path: "appointment-manager",
+            name: "Appointment Manager",
+            element: <AppointmentManager />,
+            isPrivate: false,
+            sideTab: true,
+          },
+          {
+            path: "manage-availability",
+            name: "Manage Availability",
+            element: <ManageAvailability />,
+            isPrivate: false,
+            sideTab: true,
+          }
+        ],
+      },
+   
       // {
       //   path: "requests",
       //   name: "Requests",
@@ -655,6 +719,12 @@ export const routes: AppRoute[] = [
           },
         ],
       },
+      {
+        path: relativePath.member.appointments,
+        name: "member_appointments",
+        element: <MyAppointments />,
+        isPrivate: false,
+      }
       // {
       //       path: relativePath.member.schoolOfMinistries.instructorAssMan,
       //       name: "instructor_assessment_management",

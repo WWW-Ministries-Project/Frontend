@@ -414,4 +414,33 @@ export class ApiCalls {
   ): Promise<ApiResponse<IOrders[]>> => {
     return this.fetchFromApi(`orders/get-orders-by-user/`, query);
   };
+
+  // Fetch church attendance records
+  fetchSingleChurchAttendance = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("event/church-attendance", query);
+  };
+
+  // fetch all church attendance records
+  fetchChurchAttendance = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("event/church-attendance", query);
+  }
+
+  // Fetch annual theme
+  fetchAnnualTheme = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("theme/get-themes", query);
+  }
+
+  // fetch active annual theme
+  fetchActiveAnnualTheme = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("theme/get-active-theme", query);
+  }
+
 }

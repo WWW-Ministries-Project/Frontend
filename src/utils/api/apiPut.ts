@@ -332,4 +332,21 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+  // uodate church attendance
+  updateChurchAttendance = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("event/church-attendance", payload, query);
+  }
+
+  // update annual theme
+  updateAnnualTheme = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("theme/update-theme", payload, query);
+}
+
 }

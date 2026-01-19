@@ -125,4 +125,18 @@ export class ApiDeletionCalls {
   deleteProduct = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("product/delete-product", query);
   };
+
+  // Delete Church Attendance Record
+  deleteChurchAttendance = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/church-attendance", query);
+  }
+
+  // Delete Annual Theme
+  deleteAnnualTheme = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("theme/delete-theme", query);
+  }
 }

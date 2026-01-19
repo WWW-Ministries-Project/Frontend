@@ -107,9 +107,9 @@ export class ApiCreationCalls {
   
 
   // Unenroll User
-  // unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("program/unenroll", payload);
-  // };
+  unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("program/unenroll", payload);
+  };
 
   forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
@@ -189,4 +189,18 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<CheckOutResponse>> => {
     return this.postToApi("orders/create-order", payload);
   };
+
+  // Record Attendance
+  recordChurchAttendance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/church-attendance", payload);
+  }
+
+  //Create theme
+  createAnnualTheme = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("theme/create-theme", payload);
+  }
 }

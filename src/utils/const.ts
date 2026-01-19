@@ -96,6 +96,7 @@ export const relativePath = {
       instructorAssMan: ":programId/cohort/:cohortId",
       InstructorGradingPanel:":programId/cohort/:cohortId/grades/:topicId"
     },
+    appointments: "/member/appointments",
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

@@ -7,13 +7,13 @@ import {
   ChildrenSubForm,
   ContactsSubForm,
   EmergencyContact,
+  IChildrenSubForm,
   IContactsSubForm,
   IEmergencyContact,
   IUserSubForm,
   IWorkInfoSubForm,
   UserSubForm,
   WorkInfoSubForm,
-  IFamilySubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
@@ -312,7 +312,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 };
 
 export type membersType = "ONLINE" | "IN_HOUSE";
-export interface IMembersForm extends IFamilySubForm {
+export interface IMembersForm extends IChildrenSubForm {
   personal_info: IUserSubForm;
   picture: {
     src: string;
