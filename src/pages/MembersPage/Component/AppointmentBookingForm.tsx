@@ -301,7 +301,7 @@ const AppointmentBookingForm = ({
                     onClick={onClose}
                   />
                   <Button
-                    type="submit"
+                    onClick={() => handleSubmit(values)}
                     value={appointment ? "Update Appointment" : "Book Appointment"}
                   />
                 </div>
