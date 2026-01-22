@@ -161,13 +161,17 @@ interface FinanceData {
   };
 }
 
-const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode: "create" | "edit" | "view" }) => {
+const FinanceBuilder = ({
+  financeData,
+  mode,
+  onModeChange,
+}: {
+  financeData?: FinanceData;
+  mode: "create" | "edit" | "view";
+  onModeChange?: (mode: "create" | "edit" | "view") => void;
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [formMode, setFormMode] = React.useState<"create" | "edit" | "view">("edit");
-    React.useEffect(() => {
-        setFormMode(Mode);
-    }, [Mode]);
 
 
   const defaultValues: FinanceData = {
@@ -204,7 +208,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
       onSubmit={(values, { resetForm }) => {
         const now = new Date().toISOString();
 
-        if (formMode === "create") {
+        if (mode === "create") {
           values.metaData = {
             month: values.metaData?.month || "",
             year: values.metaData?.year || new Date().getFullYear(),
@@ -218,7 +222,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
           };
         }
 
-        if (formMode === "edit") {
+        if (mode === "edit") {
           values.metaData = {
             month: values.metaData?.month || "",
             year: values.metaData?.year || new Date().getFullYear(),
@@ -233,7 +237,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
         }
 
         console.log("SUBMIT PAYLOAD", values);
-        setFormMode("view");
+        if (onModeChange) onModeChange("view");
       }}
     >
       {({ values, resetForm }) => {
@@ -241,7 +245,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
 
         return (
           <Form>
-            <MetadataFields mode={formMode} />
+            <MetadataFields mode={mode} />
 
             <div className="p-6 space-y-6">
                   <div className="sticky top-0 bg-white ">
@@ -262,7 +266,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
                         <span className="col-span-2">{receipt.item}</span>
                         <div></div>
 
-                        {formMode === "view" ? (
+                        {mode === "view" ? (
                           <span className="text-right font-medium">
                             {receipt.amount !== null ? receipt.amount.toLocaleString() : "—"}
                           </span>
@@ -328,7 +332,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
                         <span className="col-span-2">{payment.item}</span>
                         <div></div>
 
-                        {formMode === "view" ? (
+                        {mode === "view" ? (
                           <span className="text-right font-medium">
                             {payment.amount !== null ? payment.amount.toLocaleString() : "—"}
                           </span>
@@ -452,7 +456,7 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
                   </section>
                   </div> 
 
-            {formMode !== "view" && (
+            {mode !== "view" && (
               <div className="flex gap-4 mt-6">
                 <button type="submit" className="btn-primary">Save</button>
                 <button
@@ -460,8 +464,8 @@ const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode
                   className="btn-secondary"
                   onClick={() => {
                     resetForm();
-                    if (formMode === "create") navigate("/finance");
-                    if (formMode === "edit") setFormMode("view");
+                    if (mode === "create") navigate("/finance");
+                    if (mode === "edit" && onModeChange) onModeChange("view");
                   }}
                 >
                   Cancel

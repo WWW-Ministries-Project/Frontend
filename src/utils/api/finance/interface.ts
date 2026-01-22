@@ -5,10 +5,10 @@ export interface FinanceData {
         week: string;
         from: string;
         to: string;
-        createdBy: string;
-        createdDate: string;
-        updatedBy: string;
-        updatedDate: string;
+        createdBy: string | null;
+        createdDate: string | null;
+        updatedBy: string | null;
+        updatedDate: string | null;
     };
   receipts: Array<{ item: string; amount: number | null }>;
   tithe: {

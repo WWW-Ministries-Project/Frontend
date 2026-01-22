@@ -35,7 +35,11 @@ const FinanceDetailPage = () => {
         </div>
         </div>
       </Banner>
-      <FinanceBuilder Mode={formMode} financeData={financeData} />
+      <FinanceBuilder
+        financeData={financeData}
+        mode={formMode}
+        onModeChange={setFormMode}
+      />
 
       
     </div>
