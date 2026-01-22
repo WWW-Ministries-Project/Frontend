@@ -53,7 +53,8 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
         )}
       </div>
 
-            <div className=" space-y-2">
+            <div className=" space-y-2"
+            >
                 <h3 className="text-lg font-semibold">
                   {availability.staffName}
                 </h3>

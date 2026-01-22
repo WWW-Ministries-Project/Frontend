@@ -25,6 +25,7 @@ export const sidebarIcons: Record<
   Communication: CommunicationIcon,
   Appointments: AppointmentIcon,
   Assets: InstrumentIcon,
+  Finance: ManagementIcon,
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
   Requests: RequestIcon,

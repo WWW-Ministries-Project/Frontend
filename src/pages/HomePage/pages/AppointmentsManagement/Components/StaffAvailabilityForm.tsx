@@ -180,17 +180,19 @@ const StaffAvailabilityFormComponent = ({
     const { day, startTime, endTime, sessionDurationMinutes } =
       values.currentSlot;
 
+    const duration = Number(sessionDurationMinutes);
+
     const sessions = generateSessions(
       startTime,
       endTime,
-      sessionDurationMinutes
+      duration
     );
 
     const slot: TimeSlot = {
       day,
       startTime,
       endTime,
-      sessionDurationMinutes,
+      sessionDurationMinutes: duration,
       sessions,
     };
 

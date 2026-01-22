@@ -75,6 +75,9 @@ import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/Annua
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
+import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
+import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
+import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FianancialsForm.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -343,14 +346,33 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "manage_asset",
       },
-      // {
-      //   path: "users",
-      //   name: "Users",
-      //   element: <UserManagement />,
-      //   isPrivate: true,
-      //   permissionNeeded: "view_users",
-      //   sideTab: true,
-      // },
+      {
+        path: "finance/",
+        name: "Finance",
+        isPrivate: false,
+        sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Finance Manager",
+            element: <FinanceManager />,
+            isPrivate: false,
+            sideTab: true,   
+          },
+          {
+            path: ":id",
+            name: "Finance Detail",
+            element: <FinanceDetailPage />,
+            isPrivate: false,
+          },
+          {
+            path: "create",
+            name: "Create Financials",
+            element: <FianancialsForm />,
+            isPrivate: false,
+          }
+        ],
+      },
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
