@@ -92,10 +92,11 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
       : [];
 
   return (
-    <section className="space-y-4 border p-4 rounded">
+    <section className="space-y-6 p-6 rounded">
       <h2 className="font-semibold">Metadata</h2>
 
-      <Field
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Field
         component={FormikInputDiv}
         type="month"
         label="Period (Month & Year) *"
@@ -104,13 +105,15 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
       />
 
       <Field
-  component={FormikSelectField}
-  label="Week *"
-  name="metaData.week"
-  id="metaData.week"
-  options={weeks.map(w => ({ label: w.label, value: w.label }))}
- />
+        component={FormikSelectField}
+        label="Week *"
+        name="metaData.week"
+        id="metaData.week"
+        options={weeks.map(w => ({ label: w.label, value: w.label }))}
+        />
 
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Field
         component={FormikInputDiv}
         label="From"
@@ -125,6 +128,7 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
         id="metaData.to"
         disabled
       />
+      </div>
     </section>
   );
 };
@@ -157,14 +161,46 @@ interface FinanceData {
   };
 }
 
-const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
+const FinanceBuilder = ({ financeData, Mode }: { financeData?: FinanceData; Mode: "create" | "edit" | "view" }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [formMode, setFormMode] = React.useState<"create" | "edit" | "view">("edit");
+    React.useEffect(() => {
+        setFormMode(Mode);
+    }, [Mode]);
+
+
+  const defaultValues: FinanceData = {
+    metaData: {
+      month: "",
+      year: new Date().getFullYear(),
+      week: "",
+      from: "",
+      to: "",
+      createdBy: null,
+      createdDate: null,
+      updatedBy: null,
+      updatedDate: null,
+    },
+    receipts: [],
+    tithe: {
+      totalTithe: { percentage: 0 },
+      generalTithe: { percentage: 0 },
+      icareTithe: { percentage: 0 },
+    },
+    payments: [],
+    balance: {
+      ExcessOfReceiptsOverPayments: { item: "" },
+      ReserveForSavings: { item: "" },
+      BalanceAmount: { item: "" },
+      WeeklyRefund: { item: "" },
+      OfficeMaintenanceReserve: { item: "" },
+    },
+  };
 
   return (
-    <Formik
-      initialValues={financeData}
+    <Formik<FinanceData>
+      initialValues={financeData || defaultValues}
       onSubmit={(values, { resetForm }) => {
         const now = new Date().toISOString();
 
@@ -207,9 +243,9 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
           <Form>
             <MetadataFields mode={formMode} />
 
-            <div className="px-6 space-y-6">
+            <div className="p-6 space-y-6">
                   <div className="sticky top-0 bg-white ">
-                    <div className="grid grid-cols-5 gap-3 text-lg font-bold border-b ">
+                    <div className="grid grid-cols-5 gap-6 text-lg font-bold border-b ">
                       <div className="col-span-2">Items</div>
                       <div></div>
                       <div className="text-right">Amount</div>
@@ -221,8 +257,8 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                   <section className="space-y-4">
                     <h2 className="text-lg font-semibold">Receipts</h2>
             
-                    {values.receipts.map((receipt, idx) => (
-                      <div key={receipt.item} className="grid grid-cols-5 gap-3">
+                    {values.receipts.map((receipt: { item: string; amount: number | null }, idx: number) => (
+                      <div key={receipt.item} className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{receipt.item}</span>
                         <div></div>
 
@@ -243,7 +279,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       </div>
                     ))}
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2">Total Receipts</span>
                       <div></div>
@@ -257,7 +293,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
             
                   {/* Tithe */}
                   <section>
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2">Tithe</span>
                       <div className="text-right font-semibold pt-2">{values.tithe.totalTithe.percentage}%</div>
@@ -265,7 +301,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       <span className="text-right font-semibold pt-2">{summary.tithe.fundsAfterTithe.toLocaleString()}</span>
                     </div>
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2"></span>
                       <div className="text-right font-medium pt-2">{values.tithe.generalTithe.percentage}%</div>
@@ -273,7 +309,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       <span className="text-right font-semibold pt-2"></span>
                     </div>
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2"></span>
                       <div className="text-right font-medium pt-2">{values.tithe.icareTithe.percentage}%</div>
@@ -287,8 +323,8 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                   <section className="space-y-4">
                     <h2 className="text-lg font-semibold">Payments</h2>
             
-                    {values.payments.map((payment, idx) => (
-                      <div key={payment.item} className="grid grid-cols-5 gap-3">
+                    {values.payments.map((payment: { item: string; amount: number | null }, idx: number) => (
+                      <div key={payment.item} className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{payment.item}</span>
                         <div></div>
 
@@ -309,7 +345,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       </div>
                     ))}
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2">Total Payments</span>
                       <div></div>
@@ -323,7 +359,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                   <section className="space-y-4">
                     <h2 className="text-lg font-semibold"></h2>
             
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{values.balance.ExcessOfReceiptsOverPayments.item}</span>
                         <div></div>
                         <span className="text-right font-medium">
@@ -332,7 +368,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                         <div></div>
                       </div>
             
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{values.balance.ReserveForSavings.item}</span>
                         <div></div>
                         <span className="text-right font-medium">
@@ -341,7 +377,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                         <div></div>
                       </div>
             
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-6">
                         <span className="col-span-2 font-semibold">{values.balance.BalanceAmount.item}</span>
                         <div></div>
                         <span className="text-right font-semibold">
@@ -350,7 +386,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                         <div></div>
                       </div>
             
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{values.balance.WeeklyRefund.item}</span>
                         <div></div>
                         <span className="text-right font-medium">
@@ -359,7 +395,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                         <div></div>
                       </div>
             
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{values.balance.OfficeMaintenanceReserve.item}</span>
                         <div></div>
                         <span className="text-right font-medium">
@@ -369,7 +405,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       </div>
                     
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2">Total Balance</span>
                       <div></div>
@@ -382,7 +418,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                   {/* ALLOCATIONS */}
                   <section className="space-y-4">
                     <h2 className="text-lg font-semibold">Fund allocation</h2>
-                    <div className="grid grid-cols-5 gap-3 text-lg font-bold ">
+                    <div className="grid grid-cols-5 gap-6 text-lg font-bold ">
                       <div className="col-span-2">Movement</div>
                       <div className="text-right">Portions</div>
                       <div className="text-right">Actuals</div>
@@ -390,7 +426,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                     </div>
             
                     {summary.fundAllocations.map((allocation:any) => (
-                      <div key={allocation.movement} className="grid grid-cols-5 gap-3">
+                      <div key={allocation.movement} className="grid grid-cols-5 gap-6">
                         <span className="col-span-2">{allocation.movement}</span>
                         <div className="text-right">{allocation.portionPercent}%</div>
                         <span className="text-right font-medium">
@@ -402,7 +438,7 @@ const FinanceBuilder = ({ financeData }: { financeData: FinanceData }) => {
                       </div>
                     ))}
             
-                    <div className="grid grid-cols-5 gap-3 ">
+                    <div className="grid grid-cols-5 gap-6 ">
             
                       <span className="col-span-2 font-semibold  pt-2">Total Fund Allocation</span>
                       <div className="text-right font-semibold pt-2">100%</div>

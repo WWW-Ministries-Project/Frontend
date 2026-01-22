@@ -1,6 +1,11 @@
+import FinanceBuilder from "../Components/FinanceBuilder";
+
 const FianancialsForm = () => {
     return ( 
-        <div>Create Financials Page</div>
+        <FinanceBuilder 
+            Mode="create"
+        financeData={undefined}
+        />
      );
 }
  
