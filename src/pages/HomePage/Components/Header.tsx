@@ -120,7 +120,7 @@ export const Header = ({ handleShowNav }: IProps) => {
     ...(isLifeCenterLeader
       ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
       : []),
-      { label: "Appointments", path: relativePath.member.appointments }
+      // { label: "Appointments", path: relativePath.member.appointments }
   ];
 
   const schoolItems = [
