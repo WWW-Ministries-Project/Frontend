@@ -132,7 +132,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const is_not_admin = routeName === "out" || routeName === "member";
 
   return (
-    <div className="h-[60vh]">
+    <div className="">
       {routeName === "out" && (
         <div className="p-4 space-y-2">
           <div

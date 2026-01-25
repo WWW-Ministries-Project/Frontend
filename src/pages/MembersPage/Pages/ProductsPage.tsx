@@ -31,11 +31,11 @@ export default function ProductsPage() {
  
 
   return (
-    <>
+    <div className="p-6 space-y-6">
       {routeName === "out" && (
-        <div className="text-2xl font-semibold text-white mb-4">
+        <div className="text-2xl font-semibold text-white mb-4 ">
           {" "}
-          PA 2025 Apparel
+          10th Anniversary Apparel
         </div>
       )}
 
@@ -66,7 +66,7 @@ export default function ProductsPage() {
           msg={error ? "Failed to load products" : "No products found"}
         />
       )}
-    </>
+    </div>
   );
 }
 

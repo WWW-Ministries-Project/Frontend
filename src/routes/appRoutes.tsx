@@ -545,24 +545,24 @@ export const routes: AppRoute[] = [
     element: <LandingPage />,
     name: "out",
     children: [
-      {
-        path: "programs",
-        name: "Programs",
-        element: <ProgramApply />,
-        isPrivate: false,
-      },
-      {
-        path: "programs/:name",
-        name: "Programs",
-        element: <ProgramDetails />,
-        isPrivate: false,
-      },
-      {
-        path: "programs/:name/apply",
-        name: "Programs",
-        element: <ProgramInformation />,
-        isPrivate: false,
-      },
+      // {
+      //   path: "programs",
+      //   name: "Programs",
+      //   element: <ProgramApply />,
+      //   isPrivate: false,
+      // },
+      // {
+      //   path: "programs/:name",
+      //   name: "Programs",
+      //   element: <ProgramDetails />,
+      //   isPrivate: false,
+      // },
+      // {
+      //   path: "programs/:name/apply",
+      //   name: "Programs",
+      //   element: <ProgramInformation />,
+      //   isPrivate: false,
+      // },
       {
         path: "register-member",
         element: <Registration />,
@@ -575,12 +575,12 @@ export const routes: AppRoute[] = [
         name: "VisitorRegistration",
         isPrivate: false,
       },
-      {
-        path: "events/register-event",
-        element: <EventRegister />,
-        name: "Event Registration",
-        isPrivate: false,
-      },
+      // {
+      //   path: "events/register-event",
+      //   element: <EventRegister />,
+      //   name: "Event Registration",
+      //   isPrivate: false,
+      // },
       {
         path: "products",
         name: "products",
