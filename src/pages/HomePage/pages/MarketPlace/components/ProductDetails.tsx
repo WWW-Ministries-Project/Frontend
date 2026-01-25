@@ -17,8 +17,8 @@ import { routes } from "@/routes/appRoutes";
 import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
 
 interface IProps {
-  product: IProductTypeResponse;
-  addToCart: (item: ICartItem) => void;
+  readonly product: IProductTypeResponse;
+  readonly addToCart: (item: ICartItem) => void;
 }
 
 export function ProductDetails({ product, addToCart }: IProps) {
@@ -33,10 +33,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
     );
     return productExists
       ? {
-          quantity: productExists.quantity,
-          color: productExists.color,
-          size: productExists.size,
-        }
+        quantity: productExists.quantity,
+        color: productExists.color,
+        size: productExists.size,
+      }
       : { quantity: 1, color: "", size: "" };
   }, []);
 
@@ -54,10 +54,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
       const newQuantity = value
         ? value
         : type === "increment"
-        ? prev.quantity + 1
-        : prev.quantity > 1
-        ? prev.quantity - 1
-        : 1;
+          ? prev.quantity + 1
+          : prev.quantity > 1
+            ? prev.quantity - 1
+            : 1;
       updateSection(`${product.id}`, "quantity", newQuantity);
       return { ...prev, quantity: newQuantity };
     });
@@ -86,9 +86,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const productColors = Array.from(
     new Set(product.product_colours.map((color) => color.colour))
   );
-  const productSizes = Array.from(
-    new Set(productStock.map((size) => size.size))
-  );
+  const sizes = useMemo(() => {
+    return product?.product_colours?.[selection.currentIndex]?.stock ?? []
+  }, [selection.currentIndex, product?.product_colours])
+
 
   const cartItem = {
     name: product.name,
@@ -104,7 +105,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
       product.product_colours[selection.currentIndex].colour,
     size: selection.selectedSize || productStock[0]?.size,
     productColors,
-    productSizes,
+    productSizes:sizes?.map(size=>size?.size),
     market_id: product?.market_id || "",
   };
 
@@ -115,6 +116,8 @@ export function ProductDetails({ product, addToCart }: IProps) {
     addToCart(cartItem);
     // }
   };
+
+
 
   const handleBuy = () => {
     if (routeName === "out") {
@@ -129,7 +132,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const is_not_admin = routeName === "out" || routeName === "member";
 
   return (
-    <div>
+    <div className="h-[60vh]">
       {routeName === "out" && (
         <div className="p-4 space-y-2">
           <div
@@ -142,14 +145,13 @@ export function ProductDetails({ product, addToCart }: IProps) {
           <div className="text-xl font-bold ">Product Specification</div>
         </div>
       )}
-      <div className="  rounded-lg   p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
+      <div className=" mx-auto max-w-6xl  rounded-lg   p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
         {/* Image Section */}
         <div className="">
           <div className=" border p-2 rounded-lg overflow-hidden ">
             <img
-              src={`${
-                product.product_colours?.[selection.currentIndex].image_url
-              }`}
+              src={`${product.product_colours?.[selection.currentIndex].image_url
+                }`}
               alt={product.name}
               className=" aspect-video object-contain w-full h-72"
             />
@@ -162,11 +164,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
                     <button
                       key={idx}
                       onClick={() => handleCurrentIndexChange(idx)}
-                      className={`border rounded-lg overflow-hidden size-14 ${
-                        idx === selection.currentIndex
+                      className={`border rounded-lg overflow-hidden size-14 ${idx === selection.currentIndex
                           ? "ring-1 ring-black"
                           : ""
-                      }`}
+                        }`}
                     >
                       <img
                         src={`${img.image_url}`}
@@ -227,11 +228,10 @@ export function ProductDetails({ product, addToCart }: IProps) {
                 <button
                   key={idx}
                   onClick={() => handleColorChange(color.colour, idx)}
-                  className={`w-8 h-8 rounded-lg border-2 ${
-                    selection.selectedColor === color.colour
+                  className={`w-8 h-8 rounded-lg border-2 ${selection.selectedColor === color.colour
                       ? "border-blue-500"
                       : "border-gray-300"
-                  }`}
+                    }`}
                   style={{ backgroundColor: color.colour }}
                 />
               ))}
@@ -241,17 +241,16 @@ export function ProductDetails({ product, addToCart }: IProps) {
           {/* Sizes */}
           <Section title="Sizes">
             <div className="flex gap-2 flex-wrap">
-              {productSizes.map((size) => (
+              {sizes.map((size) => (
                 <button
-                  key={size}
-                  onClick={() => handleSizeChange(size)}
-                  className={`px-3 py-1 border rounded ${
-                    selection.selectedSize === size
+                  key={size.size}
+                  onClick={() => handleSizeChange(size?.size)}
+                  className={`px-3 py-1 border rounded ${selection.selectedSize === size?.size
                       ? "border border-black"
                       : "border-gray-300"
-                  }`}
+                    }`}
                 >
-                  {size}
+                  {size?.size}
                 </button>
               ))}
             </div>
@@ -331,7 +330,7 @@ const QuantitySelector = ({
       </QuantityButton>
 
       <InputDiv
-        inputClass="text-center w-11 outline-none"
+        className="text-center w-11 outline-none"
         value={quantity}
         id=""
         onChange={(_, value) => {

@@ -6,14 +6,13 @@ import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
 import EmptyState from "@/components/EmptyState";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { routes } from "@/routes/appRoutes";
-import { useStore } from "@/store/useStore";
 
 export default function ProductsPage() {
-  // const {
-  //   data: products,
-  //   loading,
-  //   error,
-  // } = useFetch(api.fetch.fetchAllProducts);
+  const {
+    data: products,
+    loading,
+    error,
+  } = useFetch(api.fetch.fetchAllProducts);
 
   // Infer loading if hook doesn't expose it
   // const loading = typeof hookLoading === "boolean" ? hookLoading : typeof products === "undefined";
@@ -29,7 +28,7 @@ export default function ProductsPage() {
     return navigate(`/member/market/product/${encodeQuery(productId)}`);
   };
 
-  const { products, loading, error } = useStore();
+ 
 
   return (
     <>
@@ -44,10 +43,10 @@ export default function ProductsPage() {
       {loading && <ProductsGridSkeleton count={8} />}
 
       {/* Loaded Grid */}
-      {!loading && products.length > 0 && (
+      {!loading && products && products?.data?.length > 0 && (
         <GridComponent
           columns={10}
-          data={products}
+          data={products?.data || []}
           displayedCount={2}
           filter={""}
           setFilter={() => {}}
@@ -62,7 +61,7 @@ export default function ProductsPage() {
       )}
 
       {/* Empty / Error */}
-      {!loading && products.length === 0 && (
+      {!loading && products?.data?.length === 0 && (
         <EmptyState
           msg={error ? "Failed to load products" : "No products found"}
         />
