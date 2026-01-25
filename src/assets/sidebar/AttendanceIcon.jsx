@@ -2,8 +2,12 @@
 import React from 'react';
 
 const AttendanceIcon = (props) => (
-    <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor" {...props}>
-        <path d="m436.17-245.51-124.36-123.7 33.64-33.64 90.72 89.65 175.41-175.67 33.89 34.05-209.3 209.31Zm-231.8 140.77q-24.51 0-42.31-17.8-17.79-17.79-17.79-42.31v-561q0-24.51 17.79-42.3 17.8-17.8 42.4-17.8h70.07v-74.87h51.73v74.87h309.02v-74.87h50.45v74.87h69.81q24.6 0 42.4 17.8 17.79 17.79 17.79 42.3v561q0 24.52-17.79 42.31-17.8 17.8-42.31 17.8H204.37Zm.09-47.89h551.08q4.61 0 8.46-3.84 3.85-3.85 3.85-8.47v-386.67h-575.7v386.67q0 4.62 3.85 8.47 3.85 3.84 8.46 3.84ZM192.15-599.5h575.7v-126.26q0-4.61-3.85-8.46-3.85-3.84-8.46-3.84H204.46q-4.61 0-8.46 3.84-3.85 3.85-3.85 8.46v126.26Zm0 0v-138.56 138.56Z"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M16 14v2.2l1.6 1" fill="currentColor" {...props}/>
+        <path d="M16 2v4" fill="currentColor" {...props}/>
+        <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5" />
+        <path d="M3 10h5"/>
+        <path d="M8 2v4"/><circle cx="16" cy="16" r="6"/>
         </svg>
 
 );

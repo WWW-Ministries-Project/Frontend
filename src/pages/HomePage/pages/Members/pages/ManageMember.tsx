@@ -21,6 +21,7 @@ export function ManageMember() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = decodeQuery(params.get("member_id") || "");
+  const isEditMode = Boolean(id);
 
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
@@ -93,12 +94,15 @@ export function ManageMember() {
       }
 
       // Send data regardless of whether an image was uploaded
-      if (id) await updateData(dataToSend, { user_id: id! });
+      if (id) await updateData(dataToSend, { user_id: member.data?.id! });
       else await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);
     }
   }
+
+  console.log("member id", member?.data?.id);
+  
 
   return (
     <div className="p-4">
@@ -127,13 +131,15 @@ export function ManageMember() {
                 <Actions
                   goBack={() => stepControls.current?.goBack()}
                   goNext={
-                    stepControls.current?.isLastStep
+                    !isEditMode && stepControls.current?.isLastStep
                       ? undefined
                       : () => stepControls.current?.goNext()
                   }
                   onCancel={handleCancel}
                   onSubmit={
-                    stepControls.current?.isLastStep
+                    isEditMode
+                      ? handleSubmit
+                      : stepControls.current?.isLastStep
                       ? handleSubmit
                       : undefined
                   }

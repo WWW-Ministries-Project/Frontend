@@ -9,7 +9,74 @@ import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken, removeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
-import { Bars3Icon } from "@heroicons/react/24/outline";
+import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/outline";
+
+interface AccessibleMenuProps {
+  isOpen: boolean;
+  label: string;
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  children: React.ReactNode;
+}
+
+const AccessibleMenu = ({
+  isOpen,
+  label,
+  onClose,
+  triggerRef,
+  children,
+}: AccessibleMenuProps) => {
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
+      '[role="menuitem"]'
+    );
+    items?.[0]?.focus();
+  }, [isOpen]);
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
+      '[role="menuitem"]'
+    );
+    if (!items || !items.length) return;
+
+    const index = Array.from(items).indexOf(
+      document.activeElement as HTMLButtonElement
+    );
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      items[(index + 1) % items.length].focus();
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      items[(index - 1 + items.length) % items.length].focus();
+    }
+
+    if (e.key === "Escape") {
+      onClose();
+      triggerRef.current?.focus();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      ref={menuRef}
+      role="menu"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      className="absolute top-10  mt-2 w-56 bg-white border rounded-md shadow-lg"
+    >
+      {children}
+    </div>
+  );
+};
 
 interface IProps {
   handleShowNav?: () => void;
@@ -27,6 +94,8 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   const profileRef = useRef<HTMLDivElement>(null);
   const schoolRef = useRef<HTMLDivElement>(null);
+  const schoolButtonRef = useRef<HTMLButtonElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
   const mobileToggleRef = useRef<HTMLButtonElement>(null);
@@ -40,9 +109,6 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isLifeCenterLeader = token?.life_center_leader;
   const isInstructor = token?.instructor;
 
-
-  
-
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
 
@@ -54,6 +120,7 @@ export const Header = ({ handleShowNav }: IProps) => {
     ...(isLifeCenterLeader
       ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
       : []),
+      // { label: "Appointments", path: relativePath.member.appointments }
   ];
 
   const schoolItems = [
@@ -155,7 +222,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-50 bg-white md:text-sm lg:text-md"
+      className="sticky top-0 z-40 bg-white md:text-sm lg:text-md"
     >
       <div className="flex items-center justify-between px-4 ">
         {/* Left */}
@@ -167,28 +234,32 @@ export const Header = ({ handleShowNav }: IProps) => {
               aria-expanded={isMobileNavOpen}
               aria-controls="mobile-nav"
               onClick={() => setIsMobileNavOpen(v => !v)}
-              className="lg:hidden p-2 rounded-md bg-primary/5 hover:bg-primary/10"
+              className="xl:hidden p-2 rounded-md bg-primary/5 hover:bg-primary/10"
             >
               <Bars3Icon className="h-6"/>
             </button>
           )}
-          <ChurchLogo show={showLogoText} />
 
           {!isMemberRoute && (
-            <img
-              src={hamburger}
-              alt="menu"
+            <button
+              ref={mobileToggleRef}
+              aria-label="Toggle navigation"
+              aria-expanded={isMobileNavOpen}
+              aria-controls="mobile-nav"
               onClick={handleShowNav}
-              className="lg:hidden w-6 h-6 cursor-pointer"
-            />
+              className="xl:hidden p-2 rounded-md bg-primary/5 hover:bg-primary/10"
+            >
+              <Squares2X2Icon className="h-6"/>
+            </button>
           )}
+          <ChurchLogo show={showLogoText} />
 
           
         </div>
 
         {/* Desktop Nav */}
         {isMemberRoute && (
-          <nav className="hidden lg:flex items-center gap-2">
+          <nav className="hidden xl:flex items-center gap-2">
             {memberNavItems.map(item => (
               <button
                 key={item.label}
@@ -205,6 +276,7 @@ export const Header = ({ handleShowNav }: IProps) => {
 
             <div ref={schoolRef} className="relative">
               <button
+                ref={schoolButtonRef}
                 aria-expanded={isSchoolMenuOpen}
                 aria-haspopup="menu"
                 onKeyDown={(e) => {
@@ -221,27 +293,26 @@ export const Header = ({ handleShowNav }: IProps) => {
                 School of Ministries
               </button>
 
-              {isSchoolMenuOpen && (
-                <div
-                  role="menu"
-                  aria-label="School of Ministries"
-                  className="absolute mt-2 w-56 bg-white border rounded-md shadow-lg"
-                >
-                  {schoolItems.map(item => (
-                    <button
-                      role="menuitem"
-                      tabIndex={0}
-                      key={item.label}
-                      onClick={() => handleNavigate(item.path)}
-                      className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                        isActive(item.path) ? "text-primary font-semibold" : ""
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <AccessibleMenu
+                isOpen={isSchoolMenuOpen}
+                label="School of Ministries"
+                onClose={() => setIsSchoolMenuOpen(false)}
+                triggerRef={schoolButtonRef}
+              >
+                {schoolItems.map(item => (
+                  <button
+                    role="menuitem"
+                    tabIndex={0}
+                    key={item.label}
+                    onClick={() => handleNavigate(item.path)}
+                    className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
+                      isActive(item.path) ? "text-primary font-semibold" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </AccessibleMenu>
             </div>
           </nav>
         )}
@@ -251,6 +322,9 @@ export const Header = ({ handleShowNav }: IProps) => {
           {isMemberRoute && <CartIcon />}
 
           <button
+            ref={profileButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={isProfileMenuOpen}
             onClick={() => setIsProfileMenuOpen(v => !v)}
             className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100"
           >
@@ -260,26 +334,31 @@ export const Header = ({ handleShowNav }: IProps) => {
             </span>
           </button>
 
-          {isProfileMenuOpen && (
-            <div className="absolute right-0 top-12 w-56 bg-white border rounded-md shadow-lg">
-              {isMinistryWorker && (
-                <button
-                  onClick={() =>
-                    navigate(isMemberRoute ? "/home/dashboard" : "/member/dashboard")
-                  }
-                  className="w-full text-left px-4 py-3 hover:bg-gray-100"
-                >
-                  {isMemberRoute ? "Go to admin portal" : "Go to member portal"}
-                </button>
-              )}
+          <AccessibleMenu
+            isOpen={isProfileMenuOpen}
+            label="Profile menu"
+            onClose={() => setIsProfileMenuOpen(false)}
+            triggerRef={profileButtonRef}
+          >
+            {isMinistryWorker && (
               <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
+                role="menuitem"
+                onClick={() =>
+                  navigate(isMemberRoute ? "/home/dashboard" : "/member/dashboard")
+                }
+                className="w-full text-left px-4 py-3 hover:bg-gray-100"
               >
-                Log out
+                {isMemberRoute ? "Go to admin portal" : "Go to member portal"}
               </button>
-            </div>
-          )}
+            )}
+            <button
+              role="menuitem"
+              onClick={handleLogout}
+              className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
+            >
+              Log out
+            </button>
+          </AccessibleMenu>
         </div>
       </div>
 
@@ -292,7 +371,7 @@ export const Header = ({ handleShowNav }: IProps) => {
           style={{
             top: headerHeight,
           }}
-          className={`lg:hidden fixed left-0 right-0 z-40 bg-white border-t
+          className={`xl:hidden fixed left-0 right-0 z-40 bg-white border-t
             transform transition-transform duration-300 ease-out shadow-lg
             ${isMobileNavOpen
               ? "translate-y-0 visible pointer-events-auto"

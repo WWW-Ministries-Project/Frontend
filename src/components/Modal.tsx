@@ -26,6 +26,7 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
         {/* Flex container to center the modal */}
         <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
           <Dialog.Content
+            aria-describedby="dialog-description"
             className={`relative max-h-[90vh] rounded-2xl bg-white shadow-md ${className ?? "w-full max-w-xl"}`}
             onPointerDownOutside={
               persist ? (e) => e.preventDefault() : undefined
@@ -35,6 +36,9 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
             }
           >
             <Dialog.Title className="hidden">title</Dialog.Title>
+            <Dialog.Description id="dialog-description" className="sr-only">
+              Modal dialog content
+            </Dialog.Description>
             {children}
           </Dialog.Content>
         </div>

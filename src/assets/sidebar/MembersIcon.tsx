@@ -1,9 +1,9 @@
 export const MembersIcon = (props:{}) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    height="24px"
+    height="25px"
     viewBox="0 -960 960 960"
-    width="24px"
+    width="25px"
     fill="currentColor"
     {...props}
   >
