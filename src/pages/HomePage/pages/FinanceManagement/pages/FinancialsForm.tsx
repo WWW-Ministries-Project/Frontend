@@ -1,7 +1,7 @@
 import { FinanceData } from "@/utils/api/finance/interface";
 import FinanceBuilder from "../Components/FinanceBuilder";
 
-const FianancialsForm = () => {
+const FinancialsForm = () => {
     const defaultValues: FinanceData = {
     metaData: {
       month: "",
@@ -28,6 +28,7 @@ const FianancialsForm = () => {
       WeeklyRefund: { item: "" },
       OfficeMaintenanceReserve: { item: "" },
     },
+    fundsAllocation:[]
   };
     return ( 
         <FinanceBuilder 
@@ -37,4 +38,4 @@ const FianancialsForm = () => {
      );
 }
  
-export default FianancialsForm;
+export default FinancialsForm;

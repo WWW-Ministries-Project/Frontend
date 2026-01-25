@@ -31,8 +31,8 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
     },
     picture: { src: input.photo || "", picture: null },
     contact_info: {
-      email: input.email,
-      resident_country: input.country,
+      email: input.email || "",
+      resident_country: input.country || "",
       state_region: input.state_region || "",
       city: input.city || "",
       phone: {
@@ -41,16 +41,16 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       },
     },
     work_info: {
-      work_name: input.work_info.name_of_institution,
-      work_industry: input.work_info.industry,
-      work_position: input.work_info.position,
+      work_name: input.work_info?.name_of_institution || "",
+      work_industry: input.work_info?.industry || "",
+      work_position: input.work_info?.position || "",
       // school_name: input.work_info.name_of_institution
     },
     emergency_contact: {
       ...input.emergency_contact,
       phone: {
-        country_code: input.emergency_contact.country_code || "",
-        number: input.emergency_contact.phone_number || "",
+        country_code: input.emergency_contact?.country_code || "",
+        number: input.emergency_contact?.phone_number || "",
       },
     },
     is_user: input.is_user,

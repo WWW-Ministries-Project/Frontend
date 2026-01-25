@@ -203,4 +203,28 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("theme/create-theme", payload);
   }
+
+  // create receipt config 
+  createReceiptConfig = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("receiptconfig/create-receipt-config", payload);
+  }
+
+  // create payment config
+  createPaymentConfig = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("paymentconfig/create-payment-config", payload);
+  };
+
+  // create bankAccount config
+  createBankAccountConfig = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
+  };
 }
+
+
+

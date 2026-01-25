@@ -139,4 +139,27 @@ export class ApiDeletionCalls {
   ): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("theme/delete-theme", query);
   }
+
+  // delete receipt confiq
+  deleteReceiptConfig = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("receiptconfig/delete-receipt-config", query);
+  }
+
+  // delete payment config
+  deletePaymentConfig = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("paymentconfig/delete-payment-config", query);
+  }
+
+  // delete bank account config
+  deleteBankAccountConfig = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("bankaccountconfig/delete-bank-account-config", query);
+  };
 }
+
+

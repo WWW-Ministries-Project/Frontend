@@ -77,7 +77,8 @@ import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pa
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
 import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
-import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FianancialsForm.js";
+import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
+import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -286,7 +287,8 @@ export const routes: AppRoute[] = [
             element: <ManageAvailability />,
             isPrivate: false,
             sideTab: true,
-          }
+          },
+          
         ],
       },
    
@@ -347,7 +349,7 @@ export const routes: AppRoute[] = [
         permissionNeeded: "manage_asset",
       },
       {
-        path: "finance/",
+        path: "finance",
         name: "Finance",
         isPrivate: false,
         sideTab: true,
@@ -370,7 +372,14 @@ export const routes: AppRoute[] = [
             name: "Create Financials",
             element: <FianancialsForm />,
             isPrivate: false,
-          }
+          },
+          {
+            path: "configuration",
+            name: "Configuration",
+            element: <FinanceConfiguration />,
+            isPrivate: false,
+            sideTab: true,
+          },
         ],
       },
       {

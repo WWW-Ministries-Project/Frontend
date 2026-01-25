@@ -349,4 +349,40 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
 
+// update receipt config
+  updateReceiptConfig = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("receiptconfig/update-receipt-config", payload, query);
+  }
+
+  // update payment config
+  // update payment config
+  updatePaymentConfig = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "paymentconfig/update-payment-config",
+      payload,
+      query
+    );
+  };
+
+  // update bankAccount config
+  // update bankAccount config
+  updateBankAccountConfig = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "bankaccountconfig/update-bank-account-config",
+      payload,
+      query
+    );
+  };
 }
+
+
+

@@ -443,4 +443,29 @@ export class ApiCalls {
     return this.fetchFromApi("theme/get-active-theme", query);
   }
 
+  // fetch receipt config
+  fetchReceiptConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("receiptconfig/get-receipt-configs", query);
+  }
+
+  // fetch payment config
+  fetchPaymentConfig = (
+    query?: QueryType
+): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("paymentconfig/get-payment-configs", query);
+  };
+
+  // fetch bank account config
+  fetchBankAccountConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("bankaccountconfig/get-bank-account-configs", query);
+  };
+
+
 }
+
+
+

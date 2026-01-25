@@ -12,16 +12,20 @@ export interface FinanceData {
     };
   receipts: Array<{ item: string; amount: number | null }>;
   tithe: {
-    totalTithe: { percentage: number };
-    generalTithe: { percentage: number };
-    icareTithe: { percentage: number };
+    totalTithe: { percentage: number, amount: number, funds:number, label:string };
+    generalTithe: { percentage: number, amount: number, funds:number, label:string};
+    icareTithe: { percentage: number, amount: number, funds:number, label:string};
   };
   payments: Array<{ item: string; amount: number | null }>;
   balance: {
-    ExcessOfReceiptsOverPayments: { item: string };
-    ReserveForSavings: { item: string };
-    BalanceAmount: { item: string };
-    WeeklyRefund: { item: string };
-    OfficeMaintenanceReserve: { item: string };
+    ExcessOfReceiptsOverPayments: { item: string,  amount: number };
+    ReserveForSavings: { item: string, amount: number};
+    BalanceAmount: { item: string, amount:number };
+    WeeklyRefund: { item: string, amount: number };
+    OfficeMaintenanceReserve: { item: string, amount: number };
   };
+  fundsAllocation: Array<{ movement: string; actual: number; portionPercent: number;  adjusted: number}>;
+
+
 }
+
