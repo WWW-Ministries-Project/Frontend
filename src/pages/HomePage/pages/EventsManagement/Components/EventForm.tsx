@@ -33,7 +33,7 @@ const validationSchema = object().shape({
     .required("Event name is required")
     .min(3, "Name must be at least 3 characters"),
   event_type: string().required("Event type is required"),
-  event_description: string().optional(),
+  event_description: string().required("Event description is required"),
 });
 
 const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
@@ -63,7 +63,7 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
                 <Field
                   component={FormikInputDiv}
                   name="event_name"
-                  label="Event name*"
+                  label="Event name *"
                   id="event_name"
                   placeholder="Enter the name of the event"
                   className="w-full"
@@ -82,7 +82,7 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
               <Field
                 component={FormikInputDiv}
                 name="event_description"
-                label="Event description"
+                label="Event description *"
                 id="event_description"
                 placeholder="Enter a short description about the event"
                 className="w-full"

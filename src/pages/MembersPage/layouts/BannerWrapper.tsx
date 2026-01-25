@@ -17,18 +17,18 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
   }, []);
 
   return ( 
-   <div
-  className={`
-    bg-primary text-white overflow-hidden
-    ${
-      isAdmin
-        ? "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
-        : (isSticky
-        ? "fixed top-20 left-0 right-0 z-10 shadow-lg w-full"
-        : "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")
-    }
-  `}
->
+    <div
+      className={`
+  bg-primary text-white overflow-hidden
+  ${
+    isAdmin
+      ? "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
+      : isSticky
+        ? "fixed top-20 left-1/2 -translate-x-1/2 w-screen z-20 shadow-lg"
+        : "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
+  }
+`}
+    >
       {/* Decorative Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         {/* Geometric circles */}
