@@ -16,7 +16,7 @@ import { ViewUser } from "./pages/ViewUser";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 export const UserManagement = () => {
-  const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, {
+  const { data: registeredMembers, refetch: refetchMembers } = useFetch(api.fetch.fetchAllMembers, {
     is_user: "true",
   });
   const [searchedUser, setSearchedUser] = useState("");
@@ -28,12 +28,14 @@ export const UserManagement = () => {
     { label: "Home", link: relativePath.home.main },
     { label: "User Management", link: "" },
   ];
+  const total = registeredMembers?.meta?.total || 0;
+
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchedUser(e.target.value);
   };
 
-  const handleEditing = (id:string) => {
+  const handleEditing = (id: string) => {
     setSelectedUserId(id)
     setIsModalOpen(true)
   }
@@ -46,15 +48,14 @@ export const UserManagement = () => {
       cell: ({ row }) => (
         <div
           className="flex items-center gap-2 "
-          
+
         >
           <ProfilePicture
             src={row.original.photo}
             name={row.original.name}
             alt="profile pic"
-            className={`h-[38px] w-[38px] rounded-full border ${
-              row.original.is_active ? "border-green" : "border-error"
-            }`}
+            className={`h-[38px] w-[38px] rounded-full border ${row.original.is_active ? "border-green" : "border-error"
+              }`}
             textClass="font-great-vibes overflow-hidden opacity-60"
           />{" "}
           {row.original.name}
@@ -97,11 +98,11 @@ export const UserManagement = () => {
             "text-sm h-6 flex  gap-2 rounded-lg text-center text-white "
           }
           onClick={() => {
-              handleEditing(`${row.original.id}`)
-            }}
+            handleEditing(`${row.original.id}`)
+          }}
         >
-          
-          <PencilSquareIcon height={24} className="text-gray-800"/>
+
+          <PencilSquareIcon height={24} className="text-gray-800" />
         </div>
       ),
     },
@@ -127,20 +128,27 @@ export const UserManagement = () => {
           id="searchUsers"
           value={searchedUser}
           onChange={handleSearchChange}
+          onSubmit={() => {
+            refetchMembers({ page: "1", limit: "12", name: searchedUser });
+          }}
         />
       )}
+      { }
       <TableComponent
         columns={usersColumns}
         data={users}
-        filter={searchedUser}
-        setFilter={setSearchedUser}
         columnFilters={[]}
-        setColumnFilters={() => {}}
+        setColumnFilters={() => { }}
+        displayedCount={12}
+        total={total}
+        onPageChange={(page, limit) => {
+          refetchMembers({ limit: String(limit), page: String(page) });
+        }}
       />
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ViewUser 
-        id={`${selectedUserId}`}
-        onClose={()=>setIsModalOpen(false)}
+        <ViewUser
+          id={`${selectedUserId}`}
+          onClose={() => setIsModalOpen(false)}
         />
       </Modal>
     </PageOutline>
