@@ -1,6 +1,6 @@
 import { useUserStore } from "@/store/userStore";
 
-export const WelcomeHeader = ({ showFull = false }: { showFull?: boolean }) => {
+export const WelcomeHeader = ({ showFull = false, theme }: { showFull?: boolean, theme?: any }) => {
   const name = useUserStore((state) => state.name);
 
   return (
@@ -29,12 +29,15 @@ export const WelcomeHeader = ({ showFull = false }: { showFull?: boolean }) => {
 
           <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
             <p className="text-sm text-blue-100 mb-1">
-              Theme for the Year 2025
+              Theme for the Year {new Date().getFullYear()}
             </p>
             <h2 className="text-lg md:text-xl font-semibold mb-1">
-              &quot;The Year of Acceptance and Completeness&quot;
+              {/* &quot; */}
+              {theme?.title ?? ""}
+              {/* &quot; */}
             </h2>
-            {/* <p className="text-sm text-blue-200">2 Corinthians 5:7</p> */}
+            <p className="font-medium">{theme?.verse ?? ""}</p>
+            <p className="text-sm text-blue-200 italic">{theme?.verseReference ?? ""}</p>
           </div>
         </div>
 

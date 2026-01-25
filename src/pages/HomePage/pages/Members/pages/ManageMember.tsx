@@ -21,6 +21,7 @@ export function ManageMember() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = decodeQuery(params.get("member_id") || "");
+  const isEditMode = Boolean(id);
 
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
@@ -127,13 +128,15 @@ export function ManageMember() {
                 <Actions
                   goBack={() => stepControls.current?.goBack()}
                   goNext={
-                    stepControls.current?.isLastStep
+                    !isEditMode && stepControls.current?.isLastStep
                       ? undefined
                       : () => stepControls.current?.goNext()
                   }
                   onCancel={handleCancel}
                   onSubmit={
-                    stepControls.current?.isLastStep
+                    isEditMode
+                      ? handleSubmit
+                      : stepControls.current?.isLastStep
                       ? handleSubmit
                       : undefined
                   }

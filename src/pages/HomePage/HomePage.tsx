@@ -49,7 +49,7 @@ export function HomePage() {
   const [show, setShow] = useState(false);
   const { screenWidth } = useWindowSize();
   const handleShowNav = () => {
-    setShow((prev) => !prev);
+    setShow(v => !v);
   };
 
   //minimize side nav based on screen width

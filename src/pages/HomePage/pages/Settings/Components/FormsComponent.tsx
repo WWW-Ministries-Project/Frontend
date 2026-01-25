@@ -40,11 +40,13 @@ export const FormsComponent = (props: IProps) => {
   }
 
   return (
-    <form className="mt-5 px-5 pb-5">
-      <FormLayout $columns={1}>
-        <FormHeader>
+    <div className=" ">
+      <FormHeader>
           {props.editMode ? "Edit " : "Create "} {props.inputLabel}
         </FormHeader>
+        <form className="mt-5 px-5 pb-5">
+      <FormLayout $columns={1}>
+        
         <InputDiv
           onChange={handleChange}
           type="text"
@@ -79,6 +81,7 @@ export const FormsComponent = (props: IProps) => {
           loading={props.loading}
         />
       </div>
-    </form>
+      </form>
+    </div>
   );
 };

@@ -116,6 +116,8 @@ export const SideBar = ({ className }: IProps) => {
       style={{ height: "calc(100vh - var(--app-header-height))" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      aria-label="Main navigation sidebar"
+      role="navigation"
     >
       {/* Scrollable navigation area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll ">
@@ -144,9 +146,10 @@ export const SideBar = ({ className }: IProps) => {
 
       {/* Fixed logout section at bottom */}
       <div className="flex-shrink-0 border-t border-gray-200">
-        <div
-          className="flex items-center gap-2 p-4  cursor-pointer hover:bg-gray-100 rounded-md transition-colors"
+        <button
+          type="button"
           onClick={handleLogOut}
+          className="w-full flex items-center gap-2 p-4 hover:bg-gray-100 rounded-md transition-colors text-left"
           aria-label="Logout"
         >
           <LogoutIcon className="w-6 h-6 text-gray-600 flex-shrink-0" />
@@ -155,7 +158,7 @@ export const SideBar = ({ className }: IProps) => {
               Logout
             </span>
           )}
-        </div>
+        </button>
       </div>
     </div>
   );

@@ -9,17 +9,30 @@ import { QuickActions } from "./Components/QuickActions";
 import { RecentSermons } from "./Components/RecentSermons";
 import { UpcomingEvents } from "./Components/UpcomingEvents";
 import { WelcomeHeader } from "./Components/WelcomeHeader";
+import { api } from "@/utils/api/apiCalls";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { useEffect, useState } from "react";
 
 export const DashBoardPage = () => {
   const location = useLocation();
+  const [activeTheme, setActiveTheme] = useState<any>(null);
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.find((m) => m.route.name)?.route.name;
+  const { data, loading, refetch } = useFetch(api.fetch.fetchActiveAnnualTheme);
+
+  useEffect(() => {
+    if (data && data.data) {
+      setActiveTheme(data.data);
+    }
+  }, [data]);
+
+
 
   return (
     <div className="flex flex-col gap-6">
       <div className="sticky top-0 z-30">
-        <WelcomeHeader showFull={ routeName === "member" ? true : false} />
+        <WelcomeHeader showFull={ routeName === "member" ? true : false} theme={activeTheme} />
       </div>
 
       <div

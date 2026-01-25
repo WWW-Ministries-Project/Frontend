@@ -1,18 +1,42 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sidebarIcons } from "../utils";
 import { NavigationLink } from "./NavigationLink";
 import { SideBarSubMenu } from "./SidebarSubmenu";
 
 interface IProps {
   show: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 export const MobileSideBar = ({ show, onClick }: IProps) => {
   const items: AppRoute[] = sideTabs;
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!show) setOpenSubMenu(null);
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        if (onClick) onClick();
+        setOpenSubMenu(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [show, onClick]);
 
   const handleToggleSubMenu = (name: string) => {
     setOpenSubMenu((prev) => (prev === name ? null : name));
@@ -25,9 +49,10 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
 
   return (
     <div
-      className={`absolute top-14 left-0 h-full bg-white transition-transform duration-300 ease-in-out transform overflow-auto ${
+      ref={sidebarRef}
+      className={`absolute top-14 rounded-r-xl shadow-xl left-0 h-[calc(100vh-3.5rem)] bg-white transition-transform duration-300 ease-in-out transform overflow-auto ${
         show ? "translate-x-0" : "-translate-x-full"
-      } z-50`}
+      } z-[60] `}
     >
       <div className="h-full w-[250px] p-4">
         {/* navigation links */}
@@ -36,13 +61,15 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
             const IconComponent = sidebarIcons[item.name];
 
             if (!IconComponent) {
-              console.error(`Icon component for ${item.name} not found`);
+              if (process.env.NODE_ENV === "development") {
+                console.error(`Icon component for ${item.name} not found`);
+              }
               return null;
             }
 
             return (
               <div key={item.name}>
-                {item.children ? (
+                {item.children && item.children.some((child) => child.sideTab) ? (
                   <SideBarSubMenu
                     item={{ ...item, children: item.children ?? [] }}
                     parentPath={item.path}
@@ -58,9 +85,11 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
                   </SideBarSubMenu>
                 ) : (
                   <NavigationLink item={item} show={show}>
-                    <div
+                    <button
+                      type="button"
                       onClick={handleLinkClick}
-                      className="w-full flex items-center gap-2"
+                      className="w-full flex items-center gap-2 text-left"
+                      aria-label={item.name}
                     >
                       <IconComponent
                         className={`${
@@ -68,7 +97,7 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
                         }`}
                       />
                       {show && item.name}
-                    </div>
+                    </button>
                   </NavigationLink>
                 )}
               </div>
