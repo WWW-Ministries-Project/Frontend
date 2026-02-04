@@ -27,7 +27,7 @@ export function OrderFilters({
   };
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    onChange("name", e.target.value);
+    onChange("customer_name", e.target.value);
   };
 
   const { data: types, refetch: refetchTypes } = useFetch(
@@ -86,7 +86,7 @@ export function OrderFilters({
       <div className={`${showSearch ? "block" : "hidden"} w-full`}>
         <SearchBar
           className="h-10 w-full "
-          placeholder="Search product name here..."
+          placeholder="Search customer name here..."
           value={searchValue}
           onChange={handleSearch}
         />

@@ -14,5 +14,9 @@ export const MyOrders = () => {
     return getBaseOrderColumns([]);
   }, []);
 
-  return <Orders orders={data?.data || []} tableColumns={tableColumns} />;
+  const filteredOrders = useMemo(()=>{
+    return data?.data.filter((order) => order.market_status.toUpperCase() !== "ended");
+  },[data]);
+
+  return <Orders orders={filteredOrders || []} tableColumns={tableColumns} />;
 };
