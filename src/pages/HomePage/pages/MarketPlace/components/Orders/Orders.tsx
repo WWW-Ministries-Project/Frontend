@@ -35,7 +35,7 @@ const getStatusBadge = (status: PaymentStatus) => {
   }
 };
 
-const isMobileScreen = () => typeof window !== "undefined" && window.innerWidth <= 1024;
+const isMobileScreen = () => typeof globalThis !== "undefined" && window.innerWidth <= 1024;
 
 const OrderCard = ({ order }: { order: IOrders }) => {
   const total = (order.price_amount * order.quantity).toFixed(2);
@@ -97,11 +97,18 @@ const OrderCard = ({ order }: { order: IOrders }) => {
   );
 };
 
-export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
+
+interface IProps{
+  orders: IOrders[] | undefined;
+  tableColumns: ColumnDef<IOrders>[];
+  searchCustomer?: boolean
+  showExport?: boolean
+}
+export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [filterOrders, setFilterOrders] = useState<IFilters>({
-    name: "",
+    customer_name: "",
     product_type: "",
     product_category: "",
     color: "",
@@ -119,21 +126,22 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
 
   const filteredOrders = useCallback(() => {
     return orders!
-      .filter((order) => order.market_status === "Ended")
       .filter((order) => {
         return Object.entries(filterOrders).every(([key, value]) => {
           if (!value) return true;
+          if (key === "customer_name") {
+            const fullName = `${order.first_name} ${order.last_name}`.toLowerCase();
+            return fullName.trim().includes(value.trim().toLowerCase());
+          }
           const orderValue = order[key as keyof IOrders];
           return (
-            orderValue &&
-            orderValue.toString().toLowerCase().includes(value.toLowerCase())
+            orderValue?.toString().toLowerCase().includes(value.toLowerCase())
           );
         });
       });
   }, [filterOrders, orders]);
 
   const allOrders = filteredOrders();
-  console.log(allOrders);
   
 
   const handleExport = useCallback(() => {
@@ -165,7 +173,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
         screenWidth={window.innerWidth}
         handleClick={handleExport}
         hasFilter={true}
-        hasSearch={true}
+        hasSearch={searchCustomer}
         showSearch={showSearch}
         setShowSearch={setShowSearch}
         showFilter={showFilter}
@@ -175,7 +183,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
       {
         <OrderFilters
           onChange={handleFilters}
-          searchValue={filterOrders.name}
+          searchValue={filterOrders.customer_name}
           showSearch={showSearch}
           showFilter={showFilter}
           colors={allColors || []}
@@ -307,7 +315,7 @@ async function exportToExcel(orders: IOrders[]) {
 }
 
 export interface IFilters {
-  name: string;
+  customer_name: string;
   product_type: string;
   product_category: string;
   color: string;
