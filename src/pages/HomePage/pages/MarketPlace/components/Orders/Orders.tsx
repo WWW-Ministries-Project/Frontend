@@ -101,9 +101,10 @@ const OrderCard = ({ order }: { order: IOrders }) => {
 interface IProps{
   orders: IOrders[] | undefined;
   tableColumns: ColumnDef<IOrders>[];
+  searchCustomer?: boolean
   showExport?: boolean
 }
-export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
+export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [filterOrders, setFilterOrders] = useState<IFilters>({
@@ -172,7 +173,7 @@ export const Orders = ({ orders, tableColumns, showExport }: IProps) => {
         screenWidth={window.innerWidth}
         handleClick={handleExport}
         hasFilter={true}
-        hasSearch={true}
+        hasSearch={searchCustomer}
         showSearch={showSearch}
         setShowSearch={setShowSearch}
         showFilter={showFilter}

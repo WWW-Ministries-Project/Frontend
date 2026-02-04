@@ -18,5 +18,5 @@ export const MyOrders = () => {
     return data?.data.filter((order) => order.market_status.toUpperCase() !== "ended");
   },[data]);
 
-  return <Orders orders={filteredOrders || []} tableColumns={tableColumns} />;
+  return <Orders orders={filteredOrders || []} tableColumns={tableColumns} searchCustomer={false} />;
 };
