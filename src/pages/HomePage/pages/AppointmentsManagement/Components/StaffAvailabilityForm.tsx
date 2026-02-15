@@ -1,32 +1,19 @@
-import { Formik, Form, Field } from "formik";
+import { useEffect } from "react";
+import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
-import  FormikSelectField  from "@/components/FormikSelect";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
+import FormikSelectField from "@/components/FormikSelect";
+import { usePost } from "@/CustomHooks/usePost";
+import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
-
-export type DayOfWeek =
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday"
-  | "sunday";
-
-export interface TimeSlot {
-  day: DayOfWeek;
-  startTime: string;
-  endTime: string;
-  sessionDurationMinutes: number;
-  sessions: {
-    start: string;
-    end: string;
-  }[];
-}
+import { api } from "@/utils";
+import {
+  CreateStaffAvailabilityPayload,
+  DayOfWeek,
+  TimeSlot,
+} from "@/utils/api/appointment/interfaces";
 
 export interface IStaffAvailabilityForm {
   staffId: string;
@@ -52,16 +39,21 @@ const initialValues: IStaffAvailabilityForm = {
 
 const validationSchema = Yup.object({
   staffId: Yup.string().required("Staff is required"),
-//   timeSlots: Yup.array()
-//     .of(
-//       Yup.object({
-//         day: Yup.string().required(),
-//         startTime: Yup.string().required(),
-//         endTime: Yup.string().required(),
-//         sessionDurationMinutes: Yup.number().min(1).required(),
-//       })
-//     )
-//     .min(1, "At least one time slot is required"),
+  maxBookingsPerSlot: Yup.number()
+    .typeError("Max bookings per slot must be a number")
+    .integer("Max bookings per slot must be a whole number")
+    .min(1, "Max bookings per slot must be at least 1")
+    .required("Max bookings per slot is required"),
+  timeSlots: Yup.array()
+    .of(
+      Yup.object({
+        day: Yup.string().required(),
+        startTime: Yup.string().required(),
+        endTime: Yup.string().required(),
+        sessionDurationMinutes: Yup.number().min(1).required(),
+      })
+    )
+    .min(1, "At least one time slot is required"),
 });
 
 const timeToMinutes = (time: string) => {
@@ -86,7 +78,6 @@ const generateSessions = (
   const end = timeToMinutes(endTime);
 
   const sessions: { start: string; end: string }[] = [];
-
   let cursor = start;
 
   while (cursor + duration <= end) {
@@ -100,10 +91,7 @@ const generateSessions = (
   return sessions;
 };
 
-const hasOverlappingSessions = (
-  newSlot: TimeSlot,
-  existingSlots: TimeSlot[]
-) => {
+const hasOverlappingSessions = (newSlot: TimeSlot, existingSlots: TimeSlot[]) => {
   const newSessions = newSlot.sessions;
 
   return existingSlots.some((slot) => {
@@ -121,75 +109,84 @@ const hasOverlappingSessions = (
 
 interface StaffAvailabilityFormProps {
   availability?: IStaffAvailabilityForm;
-  membersOptions?: {
-    label: string;
-    value: string;
-    meta?: {
-      id: string;
-      fullName: string;
-      email: string;
-      position: string;
-    };
-  }[];
   onClose?: () => void;
+  onSuccess?: () => void;
   loading?: boolean;
 }
 
 const StaffAvailabilityFormComponent = ({
   availability,
   onClose,
+  onSuccess,
   loading,
 }: StaffAvailabilityFormProps) => {
-  const handleSubmitForm = (values: IStaffAvailabilityForm) => {
-    console.log(values);
-    
-    const {
-      staffId,
-      maxBookingsPerSlot,
-      timeSlots,
-      currentSlot,
-    } = values;
-
-    const payload = {
-      staffId,
-      maxBookingsPerSlot,
-      timeSlots,
-      currentSlot,
-    };
-
-    if (availability) {
-      console.log("Updating staff availability", payload);
-    } else {
-      console.log("Creating staff availability", payload);
-    }
-  };
+  const membersOptions = useStore((state) => state.membersOptions);
 
   const {
-        data,
-        refetch: fetchAMembers,
-        loading: memberLoading,
-      } = useFetch(api.fetch.fetchAMember, {}, true);
-      const memberData = data?.data || null;
-      const membersOptions = useStore((state) => state.membersOptions);
-      console.log("members", membersOptions);
-      console.log("full member data", memberData);
-      
-      
+    data: postResponse,
+    error: postError,
+    loading: postLoading,
+    postData,
+  } = usePost(api.post.createStaffAvailability);
 
-  const addTimeSlot = (values: IStaffAvailabilityForm, setFieldValue: any) => {
-    const { day, startTime, endTime, sessionDurationMinutes } =
-      values.currentSlot;
+  useEffect(() => {
+    if (!postResponse) return;
 
+    showNotification(
+      availability ? "Availability saved successfully" : "Availability created successfully",
+      "success"
+    );
+    onSuccess?.();
+    onClose?.();
+  }, [availability, onClose, onSuccess, postResponse]);
+
+  useEffect(() => {
+    if (!postError) return;
+    showNotification(postError.message || "Unable to save availability", "error");
+  }, [postError]);
+
+  const handleSubmitForm = (values: IStaffAvailabilityForm) => {
+    const payload: CreateStaffAvailabilityPayload = {
+      staffId: values.staffId,
+      maxBookingsPerSlot: Number(values.maxBookingsPerSlot),
+      timeSlots: values.timeSlots,
+    };
+
+    postData(payload);
+  };
+
+  const addTimeSlot = (
+    values: IStaffAvailabilityForm,
+    setFieldValue: (field: string, value: unknown) => void
+  ) => {
+    const { day, startTime, endTime, sessionDurationMinutes } = values.currentSlot;
     const duration = Number(sessionDurationMinutes);
 
-    const sessions = generateSessions(
-      startTime,
-      endTime,
-      duration
-    );
+    if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
+      setFieldValue(
+        "timeSlotsError",
+        "End time must be later than start time."
+      );
+      return;
+    }
+
+    if (!duration || duration <= 0) {
+      setFieldValue("timeSlotsError", "Session duration must be greater than zero.");
+      return;
+    }
+
+    const sessions = generateSessions(startTime, endTime, duration);
+
+    if (sessions.length === 0) {
+      setFieldValue(
+        "timeSlotsError",
+        "Session duration is too long for the selected time range."
+      );
+      return;
+    }
 
     const slot: TimeSlot = {
-      day,
+      day: day as DayOfWeek,
       startTime,
       endTime,
       sessionDurationMinutes: duration,
@@ -216,7 +213,11 @@ const StaffAvailabilityFormComponent = ({
     });
   };
 
-  const removeTimeSlot = (index: number, values: IStaffAvailabilityForm, setFieldValue: any) => {
+  const removeTimeSlot = (
+    index: number,
+    values: IStaffAvailabilityForm,
+    setFieldValue: (field: string, value: unknown) => void
+  ) => {
     setFieldValue(
       "timeSlots",
       values.timeSlots.filter((_, i) => i !== index)
@@ -227,7 +228,7 @@ const StaffAvailabilityFormComponent = ({
     slotIndex: number,
     sessionIndex: number,
     values: IStaffAvailabilityForm,
-    setFieldValue: any
+    setFieldValue: (field: string, value: unknown) => void
   ) => {
     const updatedSlots = values.timeSlots.map((slot, i) => {
       if (i !== slotIndex) return slot;
@@ -341,9 +342,7 @@ const StaffAvailabilityFormComponent = ({
             />
 
             {values.timeSlotsError && (
-              <p className="text-sm text-red-600 mt-2">
-                {values.timeSlotsError}
-              </p>
+              <p className="text-sm text-red-600 mt-2">{values.timeSlotsError}</p>
             )}
 
             {values.timeSlots.length > 0 && (
@@ -401,9 +400,9 @@ const StaffAvailabilityFormComponent = ({
             )}
 
             <Button
-                variant="primary"
-                onClick={handleSubmit}
-              loading={loading}
+              variant="primary"
+              onClick={handleSubmit}
+              loading={loading || postLoading}
               value={availability ? "Save Changes" : "Create Availability"}
             />
           </div>
@@ -413,12 +412,9 @@ const StaffAvailabilityFormComponent = ({
   );
 };
 
-export const StaffAvailabilityForm = Object.assign(
-  StaffAvailabilityFormComponent,
-  {
-    initialValues,
-    validationSchema,
-  }
-);
+export const StaffAvailabilityForm = Object.assign(StaffAvailabilityFormComponent, {
+  initialValues,
+  validationSchema,
+});
 
 export default StaffAvailabilityForm;

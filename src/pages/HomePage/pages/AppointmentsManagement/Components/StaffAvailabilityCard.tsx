@@ -1,34 +1,15 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
-
-interface Session {
-    start: string;
-    end: string;
-}
-
-interface TimeSlot {
-    day: string;
-    startTime: string;
-    endTime: string;
-    sessionDurationMinutes: number;
-    sessions: Session[];
-}
-
-interface Availability {
-    staffId: string;
-    staffName: string;
-    position: string;
-    role: string;
-    timeSlots: TimeSlot[];
-    maxBookingsPerSlot: number;
-}
+import { StaffAvailability } from "@/utils/api/appointment/interfaces";
 
 interface StaffAvailabilityCardProps {
-    availability: Availability;
-    onEdit: () => void;
-    onDelete: () => void;
+    availability: StaffAvailability;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
 const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabilityCardProps) => {
+    const roleText = availability.role ? ` · ${availability.role}` : "";
+
     return ( 
         <div className="border p-4 rounded  flex flex-col gap-3  mb-4 relative">
 
@@ -37,7 +18,7 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
           <button
             onClick={onEdit}
             className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50"
-            aria-label="Edit annual theme"
+            aria-label="Edit staff availability"
           >
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
@@ -46,7 +27,7 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
           <button
             onClick={onDelete}
             className="w-9 h-9 flex items-center justify-center rounded-lg border border-red-200 bg-white hover:bg-red-50"
-            aria-label="Delete annual theme"
+            aria-label="Delete staff availability"
           >
             <TrashIcon className="w-4 h-4 text-red-600" />
           </button>
@@ -56,10 +37,10 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
             <div className=" space-y-2"
             >
                 <h3 className="text-lg font-semibold">
-                  {availability.staffName}
+                  {availability.staffName || "Unknown Staff"}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {availability.position} · {availability.role}
+                  {availability.position || "Staff"}{roleText}
                 </p>
             </div>
             <div>

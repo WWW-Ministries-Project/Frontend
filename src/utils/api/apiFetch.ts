@@ -14,7 +14,6 @@ import {
 import type {
   IMarket,
   IOrders,
-  IProduct,
   IProductType,
   IProductTypeResponse,
 } from "./marketPlace/interface";
@@ -30,6 +29,7 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import { StaffAvailability } from "./appointment/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -415,6 +415,13 @@ export class ApiCalls {
     return this.fetchFromApi(`orders/get-orders-by-user/`, query);
   };
 
+  // Fetch staff appointment availability
+  fetchStaffAvailability = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailability[]>> => {
+    return this.fetchFromApi("appointment/availability", query);
+  };
+
   // Fetch church attendance records
   fetchSingleChurchAttendance = (
     query?: QueryType
@@ -466,6 +473,4 @@ export class ApiCalls {
 
 
 }
-
-
 
