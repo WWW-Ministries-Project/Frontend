@@ -21,6 +21,9 @@ export interface IChurchAttendanceForm {
   adultFemale?: number;
   childrenMale?: number;
   childrenFemale?: number;
+  youthMale?: number;
+  youthFemale?: number;
+  visitingPastors?: number;
   recordedBy: string;
   lastUpdatedBy: string;
   id?: string | number;
@@ -28,7 +31,17 @@ export interface IChurchAttendanceForm {
   recordedByName?: string;
 }
 
-const AutoPopulateAttendanceDate = ({ eventsOptions }: { eventsOptions: any[] }) => {
+interface AttendanceEventOption {
+  value: string | number;
+  label: string;
+  date?: string;
+}
+
+const AutoPopulateAttendanceDate = ({
+  eventsOptions,
+}: {
+  eventsOptions: AttendanceEventOption[];
+}) => {
   const { values, setFieldValue } = useFormikContext<IChurchAttendanceForm>();
 
   useEffect(() => {
@@ -60,67 +73,50 @@ const ChurchAttendanceFormComponent = ({
   refetch,
 }: Props) => {
   const initialValues = useMemo(
-    () => initialData || defaultValues,
+    () => ({ ...defaultValues, ...initialData, group: "BOTH" }),
     [initialData]
   );
 
   const { eventsOptions } = useStore();
   const { user } = useAuth();
-  
 
   const {
-      postData,
-      loading: postLoading,
-      data: postSuccess,
-    } = usePost(api.post.recordChurchAttendance);
-    const {
-      updateData,
-      loading: putLoading,
-      data: putSuccess,
-    } = usePut(api.put.updateChurchAttendance);
+    postData,
+    loading: postLoading,
+  } = usePost(api.post.recordChurchAttendance);
+  const {
+    updateData,
+    loading: putLoading,
+  } = usePut(api.put.updateChurchAttendance);
 
   const onSubmit = (values: IChurchAttendanceForm) => {
-    const isAdults = values.group === "ADULTS";
-    const isChildren = values.group === "CHILDREN";
-    const isBoth = values.group === "BOTH";
-
     const payload = {
       eventId: values.eventId,
       date: values.date,
-      group: values.group,
-      adultMale: isChildren ? 0 : values.adultMale ?? 0,
-      adultFemale: isChildren ? 0 : values.adultFemale ?? 0,
-      childrenMale: isAdults ? 0 : values.childrenMale ?? 0,
-      childrenFemale: isAdults ? 0 : values.childrenFemale ?? 0,
-      // attendance: {
-      //   adults: {
-      //     male: isChildren ? 0 : values.adultMale ?? 0,
-      //     female: isChildren ? 0 : values.adultFemale ?? 0,
-      //   },
-      //   children: {
-      //     male: isAdults ? 0 : values.childrenMale ?? 0,
-      //     female: isAdults ? 0 : values.childrenFemale ?? 0,
-      //   },
-      // },
+      group: "BOTH" as const,
+      adultMale: values.adultMale ?? 0,
+      adultFemale: values.adultFemale ?? 0,
+      childrenMale: values.childrenMale ?? 0,
+      childrenFemale: values.childrenFemale ?? 0,
+      youthMale: values.youthMale ?? 0,
+      youthFemale: values.youthFemale ?? 0,
+      visitingPastors: values.visitingPastors ?? 0,
       recordedBy: user.id,
       recordedByName: user.name,
     };
 
     if (initialData && initialData.id) {
-      updateData(payload as any, { id: String(initialData.id) }).then(() => {
+      updateData(payload, { id: String(initialData.id) }).then(() => {
         if (refetch) refetch();
         onClose();
       });
     } else {
-      postData(payload as any).then(() => {
+      postData(payload).then(() => {
         if (refetch) refetch();
         onClose();
       });
     }
   };
-
-  console.log("Initial data", initialData);
-  
 
   return (
     <div className="bg-white rounded-2xl shadow-xl">
@@ -164,19 +160,16 @@ const ChurchAttendanceFormComponent = ({
                   />
                 </div>
 
-                <Field
+                {/* <Field
                   component={FormikSelectField}
                   label="Group *"
                   id="group"
                   name="group"
-                  options={[
-                    { label: "Adults Only", value: "ADULTS" },
-                    { label: "Children Only", value: "CHILDREN" },
-                    { label: "Both", value: "BOTH" },
-                  ]}
-                />
+                  options={[{ label: "Both", value: "BOTH" }]}
+                  // disabled
+                /> */}
 
-                {(values.group === "ADULTS" || values.group === "BOTH") && (
+                {/* {(values.group === "ADULTS" || values.group === "BOTH") && ( */}
                   <div className="grid grid-cols-2 gap-4">
                     <Field
                       component={FormikInputDiv}
@@ -193,9 +186,9 @@ const ChurchAttendanceFormComponent = ({
                       name="adultFemale"
                     />
                   </div>
-                )}
+                {/* )} */}
 
-                {(values.group === "CHILDREN" || values.group === "BOTH") && (
+                {/* {(values.group === "CHILDREN" || values.group === "BOTH") && ( */}
                   <div className="grid grid-cols-2 gap-4">
                     <Field
                       component={FormikInputDiv}
@@ -212,7 +205,31 @@ const ChurchAttendanceFormComponent = ({
                       name="childrenFemale"
                     />
                   </div>
-                )}
+                {/* )} */}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Youth Male"
+                    id="youthMale"
+                    name="youthMale"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Youth Female"
+                    id="youthFemale"
+                    name="youthFemale"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Visiting Pastors"
+                    id="visitingPastors"
+                    name="visitingPastors"
+                  />
+                </div>
               </div>
 
               <div className="sticky bottom-0 z-10 bg-white border-t px-6 py-4">
@@ -221,7 +238,7 @@ const ChurchAttendanceFormComponent = ({
                     value="Save"
                     variant="primary"
                     type="submit"
-                    loading={loading}
+                    loading={loading || postLoading || putLoading}
                     onClick={handleSubmit}
                   />
                   <Button
@@ -242,11 +259,14 @@ const ChurchAttendanceFormComponent = ({
 const defaultValues: IChurchAttendanceForm = {
   eventId: "",
   date: "",
-  group: "ADULTS",
+  group: "BOTH",
   adultMale: 0,
   adultFemale: 0,
   childrenMale: 0,
   childrenFemale: 0,
+  youthMale: 0,
+  youthFemale: 0,
+  visitingPastors: 0,
   recordedBy: "Current User",
   lastUpdatedBy: "Current User",
 };
@@ -259,6 +279,9 @@ const validationSchema = object({
   adultFemale: number().min(0),
   childrenMale: number().min(0),
   childrenFemale: number().min(0),
+  youthMale: number().min(0),
+  youthFemale: number().min(0),
+  visitingPastors: number().min(0),
 });
 
 export const ChurchAttendanceForm = Object.assign(

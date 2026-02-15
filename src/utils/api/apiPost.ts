@@ -24,6 +24,10 @@ import type {
   ICheckOut,
   CheckOutResponse,
 } from "./marketPlace/interface";
+import {
+  CreateStaffAvailabilityPayload,
+  StaffAvailability,
+} from "./appointment/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -107,7 +111,9 @@ export class ApiCreationCalls {
   
 
   // Unenroll User
-  unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  unenrollUser = <T>(
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("program/unenroll", payload);
   };
 
@@ -190,6 +196,12 @@ export class ApiCreationCalls {
     return this.postToApi("orders/create-order", payload);
   };
 
+  createStaffAvailability = (
+    payload: CreateStaffAvailabilityPayload
+  ): Promise<ApiResponse<StaffAvailability>> => {
+    return this.postToApi("appointment/availability", payload);
+  };
+
   // Record Attendance
   recordChurchAttendance = (
     payload: unknown
@@ -225,6 +237,4 @@ export class ApiCreationCalls {
     return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
   };
 }
-
-
 

@@ -15,8 +15,66 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { showDeleteDialog, showNotification } from "../../utils";
 
+const toNumber = (value: unknown): number => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const toStringValue = (value: unknown): string => {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return "";
+};
+
+const toOptionalStringValue = (value: unknown): string | undefined => {
+  if (typeof value === "string" && value.trim() !== "") return value;
+  if (typeof value === "number") return String(value);
+  return undefined;
+};
+
+const normalizeGroup = (value: unknown): IChurchAttendanceForm["group"] => {
+  if (value === "ADULTS" || value === "CHILDREN" || value === "BOTH") {
+    return value;
+  }
+  return "BOTH";
+};
+
+const normalizeAttendanceRecord = (
+  record: Record<string, unknown>
+): IChurchAttendanceForm => ({
+  eventId: toStringValue(record.eventId ?? record.event_id),
+  date: toStringValue(record.date),
+  group: normalizeGroup(record.group),
+  adultMale: toNumber(record.adultMale ?? record.adult_male),
+  adultFemale: toNumber(record.adultFemale ?? record.adult_female),
+  childrenMale: toNumber(record.childrenMale ?? record.children_male),
+  childrenFemale: toNumber(record.childrenFemale ?? record.children_female),
+  youthMale: toNumber(record.youthMale ?? record.youth_male),
+  youthFemale: toNumber(record.youthFemale ?? record.youth_female),
+  visitingPastors: toNumber(record.visitingPastors ?? record.visiting_pastors),
+  recordedBy: toStringValue(record.recordedBy ?? record.recorded_by),
+  lastUpdatedBy: toStringValue(
+    record.lastUpdatedBy ?? record.last_updated_by
+  ),
+  id:
+    typeof record.id === "string" || typeof record.id === "number"
+      ? record.id
+      : typeof record.attendance_id === "string" ||
+        typeof record.attendance_id === "number"
+      ? record.attendance_id
+      : undefined,
+  event_name: toOptionalStringValue(record.event_name ?? record.eventName),
+  recordedByName: toOptionalStringValue(
+    record.recordedByName ?? record.recorded_by_name
+  ),
+});
+
 export default function ChurchAttendance() {
-  const { data, loading, refetch } = useFetch(api.fetch.fetchChurchAttendance);
+  const { data, refetch } = useFetch(api.fetch.fetchChurchAttendance);
   const { executeDelete, success } = useDelete(api.delete.deleteChurchAttendance);
   const [attendance, setAttendance] = useState<IChurchAttendanceForm[]>([]);
 
@@ -82,7 +140,7 @@ export default function ChurchAttendance() {
 
   useEffect(() => {
     if (data && data.data && Array.isArray(data.data)) {
-      setAttendance(data.data);
+      setAttendance(data.data.map(normalizeAttendanceRecord));
     }
   }, [data]);
 
@@ -159,7 +217,7 @@ export default function ChurchAttendance() {
               }
             >
               <option value="">All</option>
-              <option value="ADULT">Adults</option>
+              <option value="ADULTS">Adults</option>
               <option value="CHILDREN">Children</option>
               <option value="BOTH">Both</option>
             </select>
@@ -221,7 +279,11 @@ export default function ChurchAttendance() {
                 <ChurchAttendanceHeader />
                 {records.map((record) => (
                   <ChurchAttendanceCard
-                    key={`${record.eventId}-${record.date}-${record.group}`}
+                    key={
+                      record.id
+                        ? String(record.id)
+                        : `${record.eventId}-${record.date}-${record.group}`
+                    }
                     record={record}
                     onEdit={(rec) => {
                       setEditing(rec);

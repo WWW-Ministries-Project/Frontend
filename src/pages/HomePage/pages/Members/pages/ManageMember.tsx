@@ -94,7 +94,7 @@ export function ManageMember() {
       }
 
       // Send data regardless of whether an image was uploaded
-      if (id) await updateData(dataToSend, { user_id: member.data?.id! });
+      if (id) await updateData(dataToSend, { user_id: member.data?.user_id! });
       else await postData(dataToSend);
     } catch (error) {
       console.error("Error during submission:", error);

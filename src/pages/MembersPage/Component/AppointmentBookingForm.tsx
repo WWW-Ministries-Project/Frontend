@@ -205,7 +205,7 @@ const AppointmentBookingForm = ({
                 {/* Staff selection */}
                 <Field
                   component={FormikSelectField}
-                  label="Select Staff *"
+                  label="Appointment With *"
                   name="staffId"
                   id="staffId"
                   className="w-full"

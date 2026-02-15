@@ -12,12 +12,13 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
     const adultTotal = (record.adultMale ?? 0) + (record.adultFemale ?? 0);
     const childTotal =
       (record.childrenMale ?? 0) + (record.childrenFemale ?? 0);
-      const total = adultTotal + childTotal;
-    return { adultTotal, childTotal, total };
+    const youthTotal = (record.youthMale ?? 0) + (record.youthFemale ?? 0);
+    const total = adultTotal + childTotal + youthTotal;
+    return { adultTotal, childTotal, youthTotal, total };
   };
 
   return (
-    <div className="grid grid-cols-8 items-center px-4 py-3 text-sm border-t gap-x-3">
+    <div className="grid grid-cols-10 items-center px-4 py-3 text-sm border-t gap-x-3">
       <div>
         {record.event_name ?? "Unknown Event"}
       </div>
@@ -70,6 +71,22 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
           </div>
           : "—"}
       </div>
+
+      <div>
+        <div className="flex flex-col">
+          <div>
+            M: {record.youthMale ?? 0}
+          </div>
+          <div>
+            F: {record.youthFemale ?? 0}
+          </div>
+          <div className="font-semibold">
+            Total: {getTotals().youthTotal}
+          </div>
+        </div>
+      </div>
+
+      <div className="font-semibold">{record.visitingPastors ?? 0}</div>
 
       <div className="font-semibold">{getTotals().total}</div>
 

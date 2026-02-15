@@ -3,16 +3,37 @@ export interface Session {
   end: string;
 }
 
+export type DayOfWeek =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
 export interface TimeSlot {
-  day: string;
+  day: DayOfWeek;
   startTime: string;
   endTime: string;
+  sessionDurationMinutes: number;
   sessions: Session[];
 }
 
 export interface StaffAvailability {
+  id?: string;
   staffId: string;
   staffName: string;
+  position?: string;
+  role?: string;
+  maxBookingsPerSlot: number;
+  timeSlots: TimeSlot[];
+  currentSlot?: TimeSlot;
+}
+
+export interface CreateStaffAvailabilityPayload {
+  staffId: string;
+  maxBookingsPerSlot: number;
   timeSlots: TimeSlot[];
 }
 
