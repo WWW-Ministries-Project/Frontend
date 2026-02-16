@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
 import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer";
-import { NotificationCard } from "@/components/NotificationCard";
 
 /**
  * MembersPage Layout Component
@@ -58,7 +57,6 @@ const MembersPage = () => {
             {/* Global UI Components */}
             <CartDrawer />
             <LoaderComponent />
-            <NotificationCard />
         </div>
     );
 };

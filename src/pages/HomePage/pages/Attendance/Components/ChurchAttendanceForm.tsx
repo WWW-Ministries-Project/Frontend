@@ -7,6 +7,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { useStore } from "@/store/useStore";
 import { api, formatInputDate } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
 import { number, object, string } from "yup";
@@ -82,12 +83,37 @@ const ChurchAttendanceFormComponent = ({
 
   const {
     postData,
+    data: createdAttendance,
+    error: postError,
     loading: postLoading,
   } = usePost(api.post.recordChurchAttendance);
   const {
     updateData,
+    data: updatedAttendance,
+    error: putError,
     loading: putLoading,
   } = usePut(api.put.updateChurchAttendance);
+
+  useEffect(() => {
+    if (!createdAttendance && !updatedAttendance) return;
+
+    showNotification(
+      initialData ? "Attendance updated successfully." : "Attendance recorded successfully.",
+      "success"
+    );
+    if (refetch) refetch();
+    onClose();
+  }, [createdAttendance, initialData, onClose, refetch, updatedAttendance]);
+
+  useEffect(() => {
+    if (!postError && !putError) return;
+
+    const message =
+      postError?.message ||
+      putError?.message ||
+      "Unable to save attendance. Please try again.";
+    showNotification(message, "error", "Attendance");
+  }, [postError, putError]);
 
   const onSubmit = (values: IChurchAttendanceForm) => {
     const payload = {
@@ -106,15 +132,9 @@ const ChurchAttendanceFormComponent = ({
     };
 
     if (initialData && initialData.id) {
-      updateData(payload, { id: String(initialData.id) }).then(() => {
-        if (refetch) refetch();
-        onClose();
-      });
+      updateData(payload, { id: String(initialData.id) });
     } else {
-      postData(payload).then(() => {
-        if (refetch) refetch();
-        onClose();
-      });
+      postData(payload);
     }
   };
 

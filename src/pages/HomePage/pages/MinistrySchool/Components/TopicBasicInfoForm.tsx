@@ -2,6 +2,7 @@ import TextEditor from "@/components/TextEditor";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api, LearningUnitType, Topic } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -132,30 +133,30 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
 
     const validateAssignment = () => {
       if (!learningUnit || learningUnit.type !== "assignment") return true;
-      if (
+if (
   learningUnit.data.maxAttempts < 1 ||
   learningUnit.data.passMark < 0 ||
   learningUnit.data.passMark > 100
 ) {
-  alert("Please provide valid max attempts and pass mark values.");
+  showNotification("Please provide valid max attempts and pass mark values.", "error");
   return false;
 }
 
       const questions = learningUnit.data.questions as AssignmentQuestion[];
 
       if (!questions.length) {
-        alert("Assignment must have at least one question.");
+        showNotification("Assignment must have at least one question.", "error");
         return false;
       }
 
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
         if (q.options.length < 2) {
-          alert(`Question ${i + 1} must have at least two options.`);
+          showNotification(`Question ${i + 1} must have at least two options.`, "error");
           return false;
         }
         if (!q.correctOptionId) {
-          alert(`Question ${i + 1} must have one correct answer.`);
+          showNotification(`Question ${i + 1} must have one correct answer.`, "error");
           return false;
         }
       }
@@ -211,7 +212,7 @@ const handleSubmit = () => {
   if (!validateAssignment()) return;
 
   if (!learningUnit) {
-    alert("Please select a learning unit type.");
+    showNotification("Please select a learning unit type.", "error");
     return;
   }
 

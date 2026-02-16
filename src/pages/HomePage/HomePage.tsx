@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
-import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -166,7 +165,6 @@ export function HomePage() {
                 </div>
     </div>
   </div>
-  <NotificationCard />
           <Dialog />
           <LoaderComponent />
 </main>

@@ -1,7 +1,7 @@
 import { ChangeEvent, memo, useEffect, useState, useCallback } from "react";
 import cloud_upload from "@/assets/cloud_upload.svg";
 import useFileUpload from "@/CustomHooks/useFileUpload";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { showNotification } from "@/pages/HomePage/utils";
 
 export type image = { image: string; id: number; file?: File };
 
@@ -59,7 +59,6 @@ const MultiImageComponent = ({
   initialImages: image[];
 }) => {
   const { handleFileChange } = useFileUpload();
-  const { setNotification } = useNotificationStore();
 
   const [images, setImages] = useState<image[]>([]);
 
@@ -75,13 +74,11 @@ const MultiImageComponent = ({
       const files = event.target.files;
       if (files) {
         if (files.length + images.length > MAX_IMAGES) {
-          setNotification({
-            message: `You can only upload a maximum of ${MAX_IMAGES} images.`,
-            onClose: () => {},
-            show: true,
-            title: "Add image",
-            type: "error",
-          });
+          showNotification(
+            `You can only upload a maximum of ${MAX_IMAGES} images.`,
+            "error",
+            "Add image"
+          );
           return;
         }
         Array.from(files).forEach((file, index) => {
@@ -95,13 +92,16 @@ const MultiImageComponent = ({
           };
           reader.onerror = () => {
             console.error("File reading has failed.");
-            alert("There was an error reading the file. Please try again.");
+            showNotification(
+              "There was an error reading the file. Please try again.",
+              "error"
+            );
           };
           reader.readAsDataURL(file);
         });
       }
     },
-    [images, handleFileChange]
+    [MAX_IMAGES, images.length, handleFileChange]
   );
 
   const removeImage = useCallback((id: number) => {
