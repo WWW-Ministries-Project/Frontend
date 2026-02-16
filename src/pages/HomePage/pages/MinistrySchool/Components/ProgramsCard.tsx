@@ -37,7 +37,7 @@ interface ProgramsCardProps {
 }
 
 interface EligibilityBadgeProps {
-  eligibility: Program["eligibility"];
+  eligibility?: Program["eligibility"];
 }
 
 const ProgramsCard = ({
@@ -119,7 +119,9 @@ const ProgramsCard = ({
             {program.title}
           </h3>
           {!applyCard &&
-            getEligibilityBadge({ eligibility: program.eligibility })}
+            getEligibilityBadge({
+              eligibility: (program.eligibility as Program["eligibility"]) || "Both",
+            })}
         </div>
 
         {/* Description */}
@@ -190,12 +192,10 @@ const ProgramsCard = ({
       )}
 
       {/* Actions */}
-      {applyCard && program.cohorts.length ? (
+      {applyCard && (program.cohorts?.length ?? 0) ? (
         <div className="flex justify-between items-center pt-2">
           <Button
-            onClick={() => {
-              handleApply(program.cohorts[0]);
-            }}
+            onClick={() => handleApply?.()}
             value="Apply"
             className="bg-primary text-white px-6 py-2 w-full hover:bg-primary/90 transition-colors"
           />
@@ -254,7 +254,9 @@ const ProgramsCard = ({
                     <button
                       className="w-full text-left px-4 py-2 text-sm hover:bg-lightGray/30 transition-colors"
                       onClick={() => {
-                        handleCopyLink?.(program.id);
+                        if (program.id !== undefined) {
+                          handleCopyLink?.(Number(program.id));
+                        }
                         setIsMenuOpen(false);
                       }}
                       role="menuitem"

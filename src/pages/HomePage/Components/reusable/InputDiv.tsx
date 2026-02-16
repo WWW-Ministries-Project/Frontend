@@ -7,7 +7,10 @@ export interface InputDivProps {
   type?: "text" | "number" | "email" | "password" | "textarea";
   value?: string | number;
   placeholder?: string;
-  onChange: (name: string, value: string | number) => void;
+  onChange:
+    | ((name: string, value: string | number) => void)
+    | React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
+    | (() => void);
   onBlur?: React.FocusEventHandler<
     HTMLInputElement | HTMLTextAreaElement
   >;
@@ -23,10 +26,14 @@ export interface InputDivProps {
 
   className?: string;
   inputClassName?: string;
+  inputClass?: string;
 
   ariaLabel?: string;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
 }
 
 export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
@@ -49,9 +56,13 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
       autoComplete = "off",
       className,
       inputClassName,
+      inputClass,
       ariaLabel,
       ariaLabelledBy,
       ariaDescribedBy,
+      "aria-label": ariaLabelProp,
+      "aria-labelledby": ariaLabelledByProp,
+      "aria-describedby": ariaDescribedByProp,
     },
     ref
   ) => {
@@ -71,7 +82,14 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
     const handleChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-      onChange(e.target.name, e.target.value);
+      if (onChange.length >= 2) {
+        (onChange as (name: string, value: string | number) => void)(
+          e.target.name,
+          e.target.value
+        );
+        return;
+      }
+      (onChange as React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>)(e);
     };
 
     return (
@@ -105,14 +123,14 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
             disabled={disabled}
             onChange={handleChange}
             onBlur={onBlur}
-            aria-label={ariaLabel}
-            aria-labelledby={ariaLabelledBy}
-            aria-describedby={ariaDescribedBy}
+            aria-label={ariaLabelProp ?? ariaLabel}
+            aria-labelledby={ariaLabelledByProp ?? ariaLabelledBy}
+            aria-describedby={ariaDescribedByProp ?? ariaDescribedBy}
             className={clsx(
               baseInputStyles,
               stateStyles,
               "min-h-[140px] resize-none",
-              inputClassName
+              inputClassName ?? inputClass
             )}
           />
         ) : (
@@ -129,13 +147,13 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
             max={max}
             pattern={pattern}
             autoComplete={autoComplete}
-            aria-label={ariaLabel}
-            aria-labelledby={ariaLabelledBy}
-            aria-describedby={ariaDescribedBy}
+            aria-label={ariaLabelProp ?? ariaLabel}
+            aria-labelledby={ariaLabelledByProp ?? ariaLabelledBy}
+            aria-describedby={ariaDescribedByProp ?? ariaDescribedBy}
             className={clsx(
               baseInputStyles,
               stateStyles,
-              inputClassName
+              inputClassName ?? inputClass
             )}
           />
         )}

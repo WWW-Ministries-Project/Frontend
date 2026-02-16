@@ -129,6 +129,7 @@ export const eventTypeColors = {
   PROGRAM: "#00CFC1", // This is already correct
   SERVICE: "#FFD700",
   other: "#C1BFFF",
+  OTHER: "#C1BFFF",
 };
 
 export const getBadgeColor = (eventType) => {

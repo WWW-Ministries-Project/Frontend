@@ -8,7 +8,8 @@ export const deleteMember = (id: string | number) => {
     .deleteMember({ id: String(id) })
     .then(() => {
       showNotification("Member Deleted Successfully");
-      useStore.getState().removeMember(id);
+      const store = useStore.getState() as { removeMember?: (id: string | number) => void };
+      store.removeMember?.(id);
       showLoader(false);
     })
     .catch((error) => {

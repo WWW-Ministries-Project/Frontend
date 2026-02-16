@@ -2,7 +2,7 @@ import AddSignature from "@/components/AddSignature";
 import { Button } from "@/components/Button";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
 import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
 import MultiImageComponent, {
@@ -13,6 +13,7 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
+import { ApiResponse } from "@/utils/interfaces";
 import FormWrapperNew from "@/Wrappers/FormWrapperNew";
 import { Field, Formik } from "formik";
 import { useEffect, useMemo, useState } from "react";
@@ -51,8 +52,10 @@ const Request = () => {
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
-  const { data } = useFetch<{ data: IRequisitionDetails }>(
-    api.fetch.fetchRequisitionDetails,
+  const { data } = useFetch<ApiResponse<IRequisitionDetails>>(
+    api.fetch.fetchRequisitionDetails as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<IRequisitionDetails>>,
     { id: decodedId }
   );
   const {
@@ -131,7 +134,7 @@ const Request = () => {
 
   const title = id ? "Update request" : "Raise request";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
-  const isNoSignature = id && !requestData?.requester.user_sign;
+  const isNoSignature = id && !requestData?.requester?.user_sign;
 
   useEffect(() => {
     const { summary } = requestData || {};
@@ -143,7 +146,16 @@ const Request = () => {
         (event) => Number(event?.id) === Number(program_id)
       );
 
-      if (!event) addEvent({ id: program_id, name: program });
+      if (!event && program_id !== undefined && program) {
+        addEvent({
+          id: Number(program_id),
+          name: String(program),
+          start_date: "",
+          end_date: "",
+          start_time: "",
+          end_time: "",
+        });
+      }
     }
   }, [requestData, allEvents]);
   return (

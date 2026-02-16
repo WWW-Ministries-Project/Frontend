@@ -46,24 +46,26 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
-  createEvent = <T>(
-    payload: Record<string, string>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("event/create-event", payload);
+  createEvent = (
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/create-event", payload);
   };
 
   createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
 
-  createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("assets/create-asset", payload);
+  createAsset = (
+    payload: AssetPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("assets/create-asset", payload);
   };
-  // createRequisition = <T>(
-  //   payload: Record<string, any>
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("requisitions/create-requisition", payload);
-  // };
+  createRequisition = <T = unknown>(
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
   createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
@@ -237,4 +239,3 @@ export class ApiCreationCalls {
     return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
   };
 }
-

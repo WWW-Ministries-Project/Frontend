@@ -14,7 +14,7 @@ interface Data {
   duration: string;
   applicationDeadline: string;
   classesLength: number;
-  topics: string[];
+  topics: Array<string | { name?: string }>;
   instructor: string;
   schedule: string; // Added schedule property
   format: string; // Added format property
@@ -158,7 +158,7 @@ const ViewPageTemplate: React.FC<ViewPageTemplateProps> = ({
                           key={index}
                           className="bg-lightGray border-lightGray font-medium text-sm text-primary"
                         >
-                          {topic?.name || topic}
+                          {typeof topic === "string" ? topic : topic?.name}
                         </Badge>
                       ))}
                     </div>

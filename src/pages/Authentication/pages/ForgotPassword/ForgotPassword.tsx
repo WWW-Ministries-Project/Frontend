@@ -8,30 +8,35 @@ import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
-import { ApiResponse } from "@/utils/interfaces";
-
-
+interface ForgotPasswordValues {
+  email?: string;
+}
 
 interface ErrorState {
   email?: boolean;
   status?: boolean;
 }
 
+interface AuthResponse {
+  status?: number;
+  data?: unknown;
+}
 
 
 const ForgotPassword = () => {
-  const [emailValue, setEmailValue] = useState("");
-  const [response, setResponse] = useState<ApiResponse>({});
+  const [emailValue, setEmailValue] = useState<ForgotPasswordValues>({});
+  const [response, setResponse] = useState<AuthResponse>({});
   const [error, setError] = useState<ErrorState>({});
   const [loading, setLoading] = useState<boolean>(false);
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e?: FormEvent) {
+    e?.preventDefault();
     setLoading(true);
     (async () => {
       try {
         const endpoint = baseUrl + "user/forgot-password";
         const response: AxiosResponse = await axios.post(endpoint, emailValue);
-        setResponse(response);
+        setResponse({ status: response.status, data: response.data });
       } catch (error) {
         const axiosError = error as AxiosError;
         console.log(axiosError, "error");
@@ -51,14 +56,14 @@ const ForgotPassword = () => {
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setResponse({});
-    const name = e.target.name;
+    const name = e.target.name as keyof ForgotPasswordValues;
     const value = e.target.value;
     setEmailValue((prev) => ({ ...prev, [name]: value }));
     
     // to remove error msg
-    if (error[name]) {
+    if (error[name as keyof ErrorState]) {
       if (validate(name, { ...emailValue, [name]: value })) {
-        setError((prev) => ({ ...prev, [name]: false }));
+        setError((prev) => ({ ...prev, [name as keyof ErrorState]: false }));
         e.target.setCustomValidity("");
       }
     }
@@ -88,7 +93,6 @@ const ForgotPassword = () => {
             >
               <Input
                 label="Email"
-                labelClassName={"text-white"}
                 type="email"
                 id="mail"
                 name="email"

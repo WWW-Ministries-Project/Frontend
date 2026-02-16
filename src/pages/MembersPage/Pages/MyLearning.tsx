@@ -15,9 +15,11 @@ import { EnrolledProgramResponse } from "@/utils";
 const MyLearning: React.FC = () => {
   const { user } = useAuth();
   // api
-  const {data, loading, refetch} = useFetch(api.fetch.fetchUserEnrolledPrograms, user?.id);
+  const { data } = useFetch(api.fetch.fetchUserEnrolledPrograms, {
+    userId: user?.id ?? "",
+  });
 
-  const programsData = useMemo<EnrolledProgramResponse>(() => {
+  const programsData = useMemo<EnrolledProgramResponse[]>(() => {
     return data?.data ?? [];
   }, [data]);
   console.log("My Prog data", programsData);
@@ -34,7 +36,7 @@ const MyLearning: React.FC = () => {
     { id: 2, name: "Completed", key: "completed", active: filter === "completed" },
   ];
 
-  const filteredPrograms = programs.filter((p) => {
+  const filteredPrograms = programs.filter((p: EnrolledProgramResponse) => {
     if (filter === "completed") return p.completed === true;
     return p.completed === false;
   });
@@ -72,7 +74,7 @@ const MyLearning: React.FC = () => {
             {filteredPrograms.length === 0 ? (
               <div className="rounded-xl border border-gray-300 p-6 bg-white">No programs match the selected state.</div>
             ) : (
-              filteredPrograms.map((program) => (
+              filteredPrograms.map((program: EnrolledProgramResponse) => (
                 <div
                   key={program.id}
                   className="flex items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"

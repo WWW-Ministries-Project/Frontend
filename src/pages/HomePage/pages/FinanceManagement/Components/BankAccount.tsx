@@ -10,14 +10,14 @@ import ConfigCard from "./ConfigCard";
 
 const BankAccount = () => {
     const [openModal, setOpenModal] = React.useState(false);
-    const [bankAccountData, setBankAccountData] = React.useState([]);
-      const [selectedBankAccount, setSelectedBankAccount] = React.useState(null);
+    const [bankAccountData, setBankAccountData] = React.useState<FinanceConfigValues[]>([]);
+      const [selectedBankAccount, setSelectedBankAccount] = React.useState<FinanceConfigValues | null>(null);
       const { data, loading, refetch } = useFetch(api.fetch.fetchBankAccountConfig);
       const { executeDelete, success } = useDelete(api.delete.deleteBankAccountConfig);
 
       React.useEffect(() => {
-          if (data?.data) {
-            setBankAccountData(data?.data);
+          if (Array.isArray(data?.data)) {
+            setBankAccountData(data.data as FinanceConfigValues[]);
           }
         }, [data]);
       

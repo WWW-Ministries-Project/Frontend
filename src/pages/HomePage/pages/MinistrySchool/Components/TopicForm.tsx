@@ -234,7 +234,9 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
 
             {topicStep === "material" && (
               <div>
-                <LearningUnitForm/>
+                <div className="rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+                  Add learning unit resources in this step.
+                </div>
               </div>
             )}
 

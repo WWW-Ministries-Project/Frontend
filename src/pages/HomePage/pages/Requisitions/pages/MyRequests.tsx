@@ -8,14 +8,21 @@ import { decodeToken } from "@/utils/helperFunctions";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { tableColumns } from "../utils/tableColums";
+import { ApiResponse } from "@/utils/interfaces";
+import { Requisition } from "../types/requestInterface";
 const MyRequisitions = () => {
   const navigate = useNavigate();
-  const { id } = decodeToken();
-  const { data, loading, error } = useFetch(api.fetch.fetchMyRequests, { id });
+  const { id } = decodeToken() || {};
+  const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
+    api.fetch.fetchMyRequests as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<Requisition[]>>,
+    { id: id ?? "" }
+  );
   const { setRequests, requests } = useStore();
 
   useEffect(() => {
-    setRequests(data?.data);
+    setRequests(data?.data ?? []);
   }, [data]);
 
   return (

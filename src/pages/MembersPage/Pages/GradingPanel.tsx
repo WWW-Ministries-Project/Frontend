@@ -1,6 +1,5 @@
 import SearchIcon from "@/assets/SearchIcon";
 import { Button } from "@/components";
-import Input from "@/components/Input";
 import { ArrowLeftIcon, CheckIcon, ClockIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { useState, useMemo, useEffect } from "react";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
@@ -8,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
+import { ApiResponse } from "@/utils/interfaces";
 
 
 interface Submission {
@@ -69,14 +69,16 @@ const GradingPanel = () => {
   const { cohortId } = useParams<{ cohortId: string }>();
   const { topicId } = useParams<{ topicId: string }>();
 
-  const { data, loading, refetch } = useFetch<{
-    message: string;
-    data: any[];
-  }>(api.fetch.fetchAssignmentResults, { 
-    programId: programId!,
-    cohortId: cohortId!,
-    topicId: topicId!
-  });
+  const { data, loading } = useFetch<ApiResponse<any[]>>(
+    api.fetch.fetchAssignmentResults as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<any[]>>,
+    {
+      programId: programId!,
+      cohortId: cohortId!,
+      topicId: topicId!,
+    }
+  );
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
 
@@ -171,8 +173,9 @@ const GradingPanel = () => {
         if (_editingId === submission.id) {
           return (
             <div className="flex items-center gap-2">
-              <Input
+              <input
                 type="number"
+                className="w-24 rounded-md border border-lightGray px-2 py-1"
                 value={_editingGrade}
                 onChange={(e) => _setEditingGrade(e.target.value)}
                 onKeyDown={(e) => {
@@ -315,15 +318,14 @@ const GradingPanel = () => {
       <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
         <div className="relative flex-1 min-w-[200px]">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <input
             type="text"
             id="search-students"
             name="search"
-            label="Search"
             placeholder="Search students..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="w-full rounded-md border border-lightGray py-2 pl-9 pr-3"
           />
         </div>
       </div>

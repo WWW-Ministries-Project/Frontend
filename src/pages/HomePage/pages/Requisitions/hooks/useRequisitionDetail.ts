@@ -22,8 +22,10 @@ export const useRequisitionDetail = () => {
     data,
     loading,
     error: detailsError,
-  } = useFetch(
-    api.fetch.fetchRequisitionDetails,
+  } = useFetch<ApiResponse<IRequisitionDetails>>(
+    api.fetch.fetchRequisitionDetails as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<IRequisitionDetails>>,
     { id: requisitionId }
   );
 
@@ -32,8 +34,13 @@ export const useRequisitionDetail = () => {
     data: updateData,
     loading: isUpdating,
     error,
-  } = usePost<ApiResponse<{ data: IRequisitionDetails; message: string }>>(
-    api.put.updateRequisition
+  } = usePost<
+    ApiResponse<{ data: IRequisitionDetails; message: string }>,
+    Record<string, unknown>
+  >((payload) =>
+    api.put.updateRequisition<{ data: IRequisitionDetails; message: string }>(
+      payload
+    )
   );
 
   const [requestData, setRequestData] = useState<IRequisitionDetails | null>(
@@ -53,7 +60,7 @@ export const useRequisitionDetail = () => {
 
   useEffect(() => {
     setAttachments(data?.data?.attachmentLists ?? []);
-    return setRequestData(data?.data ?? null);
+    setRequestData(data?.data ?? null);
   }, [data]);
 
   const openCommentModal = (type: ActionType) => {
@@ -111,7 +118,10 @@ export const useRequisitionDetail = () => {
     },
   };
 
-  const handleUpdate = async <T>(data: T, type: ActionType) => {
+  const handleUpdate = async (
+    data: Record<string, unknown>,
+    type: ActionType
+  ) => {
     try {
       await postData(data);
       const { success, title } = notificationMessages[type];
@@ -177,8 +187,6 @@ export const useRequisitionDetail = () => {
 
     setAttachmentId("");
 
-    // Reset status after handling the update
-    updateData.status = 0; // Or another value that makes sense for your use case
   }, [updateData, actionType, attachmentId]);
 
   const isEditable = useMemo(() => {

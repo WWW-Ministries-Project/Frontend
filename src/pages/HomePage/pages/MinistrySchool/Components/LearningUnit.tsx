@@ -86,7 +86,8 @@ export const LearningUnits: React.FC<Props> = ({
     status: "PASS" | "FAIL";
   } | null>(null);
 
-  const maxAttempt = unit?.data?.maxAttempt ?? 2;
+  const maxAttempt =
+    unit?.type === "assignment" ? unit.data.maxAttempt ?? 2 : 2;
 
   // Added topic-driven derived state
   const isAssignment = unit?.type === "assignment";

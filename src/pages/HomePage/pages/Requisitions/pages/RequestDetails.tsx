@@ -7,7 +7,7 @@ import RequisitionSummary from "../components/RequisitionSummary";
 import EditableTable from "../components/EditableTable";
 import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
-import Modal from "@/components/Modal";
+import { Modal } from "@/components/Modal";
 import RequestAttachments from "../components/RequestAttachments";
 import AddSignature from "@/components/AddSignature";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";

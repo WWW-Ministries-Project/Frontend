@@ -75,16 +75,19 @@ export const AutoBreadcrumb: React.FC<AutoBreadcrumbProps> = ({
     const matches = matchRoutes(routes as any, location);
     if (!matches) return [];
 
+    type NamedRoute = { name?: string };
+
     // Only include routes that actually contribute to navigation meaning
     const namedMatches = matches.filter(
-      (m) => m.route?.name && m.pathname !== undefined
+      (m) => (m.route as NamedRoute)?.name && m.pathname !== undefined
     );
 
     return namedMatches.map((match, index) => {
       const isLast = index === namedMatches.length - 1;
+      const route = match.route as NamedRoute;
 
       return {
-        label: match.route.name,
+        label: route.name || "",
         link: isLast ? undefined : match.pathname,
       };
     });

@@ -14,6 +14,12 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { useStore } from "@/store/useStore";
 
+type IFamilyMember = IPersonalDetails & {
+  user_id?: string;
+  relation?: string;
+  email?: string;
+};
+
 const ChildrenSubFormComponent = ({
   disabled = false,
 }: {
@@ -21,8 +27,8 @@ const ChildrenSubFormComponent = ({
 }) => {
   const { values: entire, setFieldValue } =
     useFormikContext<IChildrenSubForm>();
-  const family = useMemo(
-    () => getIn(entire, "family") || initialValues.family,
+  const family = useMemo<IFamilyMember[]>(
+    () => (getIn(entire, "family") as IFamilyMember[]) || initialValues.family,
     [entire]
   );
 
@@ -35,7 +41,7 @@ const ChildrenSubFormComponent = ({
     const membersOptions = useStore((state) => state.membersOptions);
 
     const selectedUserIds = useMemo(
-      () => family.map((f) => f.user_id).filter(Boolean),
+      () => family.map((f: IFamilyMember) => f.user_id).filter(Boolean),
       [family]
     );
 
@@ -53,7 +59,7 @@ const ChildrenSubFormComponent = ({
         {({ unshift, remove }) => (
           <>
             
-            {family.map((_, index) => {
+            {family.map((_: IFamilyMember, index: number) => {
               const availableMembers = membersOptions.filter(
                 (opt) =>
                   !selectedUserIds.includes(opt.value) ||
@@ -166,7 +172,7 @@ const ChildrenSubFormComponent = ({
 };
 
 export interface IChildrenSubForm {
-  family: IPersonalDetails[];
+  family: IFamilyMember[];
 }
 
 const initialValues = {

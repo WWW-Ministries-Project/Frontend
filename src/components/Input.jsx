@@ -1,5 +1,4 @@
 // import React from "react";
-import { layouts } from "chart.js";
 import PropTypes from "prop-types";
 import { useRef } from "react";
 
@@ -52,8 +51,9 @@ Input.propTypes = {
   placeholder: PropTypes.string,
   label: PropTypes.string.isRequired,
   pattern: PropTypes.string,
-  handleBlur: PropTypes.func,
+  onBlur: PropTypes.func,
   onChange: PropTypes.func,
+  onKeyDown: PropTypes.func,
   className: PropTypes.string,
   labelClassName: PropTypes.string,
   

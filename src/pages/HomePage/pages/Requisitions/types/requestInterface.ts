@@ -74,9 +74,9 @@ export interface IRequestSummary {
 }
 
 export interface IRequester {
-  name: string;
-  email: string;
-  position: null;
+  name?: string;
+  email?: string;
+  position?: string | null;
   user_sign: string | null;
 }
 export interface IRequisitionDetails {

@@ -65,7 +65,7 @@ const InstructorProg = () => {
   useEffect(() => {
     if (!data || !("data" in data)) return;
 
-    const response = data as ApiResponse<BackendProgram[]>;
+    const response = data as unknown as ApiResponse<BackendProgram[]>;
     if (!Array.isArray(response.data)) return;
 
     const mappedPrograms: ProgramView[] = response.data.map((item) => ({

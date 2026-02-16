@@ -35,8 +35,8 @@ import { EventsCard } from './EventsCard';
 interface CalendarProps {
   events?: CalendarEvent[];
   onDelete: (event: CalendarEvent) => void;
-  onShowOptions: (event: CalendarEvent) => void;
-  showOptions: boolean;
+  onShowOptions: (eventId: string | number) => void;
+  showOptions: string | number | null;
 }
 
 interface CalendarData {
@@ -212,7 +212,7 @@ const Calendar: React.FC<CalendarProps> = ({
 
   const handleModalOpen = useCallback(
     (
-      e: React.MouseEvent<HTMLElement>,
+      e: React.MouseEvent<Element>,
       data: CalendarEvent[] | CalendarEvent,
       isEvent: boolean = false
     ) => {
@@ -235,13 +235,13 @@ const Calendar: React.FC<CalendarProps> = ({
   );
 
   const handleDayClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>, dayEvents: CalendarEvent[]) =>
+    (e: React.MouseEvent<Element>, dayEvents: CalendarEvent[]) =>
       handleModalOpen(e, dayEvents, false),
     [handleModalOpen]
   );
 
   const handleEventClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>, ev: CalendarEvent) => {
+    (e: React.MouseEvent<Element>, ev: CalendarEvent) => {
       e.stopPropagation();
       handleModalOpen(e, ev, true);
     },
@@ -289,9 +289,12 @@ const Calendar: React.FC<CalendarProps> = ({
   }, [currentDate, currentView]);
 
   const renderCalendarEvent = useCallback(
-    (ev: CalendarEvent, onClick: () => void) => (
+    (
+      ev: CalendarEvent,
+      onClick: (e: React.MouseEvent<Element>) => void
+    ) => (
       <EventItem
-        label={ev.event_name ?? ''}
+        label={ev.event_name ?? ev.name ?? ''}
         event={ev}
         onClick={onClick}
       />
@@ -534,7 +537,7 @@ const Calendar: React.FC<CalendarProps> = ({
           onNavigate={handleNavigation}
           onDelete={onDelete}
           onShowOptions={onShowOptions}
-            showOptions={showOptions}
+            showOptions={showOptions === selectedEvent.id}
           />
 
         )}

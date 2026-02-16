@@ -50,12 +50,15 @@ function LoginPage() {
       const token = response.data.token;
       
       if (token) {
-        login(decodeToken(token));
+        const decodedToken = decodeToken(token);
+        if (!decodedToken) {
+          return;
+        }
+        login(decodedToken);
         setToken(token);
-        const decodedToken = decodeToken(token)
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        console.log("Token", decodeToken(token));
+        console.log("Token", decodedToken);
         
         
         if (response.status === 200 && decodedToken?.ministry_worker) {
@@ -69,7 +72,8 @@ function LoginPage() {
       }
     } catch (error: unknown) {
       console.log(error, "error");
-      setResponse(error.response || {});
+      const axiosError = error as { response?: ApiResponse };
+      setResponse(axiosError.response || {});
       setLoading(false);
     }
   }
@@ -83,15 +87,15 @@ function LoginPage() {
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setResponse({});
-    const name = e.target.name;
+    const name = e.target.name as keyof LoginValues;
     const value = e.target.value;
     
     setLoginValues((prev) => ({ ...prev, [name]: value }));
     
     // to remove error msg
-    if (error[name]) {
+    if (error[name as keyof ErrorState]) {
       if (validate(name, { ...loginValues, [name]: value })) {
-        setError((prev) => ({ ...prev, [name]: false }));
+        setError((prev) => ({ ...prev, [name as keyof ErrorState]: false }));
         e.target.setCustomValidity("");
       }
     }
@@ -131,7 +135,6 @@ function LoginPage() {
               onChange={handleInputChange}
               onBlur={handleBlur}
               placeholder={"Enter email address"}
-              labelClassName={"text-white"}
               inputClass={
                 error.status
                   ? "rounded-md px-4 mt-2 border-error"
@@ -149,7 +152,6 @@ function LoginPage() {
               onChange={handleInputChange}
               onBlur={handleBlur}
               placeholder={"Enter password"}
-              labelClassName={"text-white"}
               inputClass={
                 error.status
                   ? "rounded-md px-4 mt-2 border-error"

@@ -11,13 +11,15 @@ interface IProps {
   children: ReactNode;
   errorText?: string;
   onSubmit?: (e: React.FormEvent) => void;
+  handleSubmit?: (e: React.FormEvent) => void;
+  buttonValue?: string;
 }
 
 const AuthenticationForm = (props: IProps) => {
   return (
     <>
       <div className="md:w-2/3 max-w-[500px] mx-auto">
-        <form onSubmit={props.onSubmit}>
+        <form onSubmit={props.onSubmit ?? props.handleSubmit}>
           <div className="authForm pt-1 rounded-xl shadow-lg mx-auto bg-primary/50">
             <div className="bg-white/15 shadow-sm rounded-lg py-8 px-10">
               <div className="flex justify-center">

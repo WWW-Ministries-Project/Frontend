@@ -12,7 +12,7 @@ export interface EventItemProps {
   /** Whether to show the time */
   showTime?: boolean;
   /** Click handler for the entire item */
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   /** Additional classes to apply to the wrapper */
   className?: string;
   /** Tailwind classes for the little marker dot */

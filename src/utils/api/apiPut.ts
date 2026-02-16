@@ -33,10 +33,10 @@ export class ApiUpdateCalls {
   }
 
   // Update Event
-  updateEvent = <T>(
-    payload: Record<string, string>,
+  updateEvent = (
+    payload: Record<string, unknown>,
     query?: QueryType
-  ): Promise<ApiResponse<T>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
@@ -57,16 +57,16 @@ export class ApiUpdateCalls {
   };
 
   // Update Requisition
-  // updateRequisition = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "requisitions/update-requisition",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateRequisition = <T = unknown>(
+    payload: Record<string, unknown>,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(
+      "requisitions/update-requisition",
+      payload,
+      query
+    );
+  };
 
   // Update Position
   updatePosition = <T>(
@@ -383,6 +383,3 @@ export class ApiUpdateCalls {
     );
   };
 }
-
-
-

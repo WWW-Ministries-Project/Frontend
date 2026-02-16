@@ -14,11 +14,14 @@ import {
 
 interface Student {
   id: number;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
+  primary_number?: string;
   status: string;
   progress_completed: number;
   progress_total: number;
@@ -40,8 +43,12 @@ export const AllStudents = ({
 
   const filteredData = Data?.filter(
     (student) =>
-      student?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student?.first_name || student?.firstName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (student?.last_name || student?.lastName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       student?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -190,7 +197,7 @@ export const AllStudents = ({
                   <div className="flex flex-col gap-y-2">
                     <p className="flex items-center gap-1 font-semibold text-gray-900">
                       <UserIcon className="w-4 h-4 text-gray-500" />
-                      {student.first_name} {student.last_name}
+                      {student.first_name || student.firstName} {student.last_name || student.lastName}
                     </p>
 
                     <p className="flex items-center gap-1 text-sm text-gray-500">

@@ -213,7 +213,7 @@ export const ProgramDetailsModal: FC<{
                   <p className="font-medium">{topic.name}</p>
                   <p
                   className="font-light"
-                  dangerouslySetInnerHTML={{ __html: topic.description }}
+                  dangerouslySetInnerHTML={{ __html: String(topic.description ?? "") }}
                   />
                 </div>
               ))}

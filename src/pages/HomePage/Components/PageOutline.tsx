@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 
 import { cn } from "@/utils/cn";
-import { BreadcrumbItemType, Breadcrumbs } from "./BreadCrumb";
+import { BreadcrumbItem } from "./BreadCrumb";
 
 interface PageOutlineProps {
   children: ReactNode;
   className?: string;
-  crumbs?: BreadcrumbItemType[];
+  crumbs?: BreadcrumbItem[];
 }
 
 const PageOutline = ({

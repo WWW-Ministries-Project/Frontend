@@ -59,6 +59,8 @@ InputPassword.propTypes = {
   samePassword: PropTypes.bool,
   id: PropTypes.string.isRequired,
   handleChange: PropTypes.func,
+  onChange: PropTypes.func,
+  onBlur: PropTypes.func,
   inputClass: PropTypes.string,
   className: PropTypes.string,
   placeholder: PropTypes.string,

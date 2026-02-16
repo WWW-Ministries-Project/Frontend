@@ -21,7 +21,7 @@ export interface ApiResponse<T> {
   meta?: IPaginationMeta;
 }
 
-export type QueryType = Record<string, string>;
+export type QueryType = Record<string, string | number>;
 export type QueryExecutorType = <T>(
   baseUrl: string,
   path: string,

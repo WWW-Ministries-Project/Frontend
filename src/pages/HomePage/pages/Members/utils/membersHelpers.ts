@@ -56,10 +56,9 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
     is_user: input.is_user,
     church_info: {
       membership_type: input.membership_type,
-      department_id: input.department_id ?? undefined,
-      position_id: input.position_id ?? undefined,
       member_since: formatDate(input.member_since),
     },
+    department_positions: [],
     family: (input.family as IPersonalDetails[]) || [],
   };
 };
