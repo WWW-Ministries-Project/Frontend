@@ -6,6 +6,7 @@ import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import {
+  AvailabilityStatus,
   Appointment,
   BookedSession,
   BookingFormValues,
@@ -18,6 +19,9 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { useStore } from "@/store/useStore";
+import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
+import { useAuth } from "@/context/AuthWrapper";
 
 const dayOptions: DayOfWeek[] = [
   "monday",
@@ -74,6 +78,14 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+};
+
+const normalizeStatus = (value: unknown): AvailabilityStatus =>
+  toStringValue(value).toUpperCase();
+
+const isAvailableStatus = (value: unknown): boolean => {
+  const status = normalizeStatus(value);
+  return !status || status === "AVAILABLE";
 };
 
 const normalizeClockTime = (value: unknown): string => {
@@ -172,6 +184,8 @@ const normalizeDay = (value: unknown): DayOfWeek => {
 const normalizeSession = (session: unknown): Session | null => {
   if (!isRecord(session)) return null;
 
+  if (!isAvailableStatus(session.status)) return null;
+
   const start = normalizeClockTime(
     session.start ?? session.start_time ?? session.startTime ?? session.from
   );
@@ -213,6 +227,8 @@ const inferDuration = (
 const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   if (!isRecord(slot)) return null;
 
+  if (!isAvailableStatus(slot.status)) return null;
+
   const startTime = normalizeClockTime(
     slot.startTime ?? slot.start_time ?? slot.start ?? slot.from
   );
@@ -224,8 +240,9 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
 
   const sessionsRaw =
     slot.sessions ?? slot.session ?? slot.availableSessions ?? slot.available_sessions;
+  const hasSessionsPayload = Array.isArray(sessionsRaw);
 
-  const normalizedSessions = Array.isArray(sessionsRaw)
+  const normalizedSessions = hasSessionsPayload
     ? sessionsRaw
         .map(normalizeSession)
         .filter((session): session is Session => session !== null)
@@ -233,15 +250,21 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
 
   const sessionDurationMinutes = inferDuration(slot, normalizedSessions);
 
+  const finalSessions =
+    normalizedSessions.length > 0
+      ? normalizedSessions
+      : hasSessionsPayload
+      ? []
+      : generateSessions(startTime, endTime, sessionDurationMinutes);
+
+  if (finalSessions.length === 0) return null;
+
   return {
     day: normalizeDay(slot.day ?? slot.dayOfWeek ?? slot.day_of_week ?? slot.weekday),
     startTime,
     endTime,
     sessionDurationMinutes,
-    sessions:
-      normalizedSessions.length > 0
-        ? normalizedSessions
-        : generateSessions(startTime, endTime, sessionDurationMinutes),
+    sessions: finalSessions,
   };
 };
 
@@ -280,6 +303,8 @@ const normalizeAvailability = (
       : flatTimeSlot
       ? [flatTimeSlot]
       : [];
+
+  if (timeSlots.length === 0) return null;
 
   const staffName =
     toStringValue(
@@ -320,7 +345,13 @@ const normalizeAvailability = (
         rawAvailability.maxBookingsPerSlot ??
           rawAvailability.max_bookings_per_slot ??
           rawAvailability.maxBookings ??
-          rawAvailability.max_bookings,
+          rawAvailability.max_bookings ??
+          (Array.isArray(timeSlotsRaw) &&
+          timeSlotsRaw.length > 0 &&
+          isRecord(timeSlotsRaw[0])
+            ? timeSlotsRaw[0].maxBookingsPerSlot ??
+              timeSlotsRaw[0].max_bookings_per_slot
+            : undefined),
         1
       )
     ),
@@ -391,15 +422,35 @@ const AppointmentBookingForm = ({
   );
 
   const { data: availabilityResponse, loading: availabilityLoading } = useFetch(
-    api.fetch.fetchStaffAvailability
+    api.fetch.fetchStaffAvailabilityStatus
   );
 
+  const { user } = useAuth();
+
+  const {
+      data: postResponse,
+      error: postError,
+      loading: postLoading,
+      postData,
+    } = usePost(api.post.createAppointmentBooking);
+    const {
+      data: putResponse,
+      error: putError,
+      loading: putLoading,
+      updateData,
+    } = usePut(api.put.updateAppointmentBooking);
+
   const staffAvailability = useMemo(() => {
-    if (!Array.isArray(availabilityResponse?.data)) {
+    const responseData = availabilityResponse?.data;
+    const sourceAvailability = isRecord(responseData)
+      ? responseData.users
+      : undefined;
+
+    if (!Array.isArray(sourceAvailability)) {
       return [];
     }
 
-    const normalizedAvailability = availabilityResponse.data
+    const normalizedAvailability = sourceAvailability
       .map((availability) => normalizeAvailability(availability, membersLookup))
       .filter((availability): availability is StaffAvailability => availability !== null);
 
@@ -443,7 +494,9 @@ const AppointmentBookingForm = ({
       {}
     );
 
-    return Object.values(groupedByStaff);
+    return Object.values(groupedByStaff).filter(
+      (availability) => availability.timeSlots.length > 0
+    );
   }, [availabilityResponse, membersLookup]);
 
   const initialValues: BookingFormValues = {
@@ -452,20 +505,57 @@ const AppointmentBookingForm = ({
     phone: appointment?.phone ?? "",
     purpose: appointment?.purpose ?? "",
     note: appointment?.note ?? "",
-    staffId: appointment?.staffId ?? "",
+    staffId: (appointment?.staffId || appointment?.attendeeId) ?? "",
     date: toInputDate(appointment?.date),
     session: appointment?.session ?? undefined,
   };
 
-  const handleSubmitForm = (_values: BookingFormValues) => {
-    showNotification(
-      appointment
-        ? "Appointment updated successfully."
-        : "Appointment booked successfully.",
-      "success",
-      "Appointment"
-    );
-    onClose();
+  const handleSubmitForm = async (values: BookingFormValues) => {
+    if (!values.session) {
+      showNotification("Please select a time slot.", "error", "Appointment");
+      return;
+    }
+
+    const payload = {
+      requesterId: Number(user?.id),
+      fullName: values.fullName.trim(),
+      email: values.email.trim(),
+      phone: values.phone.trim(),
+      purpose: values.purpose.trim(),
+      note: values.note?.trim() || "",
+      staffId: Number(values.staffId),
+      date: values.date,
+      session: {
+        start: values.session.start,
+        end: values.session.end,
+      },
+    };
+
+    try {
+      if (appointment?.id) {
+        await updateData(appointment.id, payload);
+        showNotification(
+          "Appointment updated successfully.",
+          "success",
+          "Appointment"
+        );
+      } else {
+        await postData(payload);
+        showNotification(
+          "Appointment booked successfully.",
+          "success",
+          "Appointment"
+        );
+      }
+
+      onClose();
+    } catch (error) {
+      showNotification(
+        "An error occurred while saving the appointment.",
+        "error",
+        "Appointment"
+      );
+    }
   };
 
   return (
@@ -733,6 +823,7 @@ const AppointmentBookingForm = ({
               <Button
                 type="submit"
                 onClick={handleSubmit}
+                loading={postLoading || putLoading}
                 value={appointment ? "Update Appointment" : "Book Appointment"}
               />
             </div>

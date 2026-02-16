@@ -26,7 +26,7 @@ import type {
 } from "./marketPlace/interface";
 import {
   CreateStaffAvailabilityPayload,
-  StaffAvailability,
+  StaffAvailability, CreateAppointmentBookingPayload, 
 } from "./appointment/interfaces";
 
 export class ApiCreationCalls {
@@ -202,6 +202,12 @@ export class ApiCreationCalls {
     payload: CreateStaffAvailabilityPayload
   ): Promise<ApiResponse<StaffAvailability>> => {
     return this.postToApi("appointment/availability", payload);
+  };
+
+  createAppointmentBooking = (
+    payload: CreateAppointmentBookingPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("appointment/book", payload);
   };
 
   // Record Attendance

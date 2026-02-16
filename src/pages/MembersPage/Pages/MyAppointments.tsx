@@ -7,6 +7,9 @@ import { Modal } from "@/components/Modal";
 import AppointmentBookingForm from "../Component/AppointmentBookingForm";
 import { Appointment } from "@/utils/api/appointment/interfaces";
 import AllAppointmentsLayout from "@/pages/HomePage/pages/AppointmentsManagement/Layout/AllAppointmentsLayout";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils";
+import { useUserStore } from "@/store/userStore";
 
 export const dummyAppointments: Appointment[] = [
   {
@@ -158,23 +161,19 @@ export const dummyAppointments: Appointment[] = [
   },
 ];
 
-const isPastAppointment = (date: string) => {
-  const today = new Date();
-  const appointmentDate = new Date(date);
-  appointmentDate.setHours(23, 59, 59, 999);
-  return appointmentDate < today;
-};
 
-const groupedAppointments = {
-  "Upcoming & Current Appointments": dummyAppointments.filter(
-    (appt) => !isPastAppointment(appt.date)
-  ),
-  "Past Appointments": dummyAppointments.filter((appt) =>
-    isPastAppointment(appt.date)
-  ),
-};
 
 const MyAppointments = () => {
+  const userData = useUserStore((state) => state);
+    const user_id = userData.id;
+
+  const { data: appointmentData, refetch, loading } = useFetch(
+      api.fetch.fetchAppointment,
+      { requesterId:user_id }
+    );
+
+    console.log("appoinment data:", appointmentData);
+    
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     "Upcoming & Current Appointments": true,
     "Past Appointments": false,
@@ -187,6 +186,26 @@ const MyAppointments = () => {
     setSelectedAppointment(undefined); // create mode
     setIsModalOpen(true);
   };
+
+  const isPastAppointment = (date: string) => {
+  const today = new Date();
+  const appointmentDate = new Date(date);
+  appointmentDate.setHours(23, 59, 59, 999);
+  return appointmentDate < today;
+};
+
+const safeAppointments = Array.isArray(appointmentData?.data)
+  ? appointmentData.data
+  : [];
+
+const groupedAppointments = {
+  "Upcoming & Current Appointments": safeAppointments.filter(
+    (appt) => !isPastAppointment(appt.date)
+  ),
+  "Past Appointments": safeAppointments.filter((appt) =>
+    isPastAppointment(appt.date)
+  ),
+};
 
   return (
     <div className="flex flex-col gap-y-6">

@@ -6,8 +6,13 @@ import AllAppointmentsLayout from "./Layout/AllAppointmentsLayout";
 import { dummyAppointments } from "@/pages/MembersPage/Pages/MyAppointments";
 import { Modal } from "@/components/Modal";
 import AppointmentBookingForm from "@/pages/MembersPage/Component/AppointmentBookingForm";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { api } from "@/utils/api/apiCalls";
 
 const AppointmentManager = () => {
+  const { data: appointmentData, refetch, loading } = useFetch(
+        api.fetch.fetchAppointment
+      );
     const [isModalOpen, setIsModalOpen] = useState(false);
       const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>(undefined);
     
@@ -28,7 +33,7 @@ const AppointmentManager = () => {
             <div>
                 {/* Appointment list and management components go here */}
                 <AllAppointmentsLayout 
-                 Appointments={{ all: dummyAppointments }}
+                 Appointments={{ all: appointmentData?.data || [] }}
           onEdit={(appt) => {
             setSelectedAppointment(appt);
             setIsModalOpen(true);

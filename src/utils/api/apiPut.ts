@@ -24,7 +24,7 @@ import { EventType } from "./events/interfaces";
 import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
 import type {
   StaffAvailability,
-  UpdateStaffAvailabilityPayload,
+  UpdateStaffAvailabilityPayload, UpdateAppointmentBookingPayload
 } from "./appointment/interfaces";
 
 export class ApiUpdateCalls {
@@ -352,6 +352,22 @@ export class ApiUpdateCalls {
       payload
     );
   };
+
+  updateAppointmentBooking = (
+    payload: UpdateAppointmentBookingPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    const bookingId = query?.id;
+
+    if (!bookingId) {
+      throw new Error("Booking id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/booking/${bookingId}`,
+      payload
+    );
+  }
 
   // uodate church attendance
   updateChurchAttendance = (
