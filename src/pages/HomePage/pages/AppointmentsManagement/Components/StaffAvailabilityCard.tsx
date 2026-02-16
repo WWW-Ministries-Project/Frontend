@@ -9,6 +9,10 @@ interface StaffAvailabilityCardProps {
 
 const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabilityCardProps) => {
     const roleText = availability.role ? ` · ${availability.role}` : "";
+    const totalSessions = availability.timeSlots.reduce(
+      (total, slot) => total + slot.sessions.length,
+      0
+    );
 
     return ( 
         <div className="border p-4 rounded  flex flex-col gap-3  mb-4 relative">
@@ -42,34 +46,46 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
                 <p className="text-sm text-gray-600">
                   {availability.position || "Staff"}{roleText}
                 </p>
+                <p className="text-xs text-gray-500">Staff ID: {availability.staffId}</p>
             </div>
             <div>
                 <p className="font-medium">Max Bookings per Slot: {availability.maxBookingsPerSlot}</p>
+                <p className="text-sm text-gray-600">
+                  {availability.timeSlots.length} slot(s) · {totalSessions} session(s)
+                </p>
             </div>
             <div className=" space-y-2">
                 <h4 className="font-medium">Available Slots:</h4>
+                {availability.timeSlots.length === 0 ? (
+                  <p className="text-sm text-gray-500">No slots configured.</p>
+                ) : (
                 <ul className="list-disc list-inside space-y-2">
                     {availability.timeSlots.map((slot, index) => (
-                      <div
+                      <li
                         key={index}
-                        className="bg-primary/10 p-2 rounded text-sm space-y-1"
+                        className="bg-primary/10 p-2 rounded text-sm space-y-1 list-none"
                       >
                         <p className="font-medium capitalize">
                           {slot.day}: {slot.startTime} – {slot.endTime} ({slot.sessionDurationMinutes} mins)
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                          {slot.sessions.map((session, sIdx) => (
-                            <span
-                              key={sIdx}
-                              className="px-2 py-0.5 bg-white border rounded text-xs"
-                            >
-                              {session.start}–{session.end}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                        {slot.sessions.length === 0 ? (
+                          <p className="text-xs text-gray-500">No sessions configured.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {slot.sessions.map((session, sIdx) => (
+                              <span
+                                key={sIdx}
+                                className="px-2 py-0.5 bg-white border rounded text-xs"
+                              >
+                                {session.start}–{session.end}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </li>
                     ))}
                 </ul>
+                )}
                 
             </div>
         </div>

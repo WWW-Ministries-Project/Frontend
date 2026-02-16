@@ -1,6 +1,9 @@
 export interface Session {
+  id?: string | number;
+  availabilityId?: string | number;
   start: string;
   end: string;
+  status?: string;
 }
 
 export type DayOfWeek =
@@ -31,6 +34,36 @@ export interface StaffAvailability {
   currentSlot?: TimeSlot;
 }
 
+export type AvailabilityStatus = "AVAILABLE" | "UNAVAILABLE" | "FULL" | string;
+
+export interface StaffAvailabilityStatusSession extends Session {
+  id?: string | number;
+  availabilityId?: string | number;
+  status?: AvailabilityStatus;
+}
+
+export interface StaffAvailabilityStatusSlot {
+  availabilityId?: string | number;
+  day: DayOfWeek | string;
+  startTime: string;
+  endTime: string;
+  maxBookingsPerSlot?: number;
+  sessionDurationMinutes?: number;
+  status?: AvailabilityStatus;
+  sessions: StaffAvailabilityStatusSession[];
+}
+
+export interface StaffAvailabilityStatusUser {
+  userId: string | number;
+  staffName: string;
+  position?: string | null;
+  timeSlots: StaffAvailabilityStatusSlot[];
+}
+
+export interface StaffAvailabilityStatusResponse {
+  users: StaffAvailabilityStatusUser[];
+}
+
 export interface CreateStaffAvailabilityPayload {
   userId: string;
   maxBookingsPerSlot: number;
@@ -38,6 +71,40 @@ export interface CreateStaffAvailabilityPayload {
 }
 
 export type UpdateStaffAvailabilityPayload = CreateStaffAvailabilityPayload;
+
+export type AppointmentBookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "COMPLETED"
+  | "RESCHEDULED"
+  | string;
+
+export interface AppointmentBookingsQuery {
+  attendeeId?: string | number;
+  requesterId?: string | number;
+  status?: AppointmentBookingStatus;
+  date?: string;
+}
+
+export interface CreateAppointmentBookingPayload {
+  requesterId: string;
+  attendeeId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  note?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  availabilityId?: string;
+  sessionId?: string;
+  status?: AppointmentBookingStatus;
+}
+
+export type UpdateAppointmentBookingPayload =
+  Partial<CreateAppointmentBookingPayload>;
 
 export interface BookedSession {
   staffId: string;
@@ -58,17 +125,22 @@ export interface BookingFormValues {
 }
 
 export interface Appointment {
-    id?: string;
-    fullName: string;
+  id?: string;
+  fullName: string;
   email: string;
   phone: string;
   purpose: string;
   note: string;
   staffId: string;
-    staffName?: string;
-    position?: string;
+  staffName?: string;
+  attendeeId?: string;
+  attendeeName?: string;
+  requesterId?: string;
+  requesterName?: string;
+  position?: string;
   date: string;
   session?: Session;
-    status?: string;
-    createdAt?: string;
+  status?: AppointmentBookingStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }

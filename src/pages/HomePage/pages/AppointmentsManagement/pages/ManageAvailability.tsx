@@ -54,8 +54,27 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
   return fallback;
 };
 
+const normalizeClockTime = (value: unknown): string => {
+  const raw = toStringValue(value).trim();
+  if (!raw.includes(":")) return "";
+
+  const [hourPart, minutePart] = raw.split(":");
+  const hour = Number(hourPart);
+  const minute = Number(minutePart);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(":").map(Number);
+  const normalizedTime = normalizeClockTime(time);
+
+  if (!normalizedTime) {
+    return 0;
+  }
+
+  const [hours, minutes] = normalizedTime.split(":").map(Number);
 
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
     return 0;
@@ -95,7 +114,31 @@ const generateSessions = (
 };
 
 const normalizeDay = (value: unknown): DayOfWeek => {
-  const parsed = toStringValue(value).toLowerCase();
+  const parsed = toStringValue(value).toLowerCase().trim();
+
+  const dayMap: Record<string, DayOfWeek> = {
+    monday: "monday",
+    mon: "monday",
+    tuesday: "tuesday",
+    tue: "tuesday",
+    tues: "tuesday",
+    wednesday: "wednesday",
+    wed: "wednesday",
+    thursday: "thursday",
+    thu: "thursday",
+    thur: "thursday",
+    thurs: "thursday",
+    friday: "friday",
+    fri: "friday",
+    saturday: "saturday",
+    sat: "saturday",
+    sunday: "sunday",
+    sun: "sunday",
+  };
+
+  if (dayMap[parsed]) {
+    return dayMap[parsed];
+  }
 
   if (dayOptions.includes(parsed as DayOfWeek)) {
     return parsed as DayOfWeek;
@@ -107,8 +150,12 @@ const normalizeDay = (value: unknown): DayOfWeek => {
 const normalizeSession = (session: unknown): Session | null => {
   if (!isRecord(session)) return null;
 
-  const start = toStringValue(session.start ?? session.start_time);
-  const end = toStringValue(session.end ?? session.end_time);
+  const start = normalizeClockTime(
+    session.start ?? session.start_time ?? session.startTime ?? session.from
+  );
+  const end = normalizeClockTime(
+    session.end ?? session.end_time ?? session.endTime ?? session.to
+  );
 
   if (!start || !end) return null;
 
@@ -123,7 +170,10 @@ const inferDuration = (
   sessions: Session[]
 ): number => {
   const fromPayload = toNumberValue(
-    slot.sessionDurationMinutes ?? slot.session_duration_minutes,
+    slot.sessionDurationMinutes ??
+      slot.session_duration_minutes ??
+      slot.sessionDuration ??
+      slot.duration,
     0
   );
 
@@ -141,13 +191,20 @@ const inferDuration = (
 const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   if (!isRecord(slot)) return null;
 
-  const startTime = toStringValue(slot.startTime ?? slot.start_time);
-  const endTime = toStringValue(slot.endTime ?? slot.end_time);
+  const startTime = normalizeClockTime(
+    slot.startTime ?? slot.start_time ?? slot.start ?? slot.from
+  );
+  const endTime = normalizeClockTime(
+    slot.endTime ?? slot.end_time ?? slot.end ?? slot.to
+  );
 
   if (!startTime || !endTime) return null;
 
-  const normalizedSessions = Array.isArray(slot.sessions)
-    ? slot.sessions
+  const sessionsRaw =
+    slot.sessions ?? slot.session ?? slot.availableSessions ?? slot.available_sessions;
+
+  const normalizedSessions = Array.isArray(sessionsRaw)
+    ? sessionsRaw
         .map(normalizeSession)
         .filter((session): session is Session => session !== null)
     : [];
@@ -155,7 +212,7 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   const sessionDurationMinutes = inferDuration(slot, normalizedSessions);
 
   return {
-    day: normalizeDay(slot.day),
+    day: normalizeDay(slot.day ?? slot.dayOfWeek ?? slot.day_of_week ?? slot.weekday),
     startTime,
     endTime,
     sessionDurationMinutes,
@@ -172,7 +229,11 @@ const normalizeAvailability = (
 ): StaffAvailability | null => {
   if (!isRecord(rawAvailability)) return null;
 
-  const staffRecord = isRecord(rawAvailability.staff) ? rawAvailability.staff : null;
+  const staffRecord = isRecord(rawAvailability.staff)
+    ? rawAvailability.staff
+    : isRecord(rawAvailability.user)
+    ? rawAvailability.user
+    : null;
 
   const staffId = toStringValue(
     rawAvailability.staffId ??
@@ -185,11 +246,18 @@ const normalizeAvailability = (
   if (!staffId) return null;
 
   const timeSlotsRaw = rawAvailability.timeSlots ?? rawAvailability.time_slots;
-  const timeSlots = Array.isArray(timeSlotsRaw)
+  const nestedTimeSlots = Array.isArray(timeSlotsRaw)
     ? timeSlotsRaw
         .map(normalizeTimeSlot)
         .filter((slot): slot is TimeSlot => slot !== null)
     : [];
+  const flatTimeSlot = normalizeTimeSlot(rawAvailability);
+  const timeSlots =
+    nestedTimeSlots.length > 0
+      ? nestedTimeSlots
+      : flatTimeSlot
+      ? [flatTimeSlot]
+      : [];
 
   const staffName =
     toStringValue(
@@ -209,7 +277,13 @@ const normalizeAvailability = (
   );
 
   const role = toStringValue(
-    rawAvailability.role ?? (staffRecord ? staffRecord.role : undefined)
+    rawAvailability.role ??
+      rawAvailability.designation ??
+      (staffRecord ? staffRecord.role ?? staffRecord.designation : undefined)
+  );
+
+  const currentSlot = normalizeTimeSlot(
+    rawAvailability.currentSlot ?? rawAvailability.current_slot
   );
 
   return {
@@ -226,12 +300,15 @@ const normalizeAvailability = (
     maxBookingsPerSlot: Math.max(
       1,
       toNumberValue(
-        rawAvailability.maxBookingsPerSlot ?? rawAvailability.max_bookings_per_slot,
+        rawAvailability.maxBookingsPerSlot ??
+          rawAvailability.max_bookings_per_slot ??
+          rawAvailability.maxBookings ??
+          rawAvailability.max_bookings,
         1
       )
     ),
     timeSlots,
-    currentSlot: timeSlots[0] ?? defaultCurrentSlot,
+    currentSlot: currentSlot ?? timeSlots[0] ?? defaultCurrentSlot,
   };
 };
 
@@ -242,14 +319,15 @@ const mapAvailabilityToForm = (
   staffId: availability.staffId,
   maxBookingsPerSlot: availability.maxBookingsPerSlot,
   timeSlots: availability.timeSlots,
-  currentSlot: availability.timeSlots[0] ?? defaultCurrentSlot,
+  currentSlot:
+    availability.currentSlot ?? availability.timeSlots[0] ?? defaultCurrentSlot,
 });
 
 const ManageAvailability = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<IStaffAvailabilityForm | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [staffFilter, setStaffFilter] = useState<string | null>(null);
   const [dayFilter, setDayFilter] = useState<DayOfWeek | null>(null);
   const [timeFilter, setTimeFilter] = useState<{
     start?: string;
@@ -286,8 +364,46 @@ const ManageAvailability = () => {
       .filter((availability): availability is StaffAvailability => availability !== null);
   }, [availabilityData, membersLookup]);
 
+  const staffFilterOptions = useMemo(
+    () =>
+      allAvailability.reduce<{ value: string; label: string }[]>((acc, item) => {
+        if (acc.some((option) => option.value === item.staffId)) {
+          return acc;
+        }
+
+        acc.push({
+          value: item.staffId,
+          label: item.staffName || "Unknown Staff",
+        });
+        return acc;
+      }, []),
+    [allAvailability]
+  );
+
+  const hasTimeOverlap = (
+    slotStart: string,
+    slotEnd: string,
+    filterStart?: string,
+    filterEnd?: string
+  ) => {
+    const slotStartMinutes = timeToMinutes(slotStart);
+    const slotEndMinutes = timeToMinutes(slotEnd);
+    const filterStartMinutes = filterStart ? timeToMinutes(filterStart) : undefined;
+    const filterEndMinutes = filterEnd ? timeToMinutes(filterEnd) : undefined;
+
+    if (filterStartMinutes !== undefined && slotEndMinutes <= filterStartMinutes) {
+      return false;
+    }
+
+    if (filterEndMinutes !== undefined && slotStartMinutes >= filterEndMinutes) {
+      return false;
+    }
+
+    return true;
+  };
+
   const resetFilters = () => {
-    setSearchTerm("");
+    setStaffFilter(null);
     setDayFilter(null);
     setTimeFilter({});
   };
@@ -295,32 +411,39 @@ const ManageAvailability = () => {
   const filteredAvailability = useMemo(
     () =>
       allAvailability.filter((availability) => {
-        const matchesSearch = availability.staffName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+        const matchesStaff =
+          !staffFilter || availability.staffId === staffFilter;
 
         const matchesDay =
           !dayFilter || availability.timeSlots.some((slot) => slot.day === dayFilter);
 
+        const hasTimeFilter = Boolean(timeFilter.start || timeFilter.end);
         const matchesTime =
-          !timeFilter.start ||
-          !timeFilter.end ||
+          !hasTimeFilter ||
           availability.timeSlots.some((slot) => {
             if (slot.sessions.length > 0) {
               return slot.sessions.some(
                 (session) =>
-                  session.start >= timeFilter.start! && session.end <= timeFilter.end!
+                  hasTimeOverlap(
+                    session.start,
+                    session.end,
+                    timeFilter.start,
+                    timeFilter.end
+                  )
               );
             }
 
-            return (
-              slot.startTime >= timeFilter.start! && slot.endTime <= timeFilter.end!
+            return hasTimeOverlap(
+              slot.startTime,
+              slot.endTime,
+              timeFilter.start,
+              timeFilter.end
             );
           });
 
-        return matchesSearch && matchesDay && matchesTime;
+        return matchesStaff && matchesDay && matchesTime;
       }),
-    [allAvailability, dayFilter, searchTerm, timeFilter.end, timeFilter.start]
+    [allAvailability, dayFilter, staffFilter, timeFilter.end, timeFilter.start]
   );
 
   useEffect(() => {
@@ -356,14 +479,19 @@ const ManageAvailability = () => {
 
         <div className="flex flex-wrap gap-4 my-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Staff Name</label>
-            <input
-              type="text"
-              placeholder="Search by staff name"
+            <label className="text-xs font-medium text-gray-600">Staff</label>
+            <select
               className="border rounded px-3 py-2 text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              value={staffFilter ?? ""}
+              onChange={(e) => setStaffFilter(e.target.value || null)}
+            >
+              <option value="">All Staff</option>
+              {staffFilterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -435,29 +563,33 @@ const ManageAvailability = () => {
             <p className="text-sm mt-1">Try adjusting or resetting your filters.</p>
           </div>
         ) : (
-          filteredAvailability.map((availability) => (
-            <div key={`${availability.id ?? availability.staffId}`}>
-              <StaffAvailabilityCard
-                availability={availability}
-                onEdit={() => {
-                  setEditing(mapAvailabilityToForm(availability));
-                  setOpen(true);
-                }}
-                onDelete={
-                  availability.id
-                    ? () =>
-                        showDeleteDialog(
-                          {
-                            id: availability.id,
-                            name: availability.staffName || "Availability",
-                          },
-                          handleDeleteAvailability
-                        )
-                    : undefined
-                }
-              />
-            </div>
-          ))
+          filteredAvailability.map((availability, index) => {
+            const availabilityId = availability.id;
+
+            return (
+              <div key={`${availability.id ?? availability.staffId}-${index}`}>
+                <StaffAvailabilityCard
+                  availability={availability}
+                  onEdit={() => {
+                    setEditing(mapAvailabilityToForm(availability));
+                    setOpen(true);
+                  }}
+                  onDelete={
+                    availabilityId
+                      ? () =>
+                          showDeleteDialog(
+                            {
+                              id: availabilityId,
+                              name: availability.staffName || "Availability",
+                            },
+                            handleDeleteAvailability
+                          )
+                      : undefined
+                  }
+                />
+              </div>
+            );
+          })
         )}
 
         <Modal

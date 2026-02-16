@@ -30,7 +30,11 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
-import { StaffAvailability } from "./appointment/interfaces";
+import {
+  StaffAvailability,
+  StaffAvailabilityStatusResponse,
+  Appointment
+} from "./appointment/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -425,6 +429,18 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<StaffAvailability[]>> => {
     return this.fetchFromApi("appointment/availability", query);
+  };
+
+  fetchStaffAvailabilityStatus = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
+    return this.fetchFromApi("appointment/availability/status", query);
+  };
+
+  fetchAppointment=(
+    query?: QueryType
+  ): Promise<ApiResponse<Appointment>> => {
+    return this.fetchFromApi("appointment/bookings", query);
   };
 
   // Fetch church attendance records
