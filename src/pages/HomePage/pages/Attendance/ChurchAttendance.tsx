@@ -308,7 +308,7 @@ export default function ChurchAttendance() {
         ))}
       </div>
 
-      <Modal open={showForm} onClose={() => setShowForm(false)}>
+      <Modal open={showForm} className="max-w-3xl" onClose={() => setShowForm(false)}>
         <ChurchAttendanceForm
           initialData={editing || undefined}
           onClose={() => {

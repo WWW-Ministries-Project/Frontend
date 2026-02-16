@@ -30,18 +30,18 @@ const AppointmentManager = () => {
                 <AllAppointmentsLayout 
                  Appointments={{ all: dummyAppointments }}
           onEdit={(appt) => {
-            console.log("Edit appointment:", appt);
             setSelectedAppointment(appt);
             setIsModalOpen(true);
           }}
           onDelete={(appt) => {
-            console.log("Delete appointment:", appt);
+            void appt;
           }}
                 />
             </div>
 
             <Modal
         open={isModalOpen}
+        className="max-w-4xl"
         onClose={() => {
           setIsModalOpen(false);
           setSelectedAppointment(undefined);

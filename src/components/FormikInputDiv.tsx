@@ -5,7 +5,7 @@ import {
 import { FieldProps, getIn } from "formik";
 
 interface FormikInputDivProps extends FieldProps, Omit<InputDivProps, "name"> {
-  supressErrorDisplay: boolean;
+  supressErrorDisplay?: boolean;
 }
 
 function fieldToInputDiv({

@@ -1,4 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import { cn } from "@/utils/cn";
 
 interface IProps {
   open: boolean;
@@ -19,15 +20,18 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
       <Dialog.Portal>
         {/* Fullscreen overlay */}
         <Dialog.Overlay
-          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-10"
+          className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm"
           style={{ animation: "fadeIn 0.2s" }}
         />
 
         {/* Flex container to center the modal */}
-        <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <Dialog.Content
             aria-describedby="dialog-description"
-            className={`relative max-h-[90vh] rounded-2xl bg-white shadow-md ${className ?? "w-full max-w-xl"}`}
+            className={cn(
+              "relative w-full max-w-xl rounded-2xl bg-white shadow-md max-h-[90vh] focus:outline-none",
+              className
+            )}
             onPointerDownOutside={
               persist ? (e) => e.preventDefault() : undefined
             }

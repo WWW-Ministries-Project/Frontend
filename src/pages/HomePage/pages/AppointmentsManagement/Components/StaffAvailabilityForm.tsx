@@ -222,6 +222,7 @@ const StaffAvailabilityFormComponent = ({
       "timeSlots",
       values.timeSlots.filter((_, i) => i !== index)
     );
+    setFieldValue("timeSlotsError", undefined);
   };
 
   const removeSession = (
@@ -230,16 +231,25 @@ const StaffAvailabilityFormComponent = ({
     values: IStaffAvailabilityForm,
     setFieldValue: (field: string, value: unknown) => void
   ) => {
-    const updatedSlots = values.timeSlots.map((slot, i) => {
-      if (i !== slotIndex) return slot;
+    const updatedSlots = values.timeSlots
+      .map((slot, i) => {
+        if (i !== slotIndex) return slot;
 
-      return {
-        ...slot,
-        sessions: slot.sessions.filter((_, sIdx) => sIdx !== sessionIndex),
-      };
-    });
+        const updatedSessions = slot.sessions.filter((_, sIdx) => sIdx !== sessionIndex);
+
+        if (updatedSessions.length === 0) {
+          return null;
+        }
+
+        return {
+          ...slot,
+          sessions: updatedSessions,
+        };
+      })
+      .filter((slot): slot is TimeSlot => slot !== null);
 
     setFieldValue("timeSlots", updatedSlots);
+    setFieldValue("timeSlotsError", undefined);
   };
 
   return (
@@ -249,7 +259,7 @@ const StaffAvailabilityFormComponent = ({
       enableReinitialize
       onSubmit={handleSubmitForm}
     >
-      {({ handleSubmit, values, setFieldValue }) => (
+      {({ handleSubmit, values, setFieldValue, errors, submitCount }) => (
         <Form className="h-[calc(100vh-180px)] flex flex-col overflow-auto">
           <div className="sticky top-0 z-10">
             <FormHeader>
@@ -267,7 +277,7 @@ const StaffAvailabilityFormComponent = ({
           <div className="flex-1 overflow-y-auto space-y-4 px-6 py-4">
             <Field
               component={FormikSelectField}
-              label="Staff *"
+              label="Staff Member *"
               id="staffId"
               name="staffId"
               searchable
@@ -276,10 +286,11 @@ const StaffAvailabilityFormComponent = ({
 
             <Field
               component={FormikInputDiv}
-              label="Max Bookings Per Slot *"
+              label="Maximum Bookings per Slot *"
               name="maxBookingsPerSlot"
               id="maxBookingsPerSlot"
               type="number"
+              min="1"
               placeholder="3"
             />
 
@@ -287,7 +298,7 @@ const StaffAvailabilityFormComponent = ({
 
             <p className="font-semibold mt-2">Add Time Slot</p>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field
                 component={FormikSelectField}
                 label="Day *"
@@ -320,7 +331,7 @@ const StaffAvailabilityFormComponent = ({
 
               <Field
                 component={FormikInputDiv}
-                label="Start Time"
+                label="Start Time *"
                 name="currentSlot.startTime"
                 id="currentSlot.startTime"
                 type="time"
@@ -328,7 +339,7 @@ const StaffAvailabilityFormComponent = ({
 
               <Field
                 component={FormikInputDiv}
-                label="End Time"
+                label="End Time *"
                 name="currentSlot.endTime"
                 id="currentSlot.endTime"
                 type="time"
@@ -344,13 +355,18 @@ const StaffAvailabilityFormComponent = ({
             {values.timeSlotsError && (
               <p className="text-sm text-red-600 mt-2">{values.timeSlotsError}</p>
             )}
+            {!values.timeSlotsError &&
+              submitCount > 0 &&
+              typeof errors.timeSlots === "string" && (
+                <p className="text-sm text-red-600 mt-2">{errors.timeSlots}</p>
+              )}
 
             {values.timeSlots.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="font-semibold">Added Time Slots</p>
+                <p className="font-semibold">Configured Time Slots</p>
                 {values.timeSlots.map((slot, index) => (
                   <div
-                    key={index}
+                    key={`${slot.day}-${slot.startTime}-${slot.endTime}-${index}`}
                     className="flex justify-between items-center border rounded px-3 py-2"
                   >
                     <div className="text-sm capitalize">
@@ -367,6 +383,7 @@ const StaffAvailabilityFormComponent = ({
                             <button
                               type="button"
                               className="ml-1 text-red-600 font-bold"
+                              aria-label={`Remove session ${s.start} to ${s.end}`}
                               onClick={() =>
                                 removeSession(index, sIdx, values, setFieldValue)
                               }
@@ -401,6 +418,7 @@ const StaffAvailabilityFormComponent = ({
 
             <Button
               variant="primary"
+              type="submit"
               onClick={handleSubmit}
               loading={loading || postLoading}
               value={availability ? "Save Changes" : "Create Availability"}
