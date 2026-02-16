@@ -126,6 +126,18 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("product/delete-product", query);
   };
 
+  deleteStaffAvailability = (query: QueryType): Promise<ApiResponse<void>> => {
+    const availabilityId = query?.id;
+
+    if (!availabilityId) {
+      throw new Error("Availability id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(
+      `appointment/availability/${availabilityId}`
+    );
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType
@@ -161,5 +173,4 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("bankaccountconfig/delete-bank-account-config", query);
   };
 }
-
 
