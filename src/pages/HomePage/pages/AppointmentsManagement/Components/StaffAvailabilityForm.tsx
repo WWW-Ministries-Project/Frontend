@@ -300,7 +300,7 @@ const StaffAvailabilityFormComponent = ({
           <div className="flex-1 overflow-y-auto space-y-4 px-6 py-4">
             <Field
               component={FormikSelectField}
-              label="Staff Member *"
+              label="Attendee *"
               id="staffId"
               name="staffId"
               searchable

@@ -76,8 +76,27 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
   return fallback;
 };
 
+const normalizeClockTime = (value: unknown): string => {
+  const raw = toStringValue(value).trim();
+  if (!raw.includes(":")) return "";
+
+  const [hourPart, minutePart] = raw.split(":");
+  const hour = Number(hourPart);
+  const minute = Number(minutePart);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+};
+
 const timeToMinutes = (time: string): number => {
-  const [hours, minutes] = time.split(":").map(Number);
+  const normalized = normalizeClockTime(time);
+
+  if (!normalized) {
+    return 0;
+  }
+
+  const [hours, minutes] = normalized.split(":").map(Number);
 
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
     return 0;
@@ -117,7 +136,31 @@ const generateSessions = (
 };
 
 const normalizeDay = (value: unknown): DayOfWeek => {
-  const parsed = toStringValue(value).toLowerCase();
+  const parsed = toStringValue(value).toLowerCase().trim();
+
+  const dayMap: Record<string, DayOfWeek> = {
+    monday: "monday",
+    mon: "monday",
+    tuesday: "tuesday",
+    tue: "tuesday",
+    tues: "tuesday",
+    wednesday: "wednesday",
+    wed: "wednesday",
+    thursday: "thursday",
+    thu: "thursday",
+    thur: "thursday",
+    thurs: "thursday",
+    friday: "friday",
+    fri: "friday",
+    saturday: "saturday",
+    sat: "saturday",
+    sunday: "sunday",
+    sun: "sunday",
+  };
+
+  if (dayMap[parsed]) {
+    return dayMap[parsed];
+  }
 
   if (dayOptions.includes(parsed as DayOfWeek)) {
     return parsed as DayOfWeek;
@@ -129,8 +172,12 @@ const normalizeDay = (value: unknown): DayOfWeek => {
 const normalizeSession = (session: unknown): Session | null => {
   if (!isRecord(session)) return null;
 
-  const start = toStringValue(session.start ?? session.start_time);
-  const end = toStringValue(session.end ?? session.end_time);
+  const start = normalizeClockTime(
+    session.start ?? session.start_time ?? session.startTime ?? session.from
+  );
+  const end = normalizeClockTime(
+    session.end ?? session.end_time ?? session.endTime ?? session.to
+  );
 
   if (!start || !end) return null;
 
@@ -145,7 +192,10 @@ const inferDuration = (
   sessions: Session[]
 ): number => {
   const fromPayload = toNumberValue(
-    slot.sessionDurationMinutes ?? slot.session_duration_minutes,
+    slot.sessionDurationMinutes ??
+      slot.session_duration_minutes ??
+      slot.sessionDuration ??
+      slot.duration,
     0
   );
 
@@ -163,13 +213,20 @@ const inferDuration = (
 const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   if (!isRecord(slot)) return null;
 
-  const startTime = toStringValue(slot.startTime ?? slot.start_time);
-  const endTime = toStringValue(slot.endTime ?? slot.end_time);
+  const startTime = normalizeClockTime(
+    slot.startTime ?? slot.start_time ?? slot.start ?? slot.from
+  );
+  const endTime = normalizeClockTime(
+    slot.endTime ?? slot.end_time ?? slot.end ?? slot.to
+  );
 
   if (!startTime || !endTime) return null;
 
-  const normalizedSessions = Array.isArray(slot.sessions)
-    ? slot.sessions
+  const sessionsRaw =
+    slot.sessions ?? slot.session ?? slot.availableSessions ?? slot.available_sessions;
+
+  const normalizedSessions = Array.isArray(sessionsRaw)
+    ? sessionsRaw
         .map(normalizeSession)
         .filter((session): session is Session => session !== null)
     : [];
@@ -177,7 +234,7 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   const sessionDurationMinutes = inferDuration(slot, normalizedSessions);
 
   return {
-    day: normalizeDay(slot.day),
+    day: normalizeDay(slot.day ?? slot.dayOfWeek ?? slot.day_of_week ?? slot.weekday),
     startTime,
     endTime,
     sessionDurationMinutes,
@@ -194,29 +251,44 @@ const normalizeAvailability = (
 ): StaffAvailability | null => {
   if (!isRecord(rawAvailability)) return null;
 
-  const staffRecord = isRecord(rawAvailability.staff) ? rawAvailability.staff : null;
+  const staffRecord = isRecord(rawAvailability.staff)
+    ? rawAvailability.staff
+    : isRecord(rawAvailability.user)
+    ? rawAvailability.user
+    : null;
 
   const staffId = toStringValue(
     rawAvailability.staffId ??
       rawAvailability.staff_id ??
+      rawAvailability.userId ??
+      rawAvailability.user_id ??
       (staffRecord ? staffRecord.id : undefined)
   );
 
   if (!staffId) return null;
 
   const timeSlotsRaw = rawAvailability.timeSlots ?? rawAvailability.time_slots;
-  const timeSlots = Array.isArray(timeSlotsRaw)
+  const nestedTimeSlots = Array.isArray(timeSlotsRaw)
     ? timeSlotsRaw
         .map(normalizeTimeSlot)
         .filter((slot): slot is TimeSlot => slot !== null)
     : [];
+  const flatTimeSlot = normalizeTimeSlot(rawAvailability);
+  const timeSlots =
+    nestedTimeSlots.length > 0
+      ? nestedTimeSlots
+      : flatTimeSlot
+      ? [flatTimeSlot]
+      : [];
 
   const staffName =
     toStringValue(
       rawAvailability.staffName ??
         rawAvailability.staff_name ??
         (staffRecord
-          ? staffRecord.name ?? staffRecord.fullName ?? staffRecord.full_name
+          ? staffRecord.name ??
+            staffRecord.fullName ??
+            staffRecord.full_name
           : undefined)
     ) || memberLookup[staffId] || "Unknown Staff";
 
@@ -226,11 +298,18 @@ const normalizeAvailability = (
   );
 
   const role = toStringValue(
-    rawAvailability.role ?? (staffRecord ? staffRecord.role : undefined)
+    rawAvailability.role ??
+      rawAvailability.designation ??
+      (staffRecord ? staffRecord.role ?? staffRecord.designation : undefined)
   );
 
   return {
-    id: toStringValue(rawAvailability.id) || undefined,
+    id:
+      toStringValue(
+        rawAvailability.id ??
+          rawAvailability.availabilityId ??
+          rawAvailability.availability_id
+      ) || undefined,
     staffId,
     staffName,
     position,
@@ -238,7 +317,10 @@ const normalizeAvailability = (
     maxBookingsPerSlot: Math.max(
       1,
       toNumberValue(
-        rawAvailability.maxBookingsPerSlot ?? rawAvailability.max_bookings_per_slot,
+        rawAvailability.maxBookingsPerSlot ??
+          rawAvailability.max_bookings_per_slot ??
+          rawAvailability.maxBookings ??
+          rawAvailability.max_bookings,
         1
       )
     ),
@@ -263,6 +345,15 @@ const getDayFromDate = (date: string): DayOfWeek | null => {
   }
 
   return null;
+};
+
+const formatDayLabel = (day: DayOfWeek): string =>
+  day.charAt(0).toUpperCase() + day.slice(1);
+
+const isDateAllowedForDays = (date: string, allowedDays: DayOfWeek[]): boolean => {
+  const dayFromDate = getDayFromDate(date);
+  if (!dayFromDate) return false;
+  return allowedDays.includes(dayFromDate);
 };
 
 const toInputDate = (value?: string): string => {
@@ -308,9 +399,51 @@ const AppointmentBookingForm = ({
       return [];
     }
 
-    return availabilityResponse.data
+    const normalizedAvailability = availabilityResponse.data
       .map((availability) => normalizeAvailability(availability, membersLookup))
       .filter((availability): availability is StaffAvailability => availability !== null);
+
+    const groupedByStaff = normalizedAvailability.reduce<Record<string, StaffAvailability>>(
+      (acc, availability) => {
+        const existing = acc[availability.staffId];
+
+        if (!existing) {
+          acc[availability.staffId] = {
+            ...availability,
+            timeSlots: [...availability.timeSlots],
+          };
+          return acc;
+        }
+
+        const mergedSlots = [...existing.timeSlots];
+        availability.timeSlots.forEach((slot) => {
+          const exists = mergedSlots.some(
+            (existingSlot) =>
+              existingSlot.day === slot.day &&
+              existingSlot.startTime === slot.startTime &&
+              existingSlot.endTime === slot.endTime
+          );
+
+          if (!exists) {
+            mergedSlots.push(slot);
+          }
+        });
+
+        acc[availability.staffId] = {
+          ...existing,
+          staffName: availability.staffName || existing.staffName,
+          position: availability.position || existing.position,
+          role: availability.role || existing.role,
+          maxBookingsPerSlot:
+            availability.maxBookingsPerSlot || existing.maxBookingsPerSlot,
+          timeSlots: mergedSlots,
+        };
+        return acc;
+      },
+      {}
+    );
+
+    return Object.values(groupedByStaff);
   }, [availabilityResponse, membersLookup]);
 
   const initialValues: BookingFormValues = {
@@ -347,17 +480,27 @@ const AppointmentBookingForm = ({
         errors,
         touched,
         setFieldValue,
+        setFieldError,
         setFieldTouched,
         handleSubmit,
       }) => {
         const selectedStaff = staffAvailability.find(
           (staff) => staff.staffId === values.staffId
         );
+        const availableDaysForStaff = selectedStaff
+          ? Array.from(new Set(selectedStaff.timeSlots.map((slot) => slot.day)))
+          : [];
 
         const selectedDay = values.date ? getDayFromDate(values.date) : null;
+        const isSelectedDateAllowed =
+          !values.date ||
+          availableDaysForStaff.length === 0 ||
+          (selectedDay !== null && availableDaysForStaff.includes(selectedDay));
 
         const slotsForDay =
-          selectedStaff && selectedDay
+          selectedStaff &&
+          selectedDay &&
+          availableDaysForStaff.includes(selectedDay)
             ? selectedStaff.timeSlots.filter((slot) => slot.day === selectedDay)
             : [];
 
@@ -425,7 +568,7 @@ const AppointmentBookingForm = ({
 
               <Field
                 component={FormikSelectField}
-                label="Staff Member *"
+                label="Appointment With *"
                 name="staffId"
                 id="staffId"
                 className="w-full"
@@ -476,13 +619,47 @@ const AppointmentBookingForm = ({
                 disabled={!values.staffId}
                 className="w-full"
                 onChange={(name: string, value: string | number) => {
-                  setFieldValue(name, value);
+                  const nextDateValue = String(value);
+
+                  if (
+                    selectedStaff &&
+                    availableDaysForStaff.length > 0 &&
+                    !isDateAllowedForDays(nextDateValue, availableDaysForStaff)
+                  ) {
+                    setFieldValue(name, "");
+                    setFieldError(
+                      "date",
+                      `Selected staff is only available on ${availableDaysForStaff
+                        .map(formatDayLabel)
+                        .join(", ")}.`
+                    );
+                    setFieldTouched("date", true, false);
+                    setFieldValue("session", undefined);
+                    setFieldTouched("session", false, false);
+                    return;
+                  }
+
+                  setFieldValue(name, nextDateValue);
+                  setFieldError("date", undefined);
                   setFieldValue("session", undefined);
                   setFieldTouched("session", false, false);
                 }}
               />
+              {selectedStaff && availableDaysForStaff.length > 0 && (
+                <p className="text-xs text-gray-600 -mt-2">
+                  Available on: {availableDaysForStaff.map(formatDayLabel).join(", ")}
+                </p>
+              )}
+              {!isSelectedDateAllowed && (
+                <p className="text-sm text-red-600">
+                  Please choose one of the available days for this staff member.
+                </p>
+              )}
 
-              {values.staffId && values.date && slotsForDay.length > 0 && (
+              {values.staffId &&
+                values.date &&
+                isSelectedDateAllowed &&
+                slotsForDay.length > 0 && (
                 <div className="space-y-2">
                   <label htmlFor="session-options" className="text-sm font-medium">
                     Time Slot *
@@ -535,11 +712,15 @@ const AppointmentBookingForm = ({
                 </div>
               )}
 
-              {values.staffId && values.date && !availabilityLoading && slotsForDay.length === 0 && (
-                <div className="text-sm text-muted-foreground">
-                  No available time slots for the selected date.
-                </div>
-              )}
+              {values.staffId &&
+                values.date &&
+                !availabilityLoading &&
+                isSelectedDateAllowed &&
+                slotsForDay.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    No available time slots for the selected date.
+                  </div>
+                )}
             </div>
 
             <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
