@@ -6,6 +6,7 @@ import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils";
@@ -16,6 +17,7 @@ import {
 } from "@/utils/api/appointment/interfaces";
 
 export interface IStaffAvailabilityForm {
+  id?: string;
   staffId: string;
   maxBookingsPerSlot: number;
   timeSlots: TimeSlot[];
@@ -128,22 +130,38 @@ const StaffAvailabilityFormComponent = ({
     loading: postLoading,
     postData,
   } = usePost(api.post.createStaffAvailability);
+  const {
+    data: putResponse,
+    error: putError,
+    loading: putLoading,
+    updateData,
+  } = usePut(api.put.updateStaffAvailability);
 
   useEffect(() => {
     if (!postResponse) return;
 
-    showNotification(
-      availability ? "Availability saved successfully" : "Availability created successfully",
-      "success"
-    );
+    showNotification("Availability created successfully", "success");
     onSuccess?.();
     onClose?.();
-  }, [availability, onClose, onSuccess, postResponse]);
+  }, [onClose, onSuccess, postResponse]);
+
+  useEffect(() => {
+    if (!putResponse) return;
+
+    showNotification("Availability updated successfully", "success");
+    onSuccess?.();
+    onClose?.();
+  }, [onClose, onSuccess, putResponse]);
 
   useEffect(() => {
     if (!postError) return;
     showNotification(postError.message || "Unable to save availability", "error");
   }, [postError]);
+
+  useEffect(() => {
+    if (!putError) return;
+    showNotification(putError.message || "Unable to update availability", "error");
+  }, [putError]);
 
   const handleSubmitForm = (values: IStaffAvailabilityForm) => {
     const payload: CreateStaffAvailabilityPayload = {
@@ -151,6 +169,11 @@ const StaffAvailabilityFormComponent = ({
       maxBookingsPerSlot: Number(values.maxBookingsPerSlot),
       timeSlots: values.timeSlots,
     };
+
+    if (values.id) {
+      updateData(payload, { id: values.id });
+      return;
+    }
 
     postData(payload);
   };
@@ -420,7 +443,7 @@ const StaffAvailabilityFormComponent = ({
               variant="primary"
               type="submit"
               onClick={handleSubmit}
-              loading={loading || postLoading}
+              loading={loading || postLoading || putLoading}
               value={availability ? "Save Changes" : "Create Availability"}
             />
           </div>

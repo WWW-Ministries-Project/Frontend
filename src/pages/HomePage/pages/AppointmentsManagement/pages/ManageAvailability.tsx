@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HeaderControls } from "@/components/HeaderControls";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import StaffAvailabilityCard from "../Components/StaffAvailabilityCard";
@@ -7,6 +7,8 @@ import StaffAvailabilityForm, {
   IStaffAvailabilityForm,
 } from "../Components/StaffAvailabilityForm";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils";
 import {
@@ -175,6 +177,8 @@ const normalizeAvailability = (
   const staffId = toStringValue(
     rawAvailability.staffId ??
       rawAvailability.staff_id ??
+      rawAvailability.userId ??
+      rawAvailability.user_id ??
       (staffRecord ? staffRecord.id : undefined)
   );
 
@@ -209,7 +213,12 @@ const normalizeAvailability = (
   );
 
   return {
-    id: toStringValue(rawAvailability.id) || undefined,
+    id:
+      toStringValue(
+        rawAvailability.id ??
+          rawAvailability.availabilityId ??
+          rawAvailability.availability_id
+      ) || undefined,
     staffId,
     staffName,
     position,
@@ -229,6 +238,7 @@ const normalizeAvailability = (
 const mapAvailabilityToForm = (
   availability: StaffAvailability
 ): IStaffAvailabilityForm => ({
+  id: availability.id,
   staffId: availability.staffId,
   maxBookingsPerSlot: availability.maxBookingsPerSlot,
   timeSlots: availability.timeSlots,
@@ -262,6 +272,11 @@ const ManageAvailability = () => {
     loading,
     refetch,
   } = useFetch(api.fetch.fetchStaffAvailability);
+  const {
+    executeDelete,
+    success: deleteSuccess,
+    error: deleteError,
+  } = useDelete(api.delete.deleteStaffAvailability);
 
   const allAvailability = useMemo(() => {
     if (!Array.isArray(availabilityData?.data)) return [];
@@ -307,6 +322,23 @@ const ManageAvailability = () => {
       }),
     [allAvailability, dayFilter, searchTerm, timeFilter.end, timeFilter.start]
   );
+
+  useEffect(() => {
+    if (!deleteSuccess) return;
+
+    showNotification("Availability deleted successfully", "success");
+    refetch();
+  }, [deleteSuccess, refetch]);
+
+  useEffect(() => {
+    if (!deleteError) return;
+
+    showNotification(deleteError.message || "Unable to delete availability", "error");
+  }, [deleteError]);
+
+  const handleDeleteAvailability = (availabilityId: string | number) => {
+    executeDelete({ id: String(availabilityId) });
+  };
 
   return (
     <div>
@@ -411,6 +443,18 @@ const ManageAvailability = () => {
                   setEditing(mapAvailabilityToForm(availability));
                   setOpen(true);
                 }}
+                onDelete={
+                  availability.id
+                    ? () =>
+                        showDeleteDialog(
+                          {
+                            id: availability.id,
+                            name: availability.staffName || "Availability",
+                          },
+                          handleDeleteAvailability
+                        )
+                    : undefined
+                }
               />
             </div>
           ))

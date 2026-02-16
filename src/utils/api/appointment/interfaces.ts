@@ -37,6 +37,8 @@ export interface CreateStaffAvailabilityPayload {
   timeSlots: TimeSlot[];
 }
 
+export type UpdateStaffAvailabilityPayload = CreateStaffAvailabilityPayload;
+
 export interface BookedSession {
   staffId: string;
   date: string;
