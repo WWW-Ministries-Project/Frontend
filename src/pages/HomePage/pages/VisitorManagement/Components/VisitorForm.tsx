@@ -62,7 +62,7 @@ const VisitorFormComponent = ({
         onSubmit={onSubmit}
       >
         {({ handleSubmit }) => (
-          <Form className="flex flex-col h-[80vh]  xl:w-[50vw] bg-white rounded-lg shadow-sm overflow-hidden">
+          <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
             <SyncEventDate eventsOptions={eventsOptions} />
             {showHeader && (
               <div className="sticky top-0 z-10">

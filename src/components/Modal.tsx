@@ -25,11 +25,11 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
         />
 
         {/* Flex container to center the modal */}
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
           <Dialog.Content
             aria-describedby="dialog-description"
             className={cn(
-              "relative w-full max-w-xl rounded-2xl bg-white shadow-md max-h-[90vh] focus:outline-none",
+              "relative w-full max-w-xl max-h-[90vh] rounded-2xl bg-white shadow-md focus:outline-none",
               className
             )}
             onPointerDownOutside={

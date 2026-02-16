@@ -365,7 +365,7 @@ const AppointmentBookingForm = ({
         const sessionTouched = Boolean(getIn(touched, "session"));
 
         return (
-          <Form className="h-[calc(100vh-180px)] flex flex-col overflow-auto">
+          <Form className="flex h-[80vh] flex-col overflow-hidden">
             <div className="sticky top-0 z-10">
               <FormHeader>
                 <p className="text-lg font-semibold">
