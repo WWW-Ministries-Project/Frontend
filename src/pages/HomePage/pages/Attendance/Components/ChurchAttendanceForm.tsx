@@ -147,6 +147,7 @@ const ChurchAttendanceFormComponent = ({
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
+        enableReinitialize
         onSubmit={onSubmit}
       >
         {({ values, handleSubmit }) => (
@@ -177,74 +178,73 @@ const ChurchAttendanceFormComponent = ({
                   <Field
                     component={FormikInputDiv}
                     type="date"
-                    label="Date *"
+                    label="Attendance Date *"
                     id="date"
                     name="date"
                     value={formatInputDate(values.date)}
                   />
                 </div>
 
-                {/* <Field
-                  component={FormikSelectField}
-                  label="Group *"
-                  id="group"
-                  name="group"
-                  options={[{ label: "Both", value: "BOTH" }]}
-                  // disabled
-                /> */}
-
-                {/* {(values.group === "ADULTS" || values.group === "BOTH") && ( */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Adult Male"
-                      id="adultMale"
-                      name="adultMale"
-                    />
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Adult Female"
-                      id="adultFemale"
-                      name="adultFemale"
-                    />
-                  </div>
-                {/* )} */}
-
-                {/* {(values.group === "CHILDREN" || values.group === "BOTH") && ( */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Children Male"
-                      id="childrenMale"
-                      name="childrenMale"
-                    />
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Children Female"
-                      id="childrenFemale"
-                      name="childrenFemale"
-                    />
-                  </div>
-                {/* )} */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Adult Males"
+                    id="adultMale"
+                    name="adultMale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Adult Females"
+                    id="adultFemale"
+                    name="adultFemale"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     component={FormikInputDiv}
                     type="number"
-                    label="Youth Male"
-                    id="youthMale"
-                    name="youthMale"
+                    label="Male Children"
+                    id="childrenMale"
+                    name="childrenMale"
+                    min="0"
+                    placeholder="0"
                   />
                   <Field
                     component={FormikInputDiv}
                     type="number"
-                    label="Youth Female"
+                    label="Female Children"
+                    id="childrenFemale"
+                    name="childrenFemale"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Male Youth"
+                    id="youthMale"
+                    name="youthMale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Female Youth"
                     id="youthFemale"
                     name="youthFemale"
+                    min="0"
+                    placeholder="0"
                   />
                   <Field
                     component={FormikInputDiv}
@@ -252,6 +252,8 @@ const ChurchAttendanceFormComponent = ({
                     label="Visiting Pastors"
                     id="visitingPastors"
                     name="visitingPastors"
+                    min="0"
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -259,16 +261,16 @@ const ChurchAttendanceFormComponent = ({
               <div className="sticky bottom-0 z-10 bg-white border-t px-6 py-4">
                 <div className="flex justify-end gap-3">
                   <Button
+                    value="Cancel"
+                    variant="secondary"
+                    onClick={onClose}
+                  />
+                  <Button
                     value="Save"
                     variant="primary"
                     type="submit"
                     loading={loading || postLoading || putLoading}
                     onClick={handleSubmit}
-                  />
-                  <Button
-                    value="Cancel"
-                    variant="secondary"
-                    onClick={onClose}
                   />
                 </div>
               </div>
@@ -295,17 +297,25 @@ const defaultValues: IChurchAttendanceForm = {
   lastUpdatedBy: "Current User",
 };
 
+const attendanceCountSchema = number()
+  .transform((value, originalValue) =>
+    originalValue === "" || originalValue === null ? 0 : value
+  )
+  .typeError("Value must be a number")
+  .integer("Value must be a whole number")
+  .min(0, "Value cannot be negative");
+
 const validationSchema = object({
   eventId: string().required("Event is required"),
   date: string().required("Date is required"),
   group: string().required(),
-  adultMale: number().min(0),
-  adultFemale: number().min(0),
-  childrenMale: number().min(0),
-  childrenFemale: number().min(0),
-  youthMale: number().min(0),
-  youthFemale: number().min(0),
-  visitingPastors: number().min(0),
+  adultMale: attendanceCountSchema,
+  adultFemale: attendanceCountSchema,
+  childrenMale: attendanceCountSchema,
+  childrenFemale: attendanceCountSchema,
+  youthMale: attendanceCountSchema,
+  youthFemale: attendanceCountSchema,
+  visitingPastors: attendanceCountSchema,
 });
 
 export const ChurchAttendanceForm = Object.assign(

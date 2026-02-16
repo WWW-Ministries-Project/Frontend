@@ -4,7 +4,15 @@ import clsx from "clsx";
 export interface InputDivProps {
   id: string;
   label?: string;
-  type?: "text" | "number" | "email" | "password" | "textarea";
+  type?:
+    | "text"
+    | "number"
+    | "email"
+    | "password"
+    | "textarea"
+    | "date"
+    | "time"
+    | "tel";
   value?: string | number;
   placeholder?: string;
   onChange:

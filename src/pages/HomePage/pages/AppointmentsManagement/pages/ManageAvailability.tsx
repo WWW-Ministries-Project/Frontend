@@ -418,6 +418,7 @@ const ManageAvailability = () => {
 
         <Modal
           open={open}
+          className="max-w-4xl"
           onClose={() => {
             setOpen(false);
             setEditing(null);

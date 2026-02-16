@@ -263,6 +263,7 @@ const MyAppointments = () => {
 
       <Modal
         open={isModalOpen}
+        className="max-w-4xl"
         onClose={() => {
           setIsModalOpen(false);
           setSelectedAppointment(undefined);
