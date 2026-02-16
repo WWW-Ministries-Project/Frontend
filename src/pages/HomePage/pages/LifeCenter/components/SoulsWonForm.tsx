@@ -36,7 +36,6 @@ export const SoulsWonForm = ({
     () => ({
       ...(editData || initialValues),
       phone: {
-        // @ts-expect-error error from BE
         number: editData?.contact_number ?? "",
         country_code: ContactInput.initialValues.country_code,
       },
@@ -137,8 +136,8 @@ export interface ISoulsWonForm extends INameInfo {
   city: string;
   date_won: string;
   wonById: string;
-  wonByName: string;
-  contact_number: string;
+  wonByName?: string;
+  contact_number?: string;
   id: string;
   lifeCenterId: string;
 }
@@ -151,6 +150,8 @@ const initialValues: ISoulsWonForm = {
   city: "",
   date_won: "",
   wonById: "",
+  wonByName: "",
+  contact_number: "",
   id: "",
   lifeCenterId: "",
 };

@@ -95,13 +95,20 @@ export function calculateEventPosition(
 }
 
 export interface CalendarEvent {
-  id: string;
-  event_name: string;
+  id: string | number;
+  event_name?: string;
   start_date: string;
   end_date: string;
   start_time: string;
   end_time: string;
-  [key: string]: unknown;
+  name?: string;
+  location?: string;
+  description?: string;
+  event_status?: string | null;
+  poster?: string;
+  qr_code?: string;
+  event_type?: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other" | "OTHER";
+  event_name_id?: number | string;
 }
 
 export interface OverlapGroup {
@@ -111,9 +118,13 @@ export interface OverlapGroup {
   left: number;
 }
 
-export type PositionedEvent = CalendarEvent & { overlapGroup: OverlapGroup };
+export type PositionedEvent<T extends CalendarEvent = CalendarEvent> = T & {
+  overlapGroup: OverlapGroup;
+};
 
-export function resolveEventOverlaps(events: CalendarEvent[]): PositionedEvent[] {
+export function resolveEventOverlaps<T extends CalendarEvent>(
+  events: T[]
+): PositionedEvent<T>[] {
   if (!events.length) return [];
 
   // Sort events by start time
@@ -122,8 +133,8 @@ export function resolveEventOverlaps(events: CalendarEvent[]): PositionedEvent[]
   );
 
   // Group overlapping events
-  const eventGroups: CalendarEvent[][] = [];
-  let currentGroup: CalendarEvent[] = [sortedEvents[0]];
+  const eventGroups: T[][] = [];
+  let currentGroup: T[] = [sortedEvents[0]];
 
   for (let i = 1; i < sortedEvents.length; i++) {
     const currentEvent = sortedEvents[i];
@@ -141,7 +152,7 @@ export function resolveEventOverlaps(events: CalendarEvent[]): PositionedEvent[]
   eventGroups.push(currentGroup);
 
   // Calculate positions for each group
-  const eventsWithPositions: PositionedEvent[] = [];
+  const eventsWithPositions: PositionedEvent<T>[] = [];
 
   eventGroups.forEach(group => {
     const groupSize = group.length;
@@ -311,6 +322,4 @@ export function debounce<T extends (...args: any[]) => void>(
 
   return debounced;
 }
-
-
 

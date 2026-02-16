@@ -150,7 +150,7 @@ export const ProfileDetails = () => {
                       <div className="pt-4 md:pt-0">
                         <Button
                           value="Edit Profile"
-                          onClick={()=>handleEdit(details?.user_id!)}
+                          onClick={() => details?.id && handleEdit(String(details.id))}
                           className="w-full  px-5 py-3 bg-transparent min-h-8  bg-white text-primary text-xs md:text-sm lg:text-base "
                         />
                       </div>

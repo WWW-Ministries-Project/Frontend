@@ -28,6 +28,19 @@ interface EnhancedModalProps {
     className?: string;
 }
 
+const debounce = <T extends (...args: never[]) => void>(
+    fn: T,
+    wait = 100
+) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    return (...args: Parameters<T>) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => fn(...args), wait);
+    };
+};
+
 export const EnhancedModal: React.FC<EnhancedModalProps> = ({ 
     isOpen, 
     onClose, 
@@ -225,4 +238,4 @@ export const EnhancedModal: React.FC<EnhancedModalProps> = ({
             </div>
         </div>
     );
-};</svg>
+};

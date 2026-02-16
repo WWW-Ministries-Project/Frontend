@@ -35,7 +35,7 @@ export class ApiExecution {
 
   deleteData<T>(
     path: string,
-    query?: Record<string, string>
+    query?: QueryType
   ): Promise<ApiResponse<T>> {
     if (!this.deleteExecutor) throw new Error("Delete executor not defined");
     return this.deleteExecutor(this.baseUrl, path, query);

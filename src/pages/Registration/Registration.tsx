@@ -217,9 +217,9 @@ const useChildrenFieldReset = () => {
 
   useEffect(() => {
     if (!formik.values.personal_info.has_children) {
-      formik.setFieldValue("children", []);
+      formik.setFieldValue("family", []);
     } else {
-      formik.setFieldValue("children", initialValues.children);
+      formik.setFieldValue("family", initialValues.family);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formik.values.personal_info.has_children]);

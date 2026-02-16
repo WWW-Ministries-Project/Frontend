@@ -34,11 +34,11 @@ interface TopicBasicInfoFormProps {
   creation?: boolean;
   onClose?: () => void;
   topicToEdit?: {
-    id: number;
+    id: string | number;
     name: string;
-    description: string;
-    learningUnit: LearningUnit;
-    type: LearningUnitType;
+    description?: string | TrustedHTML | null | undefined;
+    learningUnit?: LearningUnit | null;
+    type?: LearningUnitType;
   } | null;
   refetchProgram?: () => void;
 }
@@ -82,7 +82,7 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
 
   setTopicForm({
     topicName: topicToEdit.name,
-    topicDescription: topicToEdit.description,
+    topicDescription: String(topicToEdit.description ?? ""),
   });
 
   // Backend may send LearningUnit (capital L)

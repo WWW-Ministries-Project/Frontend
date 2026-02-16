@@ -8,7 +8,6 @@ import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
 import { baseUrl, validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
-import { ApiResponse } from "@/utils/interfaces";
 
 interface PasswordValues {
   password1?: string;
@@ -21,11 +20,16 @@ interface ErrorState {
   status?: boolean;
 }
 
+interface AuthResponse {
+  status?: number;
+  data?: unknown;
+}
+
 
 
 function ResetPassword() {
   const [passwordValues, setPasswordValues] = useState<PasswordValues>({});
-  const [response, setResponse] = useState<ApiResponse<unknown>>({} as ApiResponse<unknown>);
+  const [response, setResponse] = useState<AuthResponse>({});
   const [error, setError] = useState<ErrorState>({});
   const [loading, setLoading] = useState(false);
   const [samePassword, setSamePassword] = useState(true);
@@ -35,8 +39,8 @@ function ResetPassword() {
   const token = searchParams.get("token");
   const id = searchParams.get("id");
 
-  async function handleSubmit(e: React.MouseEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.MouseEvent) {
+    e?.preventDefault();
     if (passwordValues.password2 && samePassword) {
       setLoading(true);
       const body = { newpassword: passwordValues.password1 };
@@ -44,10 +48,10 @@ function ResetPassword() {
       try {
         const endpoint = `${baseUrl}user/reset-password?id=${id}&token=${token}`;
         const response = await axios.post(endpoint, body);
-        setResponse(response);
+        setResponse({ status: response.status, data: response.data });
       } catch (error: unknown) {
         console.log(error, "error");
-        setResponse((error as any)?.response ?? {});
+        setResponse((error as { response?: AuthResponse })?.response ?? {});
       } finally {
         setLoading(false);
       }
@@ -72,15 +76,15 @@ function ResetPassword() {
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setResponse({});
-    const name = e.target.name;
+    const name = e.target.name as keyof PasswordValues;
     const value = e.target.value;
     
     setPasswordValues((prev) => ({ ...prev, [name]: value }));
     
     // to remove error msg
-    if (error[name]) {
+    if (error[name as keyof ErrorState]) {
       if (validate(name, passwordValues)) {
-        setError((prev) => ({ ...prev, [name]: false }));
+        setError((prev) => ({ ...prev, [name as keyof ErrorState]: false }));
         e.target.setCustomValidity("");
       }
     }

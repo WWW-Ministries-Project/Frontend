@@ -10,7 +10,7 @@ import { Button } from "@/components";
 
 const FinanceDetailPage = () => {
     const summary = buildFinanceSummary(financeData);
-    const [formMode, setFormMode] = React.useState<"view" | "edit">("view");
+    const [formMode, setFormMode] = React.useState<"create" | "view" | "edit">("view");
 
   return (
     <div className="w-full space-y-8">

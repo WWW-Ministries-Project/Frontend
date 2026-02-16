@@ -7,13 +7,19 @@ import PageHeader from "../../../Components/PageHeader";
 import PageOutline from "../../../Components/PageOutline";
 import TableComponent from "../../../Components/reusable/TableComponent";
 import { tableColumns } from "../utils/tableColums";
+import { ApiResponse } from "@/utils/interfaces";
+import { Requisition } from "../types/requestInterface";
 const Requisitions = () => {
   const navigate = useNavigate();
-  const { data, loading, error } = useFetch(api.fetch.fetchRequisitions);
+  const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
+    api.fetch.fetchRequisitions as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<Requisition[]>>
+  );
   const { setRequests, requests } = useStore();
 
   useEffect(() => {
-    setRequests(data?.data);
+    setRequests(data?.data ?? []);
   }, [data]);
 
   return (

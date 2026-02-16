@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 interface IPageHeader {
   title?: string;
   buttonValue?: string;
-  onClick?: (e: HTMLButtonElement) => void;
+  onClick?: (e?: unknown) => void;
   children?: ReactNode;
   
   className?: string;

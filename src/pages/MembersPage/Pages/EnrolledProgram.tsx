@@ -4,12 +4,13 @@ import CourseSidebar from "../Component/CourseSidebar";
 import { useParams, useNavigate } from "react-router-dom";
 import BannerWrapper from "../layouts/BannerWrapper";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
-import { api, ProgramTopic, Topic } from "@/utils";
+import { api, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
 import { Modal } from "@/components/Modal";
-import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
+import { TrophyIcon } from "@heroicons/react/24/solid";
 import CertificateModal from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateModal";
+import { ApiResponse, QueryType } from "@/utils/interfaces";
 
 
 type NavItem = { 
@@ -17,7 +18,14 @@ type NavItem = {
   name: string; 
   active: boolean; 
   completed?: boolean;
-  type?: string | null;
+  type?: string;
+};
+
+type ProgramCompletionStatus = {
+  title?: string;
+  description?: string;
+  completed?: boolean;
+  topics?: Topic[];
 };
 
 /**
@@ -33,16 +41,19 @@ const EnrolledProgram: React.FC = () => {
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | number | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [viewCertificate, setViewCertificate] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
-  const { data, loading, refetch } = useFetch(
-  api.fetch.fetchMyProgram,
-     { programId, userId: user!.id }
-    
-);
+  const { data, refetch } = useFetch<ApiResponse<ProgramCompletionStatus>>(
+    api.fetch.fetchMyProgram as (
+      query?: QueryType
+    ) => Promise<ApiResponse<ProgramCompletionStatus>>,
+    { programId: programId ?? "", userId: user?.id ?? "" }
+  );
 
 
  useEffect(() => {
@@ -65,7 +76,7 @@ const EnrolledProgram: React.FC = () => {
       name: t.name,
       active: t.id === firstIncompleteTopic.id,
       completed: t.completed || false,
-      type: t.learningUnit?.type ?? null,
+      type: t.learningUnit?.type ?? undefined,
     }));
 
     setNavItems(items);
@@ -94,11 +105,11 @@ useEffect(() => {
     setNavItems((items) =>
       items.map((i) => ({ ...i, active: i.id === navId }))
     );
-    setSelectedTopicId(Number(navId));
+    setSelectedTopicId(navId);
   };
 
   const selectedTopic =
-    topics.find((t) => t.id === selectedTopicId) ?? null;
+    topics.find((t) => String(t.id) === String(selectedTopicId)) ?? null;
 
     
 
@@ -129,7 +140,7 @@ useEffect(() => {
                 {data?.data?.description}
               </p>
             </div>
-            {data?.data.completed&&<div>
+            {data?.data?.completed&&<div>
               <Button
                 value="View Certificate"
                 variant="primary"
@@ -174,7 +185,9 @@ useEffect(() => {
                       </h2>
                       <div
                         className="prose max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: selectedTopic.description }}
+                        dangerouslySetInnerHTML={{
+                          __html: String(selectedTopic.description ?? ""),
+                        }}
                       />
                     </div>
 
@@ -186,7 +199,7 @@ useEffect(() => {
 
                     topicCompleted={selectedTopic.completed}
                     topicStatus={selectedTopic.status}
-                    topicScore={selectedTopic.score}
+                    topicScore={selectedTopic.score ?? undefined}
                     topicCompletedAt={selectedTopic.completedAt}
                     activation={selectedTopic.activation}
 
@@ -243,9 +256,9 @@ useEffect(() => {
         <CertificateModal
           open={viewCertificate}
           recipientName={user.name}
-          program={data?.data?.title!}
+          program={data?.data?.title ?? ""}
           description={`For the success completion of ${
-      data?.data?.title! ? `${data?.data?.title!} program` : "the program"
+      data?.data?.title ? `${data?.data?.title} program` : "the program"
     }. `}
           onClose={()=>setViewCertificate(false)}
         />

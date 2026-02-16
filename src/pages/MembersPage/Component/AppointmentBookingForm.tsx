@@ -5,12 +5,12 @@ import { useMemo, useEffect } from "react";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
-import { Appointment, BookedSession, BookingFormValues, StaffAvailability } from "@/utils/api/appointment/interfaces";
+import { Appointment, BookedSession, BookingFormValues, DayOfWeek, StaffAvailability } from "@/utils/api/appointment/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";
 
 
 
-const DummyContent = [
+const DummyContent: StaffAvailability[] = [
   {
     id: "avail-1",
     staffId: "1",
@@ -20,7 +20,7 @@ const DummyContent = [
     maxBookingsPerSlot: 3,
     timeSlots: [
       {
-        day: "monday",
+        day: "monday" as DayOfWeek,
         startTime: "09:00",
         endTime: "12:00",
         sessionDurationMinutes: 30,
@@ -35,7 +35,7 @@ const DummyContent = [
       },
     ],
     currentSlot: {
-      day: "monday",
+      day: "monday" as DayOfWeek,
       startTime: "09:00",
       endTime: "12:00",
       sessionDurationMinutes: 30,
@@ -51,7 +51,7 @@ const DummyContent = [
     maxBookingsPerSlot: 2,
     timeSlots: [
       {
-        day: "tuesday",
+        day: "tuesday" as DayOfWeek,
         startTime: "10:00",
         endTime: "12:00",
         sessionDurationMinutes: 30,
@@ -64,7 +64,7 @@ const DummyContent = [
       },
     ],
     currentSlot: {
-      day: "tuesday",
+      day: "tuesday" as DayOfWeek,
       startTime: "10:00",
       endTime: "12:00",
       sessionDurationMinutes: 30,

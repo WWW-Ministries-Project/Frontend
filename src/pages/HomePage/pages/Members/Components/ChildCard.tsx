@@ -1,3 +1,5 @@
+import { ProfilePicture as ProfilePic } from "@/components/ProfilePicture";
+
 interface ChildInfo {
   name?: string;
   src?: string;

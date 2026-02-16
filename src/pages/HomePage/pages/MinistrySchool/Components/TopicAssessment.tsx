@@ -69,7 +69,7 @@ export const TopicAssessment = ({
     : 0;
 
   const handleStatusChange = (
-    id: number,
+    id: number | string,
     newStatus: "PASS" | "FAIL" | "PENDING"
   ) => {
     setUpdatedTopics((prevTopics) =>
@@ -79,22 +79,25 @@ export const TopicAssessment = ({
     );
   };
 
-  // const handleScoreChange = (id: number, newScore: number | undefined) => {
-  //   setUpdatedTopics((prevTopics) =>
-  //     prevTopics.map((topic) =>
-  //       topic.id === id ? { ...topic, score: newScore } : topic
-  //     )
-  //   );
-  // };
+  const handleScoreChange = (
+    id: number | string,
+    newScore: number | undefined
+  ) => {
+    setUpdatedTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === id ? { ...topic, score: newScore ?? null } : topic
+      )
+    );
+  };
 
   // Function to update the topics
   const updateTopics = async () => {
     const progressUpdates = updatedTopics.map((topic) => ({
-      topicId: topic.id,
+      topicId: Number(topic.id),
       enrollmentId: enrollmentId,
-      score: topic.score,
-      status: topic.status,
-      notes: topic.notes,
+      score: topic.score === null ? undefined : topic.score,
+      status: topic.status ?? "PENDING",
+      notes: topic.notes ?? undefined,
     }));
 
     // Prepare the payload
@@ -134,15 +137,13 @@ export const TopicAssessment = ({
         return (
           <>
             {editMode ? (
-              <input
-                type="number"
-                className="px-4 py-2 border border-lightGray rounded-lg"
-                value={
-                  row.original.score !== undefined ? row.original.score : ""
-                }
-                onChange={(e) =>
-                  handleScoreChange(row.original.id, Number(e.target.value))
-                }
+                <input
+                  type="number"
+                  className="px-4 py-2 border border-lightGray rounded-lg"
+                  value={row.original.score ?? ""}
+                  onChange={(e) =>
+                    handleScoreChange(row.original.id, Number(e.target.value))
+                  }
               />
             ) : (
               row.original.score || 0
@@ -173,7 +174,9 @@ export const TopicAssessment = ({
                 <option value="FAIL">Fail</option>
               </select>
             ) : (
-              <p className="capitalize">{row.original.status.toLowerCase()}</p>
+              <p className="capitalize">
+                {(row.original.status ?? "PENDING").toLowerCase()}
+              </p>
             )}
           </>
         );
@@ -272,10 +275,10 @@ export const TopicAssessment = ({
 };
 
 interface Topic {
-  id: number;
+  id: number | string;
   name: string;
-  score: number | null;
-  status: "PASS" | "FAIL" | "PENDING";
+  score?: number | null;
+  status?: "PASS" | "FAIL" | "PENDING";
   notes?: string | null;
   completedAt?: string | null;
   progressId?: number;

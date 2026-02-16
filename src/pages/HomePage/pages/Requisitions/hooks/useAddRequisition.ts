@@ -30,9 +30,24 @@ export const useAddRequisition = () => {
   const { id: requestId } = useParams();
 
   const requisitionId = requestId ? window.atob(String(requestId)) : "";
+  type RequisitionMutationResponse = ApiResponse<{
+    data: IRequisitionDetails;
+    message: string;
+  }>;
+
+  const submitRequisition = (payload: Record<string, unknown>) =>
+    requisitionId
+      ? api.put.updateRequisition<{ data: IRequisitionDetails; message: string }>(
+          payload
+        )
+      : api.post.createRequisition<{ data: IRequisitionDetails; message: string }>(
+          payload
+        );
+
   const { postData, loading, error, data } = usePost<
-    ApiResponse<{ data: IRequisitionDetails; message: string }>
-  >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
+    RequisitionMutationResponse,
+    Record<string, unknown>
+  >(submitRequisition);
   const {
     user: { id },
   } = useAuth();

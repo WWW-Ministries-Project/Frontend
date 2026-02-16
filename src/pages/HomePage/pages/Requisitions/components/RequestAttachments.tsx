@@ -18,7 +18,7 @@ function RequestAttachments({
   action,
   fileId,
 }: Readonly<{
-  attachments: { URL: string; id: number }[];
+  attachments: { URL: string; id?: number }[];
   isEditable: boolean;
   addAttachement: (attachment: string) => void;
   removAttachment: (id: number) => void;
@@ -43,7 +43,7 @@ function RequestAttachments({
   };
 
   // Render attachment item
-  const renderAttachmentItem = (attachment: { URL: string; id: number }, idx: number) => (
+  const renderAttachmentItem = (attachment: { URL: string; id?: number }, idx: number) => (
     <div key={attachment.URL}>
       <div className="border p-2 rounded-lg flex gap-3">
         <FileIcon />
@@ -55,7 +55,7 @@ function RequestAttachments({
             <DownloadIcon onClick={() => handleDownload(attachment.URL)} />
             <DeleteIcon
               fill="#D92D20"
-              onClick={() => removAttachment(attachment.id)}
+              onClick={() => attachment.id !== undefined && removAttachment(attachment.id)}
             />
             {action === "removeAttachment" && isLoading && Number(fileId) === attachment.id && (
               <LoaderIcon />

@@ -171,7 +171,9 @@ export function MemberInformation() {
                   label="Ministry/Department - Position"
                   value={user?.department_positions?.map((department_position, index) =>
                     <div key={index} className="py-1">
-                      <div>{ department_position?.department_name} - <span className="font-medium">{department_position?.position_name}</span></div>
+                      <div>
+                        <span className="font-medium">{department_position}</span>
+                      </div>
                     </div> 
                   )}
                 />

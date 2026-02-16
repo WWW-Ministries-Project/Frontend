@@ -11,16 +11,16 @@ import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 
 const Receipt = () => {
   const [openModal, setOpenModal] = React.useState(false);
-  const [receiptData, setReceiptData] = React.useState([]);
-  const [selectedReceipt, setSelectedReceipt] = React.useState(null);
+  const [receiptData, setReceiptData] = React.useState<FinanceConfigValues[]>([]);
+  const [selectedReceipt, setSelectedReceipt] = React.useState<FinanceConfigValues | null>(null);
   const { data, loading, refetch } = useFetch(api.fetch.fetchReceiptConfig);
   const { executeDelete, success } = useDelete(api.delete.deleteReceiptConfig);
   
 
 
   React.useEffect(() => {
-    if (data?.data) {
-      setReceiptData(data?.data);
+    if (Array.isArray(data?.data)) {
+      setReceiptData(data.data as FinanceConfigValues[]);
     }
   }, [data]);
 

@@ -22,6 +22,7 @@ import {
   CohortAssignment,
   DetailedCohortType,
   DetailedCourseType,
+  EnrolledProgramResponse,
   EnrollmentDataType,
   ProgramResponse,
   Programs,
@@ -142,18 +143,22 @@ export class ApiCalls {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
-  // // Requisition Management
-  // fetchRequisitions = (query?: QueryType): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/staff-requisition", query);
-  // };
+  // Requisition Management
+  fetchRequisitions = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("requisitions/staff-requisition", query);
+  };
 
-  // fetchRequisitionDetails = (query?: QueryType): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/get-requisition/", query);
-  // };
+  fetchRequisitionDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("requisitions/get-requisition/", query);
+  };
 
-  // fetchMyRequests = (query?: Record<string, string | number>): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/my-requisitions", query);
-  // };
+  fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
 
   // Program Management
   fetchAllPrograms = (
@@ -177,8 +182,8 @@ export class ApiCalls {
   // Fetch user enrolled programs
   fetchUserEnrolledPrograms = (
     query?: QueryType
-  ): Promise<ApiResponse<Programs[]>> => {
-    return this.fetchFromApi(`program/user-enrollment/${query}`);
+  ): Promise<ApiResponse<EnrolledProgramResponse[]>> => {
+    return this.fetchFromApi("program/user-enrollment", query);
   };
 
   // @Jojo please the name is confusing
@@ -275,10 +280,10 @@ export class ApiCalls {
     return this.fetchFromApi("program/is-assignment-active", query);
   };
 
-    // get active assignment
+  // get active assignment
   fetchCohortAssignments = (
     query?: QueryType
-  ): Promise<ApiResponse<CohortAssignment>> => {
+  ): Promise<ApiResponse<CohortAssignment[]>> => {
     return this.fetchFromApi("program/get-cohort-assigments", query);
   };
 
@@ -473,4 +478,3 @@ export class ApiCalls {
 
 
 }
-

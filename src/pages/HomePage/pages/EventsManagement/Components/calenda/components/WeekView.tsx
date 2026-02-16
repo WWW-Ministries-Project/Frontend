@@ -1,5 +1,12 @@
 import React, { useMemo } from 'react'
-import { calculateEventPosition, DAYS_OF_WEEK_SHORT, formatTime, getWeekDates, resolveEventOverlaps } from '../utils/CalendaHelpers'
+import {
+  calculateEventPosition,
+  DAYS_OF_WEEK_SHORT,
+  formatTime,
+  getWeekDates,
+  resolveEventOverlaps,
+  CalendarEvent,
+} from '../utils/CalendaHelpers'
 
 const addTwoHours = (startTime: string): string => {
   const [h, m] = startTime.split(':').map(Number);
@@ -13,23 +20,15 @@ const addTwoHours = (startTime: string): string => {
     .padStart(2, '0')}`;
 };
 
-export interface EventData {
-  id: string
-  event_name: string
-  start_time: string
-  end_time: string
-  description?: string
-}
-
 export interface WeekViewProps {
   /** Date used to compute the week range */
   currentDate: Date
   /** Map of ISO date string (YYYY-MM-DD) to events occurring that day */
-  eventsByDate: Record<string, EventData[]>
+  eventsByDate: Record<string, CalendarEvent[]>
   /** Handler when a time-slot with events is clicked */
-  onDayClick: (e: React.MouseEvent<HTMLElement>, events: EventData[]) => void
+  onDayClick: (e: React.MouseEvent<HTMLElement>, events: CalendarEvent[]) => void
   /** Handler when an individual event is clicked */
-  onEventClick: (e: React.MouseEvent<HTMLElement>, event: EventData) => void;
+  onEventClick: (e: React.MouseEvent<Element>, event: CalendarEvent) => void;
   /** ISO date string for today (YYYY-MM-DD) for highlighting */
   todayString: string
   /** Height of each hourly slot in pixels (default: 60) */
@@ -54,7 +53,16 @@ const WeekView: React.FC<WeekViewProps> = ({
   }, [])
 
   const eventsWithPositions = useMemo(() => {
-    const positioned: Record<string, ReturnType<typeof resolveEventOverlaps>> = {}
+    type PositionedWeekEvent = CalendarEvent &
+      ReturnType<typeof calculateEventPosition> & {
+        overlapGroup: {
+          size: number;
+          index: number;
+          width: number;
+          left: number;
+        };
+      };
+    const positioned: Record<string, PositionedWeekEvent[]> = {}
 
     weekDates.forEach((date, dayIndex) => {
       const iso = date.toISOString().split('T')[0]
@@ -68,6 +76,8 @@ const WeekView: React.FC<WeekViewProps> = ({
           return {
             ...e,
             end_time: endTime,
+            start_date: e.start_date || iso,
+            end_date: e.end_date || iso,
             ...calculateEventPosition(e.start_time, endTime, slotHeight),
           };
         });

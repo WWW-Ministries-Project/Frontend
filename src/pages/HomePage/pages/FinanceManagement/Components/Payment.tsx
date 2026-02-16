@@ -10,16 +10,16 @@ import ConfigCard from "./ConfigCard";
 
 const Payment = () => {
     const [openModal, setOpenModal] = React.useState(false);
-    const [paymentData, setPaymentData] = React.useState([]);
-      const [selectedPayment, setSelectedPayment] = React.useState(null);
+    const [paymentData, setPaymentData] = React.useState<FinanceConfigValues[]>([]);
+      const [selectedPayment, setSelectedPayment] = React.useState<FinanceConfigValues | null>(null);
       const { data, loading, refetch } = useFetch(api.fetch.fetchPaymentConfig);
       const { executeDelete, success } = useDelete(api.delete.deletePaymentConfig);
       
     
     
       React.useEffect(() => {
-        if (data?.data) {
-          setPaymentData(data?.data);
+        if (Array.isArray(data?.data)) {
+          setPaymentData(data.data as FinanceConfigValues[]);
         }
       }, [data]);
     

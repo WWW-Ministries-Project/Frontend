@@ -55,10 +55,10 @@ const ProgramDetails = () => {
       setLoading(true);
       setError(null);
       
-      const response = await apiCalls.fetchUserByEmailAndCohort(
+      const response = await apiCalls.fetchUserByEmailAndCohort({
         email,
-        Number(selectedCohort.id) // Convert to number if your API expects number
-      );
+        cohort_id: String(selectedCohort.id),
+      });
   
       if (response.data) {
         setData(response.data);

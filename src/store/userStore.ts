@@ -6,9 +6,11 @@ import { userType } from "@/utils/interfaces";
 type UserState = userType;
 
 type UserActions = {
-  setUser: (data: Omit<userType, "permissions"> & {
-    permissions: Record<string, string>;
-  }) => void;
+  setUser: (
+    data: Omit<userType, "permissions"> & {
+      permissions: Record<string, string> | Record<string, boolean>;
+    }
+  ) => void;
   clearUser: () => void;
 };
 
@@ -41,6 +43,11 @@ export const useUserStore = create<UserState & UserActions>()(
         department,
         permissions,
       }) => {
+        const permissionValues = Object.values(permissions || {});
+        const hasBooleanPermissions = permissionValues.every(
+          (value) => typeof value === "boolean"
+        );
+
         set({
           id,
           name,
@@ -51,7 +58,11 @@ export const useUserStore = create<UserState & UserActions>()(
           membership_type,
           ministry_worker,
           department,
-          permissions: permissions ? convertPermissions(permissions) : {},
+          permissions: permissions
+            ? hasBooleanPermissions
+              ? (permissions as Record<string, boolean>)
+              : convertPermissions(permissions as Record<string, string>)
+            : {},
         });
       },
 

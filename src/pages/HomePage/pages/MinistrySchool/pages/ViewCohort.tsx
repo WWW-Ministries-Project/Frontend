@@ -130,7 +130,11 @@ export const ViewCohort = () => {
               {cohortData?.courses.map((classItem) => (
                 <div key={classItem.id + classItem.name}>
                   <ClassCard
-                    classItem={classItem}
+                    classItem={{
+                      ...classItem,
+                      instructor:
+                        classItem.facilitator || { id: 0, name: "Unassigned" },
+                    }}
                     onEdit={handleEdit}
                     onDelete={() => deleteClass(classItem)}
                   />

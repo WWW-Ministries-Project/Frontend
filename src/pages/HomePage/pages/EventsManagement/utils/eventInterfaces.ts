@@ -1,20 +1,20 @@
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
 export interface eventType {
-  id: number;
-  name: string;
+  id: number | string;
+  name?: string;
   start_date: string;
   end_date: string;
-  location: string;
-  description: string;
-  event_status: string | null;
-  poster: string;
-  qr_code: string;
-  event_type: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other";
+  location?: string;
+  description?: string;
+  event_status?: string | null;
+  poster?: string;
+  qr_code?: string;
+  event_type?: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other" | "OTHER";
   start_time: string; // Format: "HH:mm"
   end_time: string; // Format: "HH:mm"
-  event_name: string;
-  event_name_id: number;
+  event_name?: string;
+  event_name_id?: number | string;
   //   event_attendance: [];
 }
 export interface EventSlice {

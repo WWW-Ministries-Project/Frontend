@@ -1,6 +1,10 @@
 import { cn } from "@/utils/cn";
 import { CSSProperties, MouseEvent } from "react";
 
+type ButtonClickHandler = {
+  bivarianceHack: (e?: any) => void;
+}["bivarianceHack"];
+
 interface IProps {
   link?: string;
   value: string;
@@ -8,7 +12,7 @@ interface IProps {
   type?: "button" | "submit" | "reset";
   className?: string;
   variant?: "primary" | "secondary" | "ghost" | "default";
-  onClick?: () => void;
+  onClick?: ButtonClickHandler;
   style?: CSSProperties;
   disabled?: boolean;
   loading?: boolean;
@@ -27,7 +31,7 @@ export const Button = ({
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    onClick?.();
+    onClick?.(e);
   };
 
   const baseClass = `

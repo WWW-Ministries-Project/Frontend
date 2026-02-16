@@ -9,6 +9,7 @@ import { api } from "@/utils/api/apiCalls";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AssetForm, IAssetForm } from "../Components/AssetForm";
+import { assetType } from "../utils/assetsInterface";
 
 export const ManageAsset = () => {
   const [file, setFile] = useState<null | Blob>(null);
@@ -32,7 +33,21 @@ export const ManageAsset = () => {
   } = usePut(api.put.updateAsset);
   const isDisabled = location.state?.mode === "view";
   const title = id ? (isDisabled ? "View Asset" : "Update Asset") : "Add Asset";
-  const assetData = useMemo(() => asset?.data, [asset]);
+  const assetData = useMemo<IAssetForm | undefined>(() => {
+    const existing = asset?.data as assetType | undefined;
+    if (!existing) return undefined;
+    return {
+      name: existing.name ?? "",
+      status: existing.status ?? "",
+      description: existing.description ?? "",
+      department_assigned: existing.department_assigned ?? "",
+      date_assigned: existing.start_date ?? "",
+      date_purchased: existing.date_purchased ?? "",
+      price: existing.price ?? "",
+      supplier: existing.supplier ?? "",
+      asset_id: existing.assets_id ?? "",
+    };
+  }, [asset]);
 
   useEffect(() => {
     if (data) {
@@ -59,7 +74,7 @@ export const ManageAsset = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
   const handleFormSubmit = async (val: IAssetForm) => {
-    const dataToSend: IAssetForm & { photo?: string } = { ...val };
+    const dataToSend = { ...val, start_date: val.date_assigned, photo: undefined as string | undefined };
     try {
       if (file) {
         const data = new FormData();

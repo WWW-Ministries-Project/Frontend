@@ -5,9 +5,10 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils/api/apiCalls";
 import { Field, Formik, Form } from "formik";
+import { QueryType } from "@/utils/interfaces";
 
 export interface FinanceConfigValues {
-  id?: string;
+  id?: string | number;
   name: string;
   description: string;
   percentage?: number;
@@ -15,11 +16,11 @@ export interface FinanceConfigValues {
 
 interface FinanceConfigFormProps {
   onClose: () => void;
-  initialData?: Partial<FinanceConfigValues> & { id?: string };
+  initialData?: Partial<FinanceConfigValues> & { id?: string | number };
   loading?: boolean;
   type: string;
   onSubmit?: (values: FinanceConfigValues) => void;
-  refetch: void;
+  refetch: (overrideQuery?: QueryType) => Promise<unknown> | void;
 }
 
 const FinanceConfigForm = ({
@@ -44,18 +45,19 @@ const FinanceConfigForm = ({
                   try {
                     if (initialData?.id) {
                       // 🔄 UPDATE (query id + payload)
-                      await updateData({
-                        query: { id: initialData.id },
-                        payload: {
+                      await updateData(
+                        {
                           name: values.name,
                           description: values.description,
                           ...(type === "bankAccount" && {
-                            percentage: values.percentage !== undefined
-                              ? Number(values.percentage)
-                              : undefined,
+                            percentage:
+                              values.percentage !== undefined
+                                ? Number(values.percentage)
+                                : undefined,
                           }),
                         },
-                      });
+                        { id: String(initialData.id) }
+                      );
                     } else {
                       // ➕ CREATE (payload only)
                       await postData({
@@ -77,7 +79,7 @@ const FinanceConfigForm = ({
                     console.error("Finance config submission failed", error);
                   }
                   finally {
-                  refetch()
+                  await Promise.resolve(refetch());
                     onClose();
                   }
                 }

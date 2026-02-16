@@ -2,13 +2,14 @@ import { Banner } from "@/pages/HomePage/pages/Members/Components/Banner";
 import BannerWrapper from "../layouts/BannerWrapper";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Badge } from "@/components/Badge";
 import GradingPanel from "./GradingPanel";
 import Assignmentmanager from "../Component/AssignmentManager";
 import { useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api, CohortAssignment } from "@/utils";
+import { ApiResponse } from "@/utils/interfaces";
 
 
 
@@ -16,20 +17,12 @@ const InstructorAssMan: FC = () => {
   const { cohortId } = useParams<{ cohortId: string }>();
   console.log("cohortId from route:", cohortId);
 
-  const { data, loading, refetch } = useFetch<{
-    data: CohortAssignment[];
-    meta: unknown;
-    status: number;
-    success: boolean;
-    error: string;
-  }>(
+  const { data, loading, refetch } = useFetch<ApiResponse<CohortAssignment[]>>(
     api.fetch.fetchCohortAssignments,
-    { cohortId:cohortId }
+    { cohortId: cohortId ?? "" }
   );
 
   console.log("Cohort Assignment", data);
-
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
   const groupedAssignments = (data?.data ?? [])
     .slice()
@@ -83,7 +76,7 @@ const InstructorAssMan: FC = () => {
 
             <Assignmentmanager
               assignments={group.assignments}
-              setSelectedAssignment={(assignment) => setSelectedAssignment(assignment)}
+              setSelectedAssignment={(_assignment) => {}}
               cohortId={cohortId!}
               refetch = {refetch}
               // topicId={}

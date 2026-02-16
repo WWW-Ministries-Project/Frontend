@@ -14,8 +14,11 @@ export const ProgramCard: FC<{ program: Programs; onOpen: () => void }> = ({ pro
           <p className="mb-2 text-sm font-medium text-gray-700">Topics covered</p>
           <div className="flex flex-wrap gap-2">
             {program.topics.map((topic) => (
-              <span key={topic} className="inline-flex rounded-md border px-2 py-1 text-xs text-gray-700">
-                {topic}
+              <span
+                key={topic.id}
+                className="inline-flex rounded-md border px-2 py-1 text-xs text-gray-700"
+              >
+                {topic.name}
               </span>
             ))}
           </div>

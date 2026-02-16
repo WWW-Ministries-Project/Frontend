@@ -73,10 +73,14 @@ const ChurchAttendanceFormComponent = ({
   loading,
   refetch,
 }: Props) => {
-  const initialValues = useMemo(
-    () => ({ ...defaultValues, ...initialData, group: "BOTH" }),
-    [initialData]
-  );
+  const initialValues = useMemo<IChurchAttendanceForm>(() => {
+    const group = initialData?.group;
+    const normalizedGroup: AttendanceGroup =
+      group === "ADULTS" || group === "CHILDREN" || group === "BOTH"
+        ? group
+        : "BOTH";
+    return { ...defaultValues, ...initialData, group: normalizedGroup };
+  }, [initialData]);
 
   const { eventsOptions } = useStore();
   const { user } = useAuth();

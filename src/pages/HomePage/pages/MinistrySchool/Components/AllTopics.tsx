@@ -11,11 +11,11 @@ import DOMPurify from "dompurify";
 import { Badge } from '@/components/Badge';
 
 interface ITopic {
-  id: string;
+  id: string | number;
   name: string;
-  description: string;
-  learningUnit: string;
-  type: string;
+  description?: string | TrustedHTML | null | undefined;
+  learningUnit?: { type?: string } | string;
+  type?: string;
 }
 
 interface IProps {
@@ -25,9 +25,9 @@ interface IProps {
 }
 
 const AllTopics = ({topics, refetchProgram}: IProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<string | number | null>(null);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
-  const [TopicToEdit, setTopicToEdit] = useState(null);
+  const [TopicToEdit, setTopicToEdit] = useState<ITopic | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [topicToDelete, setTopicToDelete] = useState<ITopic | null>(null);
 
-  const toggleMenu = (topicId: string) => {
+  const toggleMenu = (topicId: string | number) => {
     setIsMenuOpen(isMenuOpen === topicId ? null : topicId);
   };
 
@@ -84,12 +84,18 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                   <div className="font-medium">
                   {topic?.name}
                 </div>
-                {topic?.LearningUnit?.type && <Badge>{topic?.LearningUnit?.type}</Badge>}
+                {(topic?.learningUnit || topic?.type) && (
+                  <Badge>
+                    {typeof topic.learningUnit === "string"
+                      ? topic.learningUnit
+                      : topic.learningUnit?.type || topic?.type}
+                  </Badge>
+                )}
                 </div>
                 <div className="gap-x-4 flex text-sm text-gray-600">
                   <div 
                     dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(topic?.description),
+                      __html: DOMPurify.sanitize(String(topic?.description ?? "")),
                     }}
                   />
                   
@@ -151,7 +157,32 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
       <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
         <TopicBasicInfoForm
           onClose={() => setIsTopicModalOpen(false)}
-          topicToEdit={TopicToEdit}
+          topicToEdit={
+            TopicToEdit
+              ? {
+                  id: TopicToEdit.id,
+                  name: TopicToEdit.name,
+                  description: String(TopicToEdit.description ?? ""),
+                  learningUnit:
+                    typeof TopicToEdit.learningUnit === "string"
+                      ? null
+                      : ((TopicToEdit.learningUnit as unknown) as {
+                          type: "video" | "live" | "in-person" | "ppt" | "pdf" | "lesson-note" | "assignment" | "assignment-essay";
+                          data: unknown;
+                        }) || null,
+                  type: TopicToEdit.type as
+                    | "video"
+                    | "live"
+                    | "in-person"
+                    | "ppt"
+                    | "pdf"
+                    | "lesson-note"
+                    | "assignment"
+                    | "assignment-essay"
+                    | undefined,
+                }
+              : null
+          }
           refetchProgram={refetchProgram}
         />
       </Modal>

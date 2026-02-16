@@ -16,17 +16,17 @@ const FinancialsForm = () => {
     },
     receipts: [],
     tithe: {
-      totalTithe: { percentage: 0 },
-      generalTithe: { percentage: 0 },
-      icareTithe: { percentage: 0 },
+      totalTithe: { percentage: 0, amount: 0, funds: 0, label: "" },
+      generalTithe: { percentage: 0, amount: 0, funds: 0, label: "" },
+      icareTithe: { percentage: 0, amount: 0, funds: 0, label: "" },
     },
     payments: [],
     balance: {
-      ExcessOfReceiptsOverPayments: { item: "" },
-      ReserveForSavings: { item: "" },
-      BalanceAmount: { item: "" },
-      WeeklyRefund: { item: "" },
-      OfficeMaintenanceReserve: { item: "" },
+      ExcessOfReceiptsOverPayments: { item: "", amount: 0 },
+      ReserveForSavings: { item: "", amount: 0 },
+      BalanceAmount: { item: "", amount: 0 },
+      WeeklyRefund: { item: "", amount: 0 },
+      OfficeMaintenanceReserve: { item: "", amount: 0 },
     },
     fundsAllocation:[]
   };

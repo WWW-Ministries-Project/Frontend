@@ -1,25 +1,19 @@
 import React from 'react';
 import { CalendarEvent } from '../utils/CalendaHelpers';
 
-interface Event {
-  id: string;
-  event_name?: string;
-  [key: string]: unknown; // Allows for any additional event properties
-}
-
 interface DayCellProps {
   day: number;
   date?: Date;
-  dayEvents: Event[];
+  dayEvents: CalendarEvent[];
   isToday: boolean;
   isCurrentMonth: boolean;
   eventsToShow?: number;
-  onEventClick: (e: React.MouseEvent<HTMLElement>, event: CalendarEvent) => void;
+  onEventClick: (e: React.MouseEvent, event: CalendarEvent) => void;
   onDayClick?: (e: React.MouseEvent<HTMLElement>, dayEvents: CalendarEvent[]) => void;
   className?: string;
   style?: React.CSSProperties;
   renderDay?: (day: number, isToday: boolean) => React.ReactNode;
-  renderEvent?: (event: Event, onClick: (e: React.MouseEvent) => void) => React.ReactNode;
+  renderEvent?: (event: CalendarEvent, onClick: (e: React.MouseEvent) => void) => React.ReactNode;
   renderMoreEvents?: (count: number, onClick: (e: React.MouseEvent) => void) => React.ReactNode;
 }
 
@@ -41,13 +35,13 @@ const DayCell: React.FC<DayCellProps> = ({
   const visibleEvents = dayEvents.slice(0, eventsToShow);
   const remainingEventsCount = Math.max(dayEvents.length - eventsToShow, 0);
 
-  const handleEventClick = (e: React.MouseEvent, event: Event) => {
+  const handleEventClick = (e: React.MouseEvent, event: CalendarEvent) => {
     e.stopPropagation();
     onEventClick?.(e, event);
   };
 
   const handleDayClick = (e: React.MouseEvent) => {
-    onDayClick?.(e, dayEvents);
+    onDayClick?.(e as React.MouseEvent<HTMLElement>, dayEvents);
   };
 
   const defaultRenderDay = () => (
@@ -60,7 +54,7 @@ const DayCell: React.FC<DayCellProps> = ({
     )
   );
 
-  const defaultRenderEvent = (event: Event, onClick: (e: React.MouseEvent) => void) => (
+  const defaultRenderEvent = (event: CalendarEvent, onClick: (e: React.MouseEvent) => void) => (
     <div 
       key={event.id} 
       onClick={onClick}
