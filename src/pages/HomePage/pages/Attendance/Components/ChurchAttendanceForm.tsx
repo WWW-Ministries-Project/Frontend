@@ -153,7 +153,7 @@ const ChurchAttendanceFormComponent = ({
         {({ values, handleSubmit }) => (
           <>
             <AutoPopulateAttendanceDate eventsOptions={eventsOptions} />
-            <Form className="flex flex-col">
+            <Form className="flex h-[80vh] flex-col overflow-hidden">
               <div className="sticky top-0 z-10">
                 <FormHeader>
                   <p className="text-lg font-semibold">

@@ -575,7 +575,7 @@ export function VisitorManagement() {
           ))}
         </div>
       )}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal open={isModalOpen} className="max-w-5xl" onClose={() => setIsModalOpen(false)}>
         <VisitorForm
           key={formResetKey}
           onClose={handleModalClose}
