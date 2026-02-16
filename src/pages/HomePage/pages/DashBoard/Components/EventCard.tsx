@@ -1,4 +1,5 @@
 import { formatDatefull, formatTime } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 import {
   CalendarDaysIcon,
   ClockIcon,
@@ -216,7 +217,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       if (!w) window.location.href = webUrl;
       setShowShareMenu(false);
     } catch {
-      alert("Unable to open WhatsApp. Please try again.");
+      showNotification("Unable to open WhatsApp. Please try again.", "error");
     }
   };
 
@@ -227,7 +228,10 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       const nw = window.open(url, "_blank", "noopener,noreferrer");
       if (!nw) window.location.href = url;
     } else {
-      alert("Unable to generate calendar link. Please check the event details.");
+      showNotification(
+        "Unable to generate calendar link. Please check the event details.",
+        "error"
+      );
     }
     setShowShareMenu(false);
   };

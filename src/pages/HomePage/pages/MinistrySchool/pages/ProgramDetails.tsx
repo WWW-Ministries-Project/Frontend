@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgramsStore } from '../store/programsStore';
 import { formatDate } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 import { ApiCalls } from "@/utils/api/apiFetch";
 
 interface Cohort {
@@ -86,12 +87,12 @@ const ProgramDetails = () => {
     e.preventDefault();
     
     if (!selectedCohort) {
-      alert("Please select a cohort to apply for");
+      showNotification("Please select a cohort to apply for.", "error");
       return;
     }
   
     if (!email) {
-      alert("Please enter your email");
+      showNotification("Please enter your email.", "error");
       return;
     }
   

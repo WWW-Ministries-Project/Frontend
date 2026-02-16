@@ -6,6 +6,7 @@ import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Appointment, BookedSession, BookingFormValues, StaffAvailability } from "@/utils/api/appointment/interfaces";
+import { showNotification } from "@/pages/HomePage/utils";
 
 
 
@@ -110,6 +111,14 @@ const AppointmentBookingForm = ({
   const handleSubmit = (values: BookingFormValues) => {
     // Handle form submission logic here
     console.log("Form submitted with values:", values);
+    showNotification(
+      appointment
+        ? "Appointment updated successfully."
+        : "Appointment booked successfully.",
+      "success",
+      "Appointment"
+    );
+    onClose();
   }
 
   return (

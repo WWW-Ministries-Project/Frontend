@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { CKEditor, useCKEditorCloud } from '@ckeditor/ckeditor5-react';
+import { showNotification } from "@/pages/HomePage/utils";
 
 import '../App.css';
 
@@ -298,13 +299,10 @@ function configUpdateAlert(config) {
 	}
 
 	if (valuesToUpdate.length) {
-		window.alert(
-			[
-				'Please update the following values in your editor config',
-				'to receive full access to Premium Features:',
-				'',
-				...valuesToUpdate.map(value => ` - ${value}`)
-			].join('\n')
+		showNotification(
+			`Update editor config for premium features: ${valuesToUpdate.join(", ")}.`,
+			"error",
+			{ title: "Editor configuration", durationMs: 10000 }
 		);
 	}
 }

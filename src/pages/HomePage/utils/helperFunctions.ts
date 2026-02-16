@@ -36,11 +36,39 @@ export const showDeleteDialog = <T extends DialogValue>(
 export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
-  handleClose = () => {},
-  title?: string
+  optionsOrOnClose?:
+    | {
+        title?: string;
+        onClose?: () => void;
+        durationMs?: number;
+      }
+    | (() => void)
+    | string,
+  legacyTitle?: string
 ) => {
+  let title: string | undefined = legacyTitle;
+  let onClose: (() => void) | undefined;
+  let durationMs: number | undefined;
+
+  if (typeof optionsOrOnClose === "function") {
+    onClose = optionsOrOnClose;
+  } else if (typeof optionsOrOnClose === "string") {
+    title = optionsOrOnClose;
+  } else if (optionsOrOnClose) {
+    title = optionsOrOnClose.title ?? title;
+    onClose = optionsOrOnClose.onClose;
+    durationMs = optionsOrOnClose.durationMs;
+  }
+
   const notification = useNotificationStore.getState().setNotification;
-  notification({ message, show: true, onClose: handleClose, type, title });
+  notification({
+    message,
+    show: true,
+    onClose,
+    type,
+    title,
+    durationMs,
+  });
 };
 
 export const showLoader = (val: boolean) => {

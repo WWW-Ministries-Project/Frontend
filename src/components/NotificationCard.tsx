@@ -1,52 +1,89 @@
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
-import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/solid"; // Use any icon library you prefer
+import { AlertItem, useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import {
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { useEffect } from "react";
 
-export const NotificationCard = () => {
-  const { notification, visible, setVisible } = useNotificationStore();
+const toneClasses: Record<
+  AlertItem["type"],
+  { container: string; icon: string; title: string }
+> = {
+  success: {
+    container:
+      "border-emerald-200 bg-emerald-50/95 shadow-[0_10px_30px_-20px_rgba(5,150,105,0.65)]",
+    icon: "text-emerald-600",
+    title: "text-emerald-900",
+  },
+  error: {
+    container:
+      "border-rose-200 bg-rose-50/95 shadow-[0_10px_30px_-20px_rgba(220,38,38,0.7)]",
+    icon: "text-rose-600",
+    title: "text-rose-900",
+  },
+};
+
+const iconMap = {
+  success: CheckCircleIcon,
+  error: ExclamationCircleIcon,
+};
+
+const NotificationItem = ({ alert }: { alert: AlertItem }) => {
+  const { removeNotification } = useNotificationStore();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(false);
-      setTimeout(notification.onClose, 300);
-    }, 5000); // 5 seconds delay for auto-close
+    const timer = window.setTimeout(() => {
+      removeNotification(alert.id);
+    }, alert.durationMs);
 
-    return () => clearTimeout(timer);
-  }, [notification.onClose, setVisible]);
+    return () => window.clearTimeout(timer);
+  }, [alert.durationMs, alert.id, removeNotification]);
 
-  const backgroundColor =
-    notification.type === "error" ? "bg-red-100" : "bg-[#E0F7FA]";
-  const borderColor =
-    notification.type === "error" ? "border-red-500" : "border-[#7E57C2]";
-  const iconColor =
-    notification.type === "error" ? "text-red-500" : "text-blue-500";
+  const tones = toneClasses[alert.type];
+  const Icon = iconMap[alert.type];
+  const role = alert.type === "error" ? "alert" : "status";
 
   return (
-    <div
-      className={`flex items-start p-4 border rounded-lg shadow-lg z-50 ${backgroundColor} ${borderColor} 
-      transform transition-opacity duration-400 ease-in-out 
-      ${
-        visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
-      } fixed top-5 right-5`}
+    <article
+      className={`pointer-events-auto w-full rounded-xl border p-4 backdrop-blur-sm transition-all duration-300 animate-fadeIn ${tones.container}`}
+      role={role}
+      aria-live={alert.type === "error" ? "assertive" : "polite"}
     >
-      {/* Icon */}
-      <InformationCircleIcon className={`h-6 w-6 ${iconColor} mr-3`} />
-
-      {/* Title and Description */}
-      <div className="flex-1">
-        <h4 className="text-lg font-bold text-gray-800">
-          {notification.title}
-        </h4>
-        <p className="text-sm text-gray-600">{notification.message}</p>
+      <div className="flex items-start gap-3">
+        <Icon className={`h-6 w-6 flex-shrink-0 ${tones.icon}`} />
+        <div className="min-w-0 flex-1">
+          <h4 className={`text-sm font-semibold leading-5 ${tones.title}`}>
+            {alert.title}
+          </h4>
+          <p className="mt-1 text-sm leading-5 text-gray-700">{alert.message}</p>
+        </div>
+        <button
+          type="button"
+          className="rounded-md p-1 text-gray-500 transition hover:bg-black/5 hover:text-gray-700"
+          onClick={() => removeNotification(alert.id)}
+          aria-label="Dismiss notification"
+        >
+          <XMarkIcon className="h-5 w-5" />
+        </button>
       </div>
+    </article>
+  );
+};
 
-      {/* Close Button */}
-      <button
-        className="ml-4 text-gray-500 hover:text-gray-700 focus:outline-none"
-        onClick={() => setVisible(false)} // Manual close
-      >
-        <XMarkIcon className="h-5 w-5" />
-      </button>
-    </div>
+export const NotificationCard = () => {
+  const alerts = useNotificationStore((state) => state.alerts);
+
+  if (!alerts.length) return null;
+
+  return (
+    <section
+      className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:w-full"
+      aria-label="Notifications"
+    >
+      {alerts.map((alert) => (
+        <NotificationItem key={alert.id} alert={alert} />
+      ))}
+    </section>
   );
 };
