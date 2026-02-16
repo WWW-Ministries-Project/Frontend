@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, isValidElement, useState } from "react";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { formatDate, formatPhoneNumber } from "@/utils";
 import {
@@ -169,13 +169,22 @@ export function MemberInformation() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 mt-4">
                 <InfoField
                   label="Ministry/Department - Position"
-                  value={user?.department_positions?.map((department_position, index) =>
-                    <div key={index} className="py-1">
-                      <div>
-                        <span className="font-medium">{department_position}</span>
-                      </div>
-                    </div> 
-                  )}
+                  value={
+                    user?.department_positions?.length
+                      ? user.department_positions.map((departmentPosition, index) => (
+                          <div
+                            key={getDepartmentPositionKey(departmentPosition, index)}
+                            className="py-1"
+                          >
+                            <div>
+                              <span className="font-medium">
+                                {formatDepartmentPosition(departmentPosition)}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      : "-"
+                  }
                 />
                 {/* <InfoField label="Position" value={user?.position?.name} /> */}
               </div>
@@ -240,20 +249,99 @@ interface IMemberInfo {
     phone_number: string;
     country_code:string
   };
-  department_positions: string[];
+  department_positions: Array<string | IDepartmentPosition>;
   family: unknown[];
   
 }
+
+interface IDepartmentPosition {
+  department_id?: number | string | null;
+  department_name?: string | null;
+  position_id?: number | string | null;
+  position_name?: string | null;
+}
+
+const isDepartmentPosition = (value: unknown): value is IDepartmentPosition =>
+  typeof value === "object" && value !== null;
+
+const formatDepartmentPosition = (
+  departmentPosition: string | IDepartmentPosition
+): string => {
+  if (typeof departmentPosition === "string") {
+    return departmentPosition || "-";
+  }
+
+  const departmentName =
+    typeof departmentPosition.department_name === "string"
+      ? departmentPosition.department_name
+      : "";
+  const positionName =
+    typeof departmentPosition.position_name === "string"
+      ? departmentPosition.position_name
+      : "";
+
+  if (departmentName && positionName) {
+    return `${departmentName} - ${positionName}`;
+  }
+
+  return departmentName || positionName || "-";
+};
+
+const getDepartmentPositionKey = (
+  departmentPosition: string | IDepartmentPosition,
+  index: number
+) => {
+  if (typeof departmentPosition === "string") {
+    return `${departmentPosition}-${index}`;
+  }
+
+  return `${departmentPosition.department_id ?? "department"}-${
+    departmentPosition.position_id ?? "position"
+  }-${index}`;
+};
+
+const normalizeInfoValue = (value: unknown): ReactNode => {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  if (isValidElement(value)) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value : "-";
+  }
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "bigint"
+  ) {
+    return value.toString();
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  if (isDepartmentPosition(value)) {
+    return formatDepartmentPosition(value);
+  }
+
+  return "-";
+};
+
 const InfoField = ({
   label,
   value,
 }: {
   label: string;
-  value: string | React.ReactNode;
+  value: unknown;
 }) => (
   <div className="mb-3">
     <p className="text-gray-600 font-medium  mb-1">{label}</p>
-    <div className="font-semibold text-gray-900">{value || "-"}</div>
+    <div className="font-semibold text-gray-900">{normalizeInfoValue(value)}</div>
   </div>
 );
 

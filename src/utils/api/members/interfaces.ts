@@ -101,7 +101,15 @@ export interface IMemberInfo {
     country_code?: string;
   };
   family: unknown[];
-  department_positions: string[]
+  department_positions: Array<
+    | string
+    | {
+        department_id?: number | string | null;
+        department_name?: string | null;
+        position_id?: number | string | null;
+        position_name?: string | null;
+      }
+  >;
   photo: string;
   country: string;
 }
