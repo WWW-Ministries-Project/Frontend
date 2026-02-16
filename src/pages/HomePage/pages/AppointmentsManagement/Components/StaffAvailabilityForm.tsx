@@ -147,7 +147,7 @@ const StaffAvailabilityFormComponent = ({
 
   const handleSubmitForm = (values: IStaffAvailabilityForm) => {
     const payload: CreateStaffAvailabilityPayload = {
-      staffId: values.staffId,
+      userId: values.staffId,
       maxBookingsPerSlot: Number(values.maxBookingsPerSlot),
       timeSlots: values.timeSlots,
     };
