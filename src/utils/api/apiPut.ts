@@ -22,6 +22,10 @@ import {
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
 import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
+import type {
+  StaffAvailability,
+  UpdateStaffAvailabilityPayload,
+} from "./appointment/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -330,6 +334,22 @@ export class ApiUpdateCalls {
       "product/update-product",
       payload,
       query
+    );
+  };
+
+  updateStaffAvailability = (
+    payload: UpdateStaffAvailabilityPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailability>> => {
+    const availabilityId = query?.id;
+
+    if (!availabilityId) {
+      throw new Error("Availability id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/availability/${availabilityId}`,
+      payload
     );
   };
 

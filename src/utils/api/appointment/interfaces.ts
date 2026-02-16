@@ -32,10 +32,12 @@ export interface StaffAvailability {
 }
 
 export interface CreateStaffAvailabilityPayload {
-  staffId: string;
+  userId: string;
   maxBookingsPerSlot: number;
   timeSlots: TimeSlot[];
 }
+
+export type UpdateStaffAvailabilityPayload = CreateStaffAvailabilityPayload;
 
 export interface BookedSession {
   staffId: string;
