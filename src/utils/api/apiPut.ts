@@ -23,8 +23,10 @@ import {
 import { EventType } from "./events/interfaces";
 import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
 import type {
+  Appointment,
   StaffAvailability,
-  UpdateStaffAvailabilityPayload, UpdateAppointmentBookingPayload
+  UpdateAppointmentBookingPayload,
+  UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
 
 export class ApiUpdateCalls {
@@ -356,7 +358,7 @@ export class ApiUpdateCalls {
   updateAppointmentBooking = (
     payload: UpdateAppointmentBookingPayload,
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<Appointment>> => {
     const bookingId = query?.id;
 
     if (!bookingId) {
@@ -364,10 +366,10 @@ export class ApiUpdateCalls {
     }
 
     return this.apiExecution.updateData(
-      `appointment/booking/${bookingId}`,
+      `appointment/bookings/${bookingId}`,
       payload
     );
-  }
+  };
 
   // uodate church attendance
   updateChurchAttendance = (

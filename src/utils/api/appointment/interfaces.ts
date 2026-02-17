@@ -80,12 +80,9 @@ export type AppointmentBookingStatus =
   | "RESCHEDULED"
   | string;
 
-export interface AppointmentBookingsQuery {
-  attendeeId?: string | number;
-  requesterId?: string | number;
-  status?: AppointmentBookingStatus;
-  date?: string;
-}
+export type AppointmentBookingsQuery = Partial<
+  Record<"attendeeId" | "requesterId" | "status" | "date", string | number>
+>;
 
 export interface CreateAppointmentBookingPayload {
   requesterId: string;
@@ -107,6 +104,7 @@ export type UpdateAppointmentBookingPayload =
   Partial<CreateAppointmentBookingPayload>;
 
 export interface BookedSession {
+  bookingId?: string;
   staffId: string;
   date: string;
   start: string;

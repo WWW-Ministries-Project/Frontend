@@ -1,211 +1,203 @@
-import React from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import BannerWrapper from "../layouts/BannerWrapper";
 import booking from "@/assets/banner/booking.svg";
-import AppointmentCard from "../Component/AppointmentCard";
 import { Modal } from "@/components/Modal";
 import AppointmentBookingForm from "../Component/AppointmentBookingForm";
-import { Appointment } from "@/utils/api/appointment/interfaces";
+import {
+  Appointment,
+  AppointmentBookingsQuery,
+  BookedSession,
+} from "@/utils/api/appointment/interfaces";
 import AllAppointmentsLayout from "@/pages/HomePage/pages/AppointmentsManagement/Layout/AllAppointmentsLayout";
+import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useDelete } from "@/CustomHooks/useDelete";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
-import { useUserStore } from "@/store/userStore";
+import {
+  normalizeAppointmentRecord,
+  toBookedSession,
+  toStringValue,
+} from "@/utils/api/appointment/bookingUtils";
+import { useStore } from "@/store/useStore";
 
-export const dummyAppointments: Appointment[] = [
-  {
-    id: "appt-1",
-    staffId: "1",
-    staffName: "John Doe",
-    position: "Senior Pastor",
+const isPastAppointment = (date: string) => {
+  if (!date) return false;
 
-    fullName: "Michael Adams",
-    email: "michael.adams@email.com",
-    phone: "0240000001",
-    purpose: "Personal counselling",
-    note: "Looking for spiritual guidance",
-
-    date: "2026-02-10",
-    session: {
-      start: "09:00",
-      end: "09:30",
-    },
-
-    status: "Confirmed",
-    createdAt: "2026-01-20T10:15:00Z",
-  },
-  {
-    id: "appt-2",
-    staffId: "2",
-    staffName: "Jane Smith",
-    position: "Assistant Pastor",
-
-    fullName: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "0240000002",
-    purpose: "Marriage counselling",
-    note: "Couple session",
-
-    date: "2026-02-11",
-    session: {
-      start: "10:00",
-      end: "10:30",
-    },
-
-    status: "Pending",
-    createdAt: "2026-01-22T14:40:00Z",
-  },
-  {
-    id: "appt-3",
-    staffId: "1",
-    staffName: "John Doe",
-    position: "Senior Pastor",
-
-    fullName: "Daniel Brown",
-    email: "daniel.brown@email.com",
-    phone: "0240000003",
-    purpose: "Prayer and encouragement",
-    note: "",
-
-    date: "2026-02-12",
-    session: {
-      start: "11:00",
-      end: "11:30",
-    },
-
-    status: "Confirmed",
-    createdAt: "2026-01-25T09:05:00Z",
-  },
-  {
-    id: "appt-4",
-    staffId: "2",
-    staffName: "Jane Smith",
-    position: "Assistant Pastor",
-
-    fullName: "Grace Mensah",
-    email: "grace.mensah@email.com",
-    phone: "0240000004",
-    purpose: "Mentorship session",
-    note: "",
-
-    date: "2026-02-13",
-    session: {
-      start: "11:30",
-      end: "12:00",
-    },
-
-    status: "Cancelled",
-    createdAt: "2026-01-26T16:20:00Z",
-  },
-  {
-    id: "appt-5",
-    staffId: "1",
-    staffName: "John Doe",
-    position: "Senior Pastor",
-
-    fullName: "David Wilson",
-    email: "david.wilson@email.com",
-    phone: "0240000005",
-    purpose: "Leadership coaching",
-    note: "",
-
-    date: "2026-02-14",
-    session: {
-      start: "10:30",
-      end: "11:00",
-    },
-
-    status: "Confirmed",
-    createdAt: "2026-01-27T11:00:00Z",
-  },
-  {
-    id: "appt-6",
-    staffId: "2",
-    staffName: "Jane Smith",
-    position: "Assistant Pastor",
-
-    fullName: "Emily Davis",
-    email: "emily.davis@email.com",
-    phone: "0240000006",
-    purpose: "Career guidance",
-    note: "",
-
-    date: "2026-02-15",
-    session: {
-      start: "10:00",
-      end: "10:30",
-    },
-
-    status: "Pending",
-    createdAt: "2026-01-28T08:45:00Z",
-  },
-  {
-    id: "appt-7",
-    staffId: "1",
-    staffName: "John Doe",
-    position: "Senior Pastor",
-
-    fullName: "Paul Anderson",
-    email: "paul.anderson@email.com",
-    phone: "0240000007",
-    purpose: "Follow-up session",
-    note: "Continuation of last counselling",
-
-    date: "2026-01-10",
-    session: {
-      start: "11:30",
-      end: "12:00",
-    },
-
-    status: "Confirmed",
-    createdAt: "2026-01-05T13:30:00Z",
-  },
-];
-
-
-
-const MyAppointments = () => {
-  const userData = useUserStore((state) => state);
-    const user_id = userData.id;
-
-  const { data: appointmentData, refetch, loading } = useFetch(
-      api.fetch.fetchAppointment,
-      { requesterId:user_id }
-    );
-
-    console.log("appoinment data:", appointmentData);
-    
-  const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
-    "Upcoming & Current Appointments": true,
-    "Past Appointments": false,
-  });
-
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedAppointment, setSelectedAppointment] = React.useState<Appointment | undefined>(undefined);
-
-  const handleBookAppointment = () => {
-    setSelectedAppointment(undefined); // create mode
-    setIsModalOpen(true);
-  };
-
-  const isPastAppointment = (date: string) => {
   const today = new Date();
   const appointmentDate = new Date(date);
   appointmentDate.setHours(23, 59, 59, 999);
   return appointmentDate < today;
 };
 
-const safeAppointments = Array.isArray(appointmentData?.data)
-  ? appointmentData.data
-  : [];
+const MyAppointments = () => {
+  const { user } = useAuth();
+  const membersOptions = useStore((state) => state.membersOptions);
 
-const groupedAppointments = {
-  "Upcoming & Current Appointments": safeAppointments.filter(
-    (appt) => !isPastAppointment(appt.date)
-  ),
-  "Past Appointments": safeAppointments.filter((appt) =>
-    isPastAppointment(appt.date)
-  ),
-};
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | undefined>(undefined);
+
+  const [attendeeFilter, setAttendeeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+
+  const membersLookup = useMemo(
+    () =>
+      membersOptions.reduce<Record<string, string>>((acc, option) => {
+        acc[String(option.value)] = option.label;
+        return acc;
+      }, {}),
+    [membersOptions]
+  );
+
+  const requesterId = toStringValue(user?.id).trim();
+
+  const memberQuery = useMemo<AppointmentBookingsQuery | null>(() => {
+    if (!requesterId) return null;
+
+    const query: AppointmentBookingsQuery = {
+      requesterId,
+    };
+
+    if (attendeeFilter) {
+      query.attendeeId = attendeeFilter;
+    }
+
+    if (statusFilter) {
+      query.status = statusFilter;
+    }
+
+    if (dateFilter) {
+      query.date = dateFilter;
+    }
+
+    return query;
+  }, [attendeeFilter, dateFilter, requesterId, statusFilter]);
+
+  const {
+    data: bookingsResponse,
+    loading,
+    refetch,
+  } = useFetch(api.fetch.fetchAppointmentBookings, undefined, true);
+
+  const {
+    executeDelete,
+    success: deleteSuccess,
+    error: deleteError,
+  } = useDelete(api.delete.deleteAppointmentBooking);
+
+  useEffect(() => {
+    if (!memberQuery) return;
+    refetch(memberQuery);
+  }, [memberQuery, refetch]);
+
+  const appointments = useMemo(() => {
+    if (!Array.isArray(bookingsResponse?.data)) return [];
+
+    return bookingsResponse.data
+      .map((item) => normalizeAppointmentRecord(item, membersLookup))
+      .filter((item): item is Appointment => item !== null);
+  }, [bookingsResponse, membersLookup]);
+
+  const groupedAppointments = useMemo<Record<string, Appointment[]>>(() => {
+    const upcomingAndCurrent = appointments.filter(
+      (appointment) => !isPastAppointment(appointment.date)
+    );
+    const past = appointments.filter((appointment) =>
+      isPastAppointment(appointment.date)
+    );
+
+    const grouped: Record<string, Appointment[]> = {};
+
+    if (upcomingAndCurrent.length > 0) {
+      grouped["Upcoming & Current Appointments"] = upcomingAndCurrent;
+    }
+
+    if (past.length > 0) {
+      grouped["Past Appointments"] = past;
+    }
+
+    return grouped;
+  }, [appointments]);
+
+  const bookedSessions = useMemo<BookedSession[]>(() => {
+    return appointments
+      .map((appointment) => toBookedSession(appointment))
+      .filter((session): session is BookedSession => session !== null);
+  }, [appointments]);
+
+  const attendeeFilterOptions = useMemo(
+    () =>
+      appointments.reduce<{ value: string; label: string }[]>((acc, appointment) => {
+        if (!appointment.staffId) return acc;
+
+        const exists = acc.some((option) => option.value === appointment.staffId);
+        if (exists) return acc;
+
+        acc.push({
+          value: appointment.staffId,
+          label: appointment.staffName || "Unknown Staff",
+        });
+
+        return acc;
+      }, []),
+    [appointments]
+  );
+
+  const statusFilterOptions = useMemo(
+    () =>
+      appointments.reduce<string[]>((acc, appointment) => {
+        const status = toStringValue(appointment.status).toUpperCase().trim();
+
+        if (!status || acc.includes(status)) return acc;
+
+        acc.push(status);
+        return acc;
+      }, []),
+    [appointments]
+  );
+
+  useEffect(() => {
+    if (!deleteSuccess) return;
+
+    showNotification("Appointment deleted successfully", "success");
+    if (memberQuery) {
+      refetch(memberQuery);
+    }
+  }, [deleteSuccess, memberQuery, refetch]);
+
+  useEffect(() => {
+    if (!deleteError) return;
+    showNotification(deleteError.message || "Unable to delete appointment", "error");
+  }, [deleteError]);
+
+  const handleBookAppointment = () => {
+    setSelectedAppointment(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (appointment: Appointment) => {
+    if (!appointment.id) {
+      showNotification("Unable to delete appointment: missing booking id", "error");
+      return;
+    }
+
+    showDeleteDialog(
+      {
+        id: appointment.id,
+        name: appointment.purpose || "appointment",
+      },
+      (id) => executeDelete({ id: String(id) })
+    );
+  };
+
+  const resetFilters = () => {
+    setAttendeeFilter("");
+    setStatusFilter("");
+    setDateFilter("");
+  };
 
   return (
     <div className="flex flex-col gap-y-6">
@@ -217,67 +209,86 @@ const groupedAppointments = {
       </BannerWrapper>
 
       <div className="flex flex-col gap-6">
-        <div className="flex justify-end items-center">
-          {/* <div className="font-semibold text-lg mb-4">Upcoming Appointments</div> */}
-          <div className="">
-            <Button
-              value="Book appointment"
-              variant="primary"
-              onClick={handleBookAppointment}
-            />
+        <div className="flex flex-wrap justify-between items-end gap-4">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">Attendee</label>
+              <select
+                className="border rounded px-3 py-2 text-sm min-w-[180px]"
+                value={attendeeFilter}
+                onChange={(event) => setAttendeeFilter(event.target.value)}
+              >
+                <option value="">All Attendees</option>
+                {attendeeFilterOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">Status</label>
+              <select
+                className="border rounded px-3 py-2 text-sm min-w-[160px]"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+              >
+                <option value="">All Statuses</option>
+                {statusFilterOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">Date</label>
+              <input
+                type="date"
+                className="border rounded px-3 py-2 text-sm"
+                value={dateFilter}
+                onChange={(event) => setDateFilter(event.target.value)}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="text-sm px-4 py-2 border rounded hover:bg-gray-50"
+                onClick={resetFilters}
+              >
+                Reset Filters
+              </button>
+            </div>
           </div>
+
+          <Button
+            value="Book appointment"
+            variant="primary"
+            onClick={handleBookAppointment}
+          />
         </div>
 
-        <AllAppointmentsLayout
-          Appointments={groupedAppointments}
-          onEdit={(appt) => {
-            console.log("Edit appointment:", appt);
-            setSelectedAppointment(appt);
-            setIsModalOpen(true);
-          }}
-          onDelete={(appt) => {
-            console.log("Delete appointment:", appt);
-          }}
-        />
-
-        {/* {Object.entries(groupedAppointments).map(([group, items]) => (
-          <div key={group} className="space-y-3">
-            <button
-              className="w-full flex justify-between items-center font-semibold text-lg py-2 px-4 bg-gray-50 rounded-lg"
-              onClick={() =>
-                setOpenGroups((prev) => ({
-                  ...prev,
-                  [group]: !prev[group],
-                }))
-              }
-            >
-              <div className="flex gap-x-2">
-                <span>{group}</span>
-                <span>({items.length})</span>
-              </div>
-              <span className="text-sm">{openGroups[group] ? "−" : "+"}</span>
-            </button>
-
-            {openGroups[group] && (
-              <div className="flex flex-col gap-4">
-                {items.map((appointment) => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={appointment}
-                    onDelete={(appt) => {
-                      console.log("Delete appointment:", appt);
-                    }}
-                    onEdit={(appt) => {
-                      console.log("Edit appointment:", appt);
-                      setSelectedAppointment(appt);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
+        {!requesterId ? (
+          <div className="text-sm text-red-600">
+            Unable to fetch appointments: requester id is missing.
           </div>
-        ))} */}
+        ) : loading ? (
+          <div className="text-sm text-gray-600">Loading appointments...</div>
+        ) : appointments.length === 0 ? (
+          <div className="text-sm text-gray-600">No appointments found for the selected filters.</div>
+        ) : (
+          <AllAppointmentsLayout
+            Appointments={groupedAppointments}
+            onEdit={(appointment) => {
+              setSelectedAppointment(appointment);
+              setIsModalOpen(true);
+            }}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
       <Modal
@@ -290,6 +301,12 @@ const groupedAppointments = {
       >
         <AppointmentBookingForm
           appointment={selectedAppointment}
+          bookedSessions={bookedSessions}
+          onSuccess={() => {
+            if (memberQuery) {
+              refetch(memberQuery);
+            }
+          }}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedAppointment(undefined);
