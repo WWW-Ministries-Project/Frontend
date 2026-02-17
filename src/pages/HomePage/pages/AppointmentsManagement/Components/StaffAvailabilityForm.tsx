@@ -58,8 +58,51 @@ const validationSchema = Yup.object({
     .min(1, "At least one time slot is required"),
 });
 
+const normalizeClockTime = (value: string): string => {
+  const raw = value.trim().toUpperCase();
+  if (!raw) return "";
+
+  const match = raw.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/);
+  if (!match) return "";
+
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const meridiem = match[3];
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || minutes > 59) {
+    return "";
+  }
+
+  if (meridiem) {
+    if (hours < 1 || hours > 12) return "";
+    if (meridiem === "AM") {
+      hours = hours === 12 ? 0 : hours;
+    } else {
+      hours = hours === 12 ? 12 : hours + 12;
+    }
+  } else if (hours > 23) {
+    return "";
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const formatTimeWithMeridiem = (value: string): string => {
+  const normalized = normalizeClockTime(value);
+  if (!normalized) return value;
+
+  const [hourText, minuteText] = normalized.split(":");
+  const hour = Number(hourText);
+  const meridiem = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minuteText} ${meridiem}`;
+};
+
 const timeToMinutes = (time: string) => {
-  const [hours, minutes] = time.split(":").map(Number);
+  const normalized = normalizeClockTime(time);
+  if (!normalized) return 0;
+
+  const [hours, minutes] = normalized.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
@@ -164,10 +207,49 @@ const StaffAvailabilityFormComponent = ({
   }, [putError]);
 
   const handleSubmitForm = (values: IStaffAvailabilityForm) => {
+    const normalizedTimeSlots = values.timeSlots
+      .map((slot) => {
+        const startTime = normalizeClockTime(slot.startTime);
+        const endTime = normalizeClockTime(slot.endTime);
+
+        if (!startTime || !endTime) {
+          return null;
+        }
+
+        const normalizedSessions = slot.sessions
+          .map((session) => {
+            const start = normalizeClockTime(session.start);
+            const end = normalizeClockTime(session.end);
+
+            if (!start || !end) return null;
+
+            return {
+              start,
+              end,
+            };
+          })
+          .filter(
+            (
+              session
+            ): session is {
+              start: string;
+              end: string;
+            } => session !== null
+          );
+
+        return {
+          ...slot,
+          startTime,
+          endTime,
+          sessions: normalizedSessions,
+        };
+      })
+      .filter((slot): slot is TimeSlot => slot !== null);
+
     const payload: CreateStaffAvailabilityPayload = {
       userId: values.staffId,
       maxBookingsPerSlot: Number(values.maxBookingsPerSlot),
-      timeSlots: values.timeSlots,
+      timeSlots: normalizedTimeSlots,
     };
 
     if (values.id) {
@@ -183,9 +265,19 @@ const StaffAvailabilityFormComponent = ({
     setFieldValue: (field: string, value: unknown) => void
   ) => {
     const { day, startTime, endTime, sessionDurationMinutes } = values.currentSlot;
+    const normalizedStartTime = normalizeClockTime(startTime);
+    const normalizedEndTime = normalizeClockTime(endTime);
     const duration = Number(sessionDurationMinutes);
 
-    if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
+    if (!normalizedStartTime || !normalizedEndTime) {
+      setFieldValue(
+        "timeSlotsError",
+        "Please enter valid start and end time values."
+      );
+      return;
+    }
+
+    if (timeToMinutes(normalizedStartTime) >= timeToMinutes(normalizedEndTime)) {
       setFieldValue(
         "timeSlotsError",
         "End time must be later than start time."
@@ -198,7 +290,7 @@ const StaffAvailabilityFormComponent = ({
       return;
     }
 
-    const sessions = generateSessions(startTime, endTime, duration);
+    const sessions = generateSessions(normalizedStartTime, normalizedEndTime, duration);
 
     if (sessions.length === 0) {
       setFieldValue(
@@ -210,8 +302,8 @@ const StaffAvailabilityFormComponent = ({
 
     const slot: TimeSlot = {
       day: day as DayOfWeek,
-      startTime,
-      endTime,
+      startTime: normalizedStartTime,
+      endTime: normalizedEndTime,
       sessionDurationMinutes: duration,
       sessions,
     };
@@ -359,6 +451,11 @@ const StaffAvailabilityFormComponent = ({
                 id="currentSlot.startTime"
                 type="time"
               />
+              {values.currentSlot.startTime && (
+                <p className="-mt-2 text-xs text-gray-500">
+                  Selected: {formatTimeWithMeridiem(values.currentSlot.startTime)}
+                </p>
+              )}
 
               <Field
                 component={FormikInputDiv}
@@ -367,7 +464,17 @@ const StaffAvailabilityFormComponent = ({
                 id="currentSlot.endTime"
                 type="time"
               />
+              {values.currentSlot.endTime && (
+                <p className="-mt-2 text-xs text-gray-500">
+                  Selected: {formatTimeWithMeridiem(values.currentSlot.endTime)}
+                </p>
+              )}
             </div>
+
+            <p className="text-xs text-gray-500">
+              Displayed in 12-hour format (AM/PM). Backend payload is submitted as
+              24-hour format (`HH:mm`).
+            </p>
 
             <Button
               type="button"
@@ -394,7 +501,9 @@ const StaffAvailabilityFormComponent = ({
                   >
                     <div className="text-sm capitalize">
                       <p>
-                        {slot.day} · {slot.startTime} – {slot.endTime} · {slot.sessionDurationMinutes} min
+                        {slot.day} · {formatTimeWithMeridiem(slot.startTime)} –{" "}
+                        {formatTimeWithMeridiem(slot.endTime)} ·{" "}
+                        {slot.sessionDurationMinutes} min
                       </p>
                       <div className="mt-1 text-xs text-gray-600">
                         {slot.sessions.map((s, sIdx) => (
@@ -402,11 +511,14 @@ const StaffAvailabilityFormComponent = ({
                             key={sIdx}
                             className="inline-flex items-center mr-2 mb-1 px-2 py-1 border rounded text-xs"
                           >
-                            {s.start}–{s.end}
+                            {formatTimeWithMeridiem(s.start)}–
+                            {formatTimeWithMeridiem(s.end)}
                             <button
                               type="button"
                               className="ml-1 text-red-600 font-bold"
-                              aria-label={`Remove session ${s.start} to ${s.end}`}
+                              aria-label={`Remove session ${formatTimeWithMeridiem(
+                                s.start
+                              )} to ${formatTimeWithMeridiem(s.end)}`}
                               onClick={() =>
                                 removeSession(index, sIdx, values, setFieldValue)
                               }

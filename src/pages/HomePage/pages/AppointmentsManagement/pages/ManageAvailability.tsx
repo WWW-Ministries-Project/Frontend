@@ -67,6 +67,17 @@ const normalizeClockTime = (value: unknown): string => {
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 };
 
+const formatTimeWithMeridiem = (value: string): string => {
+  const normalized = normalizeClockTime(value);
+  if (!normalized) return value;
+
+  const [hourText, minuteText] = normalized.split(":");
+  const hour = Number(hourText);
+  const meridiem = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minuteText} ${meridiem}`;
+};
+
 const timeToMinutes = (time: string): number => {
   const normalizedTime = normalizeClockTime(time);
 
@@ -525,6 +536,11 @@ const ManageAvailability = () => {
                 }))
               }
             />
+            {timeFilter.start && (
+              <span className="text-[11px] text-gray-500">
+                {formatTimeWithMeridiem(timeFilter.start)}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-1">
@@ -540,6 +556,11 @@ const ManageAvailability = () => {
                 }))
               }
             />
+            {timeFilter.end && (
+              <span className="text-[11px] text-gray-500">
+                {formatTimeWithMeridiem(timeFilter.end)}
+              </span>
+            )}
           </div>
 
           <div className="flex items-end">

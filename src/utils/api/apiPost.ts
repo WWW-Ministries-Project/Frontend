@@ -25,8 +25,10 @@ import type {
   CheckOutResponse,
 } from "./marketPlace/interface";
 import {
+  Appointment,
+  CreateAppointmentBookingPayload,
   CreateStaffAvailabilityPayload,
-  StaffAvailability, CreateAppointmentBookingPayload, 
+  StaffAvailability,
 } from "./appointment/interfaces";
 
 export class ApiCreationCalls {
@@ -206,7 +208,7 @@ export class ApiCreationCalls {
 
   createAppointmentBooking = (
     payload: CreateAppointmentBookingPayload
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<Appointment>> => {
     return this.postToApi("appointment/book", payload);
   };
 

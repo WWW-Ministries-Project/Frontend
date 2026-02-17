@@ -23,8 +23,11 @@ import {
 import { EventType } from "./events/interfaces";
 import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
 import type {
+  Appointment,
   StaffAvailability,
-  UpdateStaffAvailabilityPayload, UpdateAppointmentBookingPayload
+  UpdateAppointmentBookingPayload,
+  UpdateAppointmentStatusPayload,
+  UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
 
 export class ApiUpdateCalls {
@@ -356,7 +359,7 @@ export class ApiUpdateCalls {
   updateAppointmentBooking = (
     payload: UpdateAppointmentBookingPayload,
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<Appointment>> => {
     const bookingId = query?.id;
 
     if (!bookingId) {
@@ -364,10 +367,25 @@ export class ApiUpdateCalls {
     }
 
     return this.apiExecution.updateData(
-      `appointment/booking/${bookingId}`,
+      `appointment/bookings/${bookingId}`,
       payload
     );
-  }
+  };
+
+  updateAppointmentStatus = (
+    payload: UpdateAppointmentStatusPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<Appointment>> => {
+    const appointmentId = query?.id;
+
+    if (!appointmentId) {
+      throw new Error("Appointment id is required for status update");
+    }
+
+    return this.apiExecution.updateData("appointment/status", payload, {
+      id: appointmentId,
+    });
+  };
 
   // uodate church attendance
   updateChurchAttendance = (

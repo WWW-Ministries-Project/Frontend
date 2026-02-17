@@ -138,6 +138,16 @@ export class ApiDeletionCalls {
     );
   };
 
+  deleteAppointmentBooking = (query: QueryType): Promise<ApiResponse<void>> => {
+    const bookingId = query?.id;
+
+    if (!bookingId) {
+      throw new Error("Booking id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(`appointment/bookings/${bookingId}`);
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType
@@ -173,4 +183,3 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("bankaccountconfig/delete-bank-account-config", query);
   };
 }
-

@@ -1,7 +1,7 @@
 import { Button } from "@/components";
 import { Formik, Form, Field, getIn } from "formik";
 import * as Yup from "yup";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
@@ -10,10 +10,12 @@ import {
   Appointment,
   BookedSession,
   BookingFormValues,
+  CreateAppointmentBookingPayload,
   DayOfWeek,
   Session,
   StaffAvailability,
   TimeSlot,
+  UpdateAppointmentBookingPayload,
 } from "@/utils/api/appointment/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -196,8 +198,17 @@ const normalizeSession = (session: unknown): Session | null => {
   if (!start || !end) return null;
 
   return {
+    id: toStringValue(session.id ?? session.sessionId ?? session.session_id) || undefined,
+    availabilityId:
+      toStringValue(
+        session.availabilityId ??
+          session.availability_id ??
+          session.slotId ??
+          session.slot_id
+      ) || undefined,
     start,
     end,
+    status: toStringValue(session.status) || undefined,
   };
 };
 
@@ -268,6 +279,48 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   };
 };
 
+const normalizeBookedSession = (
+  bookedSession: unknown,
+  staffId: string
+): BookedSession | null => {
+  if (!isRecord(bookedSession)) return null;
+
+  const date = toInputDate(
+    toStringValue(
+      bookedSession.date ??
+        bookedSession.bookingDate ??
+        bookedSession.booking_date
+    )
+  );
+  const start = normalizeClockTime(
+    bookedSession.start ??
+      bookedSession.startTime ??
+      bookedSession.start_time ??
+      bookedSession.from
+  );
+  const end = normalizeClockTime(
+    bookedSession.end ??
+      bookedSession.endTime ??
+      bookedSession.end_time ??
+      bookedSession.to
+  );
+
+  if (!date || !start || !end) return null;
+
+  return {
+    bookingId:
+      toStringValue(
+        bookedSession.id ??
+          bookedSession.bookingId ??
+          bookedSession.booking_id
+      ) || undefined,
+    staffId,
+    date,
+    start,
+    end,
+  };
+};
+
 const normalizeAvailability = (
   rawAvailability: unknown,
   memberLookup: Record<string, string>
@@ -291,6 +344,9 @@ const normalizeAvailability = (
   if (!staffId) return null;
 
   const timeSlotsRaw = rawAvailability.timeSlots ?? rawAvailability.time_slots;
+  const bookedSessionsRaw =
+    rawAvailability.bookedSessions ?? rawAvailability.booked_sessions;
+
   const nestedTimeSlots = Array.isArray(timeSlotsRaw)
     ? timeSlotsRaw
         .map(normalizeTimeSlot)
@@ -310,6 +366,8 @@ const normalizeAvailability = (
     toStringValue(
       rawAvailability.staffName ??
         rawAvailability.staff_name ??
+        rawAvailability.fullName ??
+        rawAvailability.full_name ??
         (staffRecord
           ? staffRecord.name ??
             staffRecord.fullName ??
@@ -327,6 +385,12 @@ const normalizeAvailability = (
       rawAvailability.designation ??
       (staffRecord ? staffRecord.role ?? staffRecord.designation : undefined)
   );
+
+  const bookedSessions = Array.isArray(bookedSessionsRaw)
+    ? bookedSessionsRaw
+        .map((session) => normalizeBookedSession(session, staffId))
+        .filter((session): session is BookedSession => session !== null)
+    : [];
 
   return {
     id:
@@ -355,6 +419,7 @@ const normalizeAvailability = (
         1
       )
     ),
+    bookedSessions,
     timeSlots,
   };
 };
@@ -405,12 +470,15 @@ const AppointmentBookingForm = ({
   onClose,
   bookedSessions = [],
   appointment,
+  onSuccess,
 }: {
   onClose: () => void;
   bookedSessions?: BookedSession[];
   appointment?: Appointment;
+  onSuccess?: () => void;
 }) => {
   const membersOptions = useStore((state) => state.membersOptions);
+  const { user } = useAuth();
 
   const membersLookup = useMemo(
     () =>
@@ -425,26 +493,30 @@ const AppointmentBookingForm = ({
     api.fetch.fetchStaffAvailabilityStatus
   );
 
-  const { user } = useAuth();
-
   const {
-      data: postResponse,
-      error: postError,
-      loading: postLoading,
-      postData,
-    } = usePost(api.post.createAppointmentBooking);
-    const {
-      data: putResponse,
-      error: putError,
-      loading: putLoading,
-      updateData,
-    } = usePut(api.put.updateAppointmentBooking);
+    data: postResponse,
+    error: postError,
+    loading: postLoading,
+    postData,
+  } = usePost(api.post.createAppointmentBooking);
+  const {
+    data: putResponse,
+    error: putError,
+    loading: putLoading,
+    updateData,
+  } = usePut(api.put.updateAppointmentBooking);
 
   const staffAvailability = useMemo(() => {
     const responseData = availabilityResponse?.data;
-    const sourceAvailability = isRecord(responseData)
-      ? responseData.users
-      : undefined;
+    const sourceAvailability = Array.isArray(responseData)
+      ? responseData
+      : isRecord(responseData)
+      ? Array.isArray(responseData.users)
+        ? responseData.users
+        : Array.isArray(responseData.data)
+        ? responseData.data
+        : []
+      : [];
 
     if (!Array.isArray(sourceAvailability)) {
       return [];
@@ -461,10 +533,30 @@ const AppointmentBookingForm = ({
         if (!existing) {
           acc[availability.staffId] = {
             ...availability,
+            bookedSessions: [...(availability.bookedSessions ?? [])],
             timeSlots: [...availability.timeSlots],
           };
           return acc;
         }
+
+        const mergedBookedSessions = [
+          ...(existing.bookedSessions ?? []),
+          ...(availability.bookedSessions ?? []),
+        ].reduce<BookedSession[]>((sessions, session) => {
+          const exists = sessions.some(
+            (existingSession) =>
+              toInputDate(existingSession.date) === toInputDate(session.date) &&
+              existingSession.start === session.start &&
+              existingSession.end === session.end &&
+              existingSession.staffId === session.staffId
+          );
+
+          if (!exists) {
+            sessions.push(session);
+          }
+
+          return sessions;
+        }, []);
 
         const mergedSlots = [...existing.timeSlots];
         availability.timeSlots.forEach((slot) => {
@@ -487,6 +579,7 @@ const AppointmentBookingForm = ({
           role: availability.role || existing.role,
           maxBookingsPerSlot:
             availability.maxBookingsPerSlot || existing.maxBookingsPerSlot,
+          bookedSessions: mergedBookedSessions,
           timeSlots: mergedSlots,
         };
         return acc;
@@ -500,9 +593,9 @@ const AppointmentBookingForm = ({
   }, [availabilityResponse, membersLookup]);
 
   const initialValues: BookingFormValues = {
-    fullName: appointment?.fullName ?? "",
-    email: appointment?.email ?? "",
-    phone: appointment?.phone ?? "",
+    fullName: appointment?.fullName ?? user?.name ?? "",
+    email: appointment?.email ?? user?.email ?? "",
+    phone: appointment?.phone ?? user?.phone ?? "",
     purpose: appointment?.purpose ?? "",
     note: appointment?.note ?? "",
     staffId: (appointment?.staffId || appointment?.attendeeId) ?? "",
@@ -510,52 +603,89 @@ const AppointmentBookingForm = ({
     session: appointment?.session ?? undefined,
   };
 
-  const handleSubmitForm = async (values: BookingFormValues) => {
+  useEffect(() => {
+    if (!postResponse) return;
+
+    showNotification("Appointment booked successfully.", "success", "Appointment");
+    onSuccess?.();
+    onClose();
+  }, [onClose, onSuccess, postResponse]);
+
+  useEffect(() => {
+    if (!putResponse) return;
+
+    showNotification("Appointment updated successfully.", "success", "Appointment");
+    onSuccess?.();
+    onClose();
+  }, [onClose, onSuccess, putResponse]);
+
+  useEffect(() => {
+    if (!postError) return;
+    showNotification(postError.message || "Unable to book appointment.", "error");
+  }, [postError]);
+
+  useEffect(() => {
+    if (!putError) return;
+    showNotification(putError.message || "Unable to update appointment.", "error");
+  }, [putError]);
+
+  const handleSubmitForm = (values: BookingFormValues) => {
     if (!values.session) {
       showNotification("Please select a time slot.", "error", "Appointment");
       return;
     }
 
-    const payload = {
-      requesterId: Number(user?.id),
+    const requesterId = toStringValue(
+      appointment?.requesterId ?? user?.id
+    ).trim();
+    const attendeeId = toStringValue(values.staffId).trim();
+    const bookingDate = toInputDate(values.date);
+
+    if (!requesterId) {
+      showNotification("Unable to identify requester for this booking.", "error");
+      return;
+    }
+
+    if (!attendeeId) {
+      showNotification("Please select a staff member for the appointment.", "error");
+      return;
+    }
+
+    if (!bookingDate) {
+      showNotification("Please select a valid appointment date.", "error");
+      return;
+    }
+
+    const basePayload: CreateAppointmentBookingPayload = {
+      requesterId,
+      attendeeId,
+      date: bookingDate,
+      startTime: values.session.start,
+      endTime: values.session.end,
       fullName: values.fullName.trim(),
       email: values.email.trim(),
       phone: values.phone.trim(),
       purpose: values.purpose.trim(),
       note: values.note?.trim() || "",
-      staffId: Number(values.staffId),
-      date: values.date,
-      session: {
-        start: values.session.start,
-        end: values.session.end,
-      },
+      availabilityId:
+        toStringValue(values.session.availabilityId).trim() || undefined,
+      sessionId: toStringValue(values.session.id).trim() || undefined,
     };
 
-    try {
-      if (appointment?.id) {
-        await updateData(appointment.id, payload);
-        showNotification(
-          "Appointment updated successfully.",
-          "success",
-          "Appointment"
-        );
-      } else {
-        await postData(payload);
-        showNotification(
-          "Appointment booked successfully.",
-          "success",
-          "Appointment"
-        );
+    if (appointment?.id) {
+      const appointmentId = toStringValue(appointment.id).trim();
+
+      if (!appointmentId) {
+        showNotification("Unable to identify appointment to update.", "error");
+        return;
       }
 
-      onClose();
-    } catch (error) {
-      showNotification(
-        "An error occurred while saving the appointment.",
-        "error",
-        "Appointment"
-      );
+      const updatePayload: UpdateAppointmentBookingPayload = basePayload;
+      updateData(updatePayload, { id: appointmentId });
+      return;
     }
+
+    postData(basePayload);
   };
 
   return (
@@ -593,6 +723,28 @@ const AppointmentBookingForm = ({
           availableDaysForStaff.includes(selectedDay)
             ? selectedStaff.timeSlots.filter((slot) => slot.day === selectedDay)
             : [];
+
+        const staffBookedSessions = [
+          ...(selectedStaff?.bookedSessions ?? []),
+          ...bookedSessions.filter(
+            (bookedSession) => bookedSession.staffId === values.staffId
+          ),
+        ].reduce<BookedSession[]>((sessions, bookedSession) => {
+          const exists = sessions.some(
+            (existingSession) =>
+              toInputDate(existingSession.date) ===
+                toInputDate(bookedSession.date) &&
+              existingSession.start === bookedSession.start &&
+              existingSession.end === bookedSession.end &&
+              existingSession.staffId === bookedSession.staffId
+          );
+
+          if (!exists) {
+            sessions.push(bookedSession);
+          }
+
+          return sessions;
+        }, []);
 
         const sessionError = getIn(errors, "session");
         const sessionTouched = Boolean(getIn(touched, "session"));
@@ -760,13 +912,26 @@ const AppointmentBookingForm = ({
                   >
                     {slotsForDay.flatMap((slot, slotIndex) =>
                       slot.sessions.map((session, sessionIndex) => {
-                        const isBooked = bookedSessions.some(
+                        const isBookedBySession = staffBookedSessions.some(
                           (booked) =>
                             booked.staffId === values.staffId &&
                             toInputDate(booked.date) === toInputDate(values.date) &&
                             booked.start === session.start &&
                             booked.end === session.end
                         );
+
+                        const isCurrentAppointmentSession =
+                          Boolean(appointment?.id) &&
+                          toStringValue(
+                            appointment?.staffId ?? appointment?.attendeeId
+                          ) === values.staffId &&
+                          toInputDate(appointment?.date) ===
+                            toInputDate(values.date) &&
+                          appointment?.session?.start === session.start &&
+                          appointment?.session?.end === session.end;
+
+                        const isBooked =
+                          isBookedBySession && !isCurrentAppointmentSession;
 
                         const isSelected =
                           values.session?.start === session.start &&
@@ -785,6 +950,7 @@ const AppointmentBookingForm = ({
                                 : "hover:bg-gray-50"
                             }`}
                             onClick={() => {
+                              if (isBooked) return;
                               setFieldValue("session", session);
                               setFieldTouched("session", true, false);
                             }}

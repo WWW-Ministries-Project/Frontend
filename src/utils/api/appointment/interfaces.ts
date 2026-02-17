@@ -30,6 +30,7 @@ export interface StaffAvailability {
   position?: string;
   role?: string;
   maxBookingsPerSlot: number;
+  bookedSessions?: BookedSession[];
   timeSlots: TimeSlot[];
   currentSlot?: TimeSlot;
 }
@@ -55,7 +56,17 @@ export interface StaffAvailabilityStatusSlot {
 
 export interface StaffAvailabilityStatusUser {
   userId: string | number;
+  fullName?: string;
   staffName: string;
+  maxBookingsPerSlot?: number;
+  bookedSessions?: Array<{
+    id?: string | number;
+    bookingId?: string | number;
+    booking_id?: string | number;
+    date: string;
+    start: string;
+    end: string;
+  }>;
   position?: string | null;
   timeSlots: StaffAvailabilityStatusSlot[];
 }
@@ -80,12 +91,9 @@ export type AppointmentBookingStatus =
   | "RESCHEDULED"
   | string;
 
-export interface AppointmentBookingsQuery {
-  attendeeId?: string | number;
-  requesterId?: string | number;
-  status?: AppointmentBookingStatus;
-  date?: string;
-}
+export type AppointmentBookingsQuery = Partial<
+  Record<"attendeeId" | "requesterId" | "status" | "date", string | number>
+>;
 
 export interface CreateAppointmentBookingPayload {
   requesterId: string;
@@ -106,7 +114,12 @@ export interface CreateAppointmentBookingPayload {
 export type UpdateAppointmentBookingPayload =
   Partial<CreateAppointmentBookingPayload>;
 
+export interface UpdateAppointmentStatusPayload {
+  isConfirmed: boolean;
+}
+
 export interface BookedSession {
+  bookingId?: string;
   staffId: string;
   date: string;
   start: string;
@@ -140,6 +153,7 @@ export interface Appointment {
   position?: string;
   date: string;
   session?: Session;
+  isConfirmed?: boolean;
   status?: AppointmentBookingStatus;
   createdAt?: string;
   updatedAt?: string;

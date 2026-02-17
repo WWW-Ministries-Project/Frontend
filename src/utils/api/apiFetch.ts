@@ -31,9 +31,10 @@ import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
+  Appointment,
+  AppointmentBookingsQuery,
   StaffAvailability,
   StaffAvailabilityStatusResponse,
-  Appointment
 } from "./appointment/interfaces";
 
 export class ApiCalls {
@@ -437,9 +438,9 @@ export class ApiCalls {
     return this.fetchFromApi("appointment/availability/status", query);
   };
 
-  fetchAppointment=(
-    query?: QueryType
-  ): Promise<ApiResponse<Appointment>> => {
+  fetchAppointmentBookings = (
+    query?: AppointmentBookingsQuery
+  ): Promise<ApiResponse<Appointment[]>> => {
     return this.fetchFromApi("appointment/bookings", query);
   };
 
