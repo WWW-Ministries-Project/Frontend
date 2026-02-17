@@ -129,6 +129,13 @@ export class ApiCreationCalls {
   createVisitor = <T>(payload: unknown): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visitors", payload);
   };
+
+  convertVisitorToMember = <T = unknown>(
+    visitorId: string | number,
+    payload: Record<string, unknown> = {}
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>(`visitor/convert-to-member?id=${visitorId}`, payload);
+  };
   // Visit
   createVisit = (payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
     return this.postToApi("visitor/visit", payload);

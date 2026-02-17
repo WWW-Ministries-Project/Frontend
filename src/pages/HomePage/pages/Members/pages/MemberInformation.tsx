@@ -14,10 +14,39 @@ import { FamilyInformation } from "./FamilyInformation";
 
 //TODO: TAKE A SECOND LOOK AT INFOFIELD AND SECTION
 //TODO: FIND A BETTER STRUCTURE FOR TYPING DATA FROM BE
+const normalizeMemberStatus = (
+  status?: string | null
+): "UNCONFIRMED" | "CONFIRMED" | "MEMBER" => {
+  const normalized = (status || "").toUpperCase().trim();
+
+  if (normalized === "CONFIRMED") return "CONFIRMED";
+  if (normalized === "MEMBER") return "MEMBER";
+
+  return "UNCONFIRMED";
+};
+
+const formatMemberStatus = (status?: string | null): string => {
+  const normalizedStatus = normalizeMemberStatus(status);
+
+  if (normalizedStatus === "MEMBER") return "Functional Member";
+  if (normalizedStatus === "CONFIRMED") return "Confirmed Member";
+
+  return "Unconfirmed Member";
+};
+
 export function MemberInformation() {
-  const { details: user } = useOutletContext<{
-    details: IMemberInfo;
+  const { details: user, loading } = useOutletContext<{
+    details?: IMemberInfo;
+    loading?: boolean;
   }>();
+
+  if (!user) {
+    return (
+      <div className="bg-white rounded-b-lg p-6 text-gray-700">
+        {loading ? "Loading member information..." : "Member information unavailable."}
+      </div>
+    );
+  }
 
   const [selectedTab, setSelectedTab] = useState("Basic Information");
 
@@ -30,6 +59,7 @@ export function MemberInformation() {
     user.membership_type === "ONLINE"
       ? "Online e-church family"
       : user.membership_type === "IN_HOUSE"? "In-person church family" :"";
+  const membershipStatus = formatMemberStatus(user.status);
 
   return (
     <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
@@ -131,12 +161,13 @@ export function MemberInformation() {
                   <div className="flex items-center">
                     <span>{user.member_id || "-"}</span>
                     <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      Active Member
+                      {membershipStatus}
                     </span>
                   </div>
                 }
               />
               <InfoField label="Membership Type" value={membershipType} />
+              <InfoField label="Member Status" value={membershipStatus} />
             </div>
           {/* </Section>
           <Section title="Church Information"> */}
@@ -231,6 +262,7 @@ interface IMemberInfo {
   country_code: string;
   email: string;
   is_user: boolean;
+  status?: string;
   member_since: string;
   department?: {
     name:string
