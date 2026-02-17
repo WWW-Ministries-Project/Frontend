@@ -249,6 +249,17 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("user/update-user", payload, query);
   };
 
+  updateMemberStatus = <T>(
+    payload: Record<string, never> = {},
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(
+      "user/update-member-status",
+      payload,
+      query
+    );
+  };
+
   activateMember = (
     payload: activateMemberPayloadType,
     query?: QueryType

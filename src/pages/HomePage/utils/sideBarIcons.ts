@@ -18,6 +18,7 @@ export const sidebarIcons: Record<
   React.ComponentType<React.SVGProps<SVGSVGElement>>
 > = {
   Dashboard: DashboardIcon,
+  Membership: MembersIcon,
   Members: MembersIcon,
   Visitors: VisitorIcon,
   Users: UsersIcon,

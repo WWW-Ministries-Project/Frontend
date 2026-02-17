@@ -36,6 +36,9 @@ import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLife
 import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
 import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
+import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
+import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/pages/MemberConfirmation";
+import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
@@ -79,6 +82,7 @@ import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceMan
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
 import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
 import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
+import { Navigate } from "react-router-dom";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -145,7 +149,66 @@ export const routes: AppRoute[] = [
         element: <Members />,
         isPrivate: true,
         permissionNeeded: "view_members",
+      },
+      {
+        path: relativePath.home.membership.main,
+        name: "Membership",
+        isPrivate: true,
+        permissionNeeded: "view_members",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Membership Default",
+            element: <Navigate to={relativePath.home.membership.churchDirectory} replace />,
+            isPrivate: true,
+            permissionNeeded: "view_members",
+          },
+          {
+            path: relativePath.home.membership.churchDirectory,
+            name: "Church Directory",
+            element: <Members />,
+            isPrivate: true,
+            permissionNeeded: "view_members",
+            sideTab: true,
+          },
+          {
+            path: relativePath.home.membership.management.main,
+            name: "Member Admin",
+            element: <MembershipManagement />,
+            isPrivate: true,
+            permissionNeeded: "manage_members",
+            sideTab: true,
+            children: [
+              {
+                path: "",
+                name: "Membership Management Default",
+                element: (
+                  <Navigate
+                    to={relativePath.home.membership.management.memberConfirmation}
+                    replace
+                  />
+                ),
+                isPrivate: true,
+                permissionNeeded: "manage_members",
+              },
+              {
+                path: relativePath.home.membership.management.memberConfirmation,
+                name: "Member Confirmation",
+                element: <MemberConfirmation />,
+                isPrivate: true,
+                permissionNeeded: "manage_members",
+              },
+              {
+                path: relativePath.home.membership.management.visitorToMembership,
+                name: "Visitor-to-Membership",
+                element: <VisitorToMembership />,
+                isPrivate: true,
+                permissionNeeded: "manage_members",
+              },
+            ],
+          },
+        ],
       },
       {
         path: relativePath.home.members.manage,

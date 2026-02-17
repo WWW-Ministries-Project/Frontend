@@ -8,7 +8,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
-import { MembersType } from "@/utils";
+import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { QueryType } from "@/utils/interfaces";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
@@ -108,7 +108,7 @@ export function Members() {
   };
 
   const handleNavigation = () => {
-    navigate("manage-member");
+    navigate(`/home/${relativePath.home.members.manage}`);
   };
 
   const handleDelete = async () => {
