@@ -152,8 +152,9 @@ export default {
       },
     },
     fontFamily: {
+      sans: ["Work Sans", "sans-serif"],
       fontRoboto: ["Work Sans", "sans-serif"],
-      manrope: ["Manrope", "sans-serif"],
+      manrope: ["Work Sans", "sans-serif"],
       "great-vibes": ["Great Vibes", "cursive"],
     },
     screens: {
@@ -208,13 +209,13 @@ export default {
         ".H400": {
           "font-family": "Work Sans",
           "font-size": "18px",
-          "font-style": "bold",
+          "font-style": "normal",
           "font-weight": "600",
           "line-height": "28px",
         },
         ".P100": {
           "font-family": "Work Sans",
-          "font-size": "13.33x",
+          "font-size": "13.33px",
           "font-style": "normal",
           "font-weight": "400",
           "line-height": "16px" /* 150% */,
