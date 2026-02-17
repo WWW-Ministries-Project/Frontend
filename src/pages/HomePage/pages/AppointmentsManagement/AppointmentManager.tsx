@@ -1,6 +1,6 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import PageOutline from "../../Components/PageOutline";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Appointment,
   AppointmentBookingsQuery,
@@ -11,6 +11,7 @@ import { Modal } from "@/components/Modal";
 import AppointmentBookingForm from "@/pages/MembersPage/Component/AppointmentBookingForm";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
+import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils";
 import {
   normalizeAppointmentRecord,
@@ -31,6 +32,11 @@ const AppointmentManager = () => {
   const [requesterFilter, setRequesterFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [statusUpdatingAppointmentId, setStatusUpdatingAppointmentId] =
+    useState<string | null>(null);
+  const [statusUpdatingTarget, setStatusUpdatingTarget] = useState<
+    boolean | null
+  >(null);
 
   const membersLookup = useMemo(
     () =>
@@ -62,6 +68,7 @@ const AppointmentManager = () => {
 
     return query;
   }, [attendeeFilter, dateFilter, requesterFilter, statusFilter]);
+  const latestQueryRef = useRef<AppointmentBookingsQuery>(adminQuery);
 
   const {
     data: bookingsResponse,
@@ -74,6 +81,16 @@ const AppointmentManager = () => {
     success: deleteSuccess,
     error: deleteError,
   } = useDelete(api.delete.deleteAppointmentBooking);
+
+  const {
+    data: statusUpdateResponse,
+    error: statusUpdateError,
+    updateData: updateAppointmentStatus,
+  } = usePut(api.put.updateAppointmentStatus);
+
+  useEffect(() => {
+    latestQueryRef.current = adminQuery;
+  }, [adminQuery]);
 
   useEffect(() => {
     refetch(adminQuery);
@@ -147,14 +164,37 @@ const AppointmentManager = () => {
     if (!deleteSuccess) return;
 
     showNotification("Appointment deleted successfully", "success");
-    refetch(adminQuery);
-  }, [adminQuery, deleteSuccess, refetch]);
+    refetch(latestQueryRef.current);
+  }, [deleteSuccess, refetch]);
 
   useEffect(() => {
     if (!deleteError) return;
 
     showNotification(deleteError.message || "Unable to delete appointment", "error");
   }, [deleteError]);
+
+  useEffect(() => {
+    if (!statusUpdateResponse) return;
+
+    showNotification(
+      statusUpdatingTarget ? "Appointment confirmed successfully" : "Appointment marked as unconfirmed",
+      "success"
+    );
+    setStatusUpdatingAppointmentId(null);
+    setStatusUpdatingTarget(null);
+    refetch(latestQueryRef.current);
+  }, [refetch, statusUpdateResponse, statusUpdatingTarget]);
+
+  useEffect(() => {
+    if (!statusUpdateError) return;
+
+    showNotification(
+      statusUpdateError.message || "Unable to update appointment status",
+      "error"
+    );
+    setStatusUpdatingAppointmentId(null);
+    setStatusUpdatingTarget(null);
+  }, [statusUpdateError]);
 
   const handleBookAppointment = () => {
     setSelectedAppointment(undefined);
@@ -174,6 +214,21 @@ const AppointmentManager = () => {
       },
       (id) => executeDelete({ id: String(id) })
     );
+  };
+
+  const handleToggleConfirmation = (
+    appointment: Appointment,
+    isConfirmed: boolean
+  ) => {
+    if (!appointment.id) {
+      showNotification("Unable to update appointment: missing booking id", "error");
+      return;
+    }
+
+    const appointmentId = String(appointment.id);
+    setStatusUpdatingAppointmentId(appointmentId);
+    setStatusUpdatingTarget(isConfirmed);
+    updateAppointmentStatus({ isConfirmed }, { id: appointmentId });
   };
 
   const resetFilters = () => {
@@ -275,6 +330,12 @@ const AppointmentManager = () => {
             setIsModalOpen(true);
           }}
           onDelete={handleDelete}
+          onToggleConfirmation={handleToggleConfirmation}
+          showConfirmationActions
+          isStatusUpdating={(appointmentId) =>
+            Boolean(appointmentId) &&
+            statusUpdatingAppointmentId === String(appointmentId)
+          }
         />
       )}
 

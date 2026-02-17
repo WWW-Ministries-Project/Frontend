@@ -7,6 +7,20 @@ interface StaffAvailabilityCardProps {
     onDelete?: () => void;
 }
 
+const formatTimeWithMeridiem = (value: string): string => {
+    const [hourText, minuteText] = value.split(":");
+    const hour = Number(hourText);
+    const minute = Number(minuteText);
+
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+      return value;
+    }
+
+    const meridiem = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${String(minute).padStart(2, "0")} ${meridiem}`;
+};
+
 const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabilityCardProps) => {
     const roleText = availability.role ? ` · ${availability.role}` : "";
     const totalSessions = availability.timeSlots.reduce(
@@ -66,7 +80,8 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
                         className="bg-primary/10 p-2 rounded text-sm space-y-1 list-none"
                       >
                         <p className="font-medium capitalize">
-                          {slot.day}: {slot.startTime} – {slot.endTime} ({slot.sessionDurationMinutes} mins)
+                          {slot.day}: {formatTimeWithMeridiem(slot.startTime)} –{" "}
+                          {formatTimeWithMeridiem(slot.endTime)} ({slot.sessionDurationMinutes} mins)
                         </p>
                         {slot.sessions.length === 0 ? (
                           <p className="text-xs text-gray-500">No sessions configured.</p>
@@ -77,7 +92,8 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
                                 key={sIdx}
                                 className="px-2 py-0.5 bg-white border rounded text-xs"
                               >
-                                {session.start}–{session.end}
+                                {formatTimeWithMeridiem(session.start)}–
+                                {formatTimeWithMeridiem(session.end)}
                               </span>
                             ))}
                           </div>

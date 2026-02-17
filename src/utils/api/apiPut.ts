@@ -26,6 +26,7 @@ import type {
   Appointment,
   StaffAvailability,
   UpdateAppointmentBookingPayload,
+  UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
 
@@ -369,6 +370,21 @@ export class ApiUpdateCalls {
       `appointment/bookings/${bookingId}`,
       payload
     );
+  };
+
+  updateAppointmentStatus = (
+    payload: UpdateAppointmentStatusPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<Appointment>> => {
+    const appointmentId = query?.id;
+
+    if (!appointmentId) {
+      throw new Error("Appointment id is required for status update");
+    }
+
+    return this.apiExecution.updateData("appointment/status", payload, {
+      id: appointmentId,
+    });
   };
 
   // uodate church attendance

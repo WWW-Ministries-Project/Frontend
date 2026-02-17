@@ -279,6 +279,48 @@ const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
   };
 };
 
+const normalizeBookedSession = (
+  bookedSession: unknown,
+  staffId: string
+): BookedSession | null => {
+  if (!isRecord(bookedSession)) return null;
+
+  const date = toInputDate(
+    toStringValue(
+      bookedSession.date ??
+        bookedSession.bookingDate ??
+        bookedSession.booking_date
+    )
+  );
+  const start = normalizeClockTime(
+    bookedSession.start ??
+      bookedSession.startTime ??
+      bookedSession.start_time ??
+      bookedSession.from
+  );
+  const end = normalizeClockTime(
+    bookedSession.end ??
+      bookedSession.endTime ??
+      bookedSession.end_time ??
+      bookedSession.to
+  );
+
+  if (!date || !start || !end) return null;
+
+  return {
+    bookingId:
+      toStringValue(
+        bookedSession.id ??
+          bookedSession.bookingId ??
+          bookedSession.booking_id
+      ) || undefined,
+    staffId,
+    date,
+    start,
+    end,
+  };
+};
+
 const normalizeAvailability = (
   rawAvailability: unknown,
   memberLookup: Record<string, string>
@@ -302,6 +344,9 @@ const normalizeAvailability = (
   if (!staffId) return null;
 
   const timeSlotsRaw = rawAvailability.timeSlots ?? rawAvailability.time_slots;
+  const bookedSessionsRaw =
+    rawAvailability.bookedSessions ?? rawAvailability.booked_sessions;
+
   const nestedTimeSlots = Array.isArray(timeSlotsRaw)
     ? timeSlotsRaw
         .map(normalizeTimeSlot)
@@ -321,6 +366,8 @@ const normalizeAvailability = (
     toStringValue(
       rawAvailability.staffName ??
         rawAvailability.staff_name ??
+        rawAvailability.fullName ??
+        rawAvailability.full_name ??
         (staffRecord
           ? staffRecord.name ??
             staffRecord.fullName ??
@@ -338,6 +385,12 @@ const normalizeAvailability = (
       rawAvailability.designation ??
       (staffRecord ? staffRecord.role ?? staffRecord.designation : undefined)
   );
+
+  const bookedSessions = Array.isArray(bookedSessionsRaw)
+    ? bookedSessionsRaw
+        .map((session) => normalizeBookedSession(session, staffId))
+        .filter((session): session is BookedSession => session !== null)
+    : [];
 
   return {
     id:
@@ -366,6 +419,7 @@ const normalizeAvailability = (
         1
       )
     ),
+    bookedSessions,
     timeSlots,
   };
 };
@@ -454,9 +508,15 @@ const AppointmentBookingForm = ({
 
   const staffAvailability = useMemo(() => {
     const responseData = availabilityResponse?.data;
-    const sourceAvailability = isRecord(responseData)
-      ? responseData.users
-      : undefined;
+    const sourceAvailability = Array.isArray(responseData)
+      ? responseData
+      : isRecord(responseData)
+      ? Array.isArray(responseData.users)
+        ? responseData.users
+        : Array.isArray(responseData.data)
+        ? responseData.data
+        : []
+      : [];
 
     if (!Array.isArray(sourceAvailability)) {
       return [];
@@ -473,10 +533,30 @@ const AppointmentBookingForm = ({
         if (!existing) {
           acc[availability.staffId] = {
             ...availability,
+            bookedSessions: [...(availability.bookedSessions ?? [])],
             timeSlots: [...availability.timeSlots],
           };
           return acc;
         }
+
+        const mergedBookedSessions = [
+          ...(existing.bookedSessions ?? []),
+          ...(availability.bookedSessions ?? []),
+        ].reduce<BookedSession[]>((sessions, session) => {
+          const exists = sessions.some(
+            (existingSession) =>
+              toInputDate(existingSession.date) === toInputDate(session.date) &&
+              existingSession.start === session.start &&
+              existingSession.end === session.end &&
+              existingSession.staffId === session.staffId
+          );
+
+          if (!exists) {
+            sessions.push(session);
+          }
+
+          return sessions;
+        }, []);
 
         const mergedSlots = [...existing.timeSlots];
         availability.timeSlots.forEach((slot) => {
@@ -499,6 +579,7 @@ const AppointmentBookingForm = ({
           role: availability.role || existing.role,
           maxBookingsPerSlot:
             availability.maxBookingsPerSlot || existing.maxBookingsPerSlot,
+          bookedSessions: mergedBookedSessions,
           timeSlots: mergedSlots,
         };
         return acc;
@@ -642,6 +723,28 @@ const AppointmentBookingForm = ({
           availableDaysForStaff.includes(selectedDay)
             ? selectedStaff.timeSlots.filter((slot) => slot.day === selectedDay)
             : [];
+
+        const staffBookedSessions = [
+          ...(selectedStaff?.bookedSessions ?? []),
+          ...bookedSessions.filter(
+            (bookedSession) => bookedSession.staffId === values.staffId
+          ),
+        ].reduce<BookedSession[]>((sessions, bookedSession) => {
+          const exists = sessions.some(
+            (existingSession) =>
+              toInputDate(existingSession.date) ===
+                toInputDate(bookedSession.date) &&
+              existingSession.start === bookedSession.start &&
+              existingSession.end === bookedSession.end &&
+              existingSession.staffId === bookedSession.staffId
+          );
+
+          if (!exists) {
+            sessions.push(bookedSession);
+          }
+
+          return sessions;
+        }, []);
 
         const sessionError = getIn(errors, "session");
         const sessionTouched = Boolean(getIn(touched, "session"));
@@ -809,15 +912,26 @@ const AppointmentBookingForm = ({
                   >
                     {slotsForDay.flatMap((slot, slotIndex) =>
                       slot.sessions.map((session, sessionIndex) => {
-                        const currentBookingId = toStringValue(appointment?.id);
-                        const isBooked = bookedSessions.some(
+                        const isBookedBySession = staffBookedSessions.some(
                           (booked) =>
-                            booked.bookingId !== currentBookingId &&
                             booked.staffId === values.staffId &&
                             toInputDate(booked.date) === toInputDate(values.date) &&
                             booked.start === session.start &&
                             booked.end === session.end
                         );
+
+                        const isCurrentAppointmentSession =
+                          Boolean(appointment?.id) &&
+                          toStringValue(
+                            appointment?.staffId ?? appointment?.attendeeId
+                          ) === values.staffId &&
+                          toInputDate(appointment?.date) ===
+                            toInputDate(values.date) &&
+                          appointment?.session?.start === session.start &&
+                          appointment?.session?.end === session.end;
+
+                        const isBooked =
+                          isBookedBySession && !isCurrentAppointmentSession;
 
                         const isSelected =
                           values.session?.start === session.start &&
@@ -836,6 +950,7 @@ const AppointmentBookingForm = ({
                                 : "hover:bg-gray-50"
                             }`}
                             onClick={() => {
+                              if (isBooked) return;
                               setFieldValue("session", session);
                               setFieldTouched("session", true, false);
                             }}

@@ -5,10 +5,20 @@ const AllAppointmentsLayout = ({
   Appointments,
   onEdit,
   onDelete,
+  onToggleConfirmation,
+  isStatusUpdating,
+  showConfirmationActions = false,
+  isEditDisabled,
+  isDeleteDisabled,
 }: {
   Appointments: Record<string, Appointment[]>;
-  onEdit: (appt: Appointment) => void;
-  onDelete: (appt: Appointment) => void;
+  onEdit?: (appt: Appointment) => void;
+  onDelete?: (appt: Appointment) => void;
+  onToggleConfirmation?: (appt: Appointment, isConfirmed: boolean) => void;
+  isStatusUpdating?: (appointmentId?: string) => boolean;
+  showConfirmationActions?: boolean;
+  isEditDisabled?: (appointment: Appointment) => boolean;
+  isDeleteDisabled?: (appointment: Appointment) => boolean;
 }) => {
   return (
     <div className="flex flex-col gap-6">
@@ -31,6 +41,11 @@ const AllAppointmentsLayout = ({
                   appointment={appointment}
                   onDelete={onDelete}
                   onEdit={onEdit}
+                  onToggleConfirmation={onToggleConfirmation}
+                  showConfirmationActions={showConfirmationActions}
+                  statusUpdating={isStatusUpdating?.(appointment.id)}
+                  editDisabled={isEditDisabled?.(appointment)}
+                  deleteDisabled={isDeleteDisabled?.(appointment)}
                 />
               ))}
             </div>

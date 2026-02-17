@@ -9,6 +9,25 @@ export const toStringValue = (value: unknown, fallback = ""): string => {
   return fallback;
 };
 
+const toBooleanValue = (value: unknown): boolean | undefined => {
+  if (typeof value === "boolean") return value;
+
+  if (typeof value === "number") {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (["true", "1", "yes", "confirmed"].includes(normalized)) return true;
+    if (["false", "0", "no", "pending", "unconfirmed"].includes(normalized))
+      return false;
+  }
+
+  return undefined;
+};
+
 const normalizeClockTime = (value: unknown): string => {
   const raw = toStringValue(value).trim();
   if (!raw.includes(":")) return "";
@@ -168,6 +187,24 @@ export const normalizeAppointmentRecord = (
     requesterName ||
     "Unknown requester";
 
+  const isConfirmed = toBooleanValue(
+    raw.isConfirmed ?? raw.is_confirmed ?? raw.confirmed
+  );
+
+  const rawStatus = toStringValue(
+    raw.status ?? raw.bookingStatus ?? raw.booking_status
+  )
+    .toUpperCase()
+    .trim();
+
+  const derivedStatus = rawStatus
+    ? rawStatus
+    : isConfirmed === undefined
+    ? ""
+    : isConfirmed
+    ? "CONFIRMED"
+    : "PENDING";
+
   return {
     id:
       toStringValue(raw.id ?? raw.bookingId ?? raw.booking_id).trim() || undefined,
@@ -193,10 +230,8 @@ export const normalizeAppointmentRecord = (
     ),
     date: dateValue,
     session,
-    status:
-      toStringValue(raw.status ?? raw.bookingStatus ?? raw.booking_status)
-        .toUpperCase()
-        .trim() || undefined,
+    isConfirmed,
+    status: derivedStatus || undefined,
     createdAt: toStringValue(raw.createdAt ?? raw.created_at) || undefined,
     updatedAt: toStringValue(raw.updatedAt ?? raw.updated_at) || undefined,
   };

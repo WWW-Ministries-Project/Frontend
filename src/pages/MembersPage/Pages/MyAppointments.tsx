@@ -31,6 +31,16 @@ const isPastAppointment = (date: string) => {
   return appointmentDate < today;
 };
 
+const isAppointmentConfirmed = (appointment: Appointment): boolean => {
+  const status = toStringValue(appointment.status).toUpperCase().trim();
+
+  if (typeof appointment.isConfirmed === "boolean") {
+    return appointment.isConfirmed || status === "CONFIRMED";
+  }
+
+  return status === "CONFIRMED";
+};
+
 const MyAppointments = () => {
   const { user } = useAuth();
   const membersOptions = useStore((state) => state.membersOptions);
@@ -179,6 +189,14 @@ const MyAppointments = () => {
   };
 
   const handleDelete = (appointment: Appointment) => {
+    if (isAppointmentConfirmed(appointment)) {
+      showNotification(
+        "Confirmed appointments cannot be deleted.",
+        "error"
+      );
+      return;
+    }
+
     if (!appointment.id) {
       showNotification("Unable to delete appointment: missing booking id", "error");
       return;
@@ -283,10 +301,19 @@ const MyAppointments = () => {
           <AllAppointmentsLayout
             Appointments={groupedAppointments}
             onEdit={(appointment) => {
+              if (isAppointmentConfirmed(appointment)) {
+                showNotification(
+                  "Confirmed appointments cannot be edited.",
+                  "error"
+                );
+                return;
+              }
               setSelectedAppointment(appointment);
               setIsModalOpen(true);
             }}
             onDelete={handleDelete}
+            isEditDisabled={isAppointmentConfirmed}
+            isDeleteDisabled={isAppointmentConfirmed}
           />
         )}
       </div>
