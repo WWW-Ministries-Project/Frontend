@@ -1,18 +1,17 @@
-import { HeaderControls } from "@/components/HeaderControls";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { useMemo, useState } from "react";
-
 import { Badge } from "@/components/Badge";
+import { HeaderControls } from "@/components/HeaderControls";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { currentYear, LifeCenterStatsType } from "@/utils";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
+import { currentYear, LifeCenterStatsType } from "@/utils";
 import {
   ArrowTrendingUpIcon,
   HomeIcon,
   TrophyIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   ArcElement,
   BarElement,
@@ -25,6 +24,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import { useMemo, useState } from "react";
 import { AnalyticsFilters } from "../components/AnalyticsFilters";
 import { AnalyticsInsights } from "../components/AnalyticsInsights";
 import { AnalyticsMonthlyTrend } from "../components/AnalyticsMonthlyTrend";
@@ -44,6 +44,63 @@ ChartJS.register(
   LineElement
 );
 
+type AnalyticsRecord = LifeCenterStatsType & {
+  parsedDate: Date;
+};
+
+type Center = {
+  name: string;
+  leader: string;
+  count: number;
+  souls: AnalyticsRecord[];
+};
+
+type MonthlyData = {
+  month: string;
+  count: number;
+  sortKey: string;
+};
+
+type Insight = {
+  icon?: React.ReactNode;
+  title: string;
+  description: string;
+  type: "success" | "info" | "warning";
+};
+
+const parseValidDate = (value: string): Date | null => {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getPerformanceMeta = (count: number, average: number) => {
+  if (average <= 0) {
+    return {
+      label: "No Data",
+      className: "bg-gray-100 text-gray-700 border-gray-300",
+    };
+  }
+
+  if (count > average) {
+    return {
+      label: "Excellent",
+      className: "bg-primary text-white border-primary",
+    };
+  }
+
+  if (Math.abs(count - average) < 0.001) {
+    return {
+      label: "Good",
+      className: "bg-blue-50 text-blue-700 border-blue-200",
+    };
+  }
+
+  return {
+    label: "Needs Support",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+  };
+};
+
 export const LifeCenterAnalytics = () => {
   const [selectedYear, setSelectedYear] = useState<string>(
     currentYear.toString()
@@ -51,328 +108,300 @@ export const LifeCenterAnalytics = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedWeek, setSelectedWeek] = useState<string>("all");
 
-  const { data: apiResponse } = useFetch(api.fetch.fetchLifeCenterStats) as {
-    data: ApiResponse<LifeCenterStatsType[]> | null;
-  };
+  const {
+    data: apiResponse,
+    loading,
+    error,
+  } = useFetch<ApiResponse<LifeCenterStatsType[]>>(api.fetch.fetchLifeCenterStats);
+
   const data: LifeCenterStatsType[] = useMemo(() => {
     if (Array.isArray(apiResponse?.data)) {
-      return apiResponse?.data as LifeCenterStatsType[];
+      return apiResponse.data;
     }
     return [];
   }, [apiResponse]);
 
+  const analyticsRecords = useMemo(() => {
+    return data.reduce((acc, record) => {
+      const parsedDate = parseValidDate(record.date_won);
+      if (!parsedDate) return acc;
+
+      acc.push({
+        ...record,
+        life_center_name:
+          String(record.life_center_name || "").trim() ||
+          "Unassigned Life Center",
+        leader_name:
+          String(record.leader_name || "").trim() || "Unassigned Leader",
+        won_by: String(record.won_by || "").trim() || "Unknown Member",
+        location: String(record.location || "").trim() || "Unknown Location",
+        parsedDate,
+      });
+
+      return acc;
+    }, [] as AnalyticsRecord[]);
+  }, [data]);
+
+  const invalidRecordsCount = data.length - analyticsRecords.length;
+
   const processedData = useMemo(() => {
-    const filteredData = Array.isArray(data)
-      ? data.filter((record) => {
-          const date = new Date(record["date_won"]);
-          const year = date.getFullYear().toString();
+    const filteredData = analyticsRecords.filter((record) => {
+      const year = record.parsedDate.getFullYear().toString();
 
-          if (selectedYear !== "all" && year !== selectedYear) return false;
+      if (selectedYear !== "all" && year !== selectedYear) return false;
 
-          if (selectedMonth !== "all") {
-            const month = (date.getMonth() + 1).toString();
-            if (month !== selectedMonth) return false;
-          }
+      if (selectedMonth !== "all") {
+        const month = (record.parsedDate.getMonth() + 1).toString();
+        if (month !== selectedMonth) return false;
+      }
 
-          if (selectedWeek !== "all") {
-            const weekNumber = Math.ceil(date.getDate() / 7).toString();
-            if (weekNumber !== selectedWeek) return false;
-          }
+      if (selectedWeek !== "all") {
+        const weekNumber = Math.ceil(record.parsedDate.getDate() / 7).toString();
+        if (weekNumber !== selectedWeek) return false;
+      }
 
-          return true;
-        })
-      : [];
-
-    // Group by life center
-    type CenterStats = {
-      [centerName: string]: {
-        name: string;
-        leader: string;
-        count: number;
-        souls: LifeCenterStatsType[];
-      };
-    };
+      return true;
+    });
 
     const centerStats = filteredData.reduce((acc, record) => {
-      const centerName = record["life_center_name"];
+      const centerName = record.life_center_name;
       if (!acc[centerName]) {
         acc[centerName] = {
           name: centerName,
-          leader: record["leader_name"],
+          leader: record.leader_name,
           count: 0,
           souls: [],
         };
       }
-      acc[centerName].count++;
+
+      acc[centerName].count += 1;
       acc[centerName].souls.push(record);
       return acc;
-    }, {} as CenterStats);
+    }, {} as Record<string, Center>);
 
-    // Convert to array and sort by count
-    const centerArray = Object.values(centerStats).sort(
-      (
-        a: {
-          name: string;
-          leader: string;
-          count: number;
-          souls: LifeCenterStatsType[];
-        },
-        b: {
-          name: string;
-          leader: string;
-          count: number;
-          souls: LifeCenterStatsType[];
-        }
-      ) => b.count - a.count
-    );
+    const centers = Object.values(centerStats).sort((a, b) => b.count - a.count);
 
-    // Monthly trend data
     const monthlyData = filteredData.reduce((acc, record) => {
-      const date = new Date(record["date_won"]);
-      const monthKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
+      const monthKey = `${record.parsedDate.getFullYear()}-${String(
+        record.parsedDate.getMonth() + 1
       ).padStart(2, "0")}`;
-      const monthName = date.toLocaleDateString("en-US", {
-        month: "short",
-        year: "numeric",
-      });
 
       if (!acc[monthKey]) {
         acc[monthKey] = {
-          month: monthName,
+          month: record.parsedDate.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          }),
           count: 0,
-          sortKey: `${date.getFullYear()}-${String(
-            date.getMonth() + 1
-          ).padStart(2, "0")}`,
+          sortKey: monthKey,
         };
       }
-      acc[monthKey].count++;
-      return acc;
-    }, {} as Record<string, { month: string; count: number; sortKey: string }>);
 
-    const monthlyArray = Object.values(monthlyData).sort(
-      (
-        a: { month: string; count: number; sortKey: string },
-        b: { month: string; count: number; sortKey: string }
-      ) => a.sortKey.localeCompare(b.sortKey)
+      acc[monthKey].count += 1;
+      return acc;
+    }, {} as Record<string, MonthlyData>);
+
+    const monthly = Object.values(monthlyData).sort((a, b) =>
+      a.sortKey.localeCompare(b.sortKey)
     );
-
-    // Top performers data
-    type PerformerStats = { name: string; count: number };
-    const topPerformers = filteredData.reduce((acc, record) => {
-      const performer = record["won_by"];
-      if (!acc[performer]) {
-        acc[performer] = { name: performer, count: 0 };
-      }
-      acc[performer].count++;
-      return acc;
-    }, {} as Record<string, PerformerStats>);
-
-    const topPerformersArray = Object.values(topPerformers)
-      .sort((a: PerformerStats, b: PerformerStats) => b.count - a.count)
-      .slice(0, 10);
 
     return {
-      centers: centerArray,
-      monthly: monthlyArray,
-      topPerformers: topPerformersArray,
+      centers,
+      monthly,
       totalSouls: filteredData.length,
-      totalCenters: Object.keys(centerStats).length,
+      totalCenters: centers.length,
       filteredData,
     };
-  }, [data, selectedYear, selectedMonth, selectedWeek]);
+  }, [analyticsRecords, selectedMonth, selectedWeek, selectedYear]);
 
-  // Chart data for top 10 centers
-  type Center = {
-    name: string;
-    leader: string;
-    count: number;
-    souls: LifeCenterStatsType[];
-  };
+  const chartData = processedData.centers.slice(0, 10).map((center) => ({
+    name: center.name,
+    souls: center.count,
+    leader: center.leader,
+  }));
 
-  const chartData = processedData.centers
-    .slice(0, 10)
-    .map((center: Center) => ({
-      name: center.name,
-      souls: center.count,
-      leader: center.leader,
-    }));
-
-  const columns = [
-    {
-      header: "Life Center",
-      accessorKey: "name",
-    },
-    {
-      header: "Leader",
-      accessorKey: "leader",
-    },
-    {
-      header: "Souls Won",
-      accessorKey: "count",
-    },
-    {
-      header: "Performance",
-      accessorKey: "name",
-      cell: ({ row }: { row: import("@tanstack/react-table").Row<Center> }) => (
-        <Badge
-          className={
-            row.original.count >
-            processedData.totalSouls / processedData.totalCenters
-              ? "bg-primary text-white "
-              : row.original.count ===
-                processedData.totalSouls / processedData.totalCenters
-              ? "bg-gray-100"
-              : "bg-white"
-          }
-        >
-          {row.original.count >
-          processedData.totalSouls / processedData.totalCenters
-            ? "Excellent"
-            : row.original.count ===
-              processedData.totalSouls / processedData.totalCenters
-            ? "Good"
-            : "Average"}
-        </Badge>
-      ),
-    },
-  ];
-
-  // Calculate insights
   const totalSouls = processedData.totalSouls;
-  const averageSoulsPerCenter = Math.round(
-    processedData.totalSouls / processedData.totalCenters
-  );
-  const topPerformer = processedData.centers[0];
-  const underPerformers = processedData.centers.filter(
-    (center) => center.count < averageSoulsPerCenter
-  );
+  const averageSoulsPerCenter =
+    processedData.totalCenters > 0
+      ? processedData.totalSouls / processedData.totalCenters
+      : 0;
 
-  // Month analysis
-  const monthlyActivity = Array.isArray(data)
-    ? data.reduce((acc, record) => {
-        const month = new Date(record["date_won"]).toLocaleString("default", {
-          month: "long",
-        });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    : {};
+  const topPerformer = processedData.centers[0] || null;
+  const underPerformers =
+    averageSoulsPerCenter > 0
+      ? processedData.centers.filter((center) => center.count < averageSoulsPerCenter)
+      : [];
 
-  let peakMonth: [string, number] | [] = [];
+  const monthlyActivity = processedData.filteredData.reduce((acc, record) => {
+    const month = record.parsedDate.toLocaleString("default", {
+      month: "long",
+    });
+    acc[month] = (acc[month] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Check if monthlyActivity has entries before reducing
-  if (Object.entries(monthlyActivity).length > 0) {
-    peakMonth = Object.entries(monthlyActivity).reduce((a, b) =>
-      monthlyActivity[a[0]] > monthlyActivity[b[0]] ? a : b
-    );
-  } else {
-    // Handle the empty case - set a default or leave empty
-    peakMonth = []; // or peakMonth = ["No data", 0];
-  }
+  const peakMonthEntry =
+    Object.entries(monthlyActivity).sort((a, b) => b[1] - a[1])[0] || null;
 
-  // location analysis
-  const locationCounts = Array.isArray(data)
-    ? data.reduce((acc, record) => {
-        const location = record.location;
-        acc[location] = (acc[location] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    : {};
+  const activeLocationsCount = new Set(
+    processedData.filteredData
+      .map((record) => record.location)
+      .filter((location) => Boolean(location))
+  ).size;
 
-  type Insight = {
-    icon?: React.ReactNode;
-    title: string;
-    description: string;
-    type: "success" | "info" | "warning";
-  };
+  const consistentCenters = processedData.centers.filter(
+    (center) => center.count >= 2
+  ).length;
+
+  const consistencyRate =
+    processedData.totalCenters > 0
+      ? Math.round((consistentCenters / processedData.totalCenters) * 100)
+      : 0;
 
   const insights: Insight[] = [
     {
       icon: <ArrowTrendingUpIcon className="h-5 w-5 text-green-600" />,
       title: "Peak Performance Period",
-      description: `${peakMonth[0]} was the most productive month with ${peakMonth[1]} souls won`,
+      description: peakMonthEntry
+        ? `${peakMonthEntry[0]} was the most productive month with ${peakMonthEntry[1]} souls won.`
+        : "No peak month identified for the selected filters yet.",
       type: "success",
     },
     {
       icon: <TrophyIcon className="h-5 w-5 text-yellow-600" />,
       title: "Top Performing Center",
-      description: `${topPerformer?.name} leads with ${topPerformer?.count} souls, led by ${topPerformer?.leader}`,
+      description: topPerformer
+        ? `${topPerformer.name} leads with ${topPerformer.count} souls, led by ${topPerformer.leader}.`
+        : "No center has activity in the selected period yet.",
       type: "info",
     },
     {
       icon: <UsersIcon className="h-5 w-5 text-blue-600" />,
       title: "Average Performance",
-      description: `Centers are winning an average of ${averageSoulsPerCenter} souls during this period`,
+      description:
+        processedData.totalCenters > 0
+          ? `Centers are winning an average of ${averageSoulsPerCenter.toFixed(1)} souls during this period.`
+          : "Average performance will appear when there is at least one active center.",
       type: "info",
     },
     {
       icon: (
-        <ArrowTrendingUpIcon className="h-5 w-5 text-orange-600 rotate-180" />
+        <ArrowTrendingUpIcon className="h-5 w-5 rotate-180 text-orange-600" />
       ),
       title: "Growth Opportunities",
-      description: `${underPerformers.length} centers are below average and could benefit from additional support`,
+      description:
+        processedData.totalCenters > 0
+          ? `${underPerformers.length} centers are below average and could benefit from additional support.`
+          : "No growth analysis available without center activity.",
       type: "warning",
     },
     {
-      icon: <HomeIcon className="h-5 w-5 text-purple-600" />,
+      icon: <HomeIcon className="h-5 w-5 text-indigo-600" />,
       title: "Geographic Distribution",
-      description: `Active in ${
-        Object.keys(locationCounts).length
-      } different locations across the region`,
+      description: `Activity is recorded in ${activeLocationsCount} location${
+        activeLocationsCount === 1 ? "" : "s"
+      } for the selected filters.`,
       type: "info",
     },
     {
-      icon: <UsersIcon className="h-5 w-5 text-indigo-600" />,
+      icon: <UsersIcon className="h-5 w-5 text-cyan-600" />,
       title: "Consistency Rate",
-      description: `${Math.round(
-        (processedData.centers.filter((c) => c.count >= 2).length /
-          processedData.centers.length) *
-          100
-      )}% of centers have multiple soul wins, showing consistent effort`,
+      description:
+        processedData.totalCenters > 0
+          ? `${consistencyRate}% of centers have multiple soul wins, showing consistency.`
+          : "Consistency rate will be available when centers record wins.",
       type: "success",
     },
   ];
 
-  // Get insights
-  const insightsMonthy = useMemo(() => {
+  const insightsMonthly = useMemo(() => {
+    const insights: { title: string; description: string }[] = [];
     const { monthly } = processedData;
-    const insights = [];
 
     if (monthly.length > 1) {
-      const lastMonth = monthly[monthly.length - 1] as {
-        month: string;
-        count: number;
-      };
-      const prevMonth = monthly[monthly.length - 2] as {
-        month: string;
-        count: number;
-      };
-      const growth =
-        ((lastMonth.count - prevMonth.count) / prevMonth.count) * 100;
-      insights.push({
-        type: growth > 0 ? "success" : "warning",
-        title: "Monthly Trend",
-        description: `${growth > 0 ? "Growth" : "Decline"} of ${Math.abs(
-          growth
-        )?.toFixed(1)}% from previous month`,
-      });
+      const lastMonth = monthly[monthly.length - 1];
+      const previousMonth = monthly[monthly.length - 2];
+
+      if (previousMonth.count === 0) {
+        const trendText =
+          lastMonth.count > 0
+            ? `New growth started in ${lastMonth.month} after no recorded wins in ${previousMonth.month}.`
+            : `No recorded wins in both ${previousMonth.month} and ${lastMonth.month}.`;
+
+        insights.push({
+          title: "Monthly Trend",
+          description: trendText,
+        });
+      } else {
+        const growth =
+          ((lastMonth.count - previousMonth.count) / previousMonth.count) * 100;
+
+        insights.push({
+          title: "Monthly Trend",
+          description: `${growth >= 0 ? "Growth" : "Decline"} of ${Math.abs(
+            growth
+          ).toFixed(1)}% from ${previousMonth.month} to ${lastMonth.month}.`,
+        });
+      }
     }
 
     return insights;
   }, [processedData]);
 
+  const columns: ColumnDef<Center, any>[] = useMemo(
+    () => [
+      {
+        header: "Life Center",
+        accessorKey: "name",
+      },
+      {
+        header: "Leader",
+        accessorKey: "leader",
+      },
+      {
+        header: "Souls Won",
+        accessorKey: "count",
+      },
+      {
+        header: "Performance",
+        accessorKey: "name",
+        cell: ({ row }: { row: Row<Center> }) => {
+          const performance = getPerformanceMeta(
+            row.original.count,
+            averageSoulsPerCenter
+          );
+
+          return <Badge className={performance.className}>{performance.label}</Badge>;
+        },
+      },
+    ],
+    [averageSoulsPerCenter]
+  );
+
+  const hasFilteredResults = processedData.totalSouls > 0;
+
   return (
-    <PageOutline className="p-6 space-y-6">
+    <PageOutline className="space-y-6 p-6">
       <div>
         <HeaderControls
           title="Life Center Analytics"
           subtitle="Track soul-winning performance across all life centers"
-          screenWidth={window.innerWidth}
         />
       </div>
 
-      {/* Filters */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Failed to load life center analytics. Please refresh and try again.
+        </div>
+      )}
+
+      {invalidRecordsCount > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {invalidRecordsCount} record{invalidRecordsCount > 1 ? "s" : ""} were
+          skipped due to invalid dates.
+        </div>
+      )}
+
       <AnalyticsFilters
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
@@ -382,7 +411,18 @@ export const LifeCenterAnalytics = () => {
         setSelectedWeek={setSelectedWeek}
       />
 
-      {/* Stats Cards */}
+      {loading && !apiResponse && (
+        <div className="rounded-lg border px-4 py-3 text-sm text-gray-600">
+          Loading analytics data...
+        </div>
+      )}
+
+      {!loading && !hasFilteredResults && (
+        <div className="rounded-lg border border-dashed px-4 py-3 text-sm text-gray-600">
+          No soul-winning records found for the selected filters.
+        </div>
+      )}
+
       <AnalyticsStats
         totalSouls={totalSouls}
         totalCenters={processedData.totalCenters}
@@ -391,25 +431,21 @@ export const LifeCenterAnalytics = () => {
         averageSouls={averageSoulsPerCenter}
       />
 
-      {/* Insights */}
       <AnalyticsInsights
         insights={insights}
         topPerformerName={topPerformer?.name || ""}
-        peakMonth={peakMonth[0] || ""}
+        peakMonth={peakMonthEntry?.[0] || ""}
       />
 
-      {/* Monthly Trend */}
       {selectedMonth === "all" && (
         <AnalyticsMonthlyTrend
           monthly={processedData.monthly}
-          insightsMonthly={insightsMonthy}
+          insightsMonthly={insightsMonthly}
         />
       )}
 
-      {/* Top Centers Bar Chart */}
       <AnalyticsTopCentersChart chartData={chartData} />
 
-      {/* Performance Table */}
       <AnalyticsTable columns={columns} data={processedData.centers} />
     </PageOutline>
   );

@@ -1,12 +1,13 @@
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface IProps{
-  columns: any[];
+  columns: ColumnDef<any, any>[];
   data: any[];
 };
 
-export const AnalyticsTable = ({ data }: IProps) => {
-  const columns = [
+export const AnalyticsTable = ({ data, columns }: IProps) => {
+  const fallbackColumns = [
     {
       header: "Life Center",
       accessorKey: "name",
@@ -21,27 +22,6 @@ export const AnalyticsTable = ({ data }: IProps) => {
     },
     {
       header: "Performance",
-    //   cell: ({ row }: { row: import("@tanstack/react-table").Row<Center> }) => (
-    //     <Badge
-    //       className={
-    //         row.original.count >
-    //         processedData.totalSouls / processedData.totalCenters
-    //           ? "bg-primary text-white "
-    //           : row.original.count ===
-    //             processedData.totalSouls / processedData.totalCenters
-    //           ? "bg-gray-100"
-    //           : "bg-white"
-    //       }
-    //     >
-    //       {row.original.count >
-    //       processedData.totalSouls / processedData.totalCenters
-    //         ? "Excellent"
-    //         : row.original.count ===
-    //           processedData.totalSouls / processedData.totalCenters
-    //         ? "Good"
-    //         : "Average"}
-    //     </Badge>
-    //   ),
     },
   ];
   return (
@@ -51,7 +31,17 @@ export const AnalyticsTable = ({ data }: IProps) => {
         <div className="text-sm">Detailed breakdown by center</div>
       </div>
       <div>
-        <TableComponent columns={columns} data={data} displayedCount={12} />
+        {data.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-4 text-sm text-gray-600">
+            No life center records found for the selected filters.
+          </div>
+        ) : (
+          <TableComponent
+            columns={columns?.length ? columns : fallbackColumns}
+            data={data}
+            displayedCount={12}
+          />
+        )}
       </div>
     </div>
   );

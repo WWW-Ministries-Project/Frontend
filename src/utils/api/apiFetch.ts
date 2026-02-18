@@ -349,7 +349,7 @@ export class ApiCalls {
 
   fetchLifeCenterStats = (
     query?: QueryType
-  ): Promise<ApiResponse<LifeCenterStatsType>> => {
+  ): Promise<ApiResponse<LifeCenterStatsType[]>> => {
     return this.fetchFromApi(`lifecenter/stats`, query);
   };
 

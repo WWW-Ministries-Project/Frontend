@@ -20,8 +20,8 @@ export const AnalyticsStats = ({
   topCenterCount,
   averageSouls,
 }: IProps) => (
-  <div className="flex justify-between gap-x-8">
-    <div className="border p-4 rounded-xl w-full space-y-2">
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="w-full space-y-2 rounded-xl border p-4">
       <div className="flex justify-between">
         <div className="text-sm font-medium">Total Souls Won</div>
         <UsersIcon className="h-4" />
@@ -29,7 +29,7 @@ export const AnalyticsStats = ({
       <div className="font-bold text-xl">{totalSouls}</div>
       <p className="text-xs text-muted">Across all centers</p>
     </div>
-    <div className="border p-4 rounded-xl w-full space-y-2">
+    <div className="w-full space-y-2 rounded-xl border p-4">
       <div className="flex justify-between">
         <div className="text-sm font-medium">Active Centers</div>
         <HomeIcon className="h-4" />
@@ -37,15 +37,17 @@ export const AnalyticsStats = ({
       <div className="font-bold text-xl">{totalCenters}</div>
       <p className="text-xs text-muted">Life centers participating</p>
     </div>
-    <div className="border p-4 rounded-xl w-full space-y-2">
+    <div className="w-full space-y-2 rounded-xl border p-4">
       <div className="flex justify-between">
         <div className="text-sm font-medium">Top Center</div>
         <TrophyIcon className="h-4" />
       </div>
-      <div className="font-bold text-xl">{topCenterName}</div>
+      <div className="font-bold text-xl">
+        {topCenterName || "No center yet"}
+      </div>
       <p className="text-xs text-muted">{topCenterCount} souls won</p>
     </div>
-    <div className="border p-4 rounded-xl w-full space-y-2">
+    <div className="w-full space-y-2 rounded-xl border p-4">
       <div className="flex justify-between">
         <div className="text-sm font-medium">Average per Center</div>
         <ArrowTrendingUpIcon className="h-4" />
