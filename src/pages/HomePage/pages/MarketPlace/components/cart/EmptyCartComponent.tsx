@@ -17,7 +17,7 @@ export default function EmptyCartComponent() {
       <img src={emptyCartSvg} alt="" />
 
       <h3 className="font-semibold">Your cart is empty</h3>
-      <p className="text-sm">Continue shoping to explore more</p>
+      <p className="text-sm">Continue shopping to explore more</p>
 
       <Button
         value="Explore items"

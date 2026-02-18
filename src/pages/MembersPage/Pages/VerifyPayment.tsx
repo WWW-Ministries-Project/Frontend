@@ -13,48 +13,64 @@ export default function VerifyPayment() {
   const { type } = useParams();
 
   const reference = searchParams.get("order_reference") ?? "";
+  const hasReference = Boolean(reference.trim());
 
   const {
     data: verificationResult,
     loading,
     error,
     refetch,
-  } = useFetch(api.fetch.verifyPayment, { reference });
+  } = useFetch(api.fetch.verifyPayment, { reference }, !hasReference);
 
   const [countdown, setCountdown] = useState(5);
   const navigate = useNavigate();
 
   const { clearCart } = useCart();
+  const isPaymentVerified =
+    Boolean(verificationResult) && !loading && !error && hasReference;
+  const redirectPath =
+    type === "out" ? "/out/products" : relativePath.member.market;
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (verificationResult && !loading && !error) {
-      timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            if (type === "out") {
-              navigate("/out/products");
-            } else {
-              navigate(relativePath.member.market);
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [verificationResult, loading, error]);
+    if (!isPaymentVerified) return;
 
-  useEffect(() => {
+    setCountdown(5);
     clearCart();
     localStorage.removeItem("my_cart");
-  },[]);
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [clearCart, isPaymentVerified]);
+
+  useEffect(() => {
+    if (!isPaymentVerified || countdown > 0) return;
+    navigate(redirectPath, { replace: true });
+  }, [countdown, isPaymentVerified, navigate, redirectPath]);
 
   return (
     <div className="flex items-center justify-center w-full h-[80vh] px-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md text-center">
+        {!hasReference && (
+          <div className="flex flex-col items-center gap-4">
+            <XCircleIcon className="w-12 h-12 text-red-500" />
+            <p className="text-red-600 font-medium">
+              Missing payment reference.
+            </p>
+            <p className="text-gray-500 text-sm">
+              We could not verify your payment because the reference is missing.
+            </p>
+            <Button
+              value="Back to Marketplace"
+              onClick={() =>
+                navigate(type === "out" ? "/out/products" : relativePath.member.market)
+              }
+            />
+          </div>
+        )}
+
         {loading && (
           <div className="flex flex-col items-center gap-4">
             <ArrowPathIcon className="w-12 h-12 animate-spin text-blue-500" />
@@ -62,7 +78,7 @@ export default function VerifyPayment() {
           </div>
         )}
 
-        {error && !loading && (
+        {error && !loading && hasReference && (
           <div className="flex flex-col items-center gap-4">
             <XCircleIcon className="w-12 h-12 text-red-500" />
             <p className="text-red-600 font-medium">
@@ -71,11 +87,11 @@ export default function VerifyPayment() {
             <p className="text-gray-500 text-sm">
               Please try again or contact support.
             </p>
-            <Button value="Retry" onClick={() => refetch()} />
+            <Button value="Retry" onClick={() => refetch({ reference })} />
           </div>
         )}
 
-        {verificationResult && !loading && !error && (
+        {verificationResult && !loading && !error && hasReference && (
           <div className="flex flex-col items-center gap-4">
             <CheckCircleIcon className="w-12 h-12 text-green-500" />
             <p className="text-green-600 font-medium">

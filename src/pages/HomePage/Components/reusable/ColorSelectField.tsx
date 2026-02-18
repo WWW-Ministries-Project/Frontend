@@ -25,6 +25,10 @@ export const ColorSelectField = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [selectedColor, setSelectedColor] = useState(value);
 
+  useEffect(() => {
+    setSelectedColor(value || "");
+  }, [value]);
+
   const handleSelect = (color: string) => {
     onChange(name, color);
     setIsOpen(false);
@@ -61,7 +65,9 @@ export const ColorSelectField = ({
           style={{ backgroundColor: selectedColor || "#fff" }}
           onClick={() => setIsOpen((prev) => !prev)}
         >
-          <span className="text-sm text-gray-500">Select color</span>
+          <span className="text-sm text-gray-500">
+            {selectedColor || "Select color"}
+          </span>
           <ChevronDownIcon
             className={`transition-transform  text-gray-500 size-4 ${
               isOpen ? "rotate-180" : "rotate-0"
