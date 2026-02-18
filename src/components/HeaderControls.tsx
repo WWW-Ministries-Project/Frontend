@@ -41,71 +41,71 @@ export const HeaderControls = ({
   customIcon,
 }: IProps) => {
   return (
-    <div className="flex justify-between items-center mb-4 overflow-x-auto">
-      {/* Title with total members */}
-      <div className="space-y-1">
-        <p className="text-primary text-xl md:text-2xl font-semibold">
+    <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="min-w-0 space-y-1">
+        <h1 className="truncate text-xl font-semibold text-primary md:text-2xl">
           {title}
-        </p>
-        {subtitle && <p>{subtitle}</p>}
+        </h1>
+        {subtitle && <p className="text-sm text-primaryGray md:text-base">{subtitle}</p>}
       </div>
 
-      {/* Controls Section */}
-      <div className="flex justify-between items-center">
-        <div className="flex justify-start gap-2 items-center w-2/3">
-          {/* View Mode Switch */}
-          <div className="flex gap-2 items-center">
-            {handleViewMode && (
-              <div
-                className="flex gap-1 bg-lightGray p-1 rounded-md cursor-pointer"
-                id="switch"
-              >
-                <div onClick={() => handleViewMode(true)}>
-                  <TableAsset
-                    stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                    className={tableView ? "bg-white rounded-md" : ""}
-                  />
-                </div>
-                <div onClick={() => handleViewMode(false)}>
-                  <GridAsset
-                    stroke={tableView ? "#8F95B2" : "#8F95B2"}
-                    className={
-                      tableView
-                        ? "bg-lightGray rounded-md"
-                        : "bg-white  rounded-md"
-                    }
-                  />
-                </div>
-              </div>
-            )}
-            {/* Filter & Search Buttons */}
-            {hasFilter && (
-              <FilterIcon
-                className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                onClick={() => setShowFilter && setShowFilter(!showFilter)}
-              />
-            )}
-            {hasSearch && (
-              <SearchIcon
-                className="cursor-pointer w-10 h-10 flex items-center justify-center border border-lightGray rounded-md"
-                onClick={() => setShowSearch && setShowSearch(!showSearch)}
-              />
-            )}
-          </div>
-          {customIcon ?? null}
-          {/* Add Member Button */}
-          {btnName && (
-            <Button
-              value={screenWidth <= 700 ? "+" : btnName}
+      <div className="flex flex-wrap items-center gap-2 md:justify-end">
+        {handleViewMode && (
+          <div
+            className="flex items-center gap-1 rounded-lg border border-lightGray bg-lightGray/30 p-1"
+            id="switch"
+          >
+            <button
+              type="button"
+              onClick={() => handleViewMode(true)}
               className={cn(
-                "text-white min-h-12 max-h-14 bg-primary whitespace-nowrap",
-                screenWidth <= 540 ? "px-3" : "px-5"
+                "rounded-md p-1 transition-colors",
+                tableView ? "bg-white shadow-sm" : "hover:bg-white/70"
               )}
-              onClick={handleClick}
-            />
-          )}
+              aria-label="Switch to table view"
+            >
+              <TableAsset stroke="#8F95B2" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleViewMode(false)}
+              className={cn(
+                "rounded-md p-1 transition-colors",
+                !tableView ? "bg-white shadow-sm" : "hover:bg-white/70"
+              )}
+              aria-label="Switch to grid view"
+            >
+              <GridAsset stroke="#8F95B2" />
+            </button>
+          </div>
+        )}
+
+        {hasFilter && (
+          <FilterIcon
+            className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-lg border border-lightGray"
+            onClick={() => setShowFilter && setShowFilter(!showFilter)}
+          />
+        )}
+
+        {hasSearch && (
+          <SearchIcon
+            className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-lg border border-lightGray"
+            onClick={() => setShowSearch && setShowSearch(!showSearch)}
+          />
+        )}
+
+        {customIcon ?? null}
+
+        {btnName && (
+          <Button
+            value={screenWidth <= 700 ? "+" : btnName}
+            className={cn("whitespace-nowrap", screenWidth <= 540 ? "px-3" : "px-5")}
+            onClick={handleClick}
+          />
+        )}
         </div>
       </div>
-    </div>
+    
   );
 };

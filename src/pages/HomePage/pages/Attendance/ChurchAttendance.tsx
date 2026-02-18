@@ -157,7 +157,7 @@ export default function ChurchAttendance() {
   };
 
   return (
-    <PageOutline crumbs={crumbs} className="p-6">
+    <PageOutline crumbs={crumbs}>
       <HeaderControls
         title="Church Attendance"
         subtitle="Record and review attendance statistics"

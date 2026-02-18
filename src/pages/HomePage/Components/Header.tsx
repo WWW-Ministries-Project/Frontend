@@ -195,14 +195,22 @@ export const Header = ({ handleShowNav }: IProps) => {
   useEffect(() => {
     const measureHeader = () => {
       if (headerRef.current) {
-        setHeaderHeight(headerRef.current.offsetHeight);
+        const measuredHeight = headerRef.current.offsetHeight;
+        setHeaderHeight(measuredHeight);
+        document.documentElement.style.setProperty(
+          "--app-header-height",
+          `${measuredHeight}px`
+        );
       }
     };
 
     measureHeader();
 
     window.addEventListener("resize", measureHeader);
-    return () => window.removeEventListener("resize", measureHeader);
+    return () => {
+      window.removeEventListener("resize", measureHeader);
+      document.documentElement.style.setProperty("--app-header-height", "64px");
+    };
   }, []);
 
   /* Control logo text visibility on small screens */

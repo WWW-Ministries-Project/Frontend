@@ -21,12 +21,12 @@ interface FinanceCardProps {
 const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
   const navigate = useNavigate();
   return (
-    <div className="relative space-y-3 rounded-lg border bg-white p-4 shadow-sm">
+    <div className="app-card relative space-y-3">
       <div className="absolute right-4 top-4 flex gap-2">
         {onEdit && (
           <button
             onClick={onEdit}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50"
+            className="app-icon-btn"
             aria-label="Edit financial record"
           >
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
@@ -35,7 +35,7 @@ const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
         {onDelete && (
           <button
             onClick={onDelete}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-red-200 bg-white hover:bg-red-50"
+            className="app-icon-btn app-icon-btn-danger"
             aria-label="Delete financial record"
           >
             <TrashIcon className="w-4 h-4 text-red-600" />
@@ -50,7 +50,7 @@ const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
           navigate(`${finance.id}`);
         }}
       >
-        <div className="text-base font-semibold text-gray-900">{finance.title}</div>
+        <div className="pr-20 text-base font-semibold text-gray-900">{finance.title}</div>
 
         <div className="text-sm text-gray-600">
           <span className="font-medium text-gray-700">Created by:</span>{" "}

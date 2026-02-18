@@ -20,16 +20,15 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
       <Dialog.Portal>
         {/* Fullscreen overlay */}
         <Dialog.Overlay
-          className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-primary/45 backdrop-blur-sm"
           style={{ animation: "fadeIn 0.2s" }}
         />
 
-        {/* Flex container to center the modal */}
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 md:p-6">
           <Dialog.Content
             aria-describedby="dialog-description"
             className={cn(
-              "relative w-full max-w-xl max-h-[90vh] rounded-2xl bg-white shadow-md focus:outline-none",
+              "app-scrollbar relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-lightGray bg-white shadow-2xl focus:outline-none md:max-h-[calc(100dvh-3rem)]",
               className
             )}
             onPointerDownOutside={

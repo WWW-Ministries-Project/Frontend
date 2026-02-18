@@ -29,13 +29,13 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
     );
 
     return ( 
-        <div className="border p-4 rounded  flex flex-col gap-3  mb-4 relative">
+        <div className="app-card relative mb-4 flex flex-col gap-3">
 
             <div className="absolute top-4 right-4 flex gap-2">
         {onEdit && (
           <button
             onClick={onEdit}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50"
+            className="app-icon-btn"
             aria-label="Edit staff availability"
           >
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
@@ -44,7 +44,7 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
         {onDelete && (
           <button
             onClick={onDelete}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-red-200 bg-white hover:bg-red-50"
+            className="app-icon-btn app-icon-btn-danger"
             aria-label="Delete staff availability"
           >
             <TrashIcon className="w-4 h-4 text-red-600" />

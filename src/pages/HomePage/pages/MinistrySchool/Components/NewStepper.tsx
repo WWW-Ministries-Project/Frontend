@@ -19,8 +19,8 @@ const NewStepper = <T extends string>({
   const activeIndex = steps.findIndex((step) => step.id === activeStep);
 
   return (
-    <aside className="w-full max-w-xs border border-lightGray border-r pr-4">
-      <div className="mb-6 text-sm font-semibold text-primary">
+    <aside className="w-full max-w-xs rounded-xl border border-lightGray bg-white p-4">
+      <div className="mb-5 text-sm font-semibold text-primary">
         {title}
       </div>
 
@@ -34,10 +34,10 @@ const NewStepper = <T extends string>({
               key={step.id}
               type="button"
               onClick={() => onStepChange?.(step.id)}
-                className={`flex items-center gap-3 text-left text-sm transition-colors ${
+                className={`flex items-center gap-3 rounded-lg px-2 py-1 text-left text-sm transition-colors ${
                   isActive
-                    ? "font-medium text-primary"
-                    : "text-primaryGray hover:text-primary"
+                    ? "bg-primary/5 font-medium text-primary"
+                    : "text-primaryGray hover:bg-lightGray/30 hover:text-primary"
                 }`}
               >
               <span

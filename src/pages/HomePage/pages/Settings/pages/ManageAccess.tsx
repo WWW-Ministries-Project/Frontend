@@ -146,7 +146,7 @@ export function ManageAccess() {
   };
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <PageHeader title={`${id ? "Update" : "Create"} Access Right`} />
       <div className="text-lighterBlack">
         Fill in the form below with the rights this access should have

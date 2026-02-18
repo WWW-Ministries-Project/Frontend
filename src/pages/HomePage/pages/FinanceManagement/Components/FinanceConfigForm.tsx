@@ -17,7 +17,6 @@ export interface FinanceConfigValues {
 interface FinanceConfigFormProps {
   onClose: () => void;
   initialData?: Partial<FinanceConfigValues> & { id?: string | number };
-  loading?: boolean;
   type: string;
   onSubmit?: (values: FinanceConfigValues) => void;
   refetch: (overrideQuery?: QueryType) => Promise<unknown> | void;
@@ -26,7 +25,6 @@ interface FinanceConfigFormProps {
 const FinanceConfigForm = ({
   onClose,
   initialData,
-  loading = false,
   type,
   onSubmit,
   refetch
@@ -42,47 +40,31 @@ const FinanceConfigForm = ({
     } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : type==="tithe"? api.put.updateTitheBreakdownConfig : api.put.updateBankAccountConfig);
 
     const handleSubmit = async (values: FinanceConfigValues) => {
-                  try {
-                    if (initialData?.id) {
-                      // 🔄 UPDATE (query id + payload)
-                      await updateData(
-                        {
-                          name: values.name,
-                          description: values.description,
-                          ...(type === "bankAccount" && {
-                            percentage:
-                              values.percentage !== undefined
-                                ? Number(values.percentage)
-                                : undefined,
-                          }),
-                        },
-                        { id: String(initialData.id) }
-                      );
-                    } else {
-                      // ➕ CREATE (payload only)
-                      await postData({
-                        name: values.name,
-                        description: values.description,
-                        ...(type === "bankAccount" || type === "tithe" ? {
-                          percentage: values.percentage !== undefined
-                            ? Number(values.percentage)
-                            : undefined,
-                        } : {}),
-                      });
-                    }
+      try {
+        const payload = {
+          name: values.name,
+          description: values.description,
+          ...((type === "bankAccount" || type === "tithe") && {
+            percentage:
+              values.percentage !== undefined
+                ? Number(values.percentage)
+                : undefined,
+          }),
+        };
 
-                    onSubmit?.(values);
-                    
-                  } 
-                  
-                  catch (error) {
-                    console.error("Finance config submission failed", error);
-                  }
-                  finally {
-                  await Promise.resolve(refetch());
-                    onClose();
-                  }
-                }
+        if (initialData?.id) {
+          await updateData(payload, { id: String(initialData.id) });
+        } else {
+          await postData(payload);
+        }
+
+        await Promise.resolve(refetch());
+        onSubmit?.(values);
+        onClose();
+      } catch {
+        // silent fail - caller handles notifications
+      }
+    };
 
     return ( 
         <div className=" ">
@@ -98,8 +80,8 @@ const FinanceConfigForm = ({
                 enableReinitialize
                 onSubmit={handleSubmit}
               >
-              {(formik) => (
-              <Form className="mt-5 px-5 pb-5 space-y-6">
+              {() => (
+              <Form className="space-y-6 px-5 pb-5 pt-5">
                 <FormLayout $columns={1}>
                   <Field
                       component={FormikInputDiv}
@@ -118,7 +100,7 @@ const FinanceConfigForm = ({
                       name="description"
                   />
 
-                   {type === "bankAccount"|| type==="tithe" && <Field
+                   {(type === "bankAccount" || type === "tithe") && <Field
                       component={FormikInputDiv}
                       type="number"
                       label="Percentage *"
@@ -129,14 +111,13 @@ const FinanceConfigForm = ({
 
                 </FormLayout>
                 <div className="flex gap-2 justify-end">
-                  <Button value="Close" variant="ghost" type="button" onClick={onClose} />
+                  <Button value="Close" variant="secondary" type="button" onClick={onClose} />
                   <Button
                     value={initialData ? "Update" : "Save"}
                     variant="primary"
-                    type="button"
+                    type="submit"
                     disabled={postLoading || putLoading}
                     loading={postLoading || putLoading}
-                    onClick={() => handleSubmit(formik.values)}
                   />
                 </div>
               </Form>

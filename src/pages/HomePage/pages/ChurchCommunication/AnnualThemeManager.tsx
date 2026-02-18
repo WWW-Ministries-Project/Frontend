@@ -43,7 +43,7 @@ const AnnualThemeManager = () => {
   };
 
     return ( 
-        <PageOutline className="p-6">
+        <PageOutline>
             <HeaderControls
                     title="Theme Manager"
                     subtitle="Manage annual themes for church communication"

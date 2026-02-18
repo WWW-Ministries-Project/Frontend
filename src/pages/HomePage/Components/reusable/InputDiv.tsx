@@ -81,14 +81,10 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
     const isTextarea = type === "textarea";
     const normalizedValue = value ?? "";
 
-    const baseInputStyles =
-      "w-full rounded-lg border bg-white px-3 py-2 text-sm " +
-      "transition-colors focus:outline-none focus:ring-2";
+    const baseInputStyles = "app-input";
 
     const stateStyles = clsx(
-      error
-        ? "border-error focus:ring-error/30"
-        : "border-gray-300 focus:border-primary focus:ring-primary/20",
+      error && "border-error focus:border-error focus:ring-error/20",
       disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
     );
 
@@ -118,7 +114,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
         {label && (
           <label
             htmlFor={id}
-            className="text-sm font-medium text-gray-700"
+            className="text-sm font-medium text-primary"
           >
             {label}
             {required && (

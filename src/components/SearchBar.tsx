@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import search from "/src/assets/search.svg";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface IProps {
   id?: string;
@@ -11,38 +11,52 @@ interface IProps {
   onSubmit?: () => void;
 }
 export const SearchBar = (props: IProps): JSX.Element => {
+   const { className, id, onChange, onSubmit, placeholder, value } = props;
+   const onSubmitRef = useRef(onSubmit);
+   const previousValueRef = useRef(value ?? "");
+
    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
      e.preventDefault();
-     props.onSubmit?.();
+     onSubmit?.();
    };
 
    useEffect(() => {
-     if (!props.value?.trim()) {
-       props.onSubmit?.();
+     onSubmitRef.current = onSubmit;
+   }, [onSubmit]);
+
+   useEffect(() => {
+     const currentValue = (value ?? "").trim();
+     const previousValue = previousValueRef.current.trim();
+
+     // Only trigger reset search when user clears a previously non-empty value.
+     if (currentValue === "" && previousValue !== "") {
+       onSubmitRef.current?.();
      }
-   }, [props.value]);
+
+     previousValueRef.current = value ?? "";
+   }, [value]);
   return (
     <>
-      <div className={"flex items-center bg-white  " + props.className}>
+      <div className={"flex w-full max-w-xl items-center bg-white " + className}>
         <form
           onSubmit={handleSubmit}
-          className="w-full text-primary flex items-center   font-normal leading-6"
+          className="flex w-full items-center font-normal leading-6 text-primary"
         >
           <img
             role="submit button"
             src={search}
             alt="search"
-            className="inline text-lightGray border p-3 rounded-l-lg"
+            className="inline rounded-l-lg border border-lightGray bg-lightGray/30 p-3 text-lightGray"
           />
 
           <input
-            id={props.id || "search"}
+            id={id || "search"}
             type="text"
-            placeholder={props.placeholder}
+            placeholder={placeholder}
             name="search"
-            className="bg-inherit rounded-r-lg p-2 border  border-lightGray focus:outline-none w-[25rem]"
-            value={props.value}
-            onChange={props.onChange}
+            className="app-input rounded-l-none border-l-0"
+            value={value ?? ""}
+            onChange={onChange}
             autoComplete="off"
           />
         </form>

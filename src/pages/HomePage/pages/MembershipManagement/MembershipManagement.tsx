@@ -8,7 +8,7 @@ const tabs = [
 
 export const MembershipManagement = () => {
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <div className="space-y-6">
         <section className="space-y-2">
           <h1 className="text-2xl font-semibold text-primary">Membership Management</h1>

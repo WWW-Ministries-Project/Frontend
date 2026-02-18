@@ -11,7 +11,7 @@ const ViewPageTemplateInner = () => {
     <PageOutline className="p-0">
       <section className="sticky top-0 z-20">
         <Banner>
-          <div className="container mx-auto space-y-4">
+          <div className="w-full space-y-4">
             <div>
               <div className="flex items-center justify-between">
                 {loading ? (
@@ -50,7 +50,7 @@ const ViewPageTemplateInner = () => {
       </section>
 
       <section>
-        <div className="px-6">
+        <div className="app-page-padding">
           <Outlet />
         </div>
       </section>

@@ -1,5 +1,5 @@
 import type { ColumnFilter } from "@tanstack/react-table";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import useState from "react-usestateref";
 
@@ -107,6 +107,22 @@ export function Members() {
     setFilterMembers(e.target.value);
   };
 
+  const handleSearchSubmit = useCallback(() => {
+    const normalizedName = filterMembers.trim();
+    refetchMembers({ page: "1", limit: "12", name: normalizedName });
+    setFilters((prev) => {
+      const next = { ...prev, page: "1", limit: "12", name: normalizedName };
+      if (
+        prev.page === next.page &&
+        prev.limit === next.limit &&
+        prev.name === next.name
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [filterMembers, refetchMembers, setFilters]);
+
   const handleNavigation = () => {
     navigate(`/home/${relativePath.home.members.manage}`);
   };
@@ -196,10 +212,7 @@ export function Members() {
             value={filterMembers}
             onChange={handleSearchChange}
             id="searchMembers"
-            onSubmit={()=>{
-              refetchMembers({ page: "1", limit: "12", name: filterMembers });
-              setFilters((prev) => ({ ...prev, page: "1", limit: "12", name: filterMembers }));
-            }}
+            onSubmit={handleSearchSubmit}
           />
         </div>
 

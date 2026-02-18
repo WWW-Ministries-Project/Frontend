@@ -157,7 +157,7 @@ const AllEvent = () => {
   }, [update_value?.data, editItem]);
 
   return ( 
-    <PageOutline className="p-6">
+    <PageOutline>
       <div>
         <HeaderControls
           title={`Events (${filteredEvents.length})`}

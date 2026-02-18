@@ -65,12 +65,8 @@ export const Banner = ({children, imgSrc=learning, isAdmin=false}: {children: Re
       </div>
       
       {/* Content container */}
-      <div 
-        className={`
-          relative z-10 h-full flex flex-col items-center mx-auto 
-          transition-all duration-300 ease-in-out py-6 px-4 
-          
-        `}
+      <div
+        className="app-page-padding relative z-10 h-full flex flex-col items-center mx-auto py-6 transition-all duration-300 ease-in-out"
       >
         <div className="w-full mb-4 flex justify-start">
           <button

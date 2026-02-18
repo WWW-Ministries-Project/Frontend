@@ -2,12 +2,12 @@ import { ReactNode } from "react";
 
 export const FormHeader = ({
   children,
-  className = "bg-primary text-white p-6",
+  className = "rounded-t-2xl border-b border-lightGray bg-primary px-6 py-5 text-white",
 }: {
   children: ReactNode;
   className?: string;
 }) => {
   return (
-    <div className={` ${className} space-y-2  col-span-full`}>{children}</div>
+    <div className={`col-span-full space-y-1 ${className}`}>{children}</div>
   );
 };
