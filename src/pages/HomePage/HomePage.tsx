@@ -14,13 +14,7 @@ import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
-import Breadcrumb, { AutoBreadcrumb } from "./Components/BreadCrumb";
-
-export const navigateRef = {
-  current: null as
-    | ((path: string, options?: { state: { mode: string } }) => void)
-    | null,
-};
+import { navigateRef } from "./navigationRef";
 
 export function HomePage() {
   //custom navigation
@@ -147,9 +141,8 @@ export function HomePage() {
                  <MobileSideBar show={show} onClick={handleShowNav} />
                </div>
     </div>
-    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
-       {/* <AutoBreadcrumb/> */}
-      <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto border border-t-4 border-t-secondary">
+    <div className="app-scrollbar bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
+      <div className="app-scrollbar bg-white h-full rounded-xl min-h-0 overflow-auto border border-t-4 border-t-secondary">
        
      <Outlet
                   context={{

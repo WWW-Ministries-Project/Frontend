@@ -8,7 +8,6 @@ import { ProgramBaseCard } from "./ProgramBaseCard";
 interface IProps {
   program: Partial<ProgramResponse>;
   cohorts?: CohortType[];
-  handleCopyLink: (id?: number) => void;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -16,7 +15,6 @@ interface IProps {
 export const ProgramsCard = ({
   program,
   cohorts = [],
-  handleCopyLink,
   onEdit,
   onDelete,
 }: IProps) => {
@@ -35,7 +33,7 @@ export const ProgramsCard = ({
   }, []);
 
   return (
-    <ProgramBaseCard program={program} cohorts={cohorts}>
+    <ProgramBaseCard program={program}>
       <div className="flex justify-between items-center pt-2">
         <Button
         //   onClick={() => navigate(`programs/${program.id}`)}
@@ -46,7 +44,7 @@ export const ProgramsCard = ({
 
         <div className="relative" ref={menuRef}>
           <button
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-lightGray/30 transition-colors"
             onClick={() => setIsMenuOpen((prev) => !prev)}
             aria-label="Program options"
             aria-expanded={isMenuOpen}

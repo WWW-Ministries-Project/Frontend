@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-// Update the path below to the actual location of your ellipse image file
+import { useEffect, useRef, useState } from "react";
 import ellipse from "@/assets/ellipse.svg";
-import { Button } from '@/components';
-import { Modal } from '@/components/Modal';
-import TopicBasicInfoForm from './TopicBasicInfoForm';
-import { api } from '@/utils/api/apiCalls';
-import { useDelete } from '@/CustomHooks/useDelete';
+import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
+import TopicBasicInfoForm from "./TopicBasicInfoForm";
+import { api } from "@/utils/api/apiCalls";
+import { useDelete } from "@/CustomHooks/useDelete";
 import DOMPurify from "dompurify";
-import { Badge } from '@/components/Badge';
+import { Badge } from "@/components/Badge";
+import { showNotification } from "@/pages/HomePage/utils";
 
 interface ITopic {
   id: string | number;
@@ -24,15 +23,13 @@ interface IProps {
  
 }
 
-const AllTopics = ({topics, refetchProgram}: IProps) => {
+const AllTopics = ({ topics, refetchProgram }: IProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState<string | number | null>(null);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [TopicToEdit, setTopicToEdit] = useState<ITopic | null>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const{executeDelete: deleteTopic, loading: deleteLoading} = useDelete(api.delete.deleteTopic);
+  const { executeDelete: deleteTopic, loading: deleteLoading } = useDelete(api.delete.deleteTopic);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [topicToDelete, setTopicToDelete] = useState<ITopic | null>(null);
@@ -44,31 +41,24 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
   const handleEdit = (topic: ITopic) => {
     setTopicToEdit(topic);
     setIsTopicModalOpen(true);
-    console.log("Topic to be edited", topic);
-    
     setIsMenuOpen(null);
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setIsMenuOpen(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  return ( 
-    <div className="">
+  return (
+    <div className="" ref={rootRef}>
       <div className="space-y-4 ">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold mb-2">Topics</h2>
@@ -76,35 +66,33 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
         </div>
 
         {/* Created Topics */}
-        <div className='grid grid-cols-1  gap-4'>
+        <div className="grid grid-cols-1 gap-4">
           {topics.map((topic) => (
-            <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center ">
+            <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center">
               <div>
-                <div className='flex gap-4 items-center'>
+                <div className="flex gap-4 items-center">
                   <div className="font-medium">
-                  {topic?.name}
+                    {topic?.name}
+                  </div>
+                  {(topic?.learningUnit || topic?.type) && (
+                    <Badge>
+                      {typeof topic.learningUnit === "string"
+                        ? topic.learningUnit
+                        : topic.learningUnit?.type || topic?.type}
+                    </Badge>
+                  )}
                 </div>
-                {(topic?.learningUnit || topic?.type) && (
-                  <Badge>
-                    {typeof topic.learningUnit === "string"
-                      ? topic.learningUnit
-                      : topic.learningUnit?.type || topic?.type}
-                  </Badge>
-                )}
-                </div>
-                <div className="gap-x-4 flex text-sm text-gray-600">
-                  <div 
+                <div className="gap-x-4 flex text-sm text-primaryGray">
+                  <div
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(String(topic?.description ?? "")),
                     }}
                   />
-                  
                 </div>
               </div>
               <div>
                 <div className="relative">
                   <button
-                    ref={buttonRef}
                     className="text-primary"
                     onClick={() => toggleMenu(topic?.id)}
                   >
@@ -116,16 +104,9 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                   </button>
                   {isMenuOpen === topic?.id && (
                     <div
-                      ref={menuRef}
                       className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
                     >
                       <ul className="py-1">
-                        {/* <li
-                          className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                          onClick={() => navigate(`topic/${topic.id}`)}
-                        >
-                          Manage topic
-                        </li> */}
                         <li
                           className="px-4 py-2 hover:bg-lightGray cursor-pointer"
                           onClick={() => handleEdit(topic)}
@@ -153,7 +134,7 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
           ))}
         </div>
       </div>
-       {/* Topic creation */}
+      {/* Topic creation */}
       <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
         <TopicBasicInfoForm
           onClose={() => setIsTopicModalOpen(false)}
@@ -197,7 +178,7 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
       >
         <div className="p-6 space-y-4">
           <h3 className="text-lg font-semibold">Delete Topic</h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-primaryGray">
             Are you sure you want to delete{" "}
             <span className="font-medium">
               {topicToDelete?.name}
@@ -221,15 +202,8 @@ const AllTopics = ({topics, refetchProgram}: IProps) => {
                 if (!topicToDelete) return;
 
                 const id = topicToDelete.id;
-
-                // if (isNaN(id)) {
-                //   console.error("Invalid topicId", topicToDelete.id);
-                //   return;
-                // }
-
                 await deleteTopic({ id });
-                console.log("Deleted topic", id);
-
+                showNotification("Topic deleted successfully.", "success");
                 setIsDeleteModalOpen(false);
                 setTopicToDelete(null);
                 refetchProgram?.();

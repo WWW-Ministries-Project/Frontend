@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AllStudents } from "../Components/AllStudents";
 import { IStudentForm, StudentForm } from "../Components/StudentForm";
-import { useViewPage } from "../customHooks/ViewPageContext";
+import { useViewPage } from "../customHooks/useViewPage";
 
 export function ViewClass() {
   const { id: classId } = useParams();
@@ -72,7 +72,7 @@ export function ViewClass() {
 
 const Details = ({ classData }: { classData: DetailedCourseType }) => {
   return (
-    <div className="flex  gap-x-12 gap-y-4 grid grid-cols-3 w-1/2">
+    <div className="grid w-full grid-cols-1 gap-x-12 gap-y-4 md:grid-cols-2 xl:grid-cols-3">
       {classData?.instructor && (
         <div>
           <div className="font-semibold text-small">Instructor</div>
@@ -99,7 +99,7 @@ const Details = ({ classData }: { classData: DetailedCourseType }) => {
       )}
       {classData?.meetingLink && (
         <div>
-          <div className="font-semibold text-small">MeetingLink</div>
+          <div className="font-semibold text-small">Meeting Link</div>
           <div>{classData?.meetingLink} </div>
         </div>
       )}

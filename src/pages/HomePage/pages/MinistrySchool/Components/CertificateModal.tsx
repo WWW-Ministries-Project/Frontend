@@ -24,59 +24,6 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
 }) => {
 
     if (!open) return null;
-//   const handleDownloadPDF = async () => {
-//     const certificateElement = document.getElementById("certificate-a4");
-//     if (!certificateElement) {
-//       console.error("Certificate A4 element not found");
-//       return;
-//     }
-
-//     // --- TEMPORARILY FORCE REAL DOM VISIBILITY ---
-//     const originalStyles = {
-//       position: certificateElement.style.position,
-//       left: certificateElement.style.left,
-//       top: certificateElement.style.top,
-//       opacity: certificateElement.style.opacity,
-//       transform: certificateElement.style.transform,
-//       visibility: certificateElement.style.visibility,
-//     };
-
-//     certificateElement.style.position = "fixed";
-//     certificateElement.style.left = "0";
-//     certificateElement.style.top = "0";
-//     certificateElement.style.opacity = "0";
-//     certificateElement.style.visibility = "visible";
-//     certificateElement.style.transform = "none";
-
-//     // wait for layout + fonts
-//     await new Promise((r) => requestAnimationFrame(r));
-//     await new Promise((r) => setTimeout(r, 150));
-
-//     const canvas = await html2canvas(certificateElement, {
-//       scale: 2,
-//       useCORS: true,
-//       backgroundColor: "#ffffff",
-//     });
-
-//     // --- RESTORE ORIGINAL STYLES ---
-//     certificateElement.style.position = originalStyles.position;
-//     certificateElement.style.left = originalStyles.left;
-//     certificateElement.style.top = originalStyles.top;
-//     certificateElement.style.opacity = originalStyles.opacity;
-//     certificateElement.style.transform = originalStyles.transform;
-//     certificateElement.style.visibility = originalStyles.visibility;
-
-//     const imgData = canvas.toDataURL("image/jpeg", 1.0);
-
-//     const pdf = new jsPDF({
-//       orientation: "landscape",
-//       unit: "mm",
-//       format: "a4",
-//     });
-
-//     pdf.addImage(imgData, "JPEG", 0, 0, 297, 210);
-//     pdf.save(`${recipientName}-certificate.pdf`);
-//   };
 
  const handleDownloadPDF = async () => {
     const certificateElement = document.getElementById("certificate-a4");
@@ -86,7 +33,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
     const canvas = await html2canvas(certificateElement, {
       scale: 2,
       useCORS: true,
-      backgroundColor: "#ffffff",
+      backgroundColor: "white",
     });
 
     const imgData = canvas.toDataURL("image/png");

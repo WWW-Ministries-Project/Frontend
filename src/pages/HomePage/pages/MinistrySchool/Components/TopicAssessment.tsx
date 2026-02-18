@@ -1,8 +1,6 @@
 import { Button } from "@/components";
-import { Modal } from "@/components/Modal";
 import { Actions } from "@/components/ui/form/Actions";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { DivideIcon } from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 // import { CertificateTemplate } from "./CertificateTemplate";
@@ -16,7 +14,7 @@ export const TopicAssessment = ({
   toggleEditMode,
   onUpdate,
   loading,
-  studentData
+  studentData: _studentData
 }: {
   topics: Topic[];
   editMode: boolean;
@@ -35,28 +33,11 @@ export const TopicAssessment = ({
   }) => void;
   studentData?: EnrollmentDataType | null;
 }) => {
-  const [certificateData, setCertificateData] = useState({
-    recipientName: studentData?.user?.name || "-",
-    achievement: studentData?.course?.cohort?.program?.title || "-",
-    description: "",
-    date: new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
-    issuer: "Worldwide Word Ministries",
-    signatory: "Prof. John Anokye",
-    signatoryTitle: "Prelate of the Worldwide Word Ministries",
-  });
-  
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>([]);
 
   useEffect(() => {
     setUpdatedTopics(topics ?? []);
   }, [topics]);
-
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [generatingCertificate, setGeneratingCertificate] = useState(false);
 
   const averageScore = updatedTopics.length
     ? updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
@@ -103,26 +84,6 @@ export const TopicAssessment = ({
     // Prepare the payload
     const payload = { progressUpdates };
     onUpdate(payload);
-  };
-
-  // Enable certificate generation if all topics are passed and there is at least one topic
-  const isGenerateEnabled = updatedTopics.length > 0 && updatedTopics.every(topic => topic.status === "PASS");
-
-  // Certificate generation with loading state
-  const handleGenerateCertificate = async () => {
-    if (isGenerateEnabled && !generatingCertificate) {
-      setGeneratingCertificate(true);
-      
-      // Simulate 2 seconds loading time
-      setTimeout(() => {
-        setGeneratingCertificate(false);
-        setShowCertificate(true);
-      }, 2000);
-    }
-  };
-
-  const handleCloseCertificate = () => {
-    setShowCertificate(false);
   };
 
   const columns: ColumnDef<Topic>[] = [
@@ -193,7 +154,7 @@ export const TopicAssessment = ({
                 type="text"
                 className="px-4 py-2 border border-lightGray rounded-lg w-full"
                 placeholder="Enter notes"
-                value={row.original.notes!}
+                value={row.original.notes ?? ""}
                 onChange={(e) => {
                   setUpdatedTopics((prevTopics) =>
                     prevTopics.map((t) =>
@@ -269,7 +230,6 @@ export const TopicAssessment = ({
       </div>
 
       {/* Certificate Modal */}
-      
     </div>
   );
 };

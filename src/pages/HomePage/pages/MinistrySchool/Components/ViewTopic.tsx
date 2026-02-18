@@ -5,8 +5,6 @@ import { Button } from '@/components';
 import TopicDetails from './TopicDetails';
 import TopicBasicInfoForm from './TopicBasicInfoForm';
 import { FileCard } from './FileCard';
-import { dummyLearningUnits } from '@/pages/HomePage/utils/dummyLearningUnits';
-import LearningUnit from './LearningUnit';
 
 
 
@@ -14,15 +12,11 @@ import LearningUnit from './LearningUnit';
 
 const ViewTopic: React.FC = () => {
   const [edit, setEdit] = React.useState(false);
-  const handleRemoveItem = (id: number, type: 'material' | 'assignment') => {
-    // Implement the logic to remove the item based on its id and type
-    console.log(`Remove ${type} with id: ${id}`);
-  }
   const handleEdit = () => {
     setEdit(true);
   }
   return (
-    <div  className='flex flex-col 2xl:flex-row gap-8 p-6 text-gray-700'>
+    <div  className='flex flex-col 2xl:flex-row gap-8 p-6 text-primaryGray'>
 
       {/* Left content area */}
       <div className="flex-1">
@@ -40,11 +34,11 @@ const ViewTopic: React.FC = () => {
       </div>
 
       {/* Vertical divider and right sidebar */}
-      <div className='border-t 2xl:border-t-0 2xl:border-l border-gray-200'/>
+      <div className='border-t 2xl:border-t-0 2xl:border-l border-lightGray'/>
       <div className="2xl:w-80  ">
         <section className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="m-0 font-semibold text-gray-800">Materials</h3>
+            <h3 className="m-0 font-semibold text-primary">Materials</h3>
             <Button value="Upload" />
           </div>
 
@@ -57,7 +51,7 @@ const ViewTopic: React.FC = () => {
 
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="m-0 font-semibold text-gray-800">Assignment</h3>
+            <h3 className="m-0 font-semibold text-primary">Assignment</h3>
             <Button value="Upload" />
           </div>
 

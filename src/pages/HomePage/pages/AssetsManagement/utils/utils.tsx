@@ -1,5 +1,5 @@
 import { ProfilePicture } from "@/components";
-import { navigateRef } from "@/pages/HomePage/HomePage";
+import { navigateRef } from "@/pages/HomePage/navigationRef";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { assetType } from "./assetsInterface";

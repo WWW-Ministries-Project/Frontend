@@ -1,7 +1,5 @@
 import React, { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
-import { Modal } from "@/components/Modal";
-import Editor from "@/components/Editor";
 import TopicBasicInfoForm from "./TopicBasicInfoForm";
 import { FileCard } from "./FileCard";
 
@@ -23,7 +21,7 @@ export interface TopicFormState {
   assignmentItems: TopicFileItem[];
 }
 
-export interface TopicFormPayload extends TopicFormState {}
+export type TopicFormPayload = TopicFormState;
 
 interface TopicFormProps {
   open: boolean;
@@ -42,7 +40,7 @@ const topicSteps: { id: TopicStep; label: string }[] = [
   { id: "confirmation", label: "Confirmation" },
 ];
 
-export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit }) => {
+export const TopicForm: React.FC<TopicFormProps> = ({ open: _open, onClose, onSubmit }) => {
   const [topicStep, setTopicStep] = useState<TopicStep>("info");
   const [topicForm, setTopicForm] = useState<TopicFormState>({
     topicName: "",
@@ -54,7 +52,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
   });
   const [materialUrlInput, setMaterialUrlInput] = useState("");
   const [assignmentUrlInput, setAssignmentUrlInput] = useState("");
-  const [fileIdCounter, setFileIdCounter] = useState(0);
+  const [_fileIdCounter, setFileIdCounter] = useState(0);
 
   const resetTopicForm = useCallback(() => {
     setTopicForm({
@@ -171,7 +169,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
   return (
       <div className=" rounded-lg p-6 flex  h-[90vh] w-[90vw] ">
         {/* Left stepper */}
-        <div className="w- pr-4 border-r border-gray-200">
+        <div className="w- pr-4 border-r border-lightGray">
           <div className="font-semibold mb-6">Topic creation</div>
           <div className="space-y-6">
             {topicSteps.map((step, index) => {
@@ -184,7 +182,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                   type="button"
                   onClick={() => goToStep(step.id)}
                   className={`flex items-center w-full text-left  gap-3 ${
-                    isActive ? "text-primary font-medium" : "text-gray-700"
+                    isActive ? "text-primary font-medium" : "text-primaryGray"
                   }`}
                 >
                   <span
@@ -193,7 +191,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                         ? "bg-emerald-500 border-emerald-500 text-white"
                         : isActive
                         ? "border-primary text-primary"
-                        : "border-gray-300 text-gray-400"
+                        : "border-lightGray text-primaryGray"
                     }`}
                   >
                     {isCompleted ? "✓" : index + 1}
@@ -206,9 +204,9 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
         </div>
 
         {/* Main content */}
-        <div className="flex-1 h-full bg-whitåe ml-6 rounded-lg shadow-sm flex flex-col">
+        <div className="ml-6 flex h-full flex-1 flex-col rounded-lg bg-white shadow-sm">
           {/* Header */}
-          <div className="flex items-center justify-between py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between py-4 border-b border-lightGray">
             <div className="font-semibold ">
               {topicStep === "info" && "Topic Information"}
               {topicStep === "material" && "Course material"}
@@ -218,7 +216,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
             <button
               type="button"
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              className="text-primaryGray hover:text-primaryGray text-xl leading-none"
             >
               &times;
             </button>
@@ -234,7 +232,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
 
             {topicStep === "material" && (
               <div>
-                <div className="rounded-md border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+                <div className="rounded-md border border-dashed border-lightGray p-4 text-sm text-primaryGray">
                   Add learning unit resources in this step.
                 </div>
               </div>
@@ -243,11 +241,11 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
             {topicStep === "assignment" && (
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-700">
+                  <label className="text-xs font-medium text-primaryGray">
                     Name <span className="text-red-500">Required</span>
                   </label>
                   <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-md border border-lightGray px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     value={topicForm.assignmentName}
                     onChange={(e) =>
                       setTopicForm((old) => ({ ...old, assignmentName: e.target.value }))
@@ -257,10 +255,10 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-700">File</label>
-                  <label className="flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 px-4 py-6 text-xs text-gray-500 cursor-pointer">
+                  <label className="text-xs font-medium text-primaryGray">File</label>
+                  <label className="flex flex-col items-center justify-center rounded-md border border-dashed border-lightGray px-4 py-6 text-xs text-primaryGray cursor-pointer">
                     <span>Click to upload or drag and drop</span>
-                    <span className="mt-1 text-[11px] text-gray-400">
+                    <span className="mt-1 text-xxs text-primaryGray">
                       image, document or video (5mb max)
                     </span>
                     <input
@@ -274,12 +272,12 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-center text-[11px] text-gray-400">or</div>
+                  <div className="text-center text-xxs text-primaryGray">or</div>
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gray-700">Link</label>
+                    <label className="text-xs font-medium text-primaryGray">Link</label>
                     <div className="flex gap-2">
                       <input
-                        className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="flex-1 rounded-md border border-lightGray px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         placeholder="Paste assignment URL"
                         value={assignmentUrlInput}
                         onChange={(e) => setAssignmentUrlInput(e.target.value)}
@@ -306,34 +304,34 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
 
             {topicStep === "confirmation" && (
               <div className="space-y-4 text-sm">
-                <p className="text-gray-700">
+                <p className="text-primaryGray">
                   Review the information below before creating the topic.
                 </p>
                 <div className="space-y-2">
                   <div>
-                    <div className="text-xs font-medium text-gray-500">Topic name</div>
-                    <div className="text-sm text-gray-800">{topicForm.topicName || "—"}</div>
+                    <div className="text-xs font-medium text-primaryGray">Topic name</div>
+                    <div className="text-sm text-primary">{topicForm.topicName || "—"}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500">Description</div>
+                    <div className="text-xs font-medium text-primaryGray">Description</div>
                     <div 
-                        className="text-sm text-gray-800 prose prose-sm max-w-none"
+                        className="text-sm text-primary prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ 
                             __html: topicForm.topicDescription || "—" 
                         }}
                         />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500">Course materials</div>
-                    <div className="text-sm text-gray-800">
+                    <div className="text-xs font-medium text-primaryGray">Course materials</div>
+                    <div className="text-sm text-primary">
                       {topicForm.materialFiles.length === 0
                         ? "No materials added"
                         : `${topicForm.materialFiles.length} item(s)`}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500">Assignments</div>
-                    <div className="text-sm text-gray-800">
+                    <div className="text-xs font-medium text-primaryGray">Assignments</div>
+                    <div className="text-sm text-primary">
                       {topicForm.assignmentItems.length === 0
                         ? "No assignments added"
                         : `${topicForm.assignmentItems.length} item(s)`}
@@ -345,13 +343,13 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open, onClose, onSubmit })
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 text-xs">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-lightGray text-xs">
             <button
               type="button"
               onClick={goToPrevStep}
               disabled={topicStep === "info"}
-              className={`flex items-center gap-1 text-gray-500 ${
-                topicStep === "info" ? "opacity-40 cursor-default" : "hover:text-gray-700"
+              className={`flex items-center gap-1 text-primaryGray ${
+                topicStep === "info" ? "opacity-40 cursor-default" : "hover:text-primaryGray"
               }`}
             >
               <span>← Prev</span>

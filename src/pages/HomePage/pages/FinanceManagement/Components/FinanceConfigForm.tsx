@@ -63,11 +63,11 @@ const FinanceConfigForm = ({
                       await postData({
                         name: values.name,
                         description: values.description,
-                        ...(type === "bankAccount" && {
+                        ...(type === "bankAccount" || type === "tithe" ? {
                           percentage: values.percentage !== undefined
                             ? Number(values.percentage)
                             : undefined,
-                        }),
+                        } : {}),
                       });
                     }
 

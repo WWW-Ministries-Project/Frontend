@@ -1,4 +1,3 @@
-import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePut } from "@/CustomHooks/usePut";
@@ -7,7 +6,7 @@ import { api, User } from "@/utils";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TopicAssessment } from "../Components/TopicAssessment";
-import { useViewPage } from "../customHooks/ViewPageContext";
+import { useViewPage } from "../customHooks/useViewPage";
 
 const ViewStudent = () => {
   const { id: studentId } = useParams();
@@ -28,11 +27,10 @@ const ViewStudent = () => {
   const { setLoading, setDetails, setData } = useViewPage();
   useEffect(() => {
     if (!studentData?.data) return;
-    setDetails?.(<Details data={studentData?.data} onEdit={toggleEditMode} />);
+    setDetails?.(<Details data={studentData?.data} />);
     setData?.({
       showTopic: true,
-      user:studentData?.data?.user
-      // title: classData?.name || "",
+      user: studentData?.data?.user,
     });
     setLoading?.(false);
   }, [setDetails, setData, setLoading, studentData?.data]);
@@ -72,10 +70,8 @@ export default ViewStudent;
 
 const Details = ({
   data,
-  onEdit,
 }: {
   data: { email: string; user: User };
-  onEdit: () => void;
 }) => {
   return (
     <div className="flex flex-wrap gap-x-12 w-full">

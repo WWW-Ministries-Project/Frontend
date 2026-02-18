@@ -6,7 +6,6 @@ import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useProgramsStore } from "../store/programsStore";
 
 // Define the Cohort type
 interface Cohort {
@@ -52,7 +51,6 @@ const ProgramsCard = ({
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const { setSelectedCohort } = useProgramsStore();
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -125,7 +123,7 @@ const ProgramsCard = ({
         </div>
 
         {/* Description */}
-        <p className="text-sm text-gray-700 line-clamp-3">
+        <p className="text-sm text-primaryGray line-clamp-3">
           {program.description}
         </p>
       </div>
@@ -153,14 +151,14 @@ const ProgramsCard = ({
         <div className="space-y-2">
           {cohorts.length > 0 ? (
             cohorts.map((cohort) => (
-              <div
-                key={cohort.id}
-                className="border border-lightGray rounded-lg p-3 transition-colors hover:bg-gray-50"
-              >
+                <div
+                  key={cohort.id}
+                  className="border border-lightGray rounded-lg p-3 transition-colors hover:bg-lightGray/20"
+                >
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="font-medium">{cohort.name}</div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-primaryGray">
                       {formatDate(cohort.startDate)}
                     </div>
                   </div>
@@ -170,7 +168,7 @@ const ProgramsCard = ({
                         ? "bg-green-50 text-green-700 border-green-200"
                         : cohort.status === "Completed"
                         ? "bg-blue-50 text-blue-700 border-blue-200"
-                        : "bg-gray-50 text-gray-700 border-gray-200"
+                        : "bg-lightGray/40 text-primaryGray border-lightGray"
                     }`}
                   >
                     {cohort.status}
@@ -179,7 +177,7 @@ const ProgramsCard = ({
               </div>
             ))
           ) : (
-            <div className="border border-dashed border-lightGray rounded-lg p-4 text-center text-gray-500 text-sm">
+            <div className="border border-dashed border-lightGray rounded-lg p-4 text-center text-primaryGray text-sm">
               No cohorts added yet
             </div>
           )}
@@ -210,7 +208,7 @@ const ProgramsCard = ({
 
           <div className="relative" ref={menuRef}>
             <button
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-full transition-colors hover:bg-lightGray/30"
               onClick={toggleMenu}
               aria-label="Program options"
               aria-expanded={isMenuOpen}

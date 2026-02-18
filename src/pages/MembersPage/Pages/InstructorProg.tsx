@@ -1,5 +1,4 @@
 import CourseSidebar from "../Component/CourseSidebar";
-import BannerWrapper from "../layouts/BannerWrapper";
 import { useEffect, useState } from "react";
 import { Button } from "@/components";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ import { useUserStore } from "@/store/userStore";
 
 type ApiResponse<T> = {
   data: T;
-  meta?: any;
+  meta?: unknown;
   status: number;
   error?: string;
   success: boolean;
@@ -56,7 +55,7 @@ type ProgramView = {
 const InstructorProg = () => {
   const userData = useUserStore((state) => state);
   const user_id = userData.id;
-  const { data, loading, refetch } = useFetch(api.fetch.fetchInstructorPrograms, { instructorId: user_id });
+  const { data } = useFetch(api.fetch.fetchInstructorPrograms, { instructorId: user_id });
 
   const navigate = useNavigate();
   const [programs, setPrograms] = useState<ProgramView[]>([]);
@@ -99,7 +98,7 @@ const InstructorProg = () => {
   return (
     <div>
       <div className="text-xl font-semibold">
-        All Program
+        All Programs
       </div>
 
       {/* Section */}
@@ -117,16 +116,18 @@ const InstructorProg = () => {
 
           <div className="flex flex-col gap-4 lg:flex-1">
             {filteredPrograms.length === 0 ? (
-              <div className="rounded-xl border border-gray-300 p-6 bg-white">No programs match the selected state.</div>
+              <div className="rounded-xl border border-lightGray bg-white p-6 text-primaryGray">
+                No programs match the selected state.
+              </div>
             ) : (
               filteredPrograms.map((program) => (
                 <div
                   key={program.id}
-                  className="flex items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
+                  className="flex w-full items-center justify-between rounded-xl border border-lightGray bg-white p-4"
                 >
                   <div>
-                    <h3 className="font-medium text-lg mb-2">{program.title}</h3>
-                    <div className="flex gap-4 text-sm text-gray-600">
+                    <h3 className="mb-2 text-lg font-medium text-primary">{program.title}</h3>
+                    <div className="flex gap-4 text-sm text-primaryGray">
                       <span>{program.cohortName}</span>
                       <span>•</span>
                       <span>{program.schedule}</span>

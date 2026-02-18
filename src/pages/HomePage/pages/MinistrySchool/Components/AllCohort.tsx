@@ -81,7 +81,7 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
             <EmptyState msg={"No cohort found"} />
         ) : (
           <section className="w-full">
-            <div className="grid grid-cols-6 gap-4 font-semibold text-gray-700 px-4 py-3 mb-4">
+            <div className="grid grid-cols-6 gap-4 font-semibold text-primaryGray px-4 py-3 mb-4">
               <div>Name</div>
               <div>Start date</div>
               <div>Duration</div>
