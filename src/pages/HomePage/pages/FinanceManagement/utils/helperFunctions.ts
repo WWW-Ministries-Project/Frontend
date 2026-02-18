@@ -10,17 +10,17 @@ export const sumBy = <T>(
 
 export const calculateFinanceTotals = (financeData: any) => {
   const totalReceiptsAmount = sumBy(
-    financeData.receipts,
+    financeData?.receipts || [],
     (r: any) => r.amount
   );
 
   const totalReceiptsFunds = sumBy(
-    financeData.receipts,
+    financeData?.receipts || [],
     (r: any) => r.funds
   );
 
   const totalPaymentsAmount = sumBy(
-    financeData.payments,
+    financeData?.payments || [],
     (p: any) => p.amount
   );
 
@@ -30,12 +30,12 @@ export const calculateFinanceTotals = (financeData: any) => {
 //   );
 
   const totalFundAllocationActual = sumBy(
-    financeData.fundAllocation,
+    financeData?.fundAllocation || [],
     (f: any) => f.actual
   );
 
   const totalFundAllocationAdjusted = sumBy(
-    financeData.fundAllocation,
+    financeData?.fundAllocation || [],
     (f: any) => f.adjusted
   );
 
@@ -57,59 +57,86 @@ export const calculateFinanceTotals = (financeData: any) => {
   };
 };
 
-type NullableNumber = number | null | undefined;
-
-// const sumNullable = (values: NullableNumber[]): number =>
-//   values.reduce((acc: number, val) => acc + (typeof val === "number" ? val : 0), 0);
-
 const sumNullable = (
   values: (number | string | null | undefined)[]
 ): number =>
   values.reduce((acc: number, val) => {
-    const num = typeof val === "string" ? Number(val) : typeof val === "number" ? val : 0;
+    const parsed =
+      typeof val === "string" ? Number(val) : typeof val === "number" ? val : 0;
+    const num = Number.isFinite(parsed) ? parsed : 0;
     return acc + num;
   }, 0);
+
+const toPercentageRatio = (value: number | string | null | undefined): number => {
+  const numeric = typeof value === "string" ? Number(value) : Number(value ?? 0);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.abs(numeric) <= 1 ? numeric : numeric / 100;
+};
+
+const toNumberValue = (value: number | string | null | undefined): number => {
+  const numeric = typeof value === "string" ? Number(value) : Number(value ?? 0);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
 
 export const buildFinanceSummary = (financeData: any) => {
   // ---------------- RECEIPTS ----------------
   const receiptsTotal = sumNullable(
-    financeData.receipts.map((r: any) => r.amount)
+    (financeData.receipts || []).map((r: any) => r.amount)
   );
 
   // ---------------- TITHE ----------------
-  const totalTithePercentage = financeData.tithe.totalTithe.percentage;
-  const generalTithePercentage = financeData.tithe.generalTithe.percentage;
-  const icareTithePercentage = financeData.tithe.icareTithe.percentage;
+  const totalTithePercentage =
+    Number(financeData?.tithe?.totalTithe?.percentage) || 0;
+  const configuredBreakdown = Array.isArray(financeData?.tithe?.breakdown)
+    ? financeData.tithe.breakdown
+    : [];
+  const legacyBreakdown = [
+    financeData?.tithe?.generalTithe
+      ? {
+          item: financeData.tithe.generalTithe.label || "General Tithe",
+          percentage: Number(financeData.tithe.generalTithe.percentage) || 0,
+        }
+      : null,
+    financeData?.tithe?.icareTithe
+      ? {
+          item: financeData.tithe.icareTithe.label || "iCare Tithe",
+          percentage: Number(financeData.tithe.icareTithe.percentage) || 0,
+        }
+      : null,
+  ].filter(Boolean) as Array<{ item: string; percentage: number }>;
+  const titheBreakdownSource =
+    configuredBreakdown.length > 0 ? configuredBreakdown : legacyBreakdown;
+  const titheAmount = receiptsTotal * toPercentageRatio(totalTithePercentage);
 
-  if (generalTithePercentage + icareTithePercentage !== 100) {
-    throw new Error("Tithe breakdown must total 100%");
-  }
+  const titheBreakdown = titheBreakdownSource.map((entry: any) => {
+    const percentage = Number(entry.percentage) || 0;
+    const amount = titheAmount * toPercentageRatio(percentage);
 
-  const titheAmount = (receiptsTotal * totalTithePercentage) / 100;
-
-  const titheBreakdown = {
-    general: (titheAmount * generalTithePercentage) / 100,
-    icare: (titheAmount * icareTithePercentage) / 100,
-  };
+    return {
+      item: entry.item || "Tithe",
+      percentage,
+      amount,
+    };
+  });
 
   const fundsAfterTithe = receiptsTotal - titheAmount;
 
   // ---------------- PAYMENTS ----------------
   const paymentsTotal = sumNullable(
-    financeData.payments.map((p: any) => p.amount)
+    (financeData.payments || []).map((p: any) => p.amount)
   );
 
   const excessAfterPayments = fundsAfterTithe - paymentsTotal;
 
   // ---------------- BALANCE ----------------
   const reserveForSavings =
-    financeData.balance.ReserveForSavings?.amount ?? 0;
+    toNumberValue(financeData?.balance?.ReserveForSavings?.amount);
 
   const weeklyRefund =
-    financeData.balance.WeeklyRefund?.amount ?? 0;
+    toNumberValue(financeData?.balance?.WeeklyRefund?.amount);
 
   const officeReserve =
-    financeData.balance.OfficeMaintenanceReserve?.amount ?? 0;
+    toNumberValue(financeData?.balance?.OfficeMaintenanceReserve?.amount);
 
   const netBalance = excessAfterPayments - reserveForSavings;
 
@@ -117,27 +144,24 @@ export const buildFinanceSummary = (financeData: any) => {
     netBalance + weeklyRefund + officeReserve;
 
   // ---------------- FUND ALLOCATION ----------------
-  const allocationPercentTotal = financeData.fundAllocation.reduce(
-    (sum: number, a: any) => sum + a.portionPercent,
-    0
-  );
+  const fundAllocationSource = Array.isArray(financeData?.fundAllocation)
+    ? financeData.fundAllocation
+    : Array.isArray(financeData?.fundsAllocation)
+    ? financeData.fundsAllocation
+    : [];
 
-  if (allocationPercentTotal !== 100) {
-    throw new Error(
-      `Fund allocation must total 100%, got ${allocationPercentTotal}%`
-    );
-  }
-
-  const fundAllocations = financeData.fundAllocation.map((allocation: any) => {
-    const actual = (allocation.portionPercent / 100) * finalBalance;
+  const fundAllocations = fundAllocationSource.map((allocation: any) => {
+    const portionPercent = Number(allocation.portionPercent) || 0;
+    const actual = toPercentageRatio(portionPercent) * finalBalance;
 
     const adjusted =
-      allocation.movement === "Savings"
+      String(allocation.movement || "").toLowerCase().includes("savings")
         ? actual + reserveForSavings
         : actual;
 
     return {
       ...allocation,
+      portionPercent,
       actual,
       adjusted,
     };
