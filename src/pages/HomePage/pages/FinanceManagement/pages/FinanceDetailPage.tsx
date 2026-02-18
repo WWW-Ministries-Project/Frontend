@@ -93,7 +93,7 @@ const FinanceDetailPage = () => {
   }
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       <Banner>
         <div className="flex w-full items-center justify-between">
           <div className="w-full">
@@ -105,8 +105,7 @@ const FinanceDetailPage = () => {
             {formMode === "view" && (
               <Button
                 value="Edit Financials"
-                variant="primary"
-                className="bg-white text-primary"
+                variant="secondary"
                 onClick={() => setFormMode("edit")}
               />
             )}

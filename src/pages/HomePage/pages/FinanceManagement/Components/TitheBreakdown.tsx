@@ -14,6 +14,10 @@ const TitheBreakdown = () => {
       const [selectedTitheBreakdown, setSelectedTitheBreakdown] = React.useState<FinanceConfigValues | null>(null);
       const { data, loading, refetch } = useFetch(api.fetch.fetchTitheBreakdownConfig);
       const { executeDelete, success } = useDelete(api.delete.deleteTitheBreakdownConfig);
+      const closeModal = () => {
+        setOpenModal(false);
+        setSelectedTitheBreakdown(null);
+      };
 
       React.useEffect(() => {
           if (Array.isArray(data?.data)) {
@@ -39,20 +43,27 @@ const TitheBreakdown = () => {
               }, [success]);
 
 
-    return ( 
-        <div>
+    return (
+        <div className="space-y-4">
             <PageHeader
-                className="font-semibold text-xl"
                 title={"Tithe Breakdown"}
                 buttonValue={"Create tithe breakdown"}
                 onClick={() => {
+                  setSelectedTitheBreakdown(null);
                   setOpenModal(true);
-                //   setDisplayForm(!displayForm);
-                //   setInputValue({ created_by: userId, name: "", description: "" });
                 }}
             />
 
-             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+             {loading ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                Loading tithe breakdown configuration...
+              </p>
+             ) : titheBreakdownData.length === 0 ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                No tithe breakdown configuration found. Create one to get started.
+              </p>
+             ) : (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {
                 titheBreakdownData?.map((titheBreakdown:FinanceConfigValues) => (
                  
@@ -75,11 +86,12 @@ const TitheBreakdown = () => {
                     
                 ))}
                 </div>
+             )}
 
-            <Modal open={openModal}  onClose={() => {setOpenModal(false)}}>
+            <Modal open={openModal} onClose={closeModal} className="max-w-2xl">
                 <FinanceConfigForm 
-                    onClose={() => {setOpenModal(false)}}
-                    onSubmit={() => {setOpenModal(false)}}
+                    onClose={closeModal}
+                    onSubmit={closeModal}
                     type="tithe"
                     refetch={refetch}
                     initialData={selectedTitheBreakdown|| undefined}

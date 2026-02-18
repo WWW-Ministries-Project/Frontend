@@ -50,9 +50,13 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
   return (
     <div
       ref={sidebarRef}
-      className={`absolute top-14 rounded-r-xl shadow-xl left-0 h-[calc(100vh-3.5rem)] bg-white transition-transform duration-300 ease-in-out transform overflow-auto ${
+      style={{
+        top: "var(--app-header-height)",
+        height: "calc(100dvh - var(--app-header-height))",
+      }}
+      className={`fixed left-0 z-[60] rounded-r-xl bg-white shadow-xl transition-transform duration-300 ease-in-out transform overflow-auto ${
         show ? "translate-x-0" : "-translate-x-full"
-      } z-[60] `}
+      }`}
     >
       <div className="h-full w-[250px] p-4">
         {/* navigation links */}

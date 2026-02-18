@@ -476,7 +476,7 @@ const ManageAvailability = () => {
 
   return (
     <div>
-      <PageOutline className="p-6">
+      <PageOutline>
         <HeaderControls
           title="Manage Availability"
           subtitle="Set up when staff members are available for appointments with flexible time slots"

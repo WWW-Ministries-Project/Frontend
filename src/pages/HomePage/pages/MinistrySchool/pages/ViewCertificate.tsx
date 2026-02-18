@@ -155,7 +155,7 @@ const ViewCertificate = ({ loading = false }: ViewCertificateProps) => {
   }
 
   return (
-    <div className="p-4">
+    <div className="app-page-padding">
       <PageOutline className="p-0 text-primary">
         <div className="flex items-center p-4 border-b border-lightGray print:hidden">
           <h1 className="text-xl font-semibold ml-2">Certificate of Completion</h1>

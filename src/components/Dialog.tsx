@@ -20,16 +20,19 @@ export const Dialog = () => {
   }
   return (
     <div>
-      <dialog ref={dialog} className="rounded p-5 shadow-lg text-primary">
+      <dialog
+        ref={dialog}
+        className="w-full max-w-md rounded-2xl border border-lightGray p-6 text-primary shadow-2xl backdrop:bg-primary/45"
+      >
         <h1 className="H600">Delete {dialogData.name}</h1>
-        <div className="mt-3">
+        <div className="mt-3 text-sm text-primaryGray">
           Are you sure you want to delete {dialogData.name}. <br /> This action
           cannot be undone.
         </div>
-        <div className="mt-3 flex justify-between p-2">
+        <div className="mt-6 flex items-center justify-end gap-3">
           <Button
             value="Cancel"
-            variant="ghost"
+            variant="secondary"
             onClick={handleShowModal}
           />
           <Button value="Delete" variant="primary" onClick={handleDelete} />

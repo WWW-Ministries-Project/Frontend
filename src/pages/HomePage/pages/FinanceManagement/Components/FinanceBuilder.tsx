@@ -334,7 +334,7 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
     : [];
 
   return (
-    <section className="space-y-6 p-6 rounded">
+    <section className="app-card space-y-6">
       <h2 className="font-semibold">Metadata</h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -540,7 +540,7 @@ const FinanceBuilder = ({
           ) * 100;
 
         return (
-          <Form>
+          <Form className="space-y-6">
             {mode !== "view" &&
               (receiptConfigError ||
                 paymentConfigError ||
@@ -553,9 +553,9 @@ const FinanceBuilder = ({
 
             <MetadataFields mode={mode} />
 
-            <div className="space-y-6 p-6">
-              <div className="sticky top-0 bg-white">
-                <div className="grid grid-cols-5 gap-6 border-b text-lg font-bold">
+            <div className="app-card space-y-6">
+              <div className="sticky top-0 z-[2] bg-white/95 pb-3 backdrop-blur">
+                <div className="hidden border-b text-lg font-bold md:grid md:grid-cols-5 md:gap-6">
                   <div className="col-span-2">Items</div>
                   <div></div>
                   <div className="text-right">Amount</div>
@@ -569,7 +569,7 @@ const FinanceBuilder = ({
                 {mode !== "view" && (
                   <div className="flex flex-col gap-2 md:flex-row md:items-center">
                     <select
-                      className="w-full rounded border px-3 py-2 md:w-auto"
+                      className="app-input w-full md:w-auto md:min-w-[18rem]"
                       value={receiptToAdd}
                       onChange={(event) => setReceiptToAdd(event.target.value)}
                     >
@@ -632,7 +632,7 @@ const FinanceBuilder = ({
                 {values.receipts.map((receipt, idx) => (
                   <div
                     key={`${receipt.item}-${idx}`}
-                    className="grid grid-cols-5 gap-6"
+                    className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6"
                   >
                     <span className="col-span-2">{receipt.item}</span>
                     <div>
@@ -673,7 +673,7 @@ const FinanceBuilder = ({
                   </div>
                 ))}
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 pt-2 font-semibold">Total Receipts</span>
                   <div></div>
                   <span className="pt-2 text-right font-semibold">
@@ -687,7 +687,7 @@ const FinanceBuilder = ({
               <hr />
 
               <section className="space-y-2">
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 pt-2 font-semibold">
                     {values.tithe.totalTithe.label || "Tithe"}
                   </span>
@@ -711,7 +711,7 @@ const FinanceBuilder = ({
                 {values.tithe.breakdown.map((entry, idx) => (
                   <div
                     key={`${entry.item}-${idx}`}
-                    className="grid grid-cols-5 gap-6"
+                    className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6"
                   >
                     <span className="col-span-2 pt-2">{entry.item}</span>
                     <div className="pt-2 text-right font-medium">
@@ -732,7 +732,7 @@ const FinanceBuilder = ({
                 {mode !== "view" && (
                   <div className="flex flex-col gap-2 md:flex-row md:items-center">
                     <select
-                      className="w-full rounded border px-3 py-2 md:w-auto"
+                      className="app-input w-full md:w-auto md:min-w-[18rem]"
                       value={paymentToAdd}
                       onChange={(event) => setPaymentToAdd(event.target.value)}
                     >
@@ -795,7 +795,7 @@ const FinanceBuilder = ({
                 {values.payments.map((payment, idx) => (
                   <div
                     key={`${payment.item}-${idx}`}
-                    className="grid grid-cols-5 gap-6"
+                    className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6"
                   >
                     <span className="col-span-2">{payment.item}</span>
                     <div>
@@ -836,7 +836,7 @@ const FinanceBuilder = ({
                   </div>
                 ))}
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 pt-2 font-semibold">Total Payments</span>
                   <div></div>
                   <span className="pt-2 text-right font-semibold">
@@ -850,9 +850,9 @@ const FinanceBuilder = ({
               <hr />
 
               <section className="space-y-4">
-                <h2 className="text-lg font-semibold"></h2>
+                <h2 className="text-lg font-semibold">Balance Summary</h2>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2">
                     {values.balance.ExcessOfReceiptsOverPayments.item}
                   </span>
@@ -865,7 +865,7 @@ const FinanceBuilder = ({
                   <div></div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2">
                     {values.balance.ReserveForSavings.item}
                   </span>
@@ -888,7 +888,7 @@ const FinanceBuilder = ({
                   <div></div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 font-semibold">
                     {values.balance.BalanceAmount.item}
                   </span>
@@ -901,7 +901,7 @@ const FinanceBuilder = ({
                   <div></div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2">{values.balance.WeeklyRefund.item}</span>
                   <div></div>
                   {mode === "view" ? (
@@ -922,7 +922,7 @@ const FinanceBuilder = ({
                   <div></div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2">
                     {values.balance.OfficeMaintenanceReserve.item}
                   </span>
@@ -945,7 +945,7 @@ const FinanceBuilder = ({
                   <div></div>
                 </div>
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 pt-2 font-semibold">Total Balance</span>
                   <div></div>
                   <span className="pt-2 text-right font-semibold">
@@ -960,7 +960,7 @@ const FinanceBuilder = ({
 
               <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Fund allocation</h2>
-                <div className="grid grid-cols-5 gap-6 text-lg font-bold">
+                <div className="hidden text-lg font-bold md:grid md:grid-cols-5 md:gap-6">
                   <div className="col-span-2">Movement</div>
                   <div className="text-right">Portions</div>
                   <div className="text-right">Actuals</div>
@@ -976,7 +976,7 @@ const FinanceBuilder = ({
                 {summary.fundAllocations.map((allocation: any, idx: number) => (
                   <div
                     key={`${allocation.movement}-${idx}`}
-                    className="grid grid-cols-5 gap-6"
+                    className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6"
                   >
                     <span className="col-span-2">{allocation.movement}</span>
                     <div className="text-right">
@@ -991,7 +991,7 @@ const FinanceBuilder = ({
                   </div>
                 ))}
 
-                <div className="grid grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-6">
                   <span className="col-span-2 pt-2 font-semibold">
                     Total Fund Allocation
                   </span>

@@ -1,10 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  UserIcon,
-  PhoneIcon,
-  BuildingLibraryIcon,
-  BriefcaseIcon,
-  UsersIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
@@ -103,9 +98,9 @@ const TabSelection = <T extends string = string>({
         role="tablist"
         aria-label="Tabs"
         onKeyDown={onKeyDown}
-        className={`
+          className={`
           w-full
-          border border-lightGray rounded-lg p-1
+          border border-lightGray rounded-lg p-1 bg-lightGray/30
           flex ${useVerticalLayout ? "flex-col" : "flex-row"}
           md:flex-row
           gap-1 md:gap-2
@@ -133,7 +128,7 @@ const TabSelection = <T extends string = string>({
                 text-primary text-sm sm:text-base
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
                 transition-colors snap-start
-                ${active ? "bg-lightGray font-semibold" : "hover:bg-lightGray/60"}
+                ${active ? "bg-white font-semibold shadow-sm" : "hover:bg-white/70"}
                 
               `}
             >

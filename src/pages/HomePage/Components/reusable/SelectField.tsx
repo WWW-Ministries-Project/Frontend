@@ -56,13 +56,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   /* ---------------------------- styles ---------------------------- */
 
   const baseControl =
-    "w-full rounded-lg border bg-white px-3 py-2 text-sm text-left " +
-    "flex items-center justify-between transition-colors focus:outline-none focus:ring-2";
+    "app-input text-left flex items-center justify-between";
 
   const stateStyles = clsx(
-    error
-      ? "border-error focus:ring-error/30"
-      : "border-gray-300 focus:ring-primary/20 focus:border-primary",
+    error && "border-error focus:border-error focus:ring-error/20",
     disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
   );
 
@@ -107,7 +104,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     return (
       <div className={clsx("flex flex-col gap-1", className)}>
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-gray-700">
+          <label htmlFor={id} className="text-sm font-medium text-primary">
             {label}
           </label>
         )}
@@ -145,7 +142,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <div className={clsx("flex flex-col gap-1", className)}>
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-gray-700">
+        <label htmlFor={id} className="text-sm font-medium text-primary">
           {label}
         </label>
       )}
@@ -188,7 +185,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border bg-white shadow-lg overflow-hidden">
+          <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-lightGray bg-white shadow-lg">
             {/* Search */}
             <div className="border-b px-2 py-2">
               <input
@@ -197,7 +194,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="app-input"
               />
             </div>
 

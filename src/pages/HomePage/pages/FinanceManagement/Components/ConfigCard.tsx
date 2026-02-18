@@ -12,16 +12,16 @@ interface Iprops {
 
 const ConfigCard = ({configData, onEdit, onDelete}: Iprops ) => {
     return ( 
-        <div className="rounded-lg border p-6 ">
-                    <div className="flex gap-3 items-center justify-between">
-                        <p>{configData.name}</p>
+        <div className="app-card relative space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                        <p className="pr-20 text-base font-semibold text-primary">{configData.name}</p>
 
                         <div className="flex gap-2">
         {onEdit && (
           <button
             onClick={onEdit}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50"
-            aria-label="Edit annual theme"
+            className="app-icon-btn"
+            aria-label={`Edit ${configData.name}`}
           >
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
@@ -29,8 +29,8 @@ const ConfigCard = ({configData, onEdit, onDelete}: Iprops ) => {
         {onDelete && (
           <button
             onClick={onDelete}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-red-200 bg-white hover:bg-red-50"
-            aria-label="Delete annual theme"
+            className="app-icon-btn app-icon-btn-danger"
+            aria-label={`Delete ${configData.name}`}
           >
             <TrashIcon className="w-4 h-4 text-red-600" />
           </button>
@@ -38,13 +38,15 @@ const ConfigCard = ({configData, onEdit, onDelete}: Iprops ) => {
       </div>
                     </div>
 
-                    <div className="flex gap-3 text-sm text-gray-600">
-                        <p>{configData.description}</p>
+                    <div className="text-sm text-primaryGray">
+                        <p>{configData.description || "No description available."}</p>
                     </div>
 
-                    {configData.percentage&&<div className="flex gap-3">
-                        <p>{configData.percentage}</p>
-                    </div>}
+                    {configData.percentage !== undefined && (
+                      <div className="text-sm font-medium text-primary">
+                        <p>Percentage: {configData.percentage}%</p>
+                      </div>
+                    )}
                 </div>
      );
 }

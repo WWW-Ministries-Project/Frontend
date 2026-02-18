@@ -14,8 +14,10 @@ const Payment = () => {
       const [selectedPayment, setSelectedPayment] = React.useState<FinanceConfigValues | null>(null);
       const { data, loading, refetch } = useFetch(api.fetch.fetchPaymentConfig);
       const { executeDelete, success } = useDelete(api.delete.deletePaymentConfig);
-      
-    
+      const closeModal = () => {
+        setOpenModal(false);
+        setSelectedPayment(null);
+      };
     
       React.useEffect(() => {
         if (Array.isArray(data?.data)) {
@@ -41,20 +43,27 @@ const Payment = () => {
             }, [success]);
 
 
-    return ( 
-        <div>
+    return (
+        <div className="space-y-4">
             <PageHeader
-                className="font-semibold text-xl"
                 title={"Payment"}
                 buttonValue={"Create payment"}
                 onClick={() => {
+                  setSelectedPayment(null);
                   setOpenModal(true);
-                //   setDisplayForm(!displayForm);
-                //   setInputValue({ created_by: userId, name: "", description: "" });
                 }}
             />
 
-             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+             {loading ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                Loading payment configuration...
+              </p>
+             ) : paymentData.length === 0 ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                No payment configuration found. Create one to get started.
+              </p>
+             ) : (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {
                 paymentData?.map((payment:FinanceConfigValues) => (
                  
@@ -77,11 +86,12 @@ const Payment = () => {
                     
                 ))}
                 </div>
+             )}
 
-            <Modal open={openModal}  onClose={() => {setOpenModal(false)}}>
+            <Modal open={openModal} onClose={closeModal} className="max-w-2xl">
                 <FinanceConfigForm 
-                    onClose={() => {setOpenModal(false)}}
-                    onSubmit={() => {setOpenModal(false)}}
+                    onClose={closeModal}
+                    onSubmit={closeModal}
                     type="payment"
                     refetch={refetch}
                     initialData={selectedPayment? selectedPayment : undefined}

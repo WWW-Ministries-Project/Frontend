@@ -181,8 +181,8 @@ function TableComponent<TData>({
         </div>
       )}
 
-      <div className="rounded-lg shadow-md bg-white">
-        <div className="hideScrollbar rounded-lg overflow-y-scroll">
+      <div className="app-surface overflow-hidden rounded-lg bg-white">
+        <div className="hideScrollbar rounded-lg overflow-y-auto">
           <table className="w-full text-sm text-left table-auto">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (

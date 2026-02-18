@@ -37,7 +37,7 @@ const MembersPage = () => {
                 className="sticky top-0 z-40 w-full border-b border-lightGray bg-white shadow-sm"
                 role="banner"
             >
-                <div className="mx-auto px-4 lg:px-16 xl:px-32 3xl:px-64 py-4 max-w-[2000px]">
+                <div className="app-layout-container py-4">
                     <Header handleShowNav={() => {}} />
                 </div>
             </header>
@@ -49,7 +49,7 @@ const MembersPage = () => {
                 role="main"
                 aria-label="Main content"
             >
-                <div className="mx-auto px-4 lg:px-16 xl:px-32 3xl:px-64  max-w-[2000px]">
+                <div className="app-layout-container app-page-content">
                     <Outlet />
                 </div>
             </main>

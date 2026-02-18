@@ -302,7 +302,7 @@ const EventsManagement = () => {
   };
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title={`Events (${filteredEvents.length})`}
         tableView={tableView}

@@ -239,7 +239,7 @@ const AppointmentManager = () => {
   };
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title="Appointment Manager"
         subtitle="Manage all appointments scheduled within the system"

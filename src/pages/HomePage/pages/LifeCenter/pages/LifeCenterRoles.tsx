@@ -131,7 +131,7 @@ export function LifeCenterRoles() {
       </div>
       </Banner>
 
-      <div className="p-4">
+      <div className="app-page-padding pt-4">
         <TableComponent
         columns={columns}
         data={roles?.data || []}

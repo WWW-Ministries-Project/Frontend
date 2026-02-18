@@ -1,9 +1,7 @@
 import { cn } from "@/utils/cn";
 import { CSSProperties, MouseEvent } from "react";
 
-type ButtonClickHandler = {
-  bivarianceHack: (e?: any) => void;
-}["bivarianceHack"];
+type ButtonClickHandler = (e?: MouseEvent<HTMLButtonElement>) => void;
 
 interface IProps {
   link?: string;
@@ -29,20 +27,22 @@ export const Button = ({
   style,
 }: IProps) => {
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (type !== "submit" && type !== "reset") {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     onClick?.(e);
   };
 
-  const baseClass = `
-    inline-flex items-center justify-center px-4 py-2 rounded-lg leading-5 text-center w-auto whitespace-nowrap disabled:bg-lightGray
-  `;
+  const baseClass =
+    "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium leading-5 text-center whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
   const variantClass = {
-    primary: "bg-primary text-white",
-    secondary: "border border-primary text-primary",
-    ghost: "text-primary hover:underline",
-    default: "bg-primary text-white",
+    primary: "bg-primary text-white hover:bg-primary/90",
+    secondary:
+      "border border-primary/30 bg-white text-primary hover:border-primary/60 hover:bg-primary/5",
+    ghost: "bg-transparent text-primary hover:bg-primary/5",
+    default: "bg-primary text-white hover:bg-primary/90",
   }[variant];
 
   return (

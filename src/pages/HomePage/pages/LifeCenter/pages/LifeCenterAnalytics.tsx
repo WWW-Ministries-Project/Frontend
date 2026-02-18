@@ -381,7 +381,7 @@ export const LifeCenterAnalytics = () => {
   const hasFilteredResults = processedData.totalSouls > 0;
 
   return (
-    <PageOutline className="space-y-6 p-6">
+    <PageOutline className="space-y-6">
       <div>
         <HeaderControls
           title="Life Center Analytics"

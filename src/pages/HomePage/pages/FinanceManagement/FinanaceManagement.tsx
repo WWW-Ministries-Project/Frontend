@@ -187,7 +187,7 @@ const FinanceManager = () => {
   }, [success, refetch, page, take]);
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title="Finance Management"
         subtitle="Manage all financial activities and records"
@@ -200,7 +200,7 @@ const FinanceManager = () => {
 
       <div className="space-y-4">
         {loading && (
-          <p className="rounded-lg bg-gray-50 px-4 py-6 text-sm text-gray-600">
+          <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
             Loading financial records...
           </p>
         )}
@@ -212,7 +212,7 @@ const FinanceManager = () => {
         )}
 
         {!loading && !error && groupKeys.length === 0 && (
-          <p className="rounded-lg bg-gray-50 px-4 py-6 text-sm text-gray-600">
+          <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
             No financial records found.
           </p>
         )}
@@ -220,7 +220,7 @@ const FinanceManager = () => {
         {Object.entries(groupedData).map(([group, items]) => (
           <div key={group} className="space-y-3">
             <button
-              className="flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-2 text-lg font-semibold"
+              className="flex w-full items-center justify-between rounded-lg border border-lightGray bg-lightGray/30 px-4 py-3 text-lg font-semibold text-primary"
               onClick={() =>
                 setOpenGroups((prev) => ({
                   ...prev,
