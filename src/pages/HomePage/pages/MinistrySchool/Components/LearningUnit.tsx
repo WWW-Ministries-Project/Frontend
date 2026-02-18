@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { api, LearningUnit, LearningUnitType } from "@/utils";
-import { DownloadCertificate } from "./DownloadCertificate";
+import { showNotification } from "@/pages/HomePage/utils";
 import { usePut } from "@/CustomHooks/usePut";
 import { usePost } from "@/CustomHooks/usePost";
 
@@ -33,22 +33,22 @@ const typeBadgeMap: Record<
   LearningUnitType,
   { label: string; className: string }
 > = {
-  "lesson-note": { label: "Lesson Note", className: "bg-gray-100 text-gray-700" },
-  video: { label: "Video", className: "bg-blue-100 text-blue-700" },
+  "lesson-note": { label: "Lesson Note", className: "bg-lightGray/40 text-primaryGray" },
+  video: { label: "Video", className: "bg-primary/10 text-primary" },
   pdf: { label: "PDF", className: "bg-red-100 text-red-700" },
   ppt: { label: "Slides", className: "bg-yellow-100 text-yellow-700" },
   live: { label: "Live", className: "bg-green-100 text-green-700" },
   "in-person": {
     label: "In-person",
-    className: "bg-purple-100 text-purple-700",
+    className: "bg-secondary/10 text-secondary",
   },
   assignment: {
     label: "Assignment (MCQ)",
-    className: "bg-orange-100 text-orange-700",
+    className: "bg-accent/10 text-accent",
   },
   "assignment-essay": {
     label: "Assignment (Essay)",
-    className: "bg-pink-100 text-pink-700",
+    className: "bg-lighter/10 text-lighter",
   },
 };
 
@@ -66,14 +66,10 @@ export const LearningUnits: React.FC<Props> = ({
 }) => {
 
   const {
-      postData,
-      loading: postLoading,
-      data: postSuccess,
-    } = usePost(api.post.submitMCQAssignment);
-  // const [completed, setCompleted] = useState(false);
-  const [progress, setProgress] = useState(0);
+    postData,
+  } = usePost(api.post.submitMCQAssignment);
 
-   const { updateData: markTopicAsCompleted, loading } = usePut(
+  const { updateData: markTopicAsCompleted } = usePut(
     api.put.markTopicAsCompleted);
 
   // MCQ state
@@ -81,11 +77,6 @@ export const LearningUnits: React.FC<Props> = ({
   // Removed: const [submitted, setSubmitted] = useState(false);
 
   const [attempt, setAttempt] = useState(0);
-  const [result, setResult] = useState<{
-    score: number;
-    status: "PASS" | "FAIL";
-  } | null>(null);
-
   const maxAttempt =
     unit?.type === "assignment" ? unit.data.maxAttempt ?? 2 : 2;
 
@@ -95,31 +86,25 @@ export const LearningUnits: React.FC<Props> = ({
   const assignmentStatus = topicStatus;
 
   const markCompleted = async () => {
-  try {
-    const payload = {
-      topicId,
-      userId,
-    };
-
-    console.log("updating completion", payload);
-
-    await markTopicAsCompleted(payload); // wait for backend update
-    await refetch();                     // refetch AFTER success
-  } catch (error) {
-    console.error("Failed to mark topic as completed", error);
-  }
-};
+    try {
+      const payload = {
+        topicId,
+        userId,
+      };
+      await markTopicAsCompleted(payload);
+      await refetch();
+    } catch {
+      showNotification("Could not update topic completion. Please try again.", "error");
+    }
+  };
 
   const badge = unit ? typeBadgeMap[unit.type] : undefined;
-  console.log("Unit", unit);
-
-  
 
   return (
     <div className="border border-lightGray rounded-lg p-4 space-y-4 bg-white">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <Badge className={`text-xs `}>{badge?.label}</Badge>
+        <Badge className={`text-xs ${badge?.className ?? ""}`}>{badge?.label}</Badge>
 
         <div className="flex items-center gap-3">
           {unit?.type !== "assignment" && (
@@ -129,7 +114,7 @@ export const LearningUnits: React.FC<Props> = ({
             className={`text-xs px-3 py-1 rounded-md border ${
               topicCompleted
                 ? "bg-green-100 text-green-700 border-green-300"
-                : "bg-white text-gray-600 border-gray-300"
+                : "bg-white text-primaryGray border-lightGray"
             }`}
           >
             {topicCompleted ? "Completed" : "Mark as completed"}
@@ -142,7 +127,7 @@ export const LearningUnits: React.FC<Props> = ({
       {unit?.type === "lesson-note" && (
         <>
           <div
-            className="prose max-w-none text-gray-700"
+            className="prose max-w-none text-primaryGray"
             dangerouslySetInnerHTML={{ __html: unit.data.content }}
           />
           
@@ -172,7 +157,7 @@ export const LearningUnits: React.FC<Props> = ({
             onClick={() => window.open(unit.data.link, "_blank")}
           />
 
-          <div className="w-full h-[500px] border border-lightGray rounded-md overflow-hidden bg-gray-50">
+          <div className="w-full h-[500px] border border-lightGray rounded-md overflow-hidden bg-lightGray/20">
             {unit.type === "pdf" && (
               <iframe
                 src={`${unit.data.link}#toolbar=0&navpanes=0`}
@@ -204,7 +189,7 @@ export const LearningUnits: React.FC<Props> = ({
 
       {/* In-person */}
       {unit?.type === "in-person" && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-primaryGray">
           📍 {unit.data.value}
         </p>
       )}
@@ -214,7 +199,7 @@ export const LearningUnits: React.FC<Props> = ({
         <div className="relative">
           {!activation?.isActive && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-md text-center px-6">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-primaryGray">
                 This assignment is not yet active.<br />
                 You will be notified once it becomes available.
                 {activation?.isActive}
@@ -259,18 +244,6 @@ export const LearningUnits: React.FC<Props> = ({
                   }
                   className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
                   onClick={async () => {
-                    let correct = 0;
-
-                    unit.data.questions.forEach((q) => {
-                      if (answers[q.id] === q.correctOptionId) {
-                        correct++;
-                      }
-                    });
-
-                    const score = Math.round(
-                      (correct / unit.data.questions.length) * 100
-                    );
-
                     const payload = {
                       userId,
                       programId,
@@ -282,8 +255,8 @@ export const LearningUnits: React.FC<Props> = ({
                       await postData(payload);
                       setAttempt((prev) => prev + 1);
                       await refetch(); // backend updates completed, status, score
-                    } catch (error) {
-                      console.error("Failed to submit MCQ assignment", error);
+                    } catch {
+                      showNotification("Could not submit assignment. Please try again.", "error");
                     }
                   }}
                 >
@@ -308,7 +281,7 @@ export const LearningUnits: React.FC<Props> = ({
                   {assignmentStatus}
                 </Badge>
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-primaryGray">
                   Completed on {topicCompletedAt
                     ? new Date(topicCompletedAt).toLocaleString()
                     : ""}
@@ -317,7 +290,7 @@ export const LearningUnits: React.FC<Props> = ({
                 {assignmentStatus === "FAIL" && attempt < maxAttempt && (
                   <button
                     type="button"
-                    className="mt-4 px-4 py-2 text-sm rounded-md bg-gray-100 hover:bg-gray-200"
+                    className="mt-4 rounded-md bg-lightGray/30 px-4 py-2 text-sm hover:bg-lightGray/50"
                     onClick={() => {
                       setAnswers({});
                     }}
@@ -335,7 +308,7 @@ export const LearningUnits: React.FC<Props> = ({
       {unit?.type === "assignment-essay" && (
         <div className="space-y-4">
           <div
-            className="prose max-w-none text-gray-700"
+            className="prose max-w-none text-primaryGray"
             dangerouslySetInnerHTML={{ __html: unit.data.question }}
           />
 
@@ -345,12 +318,12 @@ export const LearningUnits: React.FC<Props> = ({
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                console.log("Essay submitted:", file.name);
+                showNotification(`Selected file: ${file.name}`, "success");
               }
             }}
           />
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-primaryGray">
             Upload your answer as a document (PDF or Word).
           </p>
         </div>

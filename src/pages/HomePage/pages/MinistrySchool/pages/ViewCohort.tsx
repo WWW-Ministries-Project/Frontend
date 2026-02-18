@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ClassCard, ClassItemType } from "../Components/ClassCard";
 import { ClassForm, IClassForm } from "../Components/ClassForm";
-import { useViewPage } from "../customHooks/ViewPageContext";
+import { useViewPage } from "../customHooks/useViewPage";
 
 export const ViewCohort = () => {
   const { id: cohortId } = useParams();

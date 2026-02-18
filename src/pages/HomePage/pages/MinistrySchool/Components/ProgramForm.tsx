@@ -3,7 +3,6 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
 import { FormHeader } from "@/components/ui";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
-import { XCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Field, FieldArray, Form, Formik } from "formik";
 import { array, boolean, number, object, string } from "yup";
 
@@ -198,7 +197,7 @@ const ProgramFormComponent = ({
               )}
             </div>
             </div>
-            <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
+            <div className="sticky bottom-0 z-10 bg-white border-t border-lightGray px-6 py-4">
     <div className="flex items-center justify-end gap-3">
               <Button
                 type="submit"

@@ -253,4 +253,11 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
   };
+
+  // create tithe breakdown config
+  createTitheBreakdownConfig = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("tithebreakdownconfig/create-tithe-breakdown-config", payload); 
+  }
 }

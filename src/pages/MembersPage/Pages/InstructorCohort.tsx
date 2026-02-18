@@ -1,7 +1,6 @@
 import { Button } from "@/components";
-import BannerWrapper from "../layouts/BannerWrapper";
 import { useNavigate, useParams } from "react-router-dom";
-import { api, relativePath } from "@/utils";
+import { api } from "@/utils";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useEffect, useState } from "react";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -38,7 +37,7 @@ const InstructorCohort = () => {
     const navigate = useNavigate();
     const { programId } = useParams<{ programId: string }>();
 
-  const { data, loading, refetch } = useFetch(
+  const { data } = useFetch(
   api.fetch.fetchCohortsByProgram, { programId: programId!} 
 );
   
@@ -108,7 +107,7 @@ const InstructorCohort = () => {
               filteredCohorts.map((cohort) => (
                 <div
                   key={cohort.id}
-                  className="flex  items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
+                  className="flex w-full items-center justify-between rounded-xl border border-lightGray bg-white p-4"
                 >
                   <div className="flex flex-col gap-y-2">
                     <div className="flex items-center gap-x-2">

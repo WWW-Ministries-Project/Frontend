@@ -1,7 +1,7 @@
 import SearchIcon from "@/assets/SearchIcon";
 import { Button } from "@/components";
 import { ArrowLeftIcon, CheckIcon, ClockIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
 import { useNavigate, useParams } from "react-router-dom";
@@ -24,6 +24,19 @@ interface Assignment {
   submissions: Submission[];
 }
 
+interface BackendAssignmentResult {
+  submission: {
+    id: number | string;
+    submittedAt: string;
+    score: number | null;
+    status: string;
+  };
+  student: {
+    id: number | string;
+    name: string;
+  };
+}
+
 const QUICK_GRADES = [100, 90, 80, 70, 60, 50];
 
 /**
@@ -34,7 +47,7 @@ const submitGradeToBackend = (payload: {
   studentId: string;
   grade: number;
 }) => {
-  console.log("Submitting single grade to backend:", payload);
+  void payload;
 };
 
 /**
@@ -45,10 +58,12 @@ const submitBulkGradesToBackend = (payload: {
   studentIds: string[];
   grade: number;
 }) => {
-  console.log("Submitting bulk grades to backend:", payload);
+  void payload;
 };
 
-const mapBackendResultsToAssignment = (results: any[]): Assignment => {
+const mapBackendResultsToAssignment = (
+  results: BackendAssignmentResult[]
+): Assignment => {
   return {
     title: "Assignment Results",
     submissions: results.map((item) => ({
@@ -69,10 +84,10 @@ const GradingPanel = () => {
   const { cohortId } = useParams<{ cohortId: string }>();
   const { topicId } = useParams<{ topicId: string }>();
 
-  const { data, loading } = useFetch<ApiResponse<any[]>>(
+  const { data, loading } = useFetch<ApiResponse<BackendAssignmentResult[]>>(
     api.fetch.fetchAssignmentResults as (
       query?: Record<string, string | number>
-    ) => Promise<ApiResponse<any[]>>,
+    ) => Promise<ApiResponse<BackendAssignmentResult[]>>,
     {
       programId: programId!,
       cohortId: cohortId!,
@@ -88,7 +103,7 @@ const GradingPanel = () => {
     }
   }, [data]);
 
-  const onGrade = (submissionId: string, grade: number) => {
+  const onGrade = useCallback((submissionId: string, grade: number) => {
     setAssignment(prev => {
       if (!prev) return prev;
       return {
@@ -100,14 +115,14 @@ const GradingPanel = () => {
         ),
       };
     });
-  };
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "graded">("all");
   const [_editingId, _setEditingId] = useState<string | null>(null);
   const [_editingGrade, _setEditingGrade] = useState("");
 
-  const handleInlineGrade = (submissionId: string) => {
+  const handleInlineGrade = useCallback((submissionId: string) => {
     if (_editingGrade) {
       const numGrade = Number(_editingGrade);
       if (Number.isNaN(numGrade)) return;
@@ -127,7 +142,7 @@ const GradingPanel = () => {
     }
     _setEditingId(null);
     _setEditingGrade("");
-  };
+  }, [_editingGrade, assignment, onGrade]);
 
   const startEditing = (submission: Submission) => {
     _setEditingId(submission.id);
@@ -233,7 +248,7 @@ const GradingPanel = () => {
         );
       },
     },
-  ], [_editingId, _editingGrade, assignment]);
+  ], [_editingId, _editingGrade, handleInlineGrade, onGrade]);
 
   const filteredSubmissions = useMemo(() => {
     if (!assignment) return [];
@@ -326,6 +341,23 @@ const GradingPanel = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-md border border-lightGray py-2 pl-9 pr-3"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={filterStatus === "all" ? "primary" : "secondary"}
+            value="All"
+            onClick={() => setFilterStatus("all")}
+          />
+          <Button
+            variant={filterStatus === "pending" ? "primary" : "secondary"}
+            value="Pending"
+            onClick={() => setFilterStatus("pending")}
+          />
+          <Button
+            variant={filterStatus === "graded" ? "primary" : "secondary"}
+            value="Graded"
+            onClick={() => setFilterStatus("graded")}
           />
         </div>
       </div>

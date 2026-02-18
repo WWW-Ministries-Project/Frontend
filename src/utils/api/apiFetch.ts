@@ -493,5 +493,12 @@ export class ApiCalls {
     return this.fetchFromApi("bankaccountconfig/get-bank-account-configs", query);
   };
 
+  // fetch tithe breakdown config
+  fetchTitheBreakdownConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("tithebreakdownconfig/get-tithe-breakdown-configs", query);
+  }
+
 
 }

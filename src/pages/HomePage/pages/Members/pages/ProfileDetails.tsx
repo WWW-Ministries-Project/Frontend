@@ -2,7 +2,7 @@ import { Button, ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
 import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { navigateRef } from "@/pages/HomePage/HomePage";
+import { navigateRef } from "@/pages/HomePage/navigationRef";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { IFamilyInformationRaw, IMemberInfo, MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";

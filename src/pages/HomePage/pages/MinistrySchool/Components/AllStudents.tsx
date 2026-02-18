@@ -8,8 +8,6 @@ import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  ChartBarIcon,
-  EyeIcon,
 } from "@heroicons/react/24/outline";
 
 interface Student {
@@ -92,7 +90,7 @@ export const AllStudents = ({
 
         return (
           <div className="space-y-1 min-w-[140px]">
-            <div className="flex justify-between text-xs text-gray-600">
+            <div className="flex justify-between text-xs text-primaryGray">
               <span>
                 {progress_completed}/{progress_total} done
               </span>
@@ -195,17 +193,17 @@ export const AllStudents = ({
               >
                 <div className="flex gap-y-2 justify-between items-start">
                   <div className="flex flex-col gap-y-2">
-                    <p className="flex items-center gap-1 font-semibold text-gray-900">
-                      <UserIcon className="w-4 h-4 text-gray-500" />
+                    <p className="flex items-center gap-1 font-semibold text-primary">
+                      <UserIcon className="w-4 h-4 text-primaryGray" />
                       {student.first_name || student.firstName} {student.last_name || student.lastName}
                     </p>
 
-                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                    <p className="flex items-center gap-1 text-sm text-primaryGray">
                       <EnvelopeIcon className="w-4 h-4" />
                       {student.email}
                     </p>
 
-                    <p className="flex items-center gap-1 text-sm text-gray-500">
+                    <p className="flex items-center gap-1 text-sm text-primaryGray">
                       <PhoneIcon className="w-4 h-4" />
                       {student?.primary_number}
                     </p>
@@ -223,7 +221,7 @@ export const AllStudents = ({
 
                 {/* Progress */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-gray-600">
+                  <div className="flex justify-between text-xs text-primaryGray">
                     <span>
                       {student.progress_completed}/{student.progress_total} done
                     </span>

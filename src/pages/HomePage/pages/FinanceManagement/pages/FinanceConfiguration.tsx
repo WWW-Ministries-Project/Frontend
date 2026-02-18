@@ -12,6 +12,7 @@ import { Button } from "@/components/Button";
 import Receipt from "../Components/Receipt";
 import Payment from "../Components/Payment";
 import BankAccount from "../Components/BankAccount";
+import TitheBreakdown from "../Components/TitheBreakdown";
 
 const FinanceConfiguration = () => {
   const [selectedTab, setSelectedTab] = useState("Receipt ");
@@ -41,7 +42,7 @@ const FinanceConfiguration = () => {
 
       <div className="w-fit">
         <TabSelection
-          tabs={["Receipt ", "Payment ", "Bank Accounts"]}
+          tabs={["Receipt ", "Payment ", "Bank Accounts", "Tithe Breakdown"]}
           selectedTab={selectedTab}
           onTabSelect={(tab) => setSelectedTab(tab)}
         />
@@ -61,6 +62,7 @@ const FinanceConfiguration = () => {
       {selectedTab === "Receipt " && <Receipt />}
       {selectedTab === "Payment " && <Payment />}
       {selectedTab === "Bank Accounts" && <BankAccount />}
+      {selectedTab === "Tithe Breakdown" && <TitheBreakdown />}
 
 
         {/* <Modal open={displayForm} persist={false} onClose={() => setDisplayForm(false)}>

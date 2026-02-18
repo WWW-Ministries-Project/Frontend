@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import BannerWrapper from "../layouts/BannerWrapper";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 import { api, Topic } from "@/utils";
@@ -34,10 +34,8 @@ type ProgramCompletionStatus = {
  */
 const EnrolledProgram: React.FC = () => {
   const { programId } = useParams<{ programId: string }>();
-  
-  const navigate = useNavigate();
-  const id = Number(programId);
   const { user } = useAuth();
+  const userId = user?.id ?? "";
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
@@ -52,7 +50,7 @@ const EnrolledProgram: React.FC = () => {
     api.fetch.fetchMyProgram as (
       query?: QueryType
     ) => Promise<ApiResponse<ProgramCompletionStatus>>,
-    { programId: programId ?? "", userId: user?.id ?? "" }
+    { programId: programId ?? "", userId }
   );
 
 
@@ -180,11 +178,11 @@ useEffect(() => {
                 {selectedTopic ? (
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <h2 className="text-xl font-semibold text-gray-900">
+                      <h2 className="text-xl font-semibold text-primary">
                         {selectedTopic.name}
                       </h2>
                       <div
-                        className="prose max-w-none text-gray-700"
+                        className="prose max-w-none text-primaryGray"
                         dangerouslySetInnerHTML={{
                           __html: String(selectedTopic.description ?? ""),
                         }}
@@ -194,7 +192,7 @@ useEffect(() => {
                     <LearningUnit 
                     unit={selectedTopic.learningUnit ?? undefined} 
                     topicId={selectedTopic.id} 
-                    userId ={user!.id} 
+                    userId={userId}
                     programId= {programId}
 
                     topicCompleted={selectedTopic.completed}
@@ -210,7 +208,7 @@ useEffect(() => {
                   <div className="flex items-center justify-center h-[300px]">
                     <div className="text-center space-y-2">
                       <svg
-                        className="w-12 h-12 text-gray-400 mx-auto"
+                        className="mx-auto h-12 w-12 text-primaryGray"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -274,14 +272,14 @@ useEffect(() => {
             <TrophyIcon className="h-16 w-16 text-yellow-500" />
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Congratulations 🎉
-            </h2>
-            <p className="text-sm text-gray-600">
-              You have successfully completed the program.
-              We’re proud of your dedication and commitment.
-            </p>
+	          <div className="space-y-2">
+	            <h2 className="text-2xl font-bold text-primary">
+	              Congratulations 🎉
+	            </h2>
+	            <p className="text-sm text-primaryGray">
+	              You have successfully completed the program.
+	              We’re proud of your dedication and commitment.
+	            </p>
           </div>
 
           <div className="flex justify-center gap-3">

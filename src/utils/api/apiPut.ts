@@ -447,4 +447,16 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+  // update tithe breakdown config
+  updateTitheBreakdownConfig = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "tithebreakdownconfig/update-tithe-breakdown-config",
+      payload,
+      query
+    );
+  }
 }

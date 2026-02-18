@@ -5,6 +5,7 @@ import { Modal } from "@/components/Modal";
 import { api, formatDatefull } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { usePut } from "@/CustomHooks/usePut";
+import { showNotification } from "@/pages/HomePage/utils";
 
 interface Submission {
      id: string;
@@ -23,7 +24,7 @@ interface AssignmentTopic {
       submissions: Submission[];
 }
 
-const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment, refetch }: { 
+const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setSelectedAssignment, refetch }: { 
   cohortId: string; 
   assignments: AssignmentTopic[]; 
   setSelectedAssignment: (assignment: AssignmentTopic) => void;
@@ -67,33 +68,12 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment, refet
         }
 
         refetch();
-      } catch (error) {
-        console.error(`Failed to ${action} assignment`, error);
+      } catch {
+        showNotification(`Failed to ${action} assignment. Please try again.`, "error");
       }
     };
 
     const navigate = useNavigate()
-
-    React.useEffect(() => {
-      const now = new Date();
-      console.log("assignments", assignments);
-      
-
-      assignments.forEach((assignment) => {
-        if (
-          assignment.isActive &&
-          assignment.dueDate &&
-          new Date(assignment.dueDate) < now
-        ) {
-          const updatedAssignment = {
-            ...assignment,
-            isActive: false,
-          };
-
-          console.log("Auto-deactivated Assignment (due date passed):", updatedAssignment);
-        }
-      });
-    }, [assignments]);
     
     return ( 
         <div className="flex flex-col gap-4 lg:flex-1">
@@ -168,7 +148,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment, refet
                                       <div>
                                         <h2 className="text-xl font-semibold text-gray-900">Activate Assignment</h2>
                                         <p className="text-sm text-muted-foreground mt-1">
-                                          Set a due date for "{selectedAssignment.title}"
+                                          Set a due date for &quot;{selectedAssignment.title}&quot;
                                         </p>
                                       </div>
                                     </div>
@@ -218,7 +198,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment, refet
                                         Deactivate Assignment
                                       </h2>
                                       <p className="text-sm text-muted-foreground mt-1">
-                                        Are you sure you want to deactivate "{selectedAssignment.title}"?
+                                        Are you sure you want to deactivate &quot;{selectedAssignment.title}&quot;?
                                       </p>
                                     </div>
 
