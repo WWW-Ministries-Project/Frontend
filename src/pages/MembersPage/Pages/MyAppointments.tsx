@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components";
 import BannerWrapper from "../layouts/BannerWrapper";
 import booking from "@/assets/banner/booking.svg";
@@ -52,6 +52,13 @@ const MyAppointments = () => {
   const [attendeeFilter, setAttendeeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [cachedAttendeeOptions, setCachedAttendeeOptions] = useState<
+    Record<string, string>
+  >({});
+  const defaultStatusOptions = useMemo(
+    () => ["PENDING", "CONFIRMED", "CANCELLED"],
+    []
+  );
 
   const membersLookup = useMemo(
     () =>
@@ -64,11 +71,19 @@ const MyAppointments = () => {
 
   const requesterId = toStringValue(user?.id).trim();
 
-  const memberQuery = useMemo<AppointmentBookingsQuery | null>(() => {
+  const baseMemberQuery = useMemo<AppointmentBookingsQuery | null>(() => {
     if (!requesterId) return null;
 
-    const query: AppointmentBookingsQuery = {
+    return {
       requesterId,
+    };
+  }, [requesterId]);
+
+  const memberQuery = useMemo<AppointmentBookingsQuery | null>(() => {
+    if (!baseMemberQuery) return null;
+
+    const query: AppointmentBookingsQuery = {
+      ...baseMemberQuery,
     };
 
     if (attendeeFilter) {
@@ -84,7 +99,9 @@ const MyAppointments = () => {
     }
 
     return query;
-  }, [attendeeFilter, dateFilter, requesterId, statusFilter]);
+  }, [attendeeFilter, baseMemberQuery, dateFilter, statusFilter]);
+  const latestQueryRef = useRef<AppointmentBookingsQuery | null>(null);
+  const hasLoadedInitialQueryRef = useRef(false);
 
   const {
     data: bookingsResponse,
@@ -99,9 +116,19 @@ const MyAppointments = () => {
   } = useDelete(api.delete.deleteAppointmentBooking);
 
   useEffect(() => {
+    if (!baseMemberQuery) return;
+
+    if (!hasLoadedInitialQueryRef.current) {
+      latestQueryRef.current = baseMemberQuery;
+      hasLoadedInitialQueryRef.current = true;
+      refetch(baseMemberQuery);
+      return;
+    }
+
     if (!memberQuery) return;
+    latestQueryRef.current = memberQuery;
     refetch(memberQuery);
-  }, [memberQuery, refetch]);
+  }, [baseMemberQuery, memberQuery, refetch]);
 
   const appointments = useMemo(() => {
     if (!Array.isArray(bookingsResponse?.data)) return [];
@@ -140,43 +167,76 @@ const MyAppointments = () => {
 
   const attendeeFilterOptions = useMemo(
     () =>
-      appointments.reduce<{ value: string; label: string }[]>((acc, appointment) => {
-        if (!appointment.staffId) return acc;
-
-        const exists = acc.some((option) => option.value === appointment.staffId);
-        if (exists) return acc;
-
-        acc.push({
-          value: appointment.staffId,
-          label: appointment.staffName || "Unknown Staff",
-        });
-
-        return acc;
-      }, []),
-    [appointments]
+      Object.entries(cachedAttendeeOptions).map(([value, label]) => ({
+        value,
+        label,
+      })),
+    [cachedAttendeeOptions]
   );
 
-  const statusFilterOptions = useMemo(
-    () =>
-      appointments.reduce<string[]>((acc, appointment) => {
-        const status = toStringValue(appointment.status).toUpperCase().trim();
+  const statusFilterOptions = useMemo(() => {
+    const fromAppointments = appointments.reduce<string[]>((acc, appointment) => {
+      const status = toStringValue(appointment.status).toUpperCase().trim();
 
-        if (!status || acc.includes(status)) return acc;
+      if (!status || acc.includes(status)) return acc;
 
-        acc.push(status);
-        return acc;
-      }, []),
-    [appointments]
-  );
+      acc.push(status);
+      return acc;
+    }, []);
+
+    const merged = [...defaultStatusOptions, ...fromAppointments];
+    if (statusFilter && !merged.includes(statusFilter)) {
+      merged.push(statusFilter);
+    }
+
+    return merged.filter(
+      (status, index) => status && merged.indexOf(status) === index
+    );
+  }, [appointments, defaultStatusOptions, statusFilter]);
+
+  useEffect(() => {
+    if (appointments.length === 0 && !attendeeFilter) return;
+
+    setCachedAttendeeOptions((prev) => {
+      const next = { ...prev };
+      let hasChanges = false;
+
+      appointments.forEach((appointment) => {
+        const staffId = toStringValue(appointment.staffId).trim();
+        if (!staffId) return;
+
+        const label = appointment.staffName || membersLookup[staffId] || "Unknown Staff";
+        if (next[staffId] !== label) {
+          next[staffId] = label;
+          hasChanges = true;
+        }
+      });
+
+      if (attendeeFilter && !next[attendeeFilter]) {
+        next[attendeeFilter] =
+          membersLookup[attendeeFilter] || "Unknown Staff";
+        hasChanges = true;
+      }
+
+      return hasChanges ? next : prev;
+    });
+  }, [appointments, attendeeFilter, membersLookup]);
+
+  useEffect(() => {
+    setCachedAttendeeOptions({});
+    setAttendeeFilter("");
+    setStatusFilter("");
+    setDateFilter("");
+  }, [requesterId]);
 
   useEffect(() => {
     if (!deleteSuccess) return;
 
     showNotification("Appointment deleted successfully", "success");
-    if (memberQuery) {
-      refetch(memberQuery);
+    if (latestQueryRef.current) {
+      refetch(latestQueryRef.current);
     }
-  }, [deleteSuccess, memberQuery, refetch]);
+  }, [deleteSuccess, refetch]);
 
   useEffect(() => {
     if (!deleteError) return;
@@ -330,8 +390,8 @@ const MyAppointments = () => {
           appointment={selectedAppointment}
           bookedSessions={bookedSessions}
           onSuccess={() => {
-            if (memberQuery) {
-              refetch(memberQuery);
+            if (latestQueryRef.current) {
+              refetch(latestQueryRef.current);
             }
           }}
           onClose={() => {

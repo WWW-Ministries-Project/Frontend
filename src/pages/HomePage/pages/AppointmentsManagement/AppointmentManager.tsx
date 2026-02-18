@@ -1,11 +1,7 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import PageOutline from "../../Components/PageOutline";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Appointment,
-  AppointmentBookingsQuery,
-  BookedSession,
-} from "@/utils/api/appointment/interfaces";
+import { useEffect, useMemo, useState } from "react";
+import { Appointment, BookedSession } from "@/utils/api/appointment/interfaces";
 import AllAppointmentsLayout from "./Layout/AllAppointmentsLayout";
 import { Modal } from "@/components/Modal";
 import AppointmentBookingForm from "@/pages/MembersPage/Component/AppointmentBookingForm";
@@ -20,6 +16,11 @@ import {
 } from "@/utils/api/appointment/bookingUtils";
 import { useStore } from "@/store/useStore";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+
+const toInputDate = (value?: string): string => {
+  if (!value) return "";
+  return value.split("T")[0];
+};
 
 const AppointmentManager = () => {
   const membersOptions = useStore((state) => state.membersOptions);
@@ -47,29 +48,6 @@ const AppointmentManager = () => {
     [membersOptions]
   );
 
-  const adminQuery = useMemo<AppointmentBookingsQuery>(() => {
-    const query: AppointmentBookingsQuery = {};
-
-    if (attendeeFilter) {
-      query.attendeeId = attendeeFilter;
-    }
-
-    if (requesterFilter) {
-      query.requesterId = requesterFilter;
-    }
-
-    if (statusFilter) {
-      query.status = statusFilter;
-    }
-
-    if (dateFilter) {
-      query.date = dateFilter;
-    }
-
-    return query;
-  }, [attendeeFilter, dateFilter, requesterFilter, statusFilter]);
-  const latestQueryRef = useRef<AppointmentBookingsQuery>(adminQuery);
-
   const {
     data: bookingsResponse,
     loading,
@@ -89,12 +67,8 @@ const AppointmentManager = () => {
   } = usePut(api.put.updateAppointmentStatus);
 
   useEffect(() => {
-    latestQueryRef.current = adminQuery;
-  }, [adminQuery]);
-
-  useEffect(() => {
-    refetch(adminQuery);
-  }, [adminQuery, refetch]);
+    refetch();
+  }, [refetch]);
 
   const appointments = useMemo(() => {
     if (!Array.isArray(bookingsResponse?.data)) return [];
@@ -103,6 +77,24 @@ const AppointmentManager = () => {
       .map((item) => normalizeAppointmentRecord(item, membersLookup))
       .filter((item): item is Appointment => item !== null);
   }, [bookingsResponse, membersLookup]);
+
+  const filteredAppointments = useMemo(() => {
+    return appointments.filter((appointment) => {
+      const matchesAttendee =
+        !attendeeFilter || appointment.staffId === attendeeFilter;
+      const matchesRequester =
+        !requesterFilter ||
+        toStringValue(appointment.requesterId).trim() === requesterFilter;
+      const appointmentStatus = toStringValue(appointment.status)
+        .toUpperCase()
+        .trim();
+      const matchesStatus = !statusFilter || appointmentStatus === statusFilter;
+      const matchesDate =
+        !dateFilter || toInputDate(appointment.date) === toInputDate(dateFilter);
+
+      return matchesAttendee && matchesRequester && matchesStatus && matchesDate;
+    });
+  }, [appointments, attendeeFilter, requesterFilter, statusFilter, dateFilter]);
 
   const attendeeFilterOptions = useMemo(
     () =>
@@ -164,7 +156,7 @@ const AppointmentManager = () => {
     if (!deleteSuccess) return;
 
     showNotification("Appointment deleted successfully", "success");
-    refetch(latestQueryRef.current);
+    refetch();
   }, [deleteSuccess, refetch]);
 
   useEffect(() => {
@@ -177,12 +169,14 @@ const AppointmentManager = () => {
     if (!statusUpdateResponse) return;
 
     showNotification(
-      statusUpdatingTarget ? "Appointment confirmed successfully" : "Appointment marked as unconfirmed",
+      statusUpdatingTarget
+        ? "Appointment confirmed successfully"
+        : "Appointment marked as unconfirmed",
       "success"
     );
     setStatusUpdatingAppointmentId(null);
     setStatusUpdatingTarget(null);
-    refetch(latestQueryRef.current);
+    refetch();
   }, [refetch, statusUpdateResponse, statusUpdatingTarget]);
 
   useEffect(() => {
@@ -320,11 +314,13 @@ const AppointmentManager = () => {
 
       {loading ? (
         <div className="text-sm text-gray-600 py-4">Loading appointments...</div>
-      ) : appointments.length === 0 ? (
-        <div className="text-sm text-gray-600 py-4">No appointments found for the selected filters.</div>
+      ) : filteredAppointments.length === 0 ? (
+        <div className="text-sm text-gray-600 py-4">
+          No appointments found for the selected filters.
+        </div>
       ) : (
         <AllAppointmentsLayout
-          Appointments={{ all: appointments }}
+          Appointments={{ all: filteredAppointments }}
           onEdit={(appointment) => {
             setSelectedAppointment(appointment);
             setIsModalOpen(true);
@@ -351,7 +347,7 @@ const AppointmentManager = () => {
           appointment={selectedAppointment}
           bookedSessions={bookedSessions}
           onSuccess={() => {
-            refetch(adminQuery);
+            refetch();
           }}
           onClose={() => {
             setIsModalOpen(false);

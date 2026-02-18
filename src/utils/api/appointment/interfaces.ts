@@ -92,12 +92,17 @@ export type AppointmentBookingStatus =
   | string;
 
 export type AppointmentBookingsQuery = Partial<
-  Record<"attendeeId" | "requesterId" | "status" | "date", string | number>
+  Record<
+    "attendeeId" | "requesterId" | "status" | "date" | "staffId" | "userId",
+    string | number
+  >
 >;
 
 export interface CreateAppointmentBookingPayload {
-  requesterId: string;
-  attendeeId: string;
+  requesterId: number;
+  attendeeId: number;
+  userId?: number;
+  staffId?: number;
   date: string;
   startTime: string;
   endTime: string;

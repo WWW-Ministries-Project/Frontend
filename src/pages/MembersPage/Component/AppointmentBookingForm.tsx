@@ -82,6 +82,16 @@ const toNumberValue = (value: unknown, fallback = 0): number => {
   return fallback;
 };
 
+const toIntegerId = (value: unknown): number | null => {
+  const raw = toStringValue(value).trim();
+  if (!raw) return null;
+
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+
+  return parsed;
+};
+
 const normalizeStatus = (value: unknown): AvailabilityStatus =>
   toStringValue(value).toUpperCase();
 
@@ -635,19 +645,28 @@ const AppointmentBookingForm = ({
       return;
     }
 
-    const requesterId = toStringValue(
-      appointment?.requesterId ?? user?.id
-    ).trim();
-    const attendeeId = toStringValue(values.staffId).trim();
+    const loggedInRequesterId = toIntegerId(user?.id);
+    const requesterId = appointment?.id
+      ? toIntegerId(appointment?.requesterId ?? user?.id)
+      : loggedInRequesterId;
+    const attendeeId = toIntegerId(values.staffId);
     const bookingDate = toInputDate(values.date);
 
-    if (!requesterId) {
+    if (loggedInRequesterId === null) {
+      showNotification("You must be logged in to book an appointment.", "error");
+      return;
+    }
+
+    if (requesterId === null) {
       showNotification("Unable to identify requester for this booking.", "error");
       return;
     }
 
-    if (!attendeeId) {
-      showNotification("Please select a staff member for the appointment.", "error");
+    if (attendeeId === null) {
+      showNotification(
+        "Selected staff member has an invalid id. Please choose another staff member.",
+        "error"
+      );
       return;
     }
 
@@ -659,6 +678,8 @@ const AppointmentBookingForm = ({
     const basePayload: CreateAppointmentBookingPayload = {
       requesterId,
       attendeeId,
+      userId: attendeeId,
+      staffId: attendeeId,
       date: bookingDate,
       startTime: values.session.start,
       endTime: values.session.end,
