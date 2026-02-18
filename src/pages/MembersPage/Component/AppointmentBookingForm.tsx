@@ -988,7 +988,7 @@ const AppointmentBookingForm = ({
               />
               <Button
                 type="submit"
-                onClick={handleSubmit}
+                onClick={()=>handleSubmit}
                 loading={postLoading || putLoading}
                 value={appointment ? "Update Appointment" : "Book Appointment"}
               />

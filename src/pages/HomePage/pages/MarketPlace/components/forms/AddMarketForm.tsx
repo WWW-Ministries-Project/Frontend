@@ -1,6 +1,6 @@
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
-import { date, object, ref, string } from "yup";
+import { date, mixed, object, ref, string } from "yup";
 
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
@@ -137,10 +137,17 @@ const initialValues: IMarket = {
 };
 
 const validationSchema = object().shape({
-  name: string().required("required"),
-  description: string().required("required"),
-  start_date: date().required("required"),
+  name: string().trim().required("Required"),
+  event_id: mixed()
+    .required("Required")
+    .test(
+      "event-required",
+      "Required",
+      (value) => String(value || "").trim() !== ""
+    ),
+  description: string().trim().required("Required"),
+  start_date: date().required("Required"),
   end_date: date()
-    .required("required")
+    .required("Required")
     .min(ref("start_date"), "End date can't be before start date"),
 });

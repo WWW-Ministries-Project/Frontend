@@ -8,11 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
 import { ICartItem, IProductTypeResponse, relativePath } from "@/utils";
 import { ProductChip } from "./chips/ProductChip";
 import { cn } from "@/utils/cn";
 import { useCart } from "../utils/cartSlice";
-import { matchRoutes, useNavigate } from "react-router-dom";
+import { matchRoutes, useLocation, useNavigate } from "react-router-dom";
 import { routes } from "@/routes/appRoutes";
 import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
 
@@ -22,8 +23,9 @@ interface IProps {
 }
 
 export function ProductDetails({ product, addToCart }: IProps) {
-  const { itemIsInCart, updateSection, cartItems } = useCart();
+  const { cartItems } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const matches = matchRoutes(routes, location);
   const routeName = matches?.find((m) => m.route.name)?.route.name;
 
@@ -38,51 +40,97 @@ export function ProductDetails({ product, addToCart }: IProps) {
         size: productExists.size,
       }
       : { quantity: 1, color: "", size: "" };
-  }, []);
+  }, [cartItems, product.id]);
+
+  const initialCurrentIndex = useMemo(() => {
+    if (!currentProduct.color) return 0;
+
+    const existingIndex = product.product_colours.findIndex(
+      (colorItem) => colorItem.colour === currentProduct.color
+    );
+
+    return existingIndex >= 0 ? existingIndex : 0;
+  }, [currentProduct.color, product.product_colours]);
 
   const [selection, setSelection] = useState({
-    selectedColor: currentProduct.color,
-    selectedSize: currentProduct.size,
+    selectedColor:
+      currentProduct.color ||
+      product.product_colours[initialCurrentIndex]?.colour ||
+      "",
+    selectedSize:
+      currentProduct.size ||
+      product.product_colours[initialCurrentIndex]?.stock?.[0]?.size ||
+      "",
     quantity: currentProduct.quantity,
-    currentIndex: 0,
+    currentIndex: initialCurrentIndex,
   });
+  const [pendingPurchase, setPendingPurchase] = useState<{
+    action: "buy_now" | "add_to_cart";
+    item: ICartItem;
+  } | null>(null);
   const handleQuantityChange = (
     type: "increment" | "decrement",
     value?: number
   ) => {
     setSelection((prev) => {
-      const newQuantity = value
-        ? value
+      const hasExplicitValue =
+        typeof value === "number" && Number.isFinite(value);
+      const newQuantity = hasExplicitValue
+        ? Math.max(1, Math.floor(value))
         : type === "increment"
           ? prev.quantity + 1
           : prev.quantity > 1
             ? prev.quantity - 1
             : 1;
-      updateSection(`${product.id}`, "quantity", newQuantity);
       return { ...prev, quantity: newQuantity };
     });
   };
 
   const handleCurrentIndexChange = (newIndex: number) => {
-    setSelection((prev) => ({ ...prev, currentIndex: newIndex }));
+    const nextColor = product.product_colours[newIndex];
+    const nextSizes = nextColor?.stock || [];
+
+    setSelection((prev) => {
+      const hasCurrentSize = nextSizes.some(
+        (sizeOption) => sizeOption.size === prev.selectedSize
+      );
+      const nextSelectedSize = hasCurrentSize
+        ? prev.selectedSize
+        : nextSizes[0]?.size || "";
+
+      return {
+        ...prev,
+        currentIndex: newIndex,
+        selectedColor: nextColor?.colour || "",
+        selectedSize: nextSelectedSize,
+      };
+    });
   };
 
   const handleColorChange = (color: string, idx: number) => {
-    updateSection(`${product.id}`, "color", color);
-    setSelection((prev) => ({ ...prev, selectedColor: color }));
-    handleCurrentIndexChange(idx);
+    const nextSizes = product.product_colours[idx]?.stock || [];
+
+    setSelection((prev) => {
+      const hasCurrentSize = nextSizes.some(
+        (sizeOption) => sizeOption.size === prev.selectedSize
+      );
+      const nextSelectedSize = hasCurrentSize
+        ? prev.selectedSize
+        : nextSizes[0]?.size || "";
+
+      return {
+        ...prev,
+        selectedColor: color,
+        selectedSize: nextSelectedSize,
+        currentIndex: idx,
+      };
+    });
   };
 
   const handleSizeChange = (size: string) => {
-    updateSection(`${product.id}`, "size", size);
     setSelection((prev) => ({ ...prev, selectedSize: size }));
   };
 
-  const productStock = product.product_colours.flatMap(
-    (color) => color.stock || []
-  );
-
-  const itemExistInCart = itemIsInCart(`${product.id}`);
   const productColors = Array.from(
     new Set(product.product_colours.map((color) => color.colour))
   );
@@ -95,7 +143,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
     name: product.name,
     product_id: `${product.id}`,
     price_amount: +product.price_amount,
-    price_currency: product.price_currency,
+    price_currency: product.price_currency || "GHC",
     quantity: selection.quantity,
     product_type: product.product_type.name,
     product_category: product.product_category.name,
@@ -103,28 +151,48 @@ export function ProductDetails({ product, addToCart }: IProps) {
     color:
       selection.selectedColor ||
       product.product_colours[selection.currentIndex].colour,
-    size: selection.selectedSize || productStock[0]?.size,
+    size: selection.selectedSize || sizes[0]?.size || "",
     productColors,
     productSizes:sizes?.map(size=>size?.size),
     market_id: product?.market_id || "",
   };
 
   const handleAddToCart = () => {
-    // if (itemExistInCart) {
-    //   navigate(relativePath.member.checkOut);
-    // } else {
-    addToCart(cartItem);
-    // }
+    setPendingPurchase({
+      action: "add_to_cart",
+      item: { ...cartItem },
+    });
   };
 
 
 
   const handleBuy = () => {
+    setPendingPurchase({
+      action: "buy_now",
+      item: { ...cartItem },
+    });
+  };
+
+  const clearPendingPurchase = () => {
+    setPendingPurchase(null);
+  };
+
+  const confirmPendingPurchase = () => {
+    if (!pendingPurchase) return;
+
+    if (pendingPurchase.action === "add_to_cart") {
+      addToCart(pendingPurchase.item);
+      clearPendingPurchase();
+      return;
+    }
+
     if (routeName === "out") {
-      localStorage.setItem("my_cart", JSON.stringify(cartItem));
+      localStorage.setItem("my_cart", JSON.stringify(pendingPurchase.item));
+      clearPendingPurchase();
       navigate(`/out/products/check-out`);
     } else {
-      handleAddToCart();
+      addToCart(pendingPurchase.item);
+      clearPendingPurchase();
       navigate(relativePath.member.checkOut);
     }
   };
@@ -289,6 +357,69 @@ export function ProductDetails({ product, addToCart }: IProps) {
           </div>
         </div>
       </div>
+      <Modal
+        open={Boolean(pendingPurchase)}
+        persist={false}
+        onClose={clearPendingPurchase}
+        className="max-w-xl"
+      >
+        <div className="p-6 space-y-4">
+          <h3 className="text-lg font-bold text-[#404040]">
+            Confirm {pendingPurchase?.action === "buy_now" ? "Purchase" : "Cart Item"}
+          </h3>
+
+          {pendingPurchase?.item && (
+            <div className="border rounded-lg p-4 flex items-start gap-4">
+              <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-50 border">
+                <img
+                  src={pendingPurchase.item.image_url}
+                  alt={pendingPurchase.item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="space-y-1 text-sm text-gray-700">
+                <p className="font-semibold text-base text-[#404040]">
+                  {pendingPurchase.item.name}
+                </p>
+                <p>
+                  <span className="font-medium">Color:</span>{" "}
+                  {pendingPurchase.item.color ? (
+                    <span className="inline-flex items-center gap-2 align-middle">
+                      <span
+                        className="inline-block h-4 w-6 rounded border border-gray-300"
+                        style={{ backgroundColor: pendingPurchase.item.color }}
+                      />
+                      <span>Selected</span>
+                    </span>
+                  ) : (
+                    "-"
+                  )}
+                </p>
+                <p>
+                  <span className="font-medium">Size:</span> {pendingPurchase.item.size || "-"}
+                </p>
+                <p>
+                  <span className="font-medium">Quantity:</span> {pendingPurchase.item.quantity}
+                </p>
+                <p>
+                  <span className="font-medium">Price:</span>{" "}
+                  {pendingPurchase.item.price_currency || "GHC"}{" "}
+                  {Number(pendingPurchase.item.price_amount).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end items-center gap-3">
+            <Button value="Cancel" variant="secondary" onClick={clearPendingPurchase} />
+            <Button
+              value="Confirm"
+              onClick={confirmPendingPurchase}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -334,8 +465,8 @@ const QuantitySelector = ({
         value={quantity}
         id=""
         onChange={(_, value) => {
-          const val = value ? +value : 1;
-          handleQuantityChange("increment", val);
+          const parsedValue = Math.max(1, Number(value) || 1);
+          handleQuantityChange("increment", parsedValue);
         }}
         disabled={disabled}
       />

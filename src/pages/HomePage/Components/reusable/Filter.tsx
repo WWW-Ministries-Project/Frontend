@@ -7,7 +7,8 @@ interface FilterProps {
   name: string;
   placeholder?: string;
   size?: number;
-  label?:string
+  label?: string;
+  value?: string;
 }
 
 const Filter: React.FC<FilterProps> = (props) => {
@@ -23,6 +24,7 @@ const Filter: React.FC<FilterProps> = (props) => {
         name={props.name}
         id={props.name}
         size={props.size}
+        value={props.value}
         className={`h-10 border border-[#dcdcdc] bg-white rounded-lg p-1 ${
           props.className || ""
         }`}

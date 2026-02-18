@@ -1,27 +1,29 @@
 // hooks/useCartDetails.ts
 
-import { useStore } from "@/store/useStore";
 import { useCart } from "./cartSlice";
 
 export const useCartDetails = () => {
-  const { cartItems, addToCart, removeFromCart, clearCart,  } = useCart();
-  const { products } = useStore();
+  const { cartItems, addToCart, removeFromCart, clearCart } = useCart();
 
-  // join cart with product details
+  const normalizeNumber = (value: unknown, fallback = 0): number => {
+    const converted = Number(value);
+    return Number.isFinite(converted) ? converted : fallback;
+  };
+
+  // keep pricing data from cart state so totals remain stable after refresh
   const cartWithDetails = cartItems.map((item) => {
-    const product = products.find(
-      (p) => String(p.id) === String(item.product_id)
-    );
+    const quantity = Math.max(1, normalizeNumber(item.quantity, 1));
+    const priceAmount = Math.max(0, normalizeNumber(item.price_amount, 0));
+
     return {
       ...item,
-      price_amount: product ? +product.price_amount : 0,
-      lineTotal: product ? +product.price_amount * item.quantity : 0,
+      quantity,
+      price_amount: priceAmount,
     };
   });
 
-  // grand total
   const totalPrice = cartWithDetails.reduce(
-    (acc, item) => acc + item.lineTotal,
+    (acc, item) => acc + item.price_amount * item.quantity,
     0
   );
 
