@@ -29,6 +29,7 @@ import type {
   UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -459,4 +460,16 @@ export class ApiUpdateCalls {
       query
     );
   }
+
+  // update financial
+  updateFinancial = (
+    payload: FinanceData,
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.apiExecution.updateData(
+      "financials/update-financial",
+      payload,
+      query
+    );
+  };
 }

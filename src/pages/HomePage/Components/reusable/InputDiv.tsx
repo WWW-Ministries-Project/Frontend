@@ -22,6 +22,9 @@ export interface InputDivProps {
   onBlur?: React.FocusEventHandler<
     HTMLInputElement | HTMLTextAreaElement
   >;
+  onWheel?: React.WheelEventHandler<
+    HTMLInputElement | HTMLTextAreaElement
+  >;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   disabled?: boolean;
   error?: string;
@@ -54,6 +57,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
       placeholder,
       onChange,
       onBlur,
+      onWheel,
       onClick,
       disabled,
       error,
@@ -75,6 +79,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
     ref
   ) => {
     const isTextarea = type === "textarea";
+    const normalizedValue = value ?? "";
 
     const baseInputStyles =
       "w-full rounded-lg border bg-white px-3 py-2 text-sm " +
@@ -126,11 +131,12 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
           <textarea
             id={id}
             name={id}
-            value={value}
+            value={normalizedValue}
             placeholder={placeholder}
             disabled={disabled}
             onChange={handleChange}
             onBlur={onBlur}
+            onWheel={onWheel}
             aria-label={ariaLabelProp ?? ariaLabel}
             aria-labelledby={ariaLabelledByProp ?? ariaLabelledBy}
             aria-describedby={ariaDescribedByProp ?? ariaDescribedBy}
@@ -146,11 +152,12 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
             id={id}
             name={id}
             type={type}
-            value={value}
+            value={normalizedValue}
             placeholder={placeholder}
             disabled={disabled}
             onChange={handleChange}
             onBlur={onBlur}
+            onWheel={onWheel}
             min={min}
             max={max}
             pattern={pattern}

@@ -36,6 +36,7 @@ import {
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -499,6 +500,20 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("tithebreakdownconfig/get-tithe-breakdown-configs", query);
   }
+
+  // fetch financials
+  fetchFinancials = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord[]>> => {
+    return this.fetchFromApi("financials/get-financials", query);
+  };
+
+  // fetch single financial
+  fetchFinancial = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
+    return this.fetchFromApi("financials/get-financial", query);
+  };
 
 
 }

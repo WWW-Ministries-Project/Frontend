@@ -20,7 +20,7 @@ function fieldToInputDiv({
     ...field,
     ...props,
     id: props.id,
-    value: props.value || field.value,
+    value: props.value ?? field.value ?? "",
     onChange:
       props.onChange ??
       ((name: string, value: string | number) =>

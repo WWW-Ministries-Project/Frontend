@@ -189,4 +189,11 @@ export class ApiDeletionCalls {
   ): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("tithebreakdownconfig/delete-tithe-breakdown-config", query);
   };
+
+  // delete financial
+  deleteFinancial = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("financials/delete-financial", query);
+  };
 }

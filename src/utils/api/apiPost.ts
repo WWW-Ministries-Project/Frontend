@@ -30,6 +30,7 @@ import {
   CreateStaffAvailabilityPayload,
   StaffAvailability,
 } from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -260,4 +261,11 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("tithebreakdownconfig/create-tithe-breakdown-config", payload); 
   }
+
+  // create financial
+  createFinancial = (
+    payload: FinanceData
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi("financials/create-financial", payload);
+  };
 }
