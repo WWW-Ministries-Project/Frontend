@@ -35,11 +35,11 @@ const FinanceConfigForm = ({
   const {
       postData,
       loading: postLoading,
-    } = usePost(type === "receipt" ? api.post.createReceiptConfig : type === "payment" ? api.post.createPaymentConfig : api.post.createBankAccountConfig);
+    } = usePost(type === "receipt" ? api.post.createReceiptConfig : type === "payment" ? api.post.createPaymentConfig : type==="tithe"? api.post.createTitheBreakdownConfig : api.post.createBankAccountConfig);
     const {
       updateData,
       loading: putLoading,
-    } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : api.put.updateBankAccountConfig);
+    } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : type==="tithe"? api.put.updateTitheBreakdownConfig : api.put.updateBankAccountConfig);
 
     const handleSubmit = async (values: FinanceConfigValues) => {
                   try {
@@ -118,7 +118,7 @@ const FinanceConfigForm = ({
                       name="description"
                   />
 
-                   {type === "bankAccount" && <Field
+                   {type === "bankAccount"|| type==="tithe" && <Field
                       component={FormikInputDiv}
                       type="number"
                       label="Percentage *"
