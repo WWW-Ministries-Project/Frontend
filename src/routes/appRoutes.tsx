@@ -264,6 +264,13 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
+            path: "",
+            name: "Events Default",
+            element: <Navigate to="all-events" replace />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+          },
+          {
             path: "all-events",
             name: "Events",
             element: <AllEvent />,
@@ -321,6 +328,12 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
+            path: "",
+            name: "Communication Default",
+            element: <Navigate to="theme-manager" replace />,
+            isPrivate: false,
+          },
+          {
             path: "theme-manager",
             name: "Annual Theme Manager",
             element: <AnnualThemeManager />,
@@ -337,6 +350,12 @@ export const routes: AppRoute[] = [
         permissionNeeded: "",
         sideTab: true,
         children: [
+          {
+            path: "",
+            name: "Appointments Default",
+            element: <Navigate to="appointment-manager" replace />,
+            isPrivate: false,
+          },
           {
             path: "appointment-manager",
             name: "Appointment Manager",

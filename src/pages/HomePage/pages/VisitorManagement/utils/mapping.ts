@@ -1,6 +1,41 @@
 import { formatInputDate, VisitorType } from "@/utils";
 import { IVisitorForm } from "../Components/VisitorForm";
 
+type MemberReference =
+  | string
+  | number
+  | {
+      id?: string | number;
+      value?: string | number;
+    };
+
+const getResponsibleMemberIds = (visitor: VisitorType): string[] => {
+  const visitorWithMembers = visitor as VisitorType & {
+    responsibleMembers?: MemberReference[];
+    responsible_members?: MemberReference[];
+  };
+
+  const rawMembers =
+    visitorWithMembers.responsibleMembers ||
+    visitorWithMembers.responsible_members ||
+    [];
+
+  return rawMembers
+    .map((member) => {
+      if (typeof member === "string" || typeof member === "number") {
+        return String(member);
+      }
+      if (member?.id !== undefined) {
+        return String(member.id);
+      }
+      if (member?.value !== undefined) {
+        return String(member.value);
+      }
+      return "";
+    })
+    .filter(Boolean);
+};
+
 export const mapVisitorToForm = (
   visitor: VisitorType
 ): IVisitorForm & { id: string } => {
@@ -34,5 +69,6 @@ export const mapVisitorToForm = (
     },
     consentToContact: visitor.consentToContact ? "yes" : "no",
     membershipWish: visitor.membershipWish ? "yes" : "no",
+    responsibleMembers: getResponsibleMemberIds(visitor),
   };
 };

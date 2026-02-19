@@ -16,6 +16,28 @@ interface IProps {
 }
 
 const hoverDelayMs = 300;
+const HOME_ROUTE_BASE = "/home";
+
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, "");
+  if (!trimmed) return "/";
+  return trimmed.replace(/\/{2,}/g, "/");
+};
+
+const resolveHomePath = (path: string) => {
+  if (!path) return HOME_ROUTE_BASE;
+  if (path.startsWith("/")) return normalizePath(path);
+  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
+};
+
+const isPathActive = (pathname: string, path: string) => {
+  const normalizedPathname = normalizePath(pathname);
+  const normalizedPath = normalizePath(path);
+  return (
+    normalizedPathname === normalizedPath ||
+    normalizedPathname.startsWith(`${normalizedPath}/`)
+  );
+};
 
 export const SideBar = ({ className }: IProps) => {
   const {
@@ -86,10 +108,8 @@ export const SideBar = ({ className }: IProps) => {
   const activeTabNames = useMemo(() => {
     const names: Record<string, boolean> = {};
     filteredTabs.forEach((item) => {
-      const isActive =
-        location.pathname === item.path ||
-        location.pathname.startsWith(item.path) ||
-        location.pathname.includes(item.path);
+      const resolvedPath = resolveHomePath(item.path);
+      const isActive = isPathActive(location.pathname, resolvedPath);
       names[item.name] = isActive;
     });
     return names;
