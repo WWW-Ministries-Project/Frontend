@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
+import { flattenPermissionsToLegacyFlags } from "./accessControl";
 import { userTypeWithToken } from "./interfaces";
 
 export const getToken = () => {
@@ -98,37 +99,7 @@ export const getChangedValues = (
 };
 
 export function convertPermissions(permissions: Record<string, string>) {
-  const result: Record<string, boolean> = {};
-
-  const permMapping: Record<string, string> = {
-    Can_View: "view",
-    Can_Manage: "manage",
-    Super_Admin: "admin",
-  };
-
-  for (const [key, value] of Object.entries(permissions)) {
-    if (!value) continue;
-
-    const permKey = permMapping[value];
-    if (permKey) {
-      const formattedKey = `${permKey}_${key.toLowerCase().replace(/ /g, "_")}`;
-      result[formattedKey] = true;
-
-      if (value === "Can_Manage") {
-        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
-        result[viewKey] = true;
-      }
-
-      if (value === "Super_Admin") {
-        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
-        const manageKey = `manage_${key.toLowerCase().replace(/ /g, "_")}`;
-        result[viewKey] = true;
-        result[manageKey] = true;
-      }
-    }
-  }
-
-  return result;
+  return flattenPermissionsToLegacyFlags(permissions);
 }
 export const currentYear = new Date().getFullYear();
 

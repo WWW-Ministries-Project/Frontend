@@ -1,5 +1,6 @@
 import { logOut } from "@/pages/Authentication/utils/helpers";
 import { sideTabs } from "@/routes/appRoutes";
+import { hasRequiredAccess } from "@/utils/accessControl";
 import { removeToken } from "@/utils/helperFunctions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -41,7 +42,7 @@ const isPathActive = (pathname: string, path: string) => {
 
 export const SideBar = ({ className }: IProps) => {
   const {
-    user: { permissions },
+    user: { permissions, access_permissions },
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,10 +59,13 @@ export const SideBar = ({ className }: IProps) => {
       sideTabs.filter(
         (item) =>
           !item.isPrivate ||
-          !item.permissionNeeded ||
-          permissions[item.permissionNeeded]
+          hasRequiredAccess(
+            item.permissionNeeded,
+            access_permissions,
+            permissions
+          )
       ),
-    [permissions]
+    [access_permissions, permissions]
   );
 
   // Handle sidebar expand/collapse on hover
@@ -146,7 +150,6 @@ export const SideBar = ({ className }: IProps) => {
         }));
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabNames, filteredTabs]);
 
   useEffect(() => {

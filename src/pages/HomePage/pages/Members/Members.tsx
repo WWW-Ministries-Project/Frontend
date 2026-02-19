@@ -5,9 +5,9 @@ import useState from "react-usestateref";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { HeaderControls } from "@/components/HeaderControls";
 import EmptyState from "@/components/EmptyState";
-import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
 import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
@@ -27,10 +27,8 @@ export function Members() {
   const location = useLocation();
   const task = location.state?.task;
   const navigate = useNavigate();
-
-  const {
-    user: { permissions },
-  } = useAuth();
+  const { canManage } = useAccessControl();
+  const canManageMembers = canManage("Members");
 
   const { refetchMembersOptions } = useOutletContext<{
     refetchMembersOptions: (query?: QueryType) => void;
@@ -48,9 +46,9 @@ export function Members() {
       membership_type: false,
       is_user: false,
       department_id: false,
-      Actions: permissions.manage_members,
+      Actions: canManageMembers,
     };
-  }, [permissions]);
+  }, [canManageMembers]);
   const [showOptions, setShowOptions] = useState(false);
   const [, setDataToDelete, dataToDeleteRef] = useState<UserType | object>({});
 
@@ -202,7 +200,7 @@ export function Members() {
           setShowSearch={setShowSearch}
           handleClick={handleNavigation}
           screenWidth={screenWidth}
-          btnName={permissions?.manage_members ? "Add Member" : ""}
+          btnName={canManageMembers ? "Add Member" : ""}
         />
 
         {/* Search & Filter Components */}
@@ -256,7 +254,7 @@ export function Members() {
                 }
                 onCloseOptions={() => setShowOptions(false)}
                 onDelete={handleDeleteModal}
-                canManage={permissions?.manage_members}
+                canManage={canManageMembers}
               />
             )}
           />

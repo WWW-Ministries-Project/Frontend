@@ -1,5 +1,6 @@
 export * from "./api/apiCalls";
 export * from "./helperFunctions";
+export * from "./accessControl";
 
 //interfaces
 export * from "./api/assets/interfaces";

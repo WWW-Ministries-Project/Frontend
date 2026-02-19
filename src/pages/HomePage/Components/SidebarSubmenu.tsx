@@ -1,4 +1,5 @@
 import { AppRoute } from "@/routes/appRoutes";
+import { hasRequiredAccess } from "@/utils/accessControl";
 import { ReactNode, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
@@ -56,7 +57,7 @@ export const SideBarSubMenu = ({
 }: IProps) => {
   const location = useLocation();
   const {
-    user: { permissions },
+    user: { permissions, access_permissions },
   } = useAuth();
 
   const parentRoutePath = useMemo(
@@ -74,10 +75,13 @@ export const SideBarSubMenu = ({
         (child) =>
           child.sideTab &&
           (!child.isPrivate ||
-            !child.permissionNeeded ||
-            permissions[child.permissionNeeded])
+            hasRequiredAccess(
+              child.permissionNeeded,
+              access_permissions,
+              permissions
+            ))
       ),
-    [item.children, permissions]
+    [access_permissions, item.children, permissions]
   );
 
   // Build child route path

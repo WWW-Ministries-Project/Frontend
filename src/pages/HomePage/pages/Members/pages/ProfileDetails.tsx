@@ -1,6 +1,6 @@
 import { Button, ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
-import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { navigateRef } from "@/pages/HomePage/navigationRef";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
@@ -43,9 +43,8 @@ const getMembershipTypeLabel = (membershipType?: string): string => {
 
 export const ProfileDetails = () => {
   const location = useLocation();
-  const {
-    user: { permissions },
-  } = useAuth();
+  const { canManage } = useAccessControl();
+  const canManageMembers = canManage("Members");
 
   const { id } = useParams();
   const user_id = id ? decodeQuery(id) : undefined;
@@ -177,7 +176,7 @@ export const ProfileDetails = () => {
                   </article>
                 </div>
 
-                {permissions.manage_members && (
+                {canManageMembers && (
                   <div className="pt-4 md:pt-0">
                     <Button
                       value="Edit Profile"

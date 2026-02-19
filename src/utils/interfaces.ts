@@ -45,6 +45,7 @@ export interface userType {
   email: string;
   name: string;
   permissions: Record<string, boolean>;
+  access_permissions?: Record<string, unknown>;
   user_category?: "member" | "admin" | string;
   profile_img?: string;
   phone:string;
@@ -55,7 +56,10 @@ export interface userType {
   life_center_leader?:boolean
   instructor?:boolean
 }
-export interface userTypeWithToken extends userType {
+export interface userTypeWithToken
+  extends Omit<userType, "permissions" | "access_permissions"> {
+  permissions?: Record<string, unknown> | null;
+  access_permissions?: Record<string, unknown>;
   iat: number;
   exp: number;
 }

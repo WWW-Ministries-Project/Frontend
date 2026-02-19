@@ -1,4 +1,5 @@
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+import { ExclusionsMap, PermissionValue } from "@/utils/accessControl";
 
 export interface Department {
   id: number;
@@ -49,7 +50,10 @@ export type StoreState = DepartmentSlice & PositionSlice;
 export interface AccessRight {
   id: number;
   name: string;
-  permissions?: Record<string, string>;
+  permissions?: {
+    [key: string]: PermissionValue | ExclusionsMap | undefined;
+    Exclusions?: ExclusionsMap;
+  };
 }
 export interface AccessRightOption {
   id: number;

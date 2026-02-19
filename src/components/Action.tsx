@@ -15,7 +15,13 @@ interface IAction {
   isEditable?: boolean;
 }
 
-const Action = ({ onEdit, onDelete, onView, className }: IAction) => {
+const Action = ({
+  onEdit,
+  onDelete,
+  onView,
+  className,
+  hideDelete,
+}: IAction) => {
   return (
     <div
       className={cn(
@@ -26,7 +32,7 @@ const Action = ({ onEdit, onDelete, onView, className }: IAction) => {
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
         {onEdit && <ActionButton onClick={onEdit} text="Edit" />}
         {onView && <ActionButton onClick={onView} text="View" />}
-        {onDelete && (
+        {onDelete && !hideDelete && (
           <>
             <hr className="border-[#D8DAE5]" />
             <ActionButton onClick={onDelete} text="Delete" />
