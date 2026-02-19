@@ -278,6 +278,8 @@ export type AssignmentLearningUnit = {
   data: {
     questions: AssignmentQuestion[];
     maxAttempt?: number;
+    maxAttempts?: number;
+    passMark?: number;
   };
 };
 
