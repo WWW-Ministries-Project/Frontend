@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { api, LearningUnit, LearningUnitType } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { usePut } from "@/CustomHooks/usePut";
-import { usePost } from "@/CustomHooks/usePost";
-
-
 
 interface Props {
   topicId?: string | number;
@@ -33,7 +30,10 @@ const typeBadgeMap: Record<
   LearningUnitType,
   { label: string; className: string }
 > = {
-  "lesson-note": { label: "Lesson Note", className: "bg-lightGray/40 text-primaryGray" },
+  "lesson-note": {
+    label: "Lesson Note",
+    className: "bg-lightGray/40 text-primaryGray",
+  },
   video: { label: "Video", className: "bg-primary/10 text-primary" },
   pdf: { label: "PDF", className: "bg-red-100 text-red-700" },
   ppt: { label: "Slides", className: "bg-yellow-100 text-yellow-700" },
@@ -64,26 +64,105 @@ export const LearningUnits: React.FC<Props> = ({
   activation,
   refetch,
 }) => {
-
-  const {
-    postData,
-  } = usePost(api.post.submitMCQAssignment);
-
-  const { updateData: markTopicAsCompleted } = usePut(
-    api.put.markTopicAsCompleted);
+  const { updateData: markTopicAsCompleted } = usePut(api.put.markTopicAsCompleted);
 
   // MCQ state
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  // Removed: const [submitted, setSubmitted] = useState(false);
+  const [attemptsUsed, setAttemptsUsed] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  const [attempt, setAttempt] = useState(0);
-  const maxAttempt =
-    unit?.type === "assignment" ? unit.data.maxAttempt ?? 2 : 2;
-
-  // Added topic-driven derived state
   const isAssignment = unit?.type === "assignment";
-  const isSubmitted = isAssignment && topicCompleted === true;
+
+  const maxAttempt = useMemo(() => {
+    if (unit?.type !== "assignment") return 2;
+    const fromMaxAttempt =
+      typeof unit.data.maxAttempt === "number" ? unit.data.maxAttempt : 0;
+    const fromMaxAttempts =
+      typeof unit.data.maxAttempts === "number" ? unit.data.maxAttempts : 0;
+    return Math.max(fromMaxAttempt, fromMaxAttempts, 2);
+  }, [unit]);
+
+  const retryStorageKey = useMemo(() => {
+    if (!isAssignment || !topicId || !programId || !userId) return null;
+    return `assignment_attempts_${String(userId)}_${String(programId)}_${String(topicId)}`;
+  }, [isAssignment, topicId, programId, userId]);
+
+  const dueDateValue = activation?.dueDate ? new Date(activation.dueDate) : null;
+  const dueDateTimestamp = dueDateValue?.getTime();
+  const isDueDatePassed =
+    typeof dueDateTimestamp === "number" &&
+    !Number.isNaN(dueDateTimestamp) &&
+    Date.now() > dueDateTimestamp;
+  const isLockedByDueDate = Boolean(activation?.dueDate && isDueDatePassed);
+  const isInactive = !activation?.isActive;
+  const isClosedByFacilitator = Boolean(activation?.closedAt);
+  const retriesRemaining = Math.max(maxAttempt - attemptsUsed, 0);
+  const hasRetriesLeft = retriesRemaining > 0;
+  const isSubmissionLocked =
+    isInactive || isLockedByDueDate || isClosedByFacilitator || !hasRetriesLeft;
+
+  const hasSubmittedAtLeastOnce =
+    isAssignment &&
+    (attemptsUsed > 0 ||
+      topicCompleted === true ||
+      topicStatus === "PASS" ||
+      topicStatus === "FAIL");
+
+  const persistAttemptCount = (nextCount: number) => {
+    setAttemptsUsed(nextCount);
+    if (retryStorageKey) {
+      localStorage.setItem(retryStorageKey, String(nextCount));
+    }
+  };
+
+  useEffect(() => {
+    if (!retryStorageKey) return;
+
+    const savedAttemptCount = localStorage.getItem(retryStorageKey);
+    const parsedAttemptCount = Number(savedAttemptCount);
+
+    if (Number.isFinite(parsedAttemptCount) && parsedAttemptCount >= 0) {
+      setAttemptsUsed(parsedAttemptCount);
+    }
+  }, [retryStorageKey]);
+
+  useEffect(() => {
+    if (!isAssignment) return;
+
+    const hasBackendSubmissionState =
+      topicCompleted === true || topicStatus === "PASS" || topicStatus === "FAIL";
+
+    if (!hasBackendSubmissionState || attemptsUsed > 0) return;
+
+    setAttemptsUsed(1);
+    if (retryStorageKey) {
+      localStorage.setItem(retryStorageKey, "1");
+    }
+  }, [isAssignment, topicCompleted, topicStatus, attemptsUsed, retryStorageKey]);
+
   const assignmentStatus = topicStatus;
+  const isRetryLimitReached = !hasRetriesLeft && assignmentStatus !== "PASS";
+
+  const assignmentLockMessage = isLockedByDueDate
+    ? "This assignment is locked because the due date has passed. Submissions are no longer accepted."
+    : isInactive
+      ? "Assignment is not activated by facilitator."
+      : isClosedByFacilitator
+        ? "This assignment has been locked by the facilitator."
+        : isRetryLimitReached
+          ? "Retry limit reached. You cannot submit this assignment again."
+          : null;
+
+  const statusBadgeClassName = isInactive
+    ? "bg-amber-100 text-amber-700"
+    : "bg-green-100 text-green-700";
+
+  const formatAssignmentDate = (value?: string | null) => {
+    if (!value) return "No due date set";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "No due date set";
+    return parsed.toLocaleString();
+  };
 
   const markCompleted = async () => {
     try {
@@ -108,17 +187,17 @@ export const LearningUnits: React.FC<Props> = ({
 
         <div className="flex items-center gap-3">
           {unit?.type !== "assignment" && (
-          <button
-            type="button"
-            onClick={topicCompleted ? undefined : markCompleted}
-            className={`text-xs px-3 py-1 rounded-md border ${
-              topicCompleted
-                ? "bg-green-100 text-green-700 border-green-300"
-                : "bg-white text-primaryGray border-lightGray"
-            }`}
-          >
-            {topicCompleted ? "Completed" : "Mark as completed"}
-          </button>
+            <button
+              type="button"
+              onClick={topicCompleted ? undefined : markCompleted}
+              className={`text-xs px-3 py-1 rounded-md border ${
+                topicCompleted
+                  ? "bg-green-100 text-green-700 border-green-300"
+                  : "bg-white text-primaryGray border-lightGray"
+              }`}
+            >
+              {topicCompleted ? "Completed" : "Mark as completed"}
+            </button>
           )}
         </div>
       </div>
@@ -130,7 +209,6 @@ export const LearningUnits: React.FC<Props> = ({
             className="prose max-w-none text-primaryGray"
             dangerouslySetInnerHTML={{ __html: unit.data.content }}
           />
-          
         </>
       )}
 
@@ -145,7 +223,6 @@ export const LearningUnits: React.FC<Props> = ({
               allowFullScreen
             />
           </div>
-          
         </>
       )}
 
@@ -188,119 +265,172 @@ export const LearningUnits: React.FC<Props> = ({
       )}
 
       {/* In-person */}
-      {unit?.type === "in-person" && (
-        <p className="text-sm text-primaryGray">
-          📍 {unit.data.value}
-        </p>
-      )}
+      {unit?.type === "in-person" && <p className="text-sm text-primaryGray">📍 {unit.data.value}</p>}
 
       {/* Assignment (MCQ) */}
       {unit?.type === "assignment" && (
-        <div className="relative">
-          {!activation?.isActive && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm rounded-md text-center px-6">
-              <p className="text-sm text-primaryGray">
-                This assignment is not yet active.<br />
-                You will be notified once it becomes available.
-                {activation?.isActive}
+        <div className="space-y-4">
+          <div className="grid gap-3 rounded-xl border border-lightGray bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 p-4 sm:grid-cols-3">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Assignment Status
               </p>
+              <Badge className={statusBadgeClassName}>{isInactive ? "Inactive" : "Active"}</Badge>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Due Date
+              </p>
+              <p className="text-sm font-medium text-primaryGray">
+                {formatAssignmentDate(activation?.dueDate)}
+              </p>
+              {isLockedByDueDate && (
+                <p className="text-xs text-red-600">Submission window has closed.</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Retries
+              </p>
+              <p className="text-sm font-medium text-primaryGray">
+                {attemptsUsed}/{maxAttempt}
+              </p>
+              <p className="text-xs text-primaryGray">{retriesRemaining} remaining</p>
+            </div>
+          </div>
+
+          {assignmentLockMessage && (
+            <div
+              className={`rounded-md border px-4 py-3 text-sm ${
+                isLockedByDueDate || isRetryLimitReached
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            >
+              {assignmentLockMessage}
             </div>
           )}
 
-          <div className={`${!activation?.isActive ? "pointer-events-none blur-sm opacity-60" : ""} space-y-4`}>
-            {!isSubmitted && (
-              <>
-                {(unit.data.questions || []).map((q, idx) => (
-                  <div key={q.id} className="space-y-2 border rounded-md p-3">
-                    <p className="font-medium text-sm">
-                      {idx + 1}. {q.question}
-                    </p>
+          {!hasSubmittedAtLeastOnce || isRetrying ? (
+            <div className={`space-y-4 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
+              {(unit.data.questions || []).map((q, idx) => (
+                <div key={q.id} className="space-y-2 border rounded-md p-3">
+                  <p className="font-medium text-sm">
+                    {idx + 1}. {q.question}
+                  </p>
 
-                    {q.options.map((opt) => (
-                      <label key={opt.id} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name={q.id}
-                          disabled={isSubmitted}
-                          checked={answers[q.id] === opt.id}
-                          onChange={() =>
-                            setAnswers((prev) => ({
-                              ...prev,
-                              [q.id]: opt.id,
-                            }))
-                          }
-                        />
-                        {opt.text}
-                      </label>
-                    ))}
-                  </div>
-                ))}
+                  {q.options.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name={q.id}
+                        disabled={isSubmissionLocked}
+                        checked={answers[q.id] === opt.id}
+                        onChange={() =>
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [q.id]: opt.id,
+                          }))
+                        }
+                      />
+                      {opt.text}
+                    </label>
+                  ))}
+                </div>
+              ))}
 
+              <button
+                type="button"
+                disabled={
+                  isSubmissionLocked ||
+                  Object.keys(answers).length !== unit.data.questions.length
+                }
+                className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
+                onClick={async () => {
+                  if (isInactive) {
+                    showNotification("Assignment is not activated by facilitator.", "error");
+                    return;
+                  }
+
+                  if (isLockedByDueDate) {
+                    showNotification(
+                      "This assignment is locked because the due date has passed.",
+                      "error"
+                    );
+                    return;
+                  }
+
+                  if (!hasRetriesLeft) {
+                    showNotification("Retry limit reached. You cannot submit again.", "error");
+                    return;
+                  }
+
+                  const payload = {
+                    userId,
+                    programId,
+                    topicId,
+                    answers,
+                  };
+
+                  try {
+                    await api.post.submitMCQAssignment(payload);
+                    persistAttemptCount(attemptsUsed + 1);
+                    setIsRetrying(false);
+                    setAnswers({});
+                    await refetch();
+                  } catch (error: unknown) {
+                    const err = error as { response?: { data?: { message?: string } } };
+                    showNotification(
+                      err.response?.data?.message ||
+                        "Could not submit assignment. Please try again.",
+                      "error"
+                    );
+                  }
+                }}
+              >
+                {isLockedByDueDate
+                  ? "Assignment Locked"
+                  : !hasRetriesLeft
+                    ? "No retries left"
+                    : "Submit Assignment"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 text-center">
+              <p className="text-lg font-semibold">Score: {topicScore ?? 0}%</p>
+
+              <Badge
+                className={
+                  assignmentStatus === "PASS"
+                    ? "bg-green-100 text-green-700"
+                    : assignmentStatus === "FAIL"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700"
+                }
+              >
+                {assignmentStatus ?? "PENDING"}
+              </Badge>
+
+              <p className="text-xs text-primaryGray">
+                Completed on {topicCompletedAt ? new Date(topicCompletedAt).toLocaleString() : "In progress"}
+              </p>
+
+              {assignmentStatus === "FAIL" && hasRetriesLeft && !isSubmissionLocked && (
                 <button
                   type="button"
-                  disabled={
-                    isSubmitted ||
-                    Object.keys(answers).length !== unit.data.questions.length
-                  }
-                  className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
-                  onClick={async () => {
-                    const payload = {
-                      userId,
-                      programId,
-                      topicId,
-                      answers,
-                    };
-
-                    try {
-                      await postData(payload);
-                      setAttempt((prev) => prev + 1);
-                      await refetch(); // backend updates completed, status, score
-                    } catch {
-                      showNotification("Could not submit assignment. Please try again.", "error");
-                    }
+                  className="mt-4 rounded-md bg-lightGray/30 px-4 py-2 text-sm hover:bg-lightGray/50"
+                  onClick={() => {
+                    setAnswers({});
+                    setIsRetrying(true);
                   }}
                 >
-                  Submit Assignment
+                  Retry Assignment
                 </button>
-              </>
-            )}
-
-            {isSubmitted && (
-              <div className="space-y-4 text-center">
-                <p className="text-lg font-semibold">
-                  Score: {topicScore ?? 0}%
-                </p>
-
-                <Badge
-                  className={
-                    assignmentStatus === "PASS"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }
-                >
-                  {assignmentStatus}
-                </Badge>
-
-                <p className="text-xs text-primaryGray">
-                  Completed on {topicCompletedAt
-                    ? new Date(topicCompletedAt).toLocaleString()
-                    : ""}
-                </p>
-
-                {assignmentStatus === "FAIL" && attempt < maxAttempt && (
-                  <button
-                    type="button"
-                    className="mt-4 rounded-md bg-lightGray/30 px-4 py-2 text-sm hover:bg-lightGray/50"
-                    onClick={() => {
-                      setAnswers({});
-                    }}
-                  >
-                    Retake Assignment
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

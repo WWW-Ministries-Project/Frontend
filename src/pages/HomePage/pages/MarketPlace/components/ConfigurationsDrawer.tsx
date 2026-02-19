@@ -18,7 +18,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { api } from "@/utils";
 import { usePut } from "@/CustomHooks/usePut";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 
 interface IProps {
   isOpen: boolean;
@@ -117,14 +117,20 @@ export const ConfigurationsDrawer = ({
       refetch("type");
 
       if (newProductType?.data) {
+        showNotification("Product type created successfully", "success");
         setCount((prev) => prev + 1);
       }
 
       if (typeUpdateData?.data) {
+        showNotification("Product type updated successfully", "success");
         setEditItem(null);
       }
+
+      if (success) {
+        showNotification("Product type deleted successfully", "success");
+      }
     }
-  }, [newProductType, typeUpdateData?.data, success]);
+  }, [newProductType, refetch, success, typeUpdateData?.data]);
 
   useEffect(() => {
     if (
@@ -135,17 +141,24 @@ export const ConfigurationsDrawer = ({
       refetch("category");
 
       if (newProductCategory?.data) {
+        showNotification("Product category created successfully", "success");
         setCount((prev) => prev + 1);
       }
 
       if (categoryUpdateData?.data) {
+        showNotification("Product category updated successfully", "success");
         setEditItem(null);
+      }
+
+      if (deleteCategorySuccess) {
+        showNotification("Product category deleted successfully", "success");
       }
     }
   }, [
     newProductCategory?.data,
     categoryUpdateData?.data,
     deleteCategorySuccess,
+    refetch,
   ]);
 
   return (

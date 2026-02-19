@@ -1,106 +1,130 @@
+const brandColors = {
+  primary: "#080D2D",
+  secondary: "#9A5D1A",
+  background: "#FFFFFF",
+
+  primaryGray: "#4B5563",
+  mainGray: "#6B7280",
+  lightGray: "#D8DAE5",
+  borderGray: "#E0E3EB",
+  inputBackground: "#F8F9FC",
+
+  success: "#166534",
+  error: "#B91C1C",
+  warning: "#B45309",
+
+  shadow: "#00000026",
+  blur: "#222222CC",
+  modalOverlay: "#080D2D99",
+  hoverGold: "#A2621C",
+
+  lighter: "#1A2255",
+  lightest: "#2C3877",
+  accent: "#3D4B99",
+  pale: "#4E5FBB",
+};
+
+const legacyColors = {
+  wwmBlue: "#080D2D",
+  wwwGray: "#62626A",
+  wwwGrey2: "#6B7B8A",
+  errorBG: "#FBEAE6",
+  bgWhite: "#F9F9F9",
+  gold: "#EFBF04",
+  lighterBlack: "#575570",
+  neutralGray: "#E8EDFF",
+};
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {
-      // colors: {
-      //   // primary: "#6539C3",
-      //   primary: "#080D2D",
-      //   primaryGray: "#575F6A",
-      //   mainGray: "#626262",
-      //   wwmBlue: "#080D2D",
-      //   wwwGray: "#62626A",
-      //   errorBG: "#FBEAE6",
-      //   error: "#E97760",
-      //   wwwGrey2: "#6B7B8A",
-      //   primary: "#474D66",
-      //   gray: "#786D8F",
-      //   bgWhite: "#F9F9F9",
-      //   lightGray: "#D8DAE5",
-      //   gold: "#EFBF04",
-      //   blur: "#222222cc",
-      //   // green: "#6FCF97",
-      //   lighterBlack: "#575570",
-      //   neutralGray: "#E8EDFF",
-      lightGray: "#D8DAE5", // Soft gray for secondary backgrounds
-      blur: "#222222cc", // Keeping for transparency effects
-      // },
-      colors: {
-        primary: "#080D2D", // Deep Dark Blue (Main Theme)
-        secondary: "#ac6a22", // Gold for Highlights, CTAs, and Accents
-        background: "#FFFFFF", // White for Clean UI and Readability
-    
-        // Grayscale Tones (Adjusted for Contrast & Usability)
-        primaryGray: "#A0A5B1", // Soft Gray for Subtext & Secondary Info
-        mainGray: "#C0C3CC", // Light Gray for Muted UI Elements
-        lightGray: "#D8DAE5", // Soft gray for secondary backgrounds
-        borderGray: "#E0E3EB", // Borders, Dividers & Low Emphasis Elements
-        inputBackground: "#F8F9FC", // Light Input Fields for Accessibility
-    
-        // Supporting Colors
-        success: "#28A745", // Green for Success Messages & Confirmations
-        error: "#DC3545", // Red for Errors, Alerts & Warnings
-        warning: "#FFC107", // Yellow for Cautionary Notes (if needed)
-        
-        // Shadows & Overlays
-        shadow: "#00000026", // Subtle Shadow for Depth
-        blur: "#222222cc", // Keeping for transparency effects
-        modalOverlay: "#080D2D99", // Dark Blue Transparent Overlay for Popups
-        hoverGold: "#E6C200", // Soft Gold Hover for Buttons & Links
-
-        lighter: '#1A2255',
-        lightest: '#2C3877',
-        accent: '#3D4B99',
-        pale: '#4E5FBB'
+    fontFamily: {
+      sans: ["Work Sans", "sans-serif"],
+      fontRoboto: ["Work Sans", "sans-serif"],
+      manrope: ["Work Sans", "sans-serif"],
+      "great-vibes": ["Great Vibes", "cursive"],
     },
-    
+    screens: {
+      xs: "320px",
+      phone: "450px",
+      sm: "450px", // Legacy alias retained for existing layouts
+      tablet: "640px",
+      md: "768px",
+      laptop: "1024px",
+      lg: "1024px", // Legacy alias retained for existing layouts
+      desktop: "1280px",
+      xl: "1280px", // Legacy alias retained for existing layouts
+      "2xl": "1536px",
+      "3xl": "1800px",
+    },
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: "1rem",
+        sm: "2rem",
+        lg: "4rem",
+        xl: "5rem",
+      },
+    },
+    extend: {
+      colors: {
+        ...brandColors,
+        ...legacyColors,
+        gray: {
+          DEFAULT: "#575F6A",
+        },
+      },
       animation: {
         dounce: "bounce 2s",
         wiggle: "wiggle 1s",
         fadeIn: "fadeIn 1s",
         fadeOut: "fadeOut 1s",
-        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
-        'divine-glow': 'divine-glow 3s ease-in-out infinite',
-        'flame-flicker': 'flame-flicker 2s ease-in-out infinite',
-        'logo-breathe': 'logo-breathe 3s ease-in-out infinite',
-        'flame-dance': 'flame-dance 8s linear infinite',
-        'float': 'float 4s ease-in-out infinite',
+        "pulse-ring":
+          "pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite",
+        "divine-glow": "divine-glow 3s ease-in-out infinite",
+        "flame-flicker": "flame-flicker 2s ease-in-out infinite",
+        "logo-breathe": "logo-breathe 3s ease-in-out infinite",
+        "flame-dance": "flame-dance 8s linear infinite",
+        float: "float 4s ease-in-out infinite",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
       keyframes: {
-        'accordion-down': {
-					from: { height: '0' },
-					to: { height: 'var(--radix-accordion-content-height)' }
-				},
-				'accordion-up': {
-					from: { height: 'var(--radix-accordion-content-height)' },
-					to: { height: '0' }
-				},
-				'flame-dance': {
-					'0%, 100%': { transform: 'scale(1) rotate(0deg)', opacity: '0.8' },
-					'25%': { transform: 'scale(1.1) rotate(2deg)', opacity: '1' },
-					'50%': { transform: 'scale(0.95) rotate(-1deg)', opacity: '0.9' },
-					'75%': { transform: 'scale(1.05) rotate(1deg)', opacity: '1' }
-				},
-				'divine-glow': {
-					'0%, 100%': { boxShadow: '0 0 20px rgb(245 158 11 / 0.4)' },
-					'50%': { boxShadow: '0 0 40px rgb(245 158 11 / 0.8)' }
-				},
-				'float': {
-					'0%, 100%': { transform: 'translateY(0px)' },
-					'50%': { transform: 'translateY(-10px)' }
-				},
-				'pulse-ring': {
-					'0%': { transform: 'scale(0.8)', opacity: '1' },
-					'100%': { transform: 'scale(2)', opacity: '0' }
-				},
-				'flame-flicker': {
-					'0%, 100%': { opacity: '0.7', transform: 'scaleY(1)' },
-					'50%': { opacity: '1', transform: 'scaleY(1.1)' }
-				},
-				'logo-breathe': {
-					'0%, 100%': { transform: 'scale(1)' },
-					'50%': { transform: 'scale(1.05)' }
-				},
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "flame-dance": {
+          "0%, 100%": { transform: "scale(1) rotate(0deg)", opacity: "0.8" },
+          "25%": { transform: "scale(1.1) rotate(2deg)", opacity: "1" },
+          "50%": { transform: "scale(0.95) rotate(-1deg)", opacity: "0.9" },
+          "75%": { transform: "scale(1.05) rotate(1deg)", opacity: "1" },
+        },
+        "divine-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgb(245 158 11 / 0.4)" },
+          "50%": { boxShadow: "0 0 40px rgb(245 158 11 / 0.8)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "pulse-ring": {
+          "0%": { transform: "scale(0.8)", opacity: "1" },
+          "100%": { transform: "scale(2)", opacity: "0" },
+        },
+        "flame-flicker": {
+          "0%, 100%": { opacity: "0.7", transform: "scaleY(1)" },
+          "50%": { opacity: "1", transform: "scaleY(1.1)" },
+        },
+        "logo-breathe": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.05)" },
+        },
         wiggle: {
           "0%, 100%": {
             transform: "matrix(1, 0, 0, 1, 0, 0)",
@@ -151,105 +175,75 @@ export default {
         5000: "5000ms",
       },
     },
-    fontFamily: {
-      sans: ["Work Sans", "sans-serif"],
-      fontRoboto: ["Work Sans", "sans-serif"],
-      manrope: ["Work Sans", "sans-serif"],
-      "great-vibes": ["Great Vibes", "cursive"],
-    },
-    screens: {
-      xs: "320px", // Extra small devices (e.g., older phones)
-      phone: "450px", // Small phones
-      tablet: "640px", // Tablets
-      sm: "450px", // Small devices
-      md: "768px", // Medium devices
-      laptop: "1024px", // Laptops
-      lg: "1024px", // Large devices
-      desktop: "1280px", // Desktops
-      xl: "1280px", // Extra large devices
-      "2xl": "1536px", // Extra extra large devices
-      "3xl": "1800px", // Ultra large devices (e.g., 4K screens)
-    },
-    // Add container configuration here
-    container: {
-      center: true, // Center the container by default
-      padding: {
-        DEFAULT: "1rem", // Default padding
-        sm: "2rem", // Padding for small screens
-        lg: "4rem", // Padding for large screens
-        xl: "5rem", // Padding for extra-large screens
-      },
-    },
   },
   plugins: [
     function ({ addUtilities }) {
-      const utilities = {
+      addUtilities({
         ".text-sma": {
-          "font-size": "13.33px",
-          "line-height": "16px",
+          fontSize: "0.875rem",
+          lineHeight: "1.25rem",
         },
         ".text-xxs": {
-          "font-size": "10px",
-          "line-height": "16px",
+          fontSize: "0.75rem",
+          lineHeight: "1rem",
         },
         ".H600": {
-          "font-family": "Work Sans",
-          "font-size": "19.2px",
-          "font-style": "normal",
-          "font-weight": "700",
-          "line-height": "24px",
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "1.2rem",
+          fontStyle: "normal",
+          fontWeight: "700",
+          lineHeight: "1.5rem",
         },
         ".H700": {
-          "font-family": "Work Sans",
-          "font-size": "23.04px",
-          "font-style": "normal",
-          "font-weight": "700",
-          "line-height": "28px",
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "1.44rem",
+          fontStyle: "normal",
+          fontWeight: "700",
+          lineHeight: "1.75rem",
         },
         ".H400": {
-          "font-family": "Work Sans",
-          "font-size": "18px",
-          "font-style": "normal",
-          "font-weight": "600",
-          "line-height": "28px",
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "1.125rem",
+          fontStyle: "normal",
+          fontWeight: "600",
+          lineHeight: "1.75rem",
         },
         ".P100": {
-          "font-family": "Work Sans",
-          "font-size": "13.33px",
-          "font-style": "normal",
-          "font-weight": "400",
-          "line-height": "16px" /* 150% */,
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "0.875rem",
+          fontStyle: "normal",
+          fontWeight: "400",
+          lineHeight: "1.25rem",
         },
         ".P200": {
-          "font-family": "Work Sans",
-          "font-size": "16px",
-          "font-style": "normal",
-          "font-weight": "400",
-          "line-height": "24px" /* 150% */,
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "1rem",
+          fontStyle: "normal",
+          fontWeight: "400",
+          lineHeight: "1.5rem",
         },
         ".P250": {
-          "font-family": "Work Sans",
-          "font-size": "16px",
-          "font-style": "normal",
-          "font-weight": "600",
-          "line-height": "24px" /* 150% */,
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "1rem",
+          fontStyle: "normal",
+          fontWeight: "600",
+          lineHeight: "1.5rem",
         },
         ".P900": {
-          "font-family": "Work Sans",
-          "font-size": "40px",
-          "font-style": "normal",
-          "font-weight": "400",
-          "letter-spacing": "-0.8px",
+          fontFamily: "Work Sans, sans-serif",
+          fontSize: "2.5rem",
+          fontStyle: "normal",
+          fontWeight: "400",
+          letterSpacing: "-0.8px",
         },
         ".gradientBtn": {
-          "@apply bg-gradient-to-r from-violet-500 to-fuchsia-500 transition duration-300 hover:bg-gradient-to-l hover:scale-105":
+          "@apply bg-gradient-to-r from-primary to-accent text-white transition duration-300 hover:from-primary hover:to-lightest hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40":
             {},
         },
         ".header": {
           height: "clamp(40px, 6vh, 60px)",
         },
-      };
-      addUtilities(utilities);
+      });
     },
   ],
 };

@@ -62,18 +62,24 @@ const submitBulkGradesToBackend = (payload: {
 };
 
 const mapBackendResultsToAssignment = (
-  results: BackendAssignmentResult[]
+  rawResults: unknown
 ): Assignment => {
+  const results = Array.isArray(rawResults)
+    ? (rawResults as BackendAssignmentResult[])
+    : [];
+
   return {
     title: "Assignment Results",
-    submissions: results.map((item) => ({
-      id: String(item.submission.id),
-      studentId: String(item.student.id),
-      studentName: item.student.name,
-      submittedAt: item.submission.submittedAt,
-      grade: item.submission.score ?? null,
-      status: item.submission.status === "GRADED" ? "graded" : "pending",
-    })),
+    submissions: results
+      .filter((item) => item?.submission && item?.student)
+      .map((item) => ({
+        id: String(item.submission.id),
+        studentId: String(item.student.id),
+        studentName: item.student.name,
+        submittedAt: item.submission.submittedAt,
+        grade: item.submission.score ?? null,
+        status: item.submission.status === "GRADED" ? "graded" : "pending",
+      })),
   };
 };
 
@@ -98,9 +104,8 @@ const GradingPanel = () => {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
 
   useEffect(() => {
-    if (data?.data) {
-      setAssignment(mapBackendResultsToAssignment(data.data));
-    }
+    if (!data) return;
+    setAssignment(mapBackendResultsToAssignment(data.data));
   }, [data]);
 
   const onGrade = useCallback((submissionId: string, grade: number) => {

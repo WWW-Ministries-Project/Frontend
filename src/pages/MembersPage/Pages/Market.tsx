@@ -1,4 +1,4 @@
-import { matchRoutes, Outlet, useNavigate } from "react-router-dom";
+import { matchRoutes, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
@@ -13,14 +13,15 @@ const Market = () => {
     data: products,
     loading,
   } = useFetch(api.fetch.fetchAllProducts);
-  const naviggate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { setProducts, setLoading } = useStore();
 
   const handleSelectedTab = (tab: string) => {
     if (tab === "Products") {
-      naviggate("/member/market");
+      navigate("/member/market");
     } else {
-      naviggate(`${tab.toLowerCase()}`);
+      navigate(`${tab.toLowerCase()}`);
     }
   };
 
@@ -35,7 +36,7 @@ const Market = () => {
     }
 
     
-  }, [loading, products]);
+  }, [loading, products, setLoading, setProducts]);
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.[matches.length - 1]?.route.name;
@@ -43,7 +44,8 @@ const Market = () => {
   return (
     <MarketLayout title={routeName}>
       <div className="bg-white p-6 space-y-5 container mx-auto">
-        <div className="w-fit">
+        <div className="p-6 space-y-5">
+          <div className="w-fit">
           <TabSelection
             tabs={["Products", "Carts", "Orders"]}
             onTabSelect={handleSelectedTab}
@@ -52,6 +54,7 @@ const Market = () => {
         </div>
 
         <Outlet />
+        </div>
       </div>
     </MarketLayout>
   );

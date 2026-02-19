@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { DragEvent, useEffect, useRef, useState } from "react";
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
@@ -11,23 +11,64 @@ import { showNotification } from "@/pages/HomePage/utils";
 
 interface ITopic {
   id: string | number;
+  programId?: number;
   name: string;
   description?: string | TrustedHTML | null | undefined;
+  order?: number;
+  order_number?: number;
   learningUnit?: { type?: string } | string;
+  LearningUnit?: { type?: string } | string;
   type?: string;
 }
 
 interface IProps {
   topics: ITopic[];
+  programId?: number;
   refetchProgram?: () => void;
  
 }
 
-const AllTopics = ({ topics, refetchProgram }: IProps) => {
+const sortTopicsByOrder = (items: ITopic[]) =>
+  [...items].sort(
+    (a, b) =>
+      (a.order_number ?? a.order ?? Number.MAX_SAFE_INTEGER) -
+      (b.order_number ?? b.order ?? Number.MAX_SAFE_INTEGER)
+  );
+
+const reorderTopics = (
+  items: ITopic[],
+  draggedTopicId: string | number,
+  targetTopicId: string | number,
+  position: "above" | "below"
+) => {
+  const next = [...items];
+  const fromIndex = next.findIndex((item) => String(item.id) === String(draggedTopicId));
+  const targetIndex = next.findIndex((item) => String(item.id) === String(targetTopicId));
+
+  if (fromIndex < 0 || targetIndex < 0 || fromIndex === targetIndex) return items;
+
+  const [moved] = next.splice(fromIndex, 1);
+  let insertIndex = targetIndex;
+
+  if (position === "below") insertIndex += 1;
+  if (fromIndex < insertIndex) insertIndex -= 1;
+
+  next.splice(insertIndex, 0, moved);
+  return next;
+};
+
+const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState<string | number | null>(null);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [TopicToEdit, setTopicToEdit] = useState<ITopic | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [orderedTopics, setOrderedTopics] = useState<ITopic[]>([]);
+  const [draggingTopicId, setDraggingTopicId] = useState<string | number | null>(null);
+  const [dragOverTopic, setDragOverTopic] = useState<{
+    id: string | number;
+    position: "above" | "below";
+  } | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
 
   const { executeDelete: deleteTopic, loading: deleteLoading } = useDelete(api.delete.deleteTopic);
 
@@ -57,6 +98,102 @@ const AllTopics = ({ topics, refetchProgram }: IProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    setOrderedTopics(sortTopicsByOrder(topics));
+  }, [topics]);
+
+  const persistTopicOrder = async (nextTopics: ITopic[], previousTopics: ITopic[]) => {
+    const resolvedProgramId = programId ?? nextTopics[0]?.programId;
+    if (!resolvedProgramId) {
+      showNotification("Program ID is missing. Unable to save topic order.", "error");
+      setOrderedTopics(previousTopics);
+      return;
+    }
+
+    const orderedPayload = nextTopics.map((topic, index) => ({
+      id: Number(topic.id),
+      order_number: index + 1,
+    }));
+
+    if (orderedPayload.some((item) => Number.isNaN(item.id))) {
+      showNotification("Invalid topic ID found. Unable to save topic order.", "error");
+      setOrderedTopics(previousTopics);
+      return;
+    }
+
+    setIsReordering(true);
+
+    try {
+      await api.put.reorderProgramTopics({
+        programId: resolvedProgramId,
+        topics: orderedPayload,
+      });
+      refetchProgram?.();
+      showNotification("Topic order updated.", "success");
+    } catch {
+      setOrderedTopics(previousTopics);
+      showNotification("Could not save topic order. Please try again.", "error");
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleTopicDragStart = (
+    event: DragEvent<HTMLDivElement>,
+    topicId: string | number
+  ) => {
+    if (isReordering) return;
+    setDraggingTopicId(topicId);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(topicId));
+  };
+
+  const handleTopicDragOver = (
+    event: DragEvent<HTMLDivElement>,
+    topicId: string | number
+  ) => {
+    if (draggingTopicId === null || isReordering) return;
+    event.preventDefault();
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const position = event.clientY - rect.top < rect.height / 2 ? "above" : "below";
+
+    setDragOverTopic((current) => {
+      if (current?.id === topicId && current.position === position) return current;
+      return { id: topicId, position };
+    });
+  };
+
+  const handleTopicDrop = (
+    event: DragEvent<HTMLDivElement>,
+    targetTopicId: string | number
+  ) => {
+    event.preventDefault();
+    if (draggingTopicId === null || isReordering) return;
+
+    const dropPosition =
+      dragOverTopic?.id === targetTopicId ? dragOverTopic.position : "below";
+    const previousTopics = orderedTopics;
+    const nextTopics = reorderTopics(
+      orderedTopics,
+      draggingTopicId,
+      targetTopicId,
+      dropPosition
+    );
+
+    setDraggingTopicId(null);
+    setDragOverTopic(null);
+    if (nextTopics === orderedTopics) return;
+
+    setOrderedTopics(nextTopics);
+    void persistTopicOrder(nextTopics, previousTopics);
+  };
+
+  const handleTopicDragEnd = () => {
+    setDraggingTopicId(null);
+    setDragOverTopic(null);
+  };
+
   return (
     <div className="" ref={rootRef}>
       <div className="space-y-4 ">
@@ -64,74 +201,111 @@ const AllTopics = ({ topics, refetchProgram }: IProps) => {
           <h2 className="text-2xl font-semibold mb-2">Topics</h2>
           <Button value="Create New Topic" onClick={() => setIsTopicModalOpen(true)} />
         </div>
+        <p className="text-sm text-primaryGray">
+          Drag and drop topics to reorder them.
+        </p>
 
         {/* Created Topics */}
         <div className="grid grid-cols-1 gap-4">
-          {topics.map((topic) => (
-            <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <div className="flex gap-4 items-center">
-                  <div className="font-medium">
-                    {topic?.name}
-                  </div>
-                  {(topic?.learningUnit || topic?.type) && (
-                    <Badge>
-                      {typeof topic.learningUnit === "string"
-                        ? topic.learningUnit
-                        : topic.learningUnit?.type || topic?.type}
-                    </Badge>
-                  )}
-                </div>
-                <div className="gap-x-4 flex text-sm text-primaryGray">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(String(topic?.description ?? "")),
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="relative">
-                  <button
-                    className="text-primary"
-                    onClick={() => toggleMenu(topic?.id)}
-                  >
-                    <img
-                      src={ellipse}
-                      alt="options"
-                      className="cursor-pointer"
-                    />
-                  </button>
-                  {isMenuOpen === topic?.id && (
-                    <div
-                      className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
-                    >
-                      <ul className="py-1">
-                        <li
-                          className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                          onClick={() => handleEdit(topic)}
-                        >
-                          Edit topic
-                        </li>
+          {orderedTopics.map((topic) => {
+            const topicLearningUnit = topic?.learningUnit ?? topic?.LearningUnit;
+            const isDragOverTop =
+              dragOverTopic?.id === topic.id && dragOverTopic.position === "above";
+            const isDragOverBottom =
+              dragOverTopic?.id === topic.id && dragOverTopic.position === "below";
 
-                        <hr className="text-lightGray" />
-                        <li
-                          onClick={() => {
-                            setTopicToDelete(topic);
-                            setIsDeleteModalOpen(true);
-                            setIsMenuOpen(null);
-                          }}
-                          className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
-                        >
-                          Delete topic
-                        </li>
-                      </ul>
+            return (
+              <div
+                key={topic?.id}
+                draggable={!isReordering}
+                onDragStart={(event) => handleTopicDragStart(event, topic.id)}
+                onDragOver={(event) => handleTopicDragOver(event, topic.id)}
+                onDrop={(event) => handleTopicDrop(event, topic.id)}
+                onDragEnd={handleTopicDragEnd}
+                className={`relative border rounded-lg p-4 flex justify-between items-center transition-colors ${
+                  draggingTopicId === topic.id ? "opacity-60" : ""
+                } ${
+                  isReordering ? "cursor-wait" : "cursor-grab"
+                }`}
+              >
+                {isDragOverTop && (
+                  <div className="absolute left-3 right-3 top-0 h-0.5 bg-primary" />
+                )}
+                {isDragOverBottom && (
+                  <div className="absolute left-3 right-3 bottom-0 h-0.5 bg-primary" />
+                )}
+                <div>
+                  <div className="flex gap-4 items-center">
+                    <span
+                      className="select-none text-primaryGray"
+                      aria-label={`Drag ${topic.name}`}
+                      title="Drag to reorder"
+                    >
+                      ::
+                    </span>
+                    <div className="font-medium">
+                      {topic?.name}
                     </div>
-                  )}
-                </div> 
+                    {(topicLearningUnit || topic?.type) && (
+                      <Badge>
+                        {typeof topicLearningUnit === "string"
+                          ? topicLearningUnit
+                          : topicLearningUnit?.type || topic?.type}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="gap-x-4 flex text-sm text-primaryGray">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(String(topic?.description ?? "")),
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="relative">
+                    <button
+                      className="text-primary"
+                      onClick={() => toggleMenu(topic?.id)}
+                      disabled={isReordering}
+                    >
+                      <img
+                        src={ellipse}
+                        alt="options"
+                        className="cursor-pointer"
+                      />
+                    </button>
+                    {isMenuOpen === topic?.id && (
+                      <div
+                        className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
+                      >
+                        <ul className="py-1">
+                          <li
+                            className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                            onClick={() => handleEdit(topic)}
+                          >
+                            Edit topic
+                          </li>
+
+                          <hr className="text-lightGray" />
+                          <li
+                            onClick={() => {
+                              setTopicToDelete(topic);
+                              setIsDeleteModalOpen(true);
+                              setIsMenuOpen(null);
+                            }}
+                            className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
+                          >
+                            Delete topic
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {/* Topic creation */}
@@ -145,9 +319,9 @@ const AllTopics = ({ topics, refetchProgram }: IProps) => {
                   name: TopicToEdit.name,
                   description: String(TopicToEdit.description ?? ""),
                   learningUnit:
-                    typeof TopicToEdit.learningUnit === "string"
+                    typeof (TopicToEdit.learningUnit ?? TopicToEdit.LearningUnit) === "string"
                       ? null
-                      : ((TopicToEdit.learningUnit as unknown) as {
+                      : (((TopicToEdit.learningUnit ?? TopicToEdit.LearningUnit) as unknown) as {
                           type: "video" | "live" | "in-person" | "ppt" | "pdf" | "lesson-note" | "assignment" | "assignment-essay";
                           data: unknown;
                         }) || null,

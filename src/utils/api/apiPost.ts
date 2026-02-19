@@ -23,6 +23,7 @@ import type {
   IProduct,
   ICheckOut,
   CheckOutResponse,
+  RetryOrderPaymentPayload,
 } from "./marketPlace/interface";
 import {
   Appointment,
@@ -206,6 +207,21 @@ export class ApiCreationCalls {
     payload: ICheckOut
   ): Promise<ApiResponse<CheckOutResponse>> => {
     return this.postToApi("orders/create-order", payload);
+  };
+
+  retryOrderPayment = (
+    payload: RetryOrderPaymentPayload
+  ): Promise<ApiResponse<CheckOutResponse>> => {
+    return this.postToApi("orders/retry-payment", payload);
+  };
+
+  reconcileHubtelPendingPayments = (
+    limit = 100
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(
+      `orders/reconcile-hubtel-pending-payments?limit=${limit}`,
+      {}
+    );
   };
 
   createStaffAvailability = (

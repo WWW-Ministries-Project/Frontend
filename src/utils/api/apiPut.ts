@@ -13,6 +13,7 @@ import {
 } from "./members/interfaces";
 import {
   CohortPayloadType,
+  ReorderProgramTopicsPayload,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
 import {
@@ -177,6 +178,12 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(`program/topic`, payload, query);
   }
+
+  reorderProgramTopics = (
+    payload: ReorderProgramTopicsPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/reorder-topics`, payload);
+  };
 
   // mark topic as completed
   markTopicAsCompleted = (

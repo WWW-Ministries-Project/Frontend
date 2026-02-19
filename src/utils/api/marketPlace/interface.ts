@@ -1,4 +1,3 @@
-import { image } from "@/pages/HomePage/Components/MultiImageComponent";
 import { ICheckoutForm } from "@/pages/HomePage/pages/MarketPlace/components/cart/CheckOutForm";
 export interface IMarket {
   name: string;
@@ -10,7 +9,13 @@ export interface IMarket {
   event_name?: string;
 }
 
-export type MarketStatusType = "upcoming" | "active" | "ended";
+export type MarketStatusType =
+  | "upcoming"
+  | "active"
+  | "ended"
+  | "Upcoming"
+  | "Active"
+  | "Ended";
 
 export interface IProductType {
   name: string;
@@ -95,6 +100,8 @@ interface IUserDetails {
 export interface ICheckOut {
   user_id?: string;
   total_amount: string;
+  return_url?: string;
+  cancellation_url?: string;
   billing: IUserDetails;
   items: ICartItem[];
 }
@@ -106,13 +113,25 @@ export interface CheckOutResponse {
   clientReference: string;
 }
 
+export interface RetryOrderPaymentPayload {
+  id: string | number;
+  return_url: string;
+  cancellation_url: string;
+}
+
 export type PaymentStatus = "pending" | "success" | "failed" | "delivered";
 export interface IOrders extends ICartItem, IUserDetails {
   payment_status: PaymentStatus;
-  delivery_status: "pending" | "delivered" | "cancelled";
+  delivery_status?: "pending" | "delivered" | "cancelled";
   market_status: MarketStatusType;
-  order_number:string
-  id: string;
+  order_number: string;
+  order_id?: string | number;
+  reference?: string;
+  total_amount?: number | string;
+  created_at?: string;
+  order_created_at?: string;
+  ordered_at?: string;
+  id: string | number;
 }
 
 export interface IProductSlice {

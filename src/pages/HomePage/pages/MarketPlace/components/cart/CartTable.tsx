@@ -41,7 +41,9 @@ export function CartTable() {
     >
       {({ values, handleSubmit, setFieldValue }) => {
         const totalAmount = values.cartItems.reduce(
-          (acc, item) => acc + item.price_amount * item.quantity,
+          (acc, item) =>
+            acc +
+            Number(item.price_amount || 0) * Math.max(1, Number(item.quantity || 1)),
           0
         );
 
@@ -139,14 +141,18 @@ export function CartTable() {
                               min="1"
                               placeholder="Quantity"
                               onChange={(_: string, value: string) => {
+                                const parsedQuantity = Math.max(
+                                  1,
+                                  Number.parseInt(value, 10) || 1
+                                );
                                 handleUpdateSection(
                                   item.item_uuid!,
                                   "quantity",
-                                  +value
+                                  parsedQuantity
                                 );
                                 setFieldValue(
                                   `cartItems[${index}].quantity`,
-                                  value
+                                  parsedQuantity
                                 );
                               }}
                             />
@@ -157,7 +163,10 @@ export function CartTable() {
                           </td>
 
                           <td className="px-4 py-2 whitespace-nowrap text-center">
-                            {(item.price_amount * item.quantity).toFixed(2)}
+                            {(
+                              Number(item.price_amount || 0) *
+                              Math.max(1, Number(item.quantity || 1))
+                            ).toFixed(2)}
                           </td>
 
                           <td className="text-center px-4 py-2">

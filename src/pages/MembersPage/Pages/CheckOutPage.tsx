@@ -6,25 +6,41 @@ import {
   type ICheckoutForm,
 } from "@/pages/HomePage/pages/MarketPlace/components/cart/CheckOutForm";
 import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
-import { api, decodeToken, relativePath } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
+import { api, decodeToken, ICartItem, relativePath } from "@/utils";
 import { useLocation } from "react-router-dom";
 import { useCartDetails } from "@/pages/HomePage/pages/MarketPlace/utils/useCartDetails";
 
 export function CheckOutPage() {
   const { setBillinDetails } = useCart();
   const { postData, data, loading } = usePost(api.post.createOrder);
-  const { items: cartItems, totalPrice, clearCart } = useCartDetails();
+  const { items: cartItems, clearCart } = useCartDetails();
 
   const location = useLocation();
   const is_member = location.pathname.includes("member");
 
-  const my_cart_string = localStorage.getItem("my_cart");
-  const my_cart = my_cart_string ? JSON.parse(my_cart_string) : null;
+  const getGuestCheckoutItem = (): ICartItem | null => {
+    try {
+      const myCartString = localStorage.getItem("my_cart");
+      if (!myCartString) return null;
+      return JSON.parse(myCartString) as ICartItem;
+    } catch {
+      return null;
+    }
+  };
+
+  const my_cart = getGuestCheckoutItem();
   const user = decodeToken();
 
-  const amount = is_member
-    ? totalPrice
-    : my_cart?.price_amount * my_cart?.quantity;
+  const checkoutItems: ICartItem[] = is_member
+    ? cartItems
+    : my_cart
+    ? [my_cart]
+    : [];
+
+  const amount = checkoutItems.reduce((acc, item) => {
+    return acc + Number(item.price_amount || 0) * Number(item.quantity || 0);
+  }, 0);
 
   const url = is_member
     ? relativePath.member.verify_payment
@@ -35,10 +51,24 @@ export function CheckOutPage() {
     : `${window.location.origin}/out/products/check-out`;
 
   const handleCheckout = async (data: ICheckoutForm) => {
+    if (checkoutItems.length === 0 || amount <= 0) {
+      showNotification(
+        "Your cart is empty or has invalid pricing.",
+        "error"
+      );
+      return;
+    }
+
     const { first_name, last_name } = data.personal_info;
     const { email, resident_country, phone } = data.contact_info;
+    const normalizedItems = checkoutItems.map((item) => ({
+      ...item,
+      price_amount: Number(item.price_amount || 0),
+      quantity: Number(item.quantity || 0),
+    }));
+
     const checkout_data = {
-      total_amount: `${amount}`,
+      total_amount: `${amount.toFixed(2)}`,
       cancellation_url,
       return_url: `${window.location.origin}${url}`,
       billing: {
@@ -49,7 +79,7 @@ export function CheckOutPage() {
         email,
         phone_number: phone.number,
       },
-      items: is_member ? cartItems : [my_cart],
+      items: normalizedItems,
     };
     setBillinDetails(data);
     await postData(

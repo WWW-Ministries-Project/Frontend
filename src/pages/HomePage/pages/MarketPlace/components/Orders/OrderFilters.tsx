@@ -13,6 +13,10 @@ interface IProps {
   showFilter: boolean;
   colors: string[];
   sizes: { label: string; value: string }[];
+  selectedColor?: string;
+  selectedMarketStatus?: string;
+  selectedOrderDate?: string;
+  showOrderDateFilter?: boolean;
 }
 export function OrderFilters({
   onChange,
@@ -21,9 +25,13 @@ export function OrderFilters({
   showFilter,
   colors,
   sizes,
+  selectedColor = "",
+  selectedMarketStatus = "",
+  selectedOrderDate = "",
+  showOrderDateFilter = false,
 }: IProps) {
-  const handleChange = function (name: string, value: string) {
-    onChange(value, name);
+  const handleChange = function (value: string, name: string) {
+    onChange(name, value);
   };
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
@@ -62,14 +70,14 @@ export function OrderFilters({
         };
       }) || []
     );
-  }, [categories]);
+  }, [types]);
 
   useEffect(() => {
     if (showFilter) {
       refetchTypes();
       refetchCategories();
     }
-  }, [showFilter]);
+  }, [showFilter, refetchCategories, refetchTypes]);
 
   const paymentStatus: {
     label: string;
@@ -79,6 +87,13 @@ export function OrderFilters({
     { label: "Pending", value: "pending" },
     { label: "Success", value: "success" },
     { label: "Failed", value: "failed" },
+  ];
+
+  const marketStatus = [
+    { label: "All", value: "" },
+    { label: "Active", value: "active" },
+    { label: "Upcoming", value: "upcoming" },
+    { label: "Ended", value: "ended" },
   ];
 
   return (
@@ -120,6 +135,15 @@ export function OrderFilters({
             label="Size"
           />
           <Filter
+            name="market_status"
+            className="w-full"
+            options={marketStatus}
+            onChange={handleChange}
+            placeholder="Select market status"
+            label="Market"
+            value={selectedMarketStatus}
+          />
+          <Filter
             name="payment_status"
             className="w-full"
             options={paymentStatus}
@@ -127,15 +151,30 @@ export function OrderFilters({
             placeholder="Select payment status"
             label="Payment Status"
           />
-          {colors.length > 1 && (
+          {showOrderDateFilter && (
+            <div className="w-full">
+              <label htmlFor="order_date" className="text-sm">
+                Order Date
+              </label>
+              <input
+                id="order_date"
+                name="order_date"
+                type="date"
+                value={selectedOrderDate}
+                onChange={(event) => onChange("order_date", event.target.value)}
+                className="h-10 w-full border border-[#dcdcdc] bg-white rounded-lg p-1"
+              />
+            </div>
+          )}
+          {colors.length > 0 && (
             <div className="w-full">
               <ColorSelectField
                 colors={colors}
                 onChange={onChange}
                 name="color"
                 id=""
-                value=""
-                label="Slect color"
+                value={selectedColor}
+                label="Select color"
               />
             </div>
           )}

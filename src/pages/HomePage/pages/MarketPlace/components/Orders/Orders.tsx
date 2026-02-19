@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workbook } from "exceljs";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
@@ -36,8 +36,26 @@ const getStatusBadge = (status: PaymentStatus) => {
 };
 
 const isMobileScreen = () => typeof globalThis !== "undefined" && window.innerWidth <= 1024;
+const getOrderDateValue = (order: IOrders) => {
+  const timestamp = order.created_at || order.order_created_at || order.ordered_at;
+  if (!timestamp) return "";
 
-const OrderCard = ({ order }: { order: IOrders }) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const OrderCard = ({
+  order,
+  renderOrderAction,
+}: {
+  order: IOrders;
+  renderOrderAction?: (order: IOrders) => ReactNode;
+}) => {
   const total = (order.price_amount * order.quantity).toFixed(2);
 
   return (
@@ -93,6 +111,10 @@ const OrderCard = ({ order }: { order: IOrders }) => {
         </p>
         <p className="text-gray-500">{order.country}</p>
       </div>
+
+      {renderOrderAction && (
+        <div className="pt-2 border-t">{renderOrderAction(order)}</div>
+      )}
     </div>
   );
 };
@@ -103,8 +125,21 @@ interface IProps{
   tableColumns: ColumnDef<IOrders>[];
   searchCustomer?: boolean
   showExport?: boolean
+  defaultMarketStatus?: "active" | "upcoming" | "ended" | "";
+  renderOrderAction?: (order: IOrders) => ReactNode;
+  headerAction?: ReactNode;
+  enableOrderDateFilter?: boolean;
 }
-export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }: IProps) => {
+export const Orders = ({
+  orders,
+  tableColumns,
+  searchCustomer = true,
+  showExport,
+  defaultMarketStatus = "",
+  renderOrderAction,
+  headerAction,
+  enableOrderDateFilter = false,
+}: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [filterOrders, setFilterOrders] = useState<IFilters>({
@@ -113,7 +148,9 @@ export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }
     product_category: "",
     color: "",
     size: "",
-    payment_status: "success",
+    payment_status: "",
+    market_status: defaultMarketStatus,
+    order_date: "",
   });
 
   const [isMobile, setIsMobile] = useState(isMobileScreen());
@@ -124,53 +161,75 @@ export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const filteredOrders = useCallback(() => {
-    return orders!
-      .filter((order) => {
-        return Object.entries(filterOrders).every(([key, value]) => {
-          if (!value) return true;
-          if (key === "customer_name") {
-            const fullName = `${order.first_name} ${order.last_name}`.toLowerCase();
-            return fullName.trim().includes(value.trim().toLowerCase());
-          }
-          const orderValue = order[key as keyof IOrders];
-          return (
-            orderValue?.toString().toLowerCase().includes(value.toLowerCase())
-          );
-        });
-      });
-  }, [filterOrders, orders]);
+  useEffect(() => {
+    setFilterOrders((prev) => ({ ...prev, market_status: defaultMarketStatus }));
+  }, [defaultMarketStatus]);
 
-  const allOrders = filteredOrders();
+  const allOrders = useMemo(() => {
+    const normalizedOrders = orders || [];
+
+    return normalizedOrders.filter((order) => {
+      return Object.entries(filterOrders).every(([key, value]) => {
+        if (!value) return true;
+
+        if (key === "customer_name") {
+          const fullName = `${order.first_name} ${order.last_name}`.toLowerCase();
+          return fullName.trim().includes(value.trim().toLowerCase());
+        }
+
+        if (key === "order_date") {
+          return getOrderDateValue(order) === value;
+        }
+
+        const normalizedFilterValue = value.trim().toLowerCase();
+        const normalizedOrderValue = String(order[key as keyof IOrders] || "")
+          .trim()
+          .toLowerCase();
+
+        return normalizedOrderValue === normalizedFilterValue;
+      });
+    });
+  }, [filterOrders, orders]);
   
 
   const handleExport = useCallback(() => {
+    if (allOrders.length === 0) return;
     exportToExcel(allOrders);
   }, [allOrders]);
 
   const handleFilters = (key: string, value: string) => {
     setFilterOrders((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: value ?? "",
     }));
   };
 
-  const allColors = Array.from(new Set(orders?.map((order) => order.color)));
-  const allSizes = Array.from(new Set(orders?.map((order) => order.size))).map(
-    (size) => {
-      return {
-        label: size,
-        value: size,
-      };
-    }
+  const allColors = Array.from(
+    new Set(
+      (orders || [])
+        .map((order) => order.color)
+        .filter((color): color is string => Boolean(color))
+    )
   );
+  const allSizes = Array.from(
+    new Set(
+      (orders || [])
+        .map((order) => order.size)
+        .filter((size): size is string => Boolean(size))
+    )
+  ).map((size) => {
+    return {
+      label: size,
+      value: size,
+    };
+  });
 
   return (
     <>
       <HeaderControls
         title={`Orders (${allOrders?.length})`}
         btnName={showExport && allOrders?.length > 0 ? "Export to Excel" : ""}
-        screenWidth={window.innerWidth}
+        screenWidth={typeof window !== "undefined" ? window.innerWidth : 1024}
         handleClick={handleExport}
         hasFilter={true}
         hasSearch={searchCustomer}
@@ -178,6 +237,7 @@ export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }
         setShowSearch={setShowSearch}
         showFilter={showFilter}
         setShowFilter={setShowFilter}
+        customIcon={headerAction}
       />
 
       {
@@ -188,12 +248,20 @@ export const Orders = ({ orders, tableColumns, searchCustomer=true, showExport }
           showFilter={showFilter}
           colors={allColors || []}
           sizes={allSizes}
+          selectedColor={filterOrders.color}
+          selectedMarketStatus={filterOrders.market_status}
+          selectedOrderDate={filterOrders.order_date}
+          showOrderDateFilter={enableOrderDateFilter}
         />
       }
       {isMobile ? (
         <div className=" grid sm:grid-cols-2 gap-4">
           {allOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard
+              key={String(order.id)}
+              order={order}
+              renderOrderAction={renderOrderAction}
+            />
           ))}
         </div>
       ) : (
@@ -321,4 +389,6 @@ export interface IFilters {
   color: string;
   size: string;
   payment_status: PaymentStatus | "";
+  market_status: "active" | "upcoming" | "ended" | "";
+  order_date: string;
 }

@@ -112,6 +112,7 @@ export const ViewProgram = () => {
         {selectedTab === "Topics" && (
           <AllTopics
             topics={program?.topics || []}
+            programId={programId ? Number(programId) : undefined}
             refetchProgram={refetch}
           />
         )}

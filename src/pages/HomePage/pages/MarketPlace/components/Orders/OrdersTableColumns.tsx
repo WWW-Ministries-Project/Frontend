@@ -20,12 +20,22 @@ export const getBaseOrderColumns = (
   {
     header: "Color",
     accessorKey: "color",
-    cell: ({ row }) => (
-      <div
-        style={{ backgroundColor: row.original.color }}
-        className="w-8 h-5 rounded-lg"
-      ></div>
-    ),
+    cell: ({ row }) => {
+      const color = row.original.color;
+      const hasColor = typeof color === "string" && color.trim().length > 0;
+
+      if (!hasColor) return <div>-</div>;
+
+      return (
+        <div className="flex items-center gap-2">
+          <div
+            style={{ backgroundColor: color }}
+            className="w-8 h-5 rounded-lg border"
+          ></div>
+          <span className="text-xs text-gray-600">Selected</span>
+        </div>
+      );
+    },
   },
   {
     header: "Size",
