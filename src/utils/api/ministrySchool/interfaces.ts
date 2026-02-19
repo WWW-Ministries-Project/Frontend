@@ -288,6 +288,16 @@ export type AssignmentEssayLearningUnit = {
   };
 };
 
+export type TopicOrderItem = {
+  id: number;
+  order_number: number;
+};
+
+export type ReorderProgramTopicsPayload = {
+  programId: number;
+  topics: TopicOrderItem[];
+};
+
 export type LearningUnit =
   | LessonNoteLearningUnit
   | MediaLearningUnit
