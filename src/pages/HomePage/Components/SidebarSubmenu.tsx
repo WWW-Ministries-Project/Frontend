@@ -17,6 +17,35 @@ interface IProps {
   toggleSubMenu: () => void;
 }
 
+const HOME_ROUTE_BASE = "/home";
+
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, "");
+  if (!trimmed) return "/";
+  return trimmed.replace(/\/{2,}/g, "/");
+};
+
+const resolveHomePath = (path: string) => {
+  if (!path) return HOME_ROUTE_BASE;
+  if (path.startsWith("/")) return normalizePath(path);
+  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
+};
+
+const isPathActive = (pathname: string, path: string) => {
+  const normalizedPathname = normalizePath(pathname);
+  const normalizedPath = normalizePath(path);
+  return (
+    normalizedPathname === normalizedPath ||
+    normalizedPathname.startsWith(`${normalizedPath}/`)
+  );
+};
+
+const joinRelativePaths = (base: string, child?: string) => {
+  const normalizedBase = base.replace(/\/+$/, "");
+  if (!child) return normalizedBase;
+  return `${normalizedBase}/${child.replace(/^\/+/, "")}`;
+};
+
 export const SideBarSubMenu = ({
   item,
   parentPath,
@@ -30,11 +59,13 @@ export const SideBarSubMenu = ({
     user: { permissions },
   } = useAuth();
 
-  // Compute active state for parent
-  const isActive =
-    location.pathname === item.path ||
-    location.pathname.startsWith(item.path) ||
-    location.pathname.includes(item.path);
+  const parentRoutePath = useMemo(
+    () => resolveHomePath(item.path),
+    [item.path]
+  );
+
+  // Compute active state for parent using normalized absolute paths.
+  const isActive = isPathActive(location.pathname, parentRoutePath);
 
   // Filter children by permissions and sideTab
   const filteredChildren = useMemo(
@@ -51,7 +82,12 @@ export const SideBarSubMenu = ({
 
   // Build child route path
   const getChildPath = (child: AppRoute) =>
-    `${parentPath}${child.path ? "/" + child.path : ""}`;
+    joinRelativePaths(parentPath, child.path);
+
+  const collapsedLinkPath =
+    filteredChildren.length > 0
+      ? joinRelativePaths(parentPath, filteredChildren[0].path)
+      : item.path;
 
   return (
     <div>
@@ -69,12 +105,12 @@ export const SideBarSubMenu = ({
             onClick={toggleSubMenu}
             className={`text-primary transition z-10 cursor-pointer ${
               showChildren || isActive
-                ? "text-primary bg-lightGray rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
+                ? "text-primary sidebar-active-surface rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
                 : "rounded-s-xl"
             }
             ${
               !showChildren && isActive
-                ? "text-primary bg-lightGray rounded-s-xl"
+                ? "text-primary sidebar-active-surface rounded-s-xl"
                 : ""
             }`}
           >
@@ -105,7 +141,7 @@ export const SideBarSubMenu = ({
           {showChildren && filteredChildren.length > 0 && (
             <div
               className={`pl-3 ${
-                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none bg-lightGray" : ""
+                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none sidebar-active-surface" : ""
               } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
             >
               {filteredChildren.map((child) => (
@@ -143,7 +179,10 @@ export const SideBarSubMenu = ({
               <div className="scrollable-shape-top"></div>
             </div>
           )}
-          <NavigationLink item={item} show={show}>
+          <NavigationLink
+            item={{ name: item.name, path: collapsedLinkPath }}
+            show={show}
+          >
             {children}
           </NavigationLink>
           {isActive && (

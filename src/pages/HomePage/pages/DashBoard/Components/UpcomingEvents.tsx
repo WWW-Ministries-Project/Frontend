@@ -19,8 +19,6 @@ export const UpcomingEvents = () => {
   const handleEventDetails = (event: eventType): void => {
     setSelectedEvent(event);
     setOpenModal(true)
-    console.log('selectedEvent', selectedEvent);
-    
   };
 
   return (

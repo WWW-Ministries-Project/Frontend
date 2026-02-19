@@ -1,6 +1,7 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "../../../context/AuthWrapper";
 import { sidebarIcons } from "../utils";
 import { NavigationLink } from "./NavigationLink";
 import { SideBarSubMenu } from "./SidebarSubmenu";
@@ -11,9 +12,21 @@ interface IProps {
 }
 
 export const MobileSideBar = ({ show, onClick }: IProps) => {
-  const items: AppRoute[] = sideTabs;
+  const {
+    user: { permissions },
+  } = useAuth();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  const items: AppRoute[] = useMemo(
+    () =>
+      sideTabs.filter(
+        (item) =>
+          !item.isPrivate ||
+          !item.permissionNeeded ||
+          permissions[item.permissionNeeded]
+      ),
+    [permissions]
+  );
 
   useEffect(() => {
     if (!show) setOpenSubMenu(null);
@@ -60,7 +73,7 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
     >
       <div className="h-full w-[250px] p-4">
         {/* navigation links */}
-        <div className="overflow-y-auto">
+        <div className="sidebar-scroll overflow-y-auto">
           {items.map((item) => {
             const IconComponent = sidebarIcons[item.name];
 

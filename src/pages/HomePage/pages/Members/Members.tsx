@@ -249,7 +249,12 @@ export function Members() {
                 member={row.original}
                 key={row.id}
                 showOptions={showOptions === row.original.id}
-                onShowOptions={() => setShowOptions(row.original.id)}
+                onShowOptions={() =>
+                  setShowOptions((prev) =>
+                    prev === row.original.id ? false : row.original.id
+                  )
+                }
+                onCloseOptions={() => setShowOptions(false)}
                 onDelete={handleDeleteModal}
                 canManage={permissions?.manage_members}
               />

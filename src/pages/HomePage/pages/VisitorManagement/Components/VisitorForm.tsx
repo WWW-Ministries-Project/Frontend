@@ -1,5 +1,6 @@
 import { Button } from "@/components/Button";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
+import MultiSelect from "@/components/MultiSelect";
 import FormikSelectField from "@/components/FormikSelect";
 import {
   ContactsSubForm,
@@ -13,8 +14,14 @@ import { Field, Form, Formik, useFormikContext } from "formik";
 import { date, object, string } from "yup";
 import React from "react";
 
+type SyncEventDateFormValues = {
+  visit?: {
+    eventId?: string | number;
+  };
+};
+
 const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | number; date?: string }[] }) => {
-  const { values, setFieldValue } = useFormikContext<any>();
+  const { values, setFieldValue } = useFormikContext<SyncEventDateFormValues>();
 
   React.useEffect(() => {
     const eventId = values?.visit?.eventId;
@@ -48,10 +55,15 @@ const VisitorFormComponent = ({
   loading,
   showHeader = true,
 }: IProps) => {
-  const { eventsOptions } = useStore();
-
-  console.log(eventsOptions);
-  
+  const { eventsOptions, membersOptions } = useStore();
+  const responsibleMemberOptions = React.useMemo(
+    () =>
+      membersOptions.map((member) => ({
+        label: member.label,
+        value: String(member.value),
+      })),
+    [membersOptions]
+  );
 
   return (
     <div className="bg-white  rounded-lg w-full  mx-auto">
@@ -61,7 +73,7 @@ const VisitorFormComponent = ({
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
-        {({ handleSubmit }) => (
+        {({ handleSubmit, setFieldValue, values }) => (
           <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
             <SyncEventDate eventsOptions={eventsOptions} />
             {showHeader && (
@@ -110,6 +122,20 @@ const VisitorFormComponent = ({
                   name={`visit.howHeard`}
                   id={`visit.howHeard`}
                 />
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-primary">
+                    Responsible Members (Optional)
+                  </label>
+                  <MultiSelect
+                    options={responsibleMemberOptions}
+                    selectedValues={values.responsibleMembers || []}
+                    onChange={(selectedValues) =>
+                      setFieldValue("responsibleMembers", selectedValues)
+                    }
+                    placeholder="Assign member(s)"
+                    emptyMsg="No member assigned"
+                  />
+                </div>
                 <div className="flex items-center">
                   <Field
                     type="checkbox"
@@ -175,7 +201,7 @@ export interface IVisitorForm {
   };
   consentToContact: string;
   membershipWish: string;
-  
+  responsibleMembers: string[];
 }
 
 const initialValues: IVisitorForm = {
@@ -188,6 +214,7 @@ const initialValues: IVisitorForm = {
   },
   consentToContact: "",
   membershipWish: "",
+  responsibleMembers: [],
 };
 
 const validationSchema = object({

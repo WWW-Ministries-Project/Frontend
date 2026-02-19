@@ -4,15 +4,13 @@ import {
   CalendarDaysIcon,
   ClockIcon,
   MapPinIcon,
-  XCircleIcon,
   ShareIcon,
-  PlusIcon,
   XMarkIcon,
   ArrowTopRightOnSquareIcon,
   EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { eventType } from "../../EventsManagement/utils/eventInterfaces";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface IProps {
   event: eventType;
@@ -23,6 +21,13 @@ interface IProps {
 
 export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IProps) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileShareMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopShareMenuRef = useRef<HTMLDivElement | null>(null);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   /* ------------------------------- Date helpers ------------------------------- */
@@ -236,6 +241,70 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
     setShowShareMenu(false);
   };
 
+  const updateMenuPosition = useCallback(() => {
+    const trigger = menuButtonRef.current;
+    if (!trigger) return;
+
+    const isDesktop = window.matchMedia("(min-width: 640px)").matches;
+    if (!isDesktop) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuWidth = 256; // Tailwind w-64
+    const estimatedMenuHeight = desktopShareMenuRef.current?.offsetHeight || 300;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 8;
+    const offset = 8;
+
+    let left = triggerRect.right - menuWidth;
+    left = Math.max(margin, Math.min(left, viewportWidth - menuWidth - margin));
+
+    const canFitBelow =
+      triggerRect.bottom + offset + estimatedMenuHeight <= viewportHeight - margin;
+    const top = canFitBelow
+      ? triggerRect.bottom + offset
+      : Math.max(margin, triggerRect.top - estimatedMenuHeight - offset);
+
+    setMenuPosition({ top, left });
+  }, []);
+
+  useEffect(() => {
+    if (!showShareMenu) return;
+
+    const rafId = window.requestAnimationFrame(updateMenuPosition);
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        mobileShareMenuRef.current?.contains(target) ||
+        desktopShareMenuRef.current?.contains(target) ||
+        menuButtonRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setShowShareMenu(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowShareMenu(false);
+    };
+
+    const handleReposition = () => updateMenuPosition();
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [showShareMenu, updateMenuPosition]);
+
   /* ----------------------------- Precomputed text ----------------------------- */
   const userTimeStr = convertToUserTimezone(event.start_date, event.start_time);
   const userEndTimeStr = convertToUserTimezone(
@@ -263,7 +332,8 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
         )}
         
           <button
-            onClick={() => setShowShareMenu(true)}
+            ref={menuButtonRef}
+            onClick={() => setShowShareMenu((prev) => !prev)}
             className="p-2 sm:p-2.5 bg-white flex items-center rounded-lg gap-2  hover:shadow-lg transition-shadow duration-200 border border-gray-200 active:scale-95"
             title="Add to calendar or share"
             aria-haspopup="dialog"
@@ -285,10 +355,10 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
         )}
       </div>
 
-      {/* Click outside to close (for desktop popover) */}
+      {/* Click outside to close (shared mobile/desktop backdrop) */}
       {showShareMenu && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[60]"
           onClick={() => setShowShareMenu(false)}
           aria-hidden="true"
         />
@@ -362,10 +432,11 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
         <>
           {/* Bottom sheet (mobile) */}
           <div
+            ref={mobileShareMenuRef}
             role="dialog"
             aria-modal="true"
             className="
-              fixed sm:hidden z-50 left-0 right-0 bottom-0
+              fixed sm:hidden z-[70] left-0 right-0 bottom-0
               bg-white rounded-t-2xl shadow-2xl border-t border-gray-200
               p-3 pt-2
             "
@@ -422,12 +493,14 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
 
           {/* Popover (desktop/tablet) */}
           <div
+            ref={desktopShareMenuRef}
             role="dialog"
             aria-modal="true"
             className="
-              hidden sm:block absolute z-[70] right-0 top-12 bg-white rounded-lg shadow-lg border border-gray-200
+              hidden sm:block fixed z-[70] bg-white rounded-lg shadow-lg border border-gray-200
               py-2 w-64
             "
+            style={{ top: menuPosition.top, left: menuPosition.left }}
           >
             <div className="px-3 py-1 text-xs text-gray-500 font-medium border-b border-gray-100">
               Add to Calendar

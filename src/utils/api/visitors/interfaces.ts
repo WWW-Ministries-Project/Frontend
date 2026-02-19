@@ -22,7 +22,23 @@ export type VisitorType = {
   visitCount: number;
   followUp: string;
   eventId: string;
-  eventName:string
+  eventName: string;
+  responsibleMembers?: Array<
+    | string
+    | number
+    | {
+        id?: string | number;
+        value?: string | number;
+      }
+  >;
+  responsible_members?: Array<
+    | string
+    | number
+    | {
+        id?: string | number;
+        value?: string | number;
+      }
+  >;
 };
 
 export type VisitorResponseType = {
@@ -31,8 +47,8 @@ export type VisitorResponseType = {
 
 /* Visits */
 export type VisitType = {
-  id: number|string;
-  visitorId: number|string;
+  id: number | string;
+  visitorId: number | string;
   date: string;
   eventName?: string;
   eventId?: string;
@@ -45,7 +61,7 @@ export type VisitPayloadType = {
   eventId: string;
   notes: string;
   visitorId: string;
-}
+};
 
 export type FollowUpType = {
   id: string;
@@ -54,16 +70,16 @@ export type FollowUpType = {
   status: string;
   notes: string;
   assignedTo: string;
-}
+};
 export type FollowUpPayloadType = {
   date: string;
   type: string;
   assignedTo: string;
   notes: string;
   visitorId: string;
-}
+};
 
 export type VisitorDetailsType = VisitorType & {
   visits: VisitType[];
-  followUps: FollowUpType[]
+  followUps: FollowUpType[];
 };
