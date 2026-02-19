@@ -3,9 +3,9 @@ import { AxiosError } from "axios";
 
 class ApiError extends Error {
   statusCode: number;
-  details?: any;
+  details?: unknown;
 
-  constructor(message: string, statusCode: number, details?: any) {
+  constructor(message: string, statusCode: number, details?: unknown) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
@@ -69,9 +69,11 @@ class ApiErrorHandler {
     return null;
   }
 
-  static handleResponse(response: Response): Promise<any> {
+  static handleResponse(response: Response): Promise<unknown> {
     if (!response.ok) {
-      return response.json().then((errorData) => {
+      return response
+        .json()
+        .then((errorData: { message?: string; [key: string]: unknown }) => {
         throw new ApiError(
           errorData.message || "An error occurred",
           response.status,
@@ -82,7 +84,7 @@ class ApiErrorHandler {
     return response.json();
   }
 
-  static handleError(error: any): Error {
+  static handleError(error: unknown): Error {
     if (error instanceof ApiError) {
       showNotification(error.message, "error", "Error");
       throw error;
@@ -99,7 +101,36 @@ class ApiErrorHandler {
         payload
       );
 
-      showNotification(normalizedError.message, "error", "Error");
+      if (normalizedError.statusCode === 401) {
+        showNotification(
+          "Your session has expired. Please login again.",
+          "error",
+          "Authentication"
+        );
+      } else if (normalizedError.statusCode === 403) {
+        showNotification(
+          "You do not have permission to perform this action.",
+          "error",
+          "Access denied"
+        );
+      } else {
+        showNotification(normalizedError.message, "error", "Error");
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        (normalizedError.statusCode === 401 ||
+          normalizedError.statusCode === 403)
+      ) {
+        window.dispatchEvent(
+          new CustomEvent("app:access-error", {
+            detail: {
+              statusCode: normalizedError.statusCode,
+            },
+          })
+        );
+      }
+
       throw normalizedError;
     }
 

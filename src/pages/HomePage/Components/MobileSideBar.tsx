@@ -1,5 +1,6 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
+import { hasRequiredAccess } from "@/utils/accessControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../../context/AuthWrapper";
 import { sidebarIcons } from "../utils";
@@ -13,7 +14,7 @@ interface IProps {
 
 export const MobileSideBar = ({ show, onClick }: IProps) => {
   const {
-    user: { permissions },
+    user: { permissions, access_permissions },
   } = useAuth();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
@@ -22,10 +23,13 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
       sideTabs.filter(
         (item) =>
           !item.isPrivate ||
-          !item.permissionNeeded ||
-          permissions[item.permissionNeeded]
+          hasRequiredAccess(
+            item.permissionNeeded,
+            access_permissions,
+            permissions
+          )
       ),
-    [permissions]
+    [access_permissions, permissions]
   );
 
   useEffect(() => {
@@ -78,9 +82,6 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
             const IconComponent = sidebarIcons[item.name];
 
             if (!IconComponent) {
-              if (process.env.NODE_ENV === "development") {
-                console.error(`Icon component for ${item.name} not found`);
-              }
               return null;
             }
 

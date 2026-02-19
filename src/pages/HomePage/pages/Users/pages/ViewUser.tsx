@@ -83,7 +83,8 @@ export const ViewUser = ({ id, onClose }: IProps) => {
   /* Roles options */
   const rolesOptions = useMemo(
     () =>
-      allRoles?.data?.map((role: any) => ({ label: role.name, value: role.id })) || [],
+      allRoles?.data?.map((role) => ({ label: role.name, value: role.id })) ||
+      [],
     [allRoles]
   );
 
@@ -227,19 +228,21 @@ export const ViewUser = ({ id, onClose }: IProps) => {
           </div>
         )}
 
-        {/* User role */}
+        {/* User access level */}
         {loadingUser ? (
           <FieldSkeleton />
         ) : (
           <div className="relative flex items-center justify-between border p-4 rounded-xl">
             <div>
-              <p className="font-medium">User role</p>
-              <p className="text-sm text-gray-700">Select a role for this user</p>
+              <p className="font-medium">Access level</p>
+              <p className="text-sm text-gray-700">
+                Select the access level this user should operate with
+              </p>
             </div>
             <div className="flex items-center gap-3">
               {(loadingRoles || accessLoading) && <Spinner className="text-primary" />}
               <SelectField
-                placeholder={"Select Role"}
+                placeholder={"Select Access Level"}
                 className="w-48 sm:w-64"
                 label={""}
                 disabled={loadingRoles || accessLoading}

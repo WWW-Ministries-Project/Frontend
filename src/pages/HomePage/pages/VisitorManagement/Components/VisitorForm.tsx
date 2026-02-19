@@ -163,7 +163,7 @@ const VisitorFormComponent = ({
             <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
               <div className="flex justify-end gap-3">
                 <Button
-                  onClick={handleSubmit}
+                  onClick={()=>handleSubmit}
                   loading={loading}
                   disabled={loading}
                   value="Submit"

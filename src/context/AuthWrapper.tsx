@@ -1,12 +1,12 @@
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useUserStore } from "@/store/userStore";
-import { userType } from "@/utils/interfaces";
+import { userType, userTypeWithToken } from "@/utils/interfaces";
 import PropTypes from "prop-types";
 import { createContext, useContext } from "react";
 
 type contextType = {
   user: userType;
-  login: (data: userType) => void;
+  login: (data: userType | userTypeWithToken) => void;
   logout: () => void;
 };
 
@@ -24,7 +24,9 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
     name: state.name,
     email: state.email,
     phone: state.phone,
+    user_category: state.user_category,
     permissions: state.permissions,
+    access_permissions: state.access_permissions,
     profile_img: state.profile_img,
     member_since: state.member_since,
     membership_type: state.membership_type,
@@ -35,7 +37,7 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const setUser = useUserStore((state) => state.setUser);
   const clearUser = useUserStore((state) => state.clearUser);
 
-  const login = (data: userType) => {
+  const login = (data: userType | userTypeWithToken) => {
     setUser(data);
   };
 

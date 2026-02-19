@@ -2,7 +2,7 @@ import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import { SearchBar } from "@/components/SearchBar";
-import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -14,7 +14,6 @@ import {
   relativePath,
   VisitorType,
 } from "@/utils";
-import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
@@ -27,9 +26,8 @@ import AddAnotherConfirmation from "../../Components/reusable/AddAnotherConfirma
 import { Button } from "@/components";
 
 export function VisitorManagement() {
-  const {
-    user: { permissions },
-  } = useAuth();
+  const { canManage } = useAccessControl();
+  const canManageVisitors = canManage("Visitors");
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
@@ -44,17 +42,19 @@ export function VisitorManagement() {
   const visitorsArray: VisitorType[] = useMemo(() => {
     if (!data?.data) return [];
 
-    // Case 1: API returns array directly
     if (Array.isArray(data.data)) {
       return data.data;
     }
 
-    // Case 2: API returns paginated object { data: [], meta: {} }
-    if (Array.isArray((data.data as any)?.data)) {
-      return (data.data as any).data;
+    if (
+      data.data &&
+      typeof data.data === "object" &&
+      "data" in data.data &&
+      Array.isArray((data.data as { data?: VisitorType[] }).data)
+    ) {
+      return (data.data as { data: VisitorType[] }).data;
     }
 
-    console.warn("Unexpected visitors response shape:", data.data);
     return [];
   }, [data]);
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
@@ -77,10 +77,6 @@ export function VisitorManagement() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterVisitors(e.target.value);
   };
-
-  const currentMonth = `${new Date().getFullYear()}-${String(
-    new Date().getMonth() + 1
-  ).padStart(2, "0")}`;
 
   const [filters, setFilters] = useState({
     createdMonth: "",
@@ -354,7 +350,7 @@ export function VisitorManagement() {
           <HeaderControls
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"
-            btnName={permissions.manage_visitors ? "Register visitor" : ""}
+            btnName={canManageVisitors ? "Register visitor" : ""}
             hasFilter
             hasSearch
             showFilter={showFilter}
@@ -520,22 +516,29 @@ export function VisitorManagement() {
                       >
                         <ActionButton
                           showOptions={visitor.id === selectedId}
-                          hideDelete={false}
+                          hideDelete={!canManageVisitors}
                           onView={() => navigate(`visitor/${visitor.id}`)}
-                          onEdit={() => {
-                            setSelectedVisitor(mapVisitorToForm(visitor));
-                            setIsModalOpen(true);
-                            
-                          }}
-                          onDelete={() => {
-                            showDeleteDialog(
-                              {
-                                name: `${visitor.lastName} ${visitor.firstName}`,
-                                id: visitor.id,
-                              },
-                              deleteVisitor
-                            );
-                          }}
+                          onEdit={
+                            canManageVisitors
+                              ? () => {
+                                  setSelectedVisitor(mapVisitorToForm(visitor));
+                                  setIsModalOpen(true);
+                                }
+                              : undefined
+                          }
+                          onDelete={
+                            canManageVisitors
+                              ? () => {
+                                  showDeleteDialog(
+                                    {
+                                      name: `${visitor.lastName} ${visitor.firstName}`,
+                                      id: visitor.id,
+                                    },
+                                    deleteVisitor
+                                  );
+                                }
+                              : undefined
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -545,7 +548,7 @@ export function VisitorManagement() {
 
                         <div className="text-sm text-gray-600">
                           <span className="font-medium text-gray-700">Visit date:</span>{" "}
-                          {formatDate(visitor?.visitDate!)}
+                          {visitor.visitDate ? formatDate(visitor.visitDate) : "—"}
                         </div>
 
                         <div className="text-sm text-gray-600">
