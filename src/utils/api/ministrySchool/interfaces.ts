@@ -278,6 +278,8 @@ export type AssignmentLearningUnit = {
   data: {
     questions: AssignmentQuestion[];
     maxAttempt?: number;
+    maxAttempts?: number;
+    passMark?: number;
   };
 };
 
@@ -286,6 +288,16 @@ export type AssignmentEssayLearningUnit = {
   data: {
     question: string;
   };
+};
+
+export type TopicOrderItem = {
+  id: number;
+  order_number: number;
+};
+
+export type ReorderProgramTopicsPayload = {
+  programId: number;
+  topics: TopicOrderItem[];
 };
 
 export type LearningUnit =
