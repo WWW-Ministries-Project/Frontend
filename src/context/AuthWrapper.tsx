@@ -6,11 +6,7 @@ import { createContext, useContext } from "react";
 
 type contextType = {
   user: userType;
-  login: (
-    data: Omit<userType, "permissions"> & {
-      permissions: Record<string, string>;
-    }
-  ) => void;
+  login: (data: userType) => void;
   logout: () => void;
 };
 
@@ -39,11 +35,7 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const setUser = useUserStore((state) => state.setUser);
   const clearUser = useUserStore((state) => state.clearUser);
 
-  const login = (
-    data: Omit<userType, "permissions"> & {
-      permissions: Record<string, string>;
-    }
-  ) => {
+  const login = (data: userType) => {
     setUser(data);
   };
 

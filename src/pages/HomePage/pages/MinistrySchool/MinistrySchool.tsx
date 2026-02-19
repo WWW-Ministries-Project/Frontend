@@ -103,15 +103,14 @@ export const MinistrySchool = () => {
       
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {programsData.map((program) => (
-          <ProgramsCard
-            key={program.id}
-            program={program}
-            cohorts={getCohortToShow(program.cohorts)}
-            onEdit={() => handleEdit(program)}
-            handleCopyLink={() => {}}
-            onDelete={() =>
-              showDeleteDialog(
-                { name: program.title, id: program.id },
+            <ProgramsCard
+              key={program.id}
+              program={program}
+              cohorts={getCohortToShow(program.cohorts)}
+              onEdit={() => handleEdit(program)}
+              onDelete={() =>
+                showDeleteDialog(
+                  { name: program.title, id: program.id },
                 deleteProgram
               )
             }
@@ -122,14 +121,14 @@ export const MinistrySchool = () => {
   };
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title={`School of Ministry (${programsData.length})`}
         showSearch={false}
         showFilter={false}
         btnName="Create program"
         handleClick={() => setIsModalOpen(true)}
-        screenWidth={window.innerWidth}
+        screenWidth={typeof window !== "undefined" ? window.innerWidth : 1280}
         hasSearch={false}
         hasFilter={false}
       />

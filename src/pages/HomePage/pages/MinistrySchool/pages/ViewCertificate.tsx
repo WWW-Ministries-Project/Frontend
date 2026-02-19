@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas'; // Import html2canvas
 import { ArrowLeftCircleIcon, PrinterIcon } from '@heroicons/react/24/solid';
@@ -42,7 +42,11 @@ const classData = {
   programName: "Biblical Leadership",
 }
 
-const ViewCertificate = ({ loading }: any) => {
+interface ViewCertificateProps {
+  loading?: boolean;
+}
+
+const ViewCertificate = ({ loading = false }: ViewCertificateProps) => {
   const certificateRef = useRef<HTMLDivElement | null>(null);
 
   const handlePrint = () => {
@@ -75,23 +79,21 @@ const ViewCertificate = ({ loading }: any) => {
           font-weight: 600;
         }
         .text-primary {
-          color: #6539C3;
+          color: var(--primary, currentColor);
         }
         .border-4 {
           border-width: 4px;
         }
         .border-primary {
-          border-color: #6539C3;
+          border-color: var(--primary, currentColor);
         }
         .text-muted-foreground {
-          color: #6B7B8A;
+          color: var(--text-secondary, dimgray);
         }
       `);
       printWindow.document.write('</style></head><body>');
       printWindow.document.write(certificateContent.innerHTML);
       printWindow.document.write('</body></html>');
-    } else {
-      console.error('Failed to open print window or certificate content is null.');
     }
     if (printWindow) {
       printWindow.document.close();
@@ -143,7 +145,8 @@ const ViewCertificate = ({ loading }: any) => {
           <div className="text-center py-10">
             <h2 className="text-xl font-semibold mb-2">Certificate not available</h2>
             <p className="text-muted-foreground mb-6">
-              The certificate you're looking for doesn't exist or the student hasn't completed the program.
+              The certificate you&apos;re looking for doesn&apos;t exist or the student hasn&apos;t completed the
+              program.
             </p>
           </div>
         </div>
@@ -152,7 +155,7 @@ const ViewCertificate = ({ loading }: any) => {
   }
 
   return (
-    <div className="p-4">
+    <div className="app-page-padding">
       <PageOutline className="p-0 text-primary">
         <div className="flex items-center p-4 border-b border-lightGray print:hidden">
           <h1 className="text-xl font-semibold ml-2">Certificate of Completion</h1>
@@ -199,7 +202,7 @@ const ViewCertificate = ({ loading }: any) => {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="text-center">
                     <div className="h-px w-48 bg-foreground mx-auto mb-2"></div>
-                    <p className="text-muted-foreground">Pastor's Signature</p>
+                    <p className="text-muted-foreground">Pastor&apos;s Signature</p>
                   </div>
                   <div className="text-center">
                     <div className="h-px w-48 bg-foreground mx-auto mb-2"></div>

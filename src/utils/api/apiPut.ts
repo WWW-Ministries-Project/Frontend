@@ -13,6 +13,7 @@ import {
 } from "./members/interfaces";
 import {
   CohortPayloadType,
+  ReorderProgramTopicsPayload,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
 import {
@@ -22,6 +23,14 @@ import {
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
 import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
+import type {
+  Appointment,
+  StaffAvailability,
+  UpdateAppointmentBookingPayload,
+  UpdateAppointmentStatusPayload,
+  UpdateStaffAvailabilityPayload,
+} from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -33,10 +42,10 @@ export class ApiUpdateCalls {
   }
 
   // Update Event
-  updateEvent = <T>(
-    payload: Record<string, string>,
+  updateEvent = (
+    payload: Record<string, unknown>,
     query?: QueryType
-  ): Promise<ApiResponse<T>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
@@ -57,16 +66,16 @@ export class ApiUpdateCalls {
   };
 
   // Update Requisition
-  // updateRequisition = <T>(
-  //   payload: Record<string, any>,
-  //   query?: QueryType
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.apiExecution.updateData(
-  //     "requisitions/update-requisition",
-  //     payload,
-  //     query
-  //   );
-  // };
+  updateRequisition = <T = unknown>(
+    payload: Record<string, unknown>,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(
+      "requisitions/update-requisition",
+      payload,
+      query
+    );
+  };
 
   // Update Position
   updatePosition = <T>(
@@ -170,6 +179,12 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData(`program/topic`, payload, query);
   }
 
+  reorderProgramTopics = (
+    payload: ReorderProgramTopicsPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(`program/reorder-topics`, payload);
+  };
+
   // mark topic as completed
   markTopicAsCompleted = (
     payload: unknown,
@@ -240,6 +255,17 @@ export class ApiUpdateCalls {
     query?: QueryType
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData("user/update-user", payload, query);
+  };
+
+  updateMemberStatus = <T>(
+    payload: Record<string, never> = {},
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData(
+      "user/update-member-status",
+      payload,
+      query
+    );
   };
 
   activateMember = (
@@ -333,6 +359,53 @@ export class ApiUpdateCalls {
     );
   };
 
+  updateStaffAvailability = (
+    payload: UpdateStaffAvailabilityPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailability>> => {
+    const availabilityId = query?.id;
+
+    if (!availabilityId) {
+      throw new Error("Availability id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/availability/${availabilityId}`,
+      payload
+    );
+  };
+
+  updateAppointmentBooking = (
+    payload: UpdateAppointmentBookingPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<Appointment>> => {
+    const bookingId = query?.id;
+
+    if (!bookingId) {
+      throw new Error("Booking id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/bookings/${bookingId}`,
+      payload
+    );
+  };
+
+  updateAppointmentStatus = (
+    payload: UpdateAppointmentStatusPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<Appointment>> => {
+    const appointmentId = query?.id;
+
+    if (!appointmentId) {
+      throw new Error("Appointment id is required for status update");
+    }
+
+    return this.apiExecution.updateData("appointment/status", payload, {
+      id: appointmentId,
+    });
+  };
+
   // uodate church attendance
   updateChurchAttendance = (
     payload: unknown,
@@ -382,7 +455,28 @@ export class ApiUpdateCalls {
       query
     );
   };
+
+  // update tithe breakdown config
+  updateTitheBreakdownConfig = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData(
+      "tithebreakdownconfig/update-tithe-breakdown-config",
+      payload,
+      query
+    );
+  }
+
+  // update financial
+  updateFinancial = (
+    payload: FinanceData,
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.apiExecution.updateData(
+      "financials/update-financial",
+      payload,
+      query
+    );
+  };
 }
-
-
-

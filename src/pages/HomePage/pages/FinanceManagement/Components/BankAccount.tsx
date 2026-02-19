@@ -10,14 +10,18 @@ import ConfigCard from "./ConfigCard";
 
 const BankAccount = () => {
     const [openModal, setOpenModal] = React.useState(false);
-    const [bankAccountData, setBankAccountData] = React.useState([]);
-      const [selectedBankAccount, setSelectedBankAccount] = React.useState(null);
+    const [bankAccountData, setBankAccountData] = React.useState<FinanceConfigValues[]>([]);
+      const [selectedBankAccount, setSelectedBankAccount] = React.useState<FinanceConfigValues | null>(null);
       const { data, loading, refetch } = useFetch(api.fetch.fetchBankAccountConfig);
       const { executeDelete, success } = useDelete(api.delete.deleteBankAccountConfig);
+      const closeModal = () => {
+        setOpenModal(false);
+        setSelectedBankAccount(null);
+      };
 
       React.useEffect(() => {
-          if (data?.data) {
-            setBankAccountData(data?.data);
+          if (Array.isArray(data?.data)) {
+            setBankAccountData(data.data as FinanceConfigValues[]);
           }
         }, [data]);
       
@@ -39,20 +43,27 @@ const BankAccount = () => {
               }, [success]);
 
 
-    return ( 
-        <div>
+    return (
+        <div className="space-y-4">
             <PageHeader
-                className="font-semibold text-xl"
                 title={"Bank Account"}
                 buttonValue={"Create bank account"}
                 onClick={() => {
+                  setSelectedBankAccount(null);
                   setOpenModal(true);
-                //   setDisplayForm(!displayForm);
-                //   setInputValue({ created_by: userId, name: "", description: "" });
                 }}
             />
 
-             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+             {loading ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                Loading bank account configuration...
+              </p>
+             ) : bankAccountData.length === 0 ? (
+              <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
+                No bank account configuration found. Create one to get started.
+              </p>
+             ) : (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {
                 bankAccountData?.map((bankAccount:FinanceConfigValues) => (
                  
@@ -75,11 +86,12 @@ const BankAccount = () => {
                     
                 ))}
                 </div>
+             )}
 
-            <Modal open={openModal}  onClose={() => {setOpenModal(false)}}>
+            <Modal open={openModal} onClose={closeModal} className="max-w-2xl">
                 <FinanceConfigForm 
-                    onClose={() => {setOpenModal(false)}}
-                    onSubmit={() => {setOpenModal(false)}}
+                    onClose={closeModal}
+                    onSubmit={closeModal}
                     type="bankAccount"
                     refetch={refetch}
                     initialData={selectedBankAccount|| undefined}

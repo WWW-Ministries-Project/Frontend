@@ -35,7 +35,7 @@ export async function generateCertificatePDF(data: CertificatePayload) {
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${data.recipientFullName}-Certificate.pdf`;
+  link.download = `${data.recipient_name}-Certificate.pdf`;
   link.click();
 
   URL.revokeObjectURL(url);

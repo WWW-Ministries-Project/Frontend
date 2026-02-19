@@ -147,6 +147,7 @@ const AssetFormComponent = ({
 };
 
 export interface IAssetForm {
+  photo?: string;
   name: string;
   status: string;
   description: string;

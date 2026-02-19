@@ -87,7 +87,7 @@ export function ViewLifeCenter() {
           </div> */}
         </Banner>
 
-        <div className="flex gap-2 xs:flex-col sm:flex-col md:flex-row  px-8">
+        <div className="app-page-padding flex gap-2 xs:flex-col sm:flex-col md:flex-row">
           <div className="rounded-lg xs:w-full p-4 w-full md:w-6/9 ">
             <SoulsWon
               soulsWon={lifeCenterData?.soulsWon || []}

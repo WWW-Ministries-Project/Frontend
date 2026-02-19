@@ -7,6 +7,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { useStore } from "@/store/useStore";
 import { api, formatInputDate } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
 import { number, object, string } from "yup";
@@ -21,6 +22,9 @@ export interface IChurchAttendanceForm {
   adultFemale?: number;
   childrenMale?: number;
   childrenFemale?: number;
+  youthMale?: number;
+  youthFemale?: number;
+  visitingPastors?: number;
   recordedBy: string;
   lastUpdatedBy: string;
   id?: string | number;
@@ -28,7 +32,17 @@ export interface IChurchAttendanceForm {
   recordedByName?: string;
 }
 
-const AutoPopulateAttendanceDate = ({ eventsOptions }: { eventsOptions: any[] }) => {
+interface AttendanceEventOption {
+  value: string | number;
+  label: string;
+  date?: string;
+}
+
+const AutoPopulateAttendanceDate = ({
+  eventsOptions,
+}: {
+  eventsOptions: AttendanceEventOption[];
+}) => {
   const { values, setFieldValue } = useFormikContext<IChurchAttendanceForm>();
 
   useEffect(() => {
@@ -59,80 +73,87 @@ const ChurchAttendanceFormComponent = ({
   loading,
   refetch,
 }: Props) => {
-  const initialValues = useMemo(
-    () => initialData || defaultValues,
-    [initialData]
-  );
+  const initialValues = useMemo<IChurchAttendanceForm>(() => {
+    const group = initialData?.group;
+    const normalizedGroup: AttendanceGroup =
+      group === "ADULTS" || group === "CHILDREN" || group === "BOTH"
+        ? group
+        : "BOTH";
+    return { ...defaultValues, ...initialData, group: normalizedGroup };
+  }, [initialData]);
 
   const { eventsOptions } = useStore();
   const { user } = useAuth();
-  
 
   const {
-      postData,
-      loading: postLoading,
-      data: postSuccess,
-    } = usePost(api.post.recordChurchAttendance);
-    const {
-      updateData,
-      loading: putLoading,
-      data: putSuccess,
-    } = usePut(api.put.updateChurchAttendance);
+    postData,
+    data: createdAttendance,
+    error: postError,
+    loading: postLoading,
+  } = usePost(api.post.recordChurchAttendance);
+  const {
+    updateData,
+    data: updatedAttendance,
+    error: putError,
+    loading: putLoading,
+  } = usePut(api.put.updateChurchAttendance);
+
+  useEffect(() => {
+    if (!createdAttendance && !updatedAttendance) return;
+
+    showNotification(
+      initialData ? "Attendance updated successfully." : "Attendance recorded successfully.",
+      "success"
+    );
+    if (refetch) refetch();
+    onClose();
+  }, [createdAttendance, initialData, onClose, refetch, updatedAttendance]);
+
+  useEffect(() => {
+    if (!postError && !putError) return;
+
+    const message =
+      postError?.message ||
+      putError?.message ||
+      "Unable to save attendance. Please try again.";
+    showNotification(message, "error", "Attendance");
+  }, [postError, putError]);
 
   const onSubmit = (values: IChurchAttendanceForm) => {
-    const isAdults = values.group === "ADULTS";
-    const isChildren = values.group === "CHILDREN";
-    const isBoth = values.group === "BOTH";
-
     const payload = {
       eventId: values.eventId,
       date: values.date,
-      group: values.group,
-      adultMale: isChildren ? 0 : values.adultMale ?? 0,
-      adultFemale: isChildren ? 0 : values.adultFemale ?? 0,
-      childrenMale: isAdults ? 0 : values.childrenMale ?? 0,
-      childrenFemale: isAdults ? 0 : values.childrenFemale ?? 0,
-      // attendance: {
-      //   adults: {
-      //     male: isChildren ? 0 : values.adultMale ?? 0,
-      //     female: isChildren ? 0 : values.adultFemale ?? 0,
-      //   },
-      //   children: {
-      //     male: isAdults ? 0 : values.childrenMale ?? 0,
-      //     female: isAdults ? 0 : values.childrenFemale ?? 0,
-      //   },
-      // },
+      group: "BOTH" as const,
+      adultMale: values.adultMale ?? 0,
+      adultFemale: values.adultFemale ?? 0,
+      childrenMale: values.childrenMale ?? 0,
+      childrenFemale: values.childrenFemale ?? 0,
+      youthMale: values.youthMale ?? 0,
+      youthFemale: values.youthFemale ?? 0,
+      visitingPastors: values.visitingPastors ?? 0,
       recordedBy: user.id,
       recordedByName: user.name,
     };
 
     if (initialData && initialData.id) {
-      updateData(payload as any, { id: String(initialData.id) }).then(() => {
-        if (refetch) refetch();
-        onClose();
-      });
+      updateData(payload, { id: String(initialData.id) });
     } else {
-      postData(payload as any).then(() => {
-        if (refetch) refetch();
-        onClose();
-      });
+      postData(payload);
     }
   };
-
-  console.log("Initial data", initialData);
-  
 
   return (
     <div className="bg-white rounded-2xl shadow-xl">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
+        enableReinitialize
         onSubmit={onSubmit}
       >
         {({ values, handleSubmit }) => (
           <>
             <AutoPopulateAttendanceDate eventsOptions={eventsOptions} />
-            <Form className="flex flex-col">
+            <Form className="flex h-[80vh] flex-col overflow-hidden">
               <div className="sticky top-0 z-10">
                 <FormHeader>
                   <p className="text-lg font-semibold">
@@ -157,77 +178,99 @@ const ChurchAttendanceFormComponent = ({
                   <Field
                     component={FormikInputDiv}
                     type="date"
-                    label="Date *"
+                    label="Attendance Date *"
                     id="date"
                     name="date"
                     value={formatInputDate(values.date)}
                   />
                 </div>
 
-                <Field
-                  component={FormikSelectField}
-                  label="Group *"
-                  id="group"
-                  name="group"
-                  options={[
-                    { label: "Adults Only", value: "ADULTS" },
-                    { label: "Children Only", value: "CHILDREN" },
-                    { label: "Both", value: "BOTH" },
-                  ]}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Adult Males"
+                    id="adultMale"
+                    name="adultMale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Adult Females"
+                    id="adultFemale"
+                    name="adultFemale"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
 
-                {(values.group === "ADULTS" || values.group === "BOTH") && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Adult Male"
-                      id="adultMale"
-                      name="adultMale"
-                    />
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Adult Female"
-                      id="adultFemale"
-                      name="adultFemale"
-                    />
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Male Children"
+                    id="childrenMale"
+                    name="childrenMale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Female Children"
+                    id="childrenFemale"
+                    name="childrenFemale"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
 
-                {(values.group === "CHILDREN" || values.group === "BOTH") && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Children Male"
-                      id="childrenMale"
-                      name="childrenMale"
-                    />
-                    <Field
-                      component={FormikInputDiv}
-                      type="number"
-                      label="Children Female"
-                      id="childrenFemale"
-                      name="childrenFemale"
-                    />
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Male Youth"
+                    id="youthMale"
+                    name="youthMale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Female Youth"
+                    id="youthFemale"
+                    name="youthFemale"
+                    min="0"
+                    placeholder="0"
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    type="number"
+                    label="Visiting Pastors"
+                    id="visitingPastors"
+                    name="visitingPastors"
+                    min="0"
+                    placeholder="0"
+                  />
+                </div>
               </div>
 
               <div className="sticky bottom-0 z-10 bg-white border-t px-6 py-4">
                 <div className="flex justify-end gap-3">
                   <Button
-                    value="Save"
-                    variant="primary"
-                    type="submit"
-                    loading={loading}
-                    onClick={handleSubmit}
-                  />
-                  <Button
                     value="Cancel"
                     variant="secondary"
                     onClick={onClose}
+                  />
+                  <Button
+                    value="Save"
+                    variant="primary"
+                    type="submit"
+                    loading={loading || postLoading || putLoading}
+                    onClick={handleSubmit}
                   />
                 </div>
               </div>
@@ -242,23 +285,37 @@ const ChurchAttendanceFormComponent = ({
 const defaultValues: IChurchAttendanceForm = {
   eventId: "",
   date: "",
-  group: "ADULTS",
+  group: "BOTH",
   adultMale: 0,
   adultFemale: 0,
   childrenMale: 0,
   childrenFemale: 0,
+  youthMale: 0,
+  youthFemale: 0,
+  visitingPastors: 0,
   recordedBy: "Current User",
   lastUpdatedBy: "Current User",
 };
+
+const attendanceCountSchema = number()
+  .transform((value, originalValue) =>
+    originalValue === "" || originalValue === null ? 0 : value
+  )
+  .typeError("Value must be a number")
+  .integer("Value must be a whole number")
+  .min(0, "Value cannot be negative");
 
 const validationSchema = object({
   eventId: string().required("Event is required"),
   date: string().required("Date is required"),
   group: string().required(),
-  adultMale: number().min(0),
-  adultFemale: number().min(0),
-  childrenMale: number().min(0),
-  childrenFemale: number().min(0),
+  adultMale: attendanceCountSchema,
+  adultFemale: attendanceCountSchema,
+  childrenMale: attendanceCountSchema,
+  childrenFemale: attendanceCountSchema,
+  youthMale: attendanceCountSchema,
+  youthFemale: attendanceCountSchema,
+  visitingPastors: attendanceCountSchema,
 });
 
 export const ChurchAttendanceForm = Object.assign(

@@ -1,41 +1,31 @@
-import { FinanceData } from "@/utils/api/finance/interface";
+import { useNavigate } from "react-router-dom";
 import FinanceBuilder from "../Components/FinanceBuilder";
+import { FinanceData } from "@/utils/api/finance/interface";
+import { api } from "@/utils";
+import { showNotification } from "@/pages/HomePage/utils";
 
 const FinancialsForm = () => {
-    const defaultValues: FinanceData = {
-    metaData: {
-      month: "",
-      year: new Date().getFullYear(),
-      week: "",
-      from: "",
-      to: "",
-      createdBy: null,
-      createdDate: null,
-      updatedBy: null,
-      updatedDate: null,
-    },
-    receipts: [],
-    tithe: {
-      totalTithe: { percentage: 0 },
-      generalTithe: { percentage: 0 },
-      icareTithe: { percentage: 0 },
-    },
-    payments: [],
-    balance: {
-      ExcessOfReceiptsOverPayments: { item: "" },
-      ReserveForSavings: { item: "" },
-      BalanceAmount: { item: "" },
-      WeeklyRefund: { item: "" },
-      OfficeMaintenanceReserve: { item: "" },
-    },
-    fundsAllocation:[]
+  const navigate = useNavigate();
+
+  const handleCreateFinancial = async (values: FinanceData) => {
+    try {
+      await api.post.createFinancial(values);
+      showNotification("Financial record created successfully", "success");
+      navigate("/home/finance");
+      return true;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to create financial record";
+      showNotification(message, "error");
+      return false;
+    }
   };
-    return ( 
-        <FinanceBuilder 
-            mode="create"
-        financeData={defaultValues}
-        />
-     );
-}
- 
+
+  return (
+    <FinanceBuilder mode="create" onSubmitFinancial={handleCreateFinancial} />
+  );
+};
+
 export default FinancialsForm;

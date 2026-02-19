@@ -2,7 +2,7 @@ import React from "react";
 import StatusPill from "@/components/StatusPill";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import { DateTime } from "luxon";
-import { IRequestSummary } from "../types/requestInterface";
+import { IRequestSummary, RequisitionStatusType } from "../types/requestInterface";
 
 const RequisitionSummary = React.memo(
   ({
@@ -55,7 +55,7 @@ const RequisitionSummary = React.memo(
           ))}
           <div className="flex items-center   gap-3 text-left">
             <span className="font-semibold text-primary ">Status</span>
-            <StatusPill text={summary?.status as string} />
+            <StatusPill text={summary?.status as RequisitionStatusType} />
           </div>
         </div>
       </aside>

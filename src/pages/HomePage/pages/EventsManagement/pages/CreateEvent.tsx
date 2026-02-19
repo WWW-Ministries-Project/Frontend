@@ -7,17 +7,16 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { useEffect, useState } from "react";
 import { eventInput } from "../utils/eventHelpers";
-import { eventType } from "../utils/eventInterfaces";
 import EventsScheduleForm from "../Components/EventsScheduleForm";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const CreateEvent = () => {
-  //@ts-expect-error handle this error
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState(eventInput);
   // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const navigate = useNavigate()
+  const location = useLocation();
   const {
     postData,
     loading: postLoading,
@@ -48,7 +47,7 @@ const CreateEvent = () => {
    
   }, []);
 
-  const handleSubmit = async (val: eventType) => {
+  const handleSubmit = async (val: Record<string, unknown>) => {
     // setLoading(true);
     const data = new FormData();
     if (file) {

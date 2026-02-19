@@ -17,6 +17,15 @@ export const relativePath = {
       details: "members/:id",
       info: "members/:id",
     },
+    membership: {
+      main: "membership",
+      churchDirectory: "church-directory",
+      management: {
+        main: "membership-management",
+        memberConfirmation: "member-confirmation",
+        visitorToMembership: "visitor-to-membership",
+      },
+    },
     visitors: {
       main: "visitors",
       details: "visitors/visitor/:visitorId",

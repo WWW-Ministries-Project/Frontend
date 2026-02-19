@@ -62,13 +62,14 @@ export function AddProduct() {
         return {
           colour: item.colour,
           image_url: String(uploadedUrl),
-          stock:
-            item.stock?.map((stock) => {
-              return {
-                size: stock.size,
-                stock: +stock.stock,
-              };
-            }) ?? [],
+          stock: manage_stock
+            ? item.stock?.map((stock) => {
+                return {
+                  size: stock.size,
+                  stock: +stock.stock,
+                };
+              }) ?? []
+            : [],
         };
       })
     );
@@ -84,6 +85,10 @@ export function AddProduct() {
     const dataToSend = {
       ...rest,
       market_id: decoded_market_id,
+      product_type_id: Number(rest.product_type_id),
+      product_category_id: Number(rest.product_category_id),
+      price_amount: Number(rest.price_amount),
+      price_currency: rest.price_currency || "GHC",
       product_colours: productGallery,
     };
     if (id) {
@@ -121,7 +126,7 @@ export function AddProduct() {
       );
       navigate(`/home/market-place/${marketId}`);
     }
-  }, [newProduct?.data, updateValue?.data]);
+  }, [marketId, navigate, newProduct?.data, productId, updateValue?.data]);
 
   useEffect(() => {
     if (decodedProductId) {
@@ -131,7 +136,12 @@ export function AddProduct() {
 
   const initailData: IProduct | undefined = useMemo(() => {
     if (product?.data) {
-      const { market, product_type, product_category, ...rest } = product.data;
+      const {
+        market: _market,
+        product_type: _product_type,
+        product_category: _product_category,
+        ...rest
+      } = product.data;
       return {
         ...rest,
       };
@@ -139,13 +149,14 @@ export function AddProduct() {
   }, [product?.data]);
 
   return (
-    <PageOutline>
+    <>
       <div className="bg-primary p-5 w-full rounded-tr-md rounded-tl-md h-28 text-white">
         <h2 className="font-bold text-2xl">
           {productId ? "Update" : "Add New"} Product
         </h2>
-        <p className="text-xl">Add mechandise to your marketplace</p>
+        <p className="text-xl">Add merchandise to your marketplace</p>
       </div>
+      <PageOutline>
       <ProductForm
         initialData={initailData}
         onSubmit={handleSubmit}
@@ -154,5 +165,6 @@ export function AddProduct() {
         categories={productCategories || []}
       />
     </PageOutline>
+    </>
   );
 }

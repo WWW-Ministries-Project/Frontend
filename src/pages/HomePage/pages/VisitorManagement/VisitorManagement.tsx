@@ -340,7 +340,7 @@ export function VisitorManagement() {
   const hasBackendData = visitorsArray.length > 0;
 
   return (
-    <PageOutline crumbs={crumbs} className="p-6">
+    <PageOutline crumbs={crumbs}>
       {loading && visitors.length === 0 ? (
         <div className="space-y-4">
           <div className="animate-pulse space-y-2  w-[40rem] ">
@@ -575,7 +575,7 @@ export function VisitorManagement() {
           ))}
         </div>
       )}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal open={isModalOpen} className="max-w-5xl" onClose={() => setIsModalOpen(false)}>
         <VisitorForm
           key={formResetKey}
           onClose={handleModalClose}

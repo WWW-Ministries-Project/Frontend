@@ -61,7 +61,7 @@ export const AssetManagement = () => {
   };
 
   return (
-    <PageOutline crumbs={crumbs} className="p-6">
+    <PageOutline crumbs={crumbs}>
       <HeaderControls
         title={`Asset Management (${assertsData.length})`}
         tableView={tableView}

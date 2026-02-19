@@ -8,12 +8,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AllCohorts } from "../Components/AllCohort";
 import { CohortForm, ICohortForm } from "../Components/CohortForm";
-import { useViewPage } from "../customHooks/ViewPageContext";
-import { Button } from "@/components";
+import { useViewPage } from "../customHooks/useViewPage";
 import AllTopics from "../Components/AllTopics";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import TopicBasicInfoForm from "../Components/TopicBasicInfoForm";
 
 const TAB_STORAGE_KEY = "view_program_selected_tab";
 
@@ -24,9 +22,6 @@ export const ViewProgram = () => {
     id: programId!,
   });
 
-  console.log(programId);
-  
-
   const { executeDelete, success } = useDelete(api.delete.deleteCohort);
 
   const program = useMemo(() => data?.data, [data]);
@@ -35,9 +30,7 @@ export const ViewProgram = () => {
     undefined
   );
 
-  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
-
-  const { setLoading, setData } = useViewPage();
+  const { setData } = useViewPage();
   useEffect(() => {
     setData?.({
       title: program?.title || "",
@@ -54,7 +47,8 @@ export const ViewProgram = () => {
   }, [success, refetch]);
 
   const [selectedTab, setSelectedTab] = useState<"Cohorts" | "Topics">(() => {
-    const savedTab = localStorage.getItem(TAB_STORAGE_KEY);
+    const savedTab =
+      typeof window !== "undefined" ? localStorage.getItem(TAB_STORAGE_KEY) : null;
     return savedTab === "Topics" || savedTab === "Cohorts"
       ? savedTab
       : "Cohorts";
@@ -62,7 +56,9 @@ export const ViewProgram = () => {
 
   const handleTabSelect = (tab: "Cohorts" | "Topics") => {
     setSelectedTab(tab);
-    localStorage.setItem(TAB_STORAGE_KEY, tab);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(TAB_STORAGE_KEY, tab);
+    }
   };
 
   const handleEdit = (cohort: CohortType): void => {
@@ -93,15 +89,10 @@ export const ViewProgram = () => {
 
 
   return (
-    <PageOutline className=" ">
-      
-      <div className="py-6 flex  flex-col gap-6">
+    <PageOutline>
+      <div className="flex flex-col gap-6 py-6">
         <div className="w-fit">
-          <TabSelection
-          tabs={["Cohorts", "Topics"]}
-          selectedTab={selectedTab}
-          onTabSelect={handleTabSelect}
-        />
+          <TabSelection tabs={["Cohorts", "Topics"]} selectedTab={selectedTab} onTabSelect={handleTabSelect} />
         </div>
 
         {selectedTab === "Cohorts" && (
@@ -121,8 +112,8 @@ export const ViewProgram = () => {
         {selectedTab === "Topics" && (
           <AllTopics
             topics={program?.topics || []}
+            programId={programId ? Number(programId) : undefined}
             refetchProgram={refetch}
-            
           />
         )}
       </div>
@@ -136,13 +127,6 @@ export const ViewProgram = () => {
             refetch();
             handleClose();
           }}
-        />
-      </Modal>
-
-      {/* Topic creation */}
-      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
-        <TopicBasicInfoForm
-          onClose={() => setIsTopicModalOpen(false)}
         />
       </Modal>
     </PageOutline>

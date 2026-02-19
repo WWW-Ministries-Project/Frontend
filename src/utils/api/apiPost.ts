@@ -23,7 +23,15 @@ import type {
   IProduct,
   ICheckOut,
   CheckOutResponse,
+  RetryOrderPaymentPayload,
 } from "./marketPlace/interface";
+import {
+  Appointment,
+  CreateAppointmentBookingPayload,
+  CreateStaffAvailabilityPayload,
+  StaffAvailability,
+} from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -42,24 +50,26 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
-  createEvent = <T>(
-    payload: Record<string, string>
-  ): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("event/create-event", payload);
+  createEvent = (
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/create-event", payload);
   };
 
   createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
 
-  createAsset = <T>(payload: AssetPayloadType): Promise<ApiResponse<T>> => {
-    return this.postToApi<T>("assets/create-asset", payload);
+  createAsset = (
+    payload: AssetPayloadType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("assets/create-asset", payload);
   };
-  // createRequisition = <T>(
-  //   payload: Record<string, any>
-  // ): Promise<ApiResponse<T>> => {
-  //   return this.postToApi<T>("requisitions/create-requisition", payload);
-  // };
+  createRequisition = <T = unknown>(
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
   createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
@@ -107,7 +117,9 @@ export class ApiCreationCalls {
   
 
   // Unenroll User
-  unenrollUser = <T>(payload: Record<string, any>): Promise<ApiResponse<T>> => {
+  unenrollUser = <T>(
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("program/unenroll", payload);
   };
 
@@ -118,6 +130,13 @@ export class ApiCreationCalls {
   /*Visitor Management*/
   createVisitor = <T>(payload: unknown): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visitors", payload);
+  };
+
+  convertVisitorToMember = <T = unknown>(
+    visitorId: string | number,
+    payload: Record<string, unknown> = {}
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>(`visitor/convert-to-member?id=${visitorId}`, payload);
   };
   // Visit
   createVisit = (payload: VisitPayloadType): Promise<ApiResponse<unknown>> => {
@@ -190,6 +209,33 @@ export class ApiCreationCalls {
     return this.postToApi("orders/create-order", payload);
   };
 
+  retryOrderPayment = (
+    payload: RetryOrderPaymentPayload
+  ): Promise<ApiResponse<CheckOutResponse>> => {
+    return this.postToApi("orders/retry-payment", payload);
+  };
+
+  reconcileHubtelPendingPayments = (
+    limit = 100
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(
+      `orders/reconcile-hubtel-pending-payments?limit=${limit}`,
+      {}
+    );
+  };
+
+  createStaffAvailability = (
+    payload: CreateStaffAvailabilityPayload
+  ): Promise<ApiResponse<StaffAvailability>> => {
+    return this.postToApi("appointment/availability", payload);
+  };
+
+  createAppointmentBooking = (
+    payload: CreateAppointmentBookingPayload
+  ): Promise<ApiResponse<Appointment>> => {
+    return this.postToApi("appointment/book", payload);
+  };
+
   // Record Attendance
   recordChurchAttendance = (
     payload: unknown
@@ -224,7 +270,18 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
   };
+
+  // create tithe breakdown config
+  createTitheBreakdownConfig = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("tithebreakdownconfig/create-tithe-breakdown-config", payload); 
+  }
+
+  // create financial
+  createFinancial = (
+    payload: FinanceData
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi("financials/create-financial", payload);
+  };
 }
-
-
-

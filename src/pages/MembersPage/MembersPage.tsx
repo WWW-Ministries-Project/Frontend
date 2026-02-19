@@ -6,24 +6,23 @@ import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
 import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer";
-import { NotificationCard } from "@/components/NotificationCard";
 
 /**
  * MembersPage Layout Component
  * Provides consistent layout structure for all member-facing pages
  */
 const MembersPage = () => {
-    const store = useStore();
-    const { data: eventsData, error: eventsError } = useFetch(api.fetch.fetchUpcomingEvents);
+    const setEvents = useStore((state) => state.setEvents);
+    const { data: eventsData } = useFetch(api.fetch.fetchUpcomingEvents);
 
     useEffect(() => {
         if (eventsData?.data) {
-            store.setEvents(eventsData.data);
+            setEvents(eventsData.data);
         }
-    }, [eventsData]);
+    }, [eventsData, setEvents]);
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
+        <div className="flex min-h-screen flex-col bg-lightGray/20">
             {/* Accessibility: Skip to main content */}
             <a 
                 href="#main-content" 
@@ -35,10 +34,10 @@ const MembersPage = () => {
 
             {/* Header Section */}
             <header 
-                className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 shadow-sm"
+                className="sticky top-0 z-40 w-full border-b border-lightGray bg-white shadow-sm"
                 role="banner"
             >
-                <div className="mx-auto px-4 lg:px-16 xl:px-32 3xl:px-64 py-4 max-w-[2000px]">
+                <div className="app-layout-container py-4">
                     <Header handleShowNav={() => {}} />
                 </div>
             </header>
@@ -50,7 +49,7 @@ const MembersPage = () => {
                 role="main"
                 aria-label="Main content"
             >
-                <div className="mx-auto px-4 lg:px-16 xl:px-32 3xl:px-64  max-w-[2000px]">
+                <div className="app-layout-container app-page-content">
                     <Outlet />
                 </div>
             </main>
@@ -58,7 +57,6 @@ const MembersPage = () => {
             {/* Global UI Components */}
             <CartDrawer />
             <LoaderComponent />
-            <NotificationCard />
         </div>
     );
 };

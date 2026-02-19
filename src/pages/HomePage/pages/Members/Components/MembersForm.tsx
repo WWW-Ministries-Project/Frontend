@@ -16,7 +16,7 @@ import {
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { array, boolean, date, object, string } from "yup";
 import {
   DepartmentPositionSubForm,
@@ -84,6 +84,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   const steps = getSteps(has_children);
 
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
+  const previousIsUserRef = useRef(values.is_user);
 
   const currentIndex = steps.findIndex((s) => s.key === currentStep);
 
@@ -131,13 +132,25 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   }, [goNext, goBack, currentIndex, steps.length]);
 
   useEffect(() => {
+    if (previousIsUserRef.current === values.is_user) return;
+
+    previousIsUserRef.current = values.is_user;
+
     if (!values.is_user) {
       setFieldValue("department_positions", []);
-    } else {
+      return;
+    }
+
+    const hasDepartmentValues =
+      Array.isArray(values.department_positions) &&
+      values.department_positions.some(
+        (item) => Boolean(item?.department_id) || Boolean(item?.position_id)
+      );
+
+    if (!hasDepartmentValues) {
       setFieldValue("department_positions", initialValues.department_positions);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.is_user]);
+  }, [setFieldValue, values.department_positions, values.is_user]);
 
   useEffect(() => {
     if (has_children) {

@@ -1,16 +1,18 @@
 import type { IProductSlice } from "@/utils";
 
-const createProductSlice = (set): IProductSlice => ({
+type ProductSliceSetter = (partial: Partial<IProductSlice>) => void;
+
+const createProductSlice = (set: ProductSliceSetter): IProductSlice => ({
   products: [],
   loading: false,
   error: null,
-  setProducts: (products) => {
+  setProducts: (products: IProductSlice["products"]) => {
     set({ products });
   },
-  setLoading: (loading) => {
+  setLoading: (loading: boolean) => {
     set({ loading });
   },
-  setError: (error) => {
+  setError: (error: Error | null) => {
     set({ error });
   },
 });

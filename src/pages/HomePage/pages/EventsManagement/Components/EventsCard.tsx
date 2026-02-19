@@ -2,7 +2,7 @@ import Action from "@/components/Action";
 import { compareDates, formatDate } from "@/utils/helperFunctions";
 import CardWrapper from "@/Wrappers/CardWrapper";
 import { eventTypeColors } from "../utils/eventHelpers";
-import { eventType } from "../utils/eventInterfaces";
+import { CalendarEvent } from "./calenda/utils/CalendaHelpers";
 import calendar from "/src/assets/calendar.svg";
 import location from "/src/assets/location.svg";
 import defaultImage1 from "/src/assets/image.svg";
@@ -11,11 +11,11 @@ import { relativePath } from "@/utils";
 
 interface IProps {
   showOptions: boolean;
-  event: eventType;
+  event: CalendarEvent;
   indicatorClass?: string;
   onNavigate: (path: string) => void;
-  onDelete: (event: eventType) => void;
-  onShowOptions: (id: number) => void;
+  onDelete: (event: CalendarEvent) => void;
+  onShowOptions: (id: string | number) => void;
 }
 
 export const EventsCard = (props: IProps) => {

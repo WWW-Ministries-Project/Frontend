@@ -18,9 +18,8 @@ export const Stepper = ({
   loading = false,
 }: IProps) => {
   return (
-    <div className="mx-auto relative">
-      {/* Step Indicators */}
-      <div className="hidden md:flex justify-between overflow-x-auto  items-center mb-2 sticky top-24 bg-white py-4 px-4 border-b border-gray-200  z-10 ">
+    <div className="relative mx-auto w-full">
+      <div className="sticky top-0 z-10 mb-3 hidden items-center justify-between overflow-x-auto border-b border-lightGray bg-white px-4 py-4 md:flex">
         {steps.map((step, index) => (
           <Fragment key={index+step.label}>
           <div  className="flex items-center ">
@@ -55,8 +54,7 @@ export const Stepper = ({
         <FormLayout>{steps[currentStep].content}</FormLayout>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between sticky bottom-0 bg-white py-4 px-4 border-t border-gray-200 w-full">
+      <div className="sticky bottom-0 flex w-full justify-between border-t border-lightGray bg-white px-4 py-4">
         <div>
           {currentStep !== 0 && (
             <Button

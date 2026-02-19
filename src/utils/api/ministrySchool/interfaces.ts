@@ -80,6 +80,7 @@ type Program = {
   completed: boolean;
   createdAt: string;
   updatedAt: string;
+  topics?: Topic[];
 };
 
 export type DetailedCohortType = {
@@ -212,6 +213,7 @@ export type EnrollmentDataType = {
   phone: string;
   email: string;
   user: User;
+  topics?: Topic[];
 }
 
 export type ClassOption = {
@@ -275,6 +277,9 @@ export type AssignmentLearningUnit = {
   type: "assignment";
   data: {
     questions: AssignmentQuestion[];
+    maxAttempt?: number;
+    maxAttempts?: number;
+    passMark?: number;
   };
 };
 
@@ -283,6 +288,16 @@ export type AssignmentEssayLearningUnit = {
   data: {
     question: string;
   };
+};
+
+export type TopicOrderItem = {
+  id: number;
+  order_number: number;
+};
+
+export type ReorderProgramTopicsPayload = {
+  programId: number;
+  topics: TopicOrderItem[];
 };
 
 export type LearningUnit =
@@ -300,8 +315,19 @@ export type Topic = {
   type?: LearningUnitType;
   url?: string;
   programId?: number;
-  learningUnit?: LearningUnit
+  learningUnit?: LearningUnit;
+  LearningUnit?: LearningUnit;
   completed?: boolean;
+  status?: "PASS" | "FAIL" | "PENDING";
+  score?: number | null;
+  completedAt?: string | null;
+  activation?: {
+    isActive: boolean;
+    activatedAt?: string | null;
+    dueDate?: string | null;
+    closedAt?: string | null;
+  };
+  notes?: string | null;
 };
 
 export type BackendTopic = {

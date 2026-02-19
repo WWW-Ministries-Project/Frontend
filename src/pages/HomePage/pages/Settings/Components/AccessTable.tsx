@@ -1,4 +1,5 @@
 import React from 'react';
+import { showNotification } from "@/pages/HomePage/utils";
 
 interface AccessRight {
   id: number;
@@ -24,7 +25,13 @@ const AccessRightsList: React.FC = () => {
         <h2 className="text-lg font-semibold">All access right</h2>
         <button
           className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
-          onClick={() => alert('Create Access Right Clicked')}
+          onClick={() =>
+            showNotification(
+              "Create Access Right action is not wired yet.",
+              "error",
+              "Coming soon"
+            )
+          }
         >
           Create access right
         </button>
@@ -77,13 +84,17 @@ export const AccessLevelManagement: React.FC = () => {
         <div className="space-x-2">
           <button
             className="text-gray-600 bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition"
-            onClick={() => alert('Close clicked')}
+            onClick={() =>
+              showNotification("Close action clicked.", "success", "Action")
+            }
           >
             Close
           </button>
           <button
             className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition"
-            onClick={() => alert('Edit clicked')}
+            onClick={() =>
+              showNotification("Edit action clicked.", "success", "Action")
+            }
           >
             Edit
           </button>

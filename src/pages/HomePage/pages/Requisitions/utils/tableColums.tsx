@@ -115,7 +115,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
 
         const handleDelete = useCallback(async () => {
           setShowActions(false);
-          await executeDelete(row.original.requisition_id);
+          await executeDelete({ id: row.original.requisition_id });
         }, [executeDelete, row]);
 
         const isEditable =

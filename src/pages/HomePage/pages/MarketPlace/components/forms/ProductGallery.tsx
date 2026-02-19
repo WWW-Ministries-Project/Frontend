@@ -70,7 +70,9 @@ const ProductGallery = () => {
                     </p>
                   )}
 
-                <StocksSubForm index={index} />
+                {values.stock_managed === "yes" && (
+                  <StocksSubForm index={index} />
+                )}
               </div>
             ))}
           </div>
@@ -117,23 +119,36 @@ const initialValues: IProductGalleryForm = {
 
 const validationSchema = object().shape({
   stock_managed: string().oneOf(["yes", "no"]).required(),
-  product_colours: array().of(
-    object().shape({
-      colour: string(),
-      image_url: mixed().required("Required"),
+  product_colours: array()
+    .min(1, "At least one product color is required")
+    .of(
+      object().shape({
+        colour: string().required("Required"),
+        image_url: mixed().required("Required"),
+        stock: array().of(
+          object().shape({
+            size: string().required("Required"),
+            stock: number()
+              .typeError("Stock must be a number")
+              .min(0, "Stock can't be negative"),
+          })
+        ),
+      })
+    )
+    .test(
+      "stock-required-when-managed",
+      "Each selected size must have stock greater than 0 when stock management is enabled.",
+      function (productColours) {
+        if (this.parent?.stock_managed !== "yes") return true;
 
-      stock: array().of(
-        object().shape({
-          size: string().required("required"),
-          stock: string().when("$stock_managed", {
-            is: "yes",
-            then: () => number().min(1, "Stock can't be 0"),
-            otherwise: () => number().notRequired(),
-          }),
-        })
-      ),
-    })
-  ),
+        const colours = productColours || [];
+        return colours.every((colourItem) => {
+          const stockList = colourItem?.stock || [];
+          if (stockList.length === 0) return false;
+          return stockList.every((stockItem) => Number(stockItem?.stock) > 0);
+        });
+      }
+    ),
 });
 
 export const ProductGalleryWithForm = Object.assign(ProductGallery, {

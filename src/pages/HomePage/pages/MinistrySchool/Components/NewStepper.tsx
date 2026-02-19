@@ -1,5 +1,3 @@
-import React from "react";
-
 export interface StepperStep<T extends string = string> {
   id: T;
   label: string;
@@ -21,8 +19,8 @@ const NewStepper = <T extends string>({
   const activeIndex = steps.findIndex((step) => step.id === activeStep);
 
   return (
-    <aside className="w-full max-w-xs border-r border-gray-200 pr-4 border">
-      <div className="mb-6 text-sm font-semibold text-gray-900">
+    <aside className="w-full max-w-xs rounded-xl border border-lightGray bg-white p-4">
+      <div className="mb-5 text-sm font-semibold text-primary">
         {title}
       </div>
 
@@ -36,19 +34,19 @@ const NewStepper = <T extends string>({
               key={step.id}
               type="button"
               onClick={() => onStepChange?.(step.id)}
-              className={`flex items-center gap-3 text-left text-sm transition-colors ${
-                isActive
-                  ? "font-medium text-primary"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
+                className={`flex items-center gap-3 rounded-lg px-2 py-1 text-left text-sm transition-colors ${
+                  isActive
+                    ? "bg-primary/5 font-medium text-primary"
+                    : "text-primaryGray hover:bg-lightGray/30 hover:text-primary"
+                }`}
+              >
               <span
                 className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
                   isCompleted
                     ? "border-emerald-500 bg-emerald-500 text-white"
                     : isActive
                     ? "border-primary text-primary"
-                    : "border-gray-300 text-gray-400"
+                    : "border-lightGray text-primaryGray"
                 }`}
               >
                 {isCompleted ? "✓" : index + 1}

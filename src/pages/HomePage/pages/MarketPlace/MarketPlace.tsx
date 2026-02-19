@@ -109,7 +109,7 @@ export function MarketPlace() {
     navigate(encodeQuery(id));
   };
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title="Marketplace Management"
         subtitle="Manage your market here"

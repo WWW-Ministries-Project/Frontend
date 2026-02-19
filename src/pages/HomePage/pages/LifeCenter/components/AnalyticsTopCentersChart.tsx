@@ -8,41 +8,48 @@ export const AnalyticsTopCentersChart = ({ chartData }: IProps) => (
   <div className="border rounded-xl p-4">
     <div>
       <div className="font-bold text-xl">Top 10 Life Centers Performance</div>
-      <div className="text-sm">Number of souls won_by each center</div>
+      <div className="text-sm">Number of souls won by each center</div>
     </div>
-    <div className="h-80">
-      <Bar
-        data={{
-          labels: chartData.map((item) => item.name),
-          datasets: [
-            {
-              label: "Souls Won",
-              data: chartData.map((item) => item.souls),
-              backgroundColor: "rgba(59, 130, 246, 0.8)",
-              borderColor: "rgba(59, 130, 246, 1)",
-              borderWidth: 1,
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "top" as const },
-            title: { display: false },
-            tooltip: {
-              callbacks: {
-                afterLabel: (context) => {
-                  const dataIndex = context.dataIndex;
-                  return `Leader: ${chartData[dataIndex].leader}`;
+    {chartData.length === 0 ? (
+      <div className="mt-4 rounded-lg border border-dashed p-4 text-sm text-gray-600">
+        No center performance data available for the selected filters.
+      </div>
+    ) : (
+      <div className="h-80">
+        <Bar
+          data={{
+            labels: chartData.map((item) => item.name),
+            datasets: [
+              {
+                label: "Souls Won",
+                data: chartData.map((item) => item.souls),
+                backgroundColor: "rgba(59, 130, 246, 0.8)",
+                borderColor: "rgba(59, 130, 246, 1)",
+                borderWidth: 1,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "top" as const },
+              title: { display: false },
+              tooltip: {
+                callbacks: {
+                  afterLabel: (context) => {
+                    const dataIndex = context.dataIndex;
+                    const leader = chartData[dataIndex]?.leader || "Unknown";
+                    return `Leader: ${leader}`;
+                  },
                 },
               },
             },
-          },
-          scales: { y: { beginAtZero: true } },
-        }}
-      />
-    </div>
+            scales: { y: { beginAtZero: true } },
+          }}
+        />
+      </div>
+    )}
   </div>
 );
 

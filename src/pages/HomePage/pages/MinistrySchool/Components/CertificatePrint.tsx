@@ -47,15 +47,15 @@ export default function Certificate({
 
               {/* Decorative curved elements - Left side */}
               <div className="absolute -left-10 -top-8 h-full w-48 overflow-hidden">
-                <div className="absolute -translate-x-20  -rotate-45 -left-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-br from-gray-200 to-secondary drop-shadow-xl shadow-xl border-2 "></div>
-                <div className="absolute -translate-x-9  -rotate-45 -left-36  w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
+                <div className="absolute -translate-x-20  -rotate-45 -left-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-br from-lightGray to-secondary drop-shadow-xl shadow-xl border-2 "></div>
+                <div className="absolute -translate-x-9  -rotate-45 -left-36  w-72 h-72 rounded-[6vw] bg-gradient-to-bl from-lightest to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
               </div>
 
               {/* Decorative curved elements - Right side */}
               <div className="absolute -right-10 -top-8 h-full w-48 overflow-hidden ">
                 
-                <div className="absolute translate-x-20  -rotate-45 -right-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-tl  from-gray-200 to-secondary drop-shadow-xl shadow-xl border-2 "></div>
-                <div className="absolute translate-x-9  rotate-45 -right-36  w-72 h-72 rounded-[6vw] bg-gradient-to-tl from-[#2d3e6f] to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
+                <div className="absolute translate-x-20  -rotate-45 -right-24 top-20 w-72 h-72 rounded-[6vw] bg-gradient-to-tl  from-lightGray to-secondary drop-shadow-xl shadow-xl border-2 "></div>
+                <div className="absolute translate-x-9  rotate-45 -right-36  w-72 h-72 rounded-[6vw] bg-gradient-to-tl from-lightest to-primary drop-shadow-xl shadow-xl border-2 border-white"></div>
               </div>
 
               {/* Main content */}
@@ -70,32 +70,31 @@ export default function Certificate({
                     {/* <TrophyIcon className="w-8 h-8 text-white" /> */}
                     <ChurchLogo show />
                   </div>
-                  <div className="text-5xl font-serif tracking-[0.3em] text-gray-800 mb-2 pb-2">
+                  <div className="text-5xl font-serif tracking-[0.3em] text-primary mb-2 pb-2">
                     CERTIFICATE
                   </div>
                   <div className="flex items-center justify-center gap-4 my-8 pb-8">
-                    <div className="h-px w-24 bg-gray-400"></div>
-                    <div className="text-sm tracking-[0.2em] text-gray-600 font-light uppercase">
+                    <div className="h-px w-24 bg-lightGray"></div>
+                    <div className="text-sm tracking-[0.2em] text-primaryGray font-light uppercase">
                       OF Participation
                     </div>
-                    <div className="h-px w-24 bg-gray-400"></div>
+                    <div className="h-px w-24 bg-lightGray"></div>
                   </div>
-                  <p className="text-xs tracking-wider text-gray-500 font-light">
+                  <p className="text-xs tracking-wider text-primaryGray font-light">
                     THIS CERTIFICATE IS PROUDLY PRESENTED TO 
                   </p>
                 </div>
 
                 {/* Recipient name */}
                 <div className="mb-6 ">
-                  <h2 className="text-6xl font-serif  text-gray-800 text-center" style={{ fontFamily: 'Georgia, serif' }}>
+                  <h2 className="text-6xl font-serif text-center text-primary">
                     {recipientName}
                   </h2>
-                  {/* <div className="h-px w-[35vw] bg-gray-400"></div> */}
                 </div>
 
                 {/* Description */}
                 <div className="max-w-2xl mb-12">
-                  <p className="text-center text-sm leading-relaxed text-gray-600">
+                  <p className="text-center text-sm leading-relaxed text-primaryGray">
                     {finalDescription}
                   </p>
                 </div>
@@ -104,23 +103,23 @@ export default function Certificate({
                 <div className="w-full max-w-2xl flex justify-between items-end mt-auto pt-8">
                   {/* Left signature */}
                   <div className="flex flex-col items-center">
-                    <div className="min-w-40 border-b border-gray-400 mb-2 pb-2 text-center">{leftSignature}</div>
-                    <p className="text-sm tracking-wider text-gray-600 font-light">
+                    <div className="min-w-40 border-b border-lightGray mb-2 pb-2 text-center">{leftSignature}</div>
+                    <p className="text-sm tracking-wider text-primaryGray font-light">
                       {leftSignatureLabel}
                     </p>
                   </div>
 
                   {/* Center badge */}
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2d3e6f] to-[#1e2847] flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-lightest to-lighter flex items-center justify-center shadow-lg">
                       {/* <Award className="w-8 h-8 text-amber-400" strokeWidth={2} /> */}
                     </div>
                   </div>
 
                   {/* Right signature */}
                   <div className="flex flex-col items-center">
-                    <div className="min-w-40 border-b border-gray-400 mb-2 pb-2 text-center">{rightSignature}</div>
-                    <p className="text-sm tracking-wider text-gray-600 font-light">
+                    <div className="min-w-40 border-b border-lightGray mb-2 pb-2 text-center">{rightSignature}</div>
+                    <p className="text-sm tracking-wider text-primaryGray font-light">
                       {rightSignatureLabel}
                     </p>
                   </div>

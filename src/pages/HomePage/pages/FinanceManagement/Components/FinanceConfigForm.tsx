@@ -5,9 +5,10 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils/api/apiCalls";
 import { Field, Formik, Form } from "formik";
+import { QueryType } from "@/utils/interfaces";
 
 export interface FinanceConfigValues {
-  id?: string;
+  id?: string | number;
   name: string;
   description: string;
   percentage?: number;
@@ -15,17 +16,15 @@ export interface FinanceConfigValues {
 
 interface FinanceConfigFormProps {
   onClose: () => void;
-  initialData?: Partial<FinanceConfigValues> & { id?: string };
-  loading?: boolean;
+  initialData?: Partial<FinanceConfigValues> & { id?: string | number };
   type: string;
   onSubmit?: (values: FinanceConfigValues) => void;
-  refetch: void;
+  refetch: (overrideQuery?: QueryType) => Promise<unknown> | void;
 }
 
 const FinanceConfigForm = ({
   onClose,
   initialData,
-  loading = false,
   type,
   onSubmit,
   refetch
@@ -34,53 +33,38 @@ const FinanceConfigForm = ({
   const {
       postData,
       loading: postLoading,
-    } = usePost(type === "receipt" ? api.post.createReceiptConfig : type === "payment" ? api.post.createPaymentConfig : api.post.createBankAccountConfig);
+    } = usePost(type === "receipt" ? api.post.createReceiptConfig : type === "payment" ? api.post.createPaymentConfig : type==="tithe"? api.post.createTitheBreakdownConfig : api.post.createBankAccountConfig);
     const {
       updateData,
       loading: putLoading,
-    } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : api.put.updateBankAccountConfig);
+    } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : type==="tithe"? api.put.updateTitheBreakdownConfig : api.put.updateBankAccountConfig);
 
     const handleSubmit = async (values: FinanceConfigValues) => {
-                  try {
-                    if (initialData?.id) {
-                      // 🔄 UPDATE (query id + payload)
-                      await updateData({
-                        query: { id: initialData.id },
-                        payload: {
-                          name: values.name,
-                          description: values.description,
-                          ...(type === "bankAccount" && {
-                            percentage: values.percentage !== undefined
-                              ? Number(values.percentage)
-                              : undefined,
-                          }),
-                        },
-                      });
-                    } else {
-                      // ➕ CREATE (payload only)
-                      await postData({
-                        name: values.name,
-                        description: values.description,
-                        ...(type === "bankAccount" && {
-                          percentage: values.percentage !== undefined
-                            ? Number(values.percentage)
-                            : undefined,
-                        }),
-                      });
-                    }
+      try {
+        const payload = {
+          name: values.name,
+          description: values.description,
+          ...((type === "bankAccount" || type === "tithe") && {
+            percentage:
+              values.percentage !== undefined
+                ? Number(values.percentage)
+                : undefined,
+          }),
+        };
 
-                    onSubmit?.(values);
-                    
-                  } 
-                  
-                  catch (error) {
-                    console.error("Finance config submission failed", error);
-                  }
-                  finally {
-                  refetch()
-                    onClose();
-                  }
-                }
+        if (initialData?.id) {
+          await updateData(payload, { id: String(initialData.id) });
+        } else {
+          await postData(payload);
+        }
+
+        await Promise.resolve(refetch());
+        onSubmit?.(values);
+        onClose();
+      } catch {
+        // silent fail - caller handles notifications
+      }
+    };
 
     return ( 
         <div className=" ">
@@ -96,8 +80,8 @@ const FinanceConfigForm = ({
                 enableReinitialize
                 onSubmit={handleSubmit}
               >
-              {(formik) => (
-              <Form className="mt-5 px-5 pb-5 space-y-6">
+              {() => (
+              <Form className="space-y-6 px-5 pb-5 pt-5">
                 <FormLayout $columns={1}>
                   <Field
                       component={FormikInputDiv}
@@ -116,7 +100,7 @@ const FinanceConfigForm = ({
                       name="description"
                   />
 
-                   {type === "bankAccount" && <Field
+                   {(type === "bankAccount" || type === "tithe") && <Field
                       component={FormikInputDiv}
                       type="number"
                       label="Percentage *"
@@ -127,14 +111,13 @@ const FinanceConfigForm = ({
 
                 </FormLayout>
                 <div className="flex gap-2 justify-end">
-                  <Button value="Close" variant="ghost" type="button" onClick={onClose} />
+                  <Button value="Close" variant="secondary" type="button" onClick={onClose} />
                   <Button
                     value={initialData ? "Update" : "Save"}
                     variant="primary"
-                    type="button"
+                    type="submit"
                     disabled={postLoading || putLoading}
                     loading={postLoading || putLoading}
-                    onClick={() => handleSubmit(formik.values)}
                   />
                 </div>
               </Form>

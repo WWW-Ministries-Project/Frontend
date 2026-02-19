@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
-import { NotificationCard } from "@/components/NotificationCard";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import useWindowSize from "../../CustomHooks/useWindowSize";
@@ -15,13 +14,7 @@ import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
-import Breadcrumb, { AutoBreadcrumb } from "./Components/BreadCrumb";
-
-export const navigateRef = {
-  current: null as
-    | ((path: string, options?: { state: { mode: string } }) => void)
-    | null,
-};
+import { navigateRef } from "./navigationRef";
 
 export function HomePage() {
   //custom navigation
@@ -110,49 +103,28 @@ export function HomePage() {
     setFilter(val);
   };
 
-  // scroll event to show/hide the browser UI
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY) {
-        // scrolling down
-        document.body.classList.add("hide-browser-ui");
-      } else {
-        // scrolling up
-        document.body.classList.remove("hide-browser-ui");
-      }
-      lastScrollY = currentScrollY;
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
   if (!token) return null;
   return (
-    <main className="h-screen w-screen p-3 flex flex-col gap-3">
-  <div className=" flex-shrink-0">
-    {/* Navbar */}
-   <Header handleShowNav={handleShowNav} />
-  </div>
-  <div className="flex-1 flex flex-col md:flex-row  min-h-0">
-    <div className="md:h-full rounded-xl flex-shrink-0">
-     <div className={` hidden sm:hidden md:hidden lg:inline  `}>
-                 <SideBar className="" onClick={handleShowNav} show={show} />
-               </div>
-     
-               <div className="inline lg:hidden">
-                 <MobileSideBar show={show} onClick={handleShowNav} />
-               </div>
-    </div>
-    <div className="bg-lightGray border border-lightGray flex-1 rounded-xl min-h-0 overflow-auto p-4">
-       {/* <AutoBreadcrumb/> */}
-      <div className=" bg-white h-full rounded-xl  min-h-0 overflow-auto border border-t-4 border-t-secondary">
-       
-     <Outlet
+    <main className="app-shell-padding h-[100dvh] w-full overflow-hidden bg-background">
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        <div className="flex-shrink-0">
+          <Header handleShowNav={handleShowNav} />
+        </div>
+
+        <div className="flex min-h-0 flex-1 gap-0
+        ">
+          <div className="hidden h-full flex-shrink-0 lg:block">
+            <SideBar className="" onClick={handleShowNav} show={show} />
+          </div>
+
+          <div className="lg:hidden">
+            <MobileSideBar show={show} onClick={handleShowNav} />
+          </div>
+
+          <div className="app-surface app-shell-padding flex min-h-0 flex-1 overflow-hidden bg-lightGray">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-t-4 border-lightGray border-t-secondary bg-white">
+              <div className="app-page-content app-scrollbar flex-1 min-h-0 overflow-y-auto">
+                <Outlet
                   context={{
                     refetchMembersOptions,
                     filter,
@@ -163,12 +135,13 @@ export function HomePage() {
                     refetchDepartments,
                   }}
                 />
-                </div>
-    </div>
-  </div>
-  <NotificationCard />
-          <Dialog />
-          <LoaderComponent />
-</main>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Dialog />
+        <LoaderComponent />
+      </div>
+    </main>
   );
 }

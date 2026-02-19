@@ -2,9 +2,10 @@ import { IMarket } from "@/utils/api/marketPlace/interface";
 import { CalendarIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { MarketStatusChip } from "./chips/MarketStatusChip";
 import { Banner } from "../../Members/Components/Banner";
+import { formatDate } from "@/utils";
 
 interface HeaderProps {
-  market: IMarket;
+  market?: IMarket;
 }
 
 export function MarketHeader({ market }: HeaderProps) {
@@ -14,8 +15,8 @@ export function MarketHeader({ market }: HeaderProps) {
       <div className="flex items-center gap-2">
         <h2 className="text-xl font-semibold">{market?.name || "N/A"}</h2>
         <MarketStatusChip
-          start_date={market?.start_date}
-          end_date={market?.end_date}
+          start_date={market?.start_date ?? ""}
+          end_date={market?.end_date ?? ""}
         />
       </div>
       <p className="text-sm mt-1">{market?.description}</p>
@@ -23,12 +24,13 @@ export function MarketHeader({ market }: HeaderProps) {
       <div className="flex items-center gap-4 mt-4 text-sm text-gray-200">
         <div className="flex items-center gap-2">
           <MapPinIcon className="h-4 w-4" />
-          <span>{"location"}</span>
+          <span>{market?.event_name || "Event marketplace"}</span>
         </div>
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-4 w-4" />
           <span>
-            {market?.start_date} to {market?.end_date}
+            {market?.start_date ? formatDate(market.start_date) : "-"} to{" "}
+            {market?.end_date ? formatDate(market.end_date) : "-"}
           </span>
         </div>
       </div>

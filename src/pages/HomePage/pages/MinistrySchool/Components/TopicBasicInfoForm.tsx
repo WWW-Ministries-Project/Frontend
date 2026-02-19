@@ -1,16 +1,15 @@
 import TextEditor from "@/components/TextEditor";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import { api, LearningUnitType, Topic } from "@/utils";
-import { useEffect, useState } from "react";
+import { showNotification } from "@/pages/HomePage/utils";
+import { LearningUnitType, Topic } from "@/utils";
+import { ApiCreationCalls } from "@/utils/api/apiPost";
+import { ApiUpdateCalls } from "@/utils/api/apiPut";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 interface TopicForm {
   topicName: string;
   topicDescription: string;
 }
-
-
 
 interface AssignmentOption {
   id: string;
@@ -24,533 +23,527 @@ interface AssignmentQuestion {
   correctOptionId: string | null;
 }
 
-interface LearningUnit {
-  type: LearningUnitType;
-  data: any;
+interface AssignmentData {
+  questions: AssignmentQuestion[];
+  maxAttempts: number;
+  passMark: number;
 }
+
+interface TopicLearningUnit {
+  type: LearningUnitType;
+  data:
+    | AssignmentData
+    | { content: string }
+    | { value: string }
+    | { link: string }
+    | { question: string }
+    | Record<string, unknown>;
+}
+
+type EditableTopic = {
+  id: string | number;
+  name: string;
+  description?: string | TrustedHTML | null | undefined;
+  learningUnit?: TopicLearningUnit | null;
+  LearningUnit?: TopicLearningUnit | null;
+  type?: LearningUnitType;
+};
 
 interface TopicBasicInfoFormProps {
   creation?: boolean;
   onClose?: () => void;
-  topicToEdit?: {
-    id: number;
-    name: string;
-    description: string;
-    learningUnit: LearningUnit;
-    type: LearningUnitType;
-  } | null;
+  topicToEdit?: EditableTopic | null;
   refetchProgram?: () => void;
 }
 
+const LEARNING_UNIT_TYPES: { label: string; value: LearningUnitType }[] = [
+  { label: "Playback Video", value: "video" },
+  { label: "Live Session", value: "live" },
+  { label: "In-Person Session", value: "in-person" },
+  { label: "PowerPoint (PPT)", value: "ppt" },
+  { label: "PDF Document", value: "pdf" },
+  { label: "Assignment (MCQ)", value: "assignment" },
+  { label: "Lesson Note", value: "lesson-note" },
+  { label: "Assignment (Essay)", value: "assignment-essay" },
+];
 
-
-
+const createId = () => crypto.randomUUID();
 
 const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasicInfoFormProps) => {
-    const { id: programId } = useParams();
+  const { id: programId } = useParams();
+  const apiPost = useMemo(() => new ApiCreationCalls(), []);
+  const apiPut = useMemo(() => new ApiUpdateCalls(), []);
+  const dragIndexRef = useRef<number | null>(null);
 
-    console.log("topicToEdit",topicToEdit);
-    
-
-    const [topicForm, setTopicForm] = useState<TopicForm>({
-      topicName: '',
-      topicDescription: '',
-    });
-    // const [isEditing, setIsEditing] = useState<boolean>(true);
-
-    const [learningUnit, setLearningUnit] = useState<LearningUnit | null>(null);
-
-    const {postData: postTopic, loading: postLoading} = usePost<unknown, Topic>(api.post.createTopic);
-    const {updateData: putTopic, loading: updateLoading} = usePut<unknown, Topic>(api.put.updateTopic);
-
-    const LEARNING_UNIT_TYPES: { label: string; value: LearningUnitType }[] = [
-      { label: "Playback Video", value: "video" },
-      { label: "Live Session", value: "live" },
-      { label: "In-Person Session", value: "in-person" },
-      { label: "PowerPoint (PPT)", value: "ppt" },
-      { label: "PDF Document", value: "pdf" },
-      { label: "Assignment (MCQ)", value: "assignment" },
-      { label: "Lesson Note", value: "lesson-note" },
-      { label: "Assignment (Essay)", value: "assignment-essay" },
-    ];
-
-    const createId = () => crypto.randomUUID();
-
-    useEffect(() => {
-  if (!topicToEdit) return;
-
-  setTopicForm({
-    topicName: topicToEdit.name,
-    topicDescription: topicToEdit.description,
+  const [topicForm, setTopicForm] = useState<TopicForm>({
+    topicName: "",
+    topicDescription: "",
   });
+  const [learningUnit, setLearningUnit] = useState<TopicLearningUnit | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // Backend may send LearningUnit (capital L)
-  const rawUnit: any =
-    (topicToEdit as any).learningUnit ??
-    (topicToEdit as any).LearningUnit ??
-    null;
+  useEffect(() => {
+    if (!topicToEdit) return;
 
-  if (!rawUnit) {
-    setLearningUnit(null);
-    return;
-  }
+    setTopicForm({
+      topicName: topicToEdit.name,
+      topicDescription: String(topicToEdit.description ?? ""),
+    });
 
-  // Assignment (MCQ)
-  if (rawUnit.type === "assignment") {
+    const rawUnit = topicToEdit.learningUnit ?? topicToEdit.LearningUnit ?? null;
+    if (!rawUnit) {
+      setLearningUnit(null);
+      return;
+    }
+
+    if (rawUnit.type === "assignment") {
+      const assignmentPayload = rawUnit.data as Partial<AssignmentData>;
+      setLearningUnit({
+        type: "assignment",
+        data: {
+          questions: assignmentPayload.questions ?? [],
+          maxAttempts: assignmentPayload.maxAttempts ?? 2,
+          passMark: assignmentPayload.passMark ?? 50,
+        },
+      });
+      return;
+    }
+
+    if (rawUnit.type === "lesson-note") {
+      setLearningUnit({
+        type: "lesson-note",
+        data: {
+          content: String((rawUnit.data as { content?: string })?.content ?? ""),
+        },
+      });
+      return;
+    }
+
     setLearningUnit({
       type: rawUnit.type,
-      data: {
-        questions: rawUnit.data?.questions ?? [],
-        maxAttempts:
-          rawUnit.data?.maxAttempts ??
-          rawUnit.maxAttempts ??
-          2,
-        passMark:
-          rawUnit.data?.passMark ?? 50,
-      },
+      data: rawUnit.data ?? {},
     });
-    return;
-  }
+  }, [topicToEdit]);
 
-  // Lesson note
-  if (rawUnit.type === "lesson-note") {
+  const isAssignmentUnit =
+    learningUnit?.type === "assignment" ? (learningUnit.data as AssignmentData) : null;
+
+  const setAssignmentData = (nextData: AssignmentData) => {
+    if (!learningUnit || learningUnit.type !== "assignment") return;
     setLearningUnit({
-      type: rawUnit.type,
-      data: {
-        content: rawUnit.data?.content ?? "",
-      },
+      ...learningUnit,
+      data: nextData,
     });
-    return;
-  }
+  };
 
-  // All other learning unit types
-  setLearningUnit({
-    type: rawUnit.type,
-    data: rawUnit.data ?? {},
-  });
-}, [topicToEdit]);
+  const validateAssignment = () => {
+    if (!isAssignmentUnit) return true;
 
-    const validateAssignment = () => {
-      if (!learningUnit || learningUnit.type !== "assignment") return true;
-      if (
-  learningUnit.data.maxAttempts < 1 ||
-  learningUnit.data.passMark < 0 ||
-  learningUnit.data.passMark > 100
-) {
-  alert("Please provide valid max attempts and pass mark values.");
-  return false;
-}
+    if (isAssignmentUnit.maxAttempts < 1 || isAssignmentUnit.passMark < 0 || isAssignmentUnit.passMark > 100) {
+      showNotification("Please provide valid max attempts and pass mark values.", "error");
+      return false;
+    }
 
-      const questions = learningUnit.data.questions as AssignmentQuestion[];
+    if (!isAssignmentUnit.questions.length) {
+      showNotification("Assignment must have at least one question.", "error");
+      return false;
+    }
 
-      if (!questions.length) {
-        alert("Assignment must have at least one question.");
+    for (let i = 0; i < isAssignmentUnit.questions.length; i += 1) {
+      const question = isAssignmentUnit.questions[i];
+      if (question.options.length < 2) {
+        showNotification(`Question ${i + 1} must have at least two options.`, "error");
+        return false;
+      }
+      if (!question.correctOptionId) {
+        showNotification(`Question ${i + 1} must have one correct answer.`, "error");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleDragStart = (index: number) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDrop = (index: number) => {
+    if (!isAssignmentUnit) return;
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === index) return;
+
+    const questions = [...isAssignmentUnit.questions];
+    const [moved] = questions.splice(fromIndex, 1);
+    questions.splice(index, 0, moved);
+    setAssignmentData({
+      ...isAssignmentUnit,
+      questions,
+    });
+    dragIndexRef.current = null;
+  };
+
+  const handleClose = () => {
+    setTopicForm({
+      topicName: "",
+      topicDescription: "",
+    });
+    onClose?.();
+  };
+
+  const persistTopic = async (payload: Topic) => {
+    setSaving(true);
+    try {
+      const response = topicToEdit
+        ? await apiPut.updateTopic(payload, { id: String(topicToEdit.id) })
+        : await apiPost.createTopic(payload);
+
+      const success = (response as { success?: boolean })?.success;
+      if (success === false) {
+        showNotification("Unable to save topic. Please try again.", "error");
         return false;
       }
 
-      for (let i = 0; i < questions.length; i++) {
-        const q = questions[i];
-        if (q.options.length < 2) {
-          alert(`Question ${i + 1} must have at least two options.`);
-          return false;
-        }
-        if (!q.correctOptionId) {
-          alert(`Question ${i + 1} must have one correct answer.`);
-          return false;
-        }
-      }
-
+      showNotification(topicToEdit ? "Topic updated successfully." : "Topic created successfully.", "success");
       return true;
-    };
-
-    const handleDragStart = (index: number) => {
-      (window as any).dragIndex = index;
-    };
-
-    const handleDrop = (index: number) => {
-      const fromIndex = (window as any).dragIndex;
-      if (fromIndex === undefined || fromIndex === index) return;
-
-      const questions = [...learningUnit!.data.questions];
-      const [moved] = questions.splice(fromIndex, 1);
-      questions.splice(index, 0, moved);
-
-      setLearningUnit({
-        ...learningUnit!,
-        data: { questions },
-      });
-
-      (window as any).dragIndex = undefined;
-    };
-
-      const handleClose = () => {
-    setTopicForm({
-      topicName: '',
-      topicDescription: '',
-    });
-    onClose?.();
+    } catch {
+      showNotification("Unable to save topic. Please try again.", "error");
+      return false;
+    } finally {
+      setSaving(false);
+    }
   };
 
-/**
- * Create a new Topic
- */
-const createTopic = (payload: Topic) => {
-  console.log("Creating topic with payload:", payload);
-  postTopic(payload);
-};
+  const handleSubmit = async () => {
+    if (!validateAssignment()) return;
 
-/**
- * Update an existing Topic
- */
-const updateTopic = (payload: Topic, id: any) => {
-  console.log("Updating topic with payload:", payload);
-  putTopic(payload, {id: id});
-};
+    if (!learningUnit) {
+      showNotification("Please select a learning unit type.", "error");
+      return;
+    }
 
-const handleSubmit = () => {
-  if (!validateAssignment()) return;
+    if (!programId) {
+      showNotification("Program identifier is missing. Refresh and try again.", "error");
+      return;
+    }
 
-  if (!learningUnit) {
-    alert("Please select a learning unit type.");
-    return;
-  }
+    const payload: Topic = {
+      id: topicToEdit ? topicToEdit.id : 0,
+      name: topicForm.topicName.trim(),
+      description: topicForm.topicDescription,
+      programId: Number(programId),
+      type: learningUnit.type,
+      learningUnit: learningUnit as Topic["learningUnit"],
+    };
 
-  if (!programId) {
-    console.error("Program ID is missing from route");
-    return;
-  }
+    const success = await persistTopic(payload);
+    if (!success) return;
 
-  const payload: Topic = {
-    id: topicToEdit ? topicToEdit.id : 0,
-    name: topicForm.topicName,
-    description: topicForm.topicDescription,
-    programId: Number(programId),
-    type: learningUnit.type,
-    learningUnit,
+    refetchProgram?.();
+    handleClose();
   };
 
-  if (topicToEdit) {
-    updateTopic(payload, topicToEdit.id);
-    onClose?.();
-    console.log("Id of topic to edit", topicToEdit.id);
-  } else {
-    createTopic(payload);
-    onClose?.();
-  }
-}
+  return (
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b bg-white p-6">
+        <h2 className="text-2xl font-semibold text-primary">
+          {topicToEdit ? "Edit Topic" : "Create New Topic"}
+        </h2>
+        <p className="text-sm text-primaryGray">
+          {topicToEdit
+            ? "Update the topic information and learning unit below."
+            : "Provide the topic details and select a learning unit."}
+        </p>
+      </div>
 
-    return ( 
-      <div className="flex h-full flex-col">
-        <div className="sticky top-0 z-10 bg-white border-b p-6">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            {topicToEdit ? "Edit Topic" : "Create New Topic"}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {topicToEdit
-              ? "Fill in the details below to edit the topic."
-              : "View the details of the topic below."}
-          </p>
+      <div className="flex-1 space-y-4 overflow-y-auto p-6">
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-primary">
+            Name <span className="text-red-500">Required</span>
+          </label>
+          <input
+            className="w-full rounded-md border border-lightGray px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            value={topicForm.topicName}
+            onChange={(event) =>
+              setTopicForm((old) => ({
+                ...old,
+                topicName: event.target.value,
+              }))
+            }
+            placeholder="Enter topic name"
+          />
         </div>
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">
-              Name <span className="text-red-500">Required</span>
-            </label>
-            <input
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-              value={topicForm.topicName}
-              onChange={(e) =>
-                setTopicForm((old) => ({ ...old, topicName: e.target.value }))
-              }
-              placeholder="Enter topic name"
-              // disabled={!topicToEdit}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Description</label>
-            <TextEditor
-              value={topicForm.topicDescription}
-              onChange={(value) =>
-                setTopicForm((old) => ({
-                  ...old,
-                  topicDescription: value,
-                }))
-              }
-              placeholder="Enter topic description"
-              // readOnly={!topicToEdit}
-            />
-          </div>
 
-          <div className="space-y-2 border-t pt-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-800">Learning Unit</h3>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-primary">Description</label>
+          <TextEditor
+            value={topicForm.topicDescription}
+            onChange={(value) =>
+              setTopicForm((old) => ({
+                ...old,
+                topicDescription: value,
+              }))
+            }
+            placeholder="Enter topic description"
+          />
+        </div>
+
+        <div className="space-y-2 border-t pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-primary">Learning Unit</h3>
             <button
-                  type="button"
-                  className="text-xs text-primary underline"
-                  onClick={() => setLearningUnit(null)}
-                >
-                  Change learning unit type
-                </button>
-            </div>
+              type="button"
+              className="text-xs text-primary underline"
+              onClick={() => setLearningUnit(null)}
+            >
+              Change learning unit type
+            </button>
+          </div>
 
-            {!learningUnit && (
-              <select
-                className="w-full rounded-md border px-3 py-2 text-sm"
-                onChange={(e) =>
-                  setLearningUnit({
-                    type: e.target.value as LearningUnitType,
-                    data:
-                      e.target.value === "assignment"
-                        ? { questions: [], maxAttempts: 2, passMark: 50 }
-                        : e.target.value === "lesson-note"
+          {!learningUnit && (
+            <select
+              className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
+              onChange={(event) =>
+                setLearningUnit({
+                  type: event.target.value as LearningUnitType,
+                  data:
+                    event.target.value === "assignment"
+                      ? { questions: [], maxAttempts: 2, passMark: 50 }
+                      : event.target.value === "lesson-note"
                         ? { content: "" }
-                        : e.target.value === "assignment-essay"
-                        ? { question: "" }
-                        : {},
-                  })
-                }
-              >
-                <option value="">Select learning unit type</option>
-                {LEARNING_UNIT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            )}
+                        : event.target.value === "assignment-essay"
+                          ? { question: "" }
+                          : {},
+                })
+              }
+            >
+              <option value="">Select learning unit type</option>
+              {LEARNING_UNIT_TYPES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          )}
 
-            {learningUnit && (
-              <div className="space-y-3 ">
-
-                {["video", "live", "in-person"].includes(learningUnit.type) && (
-                  <input
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                    placeholder={
-                      learningUnit.type === "video"
-                        ? "Video URL"
-                        : learningUnit.type === "live"
+          {learningUnit && (
+            <div className="space-y-3">
+              {["video", "live", "in-person"].includes(learningUnit.type) && (
+                <input
+                  className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
+                  placeholder={
+                    learningUnit.type === "video"
+                      ? "Video URL"
+                      : learningUnit.type === "live"
                         ? "Meeting link"
                         : "Location / Venue"
-                    }
-                    value={learningUnit.data.value || ""}
-                    onChange={(e) =>
+                  }
+                  value={String((learningUnit.data as { value?: string }).value ?? "")}
+                  onChange={(event) =>
+                    setLearningUnit({
+                      ...learningUnit,
+                      data: { value: event.target.value },
+                    })
+                  }
+                />
+              )}
+
+              {["ppt", "pdf"].includes(learningUnit.type) && (
+                <input
+                  className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
+                  placeholder="External file link"
+                  value={String((learningUnit.data as { link?: string }).link ?? "")}
+                  onChange={(event) =>
+                    setLearningUnit({
+                      ...learningUnit,
+                      data: { link: event.target.value },
+                    })
+                  }
+                />
+              )}
+
+              {learningUnit.type === "lesson-note" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-primaryGray">Lesson Content</label>
+                  <TextEditor
+                    value={String((learningUnit.data as { content?: string }).content ?? "")}
+                    onChange={(value) =>
                       setLearningUnit({
                         ...learningUnit,
-                        data: { value: e.target.value },
+                        data: { content: value },
                       })
                     }
+                    placeholder="Write the lesson note here..."
                   />
-                )}
+                </div>
+              )}
 
-                {["ppt", "pdf"].includes(learningUnit.type) && (
-                  <input
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                    placeholder="External file link"
-                    value={learningUnit.data.link || ""}
-                    onChange={(e) =>
+              {learningUnit.type === "assignment-essay" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-primaryGray">
+                    Assignment Question / Instructions
+                  </label>
+                  <TextEditor
+                    value={String((learningUnit.data as { question?: string }).question ?? "")}
+                    onChange={(value) =>
                       setLearningUnit({
                         ...learningUnit,
-                        data: { link: e.target.value },
+                        data: { question: value },
                       })
                     }
+                    placeholder="Describe the assignment task. Students will upload their answers."
                   />
-                )}
+                  <p className="text-xs text-primaryGray">
+                    Students will submit their answers by uploading a document.
+                  </p>
+                </div>
+              )}
 
-                {learningUnit.type === "lesson-note" && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600">
-                      Lesson Content
-                    </label>
-                    <TextEditor
-                      value={learningUnit.data.content}
-                      onChange={(value) =>
-                        setLearningUnit({
-                          ...learningUnit,
-                          data: { content: value },
-                        })
-                      }
-                      placeholder="Write the lesson note here..."
-                    />
+              {learningUnit.type === "assignment" && isAssignmentUnit && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-primaryGray">Max Attempts</label>
+                      <input
+                        type="number"
+                        min={1}
+                        className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
+                        value={isAssignmentUnit.maxAttempts}
+                        onChange={(event) =>
+                          setAssignmentData({
+                            ...isAssignmentUnit,
+                            maxAttempts: Number(event.target.value),
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-primaryGray">Pass Mark (%)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
+                        value={isAssignmentUnit.passMark}
+                        onChange={(event) =>
+                          setAssignmentData({
+                            ...isAssignmentUnit,
+                            passMark: Number(event.target.value),
+                          })
+                        }
+                      />
+                    </div>
                   </div>
-                )}
 
-                {learningUnit.type === "assignment-essay" && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600">
-                      Assignment Question / Instructions
-                    </label>
-                    <TextEditor
-                      value={learningUnit.data.question}
-                      onChange={(value) =>
-                        setLearningUnit({
-                          ...learningUnit,
-                          data: { question: value },
-                        })
-                      }
-                      placeholder="Describe the assignment task. Students will upload their answers."
-                    />
-                    <p className="text-xs text-gray-500">
-                      Students will submit their answers by uploading a document.
-                    </p>
-                  </div>
-                )}
-
-                {learningUnit.type === "assignment" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-  <div className="space-y-1">
-    <label className="text-xs font-medium text-gray-600">
-      Max Attempts
-    </label>
-    <input
-      type="number"
-      min={1}
-      className="w-full rounded-md border px-3 py-2 text-sm"
-      value={learningUnit.data.maxAttempts ?? 2}
-      onChange={(e) =>
-        setLearningUnit({
-          ...learningUnit,
-          data: {
-            ...learningUnit.data,
-            maxAttempts: Number(e.target.value),
-          },
-        })
-      }
-    />
-  </div>
-
-  <div className="space-y-1">
-    <label className="text-xs font-medium text-gray-600">
-      Pass Mark (%)
-    </label>
-    <input
-      type="number"
-      min={0}
-      max={100}
-      className="w-full rounded-md border px-3 py-2 text-sm"
-      value={learningUnit.data.passMark ?? 50}
-      onChange={(e) =>
-        setLearningUnit({
-          ...learningUnit,
-          data: {
-            ...learningUnit.data,
-            passMark: Number(e.target.value),
-          },
-        })
-      }
-    />
-  </div>
-</div>
-                    {(learningUnit.data.questions as AssignmentQuestion[]).map((q, qIndex) => (
-                      <div
-                        key={q.id}
-                        draggable
-                        onDragStart={() => handleDragStart(qIndex)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => handleDrop(qIndex)}
-                        className="space-y-2 rounded-md border p-3 cursor-move bg-white"
-                      >
-                        <input
-                          className="w-full rounded-md border px-2 py-1 text-sm"
-                          placeholder={`Question ${qIndex + 1}`}
-                          value={q.question}
-                          onChange={(e) => {
-                            const questions = [...learningUnit.data.questions];
-                            questions[qIndex].question = e.target.value;
-                            setLearningUnit({ ...learningUnit, data: { questions } });
-                          }}
-                        />
-
-                        {q.options.map((opt, optIndex) => (
-                          <div key={opt.id} className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              checked={q.correctOptionId === opt.id}
-                              onChange={() => {
-                                const questions = [...learningUnit.data.questions];
-                                questions[qIndex].correctOptionId = opt.id;
-                                setLearningUnit({ ...learningUnit, data: { questions } });
-                              }}
-                            />
-                            <input
-                              className="flex-1 rounded-md border px-2 py-1 text-sm"
-                              placeholder={`Option ${optIndex + 1}`}
-                              value={opt.text}
-                              onChange={(e) => {
-                                const questions = [...learningUnit.data.questions];
-                                questions[qIndex].options[optIndex].text = e.target.value;
-                                setLearningUnit({ ...learningUnit, data: { questions } });
-                              }}
-                            />
-                          </div>
-                        ))}
-
-                        <button
-                          type="button"
-                          className="text-xs text-primary underline"
-                          onClick={() => {
-                            const questions = [...learningUnit.data.questions];
-                            questions[qIndex].options.push({
-                              id: createId(),
-                              text: "",
-                            });
-                            setLearningUnit({ ...learningUnit, data: { questions } });
-                          }}
-                        >
-                          Add option
-                        </button>
-                      </div>
-                    ))}
-
-                    <button
-                      type="button"
-                      className="text-sm text-primary underline"
-                      onClick={() => {
-                        const questions = [
-                          ...learningUnit.data.questions,
-                          {
-                            id: createId(),
-                            question: "",
-                            correctOptionId: null,
-                            options: [
-                              { id: createId(), text: "" },
-                              { id: createId(), text: "" },
-                            ],
-                          },
-                        ];
-                        setLearningUnit({ ...learningUnit, data: { questions } });
-                      }}
+                  {isAssignmentUnit.questions.map((question, questionIndex) => (
+                    <div
+                      key={question.id}
+                      draggable
+                      onDragStart={() => handleDragStart(questionIndex)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={() => handleDrop(questionIndex)}
+                      className="cursor-move space-y-2 rounded-md border bg-white p-3"
                     >
-                      Add question
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="sticky bottom-0 z-10 bg-white border-t p-4 flex gap-2 justify-end">
-          <button
-            type="button"
-            className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:opacity-90"
-            onClick={
-              () => {
-                handleSubmit();
-                refetchProgram?.();
-          }}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
-            onClick={handleClose}
-          >
-            Cancel
-          </button>
+                      <input
+                        className="w-full rounded-md border border-lightGray px-2 py-1 text-sm"
+                        placeholder={`Question ${questionIndex + 1}`}
+                        value={question.question}
+                        onChange={(event) => {
+                          const questions = [...isAssignmentUnit.questions];
+                          questions[questionIndex].question = event.target.value;
+                          setAssignmentData({ ...isAssignmentUnit, questions });
+                        }}
+                      />
+
+                      {question.options.map((option, optionIndex) => (
+                        <div key={option.id} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            checked={question.correctOptionId === option.id}
+                            onChange={() => {
+                              const questions = [...isAssignmentUnit.questions];
+                              questions[questionIndex].correctOptionId = option.id;
+                              setAssignmentData({ ...isAssignmentUnit, questions });
+                            }}
+                          />
+                          <input
+                            className="flex-1 rounded-md border border-lightGray px-2 py-1 text-sm"
+                            placeholder={`Option ${optionIndex + 1}`}
+                            value={option.text}
+                            onChange={(event) => {
+                              const questions = [...isAssignmentUnit.questions];
+                              questions[questionIndex].options[optionIndex].text = event.target.value;
+                              setAssignmentData({ ...isAssignmentUnit, questions });
+                            }}
+                          />
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        className="text-xs text-primary underline"
+                        onClick={() => {
+                          const questions = [...isAssignmentUnit.questions];
+                          questions[questionIndex].options.push({
+                            id: createId(),
+                            text: "",
+                          });
+                          setAssignmentData({ ...isAssignmentUnit, questions });
+                        }}
+                      >
+                        Add option
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    className="text-sm text-primary underline"
+                    onClick={() => {
+                      const questions = [
+                        ...isAssignmentUnit.questions,
+                        {
+                          id: createId(),
+                          question: "",
+                          correctOptionId: null,
+                          options: [
+                            { id: createId(), text: "" },
+                            { id: createId(), text: "" },
+                          ],
+                        },
+                      ];
+                      setAssignmentData({ ...isAssignmentUnit, questions });
+                    }}
+                  >
+                    Add question
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    );
-}
- 
+
+      <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4">
+        <button
+          type="button"
+          className="rounded-md border border-lightGray px-4 py-2 text-sm hover:bg-lightGray/20"
+          onClick={handleClose}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={handleSubmit}
+          disabled={saving || !topicForm.topicName.trim()}
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default TopicBasicInfoForm;

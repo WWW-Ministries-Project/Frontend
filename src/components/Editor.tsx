@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { CKEditor, useCKEditorCloud } from '@ckeditor/ckeditor5-react';
+import { showNotification } from "@/pages/HomePage/utils";
 
 import '../App.css';
 
@@ -26,7 +27,10 @@ export default function App() {
 		return () => setIsLayoutReady(false);
 	}, []);
 
-	const { ClassicEditor, editorConfig } = useMemo(() => {
+	const { ClassicEditor, editorConfig } = useMemo<{
+		ClassicEditor?: unknown;
+		editorConfig?: Record<string, unknown>;
+	}>(() => {
 		if (cloud.status !== 'success' || !isLayoutReady) {
 			return {};
 		}
@@ -261,23 +265,37 @@ export default function App() {
 		<div className="main-container">
 			<div className="editor-container editor-container_classic-editor" ref={editorContainerRef}>
 				<div className="editor-container__editor">
-					<div ref={editorRef}>{ClassicEditor && editorConfig && <CKEditor editor={ClassicEditor} config={editorConfig} />}</div>
+						<div ref={editorRef}>
+							{Boolean(ClassicEditor) && editorConfig ? (
+								<CKEditor editor={ClassicEditor as never} config={editorConfig as never} />
+							) : null}
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
-	);
-}
+		);
+	}
 
 /**
  * This function exists to remind you to update the config needed for premium features.
  * The function can be safely removed. Make sure to also remove call to this function when doing so.
  */
-function configUpdateAlert(config) {
+type ConfigUpdateAlertFn = ((config: Record<string, unknown>) => void) & {
+	configUpdateAlertShown?: boolean;
+};
+
+type EditorConfigCloudServices = {
+	cloudServices?: {
+		tokenUrl?: string;
+	};
+};
+
+const configUpdateAlert: ConfigUpdateAlertFn = (config) => {
 	if (configUpdateAlert.configUpdateAlertShown) {
 		return;
 	}
 
-	const isModifiedByUser = (currentValue, forbiddenValue) => {
+	const isModifiedByUser = (currentValue: unknown, forbiddenValue: string) => {
 		if (currentValue === forbiddenValue) {
 			return false;
 		}
@@ -289,22 +307,20 @@ function configUpdateAlert(config) {
 		return true;
 	};
 
-	const valuesToUpdate = [];
+	const valuesToUpdate: string[] = [];
 
 	configUpdateAlert.configUpdateAlertShown = true;
 
-	if (!isModifiedByUser(config.cloudServices?.tokenUrl, '<YOUR_CLOUD_SERVICES_TOKEN_URL>')) {
+	const tokenUrl = (config as EditorConfigCloudServices).cloudServices?.tokenUrl;
+	if (!isModifiedByUser(tokenUrl, '<YOUR_CLOUD_SERVICES_TOKEN_URL>')) {
 		valuesToUpdate.push('CLOUD_SERVICES_TOKEN_URL');
 	}
 
 	if (valuesToUpdate.length) {
-		window.alert(
-			[
-				'Please update the following values in your editor config',
-				'to receive full access to Premium Features:',
-				'',
-				...valuesToUpdate.map(value => ` - ${value}`)
-			].join('\n')
+		showNotification(
+			`Update editor config for premium features: ${valuesToUpdate.join(", ")}.`,
+			"error",
+			{ title: "Editor configuration", durationMs: 10000 }
 		);
 	}
-}
+};

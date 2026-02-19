@@ -3,6 +3,20 @@ import axios from "../../axiosInstance";
 import type { ApiResponse, IPaginationMeta, QueryType } from "../interfaces";
 import { ApiErrorHandler } from "./errors/ApiError";
 
+const serializeQuery = (query?: QueryType): string => {
+  if (!query) return "";
+
+  const normalizedQuery = Object.entries(query).reduce<Record<string, string>>(
+    (acc, [key, value]) => {
+      acc[key] = String(value);
+      return acc;
+    },
+    {}
+  );
+
+  return `?${new URLSearchParams(normalizedQuery).toString()}`;
+};
+
 // Define the fetchData function
 export const fetchData = async <T>(
   baseUrl: string,
@@ -10,9 +24,7 @@ export const fetchData = async <T>(
   query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
-    const queryString = query
-      ? `?${new URLSearchParams(query).toString()}`
-      : "";
+    const queryString = serializeQuery(query);
     const url = `${baseUrl}${path}${queryString}`;
     const response: AxiosResponse<
       {
@@ -45,9 +57,7 @@ export const deleteData = async <T>(
 ): Promise<ApiResponse<T>> => {
   try {
     // Construct query string if query parameters are provided
-    const queryString = query
-      ? `?${new URLSearchParams(query).toString()}`
-      : "";
+    const queryString = serializeQuery(query);
     const url = `${baseUrl}${path}${queryString}`;
 
     const response: AxiosResponse<T> = await axios.delete(url);
@@ -90,9 +100,7 @@ export const updateData = async <T, K>(
   query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
-    const queryString = query
-      ? `?${new URLSearchParams(query).toString()}`
-      : "";
+    const queryString = serializeQuery(query);
     const url = `${baseUrl}${path}${queryString}`;
     const response: AxiosResponse<{ data: T }> = await axios.put(url, payload);
     return {
@@ -114,9 +122,7 @@ export const patchData = async <T, K>(
   query?: QueryType
 ): Promise<ApiResponse<T>> => {
   try {
-    const queryString = query
-      ? `?${new URLSearchParams(query).toString()}`
-      : "";
+    const queryString = serializeQuery(query);
     const url = `${baseUrl}${path}${queryString}`;
     const response: AxiosResponse<T> = await axios.patch(url, payload);
     return {

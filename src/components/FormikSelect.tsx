@@ -17,7 +17,9 @@ interface SelectFieldProps {
   options: Option[];
   disabled?: boolean;
   error?: string;
-  helperText?: string
+  helperText?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 }
 
 interface FormikSelectFieldProps
@@ -50,7 +52,7 @@ function fieldToSelectField({
     placeholder: props.placeholder,
     type: props.type,
     error: showError,
-    helperText:props.helperText
+    helperText: props.helperText,
   };
 }
 

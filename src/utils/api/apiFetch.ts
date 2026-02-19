@@ -14,7 +14,6 @@ import {
 import type {
   IMarket,
   IOrders,
-  IProduct,
   IProductType,
   IProductTypeResponse,
 } from "./marketPlace/interface";
@@ -23,6 +22,7 @@ import {
   CohortAssignment,
   DetailedCohortType,
   DetailedCourseType,
+  EnrolledProgramResponse,
   EnrollmentDataType,
   ProgramResponse,
   Programs,
@@ -30,6 +30,13 @@ import {
 import { DepartmentType } from "./settings/departmentInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import {
+  Appointment,
+  AppointmentBookingsQuery,
+  StaffAvailability,
+  StaffAvailabilityStatusResponse,
+} from "./appointment/interfaces";
+import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -142,18 +149,22 @@ export class ApiCalls {
     return this.fetchFromApi("access/get-access-level", query);
   };
 
-  // // Requisition Management
-  // fetchRequisitions = (query?: QueryType): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/staff-requisition", query);
-  // };
+  // Requisition Management
+  fetchRequisitions = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("requisitions/staff-requisition", query);
+  };
 
-  // fetchRequisitionDetails = (query?: QueryType): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/get-requisition/", query);
-  // };
+  fetchRequisitionDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("requisitions/get-requisition/", query);
+  };
 
-  // fetchMyRequests = (query?: Record<string, string | number>): Promise<unknown> => {
-  //   return this.fetchFromApi("requisitions/my-requisitions", query);
-  // };
+  fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
+    return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
 
   // Program Management
   fetchAllPrograms = (
@@ -177,8 +188,8 @@ export class ApiCalls {
   // Fetch user enrolled programs
   fetchUserEnrolledPrograms = (
     query?: QueryType
-  ): Promise<ApiResponse<Programs[]>> => {
-    return this.fetchFromApi(`program/user-enrollment/${query}`);
+  ): Promise<ApiResponse<EnrolledProgramResponse[]>> => {
+    return this.fetchFromApi("program/user-enrollment", query);
   };
 
   // @Jojo please the name is confusing
@@ -275,10 +286,10 @@ export class ApiCalls {
     return this.fetchFromApi("program/is-assignment-active", query);
   };
 
-    // get active assignment
+  // get active assignment
   fetchCohortAssignments = (
     query?: QueryType
-  ): Promise<ApiResponse<CohortAssignment>> => {
+  ): Promise<ApiResponse<CohortAssignment[]>> => {
     return this.fetchFromApi("program/get-cohort-assigments", query);
   };
 
@@ -338,7 +349,7 @@ export class ApiCalls {
 
   fetchLifeCenterStats = (
     query?: QueryType
-  ): Promise<ApiResponse<LifeCenterStatsType>> => {
+  ): Promise<ApiResponse<LifeCenterStatsType[]>> => {
     return this.fetchFromApi(`lifecenter/stats`, query);
   };
 
@@ -415,6 +426,25 @@ export class ApiCalls {
     return this.fetchFromApi(`orders/get-orders-by-user/`, query);
   };
 
+  // Fetch staff appointment availability
+  fetchStaffAvailability = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailability[]>> => {
+    return this.fetchFromApi("appointment/availability", query);
+  };
+
+  fetchStaffAvailabilityStatus = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
+    return this.fetchFromApi("appointment/availability/status", query);
+  };
+
+  fetchAppointmentBookings = (
+    query?: AppointmentBookingsQuery
+  ): Promise<ApiResponse<Appointment[]>> => {
+    return this.fetchFromApi("appointment/bookings", query);
+  };
+
   // Fetch church attendance records
   fetchSingleChurchAttendance = (
     query?: QueryType
@@ -464,8 +494,26 @@ export class ApiCalls {
     return this.fetchFromApi("bankaccountconfig/get-bank-account-configs", query);
   };
 
+  // fetch tithe breakdown config
+  fetchTitheBreakdownConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("tithebreakdownconfig/get-tithe-breakdown-configs", query);
+  }
+
+  // fetch financials
+  fetchFinancials = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord[]>> => {
+    return this.fetchFromApi("financials/get-financials", query);
+  };
+
+  // fetch single financial
+  fetchFinancial = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
+    return this.fetchFromApi("financials/get-financial", query);
+  };
+
 
 }
-
-
-

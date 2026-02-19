@@ -1,6 +1,6 @@
 import { Field, Form, Formik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { number, object, string } from "yup";
+import { mixed, number, object, string } from "yup";
 import { useMemo } from "react";
 
 import { FormikInputDiv } from "@/components/FormikInputDiv";
@@ -13,8 +13,8 @@ import { ProductGalleryWithForm } from "./ProductGallery";
 interface IProps {
   onSubmit: (product: IProduct) => void;
   loading: boolean;
-  productTypes: { label: string; value: string }[];
-  categories: { label: string; value: string }[];
+  productTypes: { label: string; value: string | number }[];
+  categories: { label: string; value: string | number }[];
   initialData?: IProduct;
 }
 export function ProductForm({
@@ -86,14 +86,15 @@ export function ProductForm({
                 component={FormikInputDiv}
                 label="Price"
                 id="price_amount"
-                placeholder=""
+                placeholder="Enter price"
                 type="number"
+                min="0.01"
               />
 
               <Field
                 name="status"
                 component={FormikSelectField}
-                options={productSatus}
+                options={productStatus}
                 label="Status"
                 id="status"
                 placeholder="Select status"
@@ -121,20 +122,36 @@ const initialValues: IProduct = {
   product_type_id: 0,
   product_category_id: 0,
   price_amount: 0,
-  price_currency: "",
+  price_currency: "GHC",
   id: "",
   ...ProductGalleryWithForm.initialValues,
 };
 
 const validationSchema = object({
-  name: string().required("required"),
-  description: string().required("required"),
-  product_type_id: number().required("required"),
-  product_category_id: number().required("required"),
-  price_amount: number().required("required"),
+  name: string().trim().required("Required"),
+  description: string().trim().required("Required"),
+  product_type_id: mixed()
+    .required("Required")
+    .test(
+      "is-valid-product-type",
+      "Required",
+      (value) => String(value || "").trim() !== "" && Number(value) !== 0
+    ),
+  product_category_id: mixed()
+    .required("Required")
+    .test(
+      "is-valid-product-category",
+      "Required",
+      (value) => String(value || "").trim() !== "" && Number(value) !== 0
+    ),
+  price_amount: number()
+    .typeError("Price must be a number")
+    .moreThan(0, "Price must be greater than 0")
+    .required("Required"),
+  status: string().required("Required"),
 }).concat(ProductGalleryWithForm.validationSchema);
 
-const productSatus = [
+const productStatus = [
   {
     label: "Published",
     value: "published",

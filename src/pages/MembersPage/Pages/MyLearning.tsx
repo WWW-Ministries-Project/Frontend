@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useNavigate } from "react-router-dom";
-import { Banner } from "@/pages/HomePage/pages/Members/Components/Banner";
 import BannerWrapper from "../layouts/BannerWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
@@ -15,14 +14,13 @@ import { EnrolledProgramResponse } from "@/utils";
 const MyLearning: React.FC = () => {
   const { user } = useAuth();
   // api
-  const {data, loading, refetch} = useFetch(api.fetch.fetchUserEnrolledPrograms, user?.id);
+  const { data, loading } = useFetch(api.fetch.fetchUserEnrolledPrograms, {
+    userId: user?.id ?? "",
+  });
 
-  const programsData = useMemo<EnrolledProgramResponse>(() => {
+  const programsData = useMemo<EnrolledProgramResponse[]>(() => {
     return data?.data ?? [];
   }, [data]);
-  console.log("My Prog data", programsData);
-  console.log("user data", user);
-  
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState<"in-progress" | "completed">("in-progress");
@@ -34,7 +32,7 @@ const MyLearning: React.FC = () => {
     { id: 2, name: "Completed", key: "completed", active: filter === "completed" },
   ];
 
-  const filteredPrograms = programs.filter((p) => {
+  const filteredPrograms = programs.filter((p: EnrolledProgramResponse) => {
     if (filter === "completed") return p.completed === true;
     return p.completed === false;
   });
@@ -69,17 +67,23 @@ const MyLearning: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-4 lg:flex-1">
-            {filteredPrograms.length === 0 ? (
-              <div className="rounded-xl border border-gray-300 p-6 bg-white">No programs match the selected state.</div>
+            {loading ? (
+              <div className="rounded-xl border border-lightGray bg-white p-6 text-sm text-primaryGray">
+                Loading your enrolled programs...
+              </div>
+            ) : filteredPrograms.length === 0 ? (
+              <div className="rounded-xl border border-lightGray bg-white p-6 text-primaryGray">
+                No programs match the selected state.
+              </div>
             ) : (
-              filteredPrograms.map((program) => (
+              filteredPrograms.map((program: EnrolledProgramResponse) => (
                 <div
                   key={program.id}
-                  className="flex items-center border border-gray-300 rounded-xl justify-between p-4 w-full bg-white"
+                  className="flex items-center justify-between rounded-xl border border-lightGray bg-white p-4 w-full"
                 >
                   <div>
-                    <h3 className="font-medium text-lg mb-2">{program.program.title}</h3>
-                    <div className="text-sm text-gray-600">
+                    <h3 className="mb-2 text-lg font-medium text-primary">{program.program.title}</h3>
+                    <div className="text-sm text-primaryGray">
                       <div><span className="font-medium">Instructor:</span> {program.instructor.name}</div>
                       <div><span className="font-medium">Cohort:</span> {program.cohort.name}</div>
                       <div><span className="font-medium">Schedule:</span> {program.course.schedule}</div>

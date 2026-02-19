@@ -16,6 +16,7 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { useStore } from "@/store/useStore";
 import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
+import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const EventsManagement = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [filterDate, setFilterDate] = useState<Date>(currentDate);
   const [filterEvents, setFilterEvents] = useState<string>("");
-  const [showOptions, setShowOptions] = useState<string | null>(null);
+  const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [tableView, setTableView] = useState<boolean>(() => {
     try {
       return JSON.parse(localStorage.getItem("tableView") || "false");
@@ -129,7 +130,7 @@ const EventsManagement = () => {
   const handleResetFilters = useCallback(async () => {
     // reset UI state
     setFilterEvents("");
-    setFilterDate('');
+    setFilterDate(currentDate);
     setGroupMode("date");
     setOpenAccordions({});
     setShowUpcoming(false);
@@ -169,7 +170,7 @@ const EventsManagement = () => {
   }, []);
 
   // Show options handler
-  const handleShowOptions = useCallback((eventId: string) => {
+  const handleShowOptions = useCallback((eventId: string | number) => {
     setShowOptions((prevId) => (prevId === eventId ? null : eventId));
   }, []);
 
@@ -203,8 +204,14 @@ const EventsManagement = () => {
 
   // Delete modal handler
   const handleDeleteModal = useCallback(
-    (event: eventType) => {
-      showDeleteDialog(event, handleDelete);
+    (event: CalendarEvent) => {
+      showDeleteDialog(
+        {
+          id: event.id,
+          name: event.name ?? event.event_name ?? "Event",
+        },
+        handleDelete
+      );
     },
     [handleDelete]
   );
@@ -295,7 +302,7 @@ const EventsManagement = () => {
   };
 
   return (
-    <PageOutline className="p-6">
+    <PageOutline>
       <HeaderControls
         title={`Events (${filteredEvents.length})`}
         tableView={tableView}

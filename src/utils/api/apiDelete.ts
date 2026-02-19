@@ -126,6 +126,28 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("product/delete-product", query);
   };
 
+  deleteStaffAvailability = (query: QueryType): Promise<ApiResponse<void>> => {
+    const availabilityId = query?.id;
+
+    if (!availabilityId) {
+      throw new Error("Availability id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(
+      `appointment/availability/${availabilityId}`
+    );
+  };
+
+  deleteAppointmentBooking = (query: QueryType): Promise<ApiResponse<void>> => {
+    const bookingId = query?.id;
+
+    if (!bookingId) {
+      throw new Error("Booking id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(`appointment/bookings/${bookingId}`);
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType
@@ -160,6 +182,18 @@ export class ApiDeletionCalls {
   ): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("bankaccountconfig/delete-bank-account-config", query);
   };
+
+  // delete tithe breakdown config
+  deleteTitheBreakdownConfig = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("tithebreakdownconfig/delete-tithe-breakdown-config", query);
+  };
+
+  // delete financial
+  deleteFinancial = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("financials/delete-financial", query);
+  };
 }
-
-

@@ -5,89 +5,90 @@ import { TopicAssessment } from "@/pages/HomePage/pages/MinistrySchool/Component
 import { useUserStore } from "@/store/userStore";
 import { api, relativePath } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import BannerWrapper from "../layouts/BannerWrapper";
 
 const MyClass = () => {
   const userData = useUserStore((state) => state);
-  const user_id = userData.id;
   const navigate = useNavigate();
+  const user_id = userData.id;
 
-  const { data: studentData, refetch, loading } = useFetch(
-    api.fetch.fetchEnrollmentsByUserId,
-    { user_id }
-  );
+  const { data: enrollmentData, loading } = useFetch(api.fetch.fetchEnrollmentsByUserId, {
+    user_id,
+  });
 
-  const topics = studentData?.data?.course?.cohort?.program?.topics;
+  const enrollment = enrollmentData?.data;
+  const program = enrollment?.course?.cohort?.program;
+  const cohort = enrollment?.course?.cohort;
+  const course = enrollment?.course;
+  const instructor = enrollment?.course?.facilitator?.name;
+  const topics = program?.topics ?? [];
 
-  const hasData = !!studentData?.data?.id;
+  const hasEnrollment = Boolean(enrollment?.id);
+
+  const goToProgram = () => {
+    if (!program?.id) return;
+    const path = relativePath.member.schoolOfMinistries.programDetails.replace(
+      ":programId",
+      String(program.id)
+    );
+    navigate(path);
+  };
 
   return (
     <div>
-      <div className="w-screen bg-primary h-[10rem] text-white relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
-        <div className="h-full flex items-center py-4 px-[1rem] lg:px-[4rem] xl:px-[8rem]">
-          <div className="space-y-4">
-            {studentData?.data?.course&&<div className="font-bold text-2xl">
-              {studentData?.data?.course?.cohort?.program?.title} -{" "}
-              {studentData?.data?.course?.cohort?.name}
-            </div>}
-            <div>
-              {studentData?.data?.course?.cohort?.program?.description}
+      <BannerWrapper>
+        <div className="w-full space-y-3">
+          <h1 className="text-2xl font-bold">{program?.title ?? "My Class"}</h1>
+          <p>{program?.description ?? "Track your class progress and assessments."}</p>
+          {course?.name && (
+            <div className="flex flex-wrap gap-4 text-sm">
+              <span>{course.name}</span>
+              {cohort?.name && <span>{cohort.name}</span>}
+              {instructor && <span>{instructor}</span>}
             </div>
-            <div className="flex gap-4">
-              <div>{studentData?.data?.course?.name}</div>
-              <div>{studentData?.data?.course?.facilitator?.name}</div>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
+      </BannerWrapper>
 
-      <section className="p-4">
-        My learning
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center border border-gray-300 rounded-md justify-between p-4">
-            <div >
-              <h3 className="font-medium  mb-2">Program Progress</h3>
-            <div className="flex gap-4 text-sm">
-              <div>
-                <p><span className="font-medium">Cohort</span>: <span> First Cohort</span></p>
-              </div>
-              <div>
-                <p><span className="font-medium">Class</span>: <span> First Cohort</span></p>
-              </div>
-              <div>
-                <p><span className="font-medium">Instructor</span>: <span> First Cohort</span></p>
-              </div>
-
-            </div>
-            
-            </div>
-            <div>
-              <Button variant="secondary" value="View program" onClick={()=>navigate("1")} />
-            </div>
-          </div>
-          <div>
-            
-          </div>
-        </div>
+      <section className="p-4 md:p-6">
         {loading ? (
-          <div className="text-center text-gray-500">Loading...</div>
-        ) : hasData ? (
-          <TopicAssessment 
-            topics={topics || []} 
-            enrollmentId={studentData.data.id}
-            editMode={false}
-            loading={false}
-            onCancel={() => {}}
-            onUpdate={(data) => {}}
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <div className="rounded-xl border border-lightGray bg-white p-6 text-center text-primaryGray">
+            Loading class information...
+          </div>
+        ) : hasEnrollment ? (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-lightGray bg-white p-4">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-primary">Program Progress</h2>
+                <div className="text-sm text-primaryGray">
+                  <p>
+                    <span className="font-medium">Cohort:</span> {cohort?.name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Class:</span> {course?.name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Instructor:</span> {instructor || "Not assigned"}
+                  </p>
+                </div>
+              </div>
+              <Button variant="secondary" value="View Program" onClick={goToProgram} />
+            </div>
 
-           <EmptyState/>
-            <p className="text-lg font-medium">No classes found</p>
-            <p className=" text-gray-400">
-              You are not enrolled in any program yet.
-            </p>
+            <TopicAssessment
+              topics={topics}
+              enrollmentId={enrollment.id}
+              editMode={false}
+              loading={false}
+              onCancel={() => {}}
+              onUpdate={() => {}}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-lightGray bg-white py-12 text-primaryGray">
+            <EmptyState />
+            <p className="text-lg font-medium text-primary">No Class Found</p>
+            <p>You are not currently enrolled in any School of Ministry class.</p>
           </div>
         )}
       </section>

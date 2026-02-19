@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 interface IPageHeader {
   title?: string;
   buttonValue?: string;
-  onClick?: (e: HTMLButtonElement) => void;
+  onClick?: (e?: unknown) => void;
   children?: ReactNode;
   
   className?: string;
@@ -15,20 +15,18 @@ const PageHeader: React.FC<IPageHeader> = ({
   buttonValue,
   onClick,
   children,
-  className = 'text-2xl font-semibold',
+  className = "text-xl font-semibold text-primary md:text-2xl",
 }) => {
   return (
-    <div className="flex items-center justify-between my-3">
-      <div className="">
-      <h3 className={className}>{title}</h3>
+    <div className="my-3 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h3 className={className}>{title}</h3>
       </div>
       {buttonValue && (
         <Button
           value={buttonValue}
-          variant="primary"
           onClick={onClick}
         />
-        
       )}
       {children && <div>{children}</div>}
     </div>

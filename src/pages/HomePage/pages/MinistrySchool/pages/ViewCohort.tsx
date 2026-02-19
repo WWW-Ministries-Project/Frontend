@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ClassCard, ClassItemType } from "../Components/ClassCard";
 import { ClassForm, IClassForm } from "../Components/ClassForm";
-import { useViewPage } from "../customHooks/ViewPageContext";
+import { useViewPage } from "../customHooks/useViewPage";
 
 export const ViewCohort = () => {
   const { id: cohortId } = useParams();
@@ -130,7 +130,11 @@ export const ViewCohort = () => {
               {cohortData?.courses.map((classItem) => (
                 <div key={classItem.id + classItem.name}>
                   <ClassCard
-                    classItem={classItem}
+                    classItem={{
+                      ...classItem,
+                      instructor:
+                        classItem.facilitator || { id: 0, name: "Unassigned" },
+                    }}
                     onEdit={handleEdit}
                     onDelete={() => deleteClass(classItem)}
                   />

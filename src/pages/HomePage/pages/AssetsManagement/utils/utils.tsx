@@ -1,11 +1,11 @@
 import { ProfilePicture } from "@/components";
-import { navigateRef } from "@/pages/HomePage/HomePage";
+import { navigateRef } from "@/pages/HomePage/navigationRef";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { assetType } from "./assetsInterface";
 import deleteIcon from "/src/assets/delete.svg";
 import edit from "/src/assets/edit.svg";
-import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 
 export const handleAction = (path: string, mode = "edit") => {
   if (navigateRef.current) navigateRef.current(path, { state: { mode } });
@@ -85,7 +85,15 @@ export const assetsColumns: ColumnDef<assetType>[] = [
           src={deleteIcon}
           alt="delete icon"
           className="cursor-pointer"
-          onClick={() => {showDeleteDialog(row.original, ()=>{alert("yet to be completed use grid mode")})}}
+          onClick={() => {
+            showDeleteDialog(row.original, () => {
+              showNotification(
+                "Delete action is not fully implemented for grid mode yet.",
+                "error",
+                "Action unavailable"
+              );
+            });
+          }}
         />
       </div>
     ),

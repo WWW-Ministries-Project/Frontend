@@ -4,6 +4,13 @@ import { IVisitorForm } from "../Components/VisitorForm";
 export const mapVisitorToForm = (
   visitor: VisitorType
 ): IVisitorForm & { id: string } => {
+  const visitDate =
+    typeof visitor.visitDate === "string"
+      ? visitor.visitDate
+      : visitor.visitDate
+      ? new Date(visitor.visitDate).toISOString()
+      : undefined;
+
   return {
     id: visitor.id,
     personal_info: {
@@ -21,7 +28,7 @@ export const mapVisitorToForm = (
       address: visitor.address,
     },
     visit: {
-      date: formatInputDate(visitor.visitDate) || "",
+      date: formatInputDate(visitDate) || "",
       howHeard: visitor.howHeard,
       eventId: String(visitor.eventId)
     },

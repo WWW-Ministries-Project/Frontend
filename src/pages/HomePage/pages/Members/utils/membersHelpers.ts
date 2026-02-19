@@ -11,6 +11,62 @@ export const titleOptions = [
   { name: "Pastor", value: "Pastor" },
 ];
 
+type DepartmentPositionInput = {
+  department_id?: number | string | null;
+  department?: { id?: number | string | null };
+  position_id?: number | string | null;
+  position?: { id?: number | string | null };
+};
+
+const isDepartmentPositionInput = (
+  value: unknown
+): value is DepartmentPositionInput =>
+  typeof value === "object" && value !== null;
+
+const mapDepartmentPositions = (
+  input: IMemberInfo
+): IMembersForm["department_positions"] => {
+  const fromArray = Array.isArray(input.department_positions)
+    ? input.department_positions
+        .map((item) => {
+          if (!isDepartmentPositionInput(item)) return null;
+
+          const departmentId = item.department_id ?? item.department?.id;
+          const positionId = item.position_id ?? item.position?.id;
+
+          if (departmentId === undefined || departmentId === null) return null;
+          if (positionId === undefined || positionId === null) return null;
+
+          return {
+            department_id: String(departmentId),
+            position_id: String(positionId),
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is { department_id: string; position_id: string } =>
+            item !== null
+        )
+    : [];
+
+  if (fromArray.length > 0) {
+    return fromArray;
+  }
+
+  if (input.department_id !== undefined && input.department_id !== null) {
+    if (input.position_id !== undefined && input.position_id !== null) {
+      return [
+        {
+          department_id: String(input.department_id),
+          position_id: String(input.position_id),
+        },
+      ];
+    }
+  }
+
+  return input.is_user ? [{ department_id: "", position_id: "" }] : [];
+};
 
 export const mapUserData = (input: IMemberInfo): IMembersForm => {
   const formatDate = (date: string) => (date ? date.split("T")[0] : "");
@@ -56,10 +112,9 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
     is_user: input.is_user,
     church_info: {
       membership_type: input.membership_type,
-      department_id: input.department_id ?? undefined,
-      position_id: input.position_id ?? undefined,
       member_since: formatDate(input.member_since),
     },
+    department_positions: mapDepartmentPositions(input),
     family: (input.family as IPersonalDetails[]) || [],
   };
 };

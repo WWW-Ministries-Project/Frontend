@@ -18,9 +18,8 @@ export const Actions = ({
   goBack,
 }: IProps) => {
   return (
-    <div className="col-span-2 flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
-      {/* Left: Step navigation */}
-      <div className="flex gap-4">
+    <div className="col-span-full mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-lightGray pt-4">
+      <div className="flex items-center gap-3">
         {goBack && (
           <Button
             value="Back"
@@ -29,12 +28,9 @@ export const Actions = ({
             disabled={loading}
           />
         )}
-
-        
       </div>
 
-      {/* Right: Global actions */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <Button
           value="Cancel"
           variant="secondary"

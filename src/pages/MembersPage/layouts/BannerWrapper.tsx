@@ -62,15 +62,8 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
       </div>
       
       {/* Content container */}
-      <div 
-        className={`
-          relative z-10 h-full flex flex-col items-center mx-auto 
-          transition-all duration-300 ease-in-out
-          ${isSticky 
-            ? 'py-6 px-4 lg:px-16 xl:px-32 3xl:px-64' 
-            : 'py-6 px-4 lg:px-16 xl:px-32 3xl:px-64'
-          }
-        `}
+      <div
+        className="app-layout-container relative z-10 h-full flex flex-col items-center py-6 transition-all duration-300 ease-in-out"
       >
         <div className="w-full mb-4 flex justify-start">
           <button

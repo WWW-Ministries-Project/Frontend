@@ -113,7 +113,7 @@ export const SideBar = ({ className }: IProps) => {
       className={`flex flex-col transition-all duration-300 ${
         isExpanded ? "w-64" : "w-16"
       } ${className || ""}`}
-      style={{ height: "calc(100vh - var(--app-header-height))" }}
+      style={{ height: "calc(100dvh - var(--app-header-height))" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       aria-label="Main navigation sidebar"

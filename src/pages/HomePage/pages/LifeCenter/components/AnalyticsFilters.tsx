@@ -16,15 +16,21 @@ export const AnalyticsFilters = ({
   setSelectedMonth,
   selectedWeek,
   setSelectedWeek,
-}: IProps) => (
-  <div className="border p-4 rounded-xl sticky top-10 bg-white w-full">
-    <div>Filter</div>
-    <div className="flex gap-x-8">
-      <div>
-        Year
-        <div>
+}: IProps) => {
+  const weeks = getWeekOptions(selectedMonth, selectedYear);
+  const weekDisabled = selectedMonth === "all";
+
+  return (
+    <div className="rounded-xl border bg-white p-4">
+      <div className="mb-3 text-sm font-semibold text-gray-700">Filters</div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="space-y-1">
+          <label htmlFor="analytics-year" className="text-sm text-gray-600">
+            Year
+          </label>
           <select
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+            id="analytics-year"
+            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-primary"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
@@ -35,14 +41,19 @@ export const AnalyticsFilters = ({
             ))}
           </select>
         </div>
-      </div>
-      <div>
-        Month
-        <div>
+        <div className="space-y-1">
+          <label htmlFor="analytics-month" className="text-sm text-gray-600">
+            Month
+          </label>
           <select
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+            id="analytics-month"
+            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-primary"
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
+            onChange={(e) => {
+              const month = e.target.value;
+              setSelectedMonth(month);
+              setSelectedWeek("all");
+            }}
           >
             {getMonthOptions().map((month) => (
               <option key={month.value} value={month.value}>
@@ -51,16 +62,18 @@ export const AnalyticsFilters = ({
             ))}
           </select>
         </div>
-      </div>
-      <div>
-        Week
-        <div>
+        <div className="space-y-1">
+          <label htmlFor="analytics-week" className="text-sm text-gray-600">
+            Week
+          </label>
           <select
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+            id="analytics-week"
+            className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary focus:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100"
             value={selectedWeek}
             onChange={(e) => setSelectedWeek(e.target.value)}
+            disabled={weekDisabled}
           >
-            {getWeekOptions(selectedMonth, selectedYear).map((week) => (
+            {weeks.map((week) => (
               <option key={week.value} value={week.value}>
                 {week.label}
               </option>
@@ -69,5 +82,5 @@ export const AnalyticsFilters = ({
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};

@@ -1,8 +1,6 @@
 import { Button } from "@/components";
-import { Modal } from "@/components/Modal";
 import { Actions } from "@/components/ui/form/Actions";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { DivideIcon } from "@heroicons/react/24/outline";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 // import { CertificateTemplate } from "./CertificateTemplate";
@@ -16,7 +14,7 @@ export const TopicAssessment = ({
   toggleEditMode,
   onUpdate,
   loading,
-  studentData
+  studentData: _studentData
 }: {
   topics: Topic[];
   editMode: boolean;
@@ -35,28 +33,11 @@ export const TopicAssessment = ({
   }) => void;
   studentData?: EnrollmentDataType | null;
 }) => {
-  const [certificateData, setCertificateData] = useState({
-    recipientName: studentData?.user?.name || "-",
-    achievement: studentData?.course?.cohort?.program?.title || "-",
-    description: "",
-    date: new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
-    issuer: "Worldwide Word Ministries",
-    signatory: "Prof. John Anokye",
-    signatoryTitle: "Prelate of the Worldwide Word Ministries",
-  });
-  
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>([]);
 
   useEffect(() => {
     setUpdatedTopics(topics ?? []);
   }, [topics]);
-
-  const [showCertificate, setShowCertificate] = useState(false);
-  const [generatingCertificate, setGeneratingCertificate] = useState(false);
 
   const averageScore = updatedTopics.length
     ? updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
@@ -69,7 +50,7 @@ export const TopicAssessment = ({
     : 0;
 
   const handleStatusChange = (
-    id: number,
+    id: number | string,
     newStatus: "PASS" | "FAIL" | "PENDING"
   ) => {
     setUpdatedTopics((prevTopics) =>
@@ -79,47 +60,30 @@ export const TopicAssessment = ({
     );
   };
 
-  // const handleScoreChange = (id: number, newScore: number | undefined) => {
-  //   setUpdatedTopics((prevTopics) =>
-  //     prevTopics.map((topic) =>
-  //       topic.id === id ? { ...topic, score: newScore } : topic
-  //     )
-  //   );
-  // };
+  const handleScoreChange = (
+    id: number | string,
+    newScore: number | undefined
+  ) => {
+    setUpdatedTopics((prevTopics) =>
+      prevTopics.map((topic) =>
+        topic.id === id ? { ...topic, score: newScore ?? null } : topic
+      )
+    );
+  };
 
   // Function to update the topics
   const updateTopics = async () => {
     const progressUpdates = updatedTopics.map((topic) => ({
-      topicId: topic.id,
+      topicId: Number(topic.id),
       enrollmentId: enrollmentId,
-      score: topic.score,
-      status: topic.status,
-      notes: topic.notes,
+      score: topic.score === null ? undefined : topic.score,
+      status: topic.status ?? "PENDING",
+      notes: topic.notes ?? undefined,
     }));
 
     // Prepare the payload
     const payload = { progressUpdates };
     onUpdate(payload);
-  };
-
-  // Enable certificate generation if all topics are passed and there is at least one topic
-  const isGenerateEnabled = updatedTopics.length > 0 && updatedTopics.every(topic => topic.status === "PASS");
-
-  // Certificate generation with loading state
-  const handleGenerateCertificate = async () => {
-    if (isGenerateEnabled && !generatingCertificate) {
-      setGeneratingCertificate(true);
-      
-      // Simulate 2 seconds loading time
-      setTimeout(() => {
-        setGeneratingCertificate(false);
-        setShowCertificate(true);
-      }, 2000);
-    }
-  };
-
-  const handleCloseCertificate = () => {
-    setShowCertificate(false);
   };
 
   const columns: ColumnDef<Topic>[] = [
@@ -134,15 +98,13 @@ export const TopicAssessment = ({
         return (
           <>
             {editMode ? (
-              <input
-                type="number"
-                className="px-4 py-2 border border-lightGray rounded-lg"
-                value={
-                  row.original.score !== undefined ? row.original.score : ""
-                }
-                onChange={(e) =>
-                  handleScoreChange(row.original.id, Number(e.target.value))
-                }
+                <input
+                  type="number"
+                  className="px-4 py-2 border border-lightGray rounded-lg"
+                  value={row.original.score ?? ""}
+                  onChange={(e) =>
+                    handleScoreChange(row.original.id, Number(e.target.value))
+                  }
               />
             ) : (
               row.original.score || 0
@@ -173,7 +135,9 @@ export const TopicAssessment = ({
                 <option value="FAIL">Fail</option>
               </select>
             ) : (
-              <p className="capitalize">{row.original.status.toLowerCase()}</p>
+              <p className="capitalize">
+                {(row.original.status ?? "PENDING").toLowerCase()}
+              </p>
             )}
           </>
         );
@@ -190,7 +154,7 @@ export const TopicAssessment = ({
                 type="text"
                 className="px-4 py-2 border border-lightGray rounded-lg w-full"
                 placeholder="Enter notes"
-                value={row.original.notes!}
+                value={row.original.notes ?? ""}
                 onChange={(e) => {
                   setUpdatedTopics((prevTopics) =>
                     prevTopics.map((t) =>
@@ -266,16 +230,15 @@ export const TopicAssessment = ({
       </div>
 
       {/* Certificate Modal */}
-      
     </div>
   );
 };
 
 interface Topic {
-  id: number;
+  id: number | string;
   name: string;
-  score: number | null;
-  status: "PASS" | "FAIL" | "PENDING";
+  score?: number | null;
+  status?: "PASS" | "FAIL" | "PENDING";
   notes?: string | null;
   completedAt?: string | null;
   progressId?: number;

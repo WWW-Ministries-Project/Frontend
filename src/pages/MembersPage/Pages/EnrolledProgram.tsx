@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import BannerWrapper from "../layouts/BannerWrapper";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
-import { api, ProgramTopic, Topic } from "@/utils";
+import { api, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
 import { Modal } from "@/components/Modal";
-import { CheckCircleIcon, TrophyIcon } from "@heroicons/react/24/solid";
+import { TrophyIcon } from "@heroicons/react/24/solid";
 import CertificateModal from "@/pages/HomePage/pages/MinistrySchool/Components/CertificateModal";
+import { ApiResponse, QueryType } from "@/utils/interfaces";
 
 
 type NavItem = { 
@@ -17,7 +18,14 @@ type NavItem = {
   name: string; 
   active: boolean; 
   completed?: boolean;
-  type?: string | null;
+  type?: string;
+};
+
+type ProgramCompletionStatus = {
+  title?: string;
+  description?: string;
+  completed?: boolean;
+  topics?: Topic[];
 };
 
 /**
@@ -26,23 +34,24 @@ type NavItem = {
  */
 const EnrolledProgram: React.FC = () => {
   const { programId } = useParams<{ programId: string }>();
-  
-  const navigate = useNavigate();
-  const id = Number(programId);
   const { user } = useAuth();
+  const userId = user?.id ?? "";
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [navItems, setNavItems] = useState<NavItem[]>([]);
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | number | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [viewCertificate, setViewCertificate] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
-  const { data, loading, refetch } = useFetch(
-  api.fetch.fetchMyProgram,
-     { programId, userId: user!.id }
-    
-);
+  const { data, refetch } = useFetch<ApiResponse<ProgramCompletionStatus>>(
+    api.fetch.fetchMyProgram as (
+      query?: QueryType
+    ) => Promise<ApiResponse<ProgramCompletionStatus>>,
+    { programId: programId ?? "", userId }
+  );
 
 
  useEffect(() => {
@@ -65,7 +74,7 @@ const EnrolledProgram: React.FC = () => {
       name: t.name,
       active: t.id === firstIncompleteTopic.id,
       completed: t.completed || false,
-      type: t.learningUnit?.type ?? null,
+      type: t.learningUnit?.type ?? undefined,
     }));
 
     setNavItems(items);
@@ -94,11 +103,11 @@ useEffect(() => {
     setNavItems((items) =>
       items.map((i) => ({ ...i, active: i.id === navId }))
     );
-    setSelectedTopicId(Number(navId));
+    setSelectedTopicId(navId);
   };
 
   const selectedTopic =
-    topics.find((t) => t.id === selectedTopicId) ?? null;
+    topics.find((t) => String(t.id) === String(selectedTopicId)) ?? null;
 
     
 
@@ -129,7 +138,7 @@ useEffect(() => {
                 {data?.data?.description}
               </p>
             </div>
-            {data?.data.completed&&<div>
+            {data?.data?.completed&&<div>
               <Button
                 value="View Certificate"
                 variant="primary"
@@ -169,24 +178,26 @@ useEffect(() => {
                 {selectedTopic ? (
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <h2 className="text-xl font-semibold text-gray-900">
+                      <h2 className="text-xl font-semibold text-primary">
                         {selectedTopic.name}
                       </h2>
                       <div
-                        className="prose max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: selectedTopic.description }}
+                        className="prose max-w-none text-primaryGray"
+                        dangerouslySetInnerHTML={{
+                          __html: String(selectedTopic.description ?? ""),
+                        }}
                       />
                     </div>
 
                     <LearningUnit 
                     unit={selectedTopic.learningUnit ?? undefined} 
                     topicId={selectedTopic.id} 
-                    userId ={user!.id} 
+                    userId={userId}
                     programId= {programId}
 
                     topicCompleted={selectedTopic.completed}
                     topicStatus={selectedTopic.status}
-                    topicScore={selectedTopic.score}
+                    topicScore={selectedTopic.score ?? undefined}
                     topicCompletedAt={selectedTopic.completedAt}
                     activation={selectedTopic.activation}
 
@@ -197,7 +208,7 @@ useEffect(() => {
                   <div className="flex items-center justify-center h-[300px]">
                     <div className="text-center space-y-2">
                       <svg
-                        className="w-12 h-12 text-gray-400 mx-auto"
+                        className="mx-auto h-12 w-12 text-primaryGray"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -243,9 +254,9 @@ useEffect(() => {
         <CertificateModal
           open={viewCertificate}
           recipientName={user.name}
-          program={data?.data?.title!}
+          program={data?.data?.title ?? ""}
           description={`For the success completion of ${
-      data?.data?.title! ? `${data?.data?.title!} program` : "the program"
+      data?.data?.title ? `${data?.data?.title} program` : "the program"
     }. `}
           onClose={()=>setViewCertificate(false)}
         />
@@ -261,14 +272,14 @@ useEffect(() => {
             <TrophyIcon className="h-16 w-16 text-yellow-500" />
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Congratulations 🎉
-            </h2>
-            <p className="text-sm text-gray-600">
-              You have successfully completed the program.
-              We’re proud of your dedication and commitment.
-            </p>
+	          <div className="space-y-2">
+	            <h2 className="text-2xl font-bold text-primary">
+	              Congratulations 🎉
+	            </h2>
+	            <p className="text-sm text-primaryGray">
+	              You have successfully completed the program.
+	              We’re proud of your dedication and commitment.
+	            </p>
           </div>
 
           <div className="flex justify-center gap-3">

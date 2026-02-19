@@ -36,11 +36,39 @@ export const showDeleteDialog = <T extends DialogValue>(
 export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
-  handleClose = () => {},
-  title?: string
+  optionsOrOnClose?:
+    | {
+        title?: string;
+        onClose?: () => void;
+        durationMs?: number;
+      }
+    | (() => void)
+    | string,
+  legacyTitle?: string
 ) => {
+  let title: string | undefined = legacyTitle;
+  let onClose: (() => void) | undefined;
+  let durationMs: number | undefined;
+
+  if (typeof optionsOrOnClose === "function") {
+    onClose = optionsOrOnClose;
+  } else if (typeof optionsOrOnClose === "string") {
+    title = optionsOrOnClose;
+  } else if (optionsOrOnClose) {
+    title = optionsOrOnClose.title ?? title;
+    onClose = optionsOrOnClose.onClose;
+    durationMs = optionsOrOnClose.durationMs;
+  }
+
   const notification = useNotificationStore.getState().setNotification;
-  notification({ message, show: true, onClose: handleClose, type, title });
+  notification({
+    message,
+    show: true,
+    onClose,
+    type,
+    title,
+    durationMs,
+  });
 };
 
 export const showLoader = (val: boolean) => {
@@ -56,7 +84,7 @@ export function isValidURL(url: string): boolean {
   try {
     new URL(url);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -88,8 +116,8 @@ export async function handleDownload(imageSrc: string) {
 
     // Revoke the object URL to free memory
     URL.revokeObjectURL(imageURL);
-  } catch (error) {
-    console.error("Error downloading the image:", error);
+  } catch {
+    showNotification("Unable to download file.", "error");
   }
 }
 
@@ -115,5 +143,11 @@ export const encodeQuery = (query: string | number) => {
 };
 
 export const decodeQuery = (query: string) => {
-  return atob(decodeURIComponent(query));
+  if (!query) return "";
+
+  try {
+    return atob(decodeURIComponent(query));
+  } catch {
+    return query;
+  }
 };

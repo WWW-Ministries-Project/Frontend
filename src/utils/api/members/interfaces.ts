@@ -36,7 +36,7 @@ export type MembersType = {
   department_id: number | null;
   department_name: string;
   membership_type: string;
-  status: string;
+  status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER" | null;
   // department: any | null;
   // position: any | null;
   // access: any | null;
@@ -82,7 +82,7 @@ export interface IMemberInfo {
     id: number;
     name: string;
   };
-  status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER";
+  status: "CONFIRMED" | "UNCONFIRMED" | "MEMBER" | null;
   position_id?: number;
   position: {
     id: number;
@@ -101,7 +101,15 @@ export interface IMemberInfo {
     country_code?: string;
   };
   family: unknown[];
-  department_positions: string[]
+  department_positions: Array<
+    | string
+    | {
+        department_id?: number | string | null;
+        department_name?: string | null;
+        position_id?: number | string | null;
+        position_name?: string | null;
+      }
+  >;
   photo: string;
   country: string;
 }

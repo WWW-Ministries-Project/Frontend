@@ -2,8 +2,8 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { image } from "@/pages/HomePage/Components/MultiImageComponent";
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
@@ -30,9 +30,24 @@ export const useAddRequisition = () => {
   const { id: requestId } = useParams();
 
   const requisitionId = requestId ? window.atob(String(requestId)) : "";
+  type RequisitionMutationResponse = ApiResponse<{
+    data: IRequisitionDetails;
+    message: string;
+  }>;
+
+  const submitRequisition = (payload: Record<string, unknown>) =>
+    requisitionId
+      ? api.put.updateRequisition<{ data: IRequisitionDetails; message: string }>(
+          payload
+        )
+      : api.post.createRequisition<{ data: IRequisitionDetails; message: string }>(
+          payload
+        );
+
   const { postData, loading, error, data } = usePost<
-    ApiResponse<{ data: IRequisitionDetails; message: string }>
-  >(requisitionId ? api.put.updateRequisition : api.post.createRequisition);
+    RequisitionMutationResponse,
+    Record<string, unknown>
+  >(submitRequisition);
   const {
     user: { id },
   } = useAuth();
@@ -46,7 +61,6 @@ export const useAddRequisition = () => {
   }>({ signature: null, isImage: false });
 
   const navigate = useNavigate();
-  const { setNotification } = useNotificationStore();
   const [currencies, setCurrencies] = useState<
     { name: string; value: string }[]
   >([]);
@@ -67,15 +81,9 @@ export const useAddRequisition = () => {
 
   const handleOpenNotification = useCallback(
     (message: string, type: "error" | "success") => {
-      setNotification({
-        message: message,
-        show: true,
-        type: type,
-        title: requisitionId ? "Update requisition" : "Create requisition",
-        onClose: () => {},
-      });
+      showNotification(message, type, requisitionId ? "Update requisition" : "Create requisition");
     },
-    [setNotification]
+    [requisitionId]
   );
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import {
   formatTime,
   DAYS_OF_WEEK,
   MONTHS,
+  CalendarEvent,
 } from '../utils/CalendaHelpers'
 
 const addTwoHours = (startTime: string): string => {
@@ -19,21 +20,13 @@ const addTwoHours = (startTime: string): string => {
     .padStart(2, '0')}`;
 };
 
-export interface EventData {
-  id: string
-  event_name: string
-  start_time: string
-  end_time: string
-  description?: string
-}
-
 export interface DayViewProps {
   /** Date to display */
   currentDate: Date
   /** Map of ISO date string (YYYY-MM-DD) to events on that day */
-  eventsByDate: Record<string, EventData[]>
+  eventsByDate: Record<string, CalendarEvent[]>
   /** Click handler for an event */
-  onEventClick: (e: React.MouseEvent, event: EventData) => void
+  onEventClick: (e: React.MouseEvent<Element>, event: CalendarEvent) => void
   /** ISO date string for today (YYYY-MM-DD) to highlight header */
   todayString: string
   /** Height of each hourly slot in pixels */
@@ -69,11 +62,13 @@ const DayView: React.FC<DayViewProps> = ({
       .map(e => {
         const endTime = e.end_time || addTwoHours(e.start_time);
 
-        return {
-          ...e,
-          end_time: endTime,
-          ...calculateEventPosition(e.start_time, endTime, slotHeight),
-        };
+          return {
+            ...e,
+            end_time: endTime,
+            start_date: e.start_date || isoDate,
+            end_date: e.end_date || isoDate,
+            ...calculateEventPosition(e.start_time, endTime, slotHeight),
+          };
       });
 
     return resolveEventOverlaps(valid);
