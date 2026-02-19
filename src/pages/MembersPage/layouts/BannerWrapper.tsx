@@ -9,8 +9,8 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
   const fullBleedClass = "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]";
 
   return ( 
-    <div className={fullBleedClass}>
-      <div className={isAdmin ? "" : "sticky top-0 z-30"}>
+    <div className={isAdmin ? "" : "sticky top-20 z-30"}>
+      <div className={fullBleedClass}>
         <div className="relative bg-primary text-white overflow-hidden">
           {/* Decorative Background Pattern */}
           <div className="absolute inset-0 opacity-10">
