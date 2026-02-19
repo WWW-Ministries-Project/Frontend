@@ -156,7 +156,10 @@ export const VisitorToMembership = () => {
       ) : null}
 
       {interestedVisitors.length === 0 ? (
-        <EmptyState msg="No visitors currently interested in membership" />
+        <EmptyState
+          scope="page"
+          msg="No visitors currently interested in membership"
+        />
       ) : (
         <section className="rounded-xl border border-lightGray overflow-hidden">
           <div className="p-4 border-b border-lightGray">

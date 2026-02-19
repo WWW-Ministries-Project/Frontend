@@ -139,7 +139,9 @@ export function LifeCenter() {
           />
         )}
       />
-      {lifeCenters.length === 0 && <EmptyState msg={"No life centers found"} />}
+      {lifeCenters.length === 0 && (
+        <EmptyState scope="page" msg={"No life centers found"} />
+      )}
       <Modal open={openModal} onClose={closeModal}>
         <LifeCenterForm
           closeModal={closeModal}

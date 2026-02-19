@@ -272,7 +272,9 @@ export const Orders = ({
           className="relative"
         />
       )}
-      {allOrders?.length === 0 && <EmptyState msg="No Orders found" />}
+      {allOrders?.length === 0 && (
+        <EmptyState scope="section" msg="No Orders found" />
+      )}
     </>
   );
 };

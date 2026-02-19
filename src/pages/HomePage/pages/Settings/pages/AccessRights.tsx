@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import EmptyState from "@/components/EmptyState";
 import { SearchBar } from "@/components/SearchBar";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -56,15 +57,23 @@ export function AccessRights() {
               value={filter}
             />
           </div>
-          <TableComponent
-            columns={accessColumns}
-            data={accessRights}
-            rowClass="even:bg-white odd:bg-[#F2F4F7]"
-            className={" shadow-md"}
-            filter={filter}
-            setFilter={setFilter}
-            onRowClick={(data: AccessRight) => setSelectedAccessRight(data)}
-          />
+          {accessRights.length === 0 ? (
+            <EmptyState
+              scope="section"
+              msg="No access rights found"
+              description="Create access rights to assign permission levels."
+            />
+          ) : (
+            <TableComponent
+              columns={accessColumns}
+              data={accessRights}
+              rowClass="even:bg-white odd:bg-[#F2F4F7]"
+              className={" shadow-md"}
+              filter={filter}
+              setFilter={setFilter}
+              onRowClick={(data: AccessRight) => setSelectedAccessRight(data)}
+            />
+          )}
         </section>
         {selectedAccessRight && (
           <section className="col-span-2">

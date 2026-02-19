@@ -63,6 +63,7 @@ export default function ProductsPage() {
       {/* Empty / Error */}
       {!loading && products?.data?.length === 0 && (
         <EmptyState
+          scope="page"
           msg={error ? "Failed to load products" : "No products found"}
         />
       )}

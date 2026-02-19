@@ -210,9 +210,11 @@ const ProgramApply = () => {
             ))
           ) : (
             <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
-              <EmptyState />
-              <h2 className="mb-2 text-2xl font-bold text-primary">No Programs Available</h2>
-              <p className="text-sm text-primaryGray">Programs will appear here once they are published.</p>
+              <EmptyState
+                scope="section"
+                title="No Programs Available"
+                description="Programs will appear here once they are published."
+              />
             </div>
           )}
         </div>

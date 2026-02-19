@@ -1,9 +1,10 @@
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
+import EmptyState from "@/components/EmptyState";
 
 interface IProps{
-  columns: ColumnDef<any, any>[];
-  data: any[];
+  columns: ColumnDef<Record<string, unknown>, unknown>[];
+  data: Record<string, unknown>[];
 };
 
 export const AnalyticsTable = ({ data, columns }: IProps) => {
@@ -32,9 +33,11 @@ export const AnalyticsTable = ({ data, columns }: IProps) => {
       </div>
       <div>
         {data.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-gray-600">
-            No life center records found for the selected filters.
-          </div>
+          <EmptyState
+            scope="section"
+            msg="No life center records found"
+            description="No records match the selected analytics filters."
+          />
         ) : (
           <TableComponent
             columns={columns?.length ? columns : fallbackColumns}

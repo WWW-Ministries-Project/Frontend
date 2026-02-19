@@ -1,5 +1,6 @@
 import SearchIcon from "@/assets/SearchIcon";
 import { Button } from "@/components";
+import EmptyState from "@/components/EmptyState";
 import { ArrowLeftIcon, CheckIcon, ClockIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
@@ -394,13 +395,19 @@ const GradingPanel = () => {
           />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className=" text-muted-foreground">
-            {assignment.submissions.length === 0
+        <EmptyState
+          scope="section"
+          msg={
+            assignment.submissions.length === 0
               ? "No submissions yet"
-              : "No submissions match your filters"}
-          </p>
-        </div>
+              : "No submissions match your filters"
+          }
+          description={
+            assignment.submissions.length === 0
+              ? "Student submissions for this assignment will appear here."
+              : "Try changing your filters or search term."
+          }
+        />
       )}
     </div>
   );

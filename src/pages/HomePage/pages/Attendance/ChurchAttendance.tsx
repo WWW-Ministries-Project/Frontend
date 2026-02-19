@@ -255,7 +255,7 @@ export default function ChurchAttendance() {
       </div>
 
       {filteredAttendance.length === 0 && (
-        <EmptyState msg="No attendance records found" />
+        <EmptyState scope="page" msg="No attendance records found" />
       )}
 
       <div className="space-y-6">

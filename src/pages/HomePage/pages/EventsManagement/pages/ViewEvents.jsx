@@ -134,7 +134,7 @@ const ViewEvents = () => {
                                 {queryLoading ? (
                                     <SkeletonLoader />
                                 ) : !eventdetails.event_attendance?.length ? (
-                                    <EmptyState className="w-[20rem] mx-auto" msg="😞 Sorry, No attendees yet" />
+                                    <EmptyState scope="section" className="w-[20rem] mx-auto" msg="😞 Sorry, No attendees yet" />
                                 ) : (
                                     <TableComponent
                                         headClass={"font-bold"}

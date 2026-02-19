@@ -1,6 +1,6 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
-import { useDelete } from "@/CustomHooks/useDelete";
+import EmptyState from "@/components/EmptyState";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api, formatDate } from "@/utils";
@@ -31,7 +31,6 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
   const { updateData: updateFollowUp, loading: putLoading } = usePut(
     api.put.updateFollowUp
   );
-  const { executeDelete } = useDelete(api.delete.deleteFollowUp);
   const handleSubmit = async (data: IFollowUpForm) => {
     const payload = {
       ...data,
@@ -77,9 +76,11 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {followUps.length === 0 && (
-          <div className="text-sm text-gray-500">
-            No follow-ups recorded for this visitor.
-          </div>
+          <EmptyState
+            scope="section"
+            msg="No follow-ups recorded yet"
+            description="Add a follow-up to keep engagement history for this visitor."
+          />
         )}
 
         {sortedFollowUps.map((item) => (
@@ -121,7 +122,6 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
           </div>
         ))}
       </div>
-      {console.log("FollowUps", followUps)}
       <Modal
         open={isModalOpen}
         onClose={() => {
