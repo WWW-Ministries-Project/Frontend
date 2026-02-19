@@ -10,6 +10,10 @@
   --surface-muted: #f7f8fc;
   --surface-page: #f3f5fa;
   --input-placeholder: #6b7280;
+  --sidebar-base-bg: #ffffff;
+  --sidebar-active-bg: #d8dae5;
+  --sidebar-cutout-height: 1rem;
+  --sidebar-cutout-width: 3.25rem;
   --app-header-height: 64px;
   --font-family-base: "Work Sans", sans-serif;
   --scrollbar-size: 10px;
@@ -319,58 +323,112 @@ input.input::placeholder {
 
 .scrollable-shape-top,
 .scrollable-shape-bottom {
-  display: none; /* hide by default */
+  display: none;
 }
 
 @media (min-width: 1024px) {
   .scrollable-shape-top,
   .scrollable-shape-bottom {
-    display: block; /* show on lg screens and above */
+    display: block;
   }
 }
 
 
-/* Scrollable shape alternatives that move with content */
 .scrollable-shape-top {
-  height: 1rem;
-  width: 50px;
-  background: #D8DAE5;
+  height: var(--sidebar-cutout-height);
+  width: var(--sidebar-cutout-width);
+  background: var(--sidebar-active-bg);
   position: relative;
   overflow: hidden;
-  border: white;
+  transform: translateZ(0);
+  transition: background-color 0.2s ease;
 }
 
 .scrollable-shape-top::before {
   content: '';
   position: absolute;
-  height: 1rem;
-  width: 100px;
-  background: white;
-  border-bottom-right-radius: 5rem;
-  border: white;
-  left: -50px;
+  height: var(--sidebar-cutout-height);
+  width: calc(var(--sidebar-cutout-width) * 2);
+  background: var(--sidebar-base-bg);
+  border-bottom-right-radius: 999px;
+  left: calc(var(--sidebar-cutout-width) * -1);
   top: 0;
+  box-shadow: 1px 0 0 var(--sidebar-active-bg);
 }
 
 .scrollable-shape-bottom {
-  height: 1rem;
-  width: 50px;
-  background: #D8DAE5;
+  height: var(--sidebar-cutout-height);
+  width: var(--sidebar-cutout-width);
+  background: var(--sidebar-active-bg);
   position: relative;
   overflow: hidden;
-  border: white;
+  transform: translateZ(0);
+  transition: background-color 0.2s ease;
 }
 
 .scrollable-shape-bottom::before {
   content: '';
   position: absolute;
-  height: 1rem;
-  width: 100px;
-  background: white;
-  border-top-right-radius: 5rem;
-  left: -50px;
+  height: var(--sidebar-cutout-height);
+  width: calc(var(--sidebar-cutout-width) * 2);
+  background: var(--sidebar-base-bg);
+  border-top-right-radius: 999px;
+  left: calc(var(--sidebar-cutout-width) * -1);
   top: 0;
-  border: white;
+  box-shadow: 1px 0 0 var(--sidebar-active-bg);
+}
+
+.sidebar-active-surface {
+  background-color: var(--sidebar-active-bg);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-scroll-shell {
+  position: relative;
+  min-height: 0;
+}
+
+.sidebar-scroll-shell::before,
+.sidebar-scroll-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12px;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-scroll-shell::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--sidebar-base-bg), transparent);
+}
+
+.sidebar-scroll-shell::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--sidebar-base-bg), transparent);
+}
+
+.sidebar-scroll-shell--top::before {
+  opacity: 1;
+}
+
+.sidebar-scroll-shell--bottom::after {
+  opacity: 1;
+}
+
+.sidebar-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none !important;
+  overscroll-behavior-y: contain;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .container {

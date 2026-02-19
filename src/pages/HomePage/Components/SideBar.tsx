@@ -1,7 +1,7 @@
 import { logOut } from "@/pages/Authentication/utils/helpers";
 import { sideTabs } from "@/routes/appRoutes";
 import { removeToken } from "@/utils/helperFunctions";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthWrapper";
 import { SidebarItem } from "./SidebarItem";
@@ -47,7 +47,10 @@ export const SideBar = ({ className }: IProps) => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Memoize filtered tabs for performance
   const filteredTabs = useMemo(
@@ -104,6 +107,24 @@ export const SideBar = ({ className }: IProps) => {
     }));
   };
 
+  const updateScrollFades = useCallback(() => {
+    const scrollEl = scrollContainerRef.current;
+    if (!scrollEl) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+    const canScroll = scrollHeight - clientHeight > 1;
+
+    if (!canScroll) {
+      setShowTopFade(false);
+      setShowBottomFade(false);
+      return;
+    }
+
+    const threshold = 4;
+    setShowTopFade(scrollTop > threshold);
+    setShowBottomFade(scrollTop + clientHeight < scrollHeight - threshold);
+  }, []);
+
   // Precompute active states for all tabs
   const activeTabNames = useMemo(() => {
     const names: Record<string, boolean> = {};
@@ -128,6 +149,17 @@ export const SideBar = ({ className }: IProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTabNames, filteredTabs]);
 
+  useEffect(() => {
+    const rafId = window.requestAnimationFrame(updateScrollFades);
+    const handleResize = () => updateScrollFades();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [filteredTabs, isExpanded, openMenus, location.pathname, updateScrollFades]);
+
   return (
     <div
       className={`flex flex-col transition-all duration-300 ${
@@ -140,27 +172,37 @@ export const SideBar = ({ className }: IProps) => {
       role="navigation"
     >
       {/* Scrollable navigation area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll ">
-        <div className="flex flex-col space-y-2 py-4">
-          {/* Render sidebar items */}
-          {filteredTabs.map((item) => {
-            const IconComponent = sidebarIcons[item.name!];
-            if (!IconComponent) return null;
+      <div
+        className={`sidebar-scroll-shell flex-1 ${
+          showTopFade ? "sidebar-scroll-shell--top" : ""
+        } ${showBottomFade ? "sidebar-scroll-shell--bottom" : ""}`}
+      >
+        <div
+          ref={scrollContainerRef}
+          onScroll={updateScrollFades}
+          className="sidebar-scroll h-full overflow-y-auto overflow-x-hidden"
+        >
+          <div className="flex flex-col space-y-2 py-4">
+            {/* Render sidebar items */}
+            {filteredTabs.map((item) => {
+              const IconComponent = sidebarIcons[item.name!];
+              if (!IconComponent) return null;
 
-            const isActive = activeTabNames[item.name];
+              const isActive = activeTabNames[item.name];
 
-            return (
-              <SidebarItem
-                key={item.name}
-                item={item}
-                IconComponent={IconComponent}
-                isActive={isActive}
-                isExpanded={isExpanded}
-                openMenus={openMenus}
-                toggleSubMenu={toggleSubMenu}
-              />
-            );
-          })}
+              return (
+                <SidebarItem
+                  key={item.name}
+                  item={item}
+                  IconComponent={IconComponent}
+                  isActive={isActive}
+                  isExpanded={isExpanded}
+                  openMenus={openMenus}
+                  toggleSubMenu={toggleSubMenu}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 

@@ -73,7 +73,7 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
     >
       <div className="h-full w-[250px] p-4">
         {/* navigation links */}
-        <div className="overflow-y-auto">
+        <div className="sidebar-scroll overflow-y-auto">
           {items.map((item) => {
             const IconComponent = sidebarIcons[item.name];
 
