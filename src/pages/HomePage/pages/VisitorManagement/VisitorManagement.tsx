@@ -474,11 +474,14 @@ export function VisitorManagement() {
           </div>
 
           {!hasBackendData && !loading && (
-            <EmptyState msg="No visitor found" />
+            <EmptyState scope="page" msg="No visitor found" />
           )}
 
           {hasBackendData && visitors.length === 0 && (
-            <EmptyState msg="No visitors match the selected filters" />
+            <EmptyState
+              scope="section"
+              msg="No visitors match the selected filters"
+            />
           )}
 
           

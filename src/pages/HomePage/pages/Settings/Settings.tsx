@@ -5,6 +5,7 @@ import { useOutletContext } from "react-router-dom";
 import { api } from "@/utils/api/apiCalls";
 // import useState from "react-usestateref";
 import { Modal } from "@/components/Modal";
+import EmptyState from "@/components/EmptyState";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -253,6 +254,13 @@ function Settings() {
             handlePageChange(page, limit);
           }}
         />
+        {data.length === 0 && (
+          <EmptyState
+            scope="section"
+            msg={`No ${selectedTab.toLowerCase()} found`}
+            description={`Create ${selectedTab.toLowerCase()} to get started.`}
+          />
+        )}
       </section>
 
       <Modal open={displayForm} persist={false} onClose={handleCloseForm}>

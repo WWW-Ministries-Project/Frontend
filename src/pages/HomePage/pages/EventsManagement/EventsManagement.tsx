@@ -413,6 +413,7 @@ const EventsManagement = () => {
           </div>
         ) : (
           <EmptyState
+            scope="page"
             className="w-[20rem] mx-auto"
             msg="😞 Sorry, No events yet"
           />

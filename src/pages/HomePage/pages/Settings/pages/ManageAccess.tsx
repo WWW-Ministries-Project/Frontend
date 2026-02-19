@@ -1,4 +1,5 @@
 import { Button } from "@/components";
+import EmptyState from "@/components/EmptyState";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -170,6 +171,13 @@ export function ManageAccess() {
           rowClass="even:bg-white odd:bg-[#F2F4F7]"
           className={"shadow-md"}
         />
+        {displayedData.length === 0 && (
+          <EmptyState
+            scope="section"
+            msg="No access modules found"
+            description="No modules are available to configure for this access right."
+          />
+        )}
         <div className="flex justify-end gap-x-2 mt-4">
           <Button
             value="Cancel"

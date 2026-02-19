@@ -140,7 +140,7 @@ export function LifeCenterRoles() {
 
       </div>
       {roles?.data?.length === 0 && (
-        <EmptyState msg={"No roles found"}/>
+        <EmptyState scope="page" msg={"No roles found"} />
       )}
 
       <Modal open={isModalOpen} persist={false} onClose={closeModal}>

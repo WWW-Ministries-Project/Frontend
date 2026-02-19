@@ -6,6 +6,7 @@ import useState from "react-usestateref";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { HeaderControls } from "@/components/HeaderControls";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/context/AuthWrapper";
 import { useStore } from "@/store/useStore";
 import { MembersType, relativePath } from "@/utils";
@@ -255,6 +256,13 @@ export function Members() {
             )}
           />
         </div>
+        {members.length === 0 && (
+          <EmptyState
+            scope="page"
+            msg="No members found"
+            description="No membership records are available for the current filters."
+          />
+        )}
       </section>
     </PageOutline>
   );

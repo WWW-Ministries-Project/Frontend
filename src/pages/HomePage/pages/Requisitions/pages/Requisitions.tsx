@@ -9,6 +9,7 @@ import TableComponent from "../../../Components/reusable/TableComponent";
 import { tableColumns } from "../utils/tableColums";
 import { ApiResponse } from "@/utils/interfaces";
 import { Requisition } from "../types/requestInterface";
+import EmptyState from "@/components/EmptyState";
 const Requisitions = () => {
   const navigate = useNavigate();
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
@@ -20,7 +21,7 @@ const Requisitions = () => {
 
   useEffect(() => {
     setRequests(data?.data ?? []);
-  }, [data]);
+  }, [data, setRequests]);
 
   return (
     <PageOutline>
@@ -30,11 +31,19 @@ const Requisitions = () => {
         onClick={() => navigate("/home/requests/request")}
       />
       {!(loading || error) && (
-        <TableComponent
-          columns={tableColumns}
-          data={requests ?? []}
-          displayedCount={10}
-        />
+        (requests ?? []).length === 0 ? (
+          <EmptyState
+            scope="page"
+            msg="No requisitions found"
+            description="No requisition requests have been created yet."
+          />
+        ) : (
+          <TableComponent
+            columns={tableColumns}
+            data={requests ?? []}
+            displayedCount={10}
+          />
+        )
       )}
     </PageOutline>
   );

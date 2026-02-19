@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { tableColumns } from "../utils/tableColums";
 import { ApiResponse } from "@/utils/interfaces";
 import { Requisition } from "../types/requestInterface";
+import EmptyState from "@/components/EmptyState";
 const MyRequisitions = () => {
   const navigate = useNavigate();
   const { id } = decodeToken() || {};
@@ -23,7 +24,7 @@ const MyRequisitions = () => {
 
   useEffect(() => {
     setRequests(data?.data ?? []);
-  }, [data]);
+  }, [data, setRequests]);
 
   return (
     <div className="p-4">
@@ -34,11 +35,19 @@ const MyRequisitions = () => {
           onClick={() => navigate("/home/requests/request")}
         />
         {!(loading || error) && (
-          <TableComponent
-            columns={tableColumns}
-            data={requests ?? []}
-            displayedCount={10}
-          />
+          (requests ?? []).length === 0 ? (
+            <EmptyState
+              scope="page"
+              msg="No requisitions found"
+              description="You have not created any requisition requests yet."
+            />
+          ) : (
+            <TableComponent
+              columns={tableColumns}
+              data={requests ?? []}
+              displayedCount={10}
+            />
+          )
         )}
       </PageOutline>
     </div>

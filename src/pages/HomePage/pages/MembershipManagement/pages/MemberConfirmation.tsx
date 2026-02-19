@@ -89,7 +89,7 @@ const MembersTable = ({
 
       {members.length === 0 ? (
         <div className="p-4">
-          <EmptyState msg={emptyStateMessage} />
+          <EmptyState scope="section" msg={emptyStateMessage} />
         </div>
       ) : (
         <div className="overflow-x-auto">

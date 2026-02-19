@@ -58,20 +58,16 @@ function LoginPage() {
         setToken(token);
         pictureInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        console.log("Token", decodedToken);
-        
-        
-        if (response.status === 200 && decodedToken?.ministry_worker) {
-          navigate(relativePath.home.members.mainNew);
-        }
-        if (response.status === 200 && !decodedToken?.ministry_worker) {
-          navigate(relativePath.member.dashboard);
-          
-          
+        if (response.status === 200) {
+          const userCategory = decodedToken?.user_category?.toLowerCase();
+          if (userCategory === "admin" || (userCategory !== "member" && decodedToken?.ministry_worker)) {
+            navigate(relativePath.home.main);
+          } else {
+            navigate(relativePath.member.dashboard);
+          }
         }
       }
     } catch (error: unknown) {
-      console.log(error, "error");
       const axiosError = error as { response?: ApiResponse };
       setResponse(axiosError.response || {});
       setLoading(false);

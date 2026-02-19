@@ -97,7 +97,9 @@ export const MinistrySchool = () => {
   const renderContent = () => {
     if (loading) return <SkeletonLoader />;
 
-    if (!programsData.length) return <EmptyState msg={"No programs found"} />;
+    if (!programsData.length) {
+      return <EmptyState scope="page" msg={"No programs found"} />;
+    }
 
     return (
       

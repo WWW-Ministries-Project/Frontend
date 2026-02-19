@@ -140,7 +140,9 @@ export function MarketPlace() {
           />
         )}
       />
-      {filteredMarkets?.length === 0 && <EmptyState msg={"No markets found"} />}
+      {filteredMarkets?.length === 0 && (
+        <EmptyState scope="page" msg={"No markets found"} />
+      )}
 
       <Modal open={openModal} onClose={handleCloseModal}>
         <AddMarketForm

@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 import { AccessRightOption } from "../utils/settingsInterfaces";
 import TableData from "./TableData";
+import EmptyState from "@/components/EmptyState";
 
 interface IProps {
   name: string;
@@ -46,6 +47,13 @@ export const ActiveAccess = (props: IProps) => {
         rowClass="even:bg-white odd:bg-lightGray/10"
         className={""}
       />
+      {modules.length === 0 && (
+        <EmptyState
+          scope="section"
+          msg="No module permissions found"
+          description="This access right does not have any module permissions configured."
+        />
+      )}
     </>
   );
 };

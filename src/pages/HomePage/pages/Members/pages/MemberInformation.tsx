@@ -12,6 +12,7 @@ import {
 
 import { useOutletContext } from "react-router-dom";
 import { FamilyInformation } from "./FamilyInformation";
+import EmptyState from "@/components/EmptyState";
 
 //TODO: TAKE A SECOND LOOK AT INFOFIELD AND SECTION
 //TODO: FIND A BETTER STRUCTURE FOR TYPING DATA FROM BE
@@ -72,6 +73,11 @@ export function MemberInformation() {
   const membershipStatus = formatMemberStatus(user.status);
   const enrolledProgramsSummary = user.enrolled_programs?.summary;
   const enrolledPrograms = user.enrolled_programs?.items || [];
+  const hasWorkInfo = Boolean(
+    user.work_info?.name_of_institution ||
+      user.work_info?.industry ||
+      user.work_info?.position
+  );
 
   return (
     <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
@@ -239,16 +245,24 @@ export function MemberInformation() {
       )}
 
       {selectedTab === "Employment/Schooling Information" && (
-        <Section title="Work Information">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-            <InfoField
-              label="Institution"
-              value={user.work_info?.name_of_institution}
-            />
-            <InfoField label="Industry" value={user.work_info?.industry} />
-            <InfoField label="Position" value={user.work_info?.position} />
-          </div>
-        </Section>
+        hasWorkInfo ? (
+          <Section title="Work Information">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+              <InfoField
+                label="Institution"
+                value={user.work_info?.name_of_institution}
+              />
+              <InfoField label="Industry" value={user.work_info?.industry} />
+              <InfoField label="Position" value={user.work_info?.position} />
+            </div>
+          </Section>
+        ) : (
+          <EmptyState
+            scope="section"
+            msg="No employment/schooling information"
+            description="Employment or schooling details have not been added for this member yet."
+          />
+        )
       )}
 
       {selectedTab === "Enrolled Programs" && (
@@ -266,9 +280,11 @@ export function MemberInformation() {
 
           <Section title="Program Details">
             {enrolledPrograms.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                No enrolled programs found.
-              </div>
+              <EmptyState
+                scope="section"
+                msg="No enrolled programs found"
+                description="This member has not been enrolled in any program yet."
+              />
             ) : (
               <div className="space-y-4">
                 {enrolledPrograms.map((enrollment, index) => (

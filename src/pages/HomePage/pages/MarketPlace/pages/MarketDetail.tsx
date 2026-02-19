@@ -154,7 +154,7 @@ export function MarketDetails() {
             />
 
             {products?.data.length === 0 && (
-              <EmptyState msg="No products found" />
+              <EmptyState scope="section" msg="No products found" />
             )}
           </>
         )}

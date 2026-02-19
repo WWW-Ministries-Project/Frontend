@@ -78,7 +78,7 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
         </section>
 
         {cohorts.length === 0 ? (
-            <EmptyState msg={"No cohort found"} />
+            <EmptyState scope="section" msg={"No cohort found"} />
         ) : (
           <section className="w-full">
             <div className="grid grid-cols-6 gap-4 font-semibold text-primaryGray px-4 py-3 mb-4">

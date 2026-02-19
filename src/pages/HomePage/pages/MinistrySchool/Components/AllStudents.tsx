@@ -171,7 +171,7 @@ export const AllStudents = ({
       </div>
 
       {filteredData?.length === 0 ? (
-        <EmptyState msg={"No students found"} />
+        <EmptyState scope="section" msg={"No students found"} />
       ) : (
         <>
           {/* Desktop / Tablet Table View */}

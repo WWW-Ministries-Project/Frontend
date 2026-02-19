@@ -31,7 +31,7 @@ export const DashBoardPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="sticky top-0 z-30">
+      <div className={routeName === "member" ? "sticky top-20 z-30" : "sticky top-0 z-30"}>
         <WelcomeHeader showFull={ routeName === "member" ? true : false} theme={activeTheme} />
       </div>
 

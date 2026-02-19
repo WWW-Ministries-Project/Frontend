@@ -1,5 +1,6 @@
 import { Button } from "@/components";
 import { Actions } from "@/components/ui/form/Actions";
+import EmptyState from "@/components/EmptyState";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
@@ -213,7 +214,15 @@ export const TopicAssessment = ({
           </div>
         </div>
 
-        <TableComponent columns={columns} data={updatedTopics ?? []} />
+        {updatedTopics.length === 0 ? (
+          <EmptyState
+            scope="section"
+            msg="No topics found"
+            description="No topics are available for assessment in this program."
+          />
+        ) : (
+          <TableComponent columns={columns} data={updatedTopics ?? []} />
+        )}
 
         <div className="flex ">
           <div className="w-full">

@@ -1,5 +1,3 @@
-import Instructor from "@/pages/MembersPage/Pages/Instructor";
-
 export interface pictureType {
   picture: Blob | string;
   src: string;
@@ -47,6 +45,7 @@ export interface userType {
   email: string;
   name: string;
   permissions: Record<string, boolean>;
+  user_category?: "member" | "admin" | string;
   profile_img?: string;
   phone:string;
   member_since?: Date;

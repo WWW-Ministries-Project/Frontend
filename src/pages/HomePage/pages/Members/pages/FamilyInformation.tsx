@@ -1,6 +1,7 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api, formatDate, formatPhoneNumber, IFamilyInformationRaw, IFamilyPerson, IFamilyRelationRaw, IMemberInfo } from "@/utils";
 import { useOutletContext } from "react-router-dom";
+import EmptyState from "@/components/EmptyState";
 
 // Define interfaces matching backend response with nested user_info
 
@@ -79,7 +80,11 @@ export const FamilyInformation = ({ familyData }: { familyData: any[] }) => {
   return (
     <div className="bg-white rounded-b-lg pt-0 mx-auto text-gray-800">
       {!hasAnyFamilyData ? (
-        <EmptyState />
+        <EmptyState
+          scope="section"
+          msg="No family information available"
+          description="Family relationships have not been added for this member yet."
+        />
       ) : (
         <>
           {renderRelationSection(
@@ -150,15 +155,4 @@ const Section = ({
     </h2>
     {children}
   </section>
-);
-
-const EmptyState = () => (
-  <div className="py-12 flex flex-col items-center justify-center text-center text-gray-500">
-    <p className="text-lg font-semibold text-gray-700 mb-2">
-      No family information available
-    </p>
-    <p className="max-w-md">
-      Family relationships have not been added for this member yet.
-    </p>
-  </div>
 );
