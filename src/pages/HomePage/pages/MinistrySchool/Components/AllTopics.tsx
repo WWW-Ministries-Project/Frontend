@@ -14,6 +14,7 @@ interface ITopic {
   name: string;
   description?: string | TrustedHTML | null | undefined;
   learningUnit?: { type?: string } | string;
+  LearningUnit?: { type?: string } | string;
   type?: string;
 }
 
@@ -67,71 +68,75 @@ const AllTopics = ({ topics, refetchProgram }: IProps) => {
 
         {/* Created Topics */}
         <div className="grid grid-cols-1 gap-4">
-          {topics.map((topic) => (
-            <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center">
-              <div>
-                <div className="flex gap-4 items-center">
-                  <div className="font-medium">
-                    {topic?.name}
-                  </div>
-                  {(topic?.learningUnit || topic?.type) && (
-                    <Badge>
-                      {typeof topic.learningUnit === "string"
-                        ? topic.learningUnit
-                        : topic.learningUnit?.type || topic?.type}
-                    </Badge>
-                  )}
-                </div>
-                <div className="gap-x-4 flex text-sm text-primaryGray">
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(String(topic?.description ?? "")),
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="relative">
-                  <button
-                    className="text-primary"
-                    onClick={() => toggleMenu(topic?.id)}
-                  >
-                    <img
-                      src={ellipse}
-                      alt="options"
-                      className="cursor-pointer"
-                    />
-                  </button>
-                  {isMenuOpen === topic?.id && (
-                    <div
-                      className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
-                    >
-                      <ul className="py-1">
-                        <li
-                          className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                          onClick={() => handleEdit(topic)}
-                        >
-                          Edit topic
-                        </li>
+          {topics.map((topic) => {
+            const topicLearningUnit = topic?.learningUnit ?? topic?.LearningUnit;
 
-                        <hr className="text-lightGray" />
-                        <li
-                          onClick={() => {
-                            setTopicToDelete(topic);
-                            setIsDeleteModalOpen(true);
-                            setIsMenuOpen(null);
-                          }}
-                          className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
-                        >
-                          Delete topic
-                        </li>
-                      </ul>
+            return (
+              <div key={topic?.id} className="border rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <div className="flex gap-4 items-center">
+                    <div className="font-medium">
+                      {topic?.name}
                     </div>
-                  )}
-                </div> 
+                    {(topicLearningUnit || topic?.type) && (
+                      <Badge>
+                        {typeof topicLearningUnit === "string"
+                          ? topicLearningUnit
+                          : topicLearningUnit?.type || topic?.type}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="gap-x-4 flex text-sm text-primaryGray">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(String(topic?.description ?? "")),
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="relative">
+                    <button
+                      className="text-primary"
+                      onClick={() => toggleMenu(topic?.id)}
+                    >
+                      <img
+                        src={ellipse}
+                        alt="options"
+                        className="cursor-pointer"
+                      />
+                    </button>
+                    {isMenuOpen === topic?.id && (
+                      <div
+                        className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
+                      >
+                        <ul className="py-1">
+                          <li
+                            className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                            onClick={() => handleEdit(topic)}
+                          >
+                            Edit topic
+                          </li>
+
+                          <hr className="text-lightGray" />
+                          <li
+                            onClick={() => {
+                              setTopicToDelete(topic);
+                              setIsDeleteModalOpen(true);
+                              setIsMenuOpen(null);
+                            }}
+                            className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
+                          >
+                            Delete topic
+                          </li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {/* Topic creation */}
@@ -145,9 +150,9 @@ const AllTopics = ({ topics, refetchProgram }: IProps) => {
                   name: TopicToEdit.name,
                   description: String(TopicToEdit.description ?? ""),
                   learningUnit:
-                    typeof TopicToEdit.learningUnit === "string"
+                    typeof (TopicToEdit.learningUnit ?? TopicToEdit.LearningUnit) === "string"
                       ? null
-                      : ((TopicToEdit.learningUnit as unknown) as {
+                      : (((TopicToEdit.learningUnit ?? TopicToEdit.LearningUnit) as unknown) as {
                           type: "video" | "live" | "in-person" | "ppt" | "pdf" | "lesson-note" | "assignment" | "assignment-essay";
                           data: unknown;
                         }) || null,
