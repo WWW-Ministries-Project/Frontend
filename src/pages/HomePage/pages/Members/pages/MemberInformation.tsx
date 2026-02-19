@@ -7,6 +7,7 @@ import {
   BuildingLibraryIcon,
   BriefcaseIcon,
   UsersIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 
 import { useOutletContext } from "react-router-dom";
@@ -34,11 +35,22 @@ const formatMemberStatus = (status?: string | null): string => {
   return "Unconfirmed Member";
 };
 
+const toTitleCase = (value?: string | null): string => {
+  if (!value) return "-";
+
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export function MemberInformation() {
   const { details: user, loading } = useOutletContext<{
     details?: IMemberInfo;
     loading?: boolean;
   }>();
+
+  const [selectedTab, setSelectedTab] = useState("Basic Information");
 
   if (!user) {
     return (
@@ -47,8 +59,6 @@ export function MemberInformation() {
       </div>
     );
   }
-
-  const [selectedTab, setSelectedTab] = useState("Basic Information");
 
   const handleTabSelect = (tab: string) => {
     setSelectedTab(tab);
@@ -60,6 +70,8 @@ export function MemberInformation() {
       ? "Online e-church family"
       : user.membership_type === "IN_HOUSE"? "In-person church family" :"";
   const membershipStatus = formatMemberStatus(user.status);
+  const enrolledProgramsSummary = user.enrolled_programs?.summary;
+  const enrolledPrograms = user.enrolled_programs?.items || [];
 
   return (
     <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
@@ -70,6 +82,7 @@ export function MemberInformation() {
           "Church Information",
           "Employment/Schooling Information",
           "Family Information",
+          "Enrolled Programs",
         ]}
         selectedTab={selectedTab}
         onTabSelect={handleTabSelect}
@@ -79,6 +92,7 @@ export function MemberInformation() {
           "Church Information": <BuildingLibraryIcon className="h-4 w-4" />,
           "Employment/Schooling Information": <BriefcaseIcon className="h-4 w-4" />,
           "Family Information": <UsersIcon className="h-4 w-4" />,
+          "Enrolled Programs": <AcademicCapIcon className="h-4 w-4" />,
         }}
       />
       
@@ -237,6 +251,78 @@ export function MemberInformation() {
         </Section>
       )}
 
+      {selectedTab === "Enrolled Programs" && (
+        <>
+          <Section title="Enrollment Summary">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
+              <InfoField label="Total Enrollments" value={enrolledProgramsSummary?.total} />
+              <InfoField label="Completed" value={enrolledProgramsSummary?.completed} />
+              <InfoField
+                label="In Progress"
+                value={enrolledProgramsSummary?.in_progress}
+              />
+            </div>
+          </Section>
+
+          <Section title="Program Details">
+            {enrolledPrograms.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+                No enrolled programs found.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {enrolledPrograms.map((enrollment, index) => (
+                  <div
+                    key={`${enrollment.enrollment_id}-${index}`}
+                    className="rounded-lg border border-gray-200 p-4"
+                  >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <h3 className="text-base font-semibold text-gray-900">
+                        {enrollment.program?.name || "-"}
+                      </h3>
+                      <span
+                        className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${
+                          enrollment.status?.completed
+                            ? "bg-green-100 text-green-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {toTitleCase(enrollment.status?.label)}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                      <p className="text-gray-700">
+                        <span className="font-semibold text-gray-900">Cohort:</span>{" "}
+                        {enrollment.cohort?.name || "-"}
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-semibold text-gray-900">Cohort Status:</span>{" "}
+                        {toTitleCase(enrollment.cohort?.status)}
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-semibold text-gray-900">Facilitator:</span>{" "}
+                        {enrollment.facilitator?.name || "-"}
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-semibold text-gray-900">Enrolled At:</span>{" "}
+                        {enrollment.enrolled_at ? formatDate(enrollment.enrolled_at) : "-"}
+                      </p>
+                      <p className="text-gray-700">
+                        <span className="font-semibold text-gray-900">Completed At:</span>{" "}
+                        {enrollment.status?.completed_at
+                          ? formatDate(enrollment.status.completed_at)
+                          : "-"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        </>
+      )}
+
       {selectedTab=="Family Information" && (
         // <Section title="">
           <FamilyInformation familyData={user?.family} />
@@ -283,7 +369,41 @@ interface IMemberInfo {
   };
   department_positions: Array<string | IDepartmentPosition>;
   family: unknown[];
-  
+  enrolled_programs?: IEnrolledPrograms;
+}
+
+interface IEnrolledPrograms {
+  summary?: IEnrolledProgramSummary;
+  items?: IEnrolledProgramItem[];
+}
+
+interface IEnrolledProgramSummary {
+  total?: number;
+  completed?: number;
+  in_progress?: number;
+}
+
+interface IEnrolledProgramItem {
+  enrollment_id: number | string;
+  enrolled_at?: string;
+  program?: {
+    id?: number | string;
+    name?: string;
+  };
+  cohort?: {
+    id?: number | string;
+    name?: string;
+    status?: string;
+  };
+  facilitator?: {
+    id?: number | string;
+    name?: string;
+  };
+  status?: {
+    completed?: boolean;
+    label?: string;
+    completed_at?: string | null;
+  };
 }
 
 interface IDepartmentPosition {

@@ -52,6 +52,41 @@ export type AccessLevelType = {
   description: string | null;
   permissions: Record<string, string>;
 };
+
+export interface IEnrolledPrograms {
+  summary?: IEnrolledProgramSummary;
+  items?: IEnrolledProgramItem[];
+}
+
+export interface IEnrolledProgramSummary {
+  total?: number;
+  completed?: number;
+  in_progress?: number;
+}
+
+export interface IEnrolledProgramItem {
+  enrollment_id: number | string;
+  enrolled_at?: string;
+  program?: {
+    id?: number | string;
+    name?: string;
+  };
+  cohort?: {
+    id?: number | string;
+    name?: string;
+    status?: string;
+  };
+  facilitator?: {
+    id?: number | string;
+    name?: string;
+  };
+  status?: {
+    completed?: boolean;
+    label?: string;
+    completed_at?: string | null;
+  };
+}
+
 export interface IMemberInfo {
   id: string | number;
   membership_Id: string;
@@ -101,6 +136,7 @@ export interface IMemberInfo {
     country_code?: string;
   };
   family: unknown[];
+  enrolled_programs?: IEnrolledPrograms;
   department_positions: Array<
     | string
     | {
