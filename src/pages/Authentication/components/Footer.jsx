@@ -1,23 +1,23 @@
 const Footer = () => {
   return (
-    <>
-      <footer className="flex justify-center justify-self-end w-full bottom-0 text-sma text-black">
-        {/* <ul className="justify-self-start text-sma ">
-          <li className="inline-block">&copy; Worldwide Word</li>
-          <li className="inline-block">Ministries Privacy</li>
-          <li className="inline-block">Policy Platform Agreement</li>
-        </ul> */}
-        <div className="inline-block absolute right-0 bottom-0">
-          <a href="https://wa.me/qr/6TUNEFPG5RGMD1" target="_blank" rel="noreferrer">
-            <img
+    <footer className="px-4 pb-4">
+      <div className="flex justify-end">
+        <a
+          href="https://wa.me/qr/6TUNEFPG5RGMD1"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          aria-label="Contact support on WhatsApp"
+        >
+          <img
             src="/assets/authentication/FooterIcon.svg"
-            alt="footer-icon"
+            alt=""
             className="inline-block"
+            aria-hidden="true"
           />
-          </a>         
-        </div>
-      </footer>
-    </>
+        </a>
+      </div>
+    </footer>
   );
 };
 
