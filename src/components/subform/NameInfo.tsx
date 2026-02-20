@@ -89,7 +89,11 @@ const initialValues: INameInfo = {
 const validationSchema = {
   title: string(),
   first_name: string(),
-  other_name: string(),
+  other_name: string()
+    .nullable()
+    .transform((value, originalValue) =>
+      originalValue === null ? "" : value
+    ),
   last_name: string().required(" required"),
 };
 export const NameInfo = Object.assign(NameInfoComponent, {

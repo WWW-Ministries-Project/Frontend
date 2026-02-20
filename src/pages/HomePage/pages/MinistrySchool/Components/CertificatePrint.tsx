@@ -1,6 +1,7 @@
 "use client"
 
 import ChurchLogo from "@/components/ChurchLogo"
+import type { Ref } from "react";
 // import { Award } from 'lucide-react';
 import { formatDatefull } from "@/utils";
 
@@ -12,9 +13,13 @@ interface CertificateProps {
   rightSignature?: string;
   rightSignatureLabel?: string;
   program?:string;
+  id?: string;
+  containerRef?: Ref<HTMLDivElement>;
 }
 
 export default function Certificate({
+  id = "certificate-a4",
+  containerRef,
   program,
   recipientName = "",
   description,
@@ -33,7 +38,8 @@ export default function Certificate({
   return (
        
       <div
-        id="certificate-a4"
+        id={id}
+        ref={containerRef}
         className="relative bg-white shadow-2xl overflow-hidden drop-shadow-sm"
         style={{
           width: "1123px",   // A4 landscape @ 96dpi

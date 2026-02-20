@@ -46,14 +46,32 @@ export interface PositionSlice {
 
 export type StoreState = DepartmentSlice & PositionSlice;
 
+export interface AccessLevelAssignedUser {
+  id: number;
+  name?: string;
+  full_name?: string;
+  user_info?: {
+    photo?: string;
+  };
+}
+
+export interface AccessLevelExclusionUser {
+  id: number;
+  name?: string;
+  full_name?: string;
+}
+
 //access right
 export interface AccessRight {
   id: number;
   name: string;
+  description?: string | null;
   permissions?: {
     [key: string]: PermissionValue | ExclusionsMap | undefined;
     Exclusions?: ExclusionsMap;
   };
+  users_assigned?: AccessLevelAssignedUser[];
+  exclusion_users?: Record<string, AccessLevelExclusionUser[]>;
 }
 export interface AccessRightOption {
   id: number;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -22,18 +22,25 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
   issueDate,
   open
 }) => {
+  const printCertificateRef = useRef<HTMLDivElement | null>(null);
 
-    if (!open) return null;
+  if (!open) return null;
 
- const handleDownloadPDF = async () => {
-    const certificateElement = document.getElementById("certificate-a4");
+  const handleDownloadPDF = async () => {
+    const certificateElement = printCertificateRef.current;
 
     if (!certificateElement) return;
 
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
     const canvas = await html2canvas(certificateElement, {
-      scale: 2,
+      scale: Math.min(window.devicePixelRatio || 1, 2),
       useCORS: true,
       backgroundColor: "white",
+      windowWidth: certificateElement.scrollWidth,
+      windowHeight: certificateElement.scrollHeight,
     });
 
     const imgData = canvas.toDataURL("image/png");
@@ -62,26 +69,30 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
         onClose={onClose}
       />
 
-      <div className="hidden lg:block">
-        <CertificatePrint
-            recipientName={recipientName}
-            program={program}
-            description={description}
-            rightSignature={issueDate}
-          />
-      </div>
-
       {/* Hidden Print Layout rendered outside Modal */}
       {typeof document !== "undefined" &&
         createPortal(
-          <CertificatePrint
-            recipientName={recipientName}
-            program={program}
-            description={description}
-            rightSignature={issueDate}
-          />,
-            document.body
-            )} 
+          <div
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: "-10000px",
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          >
+            <CertificatePrint
+              id="certificate-a4-print"
+              containerRef={printCertificateRef}
+              recipientName={recipientName}
+              program={program}
+              description={description}
+              rightSignature={issueDate}
+            />
+          </div>,
+          document.body
+        )}
     </>
   );
 };

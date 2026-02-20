@@ -52,7 +52,7 @@ export const mapVisitorToForm = (
       title: visitor.title,
       first_name: visitor.firstName,
       last_name: visitor.lastName,
-      other_name: visitor.otherName,
+      other_name: visitor.otherName || "",
     },
     contact_info: {
       email: visitor.email,

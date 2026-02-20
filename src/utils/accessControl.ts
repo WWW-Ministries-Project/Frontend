@@ -1,4 +1,8 @@
-export type PermissionValue = "Can_View" | "Can_Manage" | "Super_Admin";
+export type PermissionValue =
+  | "No_Access"
+  | "Can_View"
+  | "Can_Manage"
+  | "Super_Admin";
 export type AccessAction = "view" | "manage" | "admin";
 export type PermissionMap = Record<string, unknown>;
 export type LegacyPermissionMap = Record<string, boolean>;
@@ -255,6 +259,7 @@ const VIEW_ACCESS = new Set<PermissionValue>([
 const MANAGE_ACCESS = new Set<PermissionValue>(["Can_Manage", "Super_Admin"]);
 const ADMIN_ACCESS = new Set<PermissionValue>(["Super_Admin"]);
 const VALID_ACCESS_VALUES = new Set<PermissionValue>([
+  "No_Access",
   "Can_View",
   "Can_Manage",
   "Super_Admin",
@@ -295,6 +300,13 @@ const parsePermissionValue = (value: unknown): PermissionValue | null => {
   }
 
   const normalized = normalizeLookupToken(trimmed);
+  if (
+    normalized === "noaccess" ||
+    normalized === "none" ||
+    normalized === "no_access"
+  ) {
+    return "No_Access";
+  }
   if (normalized === "canview" || normalized === "view") return "Can_View";
   if (normalized === "canmanage" || normalized === "manage") {
     return "Can_Manage";

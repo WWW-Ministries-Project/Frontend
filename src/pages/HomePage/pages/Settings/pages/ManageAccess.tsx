@@ -32,6 +32,11 @@ const ACCESS_OPTIONS: Array<{
   chipClass: string;
 }> = [
   {
+    value: "No_Access",
+    label: "No Access",
+    chipClass: "bg-gray-200 text-gray-700",
+  },
+  {
     value: "Can_View",
     label: "View",
     chipClass: "bg-blue-100 text-blue-700",
@@ -167,6 +172,7 @@ export function ManageAccess() {
   const summary = useMemo(() => {
     const values = Object.values(permissions);
     return {
+      noAccess: values.filter((value) => value === "No_Access").length,
       view: values.filter((value) => value === "Can_View").length,
       manage: values.filter((value) => value === "Can_Manage").length,
       admin: values.filter((value) => value === "Super_Admin").length,
@@ -204,6 +210,7 @@ export function ManageAccess() {
     ACCESS_LEVEL_DOMAINS.forEach(({ key }) => {
       const value = normalizedPermissions[key];
       if (
+        value === "No_Access" ||
         value === "Can_View" ||
         value === "Can_Manage" ||
         value === "Super_Admin"
@@ -315,154 +322,165 @@ export function ManageAccess() {
   };
 
   return (
-    <PageOutline>
-      <PageHeader title={`${id ? "Update" : "Create"} Access Level`} />
+    <PageOutline className="!overflow-hidden !p-0">
+      <section className="flex min-h-0 flex-1 flex-col">
+        <div className="app-page-padding app-scrollbar min-h-0 flex-1 space-y-6 overflow-y-auto pb-8">
+          <PageHeader title={`${id ? "Update" : "Create"} Access Level`} />
 
-      <section className="space-y-6">
-        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-orange-50 to-white p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="w-full lg:max-w-xl">
-              <InputDiv
-                id="name"
-                label="Access Level Name"
-                placeholder="e.g. Membership Officer"
-                required
-                value={name}
-                onChange={(_, value) => setName(String(value))}
-                className="w-full"
-              />
-              <p className="mt-2 text-sm text-gray-600">
-                Build one clear role template and assign it to users from
-                Settings {">"} Users.
-              </p>
-            </div>
+          <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-orange-50 to-white p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="w-full lg:max-w-xl">
+                <InputDiv
+                  id="name"
+                  label="Access Level Name"
+                  placeholder="e.g. Membership Officer"
+                  required
+                  value={name}
+                  onChange={(_, value) => setName(String(value))}
+                  className="w-full"
+                />
+                <p className="mt-2 text-sm text-gray-600">
+                  Build one clear role template and assign it to users from
+                  Settings {">"} Users.
+                </p>
+              </div>
 
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                View: {summary.view}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                Manage: {summary.manage}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
-                Admin: {summary.admin}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-700">
+                  No Access: {summary.noAccess}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                  View: {summary.view}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                  Manage: {summary.manage}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
+                  Admin: {summary.admin}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">Quick Presets</p>
-          <div className="grid gap-3 md:grid-cols-3">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset.key}
-                type="button"
-                onClick={() => applyPreset(preset.factory)}
-                className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-primary/40 hover:shadow-sm"
-              >
-                <p className="font-semibold text-primary">{preset.title}</p>
-                <p className="mt-1 text-sm text-gray-600">{preset.subtitle}</p>
-              </button>
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">Quick Presets</p>
+            <div className="grid gap-3 md:grid-cols-3">
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  onClick={() => applyPreset(preset.factory)}
+                  className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-primary/40 hover:shadow-sm"
+                >
+                  <p className="font-semibold text-primary">{preset.title}</p>
+                  <p className="mt-1 text-sm text-gray-600">{preset.subtitle}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {Object.entries(groupedDomains).map(([group, modules]) => (
+              <section key={group} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-primary">{group}</h3>
+                  <p className="text-xs text-gray-500">
+                    Required modules are marked and must always have a valid
+                    level.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {modules.map((module) => (
+                    <div
+                      key={module.key}
+                      className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    >
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-primary">
+                              {module.label}
+                            </p>
+                            {module.required && (
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                Required
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-sm text-gray-600">
+                            {module.description}
+                          </p>
+                        </div>
+
+                        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                          {ACCESS_OPTIONS.map((option) => {
+                            const selected = permissions[module.key] === option.value;
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() =>
+                                  handlePermissionChange(module.key, option.value)
+                                }
+                                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                                  selected
+                                    ? `${option.chipClass} shadow-sm`
+                                    : "text-gray-600 hover:bg-white"
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {isExclusionEnabled(module.key) && (
+                        <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+                          <p className="text-sm font-medium text-primary">
+                            Excluded members
+                          </p>
+                          <p className="mt-1 text-xs text-gray-600">
+                            Excluded users will not be accessible in this
+                            module. Selected values are submitted as `user_id`
+                            numbers.
+                          </p>
+                          <MultiSelect
+                            className="mt-3"
+                            options={exclusionMemberOptions}
+                            selectedValues={exclusionSelections[module.key] || []}
+                            onChange={(values) =>
+                              handleExclusionChange(module.key, values)
+                            }
+                            placeholder="Select members to exclude"
+                            emptyMsg="No excluded members"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
-          {Object.entries(groupedDomains).map(([group, modules]) => (
-            <section key={group} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-primary">{group}</h3>
-                <p className="text-xs text-gray-500">
-                  Required modules are marked and must always have a valid level.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {modules.map((module) => (
-                  <div
-                    key={module.key}
-                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-primary">{module.label}</p>
-                          {module.required && (
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                              Required
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-sm text-gray-600">
-                          {module.description}
-                        </p>
-                      </div>
-
-                      <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
-                        {ACCESS_OPTIONS.map((option) => {
-                          const selected = permissions[module.key] === option.value;
-                          return (
-                            <button
-                              key={option.value}
-                              type="button"
-                              onClick={() =>
-                                handlePermissionChange(module.key, option.value)
-                              }
-                              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                                selected
-                                  ? `${option.chipClass} shadow-sm`
-                                  : "text-gray-600 hover:bg-white"
-                              }`}
-                            >
-                              {option.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {isExclusionEnabled(module.key) && (
-                      <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
-                        <p className="text-sm font-medium text-primary">
-                          Excluded members
-                        </p>
-                        <p className="mt-1 text-xs text-gray-600">
-                          Excluded users will not be accessible in this module.
-                          Selected values are submitted as `user_id` numbers.
-                        </p>
-                        <MultiSelect
-                          className="mt-3"
-                          options={exclusionMemberOptions}
-                          selectedValues={exclusionSelections[module.key] || []}
-                          onChange={(values) =>
-                            handleExclusionChange(module.key, values)
-                          }
-                          placeholder="Select members to exclude"
-                          emptyMsg="No excluded members"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button
-            value="Cancel"
-            variant="secondary"
-            onClick={() => navigate(-1)}
-          />
-          <Button
-            value="Save Access Level"
-            variant="primary"
-            disabled={!name.trim() || loading || updateLoading}
-            loading={loading || updateLoading}
-            onClick={handleSubmit}
-          />
+        <div className="app-page-padding shrink-0 border-t border-gray-200 bg-white">
+          <div className="flex justify-end gap-2 py-3">
+            <Button
+              value="Cancel"
+              variant="secondary"
+              onClick={() => navigate(-1)}
+            />
+            <Button
+              value="Save Access Level"
+              variant="primary"
+              disabled={!name.trim() || loading || updateLoading}
+              loading={loading || updateLoading}
+              onClick={handleSubmit}
+            />
+          </div>
         </div>
       </section>
     </PageOutline>

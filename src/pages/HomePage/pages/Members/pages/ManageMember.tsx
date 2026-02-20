@@ -5,13 +5,46 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { Formik } from "formik";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
+import { Formik, FormikProps, FormikTouched } from "formik";
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
+import { showNotification } from "@/pages/HomePage/utils";
+
+const mapErrorsToTouched = (errors: unknown): unknown => {
+  if (Array.isArray(errors)) {
+    return errors.map((item) => mapErrorsToTouched(item));
+  }
+
+  if (errors && typeof errors === "object") {
+    return Object.entries(errors as Record<string, unknown>).reduce<
+      Record<string, unknown>
+    >((acc, [key, value]) => {
+      acc[key] = mapErrorsToTouched(value);
+      return acc;
+    }, {});
+  }
+
+  return true;
+};
+
+const hasValidationErrors = (errors: unknown): boolean => {
+  if (Array.isArray(errors)) {
+    return errors.some((item) => hasValidationErrors(item));
+  }
+
+  if (errors && typeof errors === "object") {
+    return Object.values(errors as Record<string, unknown>).some((value) =>
+      hasValidationErrors(value)
+    );
+  }
+
+  return Boolean(errors);
+};
 
 export function ManageMember() {
   const navigate = useNavigate();
@@ -39,6 +72,7 @@ export function ManageMember() {
     goNext: () => void;
     goBack: () => void;
     isLastStep: boolean;
+    focusFirstErrorStep: (errors: unknown) => void;
   } | null>(null);
 
   useEffect(() => {
@@ -72,7 +106,7 @@ export function ManageMember() {
   };
 
   async function handleSubmit(values: IMembersForm) {
-    let dataToSend = { ...values };
+    let dataToSend = normalizeOptionalOtherNames(values);
 
     try {
       const uploadedFile = values.picture?.picture;
@@ -85,7 +119,7 @@ export function ManageMember() {
 
         if (response?.status === 200) {
           dataToSend = {
-            ...values,
+            ...dataToSend,
             picture: { src: response.data.result.link, picture: null },
           };
         } else {
@@ -100,15 +134,34 @@ export function ManageMember() {
           throw new Error("Member id is missing");
         }
         await updateData(dataToSend, { user_id: String(memberId) });
+      } else {
+        await postData(dataToSend);
       }
-      else await postData(dataToSend);
     } catch (error) {
-      console.error("Error during submission:", error);
+      const message =
+        error instanceof Error ? error.message : "Unable to save member details.";
+      showNotification(message, "error");
     }
   }
 
-  console.log("member id", member?.data?.id);
-  
+  const handleSubmitWithValidation = async (formik: FormikProps<IMembersForm>) => {
+    const errors = await formik.validateForm();
+
+    if (hasValidationErrors(errors)) {
+      formik.setTouched(
+        mapErrorsToTouched(errors) as FormikTouched<IMembersForm>,
+        false
+      );
+      stepControls.current?.focusFirstErrorStep(errors);
+      showNotification(
+        "Please complete all required fields before submitting.",
+        "error"
+      );
+      return;
+    }
+
+    await formik.submitForm();
+  };
 
   return (
     <div className="p-4">
@@ -125,7 +178,7 @@ export function ManageMember() {
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {({ handleSubmit }) => (
+          {(formik: FormikProps<IMembersForm>) => (
             <>
               <MembersForm
                 onRegisterControls={(controls) => {
@@ -144,9 +197,9 @@ export function ManageMember() {
                   onCancel={handleCancel}
                   onSubmit={
                     isEditMode
-                      ? handleSubmit
+                      ? () => handleSubmitWithValidation(formik)
                       : stepControls.current?.isLastStep
-                      ? handleSubmit
+                      ? () => handleSubmitWithValidation(formik)
                       : undefined
                   }
                   loading={loading || updateLoading}

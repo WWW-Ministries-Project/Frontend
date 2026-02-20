@@ -5,36 +5,67 @@ import {
   IVisitorForm,
   VisitorForm,
 } from "@/pages/HomePage/pages/VisitorManagement/Components/VisitorForm";
+import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { decodeToken } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { useEffect, useState } from "react";
+
+const VISITOR_REDIRECT_DELAY_MS = 10000;
+
+const hasSuccessfulStatus = (response: unknown): boolean => {
+  if (!response || typeof response !== "object") return false;
+  const status = (response as { status?: unknown }).status;
+  return typeof status === "number" && status >= 200 && status < 300;
+};
 
 export const VisitorRegistration = () => {
   const [registrationSuccess, setRegistrationSuccess] =
     useState<boolean>(false);
-  const { postData, loading } = usePost(api.post.createVisitor);
+  const {
+    postData,
+    loading,
+    data: registrationResponse,
+    error,
+  } = usePost(api.post.createVisitor);
   const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
-  const store = useStore()
-  const user = decodeToken()
-
+  const store = useStore();
+  const user = decodeToken();
 
   useEffect(() => {
     if (registrationSuccess) {
       const timer = setTimeout(() => {
         window.location.href = "https://worldwidewordministries.org/";
-      }, 10000);
+      }, VISITOR_REDIRECT_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [registrationSuccess]);
 
-  async function handleSubmit(values: IVisitorForm) {
-    try {
-      await postData(values);
+  useEffect(() => {
+    if (!registrationResponse) return;
+
+    if (hasSuccessfulStatus(registrationResponse)) {
       setRegistrationSuccess(true);
-    } catch {
-      // Error is handled by the usePost hook
+      return;
     }
+
+    showNotification(
+      "Unable to complete visitor registration. Please try again.",
+      "error"
+    );
+  }, [registrationResponse]);
+
+  useEffect(() => {
+    if (!error) return;
+    showNotification(
+      error.message || "Unable to complete visitor registration.",
+      "error"
+    );
+  }, [error]);
+
+  async function handleSubmit(values: IVisitorForm) {
+    await postData(normalizeOptionalOtherNames(values));
   }
 
   useEffect(() => {
@@ -47,7 +78,7 @@ export const VisitorRegistration = () => {
     if (data) {
       store.setEvents(data.data);
     }
-  }, [data]);
+  }, [data, store]);
 
   if (registrationSuccess) {
     return (
@@ -77,7 +108,8 @@ export const VisitorRegistration = () => {
             </p>
           </div>
           <p className="text-gray-500 text-sm">
-            You will be redirected to our homepage in 10 seconds...
+            You will be redirected to our homepage in{" "}
+            {Math.floor(VISITOR_REDIRECT_DELAY_MS / 1000)} seconds...
           </p>
         </div>
       </div>
@@ -97,12 +129,12 @@ export const VisitorRegistration = () => {
             </p>
           </div>
         </div>
-          <VisitorForm
-            onClose={() => {}}
-            onSubmit={handleSubmit}
-            loading={loading}
-            showHeader={false}
-          />
+        <VisitorForm
+          onClose={() => {}}
+          onSubmit={handleSubmit}
+          loading={loading}
+          showHeader={false}
+        />
       </div>
     </main>
   );

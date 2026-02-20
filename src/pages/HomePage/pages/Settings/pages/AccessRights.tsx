@@ -19,7 +19,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ActiveAccess } from "../Components/ActiveAccess";
+import { AccessLevelViewModal } from "../Components/AccessLevelViewModal";
 import { AccessRight } from "../utils/settingsInterfaces";
 
 type AccessRightRow = AccessRight & {
@@ -28,6 +28,7 @@ type AccessRightRow = AccessRight & {
 };
 
 const isPermissionValue = (value: unknown): value is PermissionValue =>
+  value === "No_Access" ||
   value === "Can_View" ||
   value === "Can_Manage" ||
   value === "Super_Admin";
@@ -41,7 +42,7 @@ export function AccessRights() {
   );
 
   const [filter, setFilter] = useState("");
-  const [selectedAccessRight, setSelectedAccessRight] =
+  const [viewingAccessRight, setViewingAccessRight] =
     useState<AccessRightRow | null>(null);
   const navigate = useNavigate();
 
@@ -72,7 +73,7 @@ export function AccessRights() {
   }, [accessRights]);
 
   const handleDelete = useCallback(
-    (accessRight: AccessRightRow) => {
+    (accessRight: AccessRight) => {
       showDeleteDialog(accessRight, () => {
         deleteAccess({ id: String(accessRight.id) });
       });
@@ -85,11 +86,19 @@ export function AccessRights() {
   }, [navigate]);
 
   const openEdit = useCallback(
-    (accessRight: AccessRightRow) => {
+    (accessRight: AccessRight) => {
       navigate(`manage-access?access_id=${encodeQuery(accessRight.id)}`);
     },
     [navigate]
   );
+
+  const openViewModal = useCallback((accessRight: AccessRightRow) => {
+    setViewingAccessRight(accessRight);
+  }, []);
+
+  const closeViewModal = useCallback(() => {
+    setViewingAccessRight(null);
+  }, []);
 
   const columns: ColumnDef<AccessRightRow>[] = useMemo(
     () => [
@@ -128,7 +137,7 @@ export function AccessRights() {
             <Button
               value="View"
               variant="secondary"
-              onClick={() => setSelectedAccessRight(row.original)}
+              onClick={() => openViewModal(row.original)}
               className="!px-3 !py-1 !min-h-8 text-xs"
             />
             <Button
@@ -149,19 +158,13 @@ export function AccessRights() {
         ),
       },
     ],
-    [canManageAccessRights, handleDelete, openEdit]
+    [canManageAccessRights, handleDelete, openEdit, openViewModal]
   );
-
-  useEffect(() => {
-    if (!selectedAccessRight && rows.length > 0) {
-      setSelectedAccessRight(rows[0]);
-    }
-  }, [rows, selectedAccessRight]);
 
   useEffect(() => {
     if (deleteSuccess) {
       refetch();
-      setSelectedAccessRight(null);
+      setViewingAccessRight(null);
     }
   }, [deleteSuccess, refetch]);
 
@@ -198,86 +201,47 @@ export function AccessRights() {
           )}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <section className="space-y-3 lg:col-span-2">
-            <SearchBar
-              placeholder="Search access levels..."
-              className="max-w-md"
-              onChange={(event) => setFilter(event.target.value)}
-              value={filter}
+        <section className="space-y-3">
+          <SearchBar
+            placeholder="Search access levels..."
+            className="max-w-md"
+            onChange={(event) => setFilter(event.target.value)}
+            value={filter}
+          />
+
+          {rows.length === 0 ? (
+            <EmptyState
+              scope="page"
+              msg="No access levels found"
+              description="Create an access level to assign permission templates to users."
             />
-
-            {rows.length === 0 ? (
-              <EmptyState
-                scope="page"
-                msg="No access levels found"
-                description="Create an access level to assign permission templates to users."
-              />
-            ) : (
-              <TableComponent
-                columns={columns}
-                data={rows}
-                filter={filter}
-                setFilter={setFilter}
-                rowClass="even:bg-white odd:bg-[#F7F8FA]"
-                className="shadow-sm"
-                showNumberColumn={false}
-                onRowClick={(row: AccessRightRow) => setSelectedAccessRight(row)}
-              />
-            )}
-          </section>
-
-          <section className="space-y-4">
-            {selectedAccessRight ? (
-              <>
-                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                    Selected Access Level
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-primary">
-                    {selectedAccessRight.name}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      value="Edit"
-                      variant="secondary"
-                      onClick={() => openEdit(selectedAccessRight)}
-                      disabled={!canManageAccessRights}
-                      className="!min-h-8 !px-3 !py-1 text-xs"
-                    />
-                    <Button
-                      value="Delete"
-                      variant="ghost"
-                      onClick={() => handleDelete(selectedAccessRight)}
-                      disabled={!canManageAccessRights}
-                      className="!min-h-8 !px-3 !py-1 text-xs text-red-600 hover:bg-red-50"
-                    />
-                  </div>
-                </div>
-
-                <ActiveAccess
-                  name={selectedAccessRight.name}
-                  permissions={selectedAccessRight.permissions || {}}
-                />
-              </>
-            ) : (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
-                <p className="font-semibold text-primary">No access level selected</p>
-                <p className="mt-1 text-sm text-gray-600">
-                  Select a row to preview details, or create a new access level.
-                </p>
-                <Button
-                  value="Create Access Level"
-                  onClick={openCreate}
-                  disabled={!canManageAccessRights}
-                  className="mt-3"
-                />
-              </div>
-            )}
-          </section>
-        </div>
+          ) : (
+            <TableComponent
+              columns={columns}
+              data={rows}
+              filter={filter}
+              setFilter={setFilter}
+              rowClass="even:bg-white odd:bg-[#F7F8FA]"
+              className="shadow-sm"
+              showNumberColumn={false}
+            />
+          )}
+        </section>
       </section>
+
+      <AccessLevelViewModal
+        open={Boolean(viewingAccessRight)}
+        accessRight={viewingAccessRight}
+        canManageAccessRights={canManageAccessRights}
+        onClose={closeViewModal}
+        onEdit={(accessRight) => {
+          closeViewModal();
+          openEdit(accessRight);
+        }}
+        onDelete={(accessRight) => {
+          handleDelete(accessRight);
+        }}
+      />
     </PageOutline>
   );
 }
