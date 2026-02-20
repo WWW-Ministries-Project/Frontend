@@ -3,18 +3,16 @@ import OuterDiv from "./OuterDiv";
 
 const PasswordSet = () => {
   return (
-    <>
-      <OuterDiv>
-        <div className="pt-1 authForm rounded-lg mx-auto bg-wwmBlue">
-           <NotificationCard className={"bg-white"}
-          header="New Password Set"
-          text="Your new password has been set successfully. Proceed to login with your new password"
-          src={"/assets/authentication/successIcon.svg"}
-        /> 
-        </div>
-        
-      </OuterDiv>
-    </>
+    <OuterDiv>
+      <NotificationCard
+        header="Password Updated"
+        text="Your new password has been set successfully. You can now log in with your new password."
+        src="/assets/authentication/successIcon.svg"
+        imageAlt="Password reset successful icon"
+        bottomText="Return to login"
+        link="/login"
+      />
+    </OuterDiv>
   );
 };
 
