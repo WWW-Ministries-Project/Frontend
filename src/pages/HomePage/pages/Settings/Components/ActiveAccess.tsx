@@ -20,6 +20,11 @@ const LEVEL_META: Record<
   PermissionValue,
   { label: string; className: string; dotClass: string }
 > = {
+  No_Access: {
+    label: "No Access",
+    className: "bg-gray-200 text-gray-700",
+    dotClass: "bg-gray-600",
+  },
   Can_View: {
     label: "Can View",
     className: "bg-blue-100 text-blue-700",
@@ -72,7 +77,8 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
         ([key, value]) =>
           key !== "Exclusions" &&
           !knownKeys.has(key) &&
-          (value === "Can_View" ||
+          (value === "No_Access" ||
+            value === "Can_View" ||
             value === "Can_Manage" ||
             value === "Super_Admin")
       )

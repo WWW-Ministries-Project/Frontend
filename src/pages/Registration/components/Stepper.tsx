@@ -59,7 +59,7 @@ export const Stepper = ({
           {currentStep !== 0 && (
             <Button
               onClick={handleBack}
-              disabled={currentStep === 0}
+              disabled={currentStep === 0 || loading}
               variant="secondary"
               value="Back"
             />
@@ -67,6 +67,7 @@ export const Stepper = ({
         </div>
         <Button
           onClick={handleNext}
+          disabled={loading}
           className="px-4 py-2 bg-primary text-white rounded"
           value={currentStep === steps.length - 1 ? "Submit" : "Next"}
           loading={loading}
