@@ -6,6 +6,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import {
   ChildrenSubForm,
   IChildrenSubForm,
@@ -85,7 +86,7 @@ export const Registration = () => {
   }, [error]);
 
   async function handleSubmit(values: IRegistration) {
-    let dataToSend: IRegistration = { ...values };
+    let dataToSend: IRegistration = normalizeOptionalOtherNames(values);
 
     try {
       const uploadedFile = values.picture?.picture;
@@ -98,7 +99,7 @@ export const Registration = () => {
 
         if (response?.status === 200) {
           dataToSend = {
-            ...values,
+            ...dataToSend,
             picture: { src: response.data.result.link, picture: null },
           };
         } else {

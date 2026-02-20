@@ -9,6 +9,7 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { decodeToken } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { useEffect, useState } from "react";
 
 const VISITOR_REDIRECT_DELAY_MS = 10000;
@@ -64,7 +65,7 @@ export const VisitorRegistration = () => {
   }, [error]);
 
   async function handleSubmit(values: IVisitorForm) {
-    await postData(values);
+    await postData(normalizeOptionalOtherNames(values));
   }
 
   useEffect(() => {

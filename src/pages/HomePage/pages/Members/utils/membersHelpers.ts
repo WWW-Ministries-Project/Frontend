@@ -72,12 +72,23 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
   const formatDate = (date: string) => (date ? date.split("T")[0] : "");
   const formatPhone = (phone: string) =>
     phone ? phone.replace(/[^0-9]/g, "") : "";
+  const normalizedFamily = Array.isArray(input.family)
+    ? input.family
+        .filter(
+          (member): member is IPersonalDetails & Record<string, unknown> =>
+            typeof member === "object" && member !== null
+        )
+        .map((member) => ({
+          ...member,
+          other_name: member.other_name ?? "",
+        }))
+    : [];
 
   return {
     personal_info: {
       title: input.title || "",
       first_name: input.first_name,
-      other_name: input.other_name,
+      other_name: input.other_name ?? "",
       last_name: input.last_name,
       date_of_birth: formatDate(input.date_of_birth),
       gender: input.gender || "",
@@ -115,6 +126,6 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       member_since: formatDate(input.member_since),
     },
     department_positions: mapDepartmentPositions(input),
-    family: (input.family as IPersonalDetails[]) || [],
+    family: normalizedFamily,
   };
 };

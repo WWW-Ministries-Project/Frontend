@@ -16,7 +16,7 @@ import {
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { array, boolean, date, object, string } from "yup";
 import {
   DepartmentPositionSubForm,
@@ -25,6 +25,20 @@ import {
 import { RadioInput } from "./RadioInput";
 
 type StepKey = "basic" | "contact" | "church" | "work" | "family";
+
+const hasNestedError = (errorValue: unknown): boolean => {
+  if (Array.isArray(errorValue)) {
+    return errorValue.some((item) => hasNestedError(item));
+  }
+
+  if (errorValue && typeof errorValue === "object") {
+    return Object.values(errorValue as Record<string, unknown>).some((item) =>
+      hasNestedError(item)
+    );
+  }
+
+  return Boolean(errorValue);
+};
 
 const getSteps = (hasChildren: boolean) => {
   const steps = [
@@ -73,63 +87,88 @@ interface IProps {
     goNext: () => void;
     goBack: () => void;
     isLastStep: boolean;
+    focusFirstErrorStep: (errors: unknown) => void;
   }) => void;
 }
 
 const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) => {
-  const { values, errors, touched, setFieldValue } =
-    useFormikContext<IMembersForm>();
+  const { values, errors, setFieldValue } = useFormikContext<IMembersForm>();
   const has_children = values.personal_info?.has_children ?? false;
 
-  const steps = getSteps(has_children);
+  const steps = useMemo(() => getSteps(has_children), [has_children]);
 
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
   const previousIsUserRef = useRef(values.is_user);
 
   const currentIndex = steps.findIndex((s) => s.key === currentStep);
 
+  const stepHasError = useCallback(
+    (step: StepKey, formErrors: unknown): boolean => {
+      const errorsRecord =
+        formErrors && typeof formErrors === "object"
+          ? (formErrors as Record<string, unknown>)
+          : {};
+
+      switch (step) {
+        case "basic":
+          return hasNestedError(errorsRecord.personal_info);
+        case "contact":
+          return (
+            hasNestedError(errorsRecord.contact_info) ||
+            hasNestedError(errorsRecord.emergency_contact)
+          );
+        case "church":
+          return (
+            hasNestedError(errorsRecord.church_info) ||
+            (values.is_user && hasNestedError(errorsRecord.department_positions))
+          );
+        case "work":
+          return hasNestedError(errorsRecord.work_info);
+        case "family":
+          return has_children && hasNestedError(errorsRecord.family);
+        default:
+          return false;
+      }
+    },
+    [has_children, values.is_user]
+  );
+
   const isStepValid = (step: StepKey) => {
-    switch (step) {
-      case "basic":
-        return !errors.personal_info;
-      case "contact":
-        return !errors.contact_info && !errors.emergency_contact;
-      case "church":
-        if (errors.church_info) return false;
-        if (values.is_user && errors.department_positions) return false;
-        return true;
-      case "work":
-        return !errors.work_info;
-      case "family":
-        return !errors.family;
-      default:
-        return false;
-    }
+    return !stepHasError(step, errors);
   };
 
-  const goNext = () => {
+  const focusFirstErrorStep = useCallback(
+    (formErrors: unknown) => {
+      const firstInvalidStep = steps.find((step) =>
+        stepHasError(step.key, formErrors)
+      );
+      if (firstInvalidStep) {
+        setCurrentStep(firstInvalidStep.key);
+      }
+    },
+    [stepHasError, steps]
+  );
+
+  const goNext = useCallback(() => {
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1].key);
     }
-  };
+  }, [currentIndex, steps]);
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
     }
-  };
-
-  const skipStep = () => {
-    goNext();
-  };
+  }, [currentIndex, steps]);
 
   useEffect(() => {
     onRegisterControls?.({
       goNext,
       goBack,
       isLastStep: currentIndex === steps.length - 1,
+      focusFirstErrorStep,
     });
-  }, [goNext, goBack, currentIndex, steps.length]);
+  }, [goNext, goBack, currentIndex, steps.length, focusFirstErrorStep, onRegisterControls]);
 
   useEffect(() => {
     if (previousIsUserRef.current === values.is_user) return;
