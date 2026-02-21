@@ -2,11 +2,10 @@ import { sideTabs } from "@/routes/appRoutes";
 import { removeToken } from "@/utils/helperFunctions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { SidebarItem } from "./SidebarItem";
 import { useAuth } from "@/context/AuthWrapper";
+import { SidebarNavList } from "./SidebarNavList";
 
 import LogoutIcon from "@/assets/sidebar/Logout";
-import { sidebarIcons } from "../utils";
 
 interface IProps {
   className?: string;
@@ -170,25 +169,13 @@ export const SideBar = ({ className }: IProps) => {
           className="sidebar-scroll h-full overflow-y-auto overflow-x-hidden"
         >
           <div className="flex flex-col space-y-2 py-4">
-            {/* Render sidebar items */}
-            {filteredTabs.map((item) => {
-              const IconComponent = sidebarIcons[item.name!];
-              if (!IconComponent) return null;
-
-              const isActive = activeTabNames[item.name];
-
-              return (
-                <SidebarItem
-                  key={item.name}
-                  item={item}
-                  IconComponent={IconComponent}
-                  isActive={isActive}
-                  isExpanded={isExpanded}
-                  openMenus={openMenus}
-                  toggleSubMenu={toggleSubMenu}
-                />
-              );
-            })}
+            <SidebarNavList
+              items={filteredTabs}
+              show={isExpanded}
+              openMenus={openMenus}
+              activeTabNames={activeTabNames}
+              onToggleSubMenu={toggleSubMenu}
+            />
           </div>
         </div>
       </div>

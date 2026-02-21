@@ -3,9 +3,8 @@ import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { eventInput } from "../utils/eventHelpers";
 import EventsScheduleForm from "../Components/EventsScheduleForm";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -15,13 +14,13 @@ const CreateEvent = () => {
   const [inputValue, setInputValue] = useState(eventInput);
   // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const navigate = useNavigate()
   const location = useLocation();
   const {
     postData,
     loading: postLoading,
-    error: postError,
-    data: postedData,
   } = usePost(api.post.createEvent);
   const { updateData } = usePut(api.put.updateEvent);
 
@@ -40,14 +39,11 @@ const CreateEvent = () => {
     }
   }, [id, user]);
 
-  
-  
-  useEffect(() => {
-   console.log("Input Value", inputValue);
-   
-  }, []);
-
   const handleSubmit = async (val: Record<string, unknown>) => {
+    if (submittingRef.current) return;
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
     // setLoading(true);
     const data = new FormData();
     if (file) {
@@ -63,15 +59,17 @@ const CreateEvent = () => {
       }
       if (!id) {
         const eventData = { ...val, poster: posterLink, created_by: user?.id };
-        postData(eventData);
+        await postData(eventData);
       } else {
         const eventData = { ...val, poster: posterLink, updated_by: user?.id };
-        updateData(eventData);
+        await updateData(eventData);
       }
     } catch (error) {
       console.log(error);
       // setLoading(false);
     } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
       navigate("/home/events/events")
     }
   };
@@ -87,7 +85,7 @@ const CreateEvent = () => {
           <EventsScheduleForm
             inputValue={inputValue}
             onSubmit={handleSubmit}
-            loading={postLoading}
+            loading={postLoading || isSubmitting}
             updating={id ? true : false}
           />
         </div>
