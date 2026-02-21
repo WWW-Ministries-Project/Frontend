@@ -61,9 +61,15 @@ export const useUserStore = create<UserState & UserActions>()(
           explicitPermissionPayload as PermissionMap
         );
 
-        const legacyPermissions = allValuesAreBoolean(permissions)
-          ? permissions
-          : flattenPermissionsToLegacyFlags(normalizedPermissionPayload);
+        const hasCanonicalPermissionDomains = Object.keys(
+          normalizedPermissionPayload
+        ).some((key) => key !== "Exclusions");
+
+        const legacyPermissions = hasCanonicalPermissionDomains
+          ? flattenPermissionsToLegacyFlags(normalizedPermissionPayload)
+          : allValuesAreBoolean(permissions)
+            ? permissions
+            : flattenPermissionsToLegacyFlags(normalizedPermissionPayload);
 
         set({
           id,

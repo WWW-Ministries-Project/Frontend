@@ -1,8 +1,6 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
-import { hasRequiredAccess } from "@/utils/accessControl";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "../../../context/AuthWrapper";
 import { sidebarIcons } from "../utils";
 import { NavigationLink } from "./NavigationLink";
 import { SideBarSubMenu } from "./SidebarSubmenu";
@@ -13,24 +11,10 @@ interface IProps {
 }
 
 export const MobileSideBar = ({ show, onClick }: IProps) => {
-  const {
-    user: { permissions, access_permissions },
-  } = useAuth();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  const items: AppRoute[] = useMemo(
-    () =>
-      sideTabs.filter(
-        (item) =>
-          !item.isPrivate ||
-          hasRequiredAccess(
-            item.permissionNeeded,
-            access_permissions,
-            permissions
-          )
-      ),
-    [access_permissions, permissions]
-  );
+  // Keep all modules visible. Route-level guards handle access denial on navigation.
+  const items: AppRoute[] = useMemo(() => sideTabs, []);
 
   useEffect(() => {
     if (!show) setOpenSubMenu(null);

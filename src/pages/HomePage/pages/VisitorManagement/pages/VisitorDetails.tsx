@@ -1,32 +1,87 @@
 import { HeaderControls } from "@/components/HeaderControls";
+import { Modal } from "@/components/Modal";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
-import { api } from "@/utils";
+import { api, VisitorType } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { EnvelopeIcon, HomeIcon, PhoneIcon } from "@heroicons/react/24/solid";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ListDetailComp } from "../../DashBoard/Components/ListDetailComp";
 import { Banner } from "../../Members/Components/Banner";
+import { IVisitorForm, VisitorForm } from "../Components/VisitorForm";
 import { FollowUps } from "../Components/FollowUps";
 import { Visits } from "../Components/Visit";
+import { mapVisitorToForm } from "../utils";
 import { ProfilePicture } from "@/components";
+import { showNotification } from "../../../utils";
 
 export const VisitorDetails = () => {
   const { visitorId } = useParams();
   const [selectedTab, setSelectedTab] = useState<string>("Visit");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedVisitor, setSelectedVisitor] = useState<
+    (IVisitorForm & { id: string }) | undefined
+  >(undefined);
+  const { canManage } = useAccessControl();
+  const canManageVisitors = canManage("Visitors");
 
   const { data, loading, refetch } = useFetch(api.fetch.fetchVisitorById, {
     id: visitorId!,
   });
+  const {
+    updateData,
+    loading: putLoading,
+    data: putSuccess,
+    error: putError,
+  } = usePut(api.put.updateVisitor);
   const visitor = useMemo(() => data?.data, [data]);
+  const responsibleMemberNames = useMemo(() => {
+    const names =
+      visitor?.responsibleMembersNames?.map((member) => member.name).filter(Boolean) || [];
+
+    return Array.from(new Set(names));
+  }, [visitor?.responsibleMembersNames]);
 
   const handleTabSelect = (tab: string) => setSelectedTab(tab);
   const profileImg = "https://media.istockphoto.com/id/587805156/vector/profile-picture-vector-illustration.jpg?s=612x612&w=0&k=20&c=gkvLDCgsHH-8HeQe7JsjhlOY6vRBJk_sKW9lyaLgmLo="
+  const handleOpenEditModal = () => {
+    if (!visitor) return;
+    setSelectedVisitor(mapVisitorToForm(visitor as VisitorType));
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = (formValues: IVisitorForm & { id?: string }) => {
+    const visitorIdToUpdate = selectedVisitor?.id || String(visitor?.id || "");
+
+    if (!visitorIdToUpdate) {
+      showNotification("Unable to update visitor: missing visitor id", "error");
+      return;
+    }
+
+    void updateData(formValues, { id: visitorIdToUpdate });
+  };
+
+  useEffect(() => {
+    if (!putSuccess) return;
+
+    showNotification("Visitor updated successfully", "success");
+    void refetch();
+    setIsEditModalOpen(false);
+    setSelectedVisitor(undefined);
+  }, [putSuccess, refetch]);
+
+  useEffect(() => {
+    if (!putError) return;
+
+    showNotification(putError.message || "Unable to update visitor", "error");
+  }, [putError]);
 
   return (
     <div>
@@ -121,6 +176,7 @@ export const VisitorDetails = () => {
                   <FollowUps
                     followUps={visitor?.followUps || []}
                     visitorId={visitorId!}
+                    responsibleMembers={visitor?.responsibleMembersNames || []}
                     onRefetch={async () => {
                       await refetch();
                     }}
@@ -155,6 +211,9 @@ export const VisitorDetails = () => {
               <HeaderControls
                 title="Visitor Details"
                 subtitle={`Visitor since: ${formatDate(visitor?.visitDate || "")}`}
+                btnName={canManageVisitors ? "Edit visitor" : undefined}
+                handleClick={handleOpenEditModal}
+                screenWidth={window.innerWidth}
               />
 
               <div className="space-y-3 break-words">
@@ -172,11 +231,47 @@ export const VisitorDetails = () => {
                 <div className="font-semibold text-sm sm:text-base">How they heard about us:</div>
                 <div className="text-sm sm:text-base break-words">{visitor?.howHeard}</div>
               </div>
+
+              <HorizontalLine />
+
+              <div className="space-y-1">
+                <div className="font-semibold text-sm sm:text-base">
+                  Responsible person{responsibleMemberNames.length > 1 ? "s" : ""}:
+                </div>
+                {responsibleMemberNames.length > 0 ? (
+                  <ul className="list-disc pl-5 text-sm sm:text-base break-words space-y-1">
+                    {responsibleMemberNames.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm sm:text-base break-words">Not assigned</div>
+                )}
+              </div>
             </div>
           )}
         </section>
       </div>
     </PageOutline>
+
+    <Modal
+      open={isEditModalOpen}
+      className="max-w-5xl"
+      onClose={() => {
+        setIsEditModalOpen(false);
+        setSelectedVisitor(undefined);
+      }}
+    >
+      <VisitorForm
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedVisitor(undefined);
+        }}
+        selectedVisitor={selectedVisitor}
+        onSubmit={handleEditSubmit}
+        loading={putLoading}
+      />
+    </Modal>
     </div>
   );
 };

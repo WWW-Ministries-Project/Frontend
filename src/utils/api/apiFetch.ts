@@ -420,6 +420,10 @@ export class ApiCalls {
     return this.fetchFromApi(`orders/get-orders-by-market/`, query);
   };
 
+  fetchAllOrders = (query?: QueryType): Promise<ApiResponse<IOrders[]>> => {
+    return this.fetchFromApi(`orders/get-all-orders`, query);
+  };
+
   fetchOrdersByUser = (
     query?: QueryType
   ): Promise<ApiResponse<IOrders[]>> => {

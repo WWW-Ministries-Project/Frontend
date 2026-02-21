@@ -1,6 +1,7 @@
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,6 +14,7 @@ export const ClassCard = ({
   onEdit?: (course: ClassItemType) => void;
   onDelete: () => void;
 }) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -103,15 +105,17 @@ export const ClassCard = ({
         </div>
 
         <div className="relative">
-          <button
-            ref={buttonRef} // Reference to the button
-            className="text-primary"
-            onClick={() => toggleMenu(Number(classItem.id))} // Pass cohort.id as a number
-          >
-            <img src={ellipse} alt="options" className="cursor-pointer" />
-          </button>
+          {canManageCurrentRoute && (
+            <button
+              ref={buttonRef} // Reference to the button
+              className="text-primary"
+              onClick={() => toggleMenu(Number(classItem.id))} // Pass cohort.id as a number
+            >
+              <img src={ellipse} alt="options" className="cursor-pointer" />
+            </button>
+          )}
 
-          {isMenuOpen === Number(classItem.id) && (
+          {canManageCurrentRoute && isMenuOpen === Number(classItem.id) && (
             <div
               ref={menuRef} // Reference to the menu container
               className="absolute right-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"

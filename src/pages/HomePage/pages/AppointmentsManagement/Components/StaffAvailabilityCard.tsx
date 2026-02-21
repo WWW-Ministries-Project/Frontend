@@ -1,5 +1,6 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { StaffAvailability } from "@/utils/api/appointment/interfaces";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 
 interface StaffAvailabilityCardProps {
     availability: StaffAvailability;
@@ -22,6 +23,7 @@ const formatTimeWithMeridiem = (value: string): string => {
 };
 
 const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabilityCardProps) => {
+    const { canManageCurrentRoute } = useRouteAccess();
     const roleText = availability.role ? ` · ${availability.role}` : "";
     const totalSessions = availability.timeSlots.reduce(
       (total, slot) => total + slot.sessions.length,
@@ -32,7 +34,7 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
         <div className="app-card relative mb-4 flex flex-col gap-3">
 
             <div className="absolute top-4 right-4 flex gap-2">
-        {onEdit && (
+        {onEdit && canManageCurrentRoute && (
           <button
             onClick={onEdit}
             className="app-icon-btn"
@@ -41,7 +43,7 @@ const StaffAvailabilityCard = ({ availability, onEdit, onDelete }: StaffAvailabi
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
         )}
-        {onDelete && (
+        {onDelete && canManageCurrentRoute && (
           <button
             onClick={onDelete}
             className="app-icon-btn app-icon-btn-danger"

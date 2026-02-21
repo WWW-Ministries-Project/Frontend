@@ -1,4 +1,5 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { FinanceConfigValues } from "./FinanceConfigForm";
 
 
@@ -11,13 +12,14 @@ interface Iprops {
 
 
 const ConfigCard = ({configData, onEdit, onDelete}: Iprops ) => {
+    const { canManageCurrentRoute } = useRouteAccess();
     return ( 
         <div className="app-card relative space-y-3">
                     <div className="flex items-start justify-between gap-3">
                         <p className="pr-20 text-base font-semibold text-primary">{configData.name}</p>
 
                         <div className="flex gap-2">
-        {onEdit && (
+        {onEdit && canManageCurrentRoute && (
           <button
             onClick={onEdit}
             className="app-icon-btn"
@@ -26,7 +28,7 @@ const ConfigCard = ({configData, onEdit, onDelete}: Iprops ) => {
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
         )}
-        {onDelete && (
+        {onDelete && canManageCurrentRoute && (
           <button
             onClick={onDelete}
             className="app-icon-btn app-icon-btn-danger"

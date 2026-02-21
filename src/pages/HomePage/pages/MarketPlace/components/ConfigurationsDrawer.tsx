@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -35,6 +36,7 @@ export const ConfigurationsDrawer = ({
   types,
   refetch,
 }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
   const [editItem, setEditItem] = useState<IProductType | null>(null);
   const [count, setCount] = useState(0);
@@ -203,6 +205,7 @@ export const ConfigurationsDrawer = ({
                 isAddingNewTCategory ||
                 isUpdatingProductCategory
               }
+              isReadOnly={!canManageCurrentRoute}
             />
 
             {list.length > 0 && <HorizontalLine />}
@@ -214,6 +217,7 @@ export const ConfigurationsDrawer = ({
                   item={item}
                   onEdit={() => setEditItem(item)}
                   onDelete={() => handleDelete(item.id, item.name)}
+                  canManageActions={canManageCurrentRoute}
                 />
               ))}
             </ul>
@@ -228,23 +232,27 @@ const ItemCard = ({
   item,
   onEdit,
   onDelete,
+  canManageActions,
 }: {
   item: IProductType;
   onEdit: () => void;
   onDelete: () => void;
+  canManageActions?: boolean;
 }) => (
   <li className="flex justify-between items-center p-4 border rounded-lg ">
     <div className="flex items-center gap-4">
       <Square3Stack3DIcon className="w-6" />
       <p>{item.name}</p>
     </div>
-    <div className="flex gap-2">
-      <PencilSquareIcon className="w-5 cursor-pointer" onClick={onEdit} />
-      <TrashIcon
-        className="w-5 text-red-500 cursor-pointer"
-        onClick={onDelete}
-      />
-    </div>
+    {canManageActions && (
+      <div className="flex gap-2">
+        <PencilSquareIcon className="w-5 cursor-pointer" onClick={onEdit} />
+        <TrashIcon
+          className="w-5 text-red-500 cursor-pointer"
+          onClick={onDelete}
+        />
+      </div>
+    )}
   </li>
 );
 
@@ -254,12 +262,14 @@ const ConfigurationForm = ({
   editItem,
   onSubmit,
   loading,
+  isReadOnly = false,
 }: {
   label: string;
   placeholder: string;
   editItem: IProductType | null;
   onSubmit: (type: IProductType) => void;
   loading: boolean;
+  isReadOnly?: boolean;
 }) => {
   const initialValues = editItem || { name: "", id: "" };
 
@@ -292,6 +302,7 @@ const ConfigurationForm = ({
             onClick={submitForm}
             className="mt-8"
             loading={loading}
+            disabled={isReadOnly}
           />
         </Form>
       )}

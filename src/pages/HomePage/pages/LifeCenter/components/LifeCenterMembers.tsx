@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import { LifeCenterMemberForm } from "./LifeCenterMemberForm";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -26,6 +27,7 @@ export const LifeCenterMembers = ({
   lifeCenterId: string;
   members: LifeCenterMemberType[];
 }) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState<LifeCenterMemberForm | null>(null);
 
@@ -120,6 +122,7 @@ export const LifeCenterMembers = ({
           className="text-[#474D66]"
           variant="secondary"
           onClick={addMember}
+          disabled={!canManageCurrentRoute}
         />
       </div>
       <hr />
@@ -134,23 +137,25 @@ export const LifeCenterMembers = ({
               <p>
                 {member.name} ({member.role.name})
               </p>
-              <div className="flex items-center gap-1 cursor-pointer">
-                <div
-                  onClick={() =>
-                    handleEdit({
-                      ...member,
-                      role: member.role.name,
-                      roleId: member.role.id,
-                      lifeCenterId,
-                    })
-                  }
-                >
-                  <EditIcon />
+              {canManageCurrentRoute && (
+                <div className="flex items-center gap-1 cursor-pointer">
+                  <div
+                    onClick={() =>
+                      handleEdit({
+                        ...member,
+                        role: member.role.name,
+                        roleId: member.role.id,
+                        lifeCenterId,
+                      })
+                    }
+                  >
+                    <EditIcon />
+                  </div>
+                  <DeleteIcon
+                    onClick={() => handleDelete(member.userId, member.name)}
+                  />
                 </div>
-                <DeleteIcon
-                  onClick={() => handleDelete(member.userId, member.name)}
-                />
-              </div>
+              )}
             </div>
           ))}
         </div>

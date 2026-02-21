@@ -11,6 +11,7 @@ import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights
 import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
 import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
+import VisitorAnalytics from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorAnalytics";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import { Registration } from "@/pages/Registration/Registration";
@@ -38,8 +39,10 @@ import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDe
 import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
 import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/pages/MemberConfirmation";
 import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
+import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
@@ -67,9 +70,14 @@ import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
+import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
+import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
+import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
+import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
+import MarketplaceAnalytics from "@/pages/HomePage/pages/MarketPlace/pages/MarketplaceAnalytics";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
 import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
@@ -201,6 +209,14 @@ export const routes: AppRoute[] = [
               },
             ],
           },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <MembershipAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_members",
+            sideTab: true,
+          },
         ],
       },
       {
@@ -236,10 +252,27 @@ export const routes: AppRoute[] = [
       {
         path: "visitors",
         name: "Visitors",
-        element: <VisitorManagement />,
         isPrivate: true,
         permissionNeeded: "view_visitors",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Visitors",
+            element: <VisitorManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_visitors",
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <VisitorAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_visitors",
+            sideTab: true,
+          },
+        ],
       },
       {
         path: "visitors/visitor/:visitorId",
@@ -258,18 +291,26 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Events Default",
-            element: <Navigate to="all-events" replace />,
-            isPrivate: true,
-            permissionNeeded: "view_events",
-          },
-          {
-            path: "all-events",
             name: "Events",
             element: <AllEvent />,
             isPrivate: true,
             permissionNeeded: "view_events",
             sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <EventsAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+            sideTab: true,
+          },
+          {
+            path: "all-events",
+            name: "Events Legacy",
+            element: <Navigate to="/home/events" replace />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
           },
           {
             path: "events",
@@ -306,6 +347,14 @@ export const routes: AppRoute[] = [
             path: "",
             name: "Church Attendance",
             element: <ChurchAttendance />,
+            isPrivate: true,
+            permissionNeeded: "view_church_attendance",
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <AttendanceAnalytics />,
             isPrivate: true,
             permissionNeeded: "view_church_attendance",
             sideTab: true,
@@ -348,13 +397,6 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Appointments Default",
-            element: <Navigate to="appointment-manager" replace />,
-            isPrivate: true,
-            permissionNeeded: "view_appointments",
-          },
-          {
-            path: "appointment-manager",
             name: "Appointment Manager",
             element: <AppointmentManager />,
             isPrivate: true,
@@ -362,11 +404,26 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
           {
+            path: "analytics",
+            name: "Analytics",
+            element: <AppointmentsAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_appointments",
+            sideTab: true,
+          },
+          {
+            path: "appointment-manager",
+            name: "Appointments Legacy",
+            element: <Navigate to="/home/appointments" replace />,
+            isPrivate: true,
+            permissionNeeded: "view_appointments",
+          },
+          {
             path: "manage-availability",
             name: "Manage Availability",
             element: <ManageAvailability />,
             isPrivate: true,
-            permissionNeeded: "manage_appointments",
+            permissionNeeded: "view_appointments",
             sideTab: true,
           },
           
@@ -417,10 +474,27 @@ export const routes: AppRoute[] = [
       {
         path: "assets",
         name: "Assets",
-        element: <AssetManagement />,
         isPrivate: true,
         permissionNeeded: "view_asset",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Assets",
+            element: <AssetManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_asset",
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <AssetsAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_asset",
+            sideTab: true,
+          },
+        ],
       },
       {
         path: "assets/manage-asset",
@@ -511,10 +585,27 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.marketPlace.main,
         name: "Market Place",
-        element: <MarketPlace />,
         isPrivate: true,
         permissionNeeded: "view_marketplace",
         sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Market Place",
+            element: <MarketPlace />,
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <MarketplaceAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+        ],
       },
       {
         path: relativePath.home.marketPlace.details,
@@ -547,10 +638,19 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Ministry School",
+            name: "School of Ministry",
             element: <MinistrySchool />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <MinistrySchoolAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
           },
           {
             path: `${relativePath.home.ministrySchool.program}/:id`,
@@ -608,7 +708,7 @@ export const routes: AppRoute[] = [
         path: "settings",
         name: "Settings",
         isPrivate: true,
-        permissionNeeded: "view_departments",
+        permissionNeeded: "view_settings",
         sideTab: true,
         children: [
           {

@@ -1,11 +1,9 @@
-import { logOut } from "@/pages/Authentication/utils/helpers";
 import { sideTabs } from "@/routes/appRoutes";
-import { hasRequiredAccess } from "@/utils/accessControl";
 import { removeToken } from "@/utils/helperFunctions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../context/AuthWrapper";
 import { SidebarItem } from "./SidebarItem";
+import { useAuth } from "@/context/AuthWrapper";
 
 import LogoutIcon from "@/assets/sidebar/Logout";
 import { sidebarIcons } from "../utils";
@@ -41,11 +39,9 @@ const isPathActive = (pathname: string, path: string) => {
 };
 
 export const SideBar = ({ className }: IProps) => {
-  const {
-    user: { permissions, access_permissions },
-  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [showTopFade, setShowTopFade] = useState(false);
@@ -53,20 +49,8 @@ export const SideBar = ({ className }: IProps) => {
   const hoverTimerRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Memoize filtered tabs for performance
-  const filteredTabs = useMemo(
-    () =>
-      sideTabs.filter(
-        (item) =>
-          !item.isPrivate ||
-          hasRequiredAccess(
-            item.permissionNeeded,
-            access_permissions,
-            permissions
-          )
-      ),
-    [access_permissions, permissions]
-  );
+  // Keep all modules visible. Route-level guards handle access denial on navigation.
+  const filteredTabs = useMemo(() => sideTabs, []);
 
   // Handle sidebar expand/collapse on hover
   const handleMouseEnter = () => {
@@ -100,8 +84,8 @@ export const SideBar = ({ className }: IProps) => {
 
   const handleLogOut = () => {
     removeToken();
-    logOut();
-    navigate("/login");
+    logout();
+    navigate("/login", { replace: true });
   };
 
   const toggleSubMenu = (menuName: string) => {

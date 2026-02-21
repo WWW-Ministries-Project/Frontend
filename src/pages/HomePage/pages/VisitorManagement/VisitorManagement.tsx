@@ -25,6 +25,15 @@ import { mapVisitorToForm } from "./utils";
 import AddAnotherConfirmation from "../../Components/reusable/AddAnotherConfirmation";
 import { Button } from "@/components";
 
+const formatLastFollowUp = (rawValue?: string) => {
+  if (!rawValue) return "—";
+
+  const parsedDate = new Date(rawValue);
+  if (Number.isNaN(parsedDate.getTime())) return rawValue;
+
+  return formatDate(parsedDate, "long");
+};
+
 export function VisitorManagement() {
   const { canManage } = useAccessControl();
   const canManageVisitors = canManage("Visitors");
@@ -562,8 +571,8 @@ export function VisitorManagement() {
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Follow-up status:</span>{" "}
-                          {visitor.followUp || "—"}
+                          <span className="font-medium text-gray-700">Last follow-up:</span>{" "}
+                          {formatLastFollowUp(visitor.followUp)}
                         </div>
 
                         <Button

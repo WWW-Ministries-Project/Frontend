@@ -1,4 +1,5 @@
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import {
   CalendarIcon,
   BookOpenIcon,
@@ -22,11 +23,12 @@ interface AnnualThemeCardProps {
 }
 
 const AnnualThemeCard = ({ theme, onEdit, onDelete }: AnnualThemeCardProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   return (
     <div className="app-card relative rounded-xl p-6">
       {/* Action buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
-        {onEdit && (
+        {onEdit && canManageCurrentRoute && (
           <button
             onClick={onEdit}
             className="app-icon-btn"
@@ -35,7 +37,7 @@ const AnnualThemeCard = ({ theme, onEdit, onDelete }: AnnualThemeCardProps) => {
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
         )}
-        {onDelete && (
+        {onDelete && canManageCurrentRoute && (
           <button
             onClick={onDelete}
             className="app-icon-btn app-icon-btn-danger"

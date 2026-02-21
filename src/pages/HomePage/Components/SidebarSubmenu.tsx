@@ -1,8 +1,6 @@
 import { AppRoute } from "@/routes/appRoutes";
-import { hasRequiredAccess } from "@/utils/accessControl";
 import { ReactNode, useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { useAuth } from "../../../context/AuthWrapper";
+import { matchPath, NavLink, useLocation } from "react-router-dom";
 import { NavigationLink } from "./NavigationLink";
 
 interface IProps {
@@ -32,12 +30,19 @@ const resolveHomePath = (path: string) => {
   return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
 };
 
-const isPathActive = (pathname: string, path: string) => {
-  const normalizedPathname = normalizePath(pathname);
-  const normalizedPath = normalizePath(path);
+const routeMatches = (pathname: string, routePath: string, end = false) =>
+  Boolean(
+    matchPath(
+      { path: normalizePath(routePath), end },
+      normalizePath(pathname)
+    )
+  );
+
+const routeMatchesDescendant = (pathname: string, routePath: string) => {
+  const normalizedPath = normalizePath(routePath);
   return (
-    normalizedPathname === normalizedPath ||
-    normalizedPathname.startsWith(`${normalizedPath}/`)
+    routeMatches(pathname, normalizedPath, true) ||
+    routeMatches(pathname, `${normalizedPath}/*`, false)
   );
 };
 
@@ -56,9 +61,6 @@ export const SideBarSubMenu = ({
   toggleSubMenu,
 }: IProps) => {
   const location = useLocation();
-  const {
-    user: { permissions, access_permissions },
-  } = useAuth();
 
   const parentRoutePath = useMemo(
     () => resolveHomePath(item.path),
@@ -66,32 +68,24 @@ export const SideBarSubMenu = ({
   );
 
   // Compute active state for parent using normalized absolute paths.
-  const isActive = isPathActive(location.pathname, parentRoutePath);
+  const isActive = routeMatches(location.pathname, parentRoutePath, false);
 
-  // Filter children by permissions and sideTab
+  // Keep all child modules visible. Route-level guards handle access denial.
   const filteredChildren = useMemo(
-    () =>
-      item.children.filter(
-        (child) =>
-          child.sideTab &&
-          (!child.isPrivate ||
-            hasRequiredAccess(
-              child.permissionNeeded,
-              access_permissions,
-              permissions
-            ))
-      ),
-    [access_permissions, item.children, permissions]
+    () => item.children.filter((child) => child.sideTab),
+    [item.children]
   );
 
   // Build child route path
   const getChildPath = (child: AppRoute) =>
     joinRelativePaths(parentPath, child.path);
+  const getChildAbsolutePath = (child: AppRoute) =>
+    resolveHomePath(getChildPath(child));
 
   const collapsedLinkPath =
     filteredChildren.length > 0
-      ? joinRelativePaths(parentPath, filteredChildren[0].path)
-      : item.path;
+      ? getChildAbsolutePath(filteredChildren[0])
+      : parentRoutePath;
 
   return (
     <div>
@@ -145,21 +139,31 @@ export const SideBarSubMenu = ({
           {showChildren && filteredChildren.length > 0 && (
             <div
               className={`pl-3 ${
-                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none sidebar-active-surface" : ""
+                showChildren
+                  ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none sidebar-active-surface"
+                  : ""
               } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
             >
               {filteredChildren.map((child) => (
                 <div key={child.name + child.path}>
                   <NavLink
-                    end
-                    to={getChildPath(child)}
-                    className={({ isActive }) =>
-                      ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
-                        isActive
+                    to={getChildAbsolutePath(child)}
+                    end={!child.path}
+                    className={({ isActive }) => {
+                      const childRoutePath = getChildAbsolutePath(child);
+                      const childIsActive = !child.path
+                        ? routeMatches(location.pathname, childRoutePath, true)
+                        : routeMatchesDescendant(
+                            location.pathname,
+                            childRoutePath
+                          );
+
+                      return ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
+                        isActive || childIsActive
                           ? "font-extrabold text-primary transition"
                           : "hover:text-primary"
-                      }`
-                    }
+                      }`;
+                    }}
                   >
                     {child.name}
                   </NavLink>

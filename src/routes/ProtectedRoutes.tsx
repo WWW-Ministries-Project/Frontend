@@ -1,21 +1,19 @@
 import { useAuth } from "@/context/AuthWrapper";
 import { getToken } from "@/utils";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = getToken();
   const { logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token ) {
+    if (!token) {
       logout();
-      navigate("/login", { replace: true });
     }
-  }, [token, logout, navigate]);
+  }, [token, logout]);
 
-  if (!token) return null;
+  if (!token) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 };

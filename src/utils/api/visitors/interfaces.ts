@@ -39,6 +39,10 @@ export type VisitorType = {
         value?: string | number;
       }
   >;
+  responsibleMembersNames?: Array<{
+    userId: string | number;
+    name: string;
+  }>;
 };
 
 export type VisitorResponseType = {

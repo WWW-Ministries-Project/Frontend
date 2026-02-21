@@ -1,4 +1,5 @@
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { IChurchAttendanceForm } from "../Components/ChurchAttendanceForm";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const getTotals = () => {
     const adultTotal = (record.adultMale ?? 0) + (record.adultFemale ?? 0);
     const childTotal =
@@ -99,18 +101,22 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
       </div>
 
       <div className="flex justify-end gap-3">
-        <button
-          onClick={() => onEdit(record)}
-          className="text-gray-600 hover:text-black"
-        >
-          <PencilIcon className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => onDelete?.(record)}
-          className="text-red-500 hover:text-red-700"
-        >
-          <TrashIcon className="h-4 w-4" />
-        </button>
+        {canManageCurrentRoute && (
+          <>
+            <button
+              onClick={() => onEdit(record)}
+              className="text-gray-600 hover:text-black"
+            >
+              <PencilIcon className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onDelete?.(record)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

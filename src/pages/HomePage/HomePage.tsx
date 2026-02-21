@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
@@ -103,7 +103,7 @@ export function HomePage() {
     setFilter(val);
   };
 
-  if (!token) return null;
+  if (!token) return <Navigate to="/login" replace />;
   return (
     <main className="app-shell-padding h-[100dvh] w-full overflow-hidden bg-background">
       <div className="flex h-full min-h-0 flex-col gap-3">
