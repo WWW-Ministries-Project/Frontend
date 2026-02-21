@@ -2,6 +2,7 @@ import CardWrappers from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
@@ -48,6 +49,7 @@ const ProgramsCard = ({
   applyCard = false,
   handleApply
 }: ProgramsCardProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -207,17 +209,19 @@ const ProgramsCard = ({
           />
 
           <div className="relative" ref={menuRef}>
-            <button
-              className="p-2 rounded-full transition-colors hover:bg-lightGray/30"
-              onClick={toggleMenu}
-              aria-label="Program options"
-              aria-expanded={isMenuOpen}
-              aria-haspopup="true"
-            >
-              <img src={ellipse} alt="" className="w-5 h-5" />
-            </button>
+            {canManageCurrentRoute && (
+              <button
+                className="p-2 rounded-full transition-colors hover:bg-lightGray/30"
+                onClick={toggleMenu}
+                aria-label="Program options"
+                aria-expanded={isMenuOpen}
+                aria-haspopup="true"
+              >
+                <img src={ellipse} alt="" className="w-5 h-5" />
+              </button>
+            )}
 
-            {isMenuOpen && (
+            {canManageCurrentRoute && isMenuOpen && (
               <div
                 className="absolute right-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
                 role="menu"

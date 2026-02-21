@@ -142,7 +142,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   const handleLogout = () => {
     removeToken();
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   /* Close dropdowns & mobile nav on outside click */

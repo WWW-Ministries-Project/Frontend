@@ -1,4 +1,5 @@
 import { cn } from "@/utils/cn";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import {
   EyeIcon,
   PencilSquareIcon,
@@ -13,6 +14,7 @@ interface IAction {
   hideDelete?: boolean;
   className?: string;
   isEditable?: boolean;
+  requireManageAccess?: boolean;
 }
 
 const Action = ({
@@ -21,7 +23,18 @@ const Action = ({
   onView,
   className,
   hideDelete,
+  requireManageAccess = true,
 }: IAction) => {
+  const { canManageCurrentRoute } = useRouteAccess();
+  const canRunManageActions = !requireManageAccess || canManageCurrentRoute;
+  const hasVisibleAction = Boolean(
+    onView ||
+      (canRunManageActions &&
+        (onEdit || (onDelete && !hideDelete)))
+  );
+
+  if (!hasVisibleAction) return null;
+
   return (
     <div
       className={cn(
@@ -30,9 +43,9 @@ const Action = ({
       )}
     >
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
-        {onEdit && <ActionButton onClick={onEdit} text="Edit" />}
+        {onEdit && canRunManageActions && <ActionButton onClick={onEdit} text="Edit" />}
         {onView && <ActionButton onClick={onView} text="View" />}
-        {onDelete && !hideDelete && (
+        {onDelete && canRunManageActions && !hideDelete && (
           <>
             <hr className="border-[#D8DAE5]" />
             <ActionButton onClick={onDelete} text="Delete" />

@@ -1,7 +1,7 @@
 import { ProfilePicture } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import { FormHeader, FormLayout, FullWidth, ProgressStepper } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   ChildrenSubForm,
@@ -96,6 +96,16 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   const has_children = values.personal_info?.has_children ?? false;
 
   const steps = useMemo(() => getSteps(has_children), [has_children]);
+  const progressSteps = useMemo(
+    (): { id: StepKey; label: string; description: string; ariaLabel: string }[] =>
+      steps.map((step) => ({
+        id: step.key,
+        label: step.title,
+        description: step.description,
+        ariaLabel: `${step.title}. ${step.description}`,
+      })),
+    [steps]
+  );
 
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
   const previousIsUserRef = useRef(values.is_user);
@@ -208,58 +218,15 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8 w-full overflow-auto">
-        {steps.map((step, index) => {
-          const isActive = step.key === currentStep;
-          const isCompleted = isStepValid(step.key);
-
-          return (
-            <div
-              key={step.key}
-              onClick={() => {
-                setCurrentStep(step.key);
-              }}
-              className={`
-                relative flex items-center gap-3 flex-1 cursor-pointer group w-full p-3  transition-all
-                ${
-                  isActive
-                    ? "bg-white border-t border-x border-gray-300 rounded-t-xl  -mb-px"
-                    : isCompleted
-                    ? "bg-green-50 border-b border-gray-300  hover:bg-green-50"
-                    : "bg-gray-50 border-b border-gray-300  hover:bg-gray-50"
-                }
-              `}
-            >
-              {/* {isActive && (
-                <div className="absolute inset-x-12 -bottom-1 h-1 bg-primary rounded-full" />
-              )} */}
-              <div
-                className={`
-                  h-10 min-w-10 rounded-lg flex items-center justify-center font-semibold transition-all
-                  ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : isCompleted
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-300 text-gray-700 group-hover:bg-primary/20"
-                  }
-                `}
-              >
-                {index + 1}
-              </div>
-              <div className="hidden md:block truncate">
-                <p
-                  className={`font-medium leading-tight truncate ${
-                    isActive ? "text-primary" : isCompleted ? "text-green-700" : "text-gray-700"
-                  }`}
-                >
-                  {step.title}
-                </p>
-                <p className="text-xs text-gray-500">{step.description}</p>
-              </div>
-            </div>
-          );
-        })}
+      <div className="mb-8">
+        <ProgressStepper
+          steps={progressSteps}
+          activeStep={currentStep}
+          onStepChange={(step) => setCurrentStep(step)}
+          ariaLabel="Member registration progress"
+          className="rounded-xl border border-lightGray bg-white p-3"
+          isStepCompleted={(step) => isStepValid(step.id)}
+        />
       </div>
 
       <FormLayout>

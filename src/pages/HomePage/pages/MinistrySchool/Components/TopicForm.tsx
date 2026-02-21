@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Button } from "@/components/Button";
 import TopicBasicInfoForm from "./TopicBasicInfoForm";
 import { FileCard } from "./FileCard";
+import NewStepper from "./NewStepper";
 
 export type TopicStep = "info" | "material" | "assignment" | "confirmation";
 
@@ -167,44 +168,19 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open: _open, onClose, onSu
   };
 
   return (
-      <div className=" rounded-lg p-6 flex  h-[90vh] w-[90vw] ">
-        {/* Left stepper */}
-        <div className="w- pr-4 border-r border-lightGray">
-          <div className="font-semibold mb-6">Topic creation</div>
-          <div className="space-y-6">
-            {topicSteps.map((step, index) => {
-              const currentIndex = topicSteps.findIndex((s) => s.id === topicStep);
-              const isActive = step.id === topicStep;
-              const isCompleted = index < currentIndex;
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => goToStep(step.id)}
-                  className={`flex items-center w-full text-left  gap-3 ${
-                    isActive ? "text-primary font-medium" : "text-primaryGray"
-                  }`}
-                >
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
-                      isCompleted
-                        ? "bg-emerald-500 border-emerald-500 text-white"
-                        : isActive
-                        ? "border-primary text-primary"
-                        : "border-lightGray text-primaryGray"
-                    }`}
-                  >
-                    {isCompleted ? "✓" : index + 1}
-                  </span>
-                  <span>{step.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+    <div className="flex h-[90vh] w-[90vw] flex-col gap-4 rounded-lg p-4 md:flex-row md:gap-0 md:p-6">
+      <div className="w-full md:w-auto md:shrink-0">
+        <NewStepper
+          title="Topic creation"
+          steps={topicSteps}
+          activeStep={topicStep}
+          onStepChange={goToStep}
+          className="md:max-w-xs"
+        />
+      </div>
 
-        {/* Main content */}
-        <div className="ml-6 flex h-full flex-1 flex-col rounded-lg bg-white shadow-sm">
+      {/* Main content */}
+      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-white shadow-sm md:ml-6">
           {/* Header */}
           <div className="flex items-center justify-between py-4 border-b border-lightGray">
             <div className="font-semibold ">
@@ -216,6 +192,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open: _open, onClose, onSu
             <button
               type="button"
               onClick={handleClose}
+              aria-label="Close topic form"
               className="text-primaryGray hover:text-primaryGray text-xl leading-none"
             >
               &times;
@@ -368,8 +345,8 @@ export const TopicForm: React.FC<TopicFormProps> = ({ open: _open, onClose, onSu
               )}
             </div>
           </div>
-        </div>
       </div>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useNavigate } from "react-router-dom";
 
 interface Finance {
@@ -19,11 +20,12 @@ interface FinanceCardProps {
 }
 
 const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
   return (
     <div className="app-card relative space-y-3">
       <div className="absolute right-4 top-4 flex gap-2">
-        {onEdit && (
+        {onEdit && canManageCurrentRoute && (
           <button
             onClick={onEdit}
             className="app-icon-btn"
@@ -32,7 +34,7 @@ const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
             <PencilSquareIcon className="w-4 h-4 text-gray-700" />
           </button>
         )}
-        {onDelete && (
+        {onDelete && canManageCurrentRoute && (
           <button
             onClick={onDelete}
             className="app-icon-btn app-icon-btn-danger"

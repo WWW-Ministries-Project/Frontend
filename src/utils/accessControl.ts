@@ -462,9 +462,26 @@ export const hasRequiredAccess = (
     return canAccess(permissions, requirement.domain, requirement.action);
   }
 
+  const parsedRequirement = parseLegacyRequirement(requirement);
+
+  if (parsedRequirement) {
+    // Canonical access levels should take precedence when a domain is configured.
+    const configuredDomainPermission = resolvePermission(
+      permissions,
+      parsedRequirement.domain
+    );
+
+    if (configuredDomainPermission !== null) {
+      return canAccess(
+        permissions,
+        parsedRequirement.domain,
+        parsedRequirement.action
+      );
+    }
+  }
+
   if (legacyPermissions?.[requirement]) return true;
 
-  const parsedRequirement = parseLegacyRequirement(requirement);
   if (!parsedRequirement) return false;
 
   return canAccess(
@@ -472,6 +489,41 @@ export const hasRequiredAccess = (
     parsedRequirement.domain,
     parsedRequirement.action
   );
+};
+
+export const toManageRequirement = (
+  requirement: PermissionRequirement
+): PermissionRequirement => {
+  if (!requirement) return requirement;
+
+  if (typeof requirement === "object") {
+    if (requirement.action === "admin") return requirement;
+    return {
+      ...requirement,
+      action: "manage",
+    };
+  }
+
+  const actionMatch = /^(view|manage|admin)_(.+)$/i.exec(requirement);
+  if (actionMatch) {
+    const [, actionToken, suffix] = actionMatch;
+    const action = actionToken.toLowerCase() as AccessAction;
+
+    if (action === "view") {
+      return `manage_${suffix}`;
+    }
+
+    return requirement;
+  }
+
+  const parsedRequirement = parseLegacyRequirement(requirement);
+  if (!parsedRequirement) return requirement;
+
+  if (parsedRequirement.action === "admin") {
+    return requirement;
+  }
+
+  return `manage_${slugifyDomain(String(parsedRequirement.domain))}`;
 };
 
 export const createDefaultPermissionMatrix = (

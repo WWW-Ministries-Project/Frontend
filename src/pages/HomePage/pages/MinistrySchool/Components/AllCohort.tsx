@@ -4,6 +4,7 @@ const isPastDate = (date: string | Date) => {
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import EmptyState from "@/components/EmptyState";
 import type { CohortType } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
@@ -18,6 +19,7 @@ interface IProps {
 }
 
 export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
@@ -72,6 +74,7 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
                 value="Add Cohort"
                 className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
                 onClick={onCreate}
+                disabled={!canManageCurrentRoute}
               />
             </div>
           </div>
@@ -138,18 +141,20 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
                         className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
                         onClick={() => navigate(`cohort/${cohort.id}`)}
                       /> */}
-                        <button
-                          ref={buttonRef} // Reference to the button
-                          className="text-primary"
-                          onClick={() => toggleMenu(cohort.id)}
-                        >
-                          <img
-                            src={ellipse}
-                            alt="options"
-                            className="cursor-pointer"
-                          />
-                        </button>
-                        {isMenuOpen === cohort.id && (
+                        {canManageCurrentRoute && (
+                          <button
+                            ref={buttonRef} // Reference to the button
+                            className="text-primary"
+                            onClick={() => toggleMenu(cohort.id)}
+                          >
+                            <img
+                              src={ellipse}
+                              alt="options"
+                              className="cursor-pointer"
+                            />
+                          </button>
+                        )}
+                        {canManageCurrentRoute && isMenuOpen === cohort.id && (
                           <div
                             ref={menuRef}
                             className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"

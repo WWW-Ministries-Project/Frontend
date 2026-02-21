@@ -1,5 +1,6 @@
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { CohortType, ProgramResponse, relativePath } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ export const ProgramsCard = ({
   onEdit,
   onDelete,
 }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -43,17 +45,19 @@ export const ProgramsCard = ({
         />
 
         <div className="relative" ref={menuRef}>
-          <button
-            className="p-2 rounded-full hover:bg-lightGray/30 transition-colors"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            aria-label="Program options"
-            aria-expanded={isMenuOpen}
-            aria-haspopup="true"
-          >
-            <img src={ellipse} alt="" className="w-5 h-5" />
-          </button>
+          {canManageCurrentRoute && (
+            <button
+              className="p-2 rounded-full hover:bg-lightGray/30 transition-colors"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-label="Program options"
+              aria-expanded={isMenuOpen}
+              aria-haspopup="true"
+            >
+              <img src={ellipse} alt="" className="w-5 h-5" />
+            </button>
+          )}
 
-          {isMenuOpen && (
+          {canManageCurrentRoute && isMenuOpen && (
             <div
               className="absolute right-0 bottom-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
               role="menu"

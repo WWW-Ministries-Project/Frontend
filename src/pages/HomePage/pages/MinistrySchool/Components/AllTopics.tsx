@@ -1,6 +1,7 @@
 import { DragEvent, useEffect, useRef, useState } from "react";
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { Modal } from "@/components/Modal";
 import TopicBasicInfoForm from "./TopicBasicInfoForm";
 import { api } from "@/utils/api/apiCalls";
@@ -58,6 +59,7 @@ const reorderTopics = (
 };
 
 const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const [isMenuOpen, setIsMenuOpen] = useState<string | number | null>(null);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [TopicToEdit, setTopicToEdit] = useState<ITopic | null>(null);
@@ -199,7 +201,11 @@ const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
       <div className="space-y-4 ">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold mb-2">Topics</h2>
-          <Button value="Create New Topic" onClick={() => setIsTopicModalOpen(true)} />
+          <Button
+            value="Create New Topic"
+            onClick={() => setIsTopicModalOpen(true)}
+            disabled={!canManageCurrentRoute}
+          />
         </div>
         <p className="text-sm text-primaryGray">
           Drag and drop topics to reorder them.
@@ -264,18 +270,20 @@ const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
                 </div>
                 <div>
                   <div className="relative">
-                    <button
-                      className="text-primary"
-                      onClick={() => toggleMenu(topic?.id)}
-                      disabled={isReordering}
-                    >
-                      <img
-                        src={ellipse}
-                        alt="options"
-                        className="cursor-pointer"
-                      />
-                    </button>
-                    {isMenuOpen === topic?.id && (
+                    {canManageCurrentRoute && (
+                      <button
+                        className="text-primary"
+                        onClick={() => toggleMenu(topic?.id)}
+                        disabled={isReordering}
+                      >
+                        <img
+                          src={ellipse}
+                          alt="options"
+                          className="cursor-pointer"
+                        />
+                      </button>
+                    )}
+                    {canManageCurrentRoute && isMenuOpen === topic?.id && (
                       <div
                         className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
                       >

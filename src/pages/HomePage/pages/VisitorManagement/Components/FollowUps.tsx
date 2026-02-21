@@ -4,7 +4,7 @@ import EmptyState from "@/components/EmptyState";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api, formatDate } from "@/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FollowUpForm, IFollowUpForm } from "./FollowUpForm";
 import edit from "/src/assets/edit.svg";
 import AddAnotherConfirmation from "@/pages/HomePage/Components/reusable/AddAnotherConfirmation";
@@ -12,10 +12,31 @@ import AddAnotherConfirmation from "@/pages/HomePage/Components/reusable/AddAnot
 interface IProps {
   followUps: FollowUp[];
   visitorId: string;
+  responsibleMembers: ResponsibleMember[];
   onRefetch?: () => Promise<void>;
 }
 
-export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
+const normalizeAssignedToValue = (
+  assignedTo: string | number | undefined,
+  options: Array<{ value: string | number; label: string }>
+) => {
+  if (assignedTo === undefined || assignedTo === null) return "";
+  const assignedToText = String(assignedTo);
+
+  const matchedOption = options.find(
+    (option) =>
+      String(option.value) === assignedToText || option.label === assignedToText
+  );
+
+  return matchedOption ? String(matchedOption.value) : assignedToText;
+};
+
+export const FollowUps = ({
+  visitorId,
+  followUps,
+  responsibleMembers,
+  onRefetch,
+}: IProps) => {
   const [selectedFollowUp, setSelectedFollowUp] = useState<
     FollowUp | undefined
   >(undefined); // Store selected visit for editing
@@ -23,6 +44,36 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
 
   const [showRegisterAnother, setShowRegisterAnother] = useState(false);
   const [formResetKey, setFormResetKey] = useState(0);
+  const responsibleMemberOptions = useMemo(() => {
+    const seen = new Set<string>();
+
+    return responsibleMembers.reduce<Array<{ value: string; label: string }>>(
+      (acc, member) => {
+        const value = String(member?.userId ?? "");
+        const label = member?.name?.trim();
+
+        if (!value || !label || seen.has(value)) return acc;
+
+        seen.add(value);
+        acc.push({ value, label });
+        return acc;
+      },
+      []
+    );
+  }, [responsibleMembers]);
+
+  const getAssignedToLabel = (assignedTo?: string | number) => {
+    if (assignedTo === undefined || assignedTo === null || assignedTo === "") {
+      return "";
+    }
+
+    const assignedValue = String(assignedTo);
+    const matchedMember = responsibleMemberOptions.find(
+      (member) => String(member.value) === assignedValue
+    );
+
+    return matchedMember?.label || assignedValue;
+  };
 
   /* api calls */
   const { postData: postFollowUp, loading: postLoading } = usePost(
@@ -115,7 +166,8 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
               </div>
               {item.assignedTo && (
                 <div>
-                  <span className="font-medium">Assigned to:</span> {item.assignedTo}
+                  <span className="font-medium">Assigned to:</span>{" "}
+                  {getAssignedToLabel(item.assignedTo)}
                 </div>
               )}
             </div>
@@ -163,7 +215,18 @@ export const FollowUps = ({ visitorId, followUps, onRefetch }: IProps) => {
               setSelectedFollowUp(undefined);
               setShowRegisterAnother(false);
             }}
-            initialData={selectedFollowUp}
+            initialData={
+              selectedFollowUp
+                ? {
+                    ...selectedFollowUp,
+                    assignedTo: normalizeAssignedToValue(
+                      selectedFollowUp.assignedTo,
+                      responsibleMemberOptions
+                    ),
+                  }
+                : undefined
+            }
+            assignedToOptions={responsibleMemberOptions}
             loading={postLoading || putLoading}
           />
         )}
@@ -178,5 +241,10 @@ interface FollowUp {
   type: string;
   status: string;
   notes: string;
-  assignedTo: string;
+  assignedTo: string | number;
+}
+
+interface ResponsibleMember {
+  userId: string | number;
+  name: string;
 }

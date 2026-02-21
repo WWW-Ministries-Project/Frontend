@@ -1,5 +1,6 @@
 import { cn } from "@/utils/cn";
 import { CSSProperties, MouseEvent } from "react";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 
 type ButtonClickHandler = (e?: MouseEvent<HTMLButtonElement>) => void;
 
@@ -14,6 +15,7 @@ interface IProps {
   style?: CSSProperties;
   disabled?: boolean;
   loading?: boolean;
+  requireManageAccess?: boolean;
 }
 
 export const Button = ({
@@ -25,7 +27,15 @@ export const Button = ({
   disabled = false,
   loading = false,
   style,
+  requireManageAccess,
 }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
+
+  const shouldRequireManageAccess =
+    requireManageAccess ?? /\b(edit|delete)\b/i.test(value);
+  const isDisabled =
+    disabled || (shouldRequireManageAccess && !canManageCurrentRoute);
+
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (type !== "submit" && type !== "reset") {
       e.preventDefault();
@@ -48,7 +58,7 @@ export const Button = ({
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={isDisabled}
       onClick={handleClick}
       style={style}
       className={cn(baseClass, variantClass, className)}

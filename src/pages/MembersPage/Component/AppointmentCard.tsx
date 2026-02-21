@@ -1,4 +1,5 @@
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import {
   CalendarDaysIcon,
   EnvelopeIcon,
@@ -52,8 +53,10 @@ const AppointmentCard = ({
   editDisabled = false,
   deleteDisabled = false,
 }: AppointmentCardProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const requesterName = appointment.requesterName || appointment.fullName;
   const staffName = appointment.staffName || appointment.attendeeName || "Unknown Staff";
+  const canRunManageActions = canManageCurrentRoute;
 
   const normalizedStatus = (appointment.status || "").toUpperCase().trim();
   const isConfirmed =
@@ -81,7 +84,7 @@ const AppointmentCard = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-          {showConfirmationActions && onToggleConfirmation && (
+          {showConfirmationActions && onToggleConfirmation && canRunManageActions && (
             <button
               type="button"
               disabled={statusUpdating}
@@ -100,7 +103,7 @@ const AppointmentCard = ({
             </button>
           )}
 
-          {onEdit && (
+          {onEdit && canRunManageActions && (
             <button
               type="button"
               disabled={editDisabled}
@@ -119,7 +122,7 @@ const AppointmentCard = ({
             </button>
           )}
 
-          {onDelete && (
+          {onDelete && canRunManageActions && (
             <button
               type="button"
               disabled={deleteDisabled}

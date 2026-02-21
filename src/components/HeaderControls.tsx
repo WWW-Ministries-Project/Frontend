@@ -3,6 +3,7 @@ import GridAsset from "@/assets/GridAsset";
 import SearchIcon from "@/assets/SearchIcon";
 import TableAsset from "@/assets/TableAssets";
 import { Button } from "@/components";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import { cn } from "@/utils/cn";
 import { ReactNode } from "react";
 
@@ -22,6 +23,7 @@ interface IProps {
   hasSearch?: boolean;
   subtitle?: string;
   customIcon?: ReactNode;
+  requireManageAccess?: boolean;
 }
 
 export const HeaderControls = ({
@@ -39,7 +41,11 @@ export const HeaderControls = ({
   hasFilter = false,
   subtitle,
   customIcon,
+  requireManageAccess = true,
 }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
+  const isManageActionBlocked = requireManageAccess && !canManageCurrentRoute;
+
   return (
     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 space-y-1">
@@ -102,6 +108,7 @@ export const HeaderControls = ({
             value={screenWidth <= 700 ? "+" : btnName}
             className={cn("whitespace-nowrap", screenWidth <= 540 ? "px-3" : "px-5")}
             onClick={handleClick}
+            disabled={isManageActionBlocked}
           />
         )}
         </div>
