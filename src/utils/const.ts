@@ -20,6 +20,7 @@ export const relativePath = {
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
+      analytics: "analytics",
       management: {
         main: "membership-management",
         memberConfirmation: "member-confirmation",
