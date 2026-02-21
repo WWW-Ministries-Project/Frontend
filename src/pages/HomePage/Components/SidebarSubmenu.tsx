@@ -14,6 +14,7 @@ interface IProps {
   show: boolean;
   showChildren: boolean;
   toggleSubMenu: () => void;
+  onNavigate?: () => void;
 }
 
 const HOME_ROUTE_BASE = "/home";
@@ -59,6 +60,7 @@ export const SideBarSubMenu = ({
   show,
   showChildren,
   toggleSubMenu,
+  onNavigate,
 }: IProps) => {
   const location = useLocation();
 
@@ -148,6 +150,7 @@ export const SideBarSubMenu = ({
                 <div key={child.name + child.path}>
                   <NavLink
                     to={getChildAbsolutePath(child)}
+                    onClick={onNavigate}
                     end={!child.path}
                     className={({ isActive }) => {
                       const childRoutePath = getChildAbsolutePath(child);
@@ -190,6 +193,7 @@ export const SideBarSubMenu = ({
           <NavigationLink
             item={{ name: item.name, path: collapsedLinkPath }}
             show={show}
+            onClick={onNavigate}
           >
             {children}
           </NavigationLink>

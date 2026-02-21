@@ -6,6 +6,7 @@ interface IProps {
   show: boolean;
   children: ReactNode;
   justifyCenter?: boolean;
+  onClick?: () => void;
 }
 
 export function NavigationLink({
@@ -13,11 +14,13 @@ export function NavigationLink({
   show,
   children,
   justifyCenter = true,
+  onClick,
 }: IProps) {
   return (
     <div>
       <NavLink
         to={item.path}
+        onClick={onClick}
         key={item.path + item.name}
         className={({ isActive }) =>
           `gap-2 text-primary transition-[background-color,color] duration-200 h-10 z-10  flex items-center py-7 rounded-s-xl rounded-e-xl lg:rounded-e-none

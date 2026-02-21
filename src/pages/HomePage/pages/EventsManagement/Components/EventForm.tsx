@@ -57,7 +57,7 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
           }}
           enableReinitialize
         >
-          {({ handleSubmit}) => (
+          {() => (
             <Form className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
                 <Field
@@ -96,7 +96,6 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
                     value={editData?.id ? "Update" : "Save"}
                     variant="primary"
                     type="submit"
-                    onClick={handleSubmit}
                     loading={loading}
                     disabled={loading}
                   />

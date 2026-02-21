@@ -268,12 +268,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               />
               <Button
                 value={props.updating ? "Update" : "Save"}
-                type="submit"
+                type="button"
                 variant="primary"
                 loading={props.loading}
+                disabled={Boolean(props.loading) || form.isSubmitting}
                 onClick={async () => {
                   const errors = await form.validateForm();
-                  console.log(errors, "values", form.values);
                   const touchedFields = Object.keys(errors).reduce(
                     (acc, field) => {
                       acc[field] = true;
@@ -282,10 +282,13 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                     {} as Record<string, boolean>
                   );
                   form.setTouched(touchedFields);
-                  if (!Object.keys(errors).length) {
-                    form.handleSubmit();
+                  if (
+                    !Object.keys(errors).length &&
+                    !props.loading &&
+                    !form.isSubmitting
+                  ) {
+                    await form.submitForm();
                   }
-                  console.log("Test", form.values);
                 }}
               />
             </div>

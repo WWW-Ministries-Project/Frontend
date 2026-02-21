@@ -160,18 +160,23 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Membership Default",
-            element: <Navigate to={relativePath.home.membership.churchDirectory} replace />,
-            isPrivate: true,
-            permissionNeeded: "view_members",
-          },
-          {
-            path: relativePath.home.membership.churchDirectory,
             name: "Church Directory",
             element: <Members />,
             isPrivate: true,
             permissionNeeded: "view_members",
             sideTab: true,
+          },
+          {
+            path: relativePath.home.membership.churchDirectory,
+            name: "Church Directory Legacy",
+            element: (
+              <Navigate
+                to={`${relativePath.home.main}/${relativePath.home.membership.main}`}
+                replace
+              />
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_members",
           },
           {
             path: relativePath.home.membership.management.main,
@@ -210,7 +215,7 @@ export const routes: AppRoute[] = [
             ],
           },
           {
-            path: "analytics",
+            path: relativePath.home.membership.analytics,
             name: "Analytics",
             element: <MembershipAnalytics />,
             isPrivate: true,
