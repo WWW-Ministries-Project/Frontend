@@ -1,4 +1,3 @@
-//@ts-nocheck
 import React, { forwardRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -27,23 +26,29 @@ const DateFilter: React.FC<DateFilterProps> = (props) => {
   };
 
   const handleChange = (date: Date | null) => {
-    date && props.onChange(monthYear(date));
+    if (date) {
+      props.onChange(monthYear(date));
+    }
   };
 
-  const CustomInput = forwardRef(({ value, onClick }, ref) => (
+  const CustomInput = forwardRef<
+    HTMLInputElement,
+    { value?: string; onClick?: () => void }
+  >(({ value, onClick }, ref) => (
     <input
       className=" border p-2 rounded-lg border-primary cursor-pointer"
       onClick={onClick}
       ref={ref}
-      defaultValue={value}
+      value={value || ""}
+      readOnly
       placeholder="Filter by date"
     />
   ));
+  CustomInput.displayName = "DateFilterInput";
 
   return (
     <DatePicker
       selected={props.value}
-      // @ts-ignore
       renderMonthContent={renderMonthContent}
       onChange={handleChange}
       showMonthYearPicker
