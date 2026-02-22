@@ -83,6 +83,10 @@ import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceMan
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
 import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
 import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
+import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
+import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
+import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
+import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import { Navigate } from "react-router-dom";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
@@ -435,47 +439,47 @@ export const routes: AppRoute[] = [
         ],
       },
    
-      // {
-      //   path: "requests",
-      //   name: "Requests",
-      //   isPrivate: true,
-      //   permissionNeeded: "view_events",
-      //   sideTab: true,
-      //   children: [
-      //     {
-      //       path: "",
-      //       name: "My Requests",
-      //       element: <MyRequisitions />,
-      //       isPrivate: true,
-      //       sideTab: true,
-      //     },
-      //     {
-      //       path: ":id",
-      //       name: "Requests Details",
-      //       element: <RequestDetails />,
-      //       isPrivate: true,
-      //     },
-      //     {
-      //       path: "request",
-      //       name: "Request",
-      //       element: <Request />,
-      //       isPrivate: true,
-      //     },
-      //     {
-      //       path: "request/:id",
-      //       name: "Request",
-      //       element: <Request />,
-      //       isPrivate: true,
-      //     },
-      //     {
-      //       path: "staff_requests",
-      //       name: "Staff Requests",
-      //       element: <Requisitions />,
-      //       isPrivate: true,
-      //       sideTab: true,
-      //     },
-      //   ],
-      // },
+      {
+        path: "requests",
+        name: "Requests",
+        isPrivate: true,
+        permissionNeeded: "view_events",
+        sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "My Requests",
+            element: <MyRequisitions />,
+            isPrivate: true,
+            sideTab: true,
+          },
+          {
+            path: ":id",
+            name: "Requests Details",
+            element: <RequestDetails />,
+            isPrivate: true,
+          },
+          {
+            path: "request",
+            name: "Request",
+            element: <Request />,
+            isPrivate: true,
+          },
+          {
+            path: "request/:id",
+            name: "Request",
+            element: <Request />,
+            isPrivate: true,
+          },
+          {
+            path: "staff_requests",
+            name: "Staff Requests",
+            element: <Requisitions />,
+            isPrivate: true,
+            sideTab: true,
+          },
+        ],
+      },
       {
         path: "assets",
         name: "Assets",
