@@ -48,7 +48,6 @@ export const EventsAnalytics = () => {
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
 
   const { data: eventsResponse, loading, error } = useFetch(api.fetch.fetchEvents, {
-    page: 1,
     take: 5000,
   });
 

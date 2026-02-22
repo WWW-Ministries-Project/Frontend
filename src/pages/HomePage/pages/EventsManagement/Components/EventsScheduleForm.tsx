@@ -5,7 +5,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import { api, EventType } from "@/utils";
 import { Field, Form, Formik } from "formik";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   formatInputDate,
   getChangedValues,
@@ -13,7 +13,8 @@ import {
 import { eventFormValidator } from "../utils/eventHelpers";
 
 interface EventsFormValues {
-  event_name_id?: string;
+  event_name_id?: string | number;
+  event_type?: string;
   name?: string;
   description?: string;
   start_date?: string;
@@ -33,25 +34,23 @@ interface EventsFormValues {
 
 interface EventsFormProps {
   inputValue: EventsFormValues;
-  handleMultiSelectChange?: (name: string, value: Array<string>) => void;
   onSubmit: (val: EventsFormValues) => void;
   loading?: boolean;
   updating?: boolean;
 }
 
 const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
-  const handleMultiSelectChange = (name: string, value: Array<string>) => {
-    const values = value;
-    const index = values.indexOf(name);
-    if (index === -1) {
-      values.push(name);
-    } else {
-      values.splice(index, 1);
-    }
-    return values;
-  };
-
   const { data: eventsData } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const eventOptions = useMemo(
+    () =>
+      eventsData?.data?.map((event: EventType) => ({
+        label: event.event_name,
+        value: event.id,
+        description: event.event_description,
+        eventType: event.event_type,
+      })) || [],
+    [eventsData?.data]
+  );
 
   return (
     <Formik
@@ -73,18 +72,33 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           <div className="grid md:grid-cols-2 gap-4">
             <Field
               component={FormikSelectField}
-              options={
-                eventsData?.data?.map((event: EventType) => ({
-                  label: event.event_name,
-                  value: event.id,
-                })) || []
-              }
+              options={eventOptions}
               label="Event Name"
               id="event_name_id"
               name="event_name_id"
+              onChange={(name: string, value: string | number) => {
+                form.setFieldValue(name, value);
+                const selectedEvent = eventOptions.find(
+                  (event) => String(event.value) === String(value)
+                );
+                form.setFieldValue(
+                  "description",
+                  selectedEvent?.description || ""
+                );
+                form.setFieldValue("event_type", selectedEvent?.eventType || "");
+              }}
               value={
                 form.values.event_name_id || props.inputValue.event_name_id
               }
+            />
+            <Field
+              component={FormikInputDiv}
+              label="Event Type"
+              id="event_type"
+              name="event_type"
+              type="text"
+              disabled
+              value={form.values.event_type || props.inputValue.event_type}
             />
           </div>
 

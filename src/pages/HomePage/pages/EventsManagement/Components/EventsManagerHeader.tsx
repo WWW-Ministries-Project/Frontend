@@ -8,7 +8,7 @@ interface IProps {
   onSearch: (value: string) => void;
   filterEvents: string;
   viewfilter: boolean;
-  filterDate: Date;
+  filterDate: Date | null;
   showSearch: boolean;
   showFilter: boolean;
   onResetFilters: ()=>void
