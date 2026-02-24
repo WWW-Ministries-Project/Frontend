@@ -1,46 +1,71 @@
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import { Button } from "@/components";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { RequestComments } from "../types/requestInterface";
+import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { ActionType } from "../hooks/useRequisitionDetail";
-
+import { RequestComments } from "../types/requestInterface";
 
 type RequisitionCommentsProps = {
   isEditable: boolean;
   comments: RequestComments[];
-  openCommentModal: (type:ActionType) => void;
+  openCommentModal: (type: ActionType) => void;
 };
+
 function RequisitionComments({
   isEditable,
   openCommentModal,
-  comments
+  comments,
 }: Readonly<RequisitionCommentsProps>) {
-  
-  const sortedComments = useMemo(() => {
-    return [...comments].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-  }, [comments]);
- 
+  const sortedComments = useMemo(
+    () =>
+      [...comments].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ),
+    [comments]
+  );
+
   return (
-    <aside className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
-      <div className="font-semibold text-primary flex items-center justify-between">
-        <PageHeader title="Comments" />
-        <Button
-          value="+ add comment"
-          variant="primary"
-          onClick={() => openCommentModal("comment")}
-        />
+    <aside className="app-card h-fit p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-primary">Comments</h3>
+        {isEditable && (
+          <Button
+            value="+ Add comment"
+            variant="secondary"
+            onClick={() => openCommentModal("comment")}
+          />
+        )}
       </div>
-      <div className="flex flex-col gap-2 max-h-[12.5rem] overflow-y-auto">
-        {sortedComments.map((comment, index) => (
-          <div key={comment.id} className="flex flex-col">
-            <div className="text-sm text-primary">{comment.comment}</div>
-            <div className="">{comment.request_comment_user.name}</div>
-            {index !== comments.length - 1 && <HorizontalLine />}
-          </div>
-        ))}
+
+      <div className="mt-3 max-h-[18rem] space-y-3 overflow-y-auto pr-1">
+        {sortedComments.length > 0 ? (
+          sortedComments.map((comment) => {
+            const createdAt = DateTime.fromISO(comment.created_at);
+
+            return (
+              <article
+                key={comment.id}
+                className="rounded-lg border border-lightGray bg-white p-3"
+              >
+                <p className="text-sm text-primary">{comment.comment}</p>
+                <div className="mt-2 flex items-center justify-between gap-2 text-xs text-primaryGray">
+                  <span>
+                    {comment.request_comment_user?.name || "Unknown user"}
+                  </span>
+                  <span>
+                    {createdAt.isValid
+                      ? createdAt.toFormat("dd LLL yyyy, HH:mm")
+                      : "N/A"}
+                  </span>
+                </div>
+              </article>
+            );
+          })
+        ) : (
+          <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-center text-sm text-primaryGray">
+            No comments yet.
+          </p>
+        )}
       </div>
     </aside>
   );

@@ -80,11 +80,11 @@ const AssetFormComponent = ({
           <Field
             component={FormikSelectField}
             options={[
-              { name: "Assigned", value: "ASSIGNED" },
-              { name: "Unassigned", value: "UNASSIGNED" },
-              { name: "Not fixable", value: "NOT_FIXABLE" },
-              { name: "Out of repairs", value: "OUT_OF_REPAIRS" },
-              { name: "Lost/Stolen", value: "LOST_OR_STOLEN" },
+              { label: "Assigned", value: "ASSIGNED" },
+              { label: "Unassigned", value: "UNASSIGNED" },
+              { label: "Not fixable", value: "NOT_FIXABLE" },
+              { label: "Out of repairs", value: "OUT_OF_REPAIRS" },
+              { label: "Lost/Stolen", value: "LOST_OR_STOLEN" },
             ]}
             label="Status *"
             id="status"

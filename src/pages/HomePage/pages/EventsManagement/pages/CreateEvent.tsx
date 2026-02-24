@@ -26,7 +26,8 @@ const CreateEvent = () => {
 
   const query = location.search;
   const params = new URLSearchParams(query);
-  const id = params.get("event_id");
+  const id = params.get("event_id") ?? params.get("id");
+  const isUpdating = Boolean(id);
 
   useEffect(() => {
     if (id) {
@@ -49,6 +50,7 @@ const CreateEvent = () => {
     if (file) {
       data.append("file", file);
     }
+    let isSuccessful = false;
     try {
       let posterLink = "";
       if (file) {
@@ -58,35 +60,49 @@ const CreateEvent = () => {
         }
       }
       if (!id) {
-        const eventData = { ...val, poster: posterLink, created_by: user?.id };
+        const eventData = {
+          ...val,
+          ...(posterLink ? { poster: posterLink } : {}),
+          created_by: user?.id,
+        };
         await postData(eventData);
       } else {
-        const eventData = { ...val, poster: posterLink, updated_by: user?.id };
-        await updateData(eventData);
+        const eventData = {
+          ...val,
+          ...(posterLink ? { poster: posterLink } : {}),
+          updated_by: user?.id,
+        };
+        await updateData(eventData, { id });
       }
+      isSuccessful = true;
     } catch (error) {
-      console.log(error);
-      // setLoading(false);
+      void error;
     } finally {
       submittingRef.current = false;
       setIsSubmitting(false);
-      navigate("/home/events/events")
+      if (isSuccessful) {
+        navigate("/home/events/events");
+      }
     }
   };
   return (
-    <div className="p-4">
-      <section className="mx-auto py-8 px-16 container lg:w-4/6 bg-white rounded-xl ">
-        <h1 className="H700 text-primary">Create Event</h1>
-        <p className="text-sma text-primary py-2">
-          Fill in the form below with the event details
+    <div className="p-4 md:p-6">
+      <section className="mx-auto w-full max-w-5xl rounded-xl border border-lightGray bg-white p-4 shadow-sm md:p-8">
+        <h1 className="H700 text-primary">
+          {isUpdating ? "Update Event Schedule" : "Schedule Event"}
+        </h1>
+        <p className="py-2 text-sma text-primaryGray">
+          {isUpdating
+            ? "Update event scheduling information and recurrence settings."
+            : "Fill in the form below with event details and scheduling settings."}
         </p>
-        <div className="hideScrollbar overflow-y-auto">
+        <div className="hideScrollbar overflow-y-auto pt-2">
           <ImageUpload onFileChange={(file: File) => setFile(file)} src={""} />
           <EventsScheduleForm
             inputValue={inputValue}
             onSubmit={handleSubmit}
             loading={postLoading || isSubmitting}
-            updating={id ? true : false}
+            updating={isUpdating}
           />
         </div>
       </section>

@@ -2,13 +2,12 @@ import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { image } from "@/pages/HomePage/Components/MultiImageComponent";
-import { fetchCurrencies } from "@/pages/HomePage/utils/apiCalls";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   IRequisitionDetails,
@@ -61,23 +60,17 @@ export const useAddRequisition = () => {
   }>({ signature: null, isImage: false });
 
   const navigate = useNavigate();
-  const [currencies, setCurrencies] = useState<
-    { name: string; value: string }[]
-  >([]);
-
-  const fetchCurrenciesData = useCallback(async () => {
-    const data = await fetchCurrencies();
-    setCurrencies(
-      data?.data?.map((data) => ({
-        name: data?.currency,
-        value: data?.currency,
-      }))
-    );
-  }, []);
-
-  useEffect(() => {
-    fetchCurrenciesData();
-  }, [fetchCurrenciesData]);
+  const currencies = useMemo(
+    () =>
+      [
+        { label: "Ghana Cedi (GHS)", value: "GHS" },
+        { label: "US Dollar (USD)", value: "USD" },
+        { label: "Euro (EUR)", value: "EUR" },
+        { label: "British Pound Sterling (GBP)", value: "GBP" },
+        { label: "Japanese Yen (JPY)", value: "JPY" },
+      ] as { label: string; value: string }[],
+    []
+  );
 
   const handleOpenNotification = useCallback(
     (message: string, type: "error" | "success") => {
@@ -94,7 +87,7 @@ export const useAddRequisition = () => {
     if (error) {
       handleOpenNotification(error.message, "error");
     }
-  }, [data, error]);
+  }, [data, error, handleOpenNotification, navigate]);
 
   const handleAddSignature = async (
     validateForm: () => Promise<FormikErrors<FormikValues>>,
@@ -126,7 +119,7 @@ export const useAddRequisition = () => {
     setImages(images);
   };
 
-  const handleUpload = async (formData: FormData) => {
+  const handleUpload = useCallback(async (formData: FormData) => {
     try {
       setAddingImage(true);
       const response = await axiosPic.post("/upload", formData);
@@ -142,7 +135,17 @@ export const useAddRequisition = () => {
     } finally {
       setAddingImage(false);
     }
-  };
+  }, [handleOpenNotification]);
+
+  const handleItemImageUpload = useCallback(
+    async (file: File): Promise<string | null> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploaded = await handleUpload(formData);
+      return uploaded?.URL ?? null;
+    },
+    [handleUpload]
+  );
 
   const handleUploadImage = async () => {
     let imgUrls: { URL: string; id?: string | number }[] = [];
@@ -151,10 +154,10 @@ export const useAddRequisition = () => {
         const formData = new FormData();
         if (image.file) {
           formData.append(`file`, image?.file);
-          imgUrls = [
-            ...imgUrls,
-            (await handleUpload(formData)) as { URL: string },
-          ];
+          const uploaded = await handleUpload(formData);
+          if (uploaded?.URL) {
+            imgUrls = [...imgUrls, uploaded];
+          }
         } else {
           imgUrls = [...imgUrls, { URL: image.image, id: image.id }];
         }
@@ -165,7 +168,6 @@ export const useAddRequisition = () => {
 
   const handleSignature = (signature: File | string, isImage: boolean) => {
     setSignature({ signature, isImage });
-    console.log(signature);
   };
 
   const handleSubmit = useCallback(
@@ -175,6 +177,8 @@ export const useAddRequisition = () => {
           name: item.name,
           quantity: item.quantity,
           unitPrice: item.amount,
+          image_url: item.image_url || undefined,
+          image: item.image_url || undefined,
           id: item?.id,
         };
       });
@@ -195,7 +199,7 @@ export const useAddRequisition = () => {
 
       await postData(dataToSend);
     },
-    [rows, id, postData]
+    [rows, id, postData, requisitionId]
   );
 
   return {
@@ -213,5 +217,6 @@ export const useAddRequisition = () => {
     handleSignature,
     signature,
     handleUpload,
+    handleItemImageUpload,
   };
 };

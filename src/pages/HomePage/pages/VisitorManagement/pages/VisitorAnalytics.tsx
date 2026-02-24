@@ -34,7 +34,7 @@ export const VisitorAnalytics = () => {
   const [referralFilter, setReferralFilter] = useState("all");
 
   const { data: visitorsResponse, loading, error } = useFetch(api.fetch.fetchAllVisitors, {
-    page: 1,
+   
     limit: 5000,
   });
   const { data: followUpsResponse } = useFetch(api.fetch.fetchAllFollowUps);

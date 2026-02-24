@@ -72,15 +72,15 @@ export const MinistrySchoolAnalytics = () => {
   const [cohortStatusFilter, setCohortStatusFilter] = useState("all");
 
   const { data: programsResponse, loading, error } = useFetch(api.fetch.fetchAllPrograms, {
-    page: 1,
+   
     take: 1000,
   });
   const { data: cohortsResponse } = useFetch(api.fetch.fetchAllCohorts, {
-    page: 1,
+   
     take: 2000,
   });
   const { data: coursesResponse } = useFetch(api.fetch.fetchAllCourses, {
-    page: 1,
+    
     take: 4000,
   });
 

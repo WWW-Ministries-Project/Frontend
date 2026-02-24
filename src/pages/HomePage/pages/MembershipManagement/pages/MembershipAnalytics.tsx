@@ -212,10 +212,10 @@ export const MembershipAnalytics = () => {
     data: membersResponse,
     loading: membersLoading,
     error: membersError,
-  } = useFetch(api.fetch.fetchAllMembers, { page: 1, take: 5000 });
+  } = useFetch(api.fetch.fetchAllMembers, { take: 5000 });
 
   const { data: visitorsResponse } = useFetch(api.fetch.fetchAllVisitors, {
-    page: 1,
+
     limit: 5000,
   });
 

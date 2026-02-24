@@ -1,4 +1,4 @@
-import { object, string, date, number } from "yup";
+import { array, date, number, object, string } from "yup";
 import { formatDate } from "/src/utils/helperFunctions";
 
 export const months = [
@@ -69,60 +69,148 @@ export const eventInput = {
   // ends: "end_of_year",
   // endsOn: "",
   day_event: "one",
+  end_date: "",
   // poster: "",
   recurring: {
-    //   frequency: "",
-    //   interval: 0,
-    daysOfWeek: 0,
+    frequency: "weekly",
+    interval: 1,
+    daysOfWeek: [],
     //   dayOfMonth: null,
     //   monthOfYear: null,
   },
 };
 
-export const eventFormValidator = object().shape({
+export const eventUpdateFormValidator = object().shape({
   // name: string().required("Required"),
   // event_type: string().required("Required"),
   event_name_id: string().required("Required"),
   start_date: date("invalid date").required("Required"),
   start_time: string().required("Required"),
+  end_time: string().required("Required"),
+});
+
+export const eventFormValidator = eventUpdateFormValidator.shape({
   day_event: string()
     .oneOf(["one", "multi"], "Invalid value")
     .required("Required"),
+  repetitive: string().oneOf(["yes", "no"], "Invalid value").required("Required"),
+  end_date: date("invalid date")
+    .transform((value, originalValue) =>
+      originalValue === "" || originalValue === null ? null : value
+    )
+    .nullable(),
+  recurring: object()
+    .shape({
+      frequency: string().nullable(),
+      interval: number()
+        .transform((value, originalValue) =>
+          originalValue === "" || originalValue === null
+            ? undefined
+            : Number(originalValue)
+        )
+        .nullable()
+        .integer("Repeat Every must be a whole number")
+        .min(1, "Minimum is 1"),
+      daysOfWeek: array()
+        .of(number().integer().min(0).max(6))
+        .nullable(),
+    })
+    .nullable(),
+})
+  .test(
+    "end-date-required",
+    "End date is required",
+    function validateEndDateRequirement(value) {
+      if (!value) return true;
+      if (
+        (value.day_event === "multi" || value.repetitive === "yes") &&
+        !value.end_date
+      ) {
+        return this.createError({
+          path: "end_date",
+          message: "End date is required",
+        });
+      }
+      return true;
+    }
+  )
+  .test(
+    "end-date-after-start-date",
+    "End date cannot be before start date",
+    function validateEndDateRange(value) {
+      if (!value?.start_date || !value?.end_date) return true;
 
-  // recurring: object().shape({
-  //   daysOfWeek: number().nullable()
-  //     .when("day_event", {
-  //       is: (day_event) => day_event === "multi",
-  //       then: number()
-  //         .min(2, "Minimum is 2")
-  //         .required("Required"),
-  //     }),
-  // }),
+      const startDate = new Date(value.start_date);
+      const endDate = new Date(value.end_date);
 
-  // number_days: number().min(2,"should have a minimum of 2"),
-  // repeatEvery: number().min(1,"should have a minimum of 1")
-  // repetitive: boolean().required("Required")
-  // recurring: object({
-  //   frequency: string().when("repetitive", {
-  //     is: "yes",
-  //     then: oneOf(["daily", "weekly", "monthly", "yearly"]).required(
-  //       "Required"
-  //     ),
-  //   }),
-  //   daysOfWeek: number()
-  //     .min(1)
-  //     .when("repetitive", {
-  //       is: "yes",
-  //       then: number().min(1, "Minimum is 1").required("Required"),
-  //     }),
-  //   interval: number()
-  //     .min(1)
-  //     .when("repetitive", {
-  //       is: "yes",
-  //       then: number().min(1, "Minimum is 1").required("Required"),
-  //     }),
-  // }),
-});
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        return true;
+      }
+
+      if (endDate < startDate) {
+        return this.createError({
+          path: "end_date",
+          message: "End date cannot be before start date",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "recurring-values-required",
+    "Recurring details are required",
+    function validateRecurringFields(value) {
+      if (
+        !value ||
+        (value.repetitive !== "yes" && value.day_event !== "multi")
+      ) {
+        return true;
+      }
+
+      const recurring = value.recurring ?? {};
+      const interval = Number(recurring.interval);
+      const days = Array.isArray(recurring.daysOfWeek)
+        ? recurring.daysOfWeek
+        : [];
+
+      if (!days.length) {
+        return this.createError({
+          path: "recurring.daysOfWeek",
+          message: "Select at least one day",
+        });
+      }
+
+      if (value.repetitive === "yes") {
+        if (
+          recurring.interval === undefined ||
+          recurring.interval === null ||
+          recurring.interval === ""
+        ) {
+          return this.createError({
+            path: "recurring.interval",
+            message: "Repeat Every is required",
+          });
+        }
+
+        if (Number.isNaN(interval) || interval < 1) {
+          return this.createError({
+            path: "recurring.interval",
+            message: "Minimum is 1",
+          });
+        }
+
+        if (!recurring.frequency) {
+          return this.createError({
+            path: "recurring.frequency",
+            message: "Repeat Unit is required",
+          });
+        }
+      }
+
+      return true;
+    }
+  );
 
 export const eventTypeColors = {
   ACTIVITY: "#FF6B4D",

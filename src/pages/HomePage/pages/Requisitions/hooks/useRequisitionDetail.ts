@@ -16,7 +16,7 @@ export type ActionType =
   | "removeAttachment";
 export const useRequisitionDetail = () => {
   const { id } = useParams();
-  const requisitionId = window.atob(String(id));
+  const requisitionId = id ? window.atob(String(id)) : "";
 
   const {
     data,
@@ -26,14 +26,14 @@ export const useRequisitionDetail = () => {
     api.fetch.fetchRequisitionDetails as (
       query?: Record<string, string | number>
     ) => Promise<ApiResponse<IRequisitionDetails>>,
-    { id: requisitionId }
+    { id: requisitionId },
+    !requisitionId
   );
 
   const {
     postData,
     data: updateData,
     loading: isUpdating,
-    error,
   } = usePost<
     ApiResponse<{ data: IRequisitionDetails; message: string }>,
     Record<string, unknown>
@@ -126,7 +126,7 @@ export const useRequisitionDetail = () => {
       await postData(data);
       const { success, title } = notificationMessages[type];
       handleOpenNotification(success, "success", title);
-    } catch (error) {
+    } catch {
       const { error: errorMsg, title } = notificationMessages[type];
       handleOpenNotification(errorMsg, "error", title);
     }
@@ -161,10 +161,13 @@ export const useRequisitionDetail = () => {
     setActionType("removeAttachment");
     setAttachmentId(String(id));
     const updatedAttachments = attachments.filter((att) => att.id !== id);
-    await postData({
-      id: Number(requisitionId),
-      attachmentLists: updatedAttachments,
-    });
+    await handleUpdate(
+      {
+        id: Number(requisitionId),
+        attachmentLists: updatedAttachments,
+      },
+      "removeAttachment"
+    );
   };
 
   useEffect(() => {
@@ -201,6 +204,7 @@ export const useRequisitionDetail = () => {
         amount: item.unitPrice,
         quantity: item.quantity,
         total: item.quantity * item.unitPrice,
+        image_url: item.image_url ?? item.image ?? "",
         id: String(item.id),
       })) ?? [],
     [requestData]
@@ -222,6 +226,15 @@ export const useRequisitionDetail = () => {
 
   const handleAddSignature = async () => {
     const id = Number(requisitionId);
+
+    if (!signature) {
+      handleOpenNotification(
+        "Please provide a signature before approving this request",
+        "error",
+        "Approve Request"
+      );
+      return;
+    }
 
     if (typeof signature === "string") {
       await handleUpdate({ user_sign: signature, id }, "approve");
