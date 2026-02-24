@@ -10,10 +10,10 @@ export type RequisitionStatusType =
   | "Pending signature";
 
 export type RequesterApprover = {
-  name: string;
-  position: {
-    name: string;
-  };
+  name?: string;
+  position?: {
+    name?: string;
+  } | string | null;
 };
 
 export interface RequestApproval {
@@ -33,15 +33,16 @@ export interface RequestApproval {
   finance_approved: boolean;
   finance_approval_date: string | null;
   finance_sign: string | null;
+  requester_sign?: string | null;
   finance_user: RequesterApprover | null;
-  
+  requester_user?: RequesterApprover | null;
 }
 
 export type RequestComments = {
   comment: string;
   created_at: string;
   id: number;
-  request_comment_user: RequesterApprover;
+  request_comment_user: RequesterApprover | null;
   request_id: number;
   user_id: number;
 };
@@ -54,6 +55,7 @@ export interface Requisition {
   approval_status: RequisitionStatusType;
   requisition_id: string;
   date_created: string;
+  total_amount?: number;
   user_id: number;
   product_names: string[];
   user: UserType;
@@ -63,14 +65,16 @@ export interface Requisition {
 export interface IRequestSummary {
   requisition_id: string;
   department: string;
-  program: string;
+  program?: string;
+  event?: string;
+  event_name?: string;
   request_date: string;
   total_cost: number;
   status: RequisitionStatusType;
-  event_id: number;
+  event_id?: number | string;
   department_id: number;
-  user_sign: string;
-  program_id:string
+  user_sign?: string | null;
+  program_id?: number | string;
 }
 
 export interface IRequester {
@@ -92,6 +96,8 @@ export interface IRequisitionDetails {
     name: string;
     unitPrice: number;
     quantity: number;
+    image_url?: string | null;
+    image?: string | null;
   }[];
   attachmentLists: {
     URL: string;
@@ -106,6 +112,7 @@ export interface TableRow {
   amount: number;
   total: number;
   id: string | number;
+  image_url?: string;
 }
 
 export interface EditableTableStore {

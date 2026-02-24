@@ -1,25 +1,25 @@
 import { Button } from "@/components";
-import {ProfilePicture} from "@/components/ProfilePicture";
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import RequisitionSummary from "../components/RequisitionSummary";
-import EditableTable from "../components/EditableTable";
-import RequisitionComments from "../components/RequisitionComments";
-import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import { Modal } from "@/components/Modal";
-import RequestAttachments from "../components/RequestAttachments";
+import { ProfilePicture } from "@/components/ProfilePicture";
 import AddSignature from "@/components/AddSignature";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
-import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
+import PageHeader from "@/pages/HomePage/Components/PageHeader";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import EditableTable from "../components/EditableTable";
+import RequestAttachments from "../components/RequestAttachments";
+import RequisitionComments from "../components/RequisitionComments";
+import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
+import RequisitionSummary from "../components/RequisitionSummary";
+import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
 
 const RequestDetails = () => {
-    const navigate = useNavigate();
-  
+  const navigate = useNavigate();
 
   const {
     loading,
+    detailsError,
     requestData,
     actionType,
     openComment,
@@ -42,14 +42,21 @@ const RequestDetails = () => {
     addingImage,
     handleSignature,
     handleAddSignature,
-    requisitionId:id
+    requisitionId,
   } = useRequisitionDetail();
 
   const requester = requestData?.requester;
 
+  const encodedRequestId = useMemo(() => {
+    try {
+      return window.btoa(String(requisitionId));
+    } catch {
+      return "";
+    }
+  }, [requisitionId]);
+
   return (
     <PageOutline>
-      {/* Modals */}
       <Modal open={openSignature} onClose={handleOpenSignature}>
         <AddSignature
           cancel={handleOpenSignature}
@@ -60,10 +67,8 @@ const RequestDetails = () => {
       </Modal>
 
       <Modal open={openComment} onClose={closeComment}>
-        <div className="p-10 flex flex-col gap-8">
-          <p className="text-center text-primary font-bold text-xl ">
-            {commentHeader}
-          </p>
+        <div className="space-y-6 p-6 md:p-8">
+          <p className="text-center text-xl font-semibold text-primary">{commentHeader}</p>
           <Textarea
             label="Comment"
             value={comment}
@@ -71,107 +76,117 @@ const RequestDetails = () => {
             placeholder="Enter comment..."
           />
           {actionType === "reject" && (
-            <p className="text-primary text-sm">
-              By clicking "Submit", you agreed to disapproving this request
+            <p className="text-sm text-primaryGray">
+              Provide a clear reason for disapproval before submitting.
             </p>
           )}
-          <div className="flex gap-4 justify-end">
-            <Button
-              value="Cancel"
-              variant="ghost"
-              onClick={closeComment}
-            />
+          <div className="flex justify-end gap-3">
+            <Button value="Cancel" variant="ghost" onClick={closeComment} />
             <Button
               value="Submit"
               variant="primary"
               onClick={handleComment}
-              disabled={!comment}
+              disabled={!comment.trim()}
               loading={isUpdating}
             />
           </div>
         </div>
       </Modal>
 
-      {/* Page Header */}
-      <PageHeader title="Requisition Details">
-        <div className="flex gap-2">
-          {isEditable && (
-            <Button
-              value="Edit"
-              variant="ghost"
-              onClick={() => navigate(`/home/requests/request/${id}`)}
-            />
-          )}
-          {!isApprovedOrRejected && (
-            <>
+      <div className="space-y-5">
+        <PageHeader title="Requisition Details">
+          <div className="flex flex-wrap gap-2">
+            {isEditable && encodedRequestId && (
               <Button
-                value="Disapprove"
-                variant="secondary"
-                onClick={() => openCommentModal("reject")}
+                value="Edit"
+                variant="ghost"
+                onClick={() => navigate(`/home/requests/request/${encodedRequestId}`)}
               />
-              <Button
-                value="Approve"
-                variant="primary"
-                onClick={handleOpenSignature}
+            )}
+            {!isApprovedOrRejected && (
+              <>
+                <Button
+                  value="Disapprove"
+                  variant="secondary"
+                  onClick={() => openCommentModal("reject")}
+                />
+                <Button
+                  value="Approve"
+                  variant="primary"
+                  onClick={handleOpenSignature}
+                />
+              </>
+            )}
+          </div>
+        </PageHeader>
+
+        {loading && (
+          <div className="app-card p-4 text-sm text-primaryGray">
+            Loading requisition details...
+          </div>
+        )}
+
+        {!loading && detailsError && (
+          <div className="rounded-lg border border-error/40 bg-errorBG p-4 text-sm text-error">
+            Failed to load request details. Please refresh and try again.
+          </div>
+        )}
+
+        {!loading && !detailsError && requestData && (
+          <section className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <section className="app-card space-y-5 p-4 md:p-5">
+              <div className="flex flex-wrap items-start gap-4 rounded-lg border border-lightGray p-4">
+                <ProfilePicture
+                  alt="requester profile"
+                  className="h-[4.5rem] w-[4.5rem] border shadow-sm"
+                  name={requester?.name}
+                />
+                <div className="min-w-0 space-y-1">
+                  <p className="text-lg font-semibold text-primary">
+                    {requester?.name || "Unknown requester"}
+                  </p>
+                  <p className="text-sm text-primaryGray">
+                    {requester?.position ?? "No position"}
+                  </p>
+                  <p className="text-sm text-primaryGray">{requester?.email || "N/A"}</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base font-semibold text-primary">Requested Items</h3>
+                <EditableTable isEditable={false} data={products} />
+              </div>
+
+              <RequisitionSignatureSection
+                requester={requester}
+                requesterSignature={requestData?.summary?.user_sign ?? null}
+                requestApprovals={requestData?.request_approvals}
               />
-            </>
-          )}
-        </div>
-      </PageHeader>
+            </section>
 
-      <section className="grid grid-cols-4 gap-4 text-primary">
-        {/* Left Section */}
-        <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
-          <div className="flex gap-3">
-            <ProfilePicture
-              alt="profile pic"
-              className="w-[7rem] h-[7rem] border shadow-md"
-              name={requestData?.requester?.name}
-            />
-            <div>
-              <div className="font-bold">{requestData?.requester?.name}</div>
-              <div className="text-primary">
-                {requestData?.requester?.position ?? "N/A"}
-              </div>
-              <div className="text-primary">
-                {requestData?.requester?.email}
-              </div>
-            </div>
-          </div>
-          <HorizontalLine />
-          <div className="pl-4">
-            <PageHeader title="Request Details" />
-          </div>
-          <EditableTable isEditable={false} data={products} />
-          <HorizontalLine />
-          <RequisitionSignatureSection
-            requester={{...requester,user_sign:requestData?.summary?.user_sign ?? null}}
-            requuest_approvals={requestData?.request_approvals}
-          />
-        </section>
-
-        {/* Right Section */}
-        <section className="flex flex-col gap-4 col-span-1">
-          <RequisitionSummary
-            summary={requestData?.summary}
-            currency={requestData?.currency}
-          />
-          <RequisitionComments
-            isEditable={isEditable}
-            openCommentModal={openCommentModal}
-            comments={requestData?.request_comments ?? []}
-          />
-          <RequestAttachments
-            attachments={attachments}
-            isEditable={isEditable}
-            addAttachement={handleAddAttachment}
-            removAttachment={handleRemoveAttachment}
-            isLoading={isUpdating}
-            action={actionType}
-            fileId={attachmentId}
-          />
-        </section>
-      </section>
+            <section className="space-y-4">
+              <RequisitionSummary
+                summary={requestData?.summary}
+                currency={requestData?.currency}
+              />
+              <RequisitionComments
+                isEditable={isEditable}
+                openCommentModal={openCommentModal}
+                comments={requestData?.request_comments ?? []}
+              />
+              <RequestAttachments
+                attachments={attachments}
+                isEditable={isEditable}
+                addAttachement={handleAddAttachment}
+                removAttachment={handleRemoveAttachment}
+                isLoading={isUpdating}
+                action={actionType}
+                fileId={attachmentId}
+              />
+            </section>
+          </section>
+        )}
+      </div>
     </PageOutline>
   );
 };

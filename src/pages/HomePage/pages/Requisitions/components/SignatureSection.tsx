@@ -1,45 +1,64 @@
 import StatusPill from "@/components/StatusPill";
 import { isValidURL } from "@/pages/HomePage/utils/helperFunctions";
-import React from "react";
+import { DateTime } from "luxon";
+import React, { useMemo } from "react";
 
 type SignatureProps = {
- signature:{
+  signature: {
     label: string;
     name: string;
     signature: string;
- }
+    approvalDate?: string | null;
+  };
 };
 
-export default React.memo(function SignatureSection({
-  signature
-}: Readonly<SignatureProps>) {
-  // TODO make this util
-  
+const SignatureSectionComponent = ({
+  signature,
+}: Readonly<SignatureProps>) => {
+  const formattedApprovalDate = useMemo(() => {
+    if (!signature.approvalDate) {
+      return null;
+    }
+
+    const parsed = DateTime.fromISO(signature.approvalDate);
+    return parsed.isValid ? parsed.toFormat("dd LLL yyyy") : null;
+  }, [signature.approvalDate]);
+
   return (
-    <section className="text-primary">
-      <div className="flex flex-col gap-1">
-        <p className="font-semibold">
-          {signature.label}: <span className="font-normal">{signature.name || "N/A"}</span>
-        </p>
-        <div className="font-semibold flex items-center gap-1">
-          Signature:
-          {signature.signature ? (
-            <>
-              {isValidURL(signature.signature) ? (
-                <img
-                  src={signature.signature}
-                  className="w-12 h-12"
-                  alt={`${signature.name}'s signature`}
-                  />
-              ) : (
-                <span className="font-normal ">{signature.signature}</span>
-              )}
-            </>
+    <section className="rounded-lg border border-lightGray bg-white p-3 text-primary">
+      <p className="text-sm font-semibold text-primary">{signature.label}</p>
+      <p className="mt-1 text-sm text-primaryGray">
+        {signature.name || "Pending assignment"}
+      </p>
+
+      <div className="mt-3 flex min-h-[56px] items-center gap-2">
+        {signature.signature ? (
+          isValidURL(signature.signature) ? (
+            <img
+              src={signature.signature}
+              className="h-12 w-24 rounded border border-lightGray object-contain bg-white"
+              alt={`${signature.name || signature.label} signature`}
+            />
           ) : (
-            <StatusPill text="Pending signature" />
-          )}
-        </div>
+            <span className="text-sm font-medium text-primary">{signature.signature}</span>
+          )
+        ) : (
+          <StatusPill text="Pending signature" />
+        )}
       </div>
+
+      {formattedApprovalDate && (
+        <p className="mt-2 text-xs text-primaryGray">
+          Signed on {formattedApprovalDate}
+        </p>
+      )}
     </section>
   );
-});
+};
+
+const SignatureSection = React.memo(SignatureSectionComponent);
+
+SignatureSectionComponent.displayName = "SignatureSection";
+SignatureSection.displayName = "SignatureSection";
+
+export default SignatureSection;

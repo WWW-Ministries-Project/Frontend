@@ -23,7 +23,7 @@ import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
 
 const EventsManagement = () => {
   const navigate = useNavigate();
-  const DEFAULT_EVENTS_PAGE_SIZE = 3;
+  const DEFAULT_EVENTS_PAGE_SIZE = 99;
   const { page, take, setPage } = usePaginationQueryParams(
     DEFAULT_EVENTS_PAGE_SIZE
   );

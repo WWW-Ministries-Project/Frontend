@@ -24,6 +24,7 @@ import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetM
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings";
+import ApprovalSettings from "../pages/HomePage/pages/Settings/pages/ApprovalSettings";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
@@ -750,6 +751,14 @@ export const routes: AppRoute[] = [
             element: <UserManagement />,
             isPrivate: true,
             permissionNeeded: "manage_users",
+            sideTab: true,
+          },
+          {
+            path: "approval",
+            name: "Approval",
+            element: <ApprovalSettings />,
+            isPrivate: true,
+            permissionNeeded: "manage_requisition",
             sideTab: true,
           },
         ],

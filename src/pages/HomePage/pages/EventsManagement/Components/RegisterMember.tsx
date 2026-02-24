@@ -84,8 +84,8 @@ const RegisterMember: React.FC<RegisterMemberProps> = ({
             <Field
               component={FormikSelectField}
               options={[
-                { name: "Male", value: "Male" },
-                { name: "Female", value: "Female" },
+                { label: "Male", value: "Male" },
+                { label: "Female", value: "Female" },
               ]}
               id="gender"
               name="gender"

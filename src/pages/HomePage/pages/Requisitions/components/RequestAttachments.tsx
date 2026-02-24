@@ -1,11 +1,9 @@
 import DeleteIcon from "@/assets/DeleteIcon";
 import DownloadIcon from "@/assets/DownloadIcon";
 import FileIcon from "@/assets/FileIcon";
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
-import { handleDownload } from "@/pages/HomePage/utils";
-import UploadButton from "@/components/UploadButton";
 import LoaderIcon from "@/assets/LoaderIcon";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import UploadButton from "@/components/UploadButton";
+import { handleDownload } from "@/pages/HomePage/utils";
 import { useImageUpload } from "@/pages/HomePage/utils/useImageUpload";
 import { ActionType } from "../hooks/useRequisitionDetail";
 
@@ -26,69 +24,96 @@ function RequestAttachments({
   action: ActionType;
   fileId: string;
 }>) {
+  const { handleUpload, addingImage } = useImageUpload();
 
-
-  const { handleUpload,addingImage } = useImageUpload();
-
-  // Handle file change
   const onFileChange = async (file: File | null) => {
-    if (file) {
-      const formData = new FormData();
-      formData.append(`file`, file);
-      const res = await handleUpload(formData);
-      if (res?.URL) {
-        addAttachement(res.URL);
-      }
+    if (!file) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await handleUpload(formData);
+
+    if (response?.URL) {
+      addAttachement(response.URL);
     }
   };
 
-  // Render attachment item
-  const renderAttachmentItem = (attachment: { URL: string; id?: number }, idx: number) => (
-    <div key={attachment.URL}>
-      <div className="border p-2 rounded-lg flex gap-3">
-        <FileIcon />
-        <div className="flex gap-2 flex-col">
-          <div className="text-sm text-primary">
-            {attachment.URL?.split("/").pop()}
-          </div>
-          <div className="flex items-center gap-2">
-            <DownloadIcon onClick={() => handleDownload(attachment.URL)} />
-            <DeleteIcon
-              fill="#D92D20"
-              onClick={() => attachment.id !== undefined && removAttachment(attachment.id)}
-            />
-            {action === "removeAttachment" && isLoading && Number(fileId) === attachment.id && (
-              <LoaderIcon />
-            )}
-          </div>
-        </div>
-      </div>
-      {idx !== attachments.length - 1 && <HorizontalLine />}
-    </div>
-  );
-
   return (
-    <div className="border rounded-lg p-3 border-[#D9D9D9] h-fit">
-      <div className="font-semibold text-primary flex items-center justify-between">
-        <PageHeader title="Attachments" />
-        {!isEditable && (
+    <aside className="app-card h-fit p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold text-primary">Attachments</h3>
+        {isEditable && (
           <UploadButton
-            className="font-light text-primary cursor-pointer"
+            className="text-sm font-medium text-primary"
             onFileChange={onFileChange}
           >
-            <span>+ Upload file</span>
-            {(addingImage || (action === "addAttachment" && isLoading)) && <LoaderIcon />}
+            <span className="inline-flex items-center gap-2">
+              + Upload file
+              {(addingImage || (action === "addAttachment" && isLoading)) && (
+                <LoaderIcon />
+              )}
+            </span>
           </UploadButton>
         )}
       </div>
-      <div className="flex flex-col gap-0 max-h-[12.5rem] overflow-y-auto">
+
+      <div className="mt-3 max-h-[18rem] space-y-2 overflow-y-auto pr-1">
         {attachments.length > 0 ? (
-          attachments.map(renderAttachmentItem)
+          attachments.map((attachment) => {
+            const isDeleting =
+              action === "removeAttachment" &&
+              isLoading &&
+              Number(fileId) === attachment.id;
+
+            return (
+              <article
+                key={`${attachment.id ?? attachment.URL}-${attachment.URL}`}
+                className="flex items-start gap-3 rounded-lg border border-lightGray bg-white p-3"
+              >
+                <FileIcon />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm text-primary">
+                    {attachment.URL?.split("/").pop() || "Attachment"}
+                  </p>
+
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload(attachment.URL)}
+                      className="app-icon-btn"
+                      aria-label="Download attachment"
+                    >
+                      <DownloadIcon />
+                    </button>
+
+                    {isEditable && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          attachment.id !== undefined && removAttachment(attachment.id)
+                        }
+                        className="app-icon-btn app-icon-btn-danger"
+                        aria-label="Delete attachment"
+                      >
+                        <DeleteIcon fill="#D92D20" />
+                      </button>
+                    )}
+
+                    {isDeleting && <LoaderIcon />}
+                  </div>
+                </div>
+              </article>
+            );
+          })
         ) : (
-          <p>No attachments found</p>
+          <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-center text-sm text-primaryGray">
+            No attachments found.
+          </p>
         )}
       </div>
-    </div>
+    </aside>
   );
 }
 
