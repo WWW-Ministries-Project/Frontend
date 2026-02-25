@@ -1,11 +1,13 @@
+import { useAuth } from "@/context/AuthWrapper";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useImageUpload } from "@/pages/HomePage/utils/useImageUpload";
 import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { ApprovalInstance } from "../types/approvalWorkflow";
 import { IRequisitionDetails } from "../types/requestInterface";
 
 export type ActionType =
@@ -14,14 +16,72 @@ export type ActionType =
   | "approve"
   | "addAttachment"
   | "removeAttachment";
+
+const notificationMessages: Record<
+  ActionType,
+  { success: string; error: string; title: string }
+> = {
+  comment: {
+    success: "Comment added successfully",
+    error: "Error adding comment",
+    title: "Add Comment",
+  },
+  reject: {
+    success: "Request rejected successfully",
+    error: "Error rejecting request",
+    title: "Reject Request",
+  },
+  approve: {
+    success: "Request approved successfully",
+    error: "Error approving request",
+    title: "Approve Request",
+  },
+  addAttachment: {
+    success: "Attachment added successfully",
+    error: "Error adding attachment",
+    title: "Add Attachment",
+  },
+  removeAttachment: {
+    success: "Attachment removed successfully",
+    error: "Error removing attachment",
+    title: "Remove Attachment",
+  },
+};
+
+const getResponseMessage = (payload: unknown, fallback: string): string => {
+  if (!payload || typeof payload !== "object") {
+    return fallback;
+  }
+
+  const payloadRecord = payload as Record<string, unknown>;
+  const nestedData =
+    payloadRecord.data && typeof payloadRecord.data === "object"
+      ? (payloadRecord.data as Record<string, unknown>)
+      : null;
+
+  const candidates = [nestedData?.message, payloadRecord.message];
+
+  const message = candidates.find(
+    (candidate): candidate is string =>
+      typeof candidate === "string" && candidate.trim().length > 0
+  );
+
+  return message ?? fallback;
+};
+
 export const useRequisitionDetail = () => {
   const { id } = useParams();
+  const {
+    user: { id: loggedInUserId },
+  } = useAuth();
+
   const requisitionId = id ? window.atob(String(id)) : "";
 
   const {
     data,
     loading,
     error: detailsError,
+    refetch,
   } = useFetch<ApiResponse<IRequisitionDetails>>(
     api.fetch.fetchRequisitionDetails as (
       query?: Record<string, string | number>
@@ -30,33 +90,19 @@ export const useRequisitionDetail = () => {
     !requisitionId
   );
 
-  const {
-    postData,
-    data: updateData,
-    loading: isUpdating,
-  } = usePost<
-    ApiResponse<{ data: IRequisitionDetails; message: string }>,
-    Record<string, unknown>
-  >((payload) =>
-    api.put.updateRequisition<{ data: IRequisitionDetails; message: string }>(
-      payload
-    )
-  );
-
   const [requestData, setRequestData] = useState<IRequisitionDetails | null>(
     null
   );
-  const [openSignature, setOpenSignature] = useState(false);
   const [openComment, setOpenComment] = useState(false);
-  const [actionType, setActionType] = useState<ActionType>("reject");
+  const [actionType, setActionType] = useState<ActionType>("comment");
   const [comment, setComment] = useState("");
   const [attachments, setAttachments] = useState<
     { URL: string; id?: number }[]
   >([]);
-
   const [attachmentId, setAttachmentId] = useState("");
-  const [signature, setSignature] = useState<File | string | null>(null);
-  const { handleUpload, addingImage } = useImageUpload();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const { addingImage } = useImageUpload();
 
   useEffect(() => {
     setAttachments(data?.data?.attachmentLists ?? []);
@@ -64,8 +110,8 @@ export const useRequisitionDetail = () => {
   }, [data]);
 
   const openCommentModal = (type: ActionType) => {
-    setOpenComment(true);
     setActionType(type);
+    setOpenComment(true);
   };
 
   const closeComment = () => {
@@ -75,10 +121,14 @@ export const useRequisitionDetail = () => {
 
   const commentHeader = useMemo(() => {
     if (actionType === "reject") {
-      return "Request Disapproval Comment";
-    } else {
-      return "Add Comment";
+      return "Reject Request";
     }
+
+    if (actionType === "approve") {
+      return "Approve Request";
+    }
+
+    return "Add Comment";
   }, [actionType]);
 
   const handleOpenNotification = (
@@ -87,68 +137,162 @@ export const useRequisitionDetail = () => {
     title: string
   ) => showNotification(message, type, title);
 
-  const notificationMessages: Record<
-    ActionType,
-    { success: string; error: string; title: string }
-  > = {
-    comment: {
-      success: "Comment added successfully",
-      error: "Error adding comment",
-      title: "Add Comment",
-    },
-    reject: {
-      success: "Request rejected successfully",
-      error: "Error rejecting request",
-      title: "Reject Request",
-    },
-    approve: {
-      success: "Request approved successfully",
-      error: "Error approving request",
-      title: "Approve Request",
-    },
-    addAttachment: {
-      success: "Attachment added successfully",
-      error: "Error adding attachment",
-      title: "Add Attachment",
-    },
-    removeAttachment: {
-      success: "Attachment removed successfully",
-      error: "Error removing attachment",
-      title: "Remove Attachment",
-    },
-  };
+  const refreshDetails = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
-  const handleUpdate = async (
-    data: Record<string, unknown>,
-    type: ActionType
-  ) => {
-    try {
-      await postData(data);
-      const { success, title } = notificationMessages[type];
-      handleOpenNotification(success, "success", title);
-    } catch {
-      const { error: errorMsg, title } = notificationMessages[type];
-      handleOpenNotification(errorMsg, "error", title);
-    }
-  };
+  const updateRequisition = useCallback(
+    async (payload: Record<string, unknown>, type: ActionType) => {
+      setIsUpdating(true);
+
+      try {
+        const response = await api.put.updateRequisition<{
+          data?: IRequisitionDetails;
+          message?: string;
+        }>(payload);
+
+        const { success, title } = notificationMessages[type];
+
+        handleOpenNotification(
+          getResponseMessage(response.data, success),
+          "success",
+          title
+        );
+
+        if (type === "removeAttachment") {
+          setAttachments((prev) =>
+            prev.filter((file) => String(file.id) !== attachmentId)
+          );
+        }
+
+        await refreshDetails();
+      } catch (error) {
+        if (!(error instanceof ApiError)) {
+          const { error: errorMsg, title } = notificationMessages[type];
+          handleOpenNotification(
+            error instanceof Error ? error.message : errorMsg,
+            "error",
+            title
+          );
+        }
+      } finally {
+        if (type === "removeAttachment") {
+          setAttachmentId("");
+        }
+        setIsUpdating(false);
+      }
+    },
+    [attachmentId, refreshDetails]
+  );
+
+  const executeApprovalAction = useCallback(
+    async (type: "approve" | "reject") => {
+      const id = Number(requisitionId);
+      const normalizedComment = comment.trim();
+
+      if (!Number.isInteger(id) || id <= 0) {
+        handleOpenNotification(
+          "Invalid requisition identifier.",
+          "error",
+          "Requisition"
+        );
+        return;
+      }
+
+      if (type === "reject" && !normalizedComment) {
+        handleOpenNotification(
+          "Provide a clear reason before rejecting this request.",
+          "error",
+          "Reject Request"
+        );
+        return;
+      }
+
+      setIsUpdating(true);
+
+      try {
+        const response = await api.post.requisitionApprovalAction({
+          requisition_id: id,
+          action: type === "approve" ? "APPROVE" : "REJECT",
+          comment: normalizedComment || undefined,
+        });
+
+        const messageMeta = notificationMessages[type];
+
+        handleOpenNotification(
+          getResponseMessage(response.data, messageMeta.success),
+          "success",
+          messageMeta.title
+        );
+
+        closeComment();
+        await refreshDetails();
+      } catch (error) {
+        if (!(error instanceof ApiError)) {
+          const messageMeta = notificationMessages[type];
+          handleOpenNotification(
+            error instanceof Error ? error.message : messageMeta.error,
+            "error",
+            messageMeta.title
+          );
+        }
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [comment, refreshDetails, requisitionId]
+  );
 
   const handleComment = async () => {
-    const commentData = { comment, id: Number(requisitionId) };
-    if (["reject", "comment"].includes(actionType)) {
-      await handleUpdate(
-        actionType === "reject"
-          ? { ...commentData, approval_status: "REJECTED" }
-          : commentData,
-        actionType
+    const id = Number(requisitionId);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      handleOpenNotification(
+        "Invalid requisition identifier.",
+        "error",
+        "Requisition"
       );
-      setComment("");
-      setOpenComment(false);
+      return;
+    }
+
+    if (actionType === "comment") {
+      const normalizedComment = comment.trim();
+
+      if (!normalizedComment) {
+        handleOpenNotification(
+          "Please provide a comment before submitting.",
+          "error",
+          "Add Comment"
+        );
+        return;
+      }
+
+      await updateRequisition(
+        {
+          comment: normalizedComment,
+          id,
+        },
+        "comment"
+      );
+      closeComment();
+      return;
+    }
+
+    if (actionType === "approve") {
+      await executeApprovalAction("approve");
+      return;
+    }
+
+    if (actionType === "reject") {
+      await executeApprovalAction("reject");
     }
   };
+
   const handleAddAttachment = async (attachment: string) => {
     setActionType("addAttachment");
     const updatedAttachments = [...attachments, { URL: attachment }];
-    await handleUpdate(
+
+    await updateRequisition(
       {
         id: Number(requisitionId),
         attachmentLists: updatedAttachments,
@@ -160,8 +304,10 @@ export const useRequisitionDetail = () => {
   const handleRemoveAttachment = async (id: number) => {
     setActionType("removeAttachment");
     setAttachmentId(String(id));
+
     const updatedAttachments = attachments.filter((att) => att.id !== id);
-    await handleUpdate(
+
+    await updateRequisition(
       {
         id: Number(requisitionId),
         attachmentLists: updatedAttachments,
@@ -170,32 +316,42 @@ export const useRequisitionDetail = () => {
     );
   };
 
-  useEffect(() => {
-    if (updateData?.status !== 201) return;
+  const approvalInstances: ApprovalInstance[] = useMemo(
+    () =>
+      [...(requestData?.approval_instances ?? [])].sort(
+        (a, b) => a.step_order - b.step_order
+      ),
+    [requestData?.approval_instances]
+  );
 
-    const { data } = updateData.data;
+  const currentApprovalStep = useMemo(
+    () => approvalInstances.find((step) => step.status === "PENDING") ?? null,
+    [approvalInstances]
+  );
 
-    switch (actionType) {
-      case "removeAttachment":
-        setAttachments((prev) =>
-          prev.filter((file) => String(file.id) !== attachmentId)
-        );
-        break;
-      case "addAttachment":
-        setAttachments(data.attachmentLists);
-        break;
-      default:
-        setRequestData(data);
-    }
+  const canCurrentUserApprove = useMemo(
+    () =>
+      Boolean(
+        currentApprovalStep &&
+          String(currentApprovalStep.approver_user_id) === String(loggedInUserId)
+      ),
+    [currentApprovalStep, loggedInUserId]
+  );
 
-    setAttachmentId("");
-
-  }, [updateData, actionType, attachmentId]);
-
-  const isEditable = useMemo(() => {
-    const status = requestData?.summary?.status;
-    return status === "Awaiting_HOD_Approval" || status === "Draft";
+  const displayStatus = useMemo(() => {
+    return (
+      requestData?.request_approval_status ??
+      requestData?.approval_status ??
+      requestData?.summary?.request_approval_status ??
+      requestData?.summary?.status ??
+      "Draft"
+    );
   }, [requestData]);
+
+  const isEditable = useMemo(
+    () => displayStatus === "Awaiting_HOD_Approval" || displayStatus === "Draft",
+    [displayStatus]
+  );
 
   const products = useMemo(
     () =>
@@ -211,54 +367,20 @@ export const useRequisitionDetail = () => {
   );
 
   const isApprovedOrRejected = useMemo(() => {
-    const status = requestData?.summary?.status;
-    return status === "APPROVED" || status === "REJECTED";
-  }, [requestData]);
+    return displayStatus === "APPROVED" || displayStatus === "REJECTED";
+  }, [displayStatus]);
 
-  const handleOpenSignature = () => {
-    setActionType("approve");
-    setOpenSignature((pre) => !pre);
-  };
-
-  const handleSignature = (signature: File | string) => {
-    setSignature(signature);
-  };
-
-  const handleAddSignature = async () => {
-    const id = Number(requisitionId);
-
-    if (!signature) {
-      handleOpenNotification(
-        "Please provide a signature before approving this request",
-        "error",
-        "Approve Request"
-      );
-      return;
-    }
-
-    if (typeof signature === "string") {
-      await handleUpdate({ user_sign: signature, id }, "approve");
-    } else {
-      const formData = new FormData();
-      formData.append("file", signature as File);
-
-      const response = await handleUpload(formData);
-      const uploadedURL = response?.URL;
-
-      if (uploadedURL) {
-        await handleUpdate({ user_sign: uploadedURL, id }, "approve");
-      }
-    }
-
-    setOpenSignature(false);
-  };
+  const submitButtonDisabled = useMemo(
+    () =>
+      (actionType === "reject" || actionType === "comment") &&
+      !comment.trim(),
+    [actionType, comment]
+  );
 
   return {
     requestData,
     loading,
     detailsError,
-    openSignature,
-    setOpenSignature,
     openComment,
     setOpenComment,
     actionType,
@@ -276,10 +398,12 @@ export const useRequisitionDetail = () => {
     isEditable,
     products,
     isApprovedOrRejected,
-    handleOpenSignature,
     addingImage,
-    handleSignature,
-    handleAddSignature,
     requisitionId,
+    approvalInstances,
+    currentApprovalStep,
+    canCurrentUserApprove,
+    displayStatus,
+    submitButtonDisabled,
   };
 };

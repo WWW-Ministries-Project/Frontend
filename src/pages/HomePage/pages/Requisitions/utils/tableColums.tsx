@@ -11,8 +11,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type {
   Requisition,
-  RequisitionStatusType,
 } from "../types/requestInterface";
+import { resolveRequisitionStatus } from "./status";
 
 const amountFormatter = new Intl.NumberFormat(undefined, {
   minimumFractionDigits: 2,
@@ -113,10 +113,9 @@ export const tableColumns: ColumnDef<Requisition>[] = [
   },
   {
     header: "Status",
-    accessorKey: "approval_status",
-    cell: (info) => (
-      <StatusPill text={info.getValue() as RequisitionStatusType} />
-    ),
+    id: "approval_status",
+    accessorFn: (row) => resolveRequisitionStatus(row),
+    cell: ({ row }) => <StatusPill text={resolveRequisitionStatus(row.original)} />,
   },
   {
     header: "Action",
@@ -132,10 +131,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           api.delete.deleteRequest
         );
         const { removeRequest } = useStore();
+        const requestStatus = resolveRequisitionStatus(row.original);
 
         const isEditable =
-          row.original.approval_status === "Awaiting_HOD_Approval" ||
-          row.original.approval_status === "Draft";
+          requestStatus === "Awaiting_HOD_Approval" || requestStatus === "Draft";
 
         useEffect(() => {
           const handleOutsideClick = (event: MouseEvent) => {

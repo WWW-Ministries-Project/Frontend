@@ -14,9 +14,11 @@ const amountFormatter = new Intl.NumberFormat(undefined, {
 const RequisitionSummaryComponent = ({
   summary,
   currency,
+  status,
 }: Readonly<{
   summary: IRequestSummary | undefined;
   currency: string | undefined;
+  status?: RequisitionStatusType;
 }>) => {
     const requestDate = useMemo(() => {
       const parsed = summary?.request_date
@@ -72,7 +74,7 @@ const RequisitionSummaryComponent = ({
           <div className="grid grid-cols-[110px_1fr] items-center gap-2 text-sm">
             <span className="font-medium text-primaryGray">Status</span>
             <StatusPill
-              text={(summary?.status || "Draft") as RequisitionStatusType}
+              text={(status || summary?.status || "Draft") as RequisitionStatusType}
             />
           </div>
         </div>

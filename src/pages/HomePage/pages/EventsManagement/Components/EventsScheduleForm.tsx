@@ -269,8 +269,6 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 type="date"
                 id="start_date"
                 name="start_date"
-                min={maxMinValueForDate().minDate}
-                max={maxMinValueForDate().maxDate}
                 value={form.values.start_date}
               />
               <Field

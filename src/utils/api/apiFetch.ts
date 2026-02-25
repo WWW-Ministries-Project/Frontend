@@ -37,6 +37,7 @@ import {
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -164,6 +165,12 @@ export class ApiCalls {
 
   fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
+
+  fetchRequisitionApprovalConfig = (): Promise<
+    ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+  > => {
+    return this.fetchFromApi("requisitions/get-approval-config");
   };
 
   // Program Management

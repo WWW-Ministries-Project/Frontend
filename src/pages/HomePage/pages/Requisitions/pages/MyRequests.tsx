@@ -5,18 +5,24 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { useStore } from "@/store/useStore";
+import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { decodeToken } from "@/utils/helperFunctions";
 import { ApiResponse } from "@/utils/interfaces";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Requisition } from "../types/requestInterface";
+import {
+  isAwaitingApprovalStatus,
+  resolveRequisitionStatus,
+} from "../utils/status";
 import { tableColumns } from "../utils/tableColums";
 
 const MyRequisitions = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const { id } = decodeToken() || {};
+  const requestsPath = `${relativePath.home.main}/requests`;
 
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
     api.fetch.fetchMyRequests as (
@@ -34,23 +40,28 @@ const MyRequisitions = () => {
   const metrics = useMemo(() => {
     const total = requests?.length ?? 0;
     const drafts =
-      requests?.filter((request) => request.approval_status === "Draft").length ??
+      requests?.filter((request) => resolveRequisitionStatus(request) === "Draft")
+        .length ??
       0;
     const awaiting =
       requests?.filter(
-        (request) =>
-          request.approval_status?.startsWith("Awaiting") ||
-          request.approval_status === "Pending signature"
+        (request) => isAwaitingApprovalStatus(resolveRequisitionStatus(request))
       ).length ?? 0;
     const rejected =
-      requests?.filter((request) => request.approval_status === "REJECTED")
+      requests?.filter((request) => resolveRequisitionStatus(request) === "REJECTED")
         .length ?? 0;
 
     return { total, drafts, awaiting, rejected };
   }, [requests]);
 
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "Requests", link: requestsPath },
+    { label: "My Requests", link: "" },
+  ];
+
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       <div className="space-y-5">
         <div>
           <PageHeader

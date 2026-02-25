@@ -423,6 +423,7 @@ input.input::placeholder {
   -ms-overflow-style: none;
   scrollbar-width: none !important;
   overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-scroll::-webkit-scrollbar {

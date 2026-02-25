@@ -1,4 +1,5 @@
 import { UserType } from "../../Members/utils/membersInterfaces";
+import { ApprovalInstance } from "./approvalWorkflow";
 
 export type RequisitionStatusType =
   | "Draft"
@@ -53,6 +54,7 @@ export interface Requisition {
   event_id: number;
   id: number;
   approval_status: RequisitionStatusType;
+  request_approval_status?: RequisitionStatusType;
   requisition_id: string;
   date_created: string;
   total_amount?: number;
@@ -71,6 +73,7 @@ export interface IRequestSummary {
   request_date: string;
   total_cost: number;
   status: RequisitionStatusType;
+  request_approval_status?: RequisitionStatusType;
   event_id?: number | string;
   department_id: number;
   user_sign?: string | null;
@@ -84,12 +87,15 @@ export interface IRequester {
   user_sign: string | null;
 }
 export interface IRequisitionDetails {
+  id?: number;
   comment: string;
   currency: string;
-
+  approval_status?: RequisitionStatusType;
+  request_approval_status?: RequisitionStatusType;
   summary: IRequestSummary;
   requester: IRequester;
-  request_approvals: RequestApproval;
+  request_approvals?: RequestApproval;
+  approval_instances?: ApprovalInstance[];
   products: {
     id: number;
     request_id: number;

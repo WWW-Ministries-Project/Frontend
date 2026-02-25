@@ -2,6 +2,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import EmptyState from "@/components/EmptyState";
 import { SearchBar } from "@/components/SearchBar";
 import { useStore } from "@/store/useStore";
+import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { useEffect, useMemo, useState } from "react";
@@ -10,11 +11,16 @@ import PageHeader from "../../../Components/PageHeader";
 import PageOutline from "../../../Components/PageOutline";
 import TableComponent from "../../../Components/reusable/TableComponent";
 import { Requisition } from "../types/requestInterface";
+import {
+  isAwaitingApprovalStatus,
+  resolveRequisitionStatus,
+} from "../utils/status";
 import { tableColumns } from "../utils/tableColums";
 
 const Requisitions = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
+  const requestsPath = `${relativePath.home.main}/requests`;
 
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
     api.fetch.fetchRequisitions as (
@@ -31,23 +37,28 @@ const Requisitions = () => {
   const metrics = useMemo(() => {
     const total = requests?.length ?? 0;
     const drafts =
-      requests?.filter((request) => request.approval_status === "Draft").length ??
+      requests?.filter((request) => resolveRequisitionStatus(request) === "Draft")
+        .length ??
       0;
     const awaiting =
       requests?.filter(
-        (request) =>
-          request.approval_status?.startsWith("Awaiting") ||
-          request.approval_status === "Pending signature"
+        (request) => isAwaitingApprovalStatus(resolveRequisitionStatus(request))
       ).length ?? 0;
     const approved =
-      requests?.filter((request) => request.approval_status === "APPROVED")
+      requests?.filter((request) => resolveRequisitionStatus(request) === "APPROVED")
         .length ?? 0;
 
     return { total, drafts, awaiting, approved };
   }, [requests]);
 
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "Requests", link: requestsPath },
+    { label: "Staff Requests", link: "" },
+  ];
+
   return (
-    <PageOutline>
+    <PageOutline crumbs={crumbs}>
       <div className="space-y-5">
         <div>
           <PageHeader

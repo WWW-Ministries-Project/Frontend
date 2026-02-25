@@ -23,14 +23,17 @@ const Action = ({
   onView,
   className,
   hideDelete,
+  isEditable = true,
   requireManageAccess = true,
 }: IAction) => {
   const { canManageCurrentRoute } = useRouteAccess();
   const canRunManageActions = !requireManageAccess || canManageCurrentRoute;
+  const canShowEdit = Boolean(canRunManageActions && onEdit && isEditable);
+  const canShowDelete = Boolean(
+    canRunManageActions && onDelete && !hideDelete && isEditable
+  );
   const hasVisibleAction = Boolean(
-    onView ||
-      (canRunManageActions &&
-        (onEdit || (onDelete && !hideDelete)))
+    onView || canShowEdit || canShowDelete
   );
 
   if (!hasVisibleAction) return null;
@@ -43,9 +46,9 @@ const Action = ({
       )}
     >
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
-        {onEdit && canRunManageActions && <ActionButton onClick={onEdit} text="Edit" />}
+        {canShowEdit && onEdit && <ActionButton onClick={onEdit} text="Edit" />}
         {onView && <ActionButton onClick={onView} text="View" />}
-        {onDelete && canRunManageActions && !hideDelete && (
+        {canShowDelete && onDelete && (
           <>
             <hr className="border-[#D8DAE5]" />
             <ActionButton onClick={onDelete} text="Delete" />

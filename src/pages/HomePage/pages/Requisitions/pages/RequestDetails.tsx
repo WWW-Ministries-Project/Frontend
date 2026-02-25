@@ -1,21 +1,22 @@
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import { ProfilePicture } from "@/components/ProfilePicture";
-import AddSignature from "@/components/AddSignature";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { relativePath } from "@/utils";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeline";
 import EditableTable from "../components/EditableTable";
 import RequestAttachments from "../components/RequestAttachments";
 import RequisitionComments from "../components/RequisitionComments";
-import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import RequisitionSummary from "../components/RequisitionSummary";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
 
 const RequestDetails = () => {
   const navigate = useNavigate();
+  const requestsPath = `${relativePath.home.main}/requests`;
 
   const {
     loading,
@@ -23,7 +24,6 @@ const RequestDetails = () => {
     requestData,
     actionType,
     openComment,
-    openSignature,
     openCommentModal,
     closeComment,
     comment,
@@ -38,11 +38,12 @@ const RequestDetails = () => {
     isEditable,
     products,
     isApprovedOrRejected,
-    handleOpenSignature,
-    addingImage,
-    handleSignature,
-    handleAddSignature,
     requisitionId,
+    approvalInstances,
+    currentApprovalStep,
+    canCurrentUserApprove,
+    displayStatus,
+    submitButtonDisabled,
   } = useRequisitionDetail();
 
   const requester = requestData?.requester;
@@ -55,17 +56,14 @@ const RequestDetails = () => {
     }
   }, [requisitionId]);
 
-  return (
-    <PageOutline>
-      <Modal open={openSignature} onClose={handleOpenSignature}>
-        <AddSignature
-          cancel={handleOpenSignature}
-          handleSignature={handleSignature}
-          onSubmit={handleAddSignature}
-          loading={addingImage || isUpdating}
-        />
-      </Modal>
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "Requests", link: requestsPath },
+    { label: "Request Details", link: "" },
+  ];
 
+  return (
+    <PageOutline crumbs={crumbs}>
       <Modal open={openComment} onClose={closeComment}>
         <div className="space-y-6 p-6 md:p-8">
           <p className="text-center text-xl font-semibold text-primary">{commentHeader}</p>
@@ -86,7 +84,7 @@ const RequestDetails = () => {
               value="Submit"
               variant="primary"
               onClick={handleComment}
-              disabled={!comment.trim()}
+              disabled={submitButtonDisabled}
               loading={isUpdating}
             />
           </div>
@@ -103,22 +101,28 @@ const RequestDetails = () => {
                 onClick={() => navigate(`/home/requests/request/${encodedRequestId}`)}
               />
             )}
-            {!isApprovedOrRejected && (
+            {!isApprovedOrRejected && canCurrentUserApprove && (
               <>
                 <Button
-                  value="Disapprove"
+                  value="Reject"
                   variant="secondary"
                   onClick={() => openCommentModal("reject")}
                 />
                 <Button
                   value="Approve"
                   variant="primary"
-                  onClick={handleOpenSignature}
+                  onClick={() => openCommentModal("approve")}
                 />
               </>
             )}
           </div>
         </PageHeader>
+
+        {!isApprovedOrRejected && !canCurrentUserApprove && currentApprovalStep && (
+          <p className="text-sm text-primaryGray">
+            Awaiting action from approver user ID {currentApprovalStep.approver_user_id}.
+          </p>
+        )}
 
         {loading && (
           <div className="app-card p-4 text-sm text-primaryGray">
@@ -157,10 +161,9 @@ const RequestDetails = () => {
                 <EditableTable isEditable={false} data={products} />
               </div>
 
-              <RequisitionSignatureSection
-                requester={requester}
-                requesterSignature={requestData?.summary?.user_sign ?? null}
-                requestApprovals={requestData?.request_approvals}
+              <RequisitionApprovalTimeline
+                approvalInstances={approvalInstances}
+                currentApprovalStep={currentApprovalStep}
               />
             </section>
 
@@ -168,6 +171,7 @@ const RequestDetails = () => {
               <RequisitionSummary
                 summary={requestData?.summary}
                 currency={requestData?.currency}
+                status={displayStatus}
               />
               <RequisitionComments
                 isEditable={isEditable}
