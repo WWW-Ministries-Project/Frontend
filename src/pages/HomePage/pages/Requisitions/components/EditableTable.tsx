@@ -124,6 +124,59 @@ const EditableTable: React.FC<EditableTableProps> = ({
   };
 
   const textPosition = isEditable ? "text-left" : "text-center";
+  const fieldLabelClass =
+    "text-[11px] font-semibold uppercase tracking-wide text-primaryGray";
+  const renderImageControls = (
+    row: TableRow,
+    index: number,
+    className = "flex items-center justify-center gap-2"
+  ) => (
+    <div className={className}>
+      {row.image_url ? (
+        <img
+          src={row.image_url}
+          alt={`${row.name || "Item"} preview`}
+          className="h-12 w-12 rounded-md border border-lightGray object-cover"
+        />
+      ) : (
+        <div className="flex h-12 w-12 items-center justify-center rounded-md border border-dashed border-lightGray text-[10px] text-primaryGray">
+          No image
+        </div>
+      )}
+
+      {isEditable && (
+        <div className="flex flex-col items-start gap-1">
+          <input
+            id={`item-image-${row.id}-${index}`}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) =>
+              handleImageChange(index, event.target.files?.[0] ?? null)
+            }
+          />
+          <label
+            htmlFor={`item-image-${row.id}-${index}`}
+            className="cursor-pointer text-xs font-medium text-primary hover:underline"
+          >
+            {row.image_url ? "Replace image" : "Upload image"}
+          </label>
+          {row.image_url && (
+            <button
+              type="button"
+              onClick={() => handleInputChange(index, "image_url", "")}
+              className="text-xs text-error hover:underline"
+            >
+              Remove
+            </button>
+          )}
+          {imageUploadLoading && uploadingRowId === row.id && (
+            <span className="text-xs text-primaryGray">Uploading...</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="py-4">
@@ -139,23 +192,16 @@ const EditableTable: React.FC<EditableTableProps> = ({
       )}
       {rows.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-lightGray">
-          <table className="min-w-full border-collapse">
-          <thead>
-            <tr>
-              <TableHeader header="Name" className="text-left" />
-              <TableHeader header="Quantity" className={textPosition} />
-              <TableHeader header="Amount" className={textPosition} />
-              <TableHeader header="Total" className="text-center min-w-[110px]" />
-              <TableHeader header="Image" className="text-center min-w-[180px]" />
-              {isEditable && (
-                <TableHeader header="Remove" className="text-center" />
-              )}
-            </tr>
-          </thead>
-          <tbody>
+          <div className="laptop:hidden">
             {rows.map((row, index) => (
-              <tr key={row.id} className="odd:bg-white even:bg-[#FAFBFD]">
-                <TableData>
+              <div
+                key={row.id}
+                className={`space-y-3 border-b border-lightGray p-4 ${
+                  index % 2 === 0 ? "bg-white" : "bg-[#FAFBFD]"
+                }`}
+              >
+                <div className="space-y-1">
+                  <p className={fieldLabelClass}>Name</p>
                   <TableInput
                     type="text"
                     value={row.name}
@@ -163,95 +209,153 @@ const EditableTable: React.FC<EditableTableProps> = ({
                       handleInputChange(index, "name", e.target.value)
                     }
                     disabled={!isEditable}
+                    className="w-full min-w-0"
                   />
-                </TableData>
-                <TableData>
-                  <TableInput
-                    type="number"
-                    value={row.quantity}
-                    onChange={(e) =>
-                      handleInputChange(index, "quantity", e.target.value)
-                    }
-                    disabled={!isEditable}
-                    className={textPosition}
-                  />
-                </TableData>
-                <TableData>
-                  <TableInput
-                    type="number"
-                    value={row.amount}
-                    onChange={(e) =>
-                      handleInputChange(index, "amount", e.target.value)
-                    }
-                    disabled={!isEditable}
-                    className={textPosition}
-                  />
-                </TableData>
-                <TableData className="text-center font-medium">
-                  {formatAmount(row.total)}
-                </TableData>
-                <TableData>
-                  <div className="flex items-center justify-center gap-2">
-                    {row.image_url ? (
-                      <img
-                        src={row.image_url}
-                        alt={`${row.name || "Item"} preview`}
-                        className="h-12 w-12 rounded-md border border-lightGray object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md border border-dashed border-lightGray text-[10px] text-primaryGray">
-                        No image
-                      </div>
-                    )}
+                </div>
 
-                    {isEditable && (
-                      <div className="flex flex-col items-start gap-1">
-                        <input
-                          id={`item-image-${row.id}-${index}`}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) =>
-                            handleImageChange(index, event.target.files?.[0] ?? null)
-                          }
-                        />
-                        <label
-                          htmlFor={`item-image-${row.id}-${index}`}
-                          className="cursor-pointer text-xs font-medium text-primary hover:underline"
-                        >
-                          {row.image_url ? "Replace image" : "Upload image"}
-                        </label>
-                        {row.image_url && (
-                          <button
-                            type="button"
-                            onClick={() => handleInputChange(index, "image_url", "")}
-                            className="text-xs text-error hover:underline"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        {imageUploadLoading && uploadingRowId === row.id && (
-                          <span className="text-xs text-primaryGray">Uploading...</span>
-                        )}
-                      </div>
-                    )}
+                <div className="grid gap-3 tablet:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className={fieldLabelClass}>Quantity</p>
+                    <TableInput
+                      type="number"
+                      value={row.quantity}
+                      onChange={(e) =>
+                        handleInputChange(index, "quantity", e.target.value)
+                      }
+                      disabled={!isEditable}
+                      className={textPosition}
+                    />
                   </div>
-                </TableData>
+                  <div className="space-y-1">
+                    <p className={fieldLabelClass}>Amount</p>
+                    <TableInput
+                      type="number"
+                      value={row.amount}
+                      onChange={(e) =>
+                        handleInputChange(index, "amount", e.target.value)
+                      }
+                      disabled={!isEditable}
+                      className={textPosition}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className={fieldLabelClass}>Total</p>
+                  <p className="app-input min-h-9 border-none bg-transparent px-2 py-1 font-medium">
+                    {formatAmount(row.total)}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className={fieldLabelClass}>Image</p>
+                  {renderImageControls(
+                    row,
+                    index,
+                    "flex items-center justify-start gap-3"
+                  )}
+                </div>
+
                 {isEditable && (
-                  <TableData className="text-center">
-                    <DeleteIcon onClick={() => deleteRow(index)} />
-                  </TableData>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => deleteRow(index)}
+                      className="text-xs font-semibold text-error hover:underline"
+                    >
+                      Remove item
+                    </button>
+                  </div>
                 )}
-              </tr>
+              </div>
             ))}
-            <tr className="font-semibold">
-              <TableData colSpan={3} className="pl-3.5">Total</TableData>
-              <TableData className="text-center">{formatAmount(totalSum)}</TableData>
-              <TableData />
-              {isEditable && <TableData />}
-            </tr>
-          </tbody>
-          </table>
+
+            <div className="flex items-center justify-between bg-[#F8F9FC] px-4 py-3 text-sm font-semibold text-primary">
+              <span>Total</span>
+              <span>{formatAmount(totalSum)}</span>
+            </div>
+          </div>
+
+          <div className="hidden overflow-x-auto laptop:block">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr>
+                  <TableHeader header="Name" className="min-w-[260px] text-left" />
+                  <TableHeader header="Quantity" className={textPosition} />
+                  <TableHeader header="Amount" className={textPosition} />
+                  <TableHeader
+                    header="Total"
+                    className="min-w-[110px] text-center"
+                  />
+                  <TableHeader
+                    header="Image"
+                    className="min-w-[180px] text-center"
+                  />
+                  {isEditable && (
+                    <TableHeader header="Remove" className="text-center" />
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr key={row.id} className="odd:bg-white even:bg-[#FAFBFD]">
+                    <TableData className="min-w-[260px]">
+                      <TableInput
+                        type="text"
+                        value={row.name}
+                        onChange={(e) =>
+                          handleInputChange(index, "name", e.target.value)
+                        }
+                        disabled={!isEditable}
+                        className="w-full min-w-[220px]"
+                      />
+                    </TableData>
+                    <TableData>
+                      <TableInput
+                        type="number"
+                        value={row.quantity}
+                        onChange={(e) =>
+                          handleInputChange(index, "quantity", e.target.value)
+                        }
+                        disabled={!isEditable}
+                        className={textPosition}
+                      />
+                    </TableData>
+                    <TableData>
+                      <TableInput
+                        type="number"
+                        value={row.amount}
+                        onChange={(e) =>
+                          handleInputChange(index, "amount", e.target.value)
+                        }
+                        disabled={!isEditable}
+                        className={textPosition}
+                      />
+                    </TableData>
+                    <TableData className="text-center font-medium">
+                      {formatAmount(row.total)}
+                    </TableData>
+                    <TableData>{renderImageControls(row, index)}</TableData>
+                    {isEditable && (
+                      <TableData className="text-center">
+                        <DeleteIcon onClick={() => deleteRow(index)} />
+                      </TableData>
+                    )}
+                  </tr>
+                ))}
+                <tr className="font-semibold">
+                  <TableData colSpan={3} className="pl-3.5">
+                    Total
+                  </TableData>
+                  <TableData className="text-center">
+                    {formatAmount(totalSum)}
+                  </TableData>
+                  <TableData />
+                  {isEditable && <TableData />}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
