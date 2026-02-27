@@ -171,6 +171,15 @@ body {
   cursor: not-allowed;
 }
 
+.app-signature-text {
+  font-family: "Great Vibes", "Brush Script MT", "Lucida Handwriting",
+    cursive;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
 .app-icon-btn {
   width: 2.25rem;
   height: 2.25rem;

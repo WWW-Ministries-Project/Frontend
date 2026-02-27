@@ -58,7 +58,7 @@ export interface userType {
 }
 export interface userTypeWithToken
   extends Omit<userType, "permissions" | "access_permissions"> {
-  permissions?: Record<string, unknown> | null;
+  permissions?: Record<string, unknown> | string[] | null;
   access_permissions?: Record<string, unknown>;
   iat: number;
   exp: number;

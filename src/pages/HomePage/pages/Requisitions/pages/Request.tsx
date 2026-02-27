@@ -25,6 +25,7 @@ import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { IRequisitionDetails } from "../types/requestInterface";
+import { getEditMeta } from "../utils/requestMetadata";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
 
 type DropdownOption = {
@@ -128,7 +129,6 @@ const Request = () => {
     addingImage,
     handleSignature,
     signature,
-    handleUpload,
     handleUploadImage,
     handleItemImageUpload,
   } = useAddRequisition();
@@ -248,7 +248,7 @@ const Request = () => {
   }, [eventsData?.data, requestData?.summary, storedEvents]);
 
   const initialValues: IRequest = {
-    requester_name: name,
+    requester_name: requestData?.requester?.name ?? name,
     department_id: requestData?.summary?.department_id ?? "",
     event_id: requestData?.summary?.program_id ?? "",
     request_date: requestData?.summary?.request_date
@@ -265,6 +265,8 @@ const Request = () => {
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
   const isNoSignature = Boolean(id && !requestData?.requester?.user_sign);
   const isDraftRequest = (requestData?.summary?.status ?? "Draft") === "Draft";
+  const isLoadingExistingRequest = Boolean(id && !requestData);
+  const editMeta = useMemo(() => getEditMeta(requestData), [requestData]);
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "Requests", link: requestsPath },
@@ -281,50 +283,64 @@ const Request = () => {
               Complete the requisition details below. Add item images directly at
               the item row level for clearer approvals.
             </p>
+            {id && (
+              <div className="rounded-lg border border-lightGray bg-[#F8F9FC] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                  Requester
+                </p>
+                <p className="mt-1 text-base font-semibold text-primary">
+                  {initialValues.requester_name || "Unknown requester"}
+                </p>
+                <p className="mt-1 text-sm text-primaryGray">
+                  {editMeta.hasEditMeta
+                    ? `Last edited by ${editMeta.editorName || "Unknown editor"} on ${
+                        editMeta.formattedEditedAt || "Unknown date"
+                      }`
+                    : "Last edited: Not edited yet"}
+                </p>
+              </div>
+            )}
+            {isLoadingExistingRequest && (
+              <div className="rounded-lg border border-lightGray p-4 text-sm text-primaryGray">
+                Loading request details...
+              </div>
+            )}
 
-            <Formik
-              initialValues={initialValues}
-              onSubmit={async (values) => {
-                const uploadedAttachments = await handleUploadImage();
-                await handleSubmit(
-                  { ...values, attachmentLists: uploadedAttachments },
-                  {
-                    submitForApproval: submissionIntent === "SUBMIT",
-                  }
-                );
-              }}
-              validationSchema={addRequisitionSchema}
-              enableReinitialize
-            >
-              {({
-                handleSubmit,
-                setValues,
-                values,
-                validateForm,
-                setTouched,
-              }) => (
-                <>
-                  <Modal open={openSignature} onClose={closeModal}>
-                    <AddSignature
-                      cancel={closeModal}
-                      text="Submit"
-                      header="Request Signing"
-                      handleSignature={handleSignature}
-                      loading={loading || addingImage}
-                      defaultSignature={defaultSignature}
-                      onSubmit={async () => {
-                        try {
-                          let updatedSignature = signature.signature as string;
-
-                          if (signature.isImage && signature.signature) {
-                            const formData = new FormData();
-                            formData.append("file", signature.signature);
-
-                            const response = await handleUpload(formData);
-
-                            if (response?.URL) {
-                              updatedSignature = response.URL;
-                            }
+            {!isLoadingExistingRequest && (
+              <Formik
+                initialValues={initialValues}
+                onSubmit={async (values) => {
+                  const uploadedAttachments = await handleUploadImage();
+                  await handleSubmit(
+                    { ...values, attachmentLists: uploadedAttachments },
+                    {
+                      submitForApproval: submissionIntent === "SUBMIT",
+                    }
+                  );
+                }}
+                validationSchema={addRequisitionSchema}
+                enableReinitialize
+              >
+                {({
+                  handleSubmit,
+                  setValues,
+                  values,
+                  validateForm,
+                  setTouched,
+                }) => (
+                  <>
+                    <Modal open={openSignature} onClose={closeModal}>
+                      <AddSignature
+                        cancel={closeModal}
+                        text="Submit"
+                        header="Request Signing"
+                        handleSignature={handleSignature}
+                        loading={loading || addingImage}
+                        defaultSignature={defaultSignature}
+                        onSubmit={async () => {
+                          const updatedSignature = signature.trim();
+                          if (!updatedSignature) {
+                            return;
                           }
 
                           setValues({
@@ -335,12 +351,9 @@ const Request = () => {
                           setSubmissionIntent("SUBMIT");
                           await new Promise((resolve) => setTimeout(resolve, 0));
                           handleSubmit();
-                        } catch {
-                          // Signature submission errors are handled by upload/request hooks.
-                        }
-                      }}
-                    />
-                  </Modal>
+                        }}
+                      />
+                    </Modal>
 
                   <section className="rounded-xl border border-lightGray p-4 md:p-5">
                     <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
@@ -490,9 +503,10 @@ const Request = () => {
                       }}
                     />
                   </div>
-                </>
-              )}
-            </Formik>
+                  </>
+                )}
+              </Formik>
+            )}
           </div>
         </section>
       </PageOutline>

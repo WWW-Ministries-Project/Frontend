@@ -1,8 +1,10 @@
-import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useUserStore } from "@/store/userStore";
+import { clearAuthSession, resetProtectedAppState } from "@/utils/authSession";
+import { getToken } from "@/utils/helperFunctions";
 import { userType, userTypeWithToken } from "@/utils/interfaces";
 import PropTypes from "prop-types";
-import { createContext, useContext } from "react";
+import { createContext, useCallback, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 type contextType = {
   user: userType;
@@ -19,6 +21,7 @@ export const useAuth = () => {
 };
 
 export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
   const user = useUserStore((state) => ({
     id: state.id,
     name: state.name,
@@ -35,17 +38,45 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   }));
 
   const setUser = useUserStore((state) => state.setUser);
-  const clearUser = useUserStore((state) => state.clearUser);
 
-  const login = (data: userType | userTypeWithToken) => {
+  const login = useCallback((data: userType | userTypeWithToken) => {
+    resetProtectedAppState();
     setUser(data);
-  };
+  }, [setUser]);
 
-  const logout = () => {
-    clearUser();
-    const { setVisible } = useNotificationStore.getState();
-    setVisible(false);
-  };
+  const logout = useCallback(() => {
+    clearAuthSession();
+  }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      logout();
+      navigate("/login", { replace: true });
+    };
+
+    const handleAccessDenied = () => {
+      const token = getToken();
+      if (!token) return;
+
+      const currentPath = window.location.pathname;
+      const isAuthPath =
+        currentPath.startsWith("/login") ||
+        currentPath.startsWith("/forgot-password") ||
+        currentPath.startsWith("/reset-password");
+
+      if (isAuthPath || currentPath.startsWith("/home/access-denied")) return;
+
+      navigate("/home/access-denied", { replace: true });
+    };
+
+    window.addEventListener("app:session-expired", handleSessionExpired);
+    window.addEventListener("app:access-denied", handleAccessDenied);
+
+    return () => {
+      window.removeEventListener("app:session-expired", handleSessionExpired);
+      window.removeEventListener("app:access-denied", handleAccessDenied);
+    };
+  }, [logout, navigate]);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

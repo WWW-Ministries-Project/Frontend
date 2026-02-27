@@ -6,6 +6,7 @@ import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -16,7 +17,7 @@ import {
 export interface IRequest {
   requester_name: string;
   department_id: number | string;
-  event_id: number | string;
+  event_id: number | string | "";
   request_date: string;
   comment: string;
   currency: string;
@@ -34,6 +35,15 @@ type RequisitionMutationResponse = ApiResponse<Record<string, unknown>>;
 const isPositiveInteger = (value: unknown): value is number => {
   const normalized = Number(value);
   return Number.isInteger(normalized) && normalized > 0;
+};
+
+const normalizeOptionalId = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === "") {
+    return undefined;
+  }
+
+  const normalized = Number(value);
+  return Number.isFinite(normalized) ? normalized : undefined;
 };
 
 const getMessageFromPayload = (payload: unknown, fallback: string): string => {
@@ -130,10 +140,7 @@ export const useAddRequisition = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<RequisitionMutationResponse | null>(null);
-  const [signature, setSignature] = useState<{
-    signature: File | null | string;
-    isImage: boolean;
-  }>({ signature: null, isImage: false });
+  const [signature, setSignature] = useState<string>("");
 
   const navigate = useNavigate();
   const currencies = useMemo(
@@ -191,6 +198,18 @@ export const useAddRequisition = () => {
 
   const handleUpload = useCallback(
     async (formData: FormData) => {
+      const file = formData.get("file");
+      if (file instanceof File) {
+        const validation = validateUploadFile(file);
+        if (!validation.valid) {
+          handleOpenNotification(
+            validation.message || "Invalid file selected.",
+            "error"
+          );
+          return null;
+        }
+      }
+
       try {
         setAddingImage(true);
         const response = await axiosPic.post("/upload", formData);
@@ -241,9 +260,9 @@ export const useAddRequisition = () => {
     return imgUrls;
   };
 
-  const handleSignature = (signature: File | string, isImage: boolean) => {
-    setSignature({ signature, isImage });
-  };
+  const handleSignature = useCallback((value: string) => {
+    setSignature(value);
+  }, []);
 
   const handleSubmit = useCallback(
     async (val: IRequest, options?: SubmitOptions) => {
@@ -258,16 +277,16 @@ export const useAddRequisition = () => {
 
       const payload = {
         ...val,
-        event_id: Number(val.event_id),
+        event_id: normalizeOptionalId(val.event_id),
         department_id: Number(val.department_id),
         products,
-        user_id: id,
       };
 
       const dataToSend = requisitionId
         ? {
             ...payload,
             id: Number(requisitionId),
+            updated_by: id,
           }
         : payload;
 

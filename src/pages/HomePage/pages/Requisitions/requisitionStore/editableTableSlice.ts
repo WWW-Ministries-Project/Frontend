@@ -18,11 +18,11 @@ const createEditableTableSlice = (
       rows: [
         ...state.rows,
         {
-          name: `item ${state.rows.length + 1}`,
-          quantity: 5,
-          amount: 1,
-          total: 5,
-          id: state.rows.length + 1,
+          name: "",
+          quantity: 0,
+          amount: 0,
+          total: 0,
+          id: `${Date.now()}-${state.rows.length + 1}`,
           image_url: "",
         },
       ],

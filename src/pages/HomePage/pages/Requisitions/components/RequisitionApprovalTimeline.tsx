@@ -1,5 +1,9 @@
 import { DateTime } from "luxon";
 import { ApprovalInstance } from "../types/approvalWorkflow";
+import {
+  getActedByDisplayName,
+  getApproverDisplayName,
+} from "../utils/requestMetadata";
 
 type RequisitionApprovalTimelineProps = {
   approvalInstances: ApprovalInstance[];
@@ -55,6 +59,8 @@ function RequisitionApprovalTimeline({
             const statusMeta = statusBadgeMap[step.status];
             const actedAt = step.acted_at ? DateTime.fromISO(step.acted_at) : null;
             const isCurrent = currentApprovalStep?.id === step.id;
+            const approverName = getApproverDisplayName(step);
+            const actedByName = getActedByDisplayName(step);
 
             return (
               <article
@@ -73,9 +79,9 @@ function RequisitionApprovalTimeline({
                 </div>
 
                 <div className="mt-2 space-y-1 text-xs text-primaryGray">
-                  <p>Approver User ID: {step.approver_user_id}</p>
+                  <p>Approver: {approverName}</p>
                   {isCurrent && <p className="font-medium text-primary">Current pending step</p>}
-                  {step.acted_by_user_id && <p>Acted By: {step.acted_by_user_id}</p>}
+                  {actedByName !== "N/A" && <p>Acted By: {actedByName}</p>}
                   {actedAt?.isValid && (
                     <p>Acted At: {actedAt.toFormat("dd LLL yyyy, HH:mm")}</p>
                   )}

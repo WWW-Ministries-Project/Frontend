@@ -1,4 +1,6 @@
 import { getInitials } from "@/utils/helperFunctions";
+import { validateUploadFile } from "@/utils/uploadValidation";
+import { showNotification } from "@/pages/HomePage/utils";
 import { ChangeEvent } from "react";
 import icon from "/src/assets/edit-2.svg";
 
@@ -20,6 +22,20 @@ export const ProfilePicture = (props: IProps) => {
   function handlePicChange(event: ChangeEvent<HTMLInputElement>) {
     const picture = event.currentTarget.files?.[0];
     if (!picture) return;
+
+    const validation = validateUploadFile(picture, {
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    });
+
+    if (!validation.valid) {
+      showNotification(
+        validation.message || "Invalid profile image selected.",
+        "error",
+        "Profile image"
+      );
+      event.currentTarget.value = "";
+      return;
+    }
 
     const src = URL.createObjectURL(picture);
     const obj = {

@@ -7,7 +7,7 @@ import { ProfilePicture } from "@/components";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 
 import { useAuth } from "../../../context/AuthWrapper";
-import { decodeToken, removeToken } from "../../../utils/helperFunctions";
+import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
 import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
@@ -139,8 +139,14 @@ export const Header = ({ handleShowNav }: IProps) => {
     setIsProfileMenuOpen(false);
   };
 
+  const handleChangePassword = () => {
+    setIsProfileMenuOpen(false);
+    navigate(relativePath.changePassword, {
+      state: { from: location.pathname },
+    });
+  };
+
   const handleLogout = () => {
-    removeToken();
     logout();
     navigate("/login", { replace: true });
   };
@@ -359,6 +365,13 @@ export const Header = ({ handleShowNav }: IProps) => {
                 {isMemberRoute ? "Go to admin portal" : "Go to member portal"}
               </button>
             )}
+            <button
+              role="menuitem"
+              onClick={handleChangePassword}
+              className="w-full text-left px-4 py-3 hover:bg-gray-100"
+            >
+              Change password
+            </button>
             <button
               role="menuitem"
               onClick={handleLogout}

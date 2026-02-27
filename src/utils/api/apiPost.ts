@@ -148,6 +148,13 @@ export class ApiCreationCalls {
     return this.postToApi<T>("user/forgot-password", payload);
   };
 
+  changePassword = <T>(payload: {
+    current_password: string;
+    newpassword: string;
+  }): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/change-password", payload);
+  };
+
   /*Visitor Management*/
   createVisitor = <T>(payload: unknown): Promise<ApiResponse<unknown>> => {
     return this.postToApi<T>("visitor/visitors", payload);
@@ -263,6 +270,12 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("event/church-attendance", payload);
   }
+
+  registerEvent = (payload: {
+    event_id: string | number;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/register", payload);
+  };
 
   //Create theme
   createAnnualTheme = (

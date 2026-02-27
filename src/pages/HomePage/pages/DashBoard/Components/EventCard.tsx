@@ -1,5 +1,7 @@
 import { formatDatefull, formatTime } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
+import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
 import {
   CalendarDaysIcon,
   ClockIcon,
@@ -19,8 +21,27 @@ interface IProps {
   showInModal?: boolean;
 }
 
+const resolveEventId = (rawValue: unknown): string | number | null => {
+  if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+    return rawValue;
+  }
+
+  if (typeof rawValue !== "string") return null;
+
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) return null;
+
+  const numericValue = Number(trimmedValue);
+  if (Number.isFinite(numericValue)) {
+    return numericValue;
+  }
+
+  return trimmedValue;
+};
+
 export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IProps) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
@@ -29,6 +50,9 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
   const mobileShareMenuRef = useRef<HTMLDivElement | null>(null);
   const desktopShareMenuRef = useRef<HTMLDivElement | null>(null);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const isMemberPortal =
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/member");
 
   /* ------------------------------- Date helpers ------------------------------- */
   const getDateOnly = (iso: string) => {
@@ -225,6 +249,55 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       showNotification("Unable to open WhatsApp. Please try again.", "error");
     }
   };
+
+  const handleRegisterForEvent = useCallback(async () => {
+    const eventId = resolveEventId(event.id);
+
+    if (!eventId) {
+      showNotification(
+        "Unable to register for this event right now.",
+        "error",
+        "Event registration"
+      );
+      return;
+    }
+
+    setIsRegistering(true);
+
+    try {
+      const response = await api.post.registerEvent({ event_id: eventId });
+      const responseRecord =
+        response && typeof response === "object"
+          ? (response as { data?: unknown })
+          : null;
+      const payload = responseRecord?.data;
+      const payloadRecord =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>)
+          : null;
+
+      const successMessage =
+        (payloadRecord?.message as string) ||
+        (payloadRecord?.status as string) ||
+        "You are registered for this event.";
+
+      showNotification(successMessage, "success", "Event registration");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return;
+      }
+
+      showNotification(
+        error instanceof Error
+          ? error.message
+          : "Unable to register for this event right now.",
+        "error",
+        "Event registration"
+      );
+    } finally {
+      setIsRegistering(false);
+    }
+  }, [event.id]);
 
   const handleAddToCalendar = (type: "google" | "outlook") => {
     const url =
@@ -423,6 +496,19 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
           <div className="flex items-center gap-2">
             <MapPinIcon className="h-5 w-5 text-gray-600 shrink-0" />
             <span className=" text-gray-700">{event.location}</span>
+          </div>
+        )}
+
+        {showInModal && isMemberPortal && (
+          <div>
+            <button
+              type="button"
+              onClick={handleRegisterForEvent}
+              disabled={isRegistering}
+              className="mt-2 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isRegistering ? "Registering..." : "Register for event"}
+            </button>
           </div>
         )}
       </div>

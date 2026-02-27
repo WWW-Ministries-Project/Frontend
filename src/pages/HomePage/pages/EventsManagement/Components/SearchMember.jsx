@@ -6,7 +6,7 @@ const SearchMember = ({ memberDetails, handleChange, loading, handleFindMember, 
         <div className="space-y-4">
             <div>
                 <h2 className='H400 text-white'>Welcome to {name}</h2>
-                <p className='text-sma text-white'>Fill the form below to capture your attendance</p>
+                <p className='text-sma text-white'>Fill the form below to register for this event</p>
             </div>
             <div className=' '>
                 {/* <InputDiv label="Phone number" inputClass="border border-2" type="tel" id="phone_number" placeholder="Enter your phone number" value={memberDetails.phone_number} onChange={handleChange} /> */}

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { showNotification } from "@/pages/HomePage/utils";
+import { validateUploadFile } from "@/utils/uploadValidation";
 
 const useFileUpload = (onFileChange?: (file: File) => void) => {
   const [isDragActive, setIsDragActive] = useState(false);
@@ -36,11 +38,24 @@ const useFileUpload = (onFileChange?: (file: File) => void) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFile(files[0]);
+      const isValid = handleFile(files[0]);
+      if (!isValid) {
+        e.target.value = "";
+      }
     }
   };
 
   const handleFile = (file: File) => {
+    const validation = validateUploadFile(file);
+    if (!validation.valid) {
+      showNotification(
+        validation.message || "Invalid file selected.",
+        "error",
+        "File upload"
+      );
+      return false;
+    }
+
     setFile(file);
     if (onFileChange) {
       onFileChange(file);
@@ -51,6 +66,8 @@ const useFileUpload = (onFileChange?: (file: File) => void) => {
       setPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    return true;
   };
 
   const clearFile = () => {

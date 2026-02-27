@@ -7,7 +7,6 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { useStore } from "@/store/useStore";
 import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
-import { decodeToken } from "@/utils/helperFunctions";
 import { ApiResponse } from "@/utils/interfaces";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,14 +20,12 @@ import { tableColumns } from "../utils/tableColums";
 const MyRequisitions = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
-  const { id } = decodeToken() || {};
   const requestsPath = `${relativePath.home.main}/requests`;
 
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
     api.fetch.fetchMyRequests as (
       query?: Record<string, string | number>
-    ) => Promise<ApiResponse<Requisition[]>>,
-    { id: id ?? "" }
+    ) => Promise<ApiResponse<Requisition[]>>
   );
 
   const { setRequests, requests } = useStore();

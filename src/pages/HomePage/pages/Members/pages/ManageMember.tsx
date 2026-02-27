@@ -6,6 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import { Formik, FormikProps, FormikTouched } from "formik";
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
@@ -112,6 +113,14 @@ export function ManageMember() {
       const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
+        const validation = validateUploadFile(uploadedFile, {
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+        });
+
+        if (!validation.valid) {
+          throw new Error(validation.message || "Invalid profile image selected.");
+        }
+
         const formData = new FormData();
         formData.append("file", uploadedFile);
 

@@ -71,6 +71,10 @@ export class ApiCalls {
     return this.fetchFromApi("user/get-user", query);
   };
 
+  fetchCurrentUser = (): Promise<ApiResponse<IMemberInfo>> => {
+    return this.fetchFromApi("user/current-user");
+  };
+
   fetchMemberFamily = (query?: QueryType): Promise<ApiResponse<IFamilyInformationRaw>> => {
     return this.fetchFromApi("user/get-user-family", query);
   };
@@ -154,13 +158,13 @@ export class ApiCalls {
   fetchRequisitions = (
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
+    return this.fetchFromApi("requisitions/list-requisition", query);
   };
 
   fetchRequisitionDetails = (
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
+    return this.fetchFromApi("requisitions/get-requisition", query);
   };
 
   fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {

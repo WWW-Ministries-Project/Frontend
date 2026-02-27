@@ -1,12 +1,21 @@
-import axios, { AxiosResponse, AxiosError } from "axios";
-import { ChangeEvent, FocusEvent, FormEvent, useMemo, useState } from "react";
+import axios from "@/axiosInstance";
+import { AxiosError, AxiosResponse } from "axios";
+import {
+  ChangeEvent,
+  FocusEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../../../components";
 import Input from "../../../../components/Input";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
-import { baseUrl, validate } from "../../utils/helpers";
+import { getRetryAfterSecondsFromError } from "../../utils/rateLimit";
+import { validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
 interface ForgotPasswordValues {
   email: string;
@@ -38,9 +47,25 @@ const ForgotPassword = () => {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState({ email: false });
   const [loading, setLoading] = useState<boolean>(false);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState<number>(0);
+  const isRateLimited = retryAfterSeconds > 0;
+
+  useEffect(() => {
+    if (retryAfterSeconds <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setRetryAfterSeconds((previousValue) =>
+        previousValue <= 1 ? 0 : previousValue - 1
+      );
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [retryAfterSeconds]);
 
   const authErrorText = useMemo(
-    () => getResponseMessage(response.data) || "Email address was not found.",
+    () =>
+      getResponseMessage(response.data) ||
+      "Unable to process your request. Please try again.",
     [response.data]
   );
 
@@ -52,8 +77,9 @@ const ForgotPassword = () => {
     return "";
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (isRateLimited || loading) return;
 
     const emailError = validateEmail(emailValue);
     setTouched({ email: true });
@@ -63,21 +89,28 @@ const ForgotPassword = () => {
 
     setResponse({});
     setLoading(true);
-    (async () => {
-      try {
-        const endpoint = baseUrl + "user/forgot-password";
-        const response: AxiosResponse = await axios.post(endpoint, emailValue);
-        setResponse({ status: response.status, data: response.data });
-      } catch (error) {
-        const axiosError = error as AxiosError;
-        setResponse({
-          status: axiosError.response?.status,
-          data: axiosError.response?.data as Record<string, unknown> | string,
-        });
-      } finally {
-        setLoading(false);
+    try {
+      const response: AxiosResponse = await axios.post(
+        "user/forgot-password",
+        emailValue
+      );
+      setResponse({ status: response.status, data: response.data });
+    } catch (error) {
+      const retryAfter = getRetryAfterSecondsFromError(error);
+      if (retryAfter) {
+        setRetryAfterSeconds((previousValue) =>
+          Math.max(previousValue, retryAfter)
+        );
       }
-    })();
+
+      const axiosError = error as AxiosError;
+      setResponse({
+        status: axiosError.response?.status,
+        data: axiosError.response?.data as Record<string, unknown> | string,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleBlur(e: FocusEvent<HTMLInputElement>) {
@@ -111,7 +144,7 @@ const ForgotPassword = () => {
         {response.status === 200 ? (
           <NotificationCard
             header="Email sent"
-            text="A password reset link has been sent to your email address. Check your spam folder if you cannot find it."
+            text="If an account exists, a reset link has been sent."
             bottomText="Return to login"
             src="/assets/authentication/messageIcon.svg"
             imageAlt="Mail sent icon"
@@ -143,11 +176,20 @@ const ForgotPassword = () => {
             <Button
               variant="primary"
               type="submit"
-              value="Send password reset email"
+              value={
+                isRateLimited
+                  ? `Retry in ${retryAfterSeconds}s`
+                  : "Send password reset email"
+              }
               loading={loading}
-              disabled={loading}
+              disabled={loading || isRateLimited}
               className="mt-2 w-full"
             />
+            {isRateLimited && (
+              <p className="text-center text-xs text-primaryGray">
+                Too many attempts. Please wait before trying again.
+              </p>
+            )}
 
             <div className="mx-auto text-center text-sm font-semibold">
               <Link to="/login" className="text-primary hover:underline">

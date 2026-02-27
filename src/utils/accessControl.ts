@@ -451,6 +451,18 @@ const parseLegacyRequirement = (
   return { action, domain: String(inferredDomain) };
 };
 
+const hasPositiveCanonicalAccess = (
+  permissions: PermissionMap | null | undefined
+): boolean => {
+  const normalized = normalizePermissionPayload(permissions);
+
+  return Object.entries(normalized).some(([domain, value]) => {
+    if (domain === "Exclusions") return false;
+    const parsedValue = parsePermissionValue(value);
+    return parsedValue !== null && parsedValue !== "No_Access";
+  });
+};
+
 export const hasRequiredAccess = (
   requirement: PermissionRequirement,
   permissions: PermissionMap | null | undefined,
@@ -463,6 +475,7 @@ export const hasRequiredAccess = (
   }
 
   const parsedRequirement = parseLegacyRequirement(requirement);
+  const canonicalHasAnyGrant = hasPositiveCanonicalAccess(permissions);
 
   if (parsedRequirement) {
     // Canonical access levels should take precedence when a domain is configured.
@@ -472,6 +485,14 @@ export const hasRequiredAccess = (
     );
 
     if (configuredDomainPermission !== null) {
+      if (
+        configuredDomainPermission === "No_Access" &&
+        !canonicalHasAnyGrant &&
+        legacyPermissions?.[requirement]
+      ) {
+        return true;
+      }
+
       return canAccess(
         permissions,
         parsedRequirement.domain,
