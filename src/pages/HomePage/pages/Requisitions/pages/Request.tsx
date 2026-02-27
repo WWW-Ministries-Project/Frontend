@@ -19,7 +19,7 @@ import { ApiResponse } from "@/utils/interfaces";
 import FormWrapperNew from "@/Wrappers/FormWrapperNew";
 import { Field, Formik } from "formik";
 import { DateTime } from "luxon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
@@ -27,6 +27,8 @@ import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { IRequisitionDetails } from "../types/requestInterface";
 import { getEditMeta } from "../utils/requestMetadata";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
+
+type SubmissionIntent = "SAVE" | "SAVE_DRAFT" | "SUBMIT";
 
 type DropdownOption = {
   label: string;
@@ -86,9 +88,7 @@ const Request = () => {
     IRequisitionDetails | undefined
   >(undefined);
   const [initialImages, setInitialImages] = useState<image[]>([]);
-  const [submissionIntent, setSubmissionIntent] = useState<
-    "SAVE" | "SAVE_DRAFT" | "SUBMIT"
-  >("SAVE");
+  const submissionIntentRef = useRef<SubmissionIntent>("SAVE");
 
   const { data: departmentsData, loading: departmentsLoading } = useFetch<
     ApiResponse<DepartmentType[]>
@@ -310,11 +310,15 @@ const Request = () => {
               <Formik
                 initialValues={initialValues}
                 onSubmit={async (values) => {
+                  const submissionIntent = submissionIntentRef.current;
                   const uploadedAttachments = await handleUploadImage();
                   await handleSubmit(
                     { ...values, attachmentLists: uploadedAttachments },
                     {
                       submitForApproval: submissionIntent === "SUBMIT",
+                      redirectToDetails:
+                        submissionIntent === "SAVE_DRAFT" ||
+                        submissionIntent === "SUBMIT",
                     }
                   );
                 }}
@@ -343,13 +347,12 @@ const Request = () => {
                             return;
                           }
 
-                          setValues({
+                          await setValues({
                             ...values,
                             user_sign: updatedSignature,
                           });
 
-                          setSubmissionIntent("SUBMIT");
-                          await new Promise((resolve) => setTimeout(resolve, 0));
+                          submissionIntentRef.current = "SUBMIT";
                           handleSubmit();
                         }}
                       />
@@ -468,9 +471,9 @@ const Request = () => {
                       <Button
                         value={id ? "Update Draft" : "Save as Draft"}
                         variant="secondary"
-                        onClick={() => {
-                          setSubmissionIntent("SAVE_DRAFT");
-                          setValues({
+                        onClick={async () => {
+                          submissionIntentRef.current = "SAVE_DRAFT";
+                          await setValues({
                             ...values,
                             approval_status: "Draft",
                             user_sign: values.user_sign || null,
@@ -497,7 +500,7 @@ const Request = () => {
                         if (!id || isDraftRequest) {
                           handleAddSignature(validateForm, setTouched);
                         } else {
-                          setSubmissionIntent("SAVE");
+                          submissionIntentRef.current = "SAVE";
                           handleSubmit();
                         }
                       }}

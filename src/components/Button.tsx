@@ -48,11 +48,11 @@ export const Button = ({
     "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium leading-5 text-center whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
   const variantClass = {
-    primary: "bg-primary text-white hover:bg-primary/90",
+    primary: "bg-primary text-white hover:bg-primary/90 hover:text-white",
     secondary:
-      "border border-primary/30 bg-white text-primary hover:border-primary/60 hover:bg-primary/5",
-    ghost: "bg-transparent text-primary hover:bg-primary/5",
-    default: "bg-primary text-white hover:bg-primary/90",
+      "border border-primary/30 bg-white text-primary hover:border-primary/60 hover:bg-primary/5 ",
+    ghost: "bg-transparent text-primary hover:bg-primary/5 ",
+    default: "bg-primary text-white hover:bg-primary/90 hover:text-white",
   }[variant];
 
   return (

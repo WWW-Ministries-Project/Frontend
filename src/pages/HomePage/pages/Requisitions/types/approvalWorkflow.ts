@@ -47,6 +47,7 @@ export type RequisitionApprovalActionPayload = {
   requisition_id: number;
   action: "APPROVE" | "REJECT";
   comment?: string;
+  user_sign?: string;
 };
 
 export type SubmitRequisitionPayload = {

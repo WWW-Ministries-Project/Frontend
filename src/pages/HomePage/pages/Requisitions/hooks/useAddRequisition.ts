@@ -28,6 +28,7 @@ export interface IRequest {
 
 type SubmitOptions = {
   submitForApproval?: boolean;
+  redirectToDetails?: boolean;
 };
 
 type RequisitionMutationResponse = ApiResponse<Record<string, unknown>>;
@@ -301,10 +302,10 @@ export const useAddRequisition = () => {
         setData(upsertResponse as RequisitionMutationResponse);
 
         const shouldSubmitForApproval = Boolean(options?.submitForApproval);
+        const shouldRedirectToDetails = Boolean(options?.redirectToDetails);
+        const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
 
         if (shouldSubmitForApproval) {
-          const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
-
           if (!resolvedId) {
             throw new Error("Unable to resolve requisition ID for submission.");
           }
@@ -330,6 +331,11 @@ export const useAddRequisition = () => {
             ),
             "success"
           );
+        }
+
+        if (shouldRedirectToDetails && resolvedId) {
+          navigate(`/home/requests/${window.btoa(String(resolvedId))}`);
+          return;
         }
 
         navigate(-1);

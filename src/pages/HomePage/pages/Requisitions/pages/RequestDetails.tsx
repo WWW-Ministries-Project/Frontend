@@ -1,3 +1,4 @@
+import AddSignature from "@/components/AddSignature";
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import { ProfilePicture } from "@/components/ProfilePicture";
@@ -11,7 +12,6 @@ import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeli
 import EditableTable from "../components/EditableTable";
 import RequestAttachments from "../components/RequestAttachments";
 import RequisitionComments from "../components/RequisitionComments";
-import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
 import RequisitionSummary from "../components/RequisitionSummary";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
 import { getApproverDisplayName, getEditMeta } from "../utils/requestMetadata";
@@ -30,6 +30,8 @@ const RequestDetails = () => {
     closeComment,
     comment,
     setComment,
+    approvalSignature,
+    setApprovalSignature,
     commentHeader,
     isUpdating,
     handleComment,
@@ -38,9 +40,17 @@ const RequestDetails = () => {
     handleRemoveAttachment,
     attachmentId,
     isEditable,
+    isDraft,
     products,
     isApprovedOrRejected,
     requisitionId,
+    openSubmitRequestSignature,
+    openSubmitRequestModal,
+    closeSubmitRequestModal,
+    requestSignature,
+    handleRequestSignature,
+    handleSubmitRequest,
+    isSubmittingRequest,
     approvalInstances,
     currentApprovalStep,
     canCurrentUserApprove,
@@ -71,6 +81,8 @@ const RequestDetails = () => {
     }
   }, [requisitionId]);
 
+  const trimmedApprovalSignature = approvalSignature.trim();
+
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "Requests", link: requestsPath },
@@ -83,11 +95,50 @@ const RequestDetails = () => {
         <div className="space-y-6 p-6 md:p-8">
           <p className="text-center text-xl font-semibold text-primary">{commentHeader}</p>
           <Textarea
-            label="Comment"
+            label={actionType === "approve" ? "Comment (optional)" : "Comment"}
             value={comment}
             onChange={setComment}
             placeholder="Enter comment..."
           />
+
+          {actionType === "approve" && (
+            <div className="space-y-2">
+              <label
+                htmlFor="approval-signature"
+                className="text-sm font-semibold text-primary"
+              >
+                Signature
+              </label>
+              <input
+                id="approval-signature"
+                className="app-input w-full"
+                placeholder="Type your full name"
+                value={approvalSignature}
+                onChange={(event) => setApprovalSignature(event.target.value)}
+              />
+              <p className="text-xs text-primaryGray">
+                Signature is required before final approval submission.
+              </p>
+
+              <div className="rounded-xl border border-lightGray bg-[#F8F9FC] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                  Signature Preview
+                </p>
+                <div className="mt-3 min-h-[78px] rounded-lg border border-lightGray bg-white px-4 py-3">
+                  {trimmedApprovalSignature ? (
+                    <p className="app-signature-text break-words text-[2rem] text-primary md:text-[2.25rem]">
+                      {trimmedApprovalSignature}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-primaryGray">
+                      Signature preview will appear here.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {actionType === "reject" && (
             <p className="text-sm text-primaryGray">
               Provide a clear reason for disapproval before submitting.
@@ -105,6 +156,17 @@ const RequestDetails = () => {
           </div>
         </div>
       </Modal>
+      <Modal open={openSubmitRequestSignature} onClose={closeSubmitRequestModal}>
+        <AddSignature
+          cancel={closeSubmitRequestModal}
+          text="Send request"
+          header="Request Signing"
+          handleSignature={handleRequestSignature}
+          onSubmit={handleSubmitRequest}
+          loading={isSubmittingRequest}
+          defaultSignature={requestSignature}
+        />
+      </Modal>
 
       <div className="space-y-5">
         <PageHeader title="Requisition Details">
@@ -114,6 +176,15 @@ const RequestDetails = () => {
                 value="Edit"
                 variant="ghost"
                 onClick={() => navigate(`/home/requests/request/${encodedRequestId}`)}
+              />
+            )}
+            {!loading && requestData && isDraft && (
+              <Button
+                value="Send request"
+                variant="primary"
+                onClick={openSubmitRequestModal}
+                loading={isSubmittingRequest}
+                disabled={isSubmittingRequest || isUpdating}
               />
             )}
             {!isApprovedOrRejected && canCurrentUserApprove && (
@@ -171,39 +242,38 @@ const RequestDetails = () => {
               <div className="flex flex-wrap items-center gap-4 justify-between rounded-lg border border-lightGray p-4">
                 <div className="flex items-start gap-4">
                   <ProfilePicture
-                  alt="requester profile"
-                  className="h-[4.5rem] w-[4.5rem] border shadow-sm"
-                  name={requester?.name}
-                />
-                <div className="min-w-0 space-y-1">
-                  <p className="text-lg font-semibold text-primary">
-                    {requester?.name || "Unknown requester"}
-                  </p>
-                  <p className="text-sm text-primaryGray">
-                    {requestData?.summary?.department || "No department"}
-                  </p>
-                  <p className="text-sm text-primaryGray">
-                    {requester?.position ?? "No position"}
-                  </p>
-                  <p className="text-sm text-primaryGray">{requester?.email || "N/A"}</p>
-                  {editMeta.hasEditMeta && (
-                    <p className="text-xs text-primaryGray">
-                      Last edited by {editMeta.editorName || "Unknown editor"} on{" "}
-                      {editMeta.formattedEditedAt || "Unknown date"}
+                    alt="requester profile"
+                    className="h-[4.5rem] w-[4.5rem] border shadow-sm"
+                    name={requester?.name}
+                  />
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-lg font-semibold text-primary">
+                      {requester?.name || "Unknown requester"}
                     </p>
-                  )}
-                </div>
+                    <p className="text-sm text-primaryGray">
+                      {requestData?.summary?.department || "No department"}
+                    </p>
+                    <p className="text-sm text-primaryGray">
+                      {requester?.position ?? "No position"}
+                    </p>
+                    <p className="text-sm text-primaryGray">{requester?.email || "N/A"}</p>
+                    {editMeta.hasEditMeta && (
+                      <p className="text-xs text-primaryGray">
+                        Last edited by {editMeta.editorName || "Unknown editor"} on{" "}
+                        {editMeta.formattedEditedAt || "Unknown date"}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end">
-                 <span className="app-signature-text break-words text-3xl text-primary">
-              {requestData?.request_approvals?.requester_sign ??
-                  requestData?.summary?.user_sign ??
-                  requestData?.requester?.user_sign ??
-                  null}
-            </span>
+                  <span className="app-signature-text break-words text-3xl text-primary">
+                    {requestData?.request_approvals?.requester_sign ??
+                      requestData?.summary?.user_sign ??
+                      requestData?.requester?.user_sign ??
+                      null}
+                  </span>
                 </div>
-                {/* end */}
               </div>
 
               <div>

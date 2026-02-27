@@ -7,7 +7,10 @@ import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ApprovalInstance } from "../types/approvalWorkflow";
+import {
+  ApprovalInstance,
+  RequisitionApprovalActionPayload,
+} from "../types/approvalWorkflow";
 import { IRequisitionDetails } from "../types/requestInterface";
 
 export type ActionType =
@@ -96,11 +99,16 @@ export const useRequisitionDetail = () => {
   const [openComment, setOpenComment] = useState(false);
   const [actionType, setActionType] = useState<ActionType>("comment");
   const [comment, setComment] = useState("");
+  const [approvalSignature, setApprovalSignature] = useState("");
   const [attachments, setAttachments] = useState<
     { URL: string; id?: number }[]
   >([]);
   const [attachmentId, setAttachmentId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [openSubmitRequestSignature, setOpenSubmitRequestSignature] =
+    useState(false);
+  const [requestSignature, setRequestSignature] = useState("");
 
   const { addingImage } = useImageUpload();
 
@@ -111,11 +119,14 @@ export const useRequisitionDetail = () => {
 
   const openCommentModal = (type: ActionType) => {
     setActionType(type);
+    setComment("");
+    setApprovalSignature("");
     setOpenComment(true);
   };
 
   const closeComment = () => {
     setComment("");
+    setApprovalSignature("");
     setOpenComment(false);
   };
 
@@ -189,6 +200,7 @@ export const useRequisitionDetail = () => {
     async (type: "approve" | "reject") => {
       const id = Number(requisitionId);
       const normalizedComment = comment.trim();
+      const normalizedSignature = approvalSignature.trim();
 
       if (!Number.isInteger(id) || id <= 0) {
         handleOpenNotification(
@@ -208,14 +220,29 @@ export const useRequisitionDetail = () => {
         return;
       }
 
+      if (type === "approve" && !normalizedSignature) {
+        handleOpenNotification(
+          "Add your signature before approving this request.",
+          "error",
+          "Approve Request"
+        );
+        return;
+      }
+
       setIsUpdating(true);
 
       try {
-        const response = await api.post.requisitionApprovalAction({
+        const payload: RequisitionApprovalActionPayload = {
           requisition_id: id,
           action: type === "approve" ? "APPROVE" : "REJECT",
           comment: normalizedComment || undefined,
-        });
+        };
+
+        if (type === "approve") {
+          payload.user_sign = normalizedSignature;
+        }
+
+        const response = await api.post.requisitionApprovalAction(payload);
 
         const messageMeta = notificationMessages[type];
 
@@ -240,7 +267,7 @@ export const useRequisitionDetail = () => {
         setIsUpdating(false);
       }
     },
-    [comment, refreshDetails, requisitionId]
+    [approvalSignature, comment, refreshDetails, requisitionId]
   );
 
   const handleComment = async () => {
@@ -370,12 +397,100 @@ export const useRequisitionDetail = () => {
     return displayStatus === "APPROVED" || displayStatus === "REJECTED";
   }, [displayStatus]);
 
-  const submitButtonDisabled = useMemo(
-    () =>
-      (actionType === "reject" || actionType === "comment") &&
-      !comment.trim(),
-    [actionType, comment]
-  );
+  const isDraft = useMemo(() => displayStatus === "Draft", [displayStatus]);
+
+  const openSubmitRequestModal = useCallback(() => {
+    const signatureFromRequest =
+      requestData?.requester?.user_sign ??
+      requestData?.summary?.user_sign ??
+      requestData?.request_approvals?.requester_sign ??
+      "";
+
+    setRequestSignature(String(signatureFromRequest).trim());
+    setOpenSubmitRequestSignature(true);
+  }, [requestData]);
+
+  const closeSubmitRequestModal = useCallback(() => {
+    setOpenSubmitRequestSignature(false);
+  }, []);
+
+  const handleRequestSignature = useCallback((signature: string) => {
+    setRequestSignature(signature.trim());
+  }, []);
+
+  const handleSubmitRequest = useCallback(async () => {
+    const id = Number(requisitionId);
+    const normalizedSignature = requestSignature.trim();
+
+    if (!Number.isInteger(id) || id <= 0) {
+      handleOpenNotification(
+        "Invalid requisition identifier.",
+        "error",
+        "Send Request"
+      );
+      return;
+    }
+
+    if (!normalizedSignature) {
+      handleOpenNotification(
+        "Add your signature before sending this request.",
+        "error",
+        "Send Request"
+      );
+      return;
+    }
+
+    setIsSubmittingRequest(true);
+
+    try {
+      await api.put.updateRequisition({
+        id,
+        user_sign: normalizedSignature,
+      });
+
+      const response = await api.post.submitRequisition({
+        requisition_id: id,
+      });
+
+      handleOpenNotification(
+        getResponseMessage(response.data, "Request submitted successfully."),
+        "success",
+        "Send Request"
+      );
+
+      closeSubmitRequestModal();
+      await refreshDetails();
+    } catch (error) {
+      if (!(error instanceof ApiError)) {
+        handleOpenNotification(
+          error instanceof Error
+            ? error.message
+            : "Error sending request for approval.",
+          "error",
+          "Send Request"
+        );
+      }
+    } finally {
+      setIsSubmittingRequest(false);
+    }
+  }, [
+    closeSubmitRequestModal,
+    refreshDetails,
+    requestSignature,
+    requisitionId,
+  ]);
+
+  const submitButtonDisabled = useMemo(() => {
+    if (actionType === "reject" || actionType === "comment") {
+      return !comment.trim();
+    }
+
+    if (actionType === "approve") {
+      return !approvalSignature.trim();
+    }
+
+    return false;
+  }, [actionType, approvalSignature, comment]);
 
   return {
     requestData,
@@ -388,6 +503,8 @@ export const useRequisitionDetail = () => {
     closeComment,
     comment,
     setComment,
+    approvalSignature,
+    setApprovalSignature,
     commentHeader,
     isUpdating,
     handleComment,
@@ -396,10 +513,18 @@ export const useRequisitionDetail = () => {
     handleRemoveAttachment,
     attachmentId,
     isEditable,
+    isDraft,
     products,
     isApprovedOrRejected,
     addingImage,
     requisitionId,
+    openSubmitRequestSignature,
+    openSubmitRequestModal,
+    closeSubmitRequestModal,
+    requestSignature,
+    handleRequestSignature,
+    handleSubmitRequest,
+    isSubmittingRequest,
     approvalInstances,
     currentApprovalStep,
     canCurrentUserApprove,

@@ -183,7 +183,7 @@ export const ProfileDetails = () => {
                       onClick={() =>
                         editableMemberId && handleEdit(String(editableMemberId))
                       }
-                      className="w-full px-5 py-3 bg-transparent min-h-8 bg-white text-primary text-xs md:text-sm lg:text-base"
+                      className="w-full px-5 py-3 bg-transparent min-h-8 bg-white text-primary text-xs md:text-sm lg:text-base "
                     />
                   </div>
                 )}
