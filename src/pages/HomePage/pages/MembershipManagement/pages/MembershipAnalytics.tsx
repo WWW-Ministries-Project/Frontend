@@ -3,6 +3,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api, MembersType } from "@/utils";
 import { VisitorType } from "@/utils/api/visitors/interfaces";
+import { DateTime } from "luxon";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { useMemo, useState } from "react";
 import { membershipContract } from "../../Analytics/contracts";
@@ -46,6 +47,8 @@ const sections: SectionKey[] = [
   "8. Data Quality & Admin Maturity",
   "9. Member Lifecycle Analytics",
 ];
+
+type AnalysisMode = "point_in_time" | "cumulative";
 
 const safeString = (value: unknown) => {
   if (typeof value === "string") return value.trim();
@@ -204,6 +207,7 @@ export const MembershipAnalytics = () => {
   const [filters, setFilters] = useState<AnalyticsFilters>(
     createDefaultAnalyticsFilters()
   );
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("point_in_time");
   const [membershipTypeFilter, setMembershipTypeFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [activeSection, setActiveSection] = useState<SectionKey>(sections[0]);
@@ -238,10 +242,41 @@ export const MembershipAnalytics = () => {
     ).sort((a, b) => a.localeCompare(b));
   }, [members]);
 
+  const earliestMemberJoinDate = useMemo(() => {
+    const parsedJoinDates = members
+      .map((member) => toDateTime(getMemberJoinDate(member)))
+      .filter((value): value is DateTime => Boolean(value));
+
+    if (!parsedJoinDates.length) return null;
+
+    return parsedJoinDates.reduce((earliest, current) => {
+      return current.toMillis() < earliest.toMillis() ? current : earliest;
+    });
+  }, [members]);
+
+  const shouldUseCumulativeRange = useMemo(() => {
+    const periodType = filters.periodType ?? "year";
+    return (
+      analysisMode === "cumulative" &&
+      ["year", "month", "week"].includes(periodType)
+    );
+  }, [analysisMode, filters.periodType]);
+
+  const effectiveDateRange = useMemo(() => {
+    if (!shouldUseCumulativeRange || !earliestMemberJoinDate) {
+      return filters.dateRange;
+    }
+
+    return {
+      from: earliestMemberJoinDate.startOf("day").toFormat("yyyy-LL-dd"),
+      to: filters.dateRange.to,
+    };
+  }, [shouldUseCumulativeRange, earliestMemberJoinDate, filters.dateRange]);
+
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const joinDate = getMemberJoinDate(member);
-      if (!joinDate || !isWithinRange(joinDate, filters.dateRange)) return false;
+      if (!joinDate || !isWithinRange(joinDate, effectiveDateRange)) return false;
 
       if (
         membershipTypeFilter !== "all" &&
@@ -258,11 +293,11 @@ export const MembershipAnalytics = () => {
 
       return true;
     });
-  }, [members, filters.dateRange, membershipTypeFilter, departmentFilter]);
+  }, [members, effectiveDateRange, membershipTypeFilter, departmentFilter]);
 
   const filteredVisitors = useMemo(() => {
-    return visitors.filter((visitor) => isWithinRange(visitor.createdAt, filters.dateRange));
-  }, [visitors, filters.dateRange]);
+    return visitors.filter((visitor) => isWithinRange(visitor.createdAt, effectiveDateRange));
+  }, [visitors, effectiveDateRange]);
 
   const statusCounts = useMemo(() => {
     return filteredMembers.reduce(
@@ -288,9 +323,9 @@ export const MembershipAnalytics = () => {
         (member) => getMemberJoinDate(member),
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredMembers, filters.groupBy, filters.dateRange]
+    [filteredMembers, filters.groupBy, effectiveDateRange]
   );
 
   const recent90Range = useMemo(() => {
@@ -603,6 +638,7 @@ export const MembershipAnalytics = () => {
 
   const resetFilters = () => {
     setFilters(createDefaultAnalyticsFilters());
+    setAnalysisMode("point_in_time");
     setMembershipTypeFilter("all");
     setDepartmentFilter("all");
   };
@@ -1225,6 +1261,20 @@ export const MembershipAnalytics = () => {
           onReset={resetFilters}
           extra={
             <>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-600">Analysis mode</label>
+                <select
+                  className="h-10 border rounded px-3 w-full disabled:bg-gray-100"
+                  value={analysisMode}
+                  disabled={filters.periodType === "specific_date_range"}
+                  onChange={(event) =>
+                    setAnalysisMode(event.target.value as AnalysisMode)
+                  }
+                >
+                  <option value="point_in_time">Point in time</option>
+                  <option value="cumulative">Cumulative</option>
+                </select>
+              </div>
               <div className="space-y-1">
                 <label className="text-xs text-gray-600">Membership type</label>
                 <select
