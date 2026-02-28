@@ -136,13 +136,12 @@ const hasDepartment = (member: MemberRecord) => {
 };
 
 const isMinistryWorker = (member: MemberRecord) => {
-  return (
-    safeBoolean(member.ministry_worker) ||
-    safeBoolean(member.isMinistryWorker) ||
-    safeBoolean(member.ministry_worker === true) ||
+  const hasAssignment =
     safeString(member.position).length > 0 ||
-    (Array.isArray(member.department_positions) && member.department_positions.length > 0)
-  );
+    safeString(member.department_name).length > 0 ||
+    (Array.isArray(member.department_positions) && member.department_positions.length > 0);
+
+  return safeBoolean(member.is_user) && hasAssignment;
 };
 
 const getEmploymentStatus = (member: MemberRecord) => {
@@ -376,6 +375,14 @@ export const MembershipAnalytics = () => {
       values: sortedKeys.map((key) => buckets.get(key) ?? 0),
     };
   }, [effectiveDateRange, filteredMembers]);
+
+  const joinedTrendCumulative = useMemo(() => {
+    let runningTotal = 0;
+    return joinedTrend.values.map((value) => {
+      runningTotal += value;
+      return runningTotal;
+    });
+  }, [joinedTrend.values]);
 
   const recent90Range = useMemo(() => {
     const now = new Date();
@@ -720,6 +727,13 @@ export const MembershipAnalytics = () => {
                       data: joinedTrend.values,
                       borderColor: "#2463EB",
                       backgroundColor: "rgba(36, 99, 235, 0.2)",
+                      tension: 0.3,
+                    },
+                    {
+                      label: "Cumulative growth",
+                      data: joinedTrendCumulative,
+                      borderColor: "#16A34A",
+                      backgroundColor: "rgba(22, 163, 74, 0.15)",
                       tension: 0.3,
                     },
                   ],
