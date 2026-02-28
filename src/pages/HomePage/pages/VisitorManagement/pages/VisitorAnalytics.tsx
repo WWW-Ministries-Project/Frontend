@@ -14,8 +14,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toPercent,
 } from "../../Analytics/utils";
 
@@ -57,9 +59,27 @@ export const VisitorAnalytics = () => {
     return Array.from(new Set(visitors.map((visitor) => visitor.howHeard).filter(Boolean))).sort();
   }, [visitors]);
 
+  const cumulativeFrom = useMemo(
+    () =>
+      getEarliestIsoDate(
+        visitors.map((visitor) => (visitor as Record<string, unknown>).createdAt)
+      ),
+    [visitors]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredVisitors = useMemo(() => {
     return visitors.filter((visitor) => {
-      if (!isWithinRange((visitor as Record<string, unknown>).createdAt, filters.dateRange)) {
+      if (
+        !isWithinRange(
+          (visitor as Record<string, unknown>).createdAt,
+          effectiveDateRange
+        )
+      ) {
         return false;
       }
 
@@ -68,7 +88,7 @@ export const VisitorAnalytics = () => {
 
       return true;
     });
-  }, [eventFilter, filters.dateRange, referralFilter, visitors]);
+  }, [effectiveDateRange, eventFilter, referralFilter, visitors]);
 
   const newVisitorsSeries = useMemo(
     () =>
@@ -77,9 +97,9 @@ export const VisitorAnalytics = () => {
         (visitor) => (visitor as Record<string, unknown>).createdAt,
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredVisitors, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredVisitors, filters.groupBy]
   );
 
   const repeatVisitorCount = useMemo(
@@ -166,6 +186,7 @@ export const VisitorAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <>
               <div className="space-y-1">

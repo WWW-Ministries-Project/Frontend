@@ -13,8 +13,10 @@ import { AnalyticsFilters } from "../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toPercent,
 } from "../Analytics/utils";
 
@@ -79,9 +81,19 @@ export const AttendanceAnalytics = () => {
     ).sort();
   }, [records]);
 
+  const cumulativeFrom = useMemo(
+    () => getEarliestIsoDate(records.map((record) => record.date)),
+    [records]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredRecords = useMemo(() => {
     return records.filter((record) => {
-      if (!isWithinRange(record.date, filters.dateRange)) return false;
+      if (!isWithinRange(record.date, effectiveDateRange)) return false;
 
       if (eventFilter !== "all") {
         const eventName = String(record.event_name || record.eventName || record.eventId || record.event_id || "");
@@ -90,7 +102,7 @@ export const AttendanceAnalytics = () => {
 
       return true;
     });
-  }, [records, filters.dateRange, eventFilter]);
+  }, [effectiveDateRange, eventFilter, records]);
 
   const attendanceTrend = useMemo(
     () =>
@@ -99,9 +111,9 @@ export const AttendanceAnalytics = () => {
         (record) => record.date,
         (record) => getTotals(record).total,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredRecords, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredRecords, filters.groupBy]
   );
 
   const visitingPastorsTrend = useMemo(
@@ -111,9 +123,9 @@ export const AttendanceAnalytics = () => {
         (record) => record.date,
         (record) => getTotals(record).visitingPastors,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredRecords, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredRecords, filters.groupBy]
   );
 
   const demographicMix = useMemo(() => {
@@ -188,6 +200,7 @@ export const AttendanceAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <div className="space-y-1">
               <label className="text-xs text-gray-600">Event</label>

@@ -114,6 +114,7 @@ export const getRequesterMeta = (
     requesterDepartment.name,
     requester.department_name,
     requester.departmentName,
+    record.requester_department,
     record.department_name,
     record.departmentName,
     summary.department,

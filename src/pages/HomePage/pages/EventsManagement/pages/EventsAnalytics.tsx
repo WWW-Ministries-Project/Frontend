@@ -14,8 +14,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toDateTime,
   toPercent,
 } from "../../Analytics/utils";
@@ -67,15 +69,26 @@ export const EventsAnalytics = () => {
     return Array.from(new Set(events.map((event) => safeString(event.event_type)).filter(Boolean))).sort();
   }, [events]);
 
+  const cumulativeFrom = useMemo(() => {
+    const eventDates = events.map((event) => event.start_date);
+    const attendanceDates = attendance.map((record) => record.date);
+    return getEarliestIsoDate([...eventDates, ...attendanceDates]);
+  }, [attendance, events]);
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
-      if (!isWithinRange(event.start_date, filters.dateRange)) return false;
+      if (!isWithinRange(event.start_date, effectiveDateRange)) return false;
       if (eventTypeFilter !== "all" && safeString(event.event_type) !== eventTypeFilter) {
         return false;
       }
       return true;
     });
-  }, [events, eventTypeFilter, filters.dateRange]);
+  }, [effectiveDateRange, eventTypeFilter, events]);
 
   const eventTrend = useMemo(
     () =>
@@ -84,9 +97,9 @@ export const EventsAnalytics = () => {
         (event) => event.start_date,
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredEvents, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredEvents, filters.groupBy]
   );
 
   const eventTypeBreakdown = useMemo(() => {
@@ -127,7 +140,7 @@ export const EventsAnalytics = () => {
     const totals = new Map<string, number>();
 
     attendance.forEach((record) => {
-      if (!isWithinRange(record.date, filters.dateRange)) return;
+      if (!isWithinRange(record.date, effectiveDateRange)) return;
       const key = safeString(record.event_name || record.eventName || record.eventId || record.event_id);
       if (!key) return;
 
@@ -138,7 +151,7 @@ export const EventsAnalytics = () => {
       .map(([label, value]) => ({ label, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
-  }, [attendance, filters.dateRange]);
+  }, [attendance, effectiveDateRange]);
 
   const totalAttendance = useMemo(
     () => attendanceByEvent.reduce((acc, item) => acc + item.value, 0),
@@ -191,6 +204,7 @@ export const EventsAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <div className="space-y-1">
               <label className="text-xs text-gray-600">Event type</label>

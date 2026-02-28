@@ -15,8 +15,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toDateTime,
   toPercent,
 } from "../../Analytics/utils";
@@ -47,8 +49,6 @@ const sections: SectionKey[] = [
   "8. Data Quality & Admin Maturity",
   "9. Member Lifecycle Analytics",
 ];
-
-type AnalysisMode = "point_in_time" | "cumulative";
 
 const safeString = (value: unknown) => {
   if (typeof value === "string") return value.trim();
@@ -203,11 +203,50 @@ const requiredProfileFields = [
   "employment_status",
 ] as const;
 
+type TrendGranularity = "year" | "month" | "week" | "day";
+
+const getTrendBucketKey = (date: DateTime, granularity: TrendGranularity) => {
+  if (granularity === "year") return date.toFormat("yyyy");
+  if (granularity === "month") return date.toFormat("yyyy-LL");
+  if (granularity === "week") {
+    return `${date.weekYear}-W${String(date.weekNumber).padStart(2, "0")}`;
+  }
+  return date.toFormat("yyyy-LL-dd");
+};
+
+const getTrendBucketLabel = (key: string, granularity: TrendGranularity) => {
+  if (granularity === "year") return key;
+
+  if (granularity === "month") {
+    const parsed = DateTime.fromFormat(key, "yyyy-LL");
+    return parsed.isValid ? parsed.toFormat("LLL yyyy") : key;
+  }
+
+  if (granularity === "week") return key;
+
+  const parsed = DateTime.fromFormat(key, "yyyy-LL-dd");
+  return parsed.isValid ? parsed.toFormat("dd LLL") : key;
+};
+
+const resolveTrendGranularity = (
+  earliest: DateTime,
+  latest: DateTime
+): TrendGranularity => {
+  if (earliest.year !== latest.year) return "year";
+  if (earliest.month !== latest.month) return "month";
+  if (
+    earliest.weekYear !== latest.weekYear ||
+    earliest.weekNumber !== latest.weekNumber
+  ) {
+    return "week";
+  }
+  return "day";
+};
+
 export const MembershipAnalytics = () => {
   const [filters, setFilters] = useState<AnalyticsFilters>(
     createDefaultAnalyticsFilters()
   );
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("point_in_time");
   const [membershipTypeFilter, setMembershipTypeFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [activeSection, setActiveSection] = useState<SectionKey>(sections[0]);
@@ -242,36 +281,15 @@ export const MembershipAnalytics = () => {
     ).sort((a, b) => a.localeCompare(b));
   }, [members]);
 
-  const earliestMemberJoinDate = useMemo(() => {
-    const parsedJoinDates = members
-      .map((member) => toDateTime(getMemberJoinDate(member)))
-      .filter((value): value is DateTime => Boolean(value));
+  const earliestMemberJoinDate = useMemo(
+    () => getEarliestIsoDate(members.map((member) => getMemberJoinDate(member))),
+    [members]
+  );
 
-    if (!parsedJoinDates.length) return null;
-
-    return parsedJoinDates.reduce((earliest, current) => {
-      return current.toMillis() < earliest.toMillis() ? current : earliest;
-    });
-  }, [members]);
-
-  const shouldUseCumulativeRange = useMemo(() => {
-    const periodType = filters.periodType ?? "year";
-    return (
-      analysisMode === "cumulative" &&
-      ["year", "month", "week"].includes(periodType)
-    );
-  }, [analysisMode, filters.periodType]);
-
-  const effectiveDateRange = useMemo(() => {
-    if (!shouldUseCumulativeRange || !earliestMemberJoinDate) {
-      return filters.dateRange;
-    }
-
-    return {
-      from: earliestMemberJoinDate.startOf("day").toFormat("yyyy-LL-dd"),
-      to: filters.dateRange.to,
-    };
-  }, [shouldUseCumulativeRange, earliestMemberJoinDate, filters.dateRange]);
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, earliestMemberJoinDate),
+    [earliestMemberJoinDate, filters]
+  );
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
@@ -316,17 +334,48 @@ export const MembershipAnalytics = () => {
 
   const healthTotal = statusCounts.UNCONFIRMED + statusCounts.CONFIRMED + statusCounts.MEMBER;
 
-  const joinedTrend = useMemo(
-    () =>
-      buildSeries(
-        filteredMembers,
-        (member) => getMemberJoinDate(member),
-        () => 1,
-        filters.groupBy,
-        effectiveDateRange
-      ),
-    [filteredMembers, filters.groupBy, effectiveDateRange]
-  );
+  const joinedTrend = useMemo(() => {
+    const joinDates = filteredMembers
+      .map((member) => toDateTime(getMemberJoinDate(member)))
+      .filter((value): value is DateTime => Boolean(value));
+
+    const earliestDataDate = joinDates.reduce<DateTime | null>((earliest, current) => {
+      if (!earliest) return current;
+      return current.toMillis() < earliest.toMillis() ? current : earliest;
+    }, null);
+    const latestDataDate = joinDates.reduce<DateTime | null>((latest, current) => {
+      if (!latest) return current;
+      return current.toMillis() > latest.toMillis() ? current : latest;
+    }, null);
+
+    const fallbackFrom = toDateTime(effectiveDateRange.from);
+    const fallbackTo = toDateTime(effectiveDateRange.to);
+
+    const anchorFrom = earliestDataDate ?? fallbackFrom ?? DateTime.now();
+    const anchorTo = latestDataDate ?? fallbackTo ?? anchorFrom;
+    const granularity = resolveTrendGranularity(anchorFrom, anchorTo);
+
+    const buckets = new Map<string, number>();
+
+    filteredMembers.forEach((member) => {
+      const joinedAt = getMemberJoinDate(member);
+      if (!joinedAt || !isWithinRange(joinedAt, effectiveDateRange)) return;
+
+      const parsed = toDateTime(joinedAt);
+      if (!parsed) return;
+
+      const key = getTrendBucketKey(parsed, granularity);
+      buckets.set(key, (buckets.get(key) ?? 0) + 1);
+    });
+
+    const sortedKeys = Array.from(buckets.keys()).sort((a, b) => a.localeCompare(b));
+
+    return {
+      granularity,
+      labels: sortedKeys.map((key) => getTrendBucketLabel(key, granularity)),
+      values: sortedKeys.map((key) => buckets.get(key) ?? 0),
+    };
+  }, [effectiveDateRange, filteredMembers]);
 
   const recent90Range = useMemo(() => {
     const now = new Date();
@@ -638,7 +687,6 @@ export const MembershipAnalytics = () => {
 
   const resetFilters = () => {
     setFilters(createDefaultAnalyticsFilters());
-    setAnalysisMode("point_in_time");
     setMembershipTypeFilter("all");
     setDepartmentFilter("all");
   };
@@ -650,7 +698,17 @@ export const MembershipAnalytics = () => {
           <div className="rounded-xl border bg-white p-4 lg:col-span-2">
             <h3 className="font-semibold text-primary">Members Joined Trend (using date joined)</h3>
             <p className="text-xs text-gray-600 mb-3">
-              Growth is evaluated by member join date, with 90-day month-over-month comparison.
+              Growth is evaluated by member join date and auto-grouped by{" "}
+              <span className="font-semibold">
+                {joinedTrend.granularity === "year"
+                  ? "year"
+                  : joinedTrend.granularity === "month"
+                  ? "month"
+                  : joinedTrend.granularity === "week"
+                  ? "week"
+                  : "day"}
+              </span>{" "}
+              based on the current data span.
             </p>
             <div className="h-72">
               <Line
@@ -1259,22 +1317,9 @@ export const MembershipAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={earliestMemberJoinDate}
           extra={
             <>
-              <div className="space-y-1">
-                <label className="text-xs text-gray-600">Analysis mode</label>
-                <select
-                  className="h-10 border rounded px-3 w-full disabled:bg-gray-100"
-                  value={analysisMode}
-                  disabled={filters.periodType === "specific_date_range"}
-                  onChange={(event) =>
-                    setAnalysisMode(event.target.value as AnalysisMode)
-                  }
-                >
-                  <option value="point_in_time">Point in time</option>
-                  <option value="cumulative">Cumulative</option>
-                </select>
-              </div>
               <div className="space-y-1">
                 <label className="text-xs text-gray-600">Membership type</label>
                 <select

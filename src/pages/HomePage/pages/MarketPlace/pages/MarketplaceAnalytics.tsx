@@ -15,8 +15,10 @@ import {
   buildSeries,
   currencyFormatter,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toPercent,
 } from "../../Analytics/utils";
 
@@ -67,9 +69,19 @@ export const MarketplaceAnalytics = () => {
     );
   }, [markets]);
 
+  const cumulativeFrom = useMemo(
+    () => getEarliestIsoDate(orders.map((order) => orderDate(order))),
+    [orders]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      if (!isWithinRange(orderDate(order), filters.dateRange)) return false;
+      if (!isWithinRange(orderDate(order), effectiveDateRange)) return false;
 
       if (marketFilter !== "all" && String(order.market_id) !== marketFilter) return false;
 
@@ -79,7 +91,7 @@ export const MarketplaceAnalytics = () => {
 
       return true;
     });
-  }, [filters.dateRange, marketFilter, orders, paymentStatusFilter]);
+  }, [effectiveDateRange, marketFilter, orders, paymentStatusFilter]);
 
   const gmvTrend = useMemo(
     () =>
@@ -88,9 +100,9 @@ export const MarketplaceAnalytics = () => {
         (order) => orderDate(order),
         (order) => orderAmount(order),
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredOrders, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredOrders, filters.groupBy]
   );
 
   const orderTrend = useMemo(
@@ -100,9 +112,9 @@ export const MarketplaceAnalytics = () => {
         (order) => orderDate(order),
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredOrders, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredOrders, filters.groupBy]
   );
 
   const paymentStatusMix = useMemo(() => {
@@ -200,6 +212,7 @@ export const MarketplaceAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <>
               <div className="space-y-1">

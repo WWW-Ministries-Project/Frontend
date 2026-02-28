@@ -16,8 +16,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toPercent,
 } from "../../Analytics/utils";
 
@@ -88,13 +90,23 @@ export const AppointmentsAnalytics = () => {
     });
   }, [bookings]);
 
+  const cumulativeFrom = useMemo(
+    () => getEarliestIsoDate(bookings.map((booking) => booking.date)),
+    [bookings]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
-      if (!isWithinRange(booking.date, filters.dateRange)) return false;
+      if (!isWithinRange(booking.date, effectiveDateRange)) return false;
       if (staffFilter !== "all" && booking.staffId !== staffFilter) return false;
       return true;
     });
-  }, [bookings, filters.dateRange, staffFilter]);
+  }, [bookings, effectiveDateRange, staffFilter]);
 
   const bookingsTrend = useMemo(
     () =>
@@ -103,9 +115,9 @@ export const AppointmentsAnalytics = () => {
         (booking) => booking.date,
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredBookings, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredBookings, filters.groupBy]
   );
 
   const statusMix = useMemo(() => {
@@ -188,6 +200,7 @@ export const AppointmentsAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <div className="space-y-1">
               <label className="text-xs text-gray-600">Staff</label>
