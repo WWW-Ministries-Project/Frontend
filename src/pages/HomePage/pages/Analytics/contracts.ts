@@ -76,7 +76,7 @@ export const membershipContract: AnalyticsModuleContract = {
       responseShape:
         '{"type":"ratio","numerator":430,"denominator":1200,"value":35.8}',
       formula:
-        "count(users with ministry_worker=true OR department_id OR position_id OR department_positions) / total users",
+        "count(users where is_user=true AND (position OR department_name OR department_positions)) / total users",
     },
     {
       key: "discipleship_completion_rate",
