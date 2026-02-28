@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import FormWrapper from '/src/Wrappers/FormWrapper';
 
-import axios from 'axios';
+import axios from '@/axiosInstance';
 import MemberConfirmation from '../Components/MemberConfirmation';
 import MemberConfirmed from '../Components/MemberConfirmed';
 import RegisterMember from '../Components/RegisterMember';
 import SearchMember from '../Components/SearchMember';
-import { baseUrl } from '/src/pages/Authentication/utils/helpers';
-// import axios from "/src/axiosInstance.js"
 
 const EventRegister = () => {
     const [memberDetails, setMemberDetails] = useState({ phone_number: '' });
@@ -17,9 +15,23 @@ const EventRegister = () => {
     const params = new URLSearchParams(query);
     const name = params.get('event_name');
     const id = params.get('event_id')
+    const eventId = id ? Number(id) : null;
+
+    const getRegistrationPayload = () => {
+        if (eventId && Number.isFinite(eventId)) {
+            return { event_id: eventId };
+        }
+
+        return id ? { event_id: id } : null;
+    };
     const handleFindMember = () => {
         setLoading(true)
-        axios.get(`${baseUrl}event/search-user?phone=${memberDetails.phone_number}&country_code=${memberDetails.country_code}`).then((res) => {
+        axios.get("event/search-user", {
+            params: {
+                phone: memberDetails.phone_number,
+                country_code: memberDetails.country_code,
+            },
+        }).then((res) => {
             setLoading(false)
             if (res.status == 200) {
                 setMemberDetails(res.data.data)
@@ -34,8 +46,11 @@ const EventRegister = () => {
         })
     }
     const handleConfirm = () => {
+        const payload = getRegistrationPayload();
+        if (!payload) return;
+
         setLoading(true)
-        axios.post(`${baseUrl}event/sign-attendance?event_id=${id}`, { phone_number: memberDetails.primary_number, country_code: memberDetails.country_code, new_member: false }).then(() => {
+        axios.post("event/register", payload).then(() => {
             setLoading(false)
             setMemberFound("confirmed");
         }).catch(() => { setLoading(false) })
@@ -45,8 +60,12 @@ const EventRegister = () => {
         setMemberDetails((prev) => ({ ...prev, [name]: value }));
     }
     const handleNewAttendee = (value) => {
+        void value;
+        const payload = getRegistrationPayload();
+        if (!payload) return;
+
         setLoading(true);
-        axios.post(`${baseUrl}event/sign-attendance?event_id=${id}`, value).then(() => {
+        axios.post("event/register", payload).then(() => {
             setLoading(false)
             setMemberFound('confirmed')
         }).catch(() => {

@@ -14,8 +14,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toPercent,
 } from "../../Analytics/utils";
 
@@ -127,10 +129,32 @@ export const MinistrySchoolAnalytics = () => {
     return Array.from(uniqueByName.values());
   }, [coursesResponse, programs]);
 
+  const cumulativeFrom = useMemo(() => {
+    const courseDates = courses.map((course) => course.createdAt);
+    const cohortDates = cohorts.map((cohort) =>
+      safeString(cohort.startDate || cohort.createdAt || cohort.updatedAt)
+    );
+    const programDates = programs.map((program) =>
+      safeString(
+        (program as unknown as GenericRecord).created_at ||
+          (program as unknown as GenericRecord).createdAt ||
+          (program as unknown as GenericRecord).start_date ||
+          (program as unknown as GenericRecord).updatedAt
+      )
+    );
+
+    return getEarliestIsoDate([...courseDates, ...cohortDates, ...programDates]);
+  }, [cohorts, courses, programs]);
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredCohorts = useMemo(() => {
     return cohorts.filter((cohort) => {
       const cohortDate = safeString(cohort.startDate || cohort.createdAt || cohort.updatedAt);
-      if (cohortDate && !isWithinRange(cohortDate, filters.dateRange)) return false;
+      if (cohortDate && !isWithinRange(cohortDate, effectiveDateRange)) return false;
 
       if (cohortStatusFilter !== "all") {
         const status = safeString(cohort.status);
@@ -139,7 +163,7 @@ export const MinistrySchoolAnalytics = () => {
 
       return true;
     });
-  }, [cohorts, cohortStatusFilter, filters.dateRange]);
+  }, [cohorts, cohortStatusFilter, effectiveDateRange]);
 
   const statusOptions = useMemo(() => {
     return Array.from(
@@ -154,9 +178,9 @@ export const MinistrySchoolAnalytics = () => {
         (course) => course.createdAt,
         (course) => Math.max(0, course.enrolled),
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [courses, filters.groupBy, filters.dateRange]
+    [courses, effectiveDateRange, filters.groupBy]
   );
 
   const cohortStatusMix = useMemo(() => {
@@ -241,6 +265,7 @@ export const MinistrySchoolAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <div className="space-y-1">
               <label className="text-xs text-gray-600">Cohort status</label>

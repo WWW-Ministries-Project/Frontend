@@ -1,12 +1,20 @@
-import axios from "axios";
-import { ChangeEvent, FocusEvent, FormEvent, useMemo, useState } from "react";
+import axios from "@/axiosInstance";
+import {
+  ChangeEvent,
+  FocusEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "../../../../components";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
-import { baseUrl, validate } from "../../utils/helpers";
+import { getRetryAfterSecondsFromError } from "../../utils/rateLimit";
+import { validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
 
 interface PasswordValues {
@@ -45,6 +53,7 @@ function ResetPassword() {
     password2: false,
   });
   const [loading, setLoading] = useState(false);
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState<number>(0);
 
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -52,6 +61,19 @@ function ResetPassword() {
   const id = searchParams.get("id");
 
   const hasValidResetLink = Boolean(token && id);
+  const isRateLimited = retryAfterSeconds > 0;
+
+  useEffect(() => {
+    if (retryAfterSeconds <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setRetryAfterSeconds((previousValue) =>
+        previousValue <= 1 ? 0 : previousValue - 1
+      );
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [retryAfterSeconds]);
 
   const authErrorText = useMemo(
     () => getResponseMessage(response.data) || "Unable to reset password. Please request a new reset link.",
@@ -82,6 +104,7 @@ function ResetPassword() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading || isRateLimited) return;
 
     if (!hasValidResetLink) {
       setResponse({
@@ -104,10 +127,19 @@ function ResetPassword() {
     const body = { newpassword: passwordValues.password1 };
 
     try {
-      const endpoint = `${baseUrl}user/reset-password?id=${id}&token=${token}`;
-      const resetResponse = await axios.post(endpoint, body);
+      const resetResponse = await axios.post(
+        `user/reset-password?id=${id}&token=${token}`,
+        body
+      );
       setResponse({ status: resetResponse.status, data: resetResponse.data });
     } catch (error: unknown) {
+      const retryAfter = getRetryAfterSecondsFromError(error);
+      if (retryAfter) {
+        setRetryAfterSeconds((previousValue) =>
+          Math.max(previousValue, retryAfter)
+        );
+      }
+
       const axiosError = error as { response?: AuthResponse };
       setResponse(axiosError.response || {});
     } finally {
@@ -198,12 +230,21 @@ function ResetPassword() {
             />
             <Button
               type="submit"
-              value="Set New Password"
+              value={
+                isRateLimited
+                  ? `Retry in ${retryAfterSeconds}s`
+                  : "Set New Password"
+              }
               variant="primary"
               loading={loading}
-              disabled={loading || !hasValidResetLink}
+              disabled={loading || !hasValidResetLink || isRateLimited}
               className="mt-2 w-full"
             />
+            {isRateLimited && (
+              <p className="text-center text-xs text-primaryGray">
+                Too many attempts. Please wait before trying again.
+              </p>
+            )}
             <div className="text-center text-sm font-semibold">
               <Link to="/login" className="text-primary hover:underline">
                 Return to login

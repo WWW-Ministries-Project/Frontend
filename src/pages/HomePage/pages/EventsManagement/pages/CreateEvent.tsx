@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils/api/apiCalls";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import { useEffect, useRef, useState } from "react";
 import { eventInput } from "../utils/eventHelpers";
 import EventsScheduleForm from "../Components/EventsScheduleForm";
@@ -48,6 +49,14 @@ const CreateEvent = () => {
     // setLoading(true);
     const data = new FormData();
     if (file) {
+      const validation = validateUploadFile(file, {
+        allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+      });
+
+      if (!validation.valid) {
+        throw new Error(validation.message || "Invalid event banner selected.");
+      }
+
       data.append("file", file);
     }
     let isSuccessful = false;

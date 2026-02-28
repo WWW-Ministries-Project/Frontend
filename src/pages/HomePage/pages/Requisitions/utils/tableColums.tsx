@@ -11,8 +11,13 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type {
   Requisition,
-  RequisitionStatusType,
 } from "../types/requestInterface";
+import {
+  getEditMeta,
+  getPrimaryProductImage,
+  getRequesterMeta,
+} from "./requestMetadata";
+import { resolveRequisitionStatus } from "./status";
 
 const amountFormatter = new Intl.NumberFormat(undefined, {
   minimumFractionDigits: 2,
@@ -46,6 +51,25 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     },
   },
   {
+    header: "Requester",
+    id: "requester",
+    accessorFn: (row) => getRequesterMeta(row).name,
+    cell: ({ row }) => {
+      const requester = getRequesterMeta(row.original);
+
+      return (
+        <div className="max-w-[220px]">
+          <p className="truncate text-sm font-semibold text-primary">
+            {requester.name}
+          </p>
+          <p className="truncate text-xs text-primaryGray">
+            {requester.department}
+          </p>
+        </div>
+      );
+    },
+  },
+  {
     header: "Items",
     accessorKey: "product_names",
     cell: (info) => {
@@ -55,9 +79,17 @@ export const tableColumns: ColumnDef<Requisition>[] = [
         const normalizedItems = Array.isArray(items) ? items : [];
         const remainingItems =
           normalizedItems.length > 1 ? normalizedItems.slice(1) : [];
+        const productImage = getPrimaryProductImage(info.row.original);
 
         return (
-          <div className="relative flex max-w-[280px] items-center gap-2">
+          <div className="relative flex max-w-[320px] items-center gap-2">
+            {productImage && (
+              <img
+                src={productImage}
+                alt={`${normalizedItems?.[0] || "Item"} preview`}
+                className="h-9 w-9 flex-shrink-0 rounded border border-lightGray object-cover"
+              />
+            )}
             <p className="truncate text-sm font-medium text-primary">
               {normalizedItems?.[0] || "N/A"}
             </p>
@@ -112,11 +144,31 @@ export const tableColumns: ColumnDef<Requisition>[] = [
     },
   },
   {
+    header: "Last edit",
+    id: "last_edit",
+    accessorFn: (row) => getEditMeta(row).editedAtIso ?? "",
+    cell: ({ row }) => {
+      const editMeta = getEditMeta(row.original);
+
+      return (
+        <div className="max-w-[220px]">
+          <p className="truncate text-sm font-medium text-primary">
+            {editMeta.hasEditMeta
+              ? editMeta.editorName || "Unknown editor"
+              : "Not edited yet"}
+          </p>
+          <p className="text-xs text-primaryGray">
+            {editMeta.formattedEditedAt || "N/A"}
+          </p>
+        </div>
+      );
+    },
+  },
+  {
     header: "Status",
-    accessorKey: "approval_status",
-    cell: (info) => (
-      <StatusPill text={info.getValue() as RequisitionStatusType} />
-    ),
+    id: "approval_status",
+    accessorFn: (row) => resolveRequisitionStatus(row),
+    cell: ({ row }) => <StatusPill text={resolveRequisitionStatus(row.original)} />,
   },
   {
     header: "Action",
@@ -132,10 +184,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           api.delete.deleteRequest
         );
         const { removeRequest } = useStore();
+        const requestStatus = resolveRequisitionStatus(row.original);
 
         const isEditable =
-          row.original.approval_status === "Awaiting_HOD_Approval" ||
-          row.original.approval_status === "Draft";
+          requestStatus === "Awaiting_HOD_Approval" || requestStatus === "Draft";
 
         useEffect(() => {
           const handleOutsideClick = (event: MouseEvent) => {

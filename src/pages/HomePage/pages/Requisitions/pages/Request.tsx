@@ -11,6 +11,7 @@ import MultiImageComponent, {
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { useStore } from "@/store/useStore";
+import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { EventType } from "@/utils/api/events/interfaces";
 import { DepartmentType } from "@/utils/api/settings/departmentInterfaces";
@@ -18,13 +19,16 @@ import { ApiResponse } from "@/utils/interfaces";
 import FormWrapperNew from "@/Wrappers/FormWrapperNew";
 import { Field, Formik } from "formik";
 import { DateTime } from "luxon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { IRequisitionDetails } from "../types/requestInterface";
+import { getEditMeta } from "../utils/requestMetadata";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
+
+type SubmissionIntent = "SAVE" | "SAVE_DRAFT" | "SUBMIT";
 
 type DropdownOption = {
   label: string;
@@ -69,6 +73,7 @@ const dedupeOptions = (options: DropdownOption[]): DropdownOption[] => {
 const Request = () => {
   const { id } = useParams();
   const decodedId = id ? window.atob(String(id)) : "";
+  const requestsPath = `${relativePath.home.main}/requests`;
 
   const { setInitialRows, events: storedEvents } = useStore((state) => ({
     setInitialRows: state.setInitialRows,
@@ -83,6 +88,7 @@ const Request = () => {
     IRequisitionDetails | undefined
   >(undefined);
   const [initialImages, setInitialImages] = useState<image[]>([]);
+  const submissionIntentRef = useRef<SubmissionIntent>("SAVE");
 
   const { data: departmentsData, loading: departmentsLoading } = useFetch<
     ApiResponse<DepartmentType[]>
@@ -123,7 +129,6 @@ const Request = () => {
     addingImage,
     handleSignature,
     signature,
-    handleUpload,
     handleUploadImage,
     handleItemImageUpload,
   } = useAddRequisition();
@@ -243,7 +248,7 @@ const Request = () => {
   }, [eventsData?.data, requestData?.summary, storedEvents]);
 
   const initialValues: IRequest = {
-    requester_name: name,
+    requester_name: requestData?.requester?.name ?? name,
     department_id: requestData?.summary?.department_id ?? "",
     event_id: requestData?.summary?.program_id ?? "",
     request_date: requestData?.summary?.request_date
@@ -259,10 +264,18 @@ const Request = () => {
   const title = id ? "Update request" : "Create request";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
   const isNoSignature = Boolean(id && !requestData?.requester?.user_sign);
+  const isDraftRequest = (requestData?.summary?.status ?? "Draft") === "Draft";
+  const isLoadingExistingRequest = Boolean(id && !requestData);
+  const editMeta = useMemo(() => getEditMeta(requestData), [requestData]);
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "Requests", link: requestsPath },
+    { label: id ? "Update Request" : "Create Request", link: "" },
+  ];
 
   return (
     <div className="p-4">
-      <PageOutline>
+      <PageOutline crumbs={crumbs}>
         <section className="mx-auto w-full max-w-6xl">
           <div className="app-card space-y-4 p-4 md:p-6">
             <PageHeader title={title} />
@@ -270,61 +283,80 @@ const Request = () => {
               Complete the requisition details below. Add item images directly at
               the item row level for clearer approvals.
             </p>
+            {id && (
+              <div className="rounded-lg border border-lightGray bg-[#F8F9FC] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                  Requester
+                </p>
+                <p className="mt-1 text-base font-semibold text-primary">
+                  {initialValues.requester_name || "Unknown requester"}
+                </p>
+                <p className="mt-1 text-sm text-primaryGray">
+                  {editMeta.hasEditMeta
+                    ? `Last edited by ${editMeta.editorName || "Unknown editor"} on ${
+                        editMeta.formattedEditedAt || "Unknown date"
+                      }`
+                    : "Last edited: Not edited yet"}
+                </p>
+              </div>
+            )}
+            {isLoadingExistingRequest && (
+              <div className="rounded-lg border border-lightGray p-4 text-sm text-primaryGray">
+                Loading request details...
+              </div>
+            )}
 
-            <Formik
-              initialValues={initialValues}
-              onSubmit={async (values) => {
-                const uploadedAttachments = await handleUploadImage();
-                handleSubmit({ ...values, attachmentLists: uploadedAttachments });
-              }}
-              validationSchema={addRequisitionSchema}
-              enableReinitialize
-            >
-              {({
-                handleSubmit,
-                setValues,
-                values,
-                validateForm,
-                setTouched,
-              }) => (
-                <>
-                  <Modal open={openSignature} onClose={closeModal}>
-                    <AddSignature
-                      cancel={closeModal}
-                      text="Submit"
-                      header="Request Signing"
-                      handleSignature={handleSignature}
-                      loading={loading || addingImage}
-                      defaultSignature={defaultSignature}
-                      onSubmit={async () => {
-                        try {
-                          let updatedSignature = signature.signature as string;
-
-                          if (signature.isImage && signature.signature) {
-                            const formData = new FormData();
-                            formData.append("file", signature.signature);
-
-                            const response = await handleUpload(formData);
-
-                            if (response?.URL) {
-                              updatedSignature = response.URL;
-                            }
+            {!isLoadingExistingRequest && (
+              <Formik
+                initialValues={initialValues}
+                onSubmit={async (values) => {
+                  const submissionIntent = submissionIntentRef.current;
+                  const uploadedAttachments = await handleUploadImage();
+                  await handleSubmit(
+                    { ...values, attachmentLists: uploadedAttachments },
+                    {
+                      submitForApproval: submissionIntent === "SUBMIT",
+                      redirectToDetails:
+                        submissionIntent === "SAVE_DRAFT" ||
+                        submissionIntent === "SUBMIT",
+                    }
+                  );
+                }}
+                validationSchema={addRequisitionSchema}
+                enableReinitialize
+              >
+                {({
+                  handleSubmit,
+                  setValues,
+                  values,
+                  validateForm,
+                  setTouched,
+                }) => (
+                  <>
+                    <Modal open={openSignature} onClose={closeModal}>
+                      <AddSignature
+                        cancel={closeModal}
+                        text="Submit"
+                        header="Request Signing"
+                        handleSignature={handleSignature}
+                        loading={loading || addingImage}
+                        defaultSignature={defaultSignature}
+                        onSubmit={async () => {
+                          const updatedSignature = signature.trim();
+                          if (!updatedSignature) {
+                            return;
                           }
 
-                          setValues({
+                          await setValues({
                             ...values,
-                            approval_status: "Awaiting_HOD_Approval",
                             user_sign: updatedSignature,
                           });
 
-                          await new Promise((resolve) => setTimeout(resolve, 0));
+                          submissionIntentRef.current = "SUBMIT";
                           handleSubmit();
-                        } catch {
-                          // Signature submission errors are handled by upload/request hooks.
-                        }
-                      }}
-                    />
-                  </Modal>
+                        }}
+                      />
+                    </Modal>
 
                   <section className="rounded-xl border border-lightGray p-4 md:p-5">
                     <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
@@ -435,15 +467,16 @@ const Request = () => {
                         window.history.back();
                       }}
                     />
-                    {!id && (
+                    {(!id || isDraftRequest) && (
                       <Button
-                        value="Save as Draft"
+                        value={id ? "Update Draft" : "Save as Draft"}
                         variant="secondary"
-                        onClick={() => {
-                          setValues({
+                        onClick={async () => {
+                          submissionIntentRef.current = "SAVE_DRAFT";
+                          await setValues({
                             ...values,
                             approval_status: "Draft",
-                            user_sign: null,
+                            user_sign: values.user_sign || null,
                           });
                           handleSubmit();
                         }}
@@ -460,21 +493,23 @@ const Request = () => {
                       />
                     )}
                     <Button
-                      value={id ? "Update" : "Send request"}
+                      value={!id ? "Send request" : isDraftRequest ? "Submit request" : "Update"}
                       variant="default"
                       loading={!openSignature && (loading || addingImage)}
                       onClick={() => {
-                        if (!id) {
+                        if (!id || isDraftRequest) {
                           handleAddSignature(validateForm, setTouched);
                         } else {
+                          submissionIntentRef.current = "SAVE";
                           handleSubmit();
                         }
                       }}
                     />
                   </div>
-                </>
-              )}
-            </Formik>
+                  </>
+                )}
+              </Formik>
+            )}
           </div>
         </section>
       </PageOutline>

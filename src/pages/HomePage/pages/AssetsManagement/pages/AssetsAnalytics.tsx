@@ -15,8 +15,10 @@ import {
   buildSeries,
   currencyFormatter,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
 } from "../../Analytics/utils";
 
 ensureAnalyticsChartsRegistered();
@@ -60,16 +62,26 @@ export const AssetsAnalytics = () => {
     );
   }, [assets]);
 
+  const cumulativeFrom = useMemo(
+    () => getEarliestIsoDate(assets.map((asset) => asset.date_purchased)),
+    [assets]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, cumulativeFrom),
+    [cumulativeFrom, filters]
+  );
+
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
-      if (!isWithinRange(asset.date_purchased, filters.dateRange)) return false;
+      if (!isWithinRange(asset.date_purchased, effectiveDateRange)) return false;
       if (statusFilter !== "all" && asset.status !== statusFilter) return false;
       if (departmentFilter !== "all" && asset.department_assigned !== departmentFilter) {
         return false;
       }
       return true;
     });
-  }, [assets, departmentFilter, filters.dateRange, statusFilter]);
+  }, [assets, departmentFilter, effectiveDateRange, statusFilter]);
 
   const procurementTrend = useMemo(
     () =>
@@ -78,9 +90,9 @@ export const AssetsAnalytics = () => {
         (asset) => asset.date_purchased,
         () => 1,
         filters.groupBy,
-        filters.dateRange
+        effectiveDateRange
       ),
-    [filteredAssets, filters.groupBy, filters.dateRange]
+    [effectiveDateRange, filteredAssets, filters.groupBy]
   );
 
   const statusBreakdown = useMemo(() => {
@@ -178,6 +190,7 @@ export const AssetsAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={cumulativeFrom}
           extra={
             <>
               <div className="space-y-1">

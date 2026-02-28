@@ -37,6 +37,7 @@ import {
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -68,6 +69,10 @@ export class ApiCalls {
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
+  };
+
+  fetchCurrentUser = (): Promise<ApiResponse<IMemberInfo>> => {
+    return this.fetchFromApi("user/current-user");
   };
 
   fetchMemberFamily = (query?: QueryType): Promise<ApiResponse<IFamilyInformationRaw>> => {
@@ -153,17 +158,23 @@ export class ApiCalls {
   fetchRequisitions = (
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
+    return this.fetchFromApi("requisitions/list-requisition", query);
   };
 
   fetchRequisitionDetails = (
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
+    return this.fetchFromApi("requisitions/get-requisition", query);
   };
 
   fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
+
+  fetchRequisitionApprovalConfig = (): Promise<
+    ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+  > => {
+    return this.fetchFromApi("requisitions/get-approval-config");
   };
 
   // Program Management

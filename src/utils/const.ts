@@ -5,6 +5,7 @@ import Market from "@/pages/MembersPage/Pages/Market";
 export const relativePath = {
   root: "/",
   login: "/login",
+  changePassword: "/change-password",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   home: {

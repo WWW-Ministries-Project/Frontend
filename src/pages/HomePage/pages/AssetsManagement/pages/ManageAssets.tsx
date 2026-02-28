@@ -6,6 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AssetForm, IAssetForm } from "../Components/AssetForm";
@@ -77,6 +78,16 @@ export const ManageAsset = () => {
     const dataToSend = { ...val, start_date: val.date_assigned, photo: undefined as string | undefined };
     try {
       if (file) {
+        if (file instanceof File) {
+          const validation = validateUploadFile(file, {
+            allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+          });
+
+          if (!validation.valid) {
+            throw new Error(validation.message || "Invalid image selected.");
+          }
+        }
+
         const data = new FormData();
         data.append("file", file);
         const endpoint = "upload";

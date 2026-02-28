@@ -35,7 +35,7 @@ const RegisterMember: React.FC<RegisterMemberProps> = ({
     <div className="text-white">
       <h2 className="H400">Welcome to {name}</h2>
       <p className="text-sma ">
-        Member is new Please fill in the form below to capture attendance
+        Member is new. Please fill in the form below to complete registration.
       </p>
       <Formik
         initialValues={initialValues}

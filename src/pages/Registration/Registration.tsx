@@ -7,6 +7,7 @@ import { Stepper } from "@/pages/Registration/components/Stepper";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import {
   ChildrenSubForm,
   IChildrenSubForm,
@@ -92,6 +93,14 @@ export const Registration = () => {
       const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
+        const validation = validateUploadFile(uploadedFile, {
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+        });
+
+        if (!validation.valid) {
+          throw new Error(validation.message || "Invalid profile image selected.");
+        }
+
         const formData = new FormData();
         formData.append("file", uploadedFile);
 

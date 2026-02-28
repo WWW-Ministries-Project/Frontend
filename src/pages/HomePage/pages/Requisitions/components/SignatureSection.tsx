@@ -40,7 +40,9 @@ const SignatureSectionComponent = ({
               alt={`${signature.name || signature.label} signature`}
             />
           ) : (
-            <span className="text-sm font-medium text-primary">{signature.signature}</span>
+            <span className="app-signature-text break-words text-3xl text-primary">
+              {signature.signature}
+            </span>
           )
         ) : (
           <StatusPill text="Pending signature" />

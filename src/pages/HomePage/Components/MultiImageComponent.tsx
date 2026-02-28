@@ -1,7 +1,7 @@
 import { ChangeEvent, memo, useEffect, useState, useCallback } from "react";
 import cloud_upload from "@/assets/cloud_upload.svg";
-import useFileUpload from "@/CustomHooks/useFileUpload";
 import { showNotification } from "@/pages/HomePage/utils";
+import { validateUploadFile } from "@/utils/uploadValidation";
 
 export type image = { image: string; id: number; file?: File };
 
@@ -47,6 +47,7 @@ const UploadButton = memo(
     );
   }
 );
+UploadButton.displayName = "MultiImageUploadButton";
 const MultiImageComponent = ({
   placeholder,
   imageChange,
@@ -58,8 +59,6 @@ const MultiImageComponent = ({
   MAX_IMAGES?: number;
   initialImages: image[];
 }) => {
-  const { handleFileChange } = useFileUpload();
-
   const [images, setImages] = useState<image[]>([]);
 
   useEffect(() => {
@@ -70,7 +69,6 @@ const MultiImageComponent = ({
 
   const handleFileChangeWithStore = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      handleFileChange(event);
       const files = event.target.files;
       if (files) {
         if (files.length + images.length > MAX_IMAGES) {
@@ -82,6 +80,19 @@ const MultiImageComponent = ({
           return;
         }
         Array.from(files).forEach((file, index) => {
+          const validation = validateUploadFile(file, {
+            allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+          });
+
+          if (!validation.valid) {
+            showNotification(
+              validation.message || "Invalid image selected.",
+              "error",
+              "Add image"
+            );
+            return;
+          }
+
           const reader = new FileReader();
           reader.onloadend = () => {
             const imagePreview = reader.result as string;
@@ -101,7 +112,7 @@ const MultiImageComponent = ({
         });
       }
     },
-    [MAX_IMAGES, images.length, handleFileChange]
+    [MAX_IMAGES, images.length]
   );
 
   const removeImage = useCallback((id: number) => {
@@ -110,7 +121,7 @@ const MultiImageComponent = ({
 
   useEffect(() => {
     imageChange(images);
-  }, [images]);
+  }, [imageChange, images]);
 
   return (
     <div>

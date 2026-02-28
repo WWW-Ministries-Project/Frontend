@@ -3,6 +3,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api, MembersType } from "@/utils";
 import { VisitorType } from "@/utils/api/visitors/interfaces";
+import { DateTime } from "luxon";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { useMemo, useState } from "react";
 import { membershipContract } from "../../Analytics/contracts";
@@ -14,8 +15,10 @@ import { AnalyticsFilters } from "../../Analytics/types";
 import {
   buildSeries,
   createDefaultAnalyticsFilters,
+  getEarliestIsoDate,
   isWithinRange,
   numberFormatter,
+  resolveFiltersDateRange,
   toDateTime,
   toPercent,
 } from "../../Analytics/utils";
@@ -200,6 +203,46 @@ const requiredProfileFields = [
   "employment_status",
 ] as const;
 
+type TrendGranularity = "year" | "month" | "week" | "day";
+
+const getTrendBucketKey = (date: DateTime, granularity: TrendGranularity) => {
+  if (granularity === "year") return date.toFormat("yyyy");
+  if (granularity === "month") return date.toFormat("yyyy-LL");
+  if (granularity === "week") {
+    return `${date.weekYear}-W${String(date.weekNumber).padStart(2, "0")}`;
+  }
+  return date.toFormat("yyyy-LL-dd");
+};
+
+const getTrendBucketLabel = (key: string, granularity: TrendGranularity) => {
+  if (granularity === "year") return key;
+
+  if (granularity === "month") {
+    const parsed = DateTime.fromFormat(key, "yyyy-LL");
+    return parsed.isValid ? parsed.toFormat("LLL yyyy") : key;
+  }
+
+  if (granularity === "week") return key;
+
+  const parsed = DateTime.fromFormat(key, "yyyy-LL-dd");
+  return parsed.isValid ? parsed.toFormat("dd LLL") : key;
+};
+
+const resolveTrendGranularity = (
+  earliest: DateTime,
+  latest: DateTime
+): TrendGranularity => {
+  if (earliest.year !== latest.year) return "year";
+  if (earliest.month !== latest.month) return "month";
+  if (
+    earliest.weekYear !== latest.weekYear ||
+    earliest.weekNumber !== latest.weekNumber
+  ) {
+    return "week";
+  }
+  return "day";
+};
+
 export const MembershipAnalytics = () => {
   const [filters, setFilters] = useState<AnalyticsFilters>(
     createDefaultAnalyticsFilters()
@@ -238,10 +281,20 @@ export const MembershipAnalytics = () => {
     ).sort((a, b) => a.localeCompare(b));
   }, [members]);
 
+  const earliestMemberJoinDate = useMemo(
+    () => getEarliestIsoDate(members.map((member) => getMemberJoinDate(member))),
+    [members]
+  );
+
+  const effectiveDateRange = useMemo(
+    () => resolveFiltersDateRange(filters, earliestMemberJoinDate),
+    [earliestMemberJoinDate, filters]
+  );
+
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const joinDate = getMemberJoinDate(member);
-      if (!joinDate || !isWithinRange(joinDate, filters.dateRange)) return false;
+      if (!joinDate || !isWithinRange(joinDate, effectiveDateRange)) return false;
 
       if (
         membershipTypeFilter !== "all" &&
@@ -258,11 +311,11 @@ export const MembershipAnalytics = () => {
 
       return true;
     });
-  }, [members, filters.dateRange, membershipTypeFilter, departmentFilter]);
+  }, [members, effectiveDateRange, membershipTypeFilter, departmentFilter]);
 
   const filteredVisitors = useMemo(() => {
-    return visitors.filter((visitor) => isWithinRange(visitor.createdAt, filters.dateRange));
-  }, [visitors, filters.dateRange]);
+    return visitors.filter((visitor) => isWithinRange(visitor.createdAt, effectiveDateRange));
+  }, [visitors, effectiveDateRange]);
 
   const statusCounts = useMemo(() => {
     return filteredMembers.reduce(
@@ -281,17 +334,48 @@ export const MembershipAnalytics = () => {
 
   const healthTotal = statusCounts.UNCONFIRMED + statusCounts.CONFIRMED + statusCounts.MEMBER;
 
-  const joinedTrend = useMemo(
-    () =>
-      buildSeries(
-        filteredMembers,
-        (member) => getMemberJoinDate(member),
-        () => 1,
-        filters.groupBy,
-        filters.dateRange
-      ),
-    [filteredMembers, filters.groupBy, filters.dateRange]
-  );
+  const joinedTrend = useMemo(() => {
+    const joinDates = filteredMembers
+      .map((member) => toDateTime(getMemberJoinDate(member)))
+      .filter((value): value is DateTime => Boolean(value));
+
+    const earliestDataDate = joinDates.reduce<DateTime | null>((earliest, current) => {
+      if (!earliest) return current;
+      return current.toMillis() < earliest.toMillis() ? current : earliest;
+    }, null);
+    const latestDataDate = joinDates.reduce<DateTime | null>((latest, current) => {
+      if (!latest) return current;
+      return current.toMillis() > latest.toMillis() ? current : latest;
+    }, null);
+
+    const fallbackFrom = toDateTime(effectiveDateRange.from);
+    const fallbackTo = toDateTime(effectiveDateRange.to);
+
+    const anchorFrom = earliestDataDate ?? fallbackFrom ?? DateTime.now();
+    const anchorTo = latestDataDate ?? fallbackTo ?? anchorFrom;
+    const granularity = resolveTrendGranularity(anchorFrom, anchorTo);
+
+    const buckets = new Map<string, number>();
+
+    filteredMembers.forEach((member) => {
+      const joinedAt = getMemberJoinDate(member);
+      if (!joinedAt || !isWithinRange(joinedAt, effectiveDateRange)) return;
+
+      const parsed = toDateTime(joinedAt);
+      if (!parsed) return;
+
+      const key = getTrendBucketKey(parsed, granularity);
+      buckets.set(key, (buckets.get(key) ?? 0) + 1);
+    });
+
+    const sortedKeys = Array.from(buckets.keys()).sort((a, b) => a.localeCompare(b));
+
+    return {
+      granularity,
+      labels: sortedKeys.map((key) => getTrendBucketLabel(key, granularity)),
+      values: sortedKeys.map((key) => buckets.get(key) ?? 0),
+    };
+  }, [effectiveDateRange, filteredMembers]);
 
   const recent90Range = useMemo(() => {
     const now = new Date();
@@ -614,7 +698,17 @@ export const MembershipAnalytics = () => {
           <div className="rounded-xl border bg-white p-4 lg:col-span-2">
             <h3 className="font-semibold text-primary">Members Joined Trend (using date joined)</h3>
             <p className="text-xs text-gray-600 mb-3">
-              Growth is evaluated by member join date, with 90-day month-over-month comparison.
+              Growth is evaluated by member join date and auto-grouped by{" "}
+              <span className="font-semibold">
+                {joinedTrend.granularity === "year"
+                  ? "year"
+                  : joinedTrend.granularity === "month"
+                  ? "month"
+                  : joinedTrend.granularity === "week"
+                  ? "week"
+                  : "day"}
+              </span>{" "}
+              based on the current data span.
             </p>
             <div className="h-72">
               <Line
@@ -1223,6 +1317,7 @@ export const MembershipAnalytics = () => {
           value={filters}
           onChange={setFilters}
           onReset={resetFilters}
+          cumulativeFrom={earliestMemberJoinDate}
           extra={
             <>
               <div className="space-y-1">

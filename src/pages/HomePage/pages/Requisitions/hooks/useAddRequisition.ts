@@ -1,23 +1,23 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useAuth } from "@/context/AuthWrapper";
-import { usePost } from "@/CustomHooks/usePost";
 import { image } from "@/pages/HomePage/Components/MultiImageComponent";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  IRequisitionDetails,
   RequisitionStatusType,
 } from "../types/requestInterface";
 
 export interface IRequest {
   requester_name: string;
   department_id: number | string;
-  event_id: number | string;
+  event_id: number | string | "";
   request_date: string;
   comment: string;
   currency: string;
@@ -25,28 +25,112 @@ export interface IRequest {
   attachmentLists: { URL: string }[];
   user_sign: string | null;
 }
+
+type SubmitOptions = {
+  submitForApproval?: boolean;
+  redirectToDetails?: boolean;
+};
+
+type RequisitionMutationResponse = ApiResponse<Record<string, unknown>>;
+
+const isPositiveInteger = (value: unknown): value is number => {
+  const normalized = Number(value);
+  return Number.isInteger(normalized) && normalized > 0;
+};
+
+const normalizeOptionalId = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === "") {
+    return undefined;
+  }
+
+  const normalized = Number(value);
+  return Number.isFinite(normalized) ? normalized : undefined;
+};
+
+const getMessageFromPayload = (payload: unknown, fallback: string): string => {
+  if (!payload || typeof payload !== "object") {
+    return fallback;
+  }
+
+  const payloadRecord = payload as Record<string, unknown>;
+  const nestedData =
+    payloadRecord.data && typeof payloadRecord.data === "object"
+      ? (payloadRecord.data as Record<string, unknown>)
+      : null;
+
+  const candidates = [nestedData?.message, payloadRecord.message];
+
+  const message = candidates.find(
+    (candidate): candidate is string =>
+      typeof candidate === "string" && candidate.trim().length > 0
+  );
+
+  return message ?? fallback;
+};
+
+const resolveRequisitionId = (
+  payload: unknown,
+  fallbackId?: string
+): number | null => {
+  const candidateValues: unknown[] = [];
+
+  if (payload && typeof payload === "object") {
+    const payloadRecord = payload as Record<string, unknown>;
+
+    candidateValues.push(payloadRecord.id, payloadRecord.requisition_id);
+
+    const nestedData =
+      payloadRecord.data && typeof payloadRecord.data === "object"
+        ? (payloadRecord.data as Record<string, unknown>)
+        : null;
+
+    if (nestedData) {
+      candidateValues.push(nestedData.id, nestedData.requisition_id);
+
+      const nestedSummary =
+        nestedData.summary && typeof nestedData.summary === "object"
+          ? (nestedData.summary as Record<string, unknown>)
+          : null;
+
+      if (nestedSummary) {
+        candidateValues.push(nestedSummary.requisition_id);
+      }
+    }
+
+    const summary =
+      payloadRecord.summary && typeof payloadRecord.summary === "object"
+        ? (payloadRecord.summary as Record<string, unknown>)
+        : null;
+
+    if (summary) {
+      candidateValues.push(summary.requisition_id);
+    }
+  }
+
+  if (fallbackId) {
+    candidateValues.push(fallbackId);
+  }
+
+  for (const candidate of candidateValues) {
+    if (isPositiveInteger(candidate)) {
+      return candidate;
+    }
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      const normalized = Number(candidate);
+      if (isPositiveInteger(normalized)) {
+        return normalized;
+      }
+    }
+  }
+
+  return null;
+};
+
 export const useAddRequisition = () => {
   const { id: requestId } = useParams();
 
   const requisitionId = requestId ? window.atob(String(requestId)) : "";
-  type RequisitionMutationResponse = ApiResponse<{
-    data: IRequisitionDetails;
-    message: string;
-  }>;
-
-  const submitRequisition = (payload: Record<string, unknown>) =>
-    requisitionId
-      ? api.put.updateRequisition<{ data: IRequisitionDetails; message: string }>(
-          payload
-        )
-      : api.post.createRequisition<{ data: IRequisitionDetails; message: string }>(
-          payload
-        );
-
-  const { postData, loading, error, data } = usePost<
-    RequisitionMutationResponse,
-    Record<string, unknown>
-  >(submitRequisition);
   const {
     user: { id },
   } = useAuth();
@@ -54,10 +138,10 @@ export const useAddRequisition = () => {
   const [openSignature, setOpenSignature] = useState(false);
   const [images, setImages] = useState<image[]>([]);
   const [addingImage, setAddingImage] = useState(false);
-  const [signature, setSignature] = useState<{
-    signature: File | null | string;
-    isImage: boolean;
-  }>({ signature: null, isImage: false });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<RequisitionMutationResponse | null>(null);
+  const [signature, setSignature] = useState<string>("");
 
   const navigate = useNavigate();
   const currencies = useMemo(
@@ -74,26 +158,20 @@ export const useAddRequisition = () => {
 
   const handleOpenNotification = useCallback(
     (message: string, type: "error" | "success") => {
-      showNotification(message, type, requisitionId ? "Update requisition" : "Create requisition");
+      showNotification(
+        message,
+        type,
+        requisitionId ? "Update requisition" : "Create requisition"
+      );
     },
     [requisitionId]
   );
-
-  useEffect(() => {
-    if (data) {
-      handleOpenNotification(data.data.message, "success");
-      navigate(-1);
-    }
-    if (error) {
-      handleOpenNotification(error.message, "error");
-    }
-  }, [data, error, handleOpenNotification, navigate]);
 
   const handleAddSignature = async (
     validateForm: () => Promise<FormikErrors<FormikValues>>,
     setTouched: (fields: FormikTouched<FormikValues>) => void
   ) => {
-    const errors = await validateForm(); // Validate the form
+    const errors = await validateForm();
 
     if (Object.keys(errors).length) {
       setTouched(
@@ -108,7 +186,7 @@ export const useAddRequisition = () => {
       return;
     }
 
-    setOpenSignature(true); // Open the modal if no errors
+    setOpenSignature(true);
   };
 
   const closeModal = () => {
@@ -119,23 +197,38 @@ export const useAddRequisition = () => {
     setImages(images);
   };
 
-  const handleUpload = useCallback(async (formData: FormData) => {
-    try {
-      setAddingImage(true);
-      const response = await axiosPic.post("/upload", formData);
-      if (response.status === 200) {
-        return { URL: response.data.result.link as string };
+  const handleUpload = useCallback(
+    async (formData: FormData) => {
+      const file = formData.get("file");
+      if (file instanceof File) {
+        const validation = validateUploadFile(file);
+        if (!validation.valid) {
+          handleOpenNotification(
+            validation.message || "Invalid file selected.",
+            "error"
+          );
+          return null;
+        }
       }
-      setAddingImage(false);
-    } catch (error) {
-      handleOpenNotification(
-        error instanceof Error ? error.message : "Unknown error",
-        "error"
-      );
-    } finally {
-      setAddingImage(false);
-    }
-  }, [handleOpenNotification]);
+
+      try {
+        setAddingImage(true);
+        const response = await axiosPic.post("/upload", formData);
+
+        if (response.status === 200) {
+          return { URL: response.data.result.link as string };
+        }
+      } catch (error) {
+        handleOpenNotification(
+          error instanceof Error ? error.message : "Unknown error",
+          "error"
+        );
+      } finally {
+        setAddingImage(false);
+      }
+    },
+    [handleOpenNotification]
+  );
 
   const handleItemImageUpload = useCallback(
     async (file: File): Promise<string | null> => {
@@ -149,11 +242,12 @@ export const useAddRequisition = () => {
 
   const handleUploadImage = async () => {
     let imgUrls: { URL: string; id?: string | number }[] = [];
+
     if (images?.length) {
       for (const image of images) {
         const formData = new FormData();
         if (image.file) {
-          formData.append(`file`, image?.file);
+          formData.append("file", image.file);
           const uploaded = await handleUpload(formData);
           if (uploaded?.URL) {
             imgUrls = [...imgUrls, uploaded];
@@ -163,43 +257,101 @@ export const useAddRequisition = () => {
         }
       }
     }
+
     return imgUrls;
   };
 
-  const handleSignature = (signature: File | string, isImage: boolean) => {
-    setSignature({ signature, isImage });
-  };
+  const handleSignature = useCallback((value: string) => {
+    setSignature(value);
+  }, []);
 
   const handleSubmit = useCallback(
-    async (val: IRequest) => {
-      const products = rows.map((item) => {
-        return {
-          name: item.name,
-          quantity: item.quantity,
-          unitPrice: item.amount,
-          image_url: item.image_url || undefined,
-          image: item.image_url || undefined,
-          id: item?.id,
-        };
-      });
+    async (val: IRequest, options?: SubmitOptions) => {
+      const products = rows.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.amount,
+        image_url: item.image_url || undefined,
+        image: item.image_url || undefined,
+        id: item?.id,
+      }));
 
-      const data = {
+      const payload = {
         ...val,
-        event_id: Number(val.event_id),
+        event_id: normalizeOptionalId(val.event_id),
         department_id: Number(val.department_id),
         products,
-        user_id: id,
       };
+
       const dataToSend = requisitionId
         ? {
-            ...data,
+            ...payload,
             id: Number(requisitionId),
+            updated_by: id,
           }
-        : data;
+        : payload;
 
-      await postData(dataToSend);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const upsertResponse = requisitionId
+          ? await api.put.updateRequisition<Record<string, unknown>>(dataToSend)
+          : await api.post.createRequisition<Record<string, unknown>>(dataToSend);
+
+        setData(upsertResponse as RequisitionMutationResponse);
+
+        const shouldSubmitForApproval = Boolean(options?.submitForApproval);
+        const shouldRedirectToDetails = Boolean(options?.redirectToDetails);
+        const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
+
+        if (shouldSubmitForApproval) {
+          if (!resolvedId) {
+            throw new Error("Unable to resolve requisition ID for submission.");
+          }
+
+          const submitResponse = await api.post.submitRequisition({
+            requisition_id: resolvedId,
+          });
+
+          handleOpenNotification(
+            getMessageFromPayload(
+              submitResponse.data,
+              "Requisition submitted successfully."
+            ),
+            "success"
+          );
+        } else {
+          handleOpenNotification(
+            getMessageFromPayload(
+              upsertResponse.data,
+              requisitionId
+                ? "Requisition updated successfully."
+                : "Requisition created successfully."
+            ),
+            "success"
+          );
+        }
+
+        if (shouldRedirectToDetails && resolvedId) {
+          navigate(`/home/requests/${window.btoa(String(resolvedId))}`);
+          return;
+        }
+
+        navigate(-1);
+      } catch (error) {
+        const normalizedError =
+          error instanceof Error ? error : new Error("Unknown error");
+        setError(normalizedError);
+
+        if (!(error instanceof ApiError)) {
+          handleOpenNotification(normalizedError.message, "error");
+        }
+      } finally {
+        setLoading(false);
+      }
     },
-    [rows, id, postData, requisitionId]
+    [rows, id, requisitionId, handleOpenNotification, navigate]
   );
 
   return {

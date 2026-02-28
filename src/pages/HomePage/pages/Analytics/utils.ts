@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import {
+  AnalyticsAnalysisMode,
   AnalyticsFilters,
   AnalyticsGroupBy,
   AnalyticsPeriodType,
@@ -167,6 +168,12 @@ export const getWeekOptions = (year: string, month: string) => {
 
 const toIsoDate = (value: DateTime) => value.toFormat("yyyy-LL-dd");
 
+const PERIODS_WITH_ANALYSIS_MODE: AnalyticsPeriodType[] = [
+  "year",
+  "month",
+  "week",
+];
+
 export const resolvePeriodDateRange = (
   periodType: AnalyticsPeriodType,
   selectedYear: string,
@@ -208,6 +215,57 @@ export const resolvePeriodDateRange = (
   return fallbackRange;
 };
 
+export const resolveFiltersDateRange = (
+  filters: AnalyticsFilters,
+  cumulativeFrom?: unknown
+): AnalyticsRange => {
+  const periodType = filters.periodType ?? "year";
+  const selectedYear = filters.selectedYear ?? String(getCurrentYear());
+  const selectedMonth = filters.selectedMonth ?? "1";
+  const selectedWeek = filters.selectedWeek ?? "1";
+  const analysisMode: AnalyticsAnalysisMode =
+    filters.analysisMode ?? "cumulative";
+
+  if (periodType === "specific_date_range") {
+    return filters.dateRange;
+  }
+
+  const periodRange = resolvePeriodDateRange(
+    periodType,
+    selectedYear,
+    selectedMonth,
+    selectedWeek,
+    filters.dateRange
+  );
+
+  const shouldApplyCumulative =
+    analysisMode === "cumulative" &&
+    PERIODS_WITH_ANALYSIS_MODE.includes(periodType);
+
+  if (!shouldApplyCumulative) {
+    return periodRange;
+  }
+
+  const earliest = toDateTime(cumulativeFrom);
+  if (!earliest) {
+    return periodRange;
+  }
+
+  const periodTo = DateTime.fromISO(periodRange.to).endOf("day");
+  if (!periodTo.isValid) {
+    return periodRange;
+  }
+
+  const cumulativeFromDate = earliest.startOf("day");
+  const normalizedFrom =
+    cumulativeFromDate > periodTo ? periodTo.startOf("day") : cumulativeFromDate;
+
+  return {
+    from: toIsoDate(normalizedFrom),
+    to: toIsoDate(periodTo),
+  };
+};
+
 export const getGroupByForPeriod = (periodType: AnalyticsPeriodType): AnalyticsGroupBy => {
   if (periodType === "year") return "month";
   if (periodType === "month") return "week";
@@ -219,6 +277,7 @@ export const createDefaultAnalyticsFilters = (): AnalyticsFilters => {
 
   return {
     periodType: "year",
+    analysisMode: "cumulative",
     selectedYear: currentYear,
     selectedMonth: "1",
     selectedWeek: "1",
@@ -231,6 +290,21 @@ export const createDefaultAnalyticsFilters = (): AnalyticsFilters => {
       defaultDateRange()
     ),
   };
+};
+
+export const getEarliestIsoDate = (values: unknown[]): string | undefined => {
+  const parsedDates = values
+    .map((value) => toDateTime(value))
+    .filter((value): value is DateTime => Boolean(value));
+
+  if (!parsedDates.length) return undefined;
+
+  return parsedDates
+    .reduce((earliest, current) => {
+      return current.toMillis() < earliest.toMillis() ? current : earliest;
+    })
+    .startOf("day")
+    .toFormat("yyyy-LL-dd");
 };
 
 export const numberFormatter = new Intl.NumberFormat("en-US");

@@ -13,6 +13,7 @@ export type AnalyticsPeriodType =
   | "month"
   | "week"
   | "specific_date_range";
+export type AnalyticsAnalysisMode = "point_in_time" | "cumulative";
 
 export interface AnalyticsRange {
   from: string;
@@ -23,6 +24,7 @@ export interface AnalyticsFilters {
   dateRange: AnalyticsRange;
   groupBy: AnalyticsGroupBy;
   periodType?: AnalyticsPeriodType;
+  analysisMode?: AnalyticsAnalysisMode;
   selectedYear?: string;
   selectedMonth?: string;
   selectedWeek?: string;

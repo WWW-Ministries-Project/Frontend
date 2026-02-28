@@ -32,6 +32,12 @@ import {
   StaffAvailability,
 } from "./appointment/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  RequisitionApprovalActionPayload,
+  RequisitionApprovalConfig,
+  RequisitionApprovalConfigPayload,
+  SubmitRequisitionPayload,
+} from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -69,6 +75,21 @@ export class ApiCreationCalls {
     payload: Record<string, unknown>
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("requisitions/create-requisition", payload);
+  };
+  upsertRequisitionApprovalConfig = (
+    payload: RequisitionApprovalConfigPayload
+  ): Promise<ApiResponse<RequisitionApprovalConfig>> => {
+    return this.postToApi("requisitions/upsert-approval-config", payload);
+  };
+  submitRequisition = (
+    payload: SubmitRequisitionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("requisitions/submit-requisition", payload);
+  };
+  requisitionApprovalAction = (
+    payload: RequisitionApprovalActionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("requisitions/approval-action", payload);
   };
   createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
@@ -125,6 +146,13 @@ export class ApiCreationCalls {
 
   forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
+  };
+
+  changePassword = <T>(payload: {
+    current_password: string;
+    newpassword: string;
+  }): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/change-password", payload);
   };
 
   /*Visitor Management*/
@@ -242,6 +270,12 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("event/church-attendance", payload);
   }
+
+  registerEvent = (payload: {
+    event_id: string | number;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/register", payload);
+  };
 
   //Create theme
   createAnnualTheme = (

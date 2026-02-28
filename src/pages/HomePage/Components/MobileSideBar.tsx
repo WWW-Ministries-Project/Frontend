@@ -92,13 +92,13 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
         top: "var(--app-header-height)",
         height: "calc(100dvh - var(--app-header-height))",
       }}
-      className={`fixed left-0 z-[60] rounded-r-xl bg-white shadow-xl transition-transform duration-300 ease-in-out transform overflow-auto ${
+      className={`fixed left-0 z-[60] w-[250px] rounded-r-xl bg-white shadow-xl transition-transform duration-300 ease-in-out transform ${
         show ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="h-full w-[250px] p-4">
+      <div className="flex h-full min-h-0 flex-col p-4">
         {/* navigation links */}
-        <div className="sidebar-scroll overflow-y-auto">
+        <div className="sidebar-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden touch-pan-y">
           <SidebarNavList
             items={items}
             show={show}

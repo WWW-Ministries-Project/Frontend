@@ -1,5 +1,4 @@
 import { sideTabs } from "@/routes/appRoutes";
-import { removeToken } from "@/utils/helperFunctions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthWrapper";
@@ -82,7 +81,6 @@ export const SideBar = ({ className }: IProps) => {
   }, []);
 
   const handleLogOut = () => {
-    removeToken();
     logout();
     navigate("/login", { replace: true });
   };

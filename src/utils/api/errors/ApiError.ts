@@ -15,6 +15,14 @@ class ApiError extends Error {
 }
 
 class ApiErrorHandler {
+  private static readonly SESSION_EXPIRY_MARKERS = [
+    "session expired",
+    "token not found",
+    "not authorized. token not found",
+    "jwt expired",
+    "token expired",
+  ];
+
   private static asNonEmptyString(value: unknown): string | null {
     if (typeof value !== "string") return null;
 
@@ -69,6 +77,43 @@ class ApiErrorHandler {
     return null;
   }
 
+  private static isSessionExpiredMessage(message: string): boolean {
+    const normalizedMessage = message.trim().toLowerCase();
+    if (!normalizedMessage) return false;
+
+    return this.SESSION_EXPIRY_MARKERS.some((marker) =>
+      normalizedMessage.includes(marker)
+    );
+  }
+
+  private static parseRetryAfterSeconds(value: unknown): number | null {
+    const normalizedValue = this.asNonEmptyString(value);
+    if (!normalizedValue) return null;
+
+    const numericSeconds = Number(normalizedValue);
+    if (Number.isFinite(numericSeconds) && numericSeconds >= 0) {
+      return Math.ceil(numericSeconds);
+    }
+
+    const retryAt = Date.parse(normalizedValue);
+    if (Number.isNaN(retryAt)) return null;
+
+    const diffSeconds = Math.ceil((retryAt - Date.now()) / 1000);
+    return diffSeconds > 0 ? diffSeconds : null;
+  }
+
+  private static resolveRetryAfterSeconds(headers: unknown): number | null {
+    if (!headers || typeof headers !== "object") return null;
+
+    const headerRecord = headers as Record<string, unknown>;
+    const retryAfterRaw =
+      headerRecord["retry-after"] ??
+      headerRecord["Retry-After"] ??
+      headerRecord.retryAfter;
+
+    return this.parseRetryAfterSeconds(retryAfterRaw);
+  }
+
   static handleResponse(response: Response): Promise<unknown> {
     if (!response.ok) {
       return response
@@ -95,40 +140,51 @@ class ApiErrorHandler {
       const extractedMessage = this.extractErrorMessage(payload);
       const fallbackMessage =
         this.asNonEmptyString(error.message) || "An unexpected error occurred";
+      const statusCode = error.response?.status ?? 500;
       const normalizedError = new ApiError(
         extractedMessage || fallbackMessage,
-        error.response?.status ?? 500,
+        statusCode,
         payload
       );
 
-      if (normalizedError.statusCode === 401) {
-        showNotification(
-          "Your session has expired. Please login again.",
-          "error",
-          "Authentication"
-        );
-      } else if (normalizedError.statusCode === 403) {
+      if (statusCode === 401) {
+        if (this.isSessionExpiredMessage(normalizedError.message)) {
+          showNotification(
+            "Your session has expired. Please login again.",
+            "error",
+            "Authentication"
+          );
+        } else {
+          showNotification(
+            normalizedError.message ||
+              "You do not have permission to perform this action.",
+            "error",
+            "Access denied"
+          );
+        }
+      } else if (statusCode === 403) {
         showNotification(
           "You do not have permission to perform this action.",
           "error",
           "Access denied"
         );
+      } else if (statusCode === 429) {
+        const retryAfterSeconds = this.resolveRetryAfterSeconds(
+          error.response?.headers
+        );
+        const cooldownMessage = retryAfterSeconds
+          ? `Too many requests. Please try again in ${retryAfterSeconds} seconds.`
+          : "Too many requests. Please try again later.";
+
+        showNotification(cooldownMessage, "error", "Rate limited");
+      } else if (statusCode >= 500) {
+        showNotification(
+          "Something went wrong on the server. Please try again.",
+          "error",
+          "Server error"
+        );
       } else {
         showNotification(normalizedError.message, "error", "Error");
-      }
-
-      if (
-        typeof window !== "undefined" &&
-        (normalizedError.statusCode === 401 ||
-          normalizedError.statusCode === 403)
-      ) {
-        window.dispatchEvent(
-          new CustomEvent("app:access-error", {
-            detail: {
-              statusCode: normalizedError.statusCode,
-            },
-          })
-        );
       }
 
       throw normalizedError;

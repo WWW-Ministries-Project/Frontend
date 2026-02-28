@@ -1,18 +1,26 @@
 import { Button } from "@/components";
 import MultiSelect from "@/components/MultiSelect";
+import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
+import {
+  ApprovalStep,
+  ApproverType,
+  RequisitionApprovalConfig,
+  RequisitionApprovalConfigPayload,
+} from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
-import { useMemo, useState } from "react";
+import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
+import { ApiResponse } from "@/utils/interfaces";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const approvalSubTabs = ["Requisition"] as const;
 type ApprovalSubTab = (typeof approvalSubTabs)[number];
-
-type ApproverType = "head_of_department" | "position" | "specific_person";
 
 type ApproverRule = {
   id: string;
@@ -21,13 +29,13 @@ type ApproverRule = {
 };
 
 const approverTypeOptions: Array<{ label: string; value: ApproverType }> = [
-  { label: "Head of Department", value: "head_of_department" },
-  { label: "Position", value: "position" },
-  { label: "Specific Person", value: "specific_person" },
+  { label: "Head of Department", value: "HEAD_OF_DEPARTMENT" },
+  { label: "Position", value: "POSITION" },
+  { label: "Specific Person", value: "SPECIFIC_PERSON" },
 ];
 
 const createApproverRule = (
-  type: ApproverType = "head_of_department"
+  type: ApproverType = "HEAD_OF_DEPARTMENT"
 ): ApproverRule => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
   type,
@@ -37,17 +45,131 @@ const createApproverRule = (
 const parseApproverType = (value: string | number): ApproverType => {
   const normalized = String(value);
   if (
-    normalized === "head_of_department" ||
-    normalized === "position" ||
-    normalized === "specific_person"
+    normalized === "HEAD_OF_DEPARTMENT" ||
+    normalized === "POSITION" ||
+    normalized === "SPECIFIC_PERSON"
   ) {
     return normalized;
   }
-  return "head_of_department";
+
+  return "HEAD_OF_DEPARTMENT";
 };
 
 const requiresTargetSelection = (type: ApproverType) =>
-  type === "position" || type === "specific_person";
+  type === "POSITION" || type === "SPECIFIC_PERSON";
+
+const isPositiveInteger = (value: number) =>
+  Number.isInteger(value) && value > 0;
+
+const getResponseMessage = (payload: unknown, fallback: string): string => {
+  if (!payload || typeof payload !== "object") {
+    return fallback;
+  }
+
+  const payloadRecord = payload as Record<string, unknown>;
+  const nestedData =
+    payloadRecord.data && typeof payloadRecord.data === "object"
+      ? (payloadRecord.data as Record<string, unknown>)
+      : null;
+
+  const candidates = [nestedData?.message, payloadRecord.message];
+
+  const matchedMessage = candidates.find(
+    (candidate): candidate is string =>
+      typeof candidate === "string" && candidate.trim().length > 0
+  );
+
+  return matchedMessage ?? fallback;
+};
+
+const normalizeConfig = (
+  payload: unknown
+): RequisitionApprovalConfig | null => {
+  const rawConfigs = Array.isArray(payload) ? payload : [payload];
+
+  const config = rawConfigs.find(
+    (item) =>
+      item &&
+      typeof item === "object" &&
+      (item as { module?: string }).module === "REQUISITION"
+  );
+
+  if (!config || typeof config !== "object") {
+    return null;
+  }
+
+  return config as RequisitionApprovalConfig;
+};
+
+const validateConfigPayload = (
+  payload: RequisitionApprovalConfigPayload
+): string | null => {
+  if (payload.module !== "REQUISITION") {
+    return "Module must be REQUISITION.";
+  }
+
+  if (payload.requester_user_ids.length === 0) {
+    return "Select at least one requester for this requisition type.";
+  }
+
+  const uniqueRequesterIds = new Set(payload.requester_user_ids);
+  if (uniqueRequesterIds.size !== payload.requester_user_ids.length) {
+    return "Requester list contains duplicate users.";
+  }
+
+  if (payload.requester_user_ids.some((id) => !isPositiveInteger(id))) {
+    return "Requester IDs must be positive numbers.";
+  }
+
+  if (payload.approvers.length === 0) {
+    return "Add at least one approver step.";
+  }
+
+  const orders = payload.approvers.map((approver) => approver.order);
+
+  if (new Set(orders).size !== orders.length) {
+    return "Each approver step must have a unique order.";
+  }
+
+  const sortedOrders = [...orders].sort((a, b) => a - b);
+  const isSequential = sortedOrders.every((order, index) => order === index + 1);
+
+  if (!isSequential) {
+    return "Approver order must be sequential (1..N).";
+  }
+
+  for (const approver of payload.approvers) {
+    if (!isPositiveInteger(approver.order)) {
+      return "Approver order values must be positive integers.";
+    }
+
+    if (approver.type === "HEAD_OF_DEPARTMENT") {
+      if (approver.position_id !== undefined || approver.user_id !== undefined) {
+        return "Head of Department step must not include position or user.";
+      }
+    }
+
+    if (approver.type === "POSITION") {
+      if (
+        !isPositiveInteger(Number(approver.position_id)) ||
+        approver.user_id !== undefined
+      ) {
+        return "Position step must include only a valid position.";
+      }
+    }
+
+    if (approver.type === "SPECIFIC_PERSON") {
+      if (
+        !isPositiveInteger(Number(approver.user_id)) ||
+        approver.position_id !== undefined
+      ) {
+        return "Specific Person step must include only a valid user.";
+      }
+    }
+  }
+
+  return null;
+};
 
 const ApprovalSettings = () => {
   const [selectedSubTab, setSelectedSubTab] =
@@ -56,6 +178,21 @@ const ApprovalSettings = () => {
   const [approverRules, setApproverRules] = useState<ApproverRule[]>([
     createApproverRule(),
   ]);
+  const [isActive, setIsActive] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    data: approvalConfigData,
+    loading: isLoadingConfig,
+    error: approvalConfigError,
+    refetch: refetchApprovalConfig,
+  } = useFetch<
+    ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+  >(
+    api.fetch.fetchRequisitionApprovalConfig as () => Promise<
+      ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+    >
+  );
 
   const membersOptions = useStore((state) => state.membersOptions);
   const positions = useSettingsStore((state) => state.positions);
@@ -88,14 +225,86 @@ const ApprovalSettings = () => {
     [approverRules]
   );
 
-  const isSaveDisabled =
-    selectedRequesters.length === 0 || isApproverTargetMissing;
+  const hasInvalidRequesterSelection = useMemo(
+    () =>
+      selectedRequesters.some(
+        (requesterId) => !isPositiveInteger(Number(requesterId))
+      ),
+    [selectedRequesters]
+  );
+
+  const hasInvalidApproverSelection = useMemo(
+    () =>
+      approverRules.some(
+        (approver) =>
+          requiresTargetSelection(approver.type) &&
+          !isPositiveInteger(Number(approver.targetValue))
+      ),
+    [approverRules]
+  );
+
+  const isSaveDisabled = useMemo(
+    () =>
+      isSaving ||
+      selectedRequesters.length === 0 ||
+      isApproverTargetMissing ||
+      hasInvalidRequesterSelection ||
+      hasInvalidApproverSelection,
+    [
+      hasInvalidApproverSelection,
+      hasInvalidRequesterSelection,
+      isApproverTargetMissing,
+      isSaving,
+      selectedRequesters.length,
+    ]
+  );
+
+  useEffect(() => {
+    const config = normalizeConfig(approvalConfigData?.data);
+
+    if (!config) {
+      return;
+    }
+
+    const requesterIds = Array.isArray(config.requester_user_ids)
+      ? config.requester_user_ids
+      : [];
+
+    const configuredApprovers = Array.isArray(config.approvers)
+      ? [...config.approvers].sort((a, b) => a.order - b.order)
+      : [];
+
+    setSelectedRequesters(requesterIds.map((id) => String(id)));
+    setApproverRules(
+      configuredApprovers.length > 0
+        ? configuredApprovers.map((approver) => {
+            const normalizedType = parseApproverType(
+              String(approver.type).toUpperCase()
+            );
+
+            return {
+              id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+              type: normalizedType,
+              targetValue:
+                normalizedType === "POSITION"
+                  ? String(approver.position_id ?? "")
+                  : normalizedType === "SPECIFIC_PERSON"
+                    ? String(approver.user_id ?? "")
+                    : "",
+            };
+          })
+        : [createApproverRule()]
+    );
+
+    setIsActive(Boolean(config.is_active ?? true));
+  }, [approvalConfigData]);
 
   const handleApproverTypeChange = (
     approverId: string,
     value: string | number
   ) => {
     const nextType = parseApproverType(value);
+
     setApproverRules((current) =>
       current.map((approver) =>
         approver.id === approverId
@@ -124,29 +333,121 @@ const ApprovalSettings = () => {
 
   const handleRemoveApprover = (approverId: string) => {
     setApproverRules((current) => {
-      if (current.length === 1) return current;
+      if (current.length === 1) {
+        return current;
+      }
+
       return current.filter((approver) => approver.id !== approverId);
     });
   };
 
-  const handleSaveChanges = () => {
-    if (selectedRequesters.length === 0) {
+  const buildPayload = useCallback((): RequisitionApprovalConfigPayload => {
+    const approvers: ApprovalStep[] = approverRules.map((approver, index) => {
+      const normalizedStep: ApprovalStep = {
+        order: index + 1,
+        type: approver.type,
+      };
+
+      if (approver.type === "POSITION") {
+        normalizedStep.position_id = Number(approver.targetValue);
+      }
+
+      if (approver.type === "SPECIFIC_PERSON") {
+        normalizedStep.user_id = Number(approver.targetValue);
+      }
+
+      return normalizedStep;
+    });
+
+    return {
+      module: "REQUISITION",
+      requester_user_ids: selectedRequesters.map((id) => Number(id)),
+      approvers,
+      is_active: isActive,
+    };
+  }, [approverRules, isActive, selectedRequesters]);
+
+  const handleSaveChanges = async () => {
+    const payload = buildPayload();
+    const validationError = validateConfigPayload(payload);
+
+    if (validationError) {
+      showNotification(validationError, "error");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const response = await api.post.upsertRequisitionApprovalConfig(payload);
+
       showNotification(
-        "Select at least one requester for this requisition type.",
+        getResponseMessage(
+          response.data,
+          "Approval requisition configuration saved."
+        ),
+        "success"
+      );
+
+      await refetchApprovalConfig();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return;
+      }
+
+      showNotification(
+        error instanceof Error
+          ? error.message
+          : "Unable to save approval configuration.",
         "error"
       );
-      return;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const displayConfigError = useMemo(() => {
+    if (!approvalConfigError) {
+      return null;
+    }
+
+    return approvalConfigError.message || "Unable to load approval configuration.";
+  }, [approvalConfigError]);
+
+  const renderValidationHints = () => {
+    if (selectedRequesters.length === 0) {
+      return (
+        <p className="text-xs text-error">
+          Select at least one requester for this requisition type.
+        </p>
+      );
+    }
+
+    if (hasInvalidRequesterSelection) {
+      return (
+        <p className="text-xs text-error">
+          All selected requester IDs must be numeric.
+        </p>
+      );
     }
 
     if (isApproverTargetMissing) {
-      showNotification(
-        "Complete all approver selections before saving the workflow.",
-        "error"
+      return (
+        <p className="text-xs text-error">
+          Complete all approver selections before saving the workflow.
+        </p>
       );
-      return;
     }
 
-    showNotification("Approval requisition configuration saved.", "success");
+    if (hasInvalidApproverSelection) {
+      return (
+        <p className="text-xs text-error">
+          Approver selections must be valid numeric IDs.
+        </p>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -186,6 +487,22 @@ const ApprovalSettings = () => {
                 emptyMsg="No requester selected"
               />
             </div>
+            {renderValidationHints()}
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-base font-semibold text-primary">
+              Configuration state
+            </h4>
+            <label className="inline-flex items-center gap-2 text-sm text-primaryGray">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-lightGray text-primary"
+                checked={isActive}
+                onChange={(event) => setIsActive(event.target.checked)}
+              />
+              Active (only active configuration is used during submit)
+            </label>
           </div>
 
           <div className="space-y-4">
@@ -224,7 +541,7 @@ const ApprovalSettings = () => {
                       }
                     />
 
-                    {approver.type === "position" && (
+                    {approver.type === "POSITION" && (
                       <SelectField
                         id={`approver-target-${approver.id}`}
                         label="Select Position"
@@ -243,7 +560,7 @@ const ApprovalSettings = () => {
                       />
                     )}
 
-                    {approver.type === "specific_person" && (
+                    {approver.type === "SPECIFIC_PERSON" && (
                       <SelectField
                         id={`approver-target-${approver.id}`}
                         label="Select User"
@@ -262,7 +579,7 @@ const ApprovalSettings = () => {
                       />
                     )}
 
-                    {approver.type === "head_of_department" && (
+                    {approver.type === "HEAD_OF_DEPARTMENT" && (
                       <div className="flex flex-col gap-1">
                         <span className="text-sm font-medium text-primary">
                           Approver Target
@@ -301,9 +618,22 @@ const ApprovalSettings = () => {
                 type="button"
                 onClick={handleSaveChanges}
                 disabled={isSaveDisabled}
+                loading={isSaving}
               />
             </div>
           </div>
+
+          {isLoadingConfig && (
+            <p className="text-xs text-primaryGray">
+              Loading existing approval configuration...
+            </p>
+          )}
+
+          {displayConfigError && (
+            <p className="rounded-md border border-error/40 bg-errorBG px-3 py-2 text-xs text-error">
+              {displayConfigError}
+            </p>
+          )}
         </section>
       )}
     </PageOutline>

@@ -89,6 +89,7 @@ import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDet
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import { Navigate } from "react-router-dom";
+import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -126,6 +127,15 @@ export const routes: AppRoute[] = [
     path: "/reset-password",
     name: "ResetPassword",
     element: <ResetPassword />,
+  },
+  {
+    path: "/change-password",
+    name: "ChangePassword",
+    element: (
+      <ProtectedRoute>
+        <ChangePassword />
+      </ProtectedRoute>
+    ),
   },
   {
     path: relativePath.home.main,
@@ -865,8 +875,11 @@ export const routes: AppRoute[] = [
   {
     path: "events/register-event",
     name: "Event Register",
-    element: <EventRegister />,
-    isPrivate: false,
+    element: (
+      <ProtectedRoute>
+        <EventRegister />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/member",
