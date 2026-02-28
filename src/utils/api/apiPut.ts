@@ -30,6 +30,10 @@ import type {
   UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
+import type {
+  AiCredentialRecord,
+  UpdateAiCredentialPayload,
+} from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
 
 export class ApiUpdateCalls {
@@ -478,5 +482,12 @@ export class ApiUpdateCalls {
       payload,
       query
     );
+  };
+
+  updateAiCredential = (
+    id: string,
+    payload: UpdateAiCredentialPayload
+  ): Promise<ApiResponse<AiCredentialRecord>> => {
+    return this.apiExecution.updateData(`ai/credentials/${id}`, payload);
   };
 }

@@ -157,9 +157,9 @@ class ApiErrorHandler {
         } else {
           showNotification(
             normalizedError.message ||
-              "You do not have permission to perform this action.",
+              "Authentication failed. Please confirm your access and try again.",
             "error",
-            "Access denied"
+            "Unauthorized"
           );
         }
       } else if (statusCode === 403) {

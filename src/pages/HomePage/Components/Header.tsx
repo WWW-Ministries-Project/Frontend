@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import hamburger from "/src/assets/sidenav.svg";
 import ChurchLogo from "@/components/ChurchLogo";
 import { ProfilePicture } from "@/components";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
@@ -85,7 +84,7 @@ interface IProps {
 export const Header = ({ handleShowNav }: IProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
@@ -108,9 +107,15 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMinistryWorker = token?.ministry_worker;
   const isLifeCenterLeader = token?.life_center_leader;
   const isInstructor = token?.instructor;
+  const userCategory = (user.user_category ?? token?.user_category ?? "")
+    .trim()
+    .toLowerCase();
+  const isAdminUser = userCategory === "admin";
 
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
+  const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
+  const showAdminAiEntry = !isMemberRoute && isAdminUser;
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -328,6 +333,20 @@ export const Header = ({ handleShowNav }: IProps) => {
                 ))}
               </AccessibleMenu>
             </div>
+          </nav>
+        )}
+        {showAdminAiEntry && (
+          <nav className="flex items-center">
+            <button
+              onClick={() => handleNavigate(adminAIPath)}
+              className={`px-4 py-2 rounded-md font-semibold transition ${
+                isActive(adminAIPath)
+                  ? "bg-primary text-white"
+                  : "text-primary hover:bg-primary/10"
+              }`}
+            >
+              AI
+            </button>
           </nav>
         )}
 

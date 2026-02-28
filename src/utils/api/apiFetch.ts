@@ -36,6 +36,11 @@ import {
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
+import type {
+  AiCredentialRecord,
+  AiUsageHistoryResponse,
+  AiUsageSummary,
+} from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
 import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 
@@ -528,6 +533,25 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
     return this.fetchFromApi("financials/get-financial", query);
+  };
+
+  fetchAiCredentials = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiCredentialRecord[]>> => {
+    return this.fetchFromApi("ai/credentials", query);
+  };
+
+  // AI usage and quota tracking
+  fetchAiUsageSummary = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiUsageSummary>> => {
+    return this.fetchFromApi("ai/usage-summary", query);
+  };
+
+  fetchAiUsageHistory = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiUsageHistoryResponse>> => {
+    return this.fetchFromApi("ai/usage-history", query);
   };
 
 

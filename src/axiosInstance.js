@@ -10,6 +10,16 @@ const SESSION_EXPIRY_MARKERS = [
   "token expired",
 ];
 
+const PERMISSION_DENIAL_MARKERS = [
+  "access denied",
+  "permission denied",
+  "insufficient permission",
+  "insufficient permissions",
+  "forbidden",
+  "not allowed",
+  "unauthorized to access",
+];
+
 const PUBLIC_AUTH_PATHS = [
   "/user/login",
   "/user/register",
@@ -66,6 +76,14 @@ const isSessionExpiredMessage = (message) => {
   if (!message) return false;
   const normalizedMessage = message.trim().toLowerCase();
   return SESSION_EXPIRY_MARKERS.some((marker) =>
+    normalizedMessage.includes(marker)
+  );
+};
+
+const isPermissionDeniedMessage = (message) => {
+  if (!message) return false;
+  const normalizedMessage = message.trim().toLowerCase();
+  return PERMISSION_DENIAL_MARKERS.some((marker) =>
     normalizedMessage.includes(marker)
   );
 };
@@ -153,7 +171,11 @@ const applyResponseInterceptor = (client) => {
             statusCode,
             message,
           });
-        } else if (!isPublicAuth && hasActiveSession) {
+        } else if (
+          isPermissionDeniedMessage(message) &&
+          !isPublicAuth &&
+          hasActiveSession
+        ) {
           dispatchAppEvent("app:access-denied", {
             statusCode,
             message,
