@@ -164,11 +164,11 @@ const getAgeFromBirthDate = (dateValue: string): number | null => {
   const birthDate = toDateTime(dateValue);
   if (!birthDate) return null;
 
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const today = DateTime.now();
+  let age = today.year - birthDate.year;
+  const monthDiff = today.month - birthDate.month;
 
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+  if (monthDiff < 0 || (monthDiff === 0 && today.day < birthDate.day)) {
     age -= 1;
   }
 
