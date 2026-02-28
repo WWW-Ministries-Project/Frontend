@@ -38,6 +38,20 @@ import type {
   RequisitionApprovalConfigPayload,
   SubmitRequisitionPayload,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import axios from "@/axiosInstance";
+import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import type {
+  AiChatRequest,
+  AiChatResponse,
+  AiCredentialRecord,
+  AiInsightResponse,
+  AiInsightsRequest,
+  CreateAiCredentialPayload,
+} from "./ai/interfaces";
+
+interface PostRequestOptions {
+  headers?: Record<string, string>;
+}
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -51,6 +65,24 @@ export class ApiCreationCalls {
     payload: unknown
   ): Promise<ApiResponse<T>> {
     return this.apiExecution.postData(path, payload);
+  }
+
+  private async postToApiWithOptions<T>(
+    path: string,
+    payload: unknown,
+    options?: PostRequestOptions
+  ): Promise<ApiResponse<T>> {
+    const url = `${baseUrl}${path}`;
+    const response = await axios.post<{ data: T }>(url, payload, {
+      headers: options?.headers,
+    });
+
+    return {
+      data: response.data.data,
+      status: response.status,
+      error: "",
+      success: true,
+    };
   }
 
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
@@ -317,5 +349,31 @@ export class ApiCreationCalls {
     payload: FinanceData
   ): Promise<ApiResponse<FinancialRecord>> => {
     return this.postToApi("financials/create-financial", payload);
+  };
+
+  createAiCredential = (
+    payload: CreateAiCredentialPayload
+  ): Promise<ApiResponse<AiCredentialRecord>> => {
+    return this.postToApi("ai/credentials", payload);
+  };
+
+  sendAiMessage = (
+    payload: AiChatRequest,
+    options?: { idempotencyKey?: string }
+  ): Promise<ApiResponse<AiChatResponse>> => {
+    const idempotencyKey = options?.idempotencyKey?.trim();
+    const headers = idempotencyKey
+      ? { "Idempotency-Key": idempotencyKey }
+      : undefined;
+
+    return this.postToApiWithOptions("ai/chat", payload, { headers });
+  };
+
+  createAiInsights = (
+    module: string,
+    payload: AiInsightsRequest
+  ): Promise<ApiResponse<AiInsightResponse>> => {
+    const encodedModule = encodeURIComponent(module.trim());
+    return this.postToApi(`ai/insights/${encodedModule}`, payload);
   };
 }

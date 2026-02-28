@@ -90,6 +90,8 @@ import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import { Navigate } from "react-router-dom";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
+import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
+import { AdminOnlyRoute } from "./AdminOnlyRoute";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -158,6 +160,16 @@ export const routes: AppRoute[] = [
         element: <DashBoardPage />,
         isPrivate: false,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.ai,
+        name: "AI Console",
+        element: (
+          <AdminOnlyRoute>
+            <AIConsole />
+          </AdminOnlyRoute>
+        ),
+        isPrivate: true,
       },
       {
         path: relativePath.home.members.main,

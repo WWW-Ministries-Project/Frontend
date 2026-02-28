@@ -11,6 +11,7 @@ export const relativePath = {
   home: {
     main: "/home",
     dashboard: "dashboard",
+    ai: "ai",
     members: {
       main: "members",
       mainNew: "/home/members",
