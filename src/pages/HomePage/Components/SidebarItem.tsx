@@ -11,6 +11,7 @@ interface IProps {
   openMenus: Record<string, boolean>;
   toggleSubMenu: (menuName: string) => void;
   onNavigate?: () => void;
+  onParentMenuActivate?: () => void;
   iconClassName?: string;
 }
 
@@ -26,6 +27,7 @@ export const SidebarItem = ({
   openMenus,
   toggleSubMenu,
   onNavigate,
+  onParentMenuActivate,
   iconClassName,
 }: IProps) => {
   const iconClass = iconClassName ?? "w-6 h-6 text-gray-600";
@@ -42,6 +44,7 @@ export const SidebarItem = ({
             showChildren={openMenus[item.name] || false}
             toggleSubMenu={() => toggleSubMenu(item.name)}
             onNavigate={onNavigate}
+            onParentActivate={onParentMenuActivate}
           >
             <IconComponent className={iconClass} />
           </SideBarSubMenu>

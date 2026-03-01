@@ -28,6 +28,25 @@ type FollowUpRecord = {
   assignedTo?: string;
 } & Record<string, unknown>;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const extractArrayData = <T,>(source: unknown): T[] => {
+  if (Array.isArray(source)) return source as T[];
+
+  if (isRecord(source)) {
+    const level1 = source.data;
+
+    if (Array.isArray(level1)) return level1 as T[];
+
+    if (isRecord(level1) && Array.isArray(level1.data)) {
+      return level1.data as T[];
+    }
+  }
+
+  return [];
+};
+
 export const VisitorAnalytics = () => {
   const [filters, setFilters] = useState<AnalyticsFilters>(
     createDefaultAnalyticsFilters()
@@ -42,13 +61,11 @@ export const VisitorAnalytics = () => {
   const { data: followUpsResponse } = useFetch(api.fetch.fetchAllFollowUps);
 
   const visitors = useMemo(() => {
-    if (!Array.isArray(visitorsResponse?.data)) return [];
-    return visitorsResponse.data as VisitorType[];
+    return extractArrayData<VisitorType>(visitorsResponse?.data);
   }, [visitorsResponse]);
 
   const followUps = useMemo(() => {
-    if (!Array.isArray(followUpsResponse?.data)) return [];
-    return followUpsResponse.data as FollowUpRecord[];
+    return extractArrayData<FollowUpRecord>(followUpsResponse?.data);
   }, [followUpsResponse]);
 
   const eventOptions = useMemo(() => {
@@ -62,7 +79,7 @@ export const VisitorAnalytics = () => {
   const cumulativeFrom = useMemo(
     () =>
       getEarliestIsoDate(
-        visitors.map((visitor) => (visitor as Record<string, unknown>).createdAt)
+        visitors.map((visitor) => visitor.visitDate)
       ),
     [visitors]
   );
@@ -76,7 +93,7 @@ export const VisitorAnalytics = () => {
     return visitors.filter((visitor) => {
       if (
         !isWithinRange(
-          (visitor as Record<string, unknown>).createdAt,
+          visitor.visitDate,
           effectiveDateRange
         )
       ) {
@@ -94,7 +111,7 @@ export const VisitorAnalytics = () => {
     () =>
       buildSeries(
         filteredVisitors,
-        (visitor) => (visitor as Record<string, unknown>).createdAt,
+        (visitor) => visitor.visitDate,
         () => 1,
         filters.groupBy,
         effectiveDateRange
