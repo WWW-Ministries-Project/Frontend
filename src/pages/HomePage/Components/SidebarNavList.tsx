@@ -9,6 +9,7 @@ interface Props {
   activeTabNames: Record<string, boolean>;
   onToggleSubMenu: (menuName: string) => void;
   onNavigate?: () => void;
+  onParentMenuActivate?: () => void;
   iconClassName?: string;
 }
 
@@ -19,6 +20,7 @@ export const SidebarNavList = ({
   activeTabNames,
   onToggleSubMenu,
   onNavigate,
+  onParentMenuActivate,
   iconClassName,
 }: Props) => {
   return (
@@ -37,6 +39,7 @@ export const SidebarNavList = ({
             openMenus={openMenus}
             toggleSubMenu={onToggleSubMenu}
             onNavigate={onNavigate}
+            onParentMenuActivate={onParentMenuActivate}
             iconClassName={iconClassName}
           />
         );

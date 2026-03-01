@@ -85,6 +85,14 @@ export const SideBar = ({ className }: IProps) => {
     navigate("/login", { replace: true });
   };
 
+  const handleParentMenuActivate = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setIsExpanded(true);
+  };
+
   const toggleSubMenu = (menuName: string) => {
     setOpenMenus((prev) => ({
       ...prev,
@@ -173,6 +181,7 @@ export const SideBar = ({ className }: IProps) => {
               openMenus={openMenus}
               activeTabNames={activeTabNames}
               onToggleSubMenu={toggleSubMenu}
+              onParentMenuActivate={handleParentMenuActivate}
             />
           </div>
         </div>

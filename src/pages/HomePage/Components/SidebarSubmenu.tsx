@@ -1,7 +1,6 @@
 import { AppRoute } from "@/routes/appRoutes";
 import { ReactNode, useMemo } from "react";
 import { matchPath, NavLink, useLocation } from "react-router-dom";
-import { NavigationLink } from "./NavigationLink";
 
 interface IProps {
   item: {
@@ -15,6 +14,7 @@ interface IProps {
   showChildren: boolean;
   toggleSubMenu: () => void;
   onNavigate?: () => void;
+  onParentActivate?: () => void;
 }
 
 const HOME_ROUTE_BASE = "/home";
@@ -61,6 +61,7 @@ export const SideBarSubMenu = ({
   showChildren,
   toggleSubMenu,
   onNavigate,
+  onParentActivate,
 }: IProps) => {
   const location = useLocation();
 
@@ -84,10 +85,10 @@ export const SideBarSubMenu = ({
   const getChildAbsolutePath = (child: AppRoute) =>
     resolveHomePath(getChildPath(child));
 
-  const collapsedLinkPath =
-    filteredChildren.length > 0
-      ? getChildAbsolutePath(filteredChildren[0])
-      : parentRoutePath;
+  const handleParentClick = () => {
+    if (!show && onParentActivate) onParentActivate();
+    toggleSubMenu();
+  };
 
   return (
     <div>
@@ -101,8 +102,11 @@ export const SideBarSubMenu = ({
           )}
 
           {/* Main Parent Menu */}
-          <div
-            onClick={toggleSubMenu}
+          <button
+            type="button"
+            onClick={handleParentClick}
+            aria-expanded={showChildren}
+            aria-label={`${item.name} menu`}
             className={`text-primary transition z-10 cursor-pointer ${
               showChildren || isActive
                 ? "text-primary sidebar-active-surface rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
@@ -112,7 +116,7 @@ export const SideBarSubMenu = ({
               !showChildren && isActive
                 ? "text-primary sidebar-active-surface rounded-s-xl"
                 : ""
-            }`}
+            } w-full text-left`}
           >
             <div className="flex items-center mx-2 justify-between gap-1">
               <div className="flex items-center gap-2 transition py-4 rounded-xl">
@@ -135,7 +139,7 @@ export const SideBarSubMenu = ({
                 </svg>
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Submenu Items */}
           {showChildren && filteredChildren.length > 0 && (
@@ -184,20 +188,26 @@ export const SideBarSubMenu = ({
         </div>
       ) : (
         <div>
-          {/* Navigation link rendering */}
-          {isActive && (
+          {/* Collapsed parent control */}
+          {(isActive || showChildren) && (
             <div className="flex justify-end relative">
               <div className="scrollable-shape-top"></div>
             </div>
           )}
-          <NavigationLink
-            item={{ name: item.name, path: collapsedLinkPath }}
-            show={show}
-            onClick={onNavigate}
+          <button
+            type="button"
+            onClick={handleParentClick}
+            aria-expanded={showChildren}
+            aria-label={`${item.name} menu`}
+            className={`w-full gap-2 text-primary transition-[background-color,color] duration-200 h-10 z-10 flex items-center justify-center py-7 rounded-s-xl rounded-e-xl lg:rounded-e-none ${
+              isActive || showChildren
+                ? "sidebar-active-surface text-primary"
+                : "hover:text-primary"
+            }`}
           >
             {children}
-          </NavigationLink>
-          {isActive && (
+          </button>
+          {(isActive || showChildren) && (
             <div className="flex justify-end relative">
               <div className="scrollable-shape-bottom"></div>
             </div>

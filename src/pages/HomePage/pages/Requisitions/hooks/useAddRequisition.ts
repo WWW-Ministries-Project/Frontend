@@ -32,6 +32,7 @@ type SubmitOptions = {
 };
 
 type RequisitionMutationResponse = ApiResponse<Record<string, unknown>>;
+const REQUESTS_BASE_PATH = "/home/requests";
 
 const isPositiveInteger = (value: unknown): value is number => {
   const normalized = Number(value);
@@ -73,39 +74,46 @@ const resolveRequisitionId = (
   fallbackId?: string
 ): number | null => {
   const candidateValues: unknown[] = [];
+  const keysToInspect = new Set([
+    "id",
+    "requisition_id",
+    "requisitionId",
+    "request_id",
+    "requestId",
+  ]);
 
-  if (payload && typeof payload === "object") {
-    const payloadRecord = payload as Record<string, unknown>;
+  const visited = new WeakSet<object>();
 
-    candidateValues.push(payloadRecord.id, payloadRecord.requisition_id);
+  const collectCandidates = (value: unknown, depth = 0) => {
+    if (depth > 4 || value === null || value === undefined) {
+      return;
+    }
 
-    const nestedData =
-      payloadRecord.data && typeof payloadRecord.data === "object"
-        ? (payloadRecord.data as Record<string, unknown>)
-        : null;
+    if (Array.isArray(value)) {
+      value.forEach((entry) => collectCandidates(entry, depth + 1));
+      return;
+    }
 
-    if (nestedData) {
-      candidateValues.push(nestedData.id, nestedData.requisition_id);
+    if (typeof value !== "object") {
+      return;
+    }
 
-      const nestedSummary =
-        nestedData.summary && typeof nestedData.summary === "object"
-          ? (nestedData.summary as Record<string, unknown>)
-          : null;
+    if (visited.has(value)) {
+      return;
+    }
 
-      if (nestedSummary) {
-        candidateValues.push(nestedSummary.requisition_id);
+    visited.add(value);
+
+    const valueRecord = value as Record<string, unknown>;
+    for (const [key, nestedValue] of Object.entries(valueRecord)) {
+      if (keysToInspect.has(key)) {
+        candidateValues.push(nestedValue);
       }
+      collectCandidates(nestedValue, depth + 1);
     }
+  };
 
-    const summary =
-      payloadRecord.summary && typeof payloadRecord.summary === "object"
-        ? (payloadRecord.summary as Record<string, unknown>)
-        : null;
-
-    if (summary) {
-      candidateValues.push(summary.requisition_id);
-    }
-  }
+  collectCandidates(payload);
 
   if (fallbackId) {
     candidateValues.push(fallbackId);
@@ -304,23 +312,36 @@ export const useAddRequisition = () => {
         const shouldSubmitForApproval = Boolean(options?.submitForApproval);
         const shouldRedirectToDetails = Boolean(options?.redirectToDetails);
         const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
+        const detailsPath = resolvedId
+          ? `${REQUESTS_BASE_PATH}/${window.btoa(String(resolvedId))}`
+          : REQUESTS_BASE_PATH;
 
         if (shouldSubmitForApproval) {
           if (!resolvedId) {
             throw new Error("Unable to resolve requisition ID for submission.");
           }
 
-          const submitResponse = await api.post.submitRequisition({
-            requisition_id: resolvedId,
-          });
+          try {
+            const submitResponse = await api.post.submitRequisition({
+              requisition_id: resolvedId,
+            });
 
-          handleOpenNotification(
-            getMessageFromPayload(
-              submitResponse.data,
-              "Requisition submitted successfully."
-            ),
-            "success"
-          );
+            handleOpenNotification(
+              getMessageFromPayload(
+                submitResponse.data,
+                "Requisition submitted successfully."
+              ),
+              "success"
+            );
+          } catch (submitError) {
+            if (!(submitError instanceof ApiError)) {
+              const normalizedSubmitError =
+                submitError instanceof Error
+                  ? submitError
+                  : new Error("Failed to submit requisition for approval.");
+              handleOpenNotification(normalizedSubmitError.message, "error");
+            }
+          }
         } else {
           handleOpenNotification(
             getMessageFromPayload(
@@ -333,12 +354,14 @@ export const useAddRequisition = () => {
           );
         }
 
-        if (shouldRedirectToDetails && resolvedId) {
-          navigate(`/home/requests/${window.btoa(String(resolvedId))}`);
+        setOpenSignature(false);
+
+        if (shouldRedirectToDetails) {
+          navigate(detailsPath, { replace: true });
           return;
         }
 
-        navigate(-1);
+        navigate(detailsPath, { replace: true });
       } catch (error) {
         const normalizedError =
           error instanceof Error ? error : new Error("Unknown error");

@@ -316,9 +316,7 @@ const Request = () => {
                     { ...values, attachmentLists: uploadedAttachments },
                     {
                       submitForApproval: submissionIntent === "SUBMIT",
-                      redirectToDetails:
-                        submissionIntent === "SAVE_DRAFT" ||
-                        submissionIntent === "SUBMIT",
+                      redirectToDetails: true,
                     }
                   );
                 }}
