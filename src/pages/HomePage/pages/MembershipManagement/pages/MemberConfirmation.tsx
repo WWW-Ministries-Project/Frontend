@@ -15,7 +15,7 @@ type MemberStatus = "UNCONFIRMED" | "CONFIRMED" | "MEMBER";
 type MemberTab = "UNCONFIRMED" | "CONFIRMED";
 type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
 
-const MEMBERS_PAGE_SIZE = 8;
+const MEMBERS_PAGE_SIZE = 12;
 
 const getPaginationItems = (
   currentPage: number,
@@ -75,6 +75,9 @@ const getMemberDisplayName = (member: MembersType): string => {
   return fullName || "No Name";
 };
 
+const hasMemberStatus = (member: MembersType, expectedStatus: MemberStatus): boolean =>
+  normalizeMemberStatus(member.status) === expectedStatus;
+
 const filterMembersByQuery = (
   members: MembersType[],
   query: string
@@ -101,6 +104,7 @@ interface MembersTableProps {
   description: string;
   members: MembersType[];
   totalMembers: number;
+  totalPages: number;
   actionLabel: string;
   emptyStateMessage: string;
   currentPage: number;
@@ -108,6 +112,8 @@ interface MembersTableProps {
   onPageChange: (page: number) => void;
   onMemberClick: (member: MembersType) => void;
   onAction: (member: MembersType) => void;
+  canPerformAction?: (member: MembersType) => boolean;
+  blockedActionLabel?: string;
   processingId: string | number | null;
 }
 
@@ -116,6 +122,7 @@ const MembersTable = ({
   description,
   members,
   totalMembers,
+  totalPages,
   actionLabel,
   emptyStateMessage,
   currentPage,
@@ -123,18 +130,20 @@ const MembersTable = ({
   onPageChange,
   onMemberClick,
   onAction,
+  canPerformAction,
+  blockedActionLabel,
   processingId,
 }: MembersTableProps) => {
-  const totalPages = Math.max(1, Math.ceil(totalMembers / pageSize));
-  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const safeTotalPages = Math.max(totalPages, 1);
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), safeTotalPages);
   const rangeStart = totalMembers === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
   const rangeEnd = totalMembers === 0 ? 0 : Math.min(safeCurrentPage * pageSize, totalMembers);
-  const paginationItems = getPaginationItems(safeCurrentPage, totalPages);
+  const paginationItems = getPaginationItems(safeCurrentPage, safeTotalPages);
   const canGoBack = safeCurrentPage > 1;
-  const canGoForward = safeCurrentPage < totalPages;
+  const canGoForward = safeCurrentPage < safeTotalPages;
 
   const goToPage = (page: number) => {
-    const safePage = Math.min(Math.max(page, 1), totalPages);
+    const safePage = Math.min(Math.max(page, 1), safeTotalPages);
     onPageChange(safePage);
   };
 
@@ -167,6 +176,14 @@ const MembersTable = ({
               <tbody>
                 {members.map((member) => {
                   const isProcessing = processingId === member.id;
+                  const canPerform = canPerformAction ? canPerformAction(member) : true;
+                  const isActionBlocked = !canPerform;
+                  const isDisabled = isProcessing || isActionBlocked;
+                  const actionText = isProcessing
+                    ? "Processing..."
+                    : isActionBlocked && blockedActionLabel
+                    ? blockedActionLabel
+                    : actionLabel;
 
                   return (
                     <tr key={member.id} className="border-t border-lightGray">
@@ -188,11 +205,11 @@ const MembersTable = ({
                       <td className="px-4 py-3">
                         <button
                           type="button"
-                          disabled={isProcessing}
+                          disabled={isDisabled}
                           onClick={() => onAction(member)}
                           className="px-3 py-2 text-xs rounded-md bg-primary text-white disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                          {isProcessing ? "Processing..." : actionLabel}
+                          {actionText}
                         </button>
                       </td>
                     </tr>
@@ -202,7 +219,7 @@ const MembersTable = ({
             </table>
           </div>
 
-          {totalPages > 1 ? (
+          {safeTotalPages > 1 ? (
             <nav
               className="mx-4 mb-4 mt-1 flex flex-col gap-3 border-t border-lightGray pt-3 md:flex-row md:items-center md:justify-between"
               aria-label={`${title} pagination`}
@@ -279,7 +296,7 @@ const MembersTable = ({
 
                 <button
                   type="button"
-                  onClick={() => goToPage(totalPages)}
+                  onClick={() => goToPage(safeTotalPages)}
                   disabled={!canGoForward}
                   className="min-w-9 rounded-md border border-lightGray px-2.5 py-1.5 text-sm text-primary transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-lightGray/40"
                   aria-label="Go to last page"
@@ -298,8 +315,10 @@ const MembersTable = ({
 
 export const MemberConfirmation = () => {
   const navigate = useNavigate();
-  const { data, loading, refetch } = useFetch(api.fetch.fetchAllMembers);
-
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllMembers, {
+    take: 5000,
+    limit: 5000,
+  });
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MembersType | null>(null);
   const [processingId, setProcessingId] = useState<string | number | null>(null);
@@ -316,40 +335,44 @@ export const MemberConfirmation = () => {
 
   const unconfirmedMembers = useMemo(
     () =>
-      filteredMembers.filter(
-        (member) => normalizeMemberStatus(member.status) === "UNCONFIRMED"
+      filteredMembers.filter((member) =>
+        hasMemberStatus(member, "UNCONFIRMED")
       ),
     [filteredMembers]
   );
-
   const confirmedMembers = useMemo(
     () =>
-      filteredMembers.filter(
-        (member) => normalizeMemberStatus(member.status) === "CONFIRMED"
+      filteredMembers.filter((member) =>
+        hasMemberStatus(member, "CONFIRMED")
       ),
     [filteredMembers]
   );
 
+  const unconfirmedTotalMembers = unconfirmedMembers.length;
+  const confirmedTotalMembers = confirmedMembers.length;
+  const unconfirmedPageSize = MEMBERS_PAGE_SIZE;
+  const confirmedPageSize = MEMBERS_PAGE_SIZE;
+
   const unconfirmedTotalPages = Math.max(
-    1,
-    Math.ceil(unconfirmedMembers.length / MEMBERS_PAGE_SIZE)
+    Math.ceil(unconfirmedTotalMembers / unconfirmedPageSize),
+    1
   );
   const confirmedTotalPages = Math.max(
-    1,
-    Math.ceil(confirmedMembers.length / MEMBERS_PAGE_SIZE)
+    Math.ceil(confirmedTotalMembers / confirmedPageSize),
+    1
   );
 
   useEffect(() => {
-    setUnconfirmedPage((previousPage) =>
-      Math.min(Math.max(previousPage, 1), unconfirmedTotalPages)
-    );
-  }, [unconfirmedTotalPages]);
+    if (unconfirmedPage > unconfirmedTotalPages) {
+      setUnconfirmedPage(unconfirmedTotalPages);
+    }
+  }, [unconfirmedPage, unconfirmedTotalPages]);
 
   useEffect(() => {
-    setConfirmedPage((previousPage) =>
-      Math.min(Math.max(previousPage, 1), confirmedTotalPages)
-    );
-  }, [confirmedTotalPages]);
+    if (confirmedPage > confirmedTotalPages) {
+      setConfirmedPage(confirmedTotalPages);
+    }
+  }, [confirmedPage, confirmedTotalPages]);
 
   useEffect(() => {
     setUnconfirmedPage(1);
@@ -357,14 +380,20 @@ export const MemberConfirmation = () => {
   }, [searchQuery]);
 
   const paginatedUnconfirmedMembers = useMemo(() => {
-    const start = (unconfirmedPage - 1) * MEMBERS_PAGE_SIZE;
-    return unconfirmedMembers.slice(start, start + MEMBERS_PAGE_SIZE);
-  }, [unconfirmedMembers, unconfirmedPage]);
+    const start = (unconfirmedPage - 1) * unconfirmedPageSize;
+    return unconfirmedMembers.slice(start, start + unconfirmedPageSize);
+  }, [unconfirmedMembers, unconfirmedPage, unconfirmedPageSize]);
 
   const paginatedConfirmedMembers = useMemo(() => {
-    const start = (confirmedPage - 1) * MEMBERS_PAGE_SIZE;
-    return confirmedMembers.slice(start, start + MEMBERS_PAGE_SIZE);
-  }, [confirmedMembers, confirmedPage]);
+    const start = (confirmedPage - 1) * confirmedPageSize;
+    return confirmedMembers.slice(start, start + confirmedPageSize);
+  }, [confirmedMembers, confirmedPage, confirmedPageSize]);
+
+  const activeMembers =
+    activeTab === "UNCONFIRMED"
+      ? paginatedUnconfirmedMembers
+      : paginatedConfirmedMembers;
+  const activeLoading = loading;
 
   const updateStatus = async (member: MembersType, status: ProgressionStatus) => {
     setProcessingId(member.id);
@@ -405,6 +434,11 @@ export const MemberConfirmation = () => {
   };
 
   const makeMemberFunctional = async (member: MembersType) => {
+    if (!hasMemberStatus(member, "CONFIRMED")) {
+      showNotification("Only confirmed members can be made functional", "error");
+      return;
+    }
+
     await updateStatus(member, "MEMBER");
   };
 
@@ -416,7 +450,7 @@ export const MemberConfirmation = () => {
 
   return (
     <div className="space-y-6">
-      {loading && members.length === 0 ? (
+      {activeLoading && activeMembers.length === 0 ? (
         <div className="text-sm text-gray-600">Loading members...</div>
       ) : null}
 
@@ -453,7 +487,7 @@ export const MemberConfirmation = () => {
                 activeTab === "UNCONFIRMED" ? "text-white/90" : "text-primaryGray"
               }`}
             >
-              Awaiting confirmation ({unconfirmedMembers.length})
+              Awaiting confirmation ({unconfirmedTotalMembers})
             </p>
           </button>
 
@@ -472,7 +506,7 @@ export const MemberConfirmation = () => {
                 activeTab === "CONFIRMED" ? "text-white/90" : "text-primaryGray"
               }`}
             >
-              Ready for functional promotion ({confirmedMembers.length})
+              Ready for functional promotion ({confirmedTotalMembers})
             </p>
           </button>
         </div>
@@ -483,10 +517,11 @@ export const MemberConfirmation = () => {
           title="Unconfirmed Members"
           description="Review and confirm unconfirmed members."
           members={paginatedUnconfirmedMembers}
-          totalMembers={unconfirmedMembers.length}
+          totalMembers={unconfirmedTotalMembers}
+          totalPages={unconfirmedTotalPages}
           actionLabel="Confirm"
           currentPage={unconfirmedPage}
-          pageSize={MEMBERS_PAGE_SIZE}
+          pageSize={unconfirmedPageSize}
           onPageChange={setUnconfirmedPage}
           emptyStateMessage={
             searchQuery
@@ -495,6 +530,8 @@ export const MemberConfirmation = () => {
           }
           onMemberClick={handleMemberClick}
           onAction={openConfirmModal}
+          canPerformAction={(member) => hasMemberStatus(member, "UNCONFIRMED")}
+          blockedActionLabel="Not Eligible"
           processingId={processingId}
         />
       ) : (
@@ -502,10 +539,11 @@ export const MemberConfirmation = () => {
           title="Confirmed Members"
           description="Promote confirmed members to functional members. Backend validation checks member-required program completion."
           members={paginatedConfirmedMembers}
-          totalMembers={confirmedMembers.length}
+          totalMembers={confirmedTotalMembers}
+          totalPages={confirmedTotalPages}
           actionLabel="Make Functional"
           currentPage={confirmedPage}
-          pageSize={MEMBERS_PAGE_SIZE}
+          pageSize={confirmedPageSize}
           onPageChange={setConfirmedPage}
           emptyStateMessage={
             searchQuery
@@ -514,6 +552,8 @@ export const MemberConfirmation = () => {
           }
           onMemberClick={handleMemberClick}
           onAction={makeMemberFunctional}
+          canPerformAction={(member) => hasMemberStatus(member, "CONFIRMED")}
+          blockedActionLabel="Not Confirmed"
           processingId={processingId}
         />
       )}
