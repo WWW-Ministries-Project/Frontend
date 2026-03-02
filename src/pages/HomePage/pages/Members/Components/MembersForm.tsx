@@ -109,6 +109,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
   const previousIsUserRef = useRef(values.is_user);
+  const previousHasChildrenRef = useRef(has_children);
 
   const currentIndex = steps.findIndex((s) => s.key === currentStep);
 
@@ -202,13 +203,18 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   }, [setFieldValue, values.department_positions, values.is_user]);
 
   useEffect(() => {
-    if (has_children) {
-      setFieldValue("family", initialValues.family);
-    } else {
+    if (previousHasChildrenRef.current === has_children) return;
+    previousHasChildrenRef.current = has_children;
+
+    if (!has_children) {
       setFieldValue("family", []);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [has_children]);
+
+    if (!Array.isArray(values.family) || values.family.length === 0) {
+      setFieldValue("family", initialValues.family);
+    }
+  }, [has_children, setFieldValue, values.family]);
 
   useEffect(() => {
     if (!has_children && currentStep === "family") {

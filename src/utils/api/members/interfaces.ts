@@ -1,3 +1,5 @@
+import type { FamilyRelation } from "@/utils/familyRelations";
+
 type statsType = {
   total_members: number;
   total_males: number;
@@ -135,7 +137,7 @@ export interface IMemberInfo {
     phone_number?: string;
     country_code?: string;
   };
-  family: unknown[];
+  family: IFamilyMemberRecord[];
   enrolled_programs?: IEnrolledPrograms;
   department_positions: Array<
     | string
@@ -148,6 +150,23 @@ export interface IMemberInfo {
   >;
   photo: string;
   country: string;
+}
+
+export interface IFamilyMemberRecord {
+  user_id?: string | number;
+  relation?: FamilyRelation | string;
+  title?: string;
+  first_name?: string;
+  other_name?: string;
+  last_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  marital_status?: string;
+  nationality?: string;
+  email?: string;
+  country_code?: string;
+  primary_number?: string;
+  [key: string]: unknown;
 }
 
 export interface IFamilyUserInfo {

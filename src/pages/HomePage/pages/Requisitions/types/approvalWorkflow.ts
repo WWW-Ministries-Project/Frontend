@@ -14,6 +14,7 @@ export type RequisitionApprovalConfigPayload = {
   module: "REQUISITION";
   requester_user_ids: number[];
   approvers: ApprovalStep[];
+  notification_user_ids?: number[];
   is_active?: boolean;
 };
 
