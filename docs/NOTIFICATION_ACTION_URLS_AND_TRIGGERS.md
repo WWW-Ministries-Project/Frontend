@@ -5,6 +5,17 @@
 - Real-time strategy: SSE.
 - Toast policy: only `HIGH` / `CRITICAL` notifications show toast popups.
 
+## Base Routes
+- `GET /notifications`
+- `GET /notifications/unread-count`
+- `PATCH /notifications/:id/read`
+- `PATCH /notifications/:id/unread`
+- `PATCH /notifications/read-all`
+- `GET /notifications/stream-token` (short-lived token for native SSE)
+- `GET /notifications/stream` (SSE)
+
+All routes require bearer auth.
+
 ## Standard Notification Payload
 
 ```json
@@ -27,6 +38,20 @@ Notes:
 - Backend can return snake_case; frontend normalizes both camelCase and snake_case.
 - `actionUrl` can be internal (e.g. `/home/requests/abc`) or external (`https://...`).
 - Requisition detail URLs use a base64-encoded requisition id in path: `/home/requests/{encodedRequisitionId}`.
+
+## SSE Auth and Events
+
+Native `EventSource` cannot send custom auth headers. Frontend uses:
+1. `GET /notifications/stream-token` with bearer token.
+2. `GET /notifications/stream?stream_token=<token>` with native `EventSource`.
+
+Handled SSE event names:
+- `connected`
+- `heartbeat`
+- `notification`
+- `notification_updated`
+- `notifications_read_all`
+- `unread_count`
 
 ## `actionUrl` Templates by Domain
 
@@ -87,5 +112,8 @@ If `actionUrl` is missing, frontend falls back by `entityType`/`type` to the nea
 - Notification center page (`Unread` / `All`) at:
   - `/home/notifications`
   - `/member/notifications`
+- Notification center fetch patterns:
+  - `Unread` tab: `GET /notifications?unreadOnly=true&page=1&limit=20`
+  - `All` tab: `GET /notifications?page=1&limit=20`
 - SSE connection with reconnect backoff.
 - Deduping on merge by `id`, then `dedupeKey`, then composite fallback identity.

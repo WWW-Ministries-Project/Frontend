@@ -20,7 +20,7 @@ type NotificationIngestSource = "sse" | "fetch" | "manual";
 
 interface FetchNotificationsOptions {
   page?: number;
-  take?: number;
+  limit?: number;
   append?: boolean;
   query?: QueryType;
 }
@@ -32,6 +32,7 @@ interface InAppNotificationStore {
   loadingMore: boolean;
   hasMore: boolean;
   currentPage: number;
+  activeQuery: QueryType;
   connected: boolean;
   initialLoaded: boolean;
   error: string | null;
@@ -44,6 +45,8 @@ interface InAppNotificationStore {
     payload: unknown,
     source?: NotificationIngestSource
   ) => void;
+  applyUnreadCountPayload: (payload: unknown) => void;
+  applyReadAllFromServer: (payload?: unknown) => void;
   markAsRead: (notificationId: string) => Promise<boolean>;
   markAsUnread: (notificationId: string) => Promise<boolean>;
   markAllAsRead: () => Promise<boolean>;
@@ -53,7 +56,7 @@ interface InAppNotificationStore {
 
 const deriveHasMore = (
   page: number,
-  take: number,
+  limit: number,
   listLength: number,
   meta?: {
     current_page?: number;
@@ -62,7 +65,7 @@ const deriveHasMore = (
   payloadMeta?: {
     total?: number;
     page?: number;
-    take?: number;
+    limit?: number;
   }
 ): boolean => {
   if (
@@ -72,14 +75,14 @@ const deriveHasMore = (
     return meta.current_page < meta.totalPages;
   }
 
-  const payloadTake = payloadMeta?.take || take;
+  const payloadLimit = payloadMeta?.limit || limit;
   const payloadPage = payloadMeta?.page || page;
 
-  if (typeof payloadMeta?.total === "number" && payloadTake > 0) {
-    return payloadPage * payloadTake < payloadMeta.total;
+  if (typeof payloadMeta?.total === "number" && payloadLimit > 0) {
+    return payloadPage * payloadLimit < payloadMeta.total;
   }
 
-  return listLength >= payloadTake;
+  return listLength >= payloadLimit;
 };
 
 const toErrorMessage = (error: unknown): string => {
@@ -100,6 +103,18 @@ const shouldToastHighPriority = (
   return !recentlyToastedKeys.includes(key);
 };
 
+const isUnreadOnlyQuery = (query: QueryType | undefined): boolean => {
+  if (!query) return false;
+
+  const unreadOnly = query.unreadOnly;
+  if (typeof unreadOnly === "number") return unreadOnly === 1;
+  if (typeof unreadOnly === "string") {
+    return ["true", "1", "yes"].includes(unreadOnly.trim().toLowerCase());
+  }
+
+  return false;
+};
+
 const createInitialState = () => ({
   notifications: [] as InAppNotification[],
   unreadCount: 0,
@@ -107,6 +122,7 @@ const createInitialState = () => ({
   loadingMore: false,
   hasMore: true,
   currentPage: 1,
+  activeQuery: {} as QueryType,
   connected: false,
   initialLoaded: false,
   error: null as string | null,
@@ -118,7 +134,15 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     ...createInitialState(),
 
     fetchNotifications: async (options = {}) => {
-      const { page = 1, take = DEFAULT_PAGE_SIZE, append = false, query } = options;
+      const state = get();
+      const {
+        page = 1,
+        limit = DEFAULT_PAGE_SIZE,
+        append = false,
+        query,
+      } = options;
+
+      const effectiveQuery = query || (append ? state.activeQuery : {});
 
       set({
         loading: !append,
@@ -129,22 +153,24 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
       try {
         const response = await api.fetch.fetchNotifications({
           page,
-          take,
-          ...(query || {}),
+          limit,
+          ...effectiveQuery,
         });
 
         const collection = normalizeNotificationCollection(response.data);
         const current = append ? get().notifications : [];
         const merged = mergeNotifications(current, collection.items);
+        const responseLimit = collection.limit || collection.take || limit;
+
         const hasMore = deriveHasMore(
           page,
-          take,
+          limit,
           collection.items.length,
           response.meta,
           {
             total: collection.total,
             page: collection.page,
-            take: collection.take,
+            limit: responseLimit,
           }
         );
 
@@ -152,14 +178,16 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
           (notification) => !notification.isRead
         ).length;
 
-        set((state) => ({
+        const unreadOnlyRequest = isUnreadOnlyQuery(effectiveQuery);
+
+        set((previousState) => ({
           notifications: merged.notifications,
           hasMore,
           currentPage: page,
-          unreadCount:
-            append || state.unreadCount > unreadCountFromList
-              ? state.unreadCount
-              : unreadCountFromList,
+          activeQuery: effectiveQuery,
+          unreadCount: unreadOnlyRequest
+            ? previousState.unreadCount
+            : Math.max(previousState.unreadCount, unreadCountFromList),
           loading: false,
           loadingMore: false,
           initialLoaded: true,
@@ -192,19 +220,24 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
 
     refresh: async () => {
       await Promise.all([
-        get().fetchNotifications({ page: 1, append: false }),
+        get().fetchNotifications({
+          page: 1,
+          append: false,
+          query: {},
+        }),
         get().fetchUnreadCount(),
       ]);
     },
 
     loadMore: async () => {
-      const { hasMore, loadingMore, loading, currentPage } = get();
+      const { hasMore, loadingMore, loading, currentPage, activeQuery } = get();
 
       if (!hasMore || loadingMore || loading) return;
 
       await get().fetchNotifications({
         page: currentPage + 1,
         append: true,
+        query: activeQuery,
       });
     },
 
@@ -245,6 +278,31 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         unreadCount,
         recentlyToastedKeys: toastKeys.slice(-MAX_TOAST_KEYS),
       });
+    },
+
+    applyUnreadCountPayload: (payload) => {
+      const unreadCount = parseUnreadCount(payload);
+      if (unreadCount === null) return;
+
+      set({ unreadCount });
+    },
+
+    applyReadAllFromServer: (payload) => {
+      const parsedUnreadCount = parseUnreadCount(payload);
+      const now = new Date().toISOString();
+
+      set((state) => ({
+        notifications: state.notifications.map((notification) =>
+          notification.isRead
+            ? notification
+            : {
+                ...notification,
+                isRead: true,
+                readAt: notification.readAt || now,
+              }
+        ),
+        unreadCount: parsedUnreadCount === null ? 0 : parsedUnreadCount,
+      }));
     },
 
     markAsRead: async (notificationId) => {

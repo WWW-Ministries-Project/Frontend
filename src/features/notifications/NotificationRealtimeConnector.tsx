@@ -1,15 +1,22 @@
 import { useEffect } from "react";
 
-import { getToken } from "@/utils/helperFunctions";
-import { resolveNotificationSseUrl } from "./utils";
+import { useAuth } from "@/context/AuthWrapper";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
+import { api } from "@/utils/api/apiCalls";
+import { getToken } from "@/utils/helperFunctions";
+import {
+  parseNotificationStreamToken,
+  resolveNotificationSseUrl,
+} from "./utils";
 
-const LISTENED_NOTIFICATION_EVENTS = [
-  "notification",
-  "notification.created",
-  "notifications",
-  "in_app_notification.created",
-] as const;
+const SSE_EVENTS = {
+  connected: "connected",
+  heartbeat: "heartbeat",
+  notification: "notification",
+  notificationUpdated: "notification_updated",
+  notificationsReadAll: "notifications_read_all",
+  unreadCount: "unread_count",
+} as const;
 
 const parseSsePayload = (value: string): unknown => {
   if (!value) return null;
@@ -22,27 +29,81 @@ const parseSsePayload = (value: string): unknown => {
 };
 
 export const NotificationRealtimeConnector = () => {
-  const refresh = useInAppNotificationStore((state) => state.refresh);
+  const {
+    user: { id: userId },
+  } = useAuth();
+
+  const fetchNotifications = useInAppNotificationStore(
+    (state) => state.fetchNotifications
+  );
+  const fetchUnreadCount = useInAppNotificationStore(
+    (state) => state.fetchUnreadCount
+  );
   const setConnected = useInAppNotificationStore((state) => state.setConnected);
   const ingestNotificationPayload = useInAppNotificationStore(
     (state) => state.ingestNotificationPayload
   );
+  const applyUnreadCountPayload = useInAppNotificationStore(
+    (state) => state.applyUnreadCountPayload
+  );
+  const applyReadAllFromServer = useInAppNotificationStore(
+    (state) => state.applyReadAllFromServer
+  );
 
   useEffect(() => {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      setConnected(false);
+      return;
+    }
 
-    void refresh();
+    // On auth-bound mount/login, fetch unread count once; SSE keeps it synced.
+    void fetchUnreadCount();
 
     let eventSource: EventSource | null = null;
     let reconnectTimer: number | null = null;
+    let fallbackPollTimer: number | null = null;
     let isDisposed = false;
     let reconnectAttempts = 0;
+    let lastResyncAt = 0;
 
     const clearReconnectTimer = () => {
       if (reconnectTimer === null) return;
       window.clearTimeout(reconnectTimer);
       reconnectTimer = null;
+    };
+
+    const clearFallbackPoll = () => {
+      if (fallbackPollTimer === null) return;
+      window.clearInterval(fallbackPollTimer);
+      fallbackPollTimer = null;
+    };
+
+    const syncFromApi = async (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastResyncAt < 30_000) {
+        return;
+      }
+
+      lastResyncAt = now;
+
+      await Promise.all([
+        fetchNotifications({
+          page: 1,
+          limit: 20,
+          append: false,
+          query: {},
+        }),
+        fetchUnreadCount(),
+      ]);
+    };
+
+    const startFallbackPoll = () => {
+      if (fallbackPollTimer !== null) return;
+
+      fallbackPollTimer = window.setInterval(() => {
+        void syncFromApi(false);
+      }, 15_000);
     };
 
     const disconnect = () => {
@@ -58,28 +119,97 @@ export const NotificationRealtimeConnector = () => {
       ingestNotificationPayload(payload, "sse");
     };
 
-    const connect = () => {
+    const onUnreadCountEvent = (event: MessageEvent<string>) => {
+      const payload = parseSsePayload(event.data);
+      if (payload === null) return;
+
+      applyUnreadCountPayload(payload);
+    };
+
+    const onReadAllEvent = (event: MessageEvent<string>) => {
+      const payload = parseSsePayload(event.data);
+      applyReadAllFromServer(payload ?? undefined);
+    };
+
+    const onConnectedEvent = (event: MessageEvent<string>) => {
+      setConnected(true);
+      clearFallbackPoll();
+
+      const payload = parseSsePayload(event.data);
+      if (payload === null) return;
+
+      applyUnreadCountPayload(payload);
+      ingestNotificationPayload(payload, "sse");
+    };
+
+    const attachListeners = () => {
+      if (!eventSource) return;
+
+      eventSource.addEventListener(
+        SSE_EVENTS.connected,
+        onConnectedEvent as EventListener
+      );
+      eventSource.addEventListener(SSE_EVENTS.heartbeat, () => {
+        // Heartbeat intentionally ignored. Connection health is tracked by EventSource lifecycle.
+      });
+      eventSource.addEventListener(
+        SSE_EVENTS.notification,
+        onNotificationEvent as EventListener
+      );
+      eventSource.addEventListener(
+        SSE_EVENTS.notificationUpdated,
+        onNotificationEvent as EventListener
+      );
+      eventSource.addEventListener(
+        SSE_EVENTS.notificationsReadAll,
+        onReadAllEvent as EventListener
+      );
+      eventSource.addEventListener(
+        SSE_EVENTS.unreadCount,
+        onUnreadCountEvent as EventListener
+      );
+    };
+
+    const connect = async () => {
       if (isDisposed) return;
 
-      const url = resolveNotificationSseUrl();
-      eventSource = new EventSource(url, {
-        withCredentials: true,
-      });
+      try {
+        const tokenResponse = await api.fetch.fetchNotificationsStreamToken();
+        const streamToken = parseNotificationStreamToken(tokenResponse.data);
 
-      eventSource.onopen = () => {
-        reconnectAttempts = 0;
-        setConnected(true);
-      };
+        const url = resolveNotificationSseUrl(streamToken || undefined);
+        eventSource = new EventSource(url);
 
-      eventSource.onmessage = onNotificationEvent;
+        eventSource.onopen = () => {
+          reconnectAttempts = 0;
+          setConnected(true);
+          clearFallbackPoll();
+          void syncFromApi(false);
+        };
 
-      LISTENED_NOTIFICATION_EVENTS.forEach((eventName) => {
-        eventSource?.addEventListener(eventName, onNotificationEvent as EventListener);
-      });
+        // Fallback for servers that send default unnamed events.
+        eventSource.onmessage = onNotificationEvent;
 
-      eventSource.onerror = () => {
+        attachListeners();
+
+        eventSource.onerror = () => {
+          setConnected(false);
+          disconnect();
+          startFallbackPoll();
+
+          if (isDisposed) return;
+
+          const waitMs = Math.min(30_000, 1_000 * 2 ** reconnectAttempts);
+          reconnectAttempts += 1;
+
+          clearReconnectTimer();
+          reconnectTimer = window.setTimeout(() => {
+            void connect();
+          }, waitMs);
+        };
+      } catch {
         setConnected(false);
-        disconnect();
+        startFallbackPoll();
 
         if (isDisposed) return;
 
@@ -88,20 +218,29 @@ export const NotificationRealtimeConnector = () => {
 
         clearReconnectTimer();
         reconnectTimer = window.setTimeout(() => {
-          connect();
+          void connect();
         }, waitMs);
-      };
+      }
     };
 
-    connect();
+    void connect();
 
     return () => {
       isDisposed = true;
       setConnected(false);
       clearReconnectTimer();
+      clearFallbackPoll();
       disconnect();
     };
-  }, [ingestNotificationPayload, refresh, setConnected]);
+  }, [
+    applyReadAllFromServer,
+    applyUnreadCountPayload,
+    fetchNotifications,
+    fetchUnreadCount,
+    ingestNotificationPayload,
+    setConnected,
+    userId,
+  ]);
 
   return null;
 };

@@ -63,26 +63,38 @@ export const NotificationCenterPage = () => {
   const loadingMore = useInAppNotificationStore((state) => state.loadingMore);
   const hasMore = useInAppNotificationStore((state) => state.hasMore);
   const connected = useInAppNotificationStore((state) => state.connected);
-  const initialLoaded = useInAppNotificationStore((state) => state.initialLoaded);
   const error = useInAppNotificationStore((state) => state.error);
-  const refresh = useInAppNotificationStore((state) => state.refresh);
+  const fetchUnreadCount = useInAppNotificationStore(
+    (state) => state.fetchUnreadCount
+  );
+  const fetchNotifications = useInAppNotificationStore(
+    (state) => state.fetchNotifications
+  );
   const loadMore = useInAppNotificationStore((state) => state.loadMore);
   const markAsRead = useInAppNotificationStore((state) => state.markAsRead);
   const markAsUnread = useInAppNotificationStore((state) => state.markAsUnread);
   const markAllAsRead = useInAppNotificationStore((state) => state.markAllAsRead);
 
   useEffect(() => {
-    if (initialLoaded) return;
-    void refresh();
-  }, [initialLoaded, refresh]);
+    const tabQuery = activeTab === "unread" ? { unreadOnly: "true" } : {};
+    void fetchNotifications({
+      page: 1,
+      limit: 20,
+      append: false,
+      query: tabQuery,
+    });
+  }, [activeTab, fetchNotifications]);
+
+  useEffect(() => {
+    void fetchUnreadCount();
+  }, [fetchUnreadCount]);
 
   const unreadNotifications = useMemo(
     () => notifications.filter((notification) => !notification.isRead),
     [notifications]
   );
 
-  const visibleNotifications =
-    activeTab === "unread" ? unreadNotifications : notifications;
+  const visibleNotifications = activeTab === "unread" ? unreadNotifications : notifications;
 
   const handleOpenNotification = async (notification: InAppNotification) => {
     if (!notification.isRead) {
@@ -116,7 +128,14 @@ export const NotificationCenterPage = () => {
             <button
               type="button"
               onClick={() => {
-                void refresh();
+                const tabQuery = activeTab === "unread" ? { unreadOnly: "true" } : {};
+                void fetchNotifications({
+                  page: 1,
+                  limit: 20,
+                  append: false,
+                  query: tabQuery,
+                });
+                void fetchUnreadCount();
               }}
               className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
             >

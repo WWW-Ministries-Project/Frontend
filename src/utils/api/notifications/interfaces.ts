@@ -32,3 +32,8 @@ export interface NotificationListPayload {
 export interface NotificationUnreadCountPayload {
   unreadCount: number;
 }
+
+export interface NotificationStreamTokenPayload {
+  streamToken: string;
+  expiresAt?: string;
+}

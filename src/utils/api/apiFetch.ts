@@ -46,6 +46,7 @@ import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisiti
 import type {
   InAppNotification,
   NotificationListPayload,
+  NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
 
@@ -198,6 +199,12 @@ export class ApiCalls {
     ApiResponse<number | NotificationUnreadCountPayload>
   > => {
     return this.fetchFromApi("notifications/unread-count");
+  };
+
+  fetchNotificationsStreamToken = (): Promise<
+    ApiResponse<string | NotificationStreamTokenPayload>
+  > => {
+    return this.fetchFromApi("notifications/stream-token");
   };
 
   // Program Management

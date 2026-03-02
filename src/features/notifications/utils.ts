@@ -163,6 +163,7 @@ export type NotificationCollection = {
   total?: number;
   page?: number;
   take?: number;
+  limit?: number;
 };
 
 const extractArrayPayload = (payload: unknown): unknown[] | null => {
@@ -221,7 +222,16 @@ export const normalizeNotificationCollection = (
       toInteger(nestedRecord?.current_page),
     take:
       toInteger(record?.take) ??
+      toInteger(record?.limit) ??
       toInteger(record?.page_size) ??
+      toInteger(nestedRecord?.take) ??
+      toInteger(nestedRecord?.limit) ??
+      toInteger(nestedRecord?.page_size),
+    limit:
+      toInteger(record?.limit) ??
+      toInteger(record?.take) ??
+      toInteger(record?.page_size) ??
+      toInteger(nestedRecord?.limit) ??
       toInteger(nestedRecord?.take) ??
       toInteger(nestedRecord?.page_size),
   };
@@ -544,7 +554,32 @@ export const resolveNotificationNavigationTarget = (
   };
 };
 
-export const resolveNotificationSseUrl = (): string => {
+export const parseNotificationStreamToken = (payload: unknown): string | null => {
+  const direct = toNonEmptyString(payload);
+  if (direct) return direct;
+
+  const record = toRecord(payload);
+  if (!record) return null;
+
+  const token =
+    toNonEmptyString(record.streamToken) ??
+    toNonEmptyString(record.stream_token) ??
+    toNonEmptyString(record.token);
+
+  if (token) return token;
+
+  const nestedRecord = toRecord(record.data);
+  if (!nestedRecord) return null;
+
+  return (
+    toNonEmptyString(nestedRecord.streamToken) ??
+    toNonEmptyString(nestedRecord.stream_token) ??
+    toNonEmptyString(nestedRecord.token) ??
+    null
+  );
+};
+
+export const resolveNotificationSseUrl = (streamToken?: string): string => {
   const normalizedPath = DEFAULT_SSE_PATH.startsWith("/")
     ? DEFAULT_SSE_PATH.slice(1)
     : DEFAULT_SSE_PATH;
@@ -555,9 +590,23 @@ export const resolveNotificationSseUrl = (): string => {
     "";
 
   try {
-    return new URL(normalizedPath, origin).toString();
+    const url = new URL(normalizedPath, origin);
+    const normalizedToken = toNonEmptyString(streamToken);
+
+    if (normalizedToken) {
+      url.searchParams.set("stream_token", normalizedToken);
+    }
+
+    return url.toString();
   } catch {
-    return `${window.location.origin}/${normalizedPath}`;
+    const baseUrlValue = `${window.location.origin}/${normalizedPath}`;
+    const normalizedToken = toNonEmptyString(streamToken);
+    if (!normalizedToken) return baseUrlValue;
+
+    const separator = baseUrlValue.includes("?") ? "&" : "?";
+    return `${baseUrlValue}${separator}stream_token=${encodeURIComponent(
+      normalizedToken
+    )}`;
   }
 };
 
