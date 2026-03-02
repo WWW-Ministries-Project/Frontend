@@ -3,6 +3,7 @@ import { useProgramsStore } from "@/pages/HomePage/pages/MinistrySchool/store/pr
 import { UserStats } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
+import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
 import { useStore } from "@/store/useStore";
 import { useUserStore } from "@/store/userStore";
 import { removeToken } from "@/utils/helperFunctions";
@@ -54,6 +55,7 @@ export const resetProtectedAppState = (): void => {
   useProgramsStore.getState().clearSelection();
   useCart.getState().clearCart();
   useCart.setState({ cartOpen: false });
+  useInAppNotificationStore.getState().reset();
 };
 
 export const clearAuthSession = (): void => {

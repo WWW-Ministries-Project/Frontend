@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ChurchLogo from "@/components/ChurchLogo";
 import { ProfilePicture } from "@/components";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
+import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
 
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
@@ -353,6 +354,7 @@ export const Header = ({ handleShowNav }: IProps) => {
         {/* Right */}
         <div ref={profileRef} className="flex items-center gap-3 relative">
           {isMemberRoute && <CartIcon />}
+          <HeaderNotificationMenu isMemberRoute={isMemberRoute} />
 
           <button
             ref={profileButtonRef}

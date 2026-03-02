@@ -20,12 +20,14 @@ export class ApiExecution {
     deleteExecutor,
     postExecutor,
     updateExecutor,
+    patchExecutor,
   }: ApiCallOptions) {
     this.baseUrl = baseUrl!;
     this.fetchExecutor = fetchExecutor;
     this.deleteExecutor = deleteExecutor;
     this.postExecutor = postExecutor;
     this.updateExecutor = updateExecutor;
+    this.patchExecutor = patchExecutor;
   }
 
   fetchData<T>(path: string, query?: QueryType): Promise<ApiResponse<T>> {
