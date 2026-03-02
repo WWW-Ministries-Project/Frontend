@@ -1,10 +1,14 @@
+import { normalizeFamilyRelation } from "./familyRelations";
+
 type PersonWithOtherName = {
   other_name?: string | null;
 };
 
 type PayloadWithOptionalOtherNames = {
   personal_info?: PersonWithOtherName | null;
-  family?: Array<(PersonWithOtherName & Record<string, unknown>) | null> | null;
+  family?: Array<
+    ((PersonWithOtherName & { relation?: unknown }) & Record<string, unknown>) | null
+  > | null;
 };
 
 const normalizeOtherName = (value: string | null | undefined) => value ?? "";
@@ -25,6 +29,7 @@ export const normalizeOptionalOtherNames = <T extends PayloadWithOptionalOtherNa
           ? {
               ...member,
               other_name: normalizeOtherName(member.other_name),
+              relation: normalizeFamilyRelation(member.relation),
             }
           : member
       )

@@ -6,6 +6,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
+import { validateFamilyPayload } from "@/utils/familyRelations";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { validateUploadFile } from "@/utils/uploadValidation";
 import {
@@ -87,6 +88,12 @@ export const Registration = () => {
   }, [error]);
 
   async function handleSubmit(values: IRegistration) {
+    const familyValidationError = validateFamilyPayload(values.family);
+    if (familyValidationError) {
+      showNotification(familyValidationError, "error");
+      return;
+    }
+
     let dataToSend: IRegistration = normalizeOptionalOtherNames(values);
 
     try {

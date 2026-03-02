@@ -5,6 +5,7 @@ import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
+import { validateFamilyPayload } from "@/utils/familyRelations";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { validateUploadFile } from "@/utils/uploadValidation";
 import { Formik, FormikProps, FormikTouched } from "formik";
@@ -107,6 +108,15 @@ export function ManageMember() {
   };
 
   async function handleSubmit(values: IMembersForm) {
+    const familyValidationError = validateFamilyPayload(values.family, {
+      currentUserId: isEditMode ? member?.data?.id ?? id : undefined,
+    });
+
+    if (familyValidationError) {
+      showNotification(familyValidationError, "error");
+      return;
+    }
+
     let dataToSend = normalizeOptionalOtherNames(values);
 
     try {

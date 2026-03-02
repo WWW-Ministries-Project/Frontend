@@ -3,22 +3,44 @@ import {
   IPersonalDetails,
   PersonalDetails,
 } from "@/components/subform/PersonalDetails";
-import { FormHeader, FullWidth } from "@/components/ui";
+import { FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
+import { useStore } from "@/store/useStore";
+import { api } from "@/utils";
+import {
+  FAMILY_RELATION_VALUES,
+  FamilyRelation,
+  normalizeFamilyRelation,
+  validateFamilyPayload,
+} from "@/utils/familyRelations";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { Field, FieldArray, getIn, useFormikContext } from "formik";
 import { Fragment, useMemo } from "react";
-import { array, object } from "yup";
+import { array, object, string } from "yup";
 import FormikSelectField from "../FormikSelect";
-import { relationOptions } from "./EmergencyContact";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api } from "@/utils";
-import { useStore } from "@/store/useStore";
 
 type IFamilyMember = IPersonalDetails & {
   user_id?: string;
-  relation?: string;
+  relation?: FamilyRelation | "";
   email?: string;
 };
+
+const familyRelationOptions = [
+  { label: "Spouse", value: "spouse" },
+  { label: "Parent", value: "parent" },
+  { label: "Child", value: "child" },
+  { label: "Sibling", value: "sibling" },
+  { label: "Guardian", value: "guardian" },
+  { label: "Dependent", value: "dependent" },
+  { label: "Grandparent", value: "grandparent" },
+  { label: "Grandchild", value: "grandchild" },
+  { label: "In-law", value: "in-law" },
+];
+
+const getEmptyFamilyMember = (): IFamilyMember => ({
+  ...PersonalDetails.initialValues,
+  relation: "",
+});
 
 const ChildrenSubFormComponent = ({
   disabled = false,
@@ -32,25 +54,25 @@ const ChildrenSubFormComponent = ({
     [entire]
   );
 
-   const {
-      data,
-      refetch: fetchAMembers,
-      loading: memberLoading,
-    } = useFetch(api.fetch.fetchAMember, {}, true);
-    const memberData = data?.data || null;
-    const membersOptions = useStore((state) => state.membersOptions);
+  const { refetch: fetchAMember } = useFetch(api.fetch.fetchAMember, {}, true);
+  const membersOptions = useStore((state) => state.membersOptions);
 
-    const selectedUserIds = useMemo(
-      () => family.map((f: IFamilyMember) => f.user_id).filter(Boolean),
-      [family]
-    );
+  const selectedUserIds = useMemo(
+    () =>
+      family
+        .map((member: IFamilyMember) =>
+          member.user_id ? String(member.user_id) : ""
+        )
+        .filter(Boolean),
+    [family]
+  );
 
-    const handleResetMember = (index: number) => {
-      setFieldValue(`family.${index}`, {
-        ...PersonalDetails.initialValues,
-        relation: family[index]?.relation ?? "",
-      });
-    };
+  const handleResetMember = (index: number) => {
+    setFieldValue(`family.${index}`, {
+      ...getEmptyFamilyMember(),
+      relation: normalizeFamilyRelation(family[index]?.relation),
+    });
+  };
 
   return (
     <>
@@ -63,7 +85,7 @@ const ChildrenSubFormComponent = ({
               const availableMembers = membersOptions.filter(
                 (opt) =>
                   !selectedUserIds.includes(opt.value) ||
-                  opt.value === family[index]?.user_id
+                  opt.value === String(family[index]?.user_id ?? "")
               );
               return (
                 <Fragment key={index}>
@@ -89,13 +111,14 @@ const ChildrenSubFormComponent = ({
                         return;
                       }
 
-                      const result = await fetchAMembers({ user_id: selectedOption });
+                      const result = await fetchAMember({ user_id: selectedOption });
                       const member = result?.data;
 
                       if (!member) return;
 
                       setFieldValue(`family.${index}`, {
-                        ...PersonalDetails.initialValues,
+                        ...getEmptyFamilyMember(),
+                        relation: normalizeFamilyRelation(family[index]?.relation),
                         user_id: String(member.id),
                         title: member.title ?? "",
                         first_name: member.first_name ?? "",
@@ -141,7 +164,7 @@ const ChildrenSubFormComponent = ({
                     placeholder="Select relation"
                     id={`family.${index}.relation`}
                     name={`family.${index}.relation`}
-                    options={relationOptions}
+                    options={familyRelationOptions}
                   />
                   </FullWidth>
 
@@ -161,7 +184,7 @@ const ChildrenSubFormComponent = ({
                 value="+ Add another family member"
                 variant="ghost"
                 type="button"
-                onClick={() => unshift(PersonalDetails.initialValues)}
+                onClick={() => unshift(getEmptyFamilyMember())}
               />
             </FullWidth>
           </>
@@ -176,14 +199,54 @@ export interface IChildrenSubForm {
 }
 
 const initialValues = {
-  family: [PersonalDetails.initialValues],
+  family: [getEmptyFamilyMember()],
 };
+
+const familyMemberValidationSchema = object().shape({
+  ...PersonalDetails.validationSchema,
+  relation: string()
+    .transform((_value, originalValue) => normalizeFamilyRelation(originalValue))
+    .oneOf([...FAMILY_RELATION_VALUES], "Unsupported relation")
+    .required("Relation is required"),
+});
 
 const validationSchema = {
   family: array()
     .when("personal_info.has_children", {
       is: true,
-      then: (schema) => schema.of(object().shape(PersonalDetails.validationSchema)).min(1),
+      then: (schema) =>
+        schema
+          .of(familyMemberValidationSchema)
+          .min(1, "Add at least one family member")
+          .test(
+            "family-payload-rules",
+            "Invalid family payload",
+            function (members) {
+              const familyError = validateFamilyPayload(members);
+
+              if (!familyError) return true;
+
+              if (familyError === "Duplicate spouse") {
+                return this.createError({
+                  message: "Max one spouse in the family list.",
+                });
+              }
+
+              if (familyError === "Duplicate relationship for same member") {
+                return this.createError({
+                  message: "No duplicate person in the same family payload.",
+                });
+              }
+
+              if (familyError === "Unsupported relation") {
+                return this.createError({
+                  message: "Relation must be from the allowed list.",
+                });
+              }
+
+              return true;
+            }
+          ),
       otherwise: (schema) => schema.default([]), 
     })
 };

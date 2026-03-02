@@ -1,5 +1,6 @@
 import { IPersonalDetails } from "@/components/subform";
 import { IMemberInfo } from "@/utils";
+import { normalizeFamilyRelation } from "@/utils/familyRelations";
 import { IMembersForm } from "../Components/MembersForm";
 
 export const titleOptions = [
@@ -81,6 +82,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
         .map((member) => ({
           ...member,
           other_name: member.other_name ?? "",
+          relation: normalizeFamilyRelation(member.relation),
         }))
     : [];
 
@@ -94,7 +96,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       gender: input.gender || "",
       marital_status: input.marital_status || "",
       nationality: input.nationality || "",
-      has_children: input.family.length > 0,
+      has_children: normalizedFamily.length > 0,
     },
     picture: { src: input.photo || "", picture: null },
     contact_info: {

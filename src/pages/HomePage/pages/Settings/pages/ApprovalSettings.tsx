@@ -121,6 +121,17 @@ const validateConfigPayload = (
     return "Requester IDs must be positive numbers.";
   }
 
+  if (payload.notification_user_ids) {
+    const uniqueNotificationIds = new Set(payload.notification_user_ids);
+    if (uniqueNotificationIds.size !== payload.notification_user_ids.length) {
+      return "Notification list contains duplicate users.";
+    }
+
+    if (payload.notification_user_ids.some((id) => !isPositiveInteger(id))) {
+      return "Notification user IDs must be positive numbers.";
+    }
+  }
+
   if (payload.approvers.length === 0) {
     return "Add at least one approver step.";
   }
@@ -175,6 +186,9 @@ const ApprovalSettings = () => {
   const [selectedSubTab, setSelectedSubTab] =
     useState<ApprovalSubTab>("Requisition");
   const [selectedRequesters, setSelectedRequesters] = useState<string[]>([]);
+  const [selectedNotificationUsers, setSelectedNotificationUsers] = useState<
+    string[]
+  >([]);
   const [approverRules, setApproverRules] = useState<ApproverRule[]>([
     createApproverRule(),
   ]);
@@ -243,15 +257,25 @@ const ApprovalSettings = () => {
     [approverRules]
   );
 
+  const hasInvalidNotificationSelection = useMemo(
+    () =>
+      selectedNotificationUsers.some(
+        (userId) => !isPositiveInteger(Number(userId))
+      ),
+    [selectedNotificationUsers]
+  );
+
   const isSaveDisabled = useMemo(
     () =>
       isSaving ||
       selectedRequesters.length === 0 ||
       isApproverTargetMissing ||
       hasInvalidRequesterSelection ||
-      hasInvalidApproverSelection,
+      hasInvalidApproverSelection ||
+      hasInvalidNotificationSelection,
     [
       hasInvalidApproverSelection,
+      hasInvalidNotificationSelection,
       hasInvalidRequesterSelection,
       isApproverTargetMissing,
       isSaving,
@@ -269,12 +293,16 @@ const ApprovalSettings = () => {
     const requesterIds = Array.isArray(config.requester_user_ids)
       ? config.requester_user_ids
       : [];
+    const notificationUserIds = Array.isArray(config.notification_user_ids)
+      ? config.notification_user_ids
+      : [];
 
     const configuredApprovers = Array.isArray(config.approvers)
       ? [...config.approvers].sort((a, b) => a.order - b.order)
       : [];
 
     setSelectedRequesters(requesterIds.map((id) => String(id)));
+    setSelectedNotificationUsers(notificationUserIds.map((id) => String(id)));
     setApproverRules(
       configuredApprovers.length > 0
         ? configuredApprovers.map((approver) => {
@@ -362,10 +390,11 @@ const ApprovalSettings = () => {
     return {
       module: "REQUISITION",
       requester_user_ids: selectedRequesters.map((id) => Number(id)),
+      notification_user_ids: selectedNotificationUsers.map((id) => Number(id)),
       approvers,
       is_active: isActive,
     };
-  }, [approverRules, isActive, selectedRequesters]);
+  }, [approverRules, isActive, selectedNotificationUsers, selectedRequesters]);
 
   const handleSaveChanges = async () => {
     const payload = buildPayload();
@@ -447,6 +476,14 @@ const ApprovalSettings = () => {
       );
     }
 
+    if (hasInvalidNotificationSelection) {
+      return (
+        <p className="text-xs text-error">
+          Notification selections must be valid numeric IDs.
+        </p>
+      );
+    }
+
     return null;
   };
 
@@ -488,21 +525,6 @@ const ApprovalSettings = () => {
               />
             </div>
             {renderValidationHints()}
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-base font-semibold text-primary">
-              Configuration state
-            </h4>
-            <label className="inline-flex items-center gap-2 text-sm text-primaryGray">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-lightGray text-primary"
-                checked={isActive}
-                onChange={(event) => setIsActive(event.target.checked)}
-              />
-              Active (only active configuration is used during submit)
-            </label>
           </div>
 
           <div className="space-y-4">
@@ -609,6 +631,40 @@ const ApprovalSettings = () => {
               variant="ghost"
               onClick={handleAddApprover}
             />
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-base font-semibold text-primary">
+              Who should be notified after final approval?
+            </h4>
+            <p className="text-sm text-primaryGray">
+              Selected users are notified when the final approver approves or
+              disapproves a requisition.
+            </p>
+            <div className="max-w-xl">
+              <MultiSelect
+                options={userOptions}
+                selectedValues={selectedNotificationUsers}
+                onChange={setSelectedNotificationUsers}
+                placeholder="Select users to notify"
+                emptyMsg="No notification users selected"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-base font-semibold text-primary">
+              Configuration state
+            </h4>
+            <label className="inline-flex items-center gap-2 text-sm text-primaryGray">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-lightGray text-primary"
+                checked={isActive}
+                onChange={(event) => setIsActive(event.target.checked)}
+              />
+              Active (only active configuration is used during submit)
+            </label>
           </div>
 
           <div className="sticky bottom-0 z-10 -mx-4 border-t border-lightGray bg-white px-4 py-4 md:-mx-6 md:px-6">
