@@ -28,6 +28,7 @@ import ApprovalSettings from "../pages/HomePage/pages/Settings/pages/ApprovalSet
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
+import { NotificationCenterPage } from "@/features/notifications/NotificationCenterPage";
 import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
@@ -160,6 +161,12 @@ export const routes: AppRoute[] = [
         element: <DashBoardPage />,
         isPrivate: false,
         sideTab: true,
+      },
+      {
+        path: relativePath.home.notifications,
+        name: "Notifications",
+        element: <NotificationCenterPage />,
+        isPrivate: true,
       },
       {
         path: relativePath.home.ai,
@@ -1015,6 +1022,12 @@ export const routes: AppRoute[] = [
         path: relativePath.member.appointments,
         name: "member_appointments",
         element: <MyAppointments />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.notifications,
+        name: "member_notifications",
+        element: <NotificationCenterPage />,
         isPrivate: false,
       }
       // {

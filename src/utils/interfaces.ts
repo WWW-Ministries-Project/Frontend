@@ -38,6 +38,7 @@ export interface ApiCallOptions {
   deleteExecutor?: QueryExecutorType;
   postExecutor?: PayloadExecutorType;
   updateExecutor?: PayloadExecutorType;
+  patchExecutor?: PayloadExecutorType;
 }
 
 export interface userType {

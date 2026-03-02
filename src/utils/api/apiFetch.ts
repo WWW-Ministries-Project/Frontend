@@ -43,6 +43,11 @@ import type {
 } from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
 import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import type {
+  InAppNotification,
+  NotificationListPayload,
+  NotificationUnreadCountPayload,
+} from "./notifications/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -180,6 +185,19 @@ export class ApiCalls {
     ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
   > => {
     return this.fetchFromApi("requisitions/get-approval-config");
+  };
+
+  // In-app Notifications
+  fetchNotifications = (
+    query?: QueryType
+  ): Promise<ApiResponse<InAppNotification[] | NotificationListPayload>> => {
+    return this.fetchFromApi("notifications", query);
+  };
+
+  fetchNotificationsUnreadCount = (): Promise<
+    ApiResponse<number | NotificationUnreadCountPayload>
+  > => {
+    return this.fetchFromApi("notifications/unread-count");
   };
 
   // Program Management
