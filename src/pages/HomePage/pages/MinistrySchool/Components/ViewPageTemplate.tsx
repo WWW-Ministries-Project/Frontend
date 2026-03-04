@@ -8,7 +8,7 @@ const ViewPageTemplateInner = () => {
   const { loading, data, details } = useViewPage();
 
   return (
-    <PageOutline className="p-0">
+    <div>
       <section className="sticky top-0 z-20">
         <Banner>
           <div className="w-full space-y-4">
@@ -48,13 +48,16 @@ const ViewPageTemplateInner = () => {
           </div>
         </Banner>
       </section>
+      <PageOutline className="p-0">
+      
 
       <section>
-        <div className="app-page-padding">
+        <div className="">
           <Outlet />
         </div>
       </section>
     </PageOutline>
+    </div>
   );
 };
 

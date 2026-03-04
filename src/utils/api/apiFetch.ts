@@ -46,6 +46,7 @@ import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisiti
 import type {
   InAppNotification,
   NotificationListPayload,
+  NotificationPushPublicKeyPayload,
   NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
@@ -205,6 +206,12 @@ export class ApiCalls {
     ApiResponse<string | NotificationStreamTokenPayload>
   > => {
     return this.fetchFromApi("notifications/stream-token");
+  };
+
+  fetchNotificationsPushPublicKey = (): Promise<
+    ApiResponse<string | NotificationPushPublicKeyPayload>
+  > => {
+    return this.fetchFromApi("notifications/push/public-key");
   };
 
   // Program Management

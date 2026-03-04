@@ -48,6 +48,7 @@ import type {
   AiInsightsRequest,
   CreateAiCredentialPayload,
 } from "./ai/interfaces";
+import type { NotificationPushSubscriptionPayload } from "./notifications/interfaces";
 
 interface PostRequestOptions {
   headers?: Record<string, string>;
@@ -123,6 +124,19 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("requisitions/approval-action", payload);
   };
+
+  subscribeToNotificationPush = (
+    payload: NotificationPushSubscriptionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("notifications/push/subscribe", payload);
+  };
+
+  unsubscribeFromNotificationPush = (
+    payload: NotificationPushSubscriptionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("notifications/push/unsubscribe", payload);
+  };
+
   createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 

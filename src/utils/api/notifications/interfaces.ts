@@ -37,3 +37,25 @@ export interface NotificationStreamTokenPayload {
   streamToken: string;
   expiresAt?: string;
 }
+
+export interface NotificationPushPublicKeyPayload {
+  publicKey?: string;
+  public_key?: string;
+  vapidPublicKey?: string;
+  vapid_public_key?: string;
+  key?: string;
+}
+
+export interface NotificationPushSubscriptionPayload {
+  subscription: PushSubscriptionJSON;
+  endpoint: string;
+  expirationTime?: number | null;
+  keys?: {
+    p256dh?: string;
+    auth?: string;
+  };
+  userAgent?: string;
+  platform?: string;
+  language?: string;
+  timezone?: string;
+}

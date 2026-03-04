@@ -11,6 +11,7 @@ import { useViewPage } from "../customHooks/useViewPage";
 
 export function ViewClass() {
   const { id: classId } = useParams();
+  const parsedClassId = Number(classId);
   // API calls
   const { data, refetch } = useFetch(api.fetch.fetchCourseById, {
     id: classId!,
@@ -22,6 +23,7 @@ export function ViewClass() {
   } = usePost(api.post.enrollUser);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const classData = data?.data || null;
+  const enrollments = classData?.enrollments || [];
 
   const { setLoading, setDetails, setData } = useViewPage();
   useEffect(() => {
@@ -46,20 +48,19 @@ export function ViewClass() {
   }, [postedData, refetch]);
 
   const handleSubmit = (values: IStudentForm) => {
-    if (!classId || isNaN(parseInt(classId, 10))) return;
+    if (!classId || Number.isNaN(parsedClassId)) return;
 
-    postStudent({ user_id: values.user_id, course_id: Number(classId) });
+    postStudent({ user_id: values.user_id, course_id: parsedClassId });
   };
 
   return (
-    <div className="">
-      <div>
-        <AllStudents
-          Data={data?.data?.enrollments || []}
-          onOpen={() => setIsModalOpen(true)}
-        />
-      </div>
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+    <div>
+      <AllStudents Data={enrollments} onOpen={() => setIsModalOpen(true)} />
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="!max-w-[46rem]"
+      >
         <StudentForm
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleSubmit}

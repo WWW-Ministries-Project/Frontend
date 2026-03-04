@@ -16,10 +16,11 @@ interface Student {
   lastName?: string;
   first_name?: string;
   last_name?: string;
-  name: string;
+  name?: string;
   email: string;
   phone?: string;
   primary_number?: string;
+  country_code?: string;
   status: string;
   progress_completed: number;
   progress_total: number;
@@ -27,6 +28,14 @@ interface Student {
   progress_status: string;
   memberType: string;
   userId?: string; // Added userId property
+}
+
+interface StudentDetailsState {
+  studentDetails: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 export const AllStudents = ({
@@ -39,16 +48,45 @@ export const AllStudents = ({
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredData = Data?.filter(
-    (student) =>
-      (student?.first_name || student?.firstName || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (student?.last_name || student?.lastName || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      student?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const trimValue = (value?: string | null): string => (value ?? "").trim();
+
+  const buildPhone = (
+    countryCode?: string | null,
+    number?: string | null
+  ): string => [trimValue(countryCode), trimValue(number)].filter(Boolean).join(" ").trim();
+
+  const resolveStudentName = (student: Student): string => {
+    const firstName = trimValue(student.first_name || student.firstName);
+    const lastName = trimValue(student.last_name || student.lastName);
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+    return fullName || student.name || "Student";
+  };
+
+  const resolveStudentPhone = (student: Student): string =>
+    buildPhone(student.country_code, student.primary_number || student.phone);
+
+  const handleViewStudent = (student: Student) => {
+    const state: StudentDetailsState = {
+      studentDetails: {
+        name: resolveStudentName(student),
+        email: student.email || "",
+        phone: resolveStudentPhone(student),
+      },
+    };
+
+    navigate(`student/${student.id}`, { state });
+  };
+
+  const normalizedSearch = searchQuery.toLowerCase().trim();
+  const filteredData = Data?.filter((student) => {
+    if (!normalizedSearch) return true;
+
+    return (
+      resolveStudentName(student).toLowerCase().includes(normalizedSearch) ||
+      resolveStudentPhone(student).toLowerCase().includes(normalizedSearch) ||
+      student?.email?.toLowerCase().includes(normalizedSearch)
+    );
+  });
 
   // const filterStudents = () => {
   //   return Data?.filter(
@@ -116,7 +154,7 @@ export const AllStudents = ({
           }
           variant="secondary"
           className="text-primary"
-          onClick={() => navigate(`student/${row.original?.id}`)}
+          onClick={() => handleViewStudent(row.original)}
         />
       ),
     },
@@ -195,7 +233,7 @@ export const AllStudents = ({
                   <div className="flex flex-col gap-y-2">
                     <p className="flex items-center gap-1 font-semibold text-primary">
                       <UserIcon className="w-4 h-4 text-primaryGray" />
-                      {student.first_name || student.firstName} {student.last_name || student.lastName}
+                      {resolveStudentName(student)}
                     </p>
 
                     <p className="flex items-center gap-1 text-sm text-primaryGray">
@@ -205,7 +243,7 @@ export const AllStudents = ({
 
                     <p className="flex items-center gap-1 text-sm text-primaryGray">
                       <PhoneIcon className="w-4 h-4" />
-                      {student?.primary_number}
+                      {resolveStudentPhone(student) || "-"}
                     </p>
                   </div>
 
@@ -215,7 +253,7 @@ export const AllStudents = ({
                     }
                     variant="secondary"
                     className="text-primary"
-                    onClick={() => navigate(`student/${student.id}`)}
+                    onClick={() => handleViewStudent(student)}
                   />
                 </div>
 
