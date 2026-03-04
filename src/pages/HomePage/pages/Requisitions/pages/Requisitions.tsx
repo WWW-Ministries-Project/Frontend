@@ -20,7 +20,7 @@ import { tableColumns } from "../utils/tableColums";
 const Requisitions = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
-  const requestsPath = `${relativePath.home.main}/requests`;
+  const myRequisitionPath = `${relativePath.home.main}/requests`;
 
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
     api.fetch.fetchRequisitions as (
@@ -53,8 +53,8 @@ const Requisitions = () => {
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
-    { label: "Requests", link: requestsPath },
-    { label: "Staff Requests", link: "" },
+    { label: "Requisition", link: myRequisitionPath },
+    { label: "Requisitions", link: "" },
   ];
 
   return (
@@ -63,17 +63,17 @@ const Requisitions = () => {
         <div>
           <PageHeader
             title="Requisitions"
-            buttonValue="Request item"
+            buttonValue="Requisition item"
             onClick={() => navigate("/home/requests/request")}
           />
           <p className="text-sm text-primaryGray">
-            Track requisition requests, approvals, and current processing status.
+            Track requisitions, approvals, and current processing status.
           </p>
         </div>
 
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {[
-            { label: "Total Requests", value: metrics.total },
+            { label: "Total Requisitions", value: metrics.total },
             { label: "Drafts", value: metrics.drafts },
             { label: "Awaiting Approval", value: metrics.awaiting },
             { label: "Approved", value: metrics.approved },
@@ -91,10 +91,12 @@ const Requisitions = () => {
 
         <section className="app-card p-4 md:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-primary">Request Management</h3>
+            <h3 className="text-base font-semibold text-primary">
+              Requisition Management
+            </h3>
             <SearchBar
               className="w-full md:w-[340px]"
-              placeholder="Search requests..."
+              placeholder="Search requisitions..."
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             />
@@ -116,7 +118,7 @@ const Requisitions = () => {
             <EmptyState
               scope="page"
               msg="No requisitions found"
-              description="No requisition requests have been created yet."
+              description="No requisitions have been created yet."
             />
           )}
 

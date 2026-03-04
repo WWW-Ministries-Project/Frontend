@@ -30,14 +30,14 @@ const notificationMessages: Record<
     title: "Add Comment",
   },
   reject: {
-    success: "Request rejected successfully",
-    error: "Error rejecting request",
-    title: "Reject Request",
+    success: "Requisition rejected successfully",
+    error: "Error rejecting requisition",
+    title: "Reject Requisition",
   },
   approve: {
-    success: "Request approved successfully",
-    error: "Error approving request",
-    title: "Approve Request",
+    success: "Requisition approved successfully",
+    error: "Error approving requisition",
+    title: "Approve Requisition",
   },
   addAttachment: {
     success: "Attachment added successfully",
@@ -132,11 +132,11 @@ export const useRequisitionDetail = () => {
 
   const commentHeader = useMemo(() => {
     if (actionType === "reject") {
-      return "Reject Request";
+      return "Reject Requisition";
     }
 
     if (actionType === "approve") {
-      return "Approve Request";
+      return "Approve Requisition";
     }
 
     return "Add Comment";
@@ -213,18 +213,18 @@ export const useRequisitionDetail = () => {
 
       if (type === "reject" && !normalizedComment) {
         handleOpenNotification(
-          "Provide a clear reason before rejecting this request.",
+          "Provide a clear reason before rejecting this requisition.",
           "error",
-          "Reject Request"
+          "Reject Requisition"
         );
         return;
       }
 
       if (type === "approve" && !normalizedSignature) {
         handleOpenNotification(
-          "Add your signature before approving this request.",
+          "Add your signature before approving this requisition.",
           "error",
-          "Approve Request"
+          "Approve Requisition"
         );
         return;
       }
@@ -426,16 +426,16 @@ export const useRequisitionDetail = () => {
       handleOpenNotification(
         "Invalid requisition identifier.",
         "error",
-        "Send Request"
+        "Send Requisition"
       );
       return;
     }
 
     if (!normalizedSignature) {
       handleOpenNotification(
-        "Add your signature before sending this request.",
+        "Add your signature before sending this requisition.",
         "error",
-        "Send Request"
+        "Send Requisition"
       );
       return;
     }
@@ -453,9 +453,9 @@ export const useRequisitionDetail = () => {
       });
 
       handleOpenNotification(
-        getResponseMessage(response.data, "Request submitted successfully."),
+        getResponseMessage(response.data, "Requisition submitted successfully."),
         "success",
-        "Send Request"
+        "Send Requisition"
       );
 
       closeSubmitRequestModal();
@@ -465,9 +465,9 @@ export const useRequisitionDetail = () => {
         handleOpenNotification(
           error instanceof Error
             ? error.message
-            : "Error sending request for approval.",
+            : "Error sending requisition for approval.",
           "error",
-          "Send Request"
+          "Send Requisition"
         );
       }
     } finally {

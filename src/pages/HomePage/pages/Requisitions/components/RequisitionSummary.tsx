@@ -33,7 +33,7 @@ const RequisitionSummaryComponent = ({
 
     const items = [
       {
-        title: "Request ID",
+        title: "Requisition ID",
         value: summary?.requisition_id || "N/A",
       },
       {
@@ -45,7 +45,7 @@ const RequisitionSummaryComponent = ({
         value: eventName,
       },
       {
-        title: "Request Date",
+        title: "Requisition Date",
         value: requestDate,
       },
       {
