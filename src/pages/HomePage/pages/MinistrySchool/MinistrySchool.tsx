@@ -136,7 +136,11 @@ export const MinistrySchool = () => {
       />
 
       {renderContent()}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="!max-w-[46rem]"
+      >
         <ProgramForm
           onClose={handleClose}
           program={selectedProgram}

@@ -5,6 +5,10 @@
 - Real-time strategy: SSE.
 - Toast policy: only `HIGH` / `CRITICAL` notifications show toast popups.
 
+## Related Backend Contract
+- Device push notifications backend requirements are documented in:
+  - `docs/DEVICE_NOTIFICATION_BACKEND_CONTRACT.md`
+
 ## Base Routes
 - `GET /notifications`
 - `GET /notifications/unread-count`

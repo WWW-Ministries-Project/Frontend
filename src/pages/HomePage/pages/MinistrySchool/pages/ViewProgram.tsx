@@ -118,7 +118,11 @@ export const ViewProgram = () => {
         )}
       </div>
 
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="!max-w-[46rem]"
+      >
         <CohortForm
           onClose={handleClose}
           cohort={selectedCohort}

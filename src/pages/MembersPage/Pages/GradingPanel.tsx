@@ -18,6 +18,7 @@ interface Submission {
   submittedAt: string;
   status: "pending" | "graded";
   grade: number | null;
+  gradeLabel?: string | null;
 }
 
 interface Assignment {
@@ -26,16 +27,7 @@ interface Assignment {
 }
 
 interface BackendAssignmentResult {
-  submission: {
-    id: number | string;
-    submittedAt: string;
-    score: number | null;
-    status: string;
-  };
-  student: {
-    id: number | string;
-    name: string;
-  };
+  [key: string]: unknown;
 }
 
 const QUICK_GRADES = [100, 90, 80, 70, 60, 50];
@@ -62,24 +54,144 @@ const submitBulkGradesToBackend = (payload: {
   void payload;
 };
 
+type SafeRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): SafeRecord =>
+  value && typeof value === "object" ? (value as SafeRecord) : {};
+
+const toSafeString = (value: unknown): string => {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return "";
+};
+
+const toNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const resolveGrade = (
+  rawItem: SafeRecord,
+  progress: SafeRecord,
+  submission: SafeRecord
+) => {
+  const gradeCandidates = [
+    progress.score,
+    progress.grade,
+    progress.mark,
+    progress.marks,
+    submission.grade,
+    submission.mark,
+    submission.marks,
+    rawItem.score,
+    rawItem.grade,
+    rawItem.mark,
+    rawItem.marks,
+  ];
+
+  for (const candidate of gradeCandidates) {
+    const asNumber = toNumber(candidate);
+    if (asNumber !== null) {
+      const label = toSafeString(candidate) || String(asNumber);
+      return { value: asNumber, label };
+    }
+  }
+
+  return { value: null, label: null as string | null };
+};
+
+const resolveStatus = (rawItem: SafeRecord, submission: SafeRecord): Submission["status"] => {
+  const rawStatus = (
+    toSafeString(submission.status) ||
+    toSafeString(rawItem.status)
+  ).toUpperCase();
+
+  if (!rawStatus) return "pending";
+  if (rawStatus === "PENDING") return "pending";
+  return "graded";
+};
+
+const resolveSubmittedAt = (rawItem: SafeRecord, submission: SafeRecord): string =>
+  toSafeString(submission.submittedAt) ||
+  toSafeString(submission.submitted_at) ||
+  toSafeString(rawItem.submittedAt) ||
+  toSafeString(rawItem.submitted_at);
+
+const resolveStudent = (rawItem: SafeRecord) => {
+  const student = asRecord(rawItem.student);
+  const fullName =
+    toSafeString(student.name) ||
+    [toSafeString(student.first_name), toSafeString(student.last_name)]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    [toSafeString(rawItem.first_name), toSafeString(rawItem.last_name)]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    "Unknown student";
+
+  const id =
+    toSafeString(student.id) ||
+    toSafeString(rawItem.studentId) ||
+    toSafeString(rawItem.student_id) ||
+    fullName;
+
+  return { id, fullName };
+};
+
+const resolveSubmissionId = (rawItem: SafeRecord, submission: SafeRecord): string =>
+  toSafeString(submission.id) ||
+  toSafeString(rawItem.submissionId) ||
+  toSafeString(rawItem.submission_id) ||
+  toSafeString(rawItem.id) ||
+  `${resolveStudent(rawItem).id}-${resolveSubmittedAt(rawItem, submission) || "submission"}`;
+
+const normalizeResults = (rawResults: unknown): SafeRecord[] => {
+  if (Array.isArray(rawResults)) return rawResults.map(asRecord);
+  const record = asRecord(rawResults);
+  if (Array.isArray(record.items)) return record.items.map(asRecord);
+  if (Array.isArray(record.results)) return record.results.map(asRecord);
+  if (Array.isArray(record.data)) return record.data.map(asRecord);
+  return [];
+};
+
+const formatGradeLabel = (submission: Submission): string => {
+  if (submission.gradeLabel && submission.gradeLabel.length > 0) return submission.gradeLabel;
+  if (submission.grade === null) return "-";
+  return String(submission.grade);
+};
+
 const mapBackendResultsToAssignment = (
   rawResults: unknown
 ): Assignment => {
-  const results = Array.isArray(rawResults)
-    ? (rawResults as BackendAssignmentResult[])
-    : [];
+  const results = normalizeResults(rawResults) as BackendAssignmentResult[];
 
   return {
     title: "Assignment Results",
     submissions: results
-      .filter((item) => item?.submission && item?.student)
       .map((item) => ({
-        id: String(item.submission.id),
-        studentId: String(item.student.id),
-        studentName: item.student.name,
-        submittedAt: item.submission.submittedAt,
-        grade: item.submission.score ?? null,
-        status: item.submission.status === "GRADED" ? "graded" : "pending",
+        ...(() => {
+          const rawItem = asRecord(item);
+          const submission = asRecord(rawItem.submission);
+          const student = resolveStudent(rawItem);
+          const progress = asRecord(rawItem.progress);
+          const grade = resolveGrade(rawItem, progress, submission);
+
+          return {
+            id: resolveSubmissionId(rawItem, submission),
+            studentId: student.id,
+            studentName: student.fullName,
+            submittedAt: resolveSubmittedAt(rawItem, submission),
+            grade: grade.value,
+            gradeLabel: grade.label,
+            status: resolveStatus(rawItem, submission),
+          };
+        })(),
       })),
   };
 };
@@ -116,7 +228,7 @@ const GradingPanel = () => {
         ...prev,
         submissions: prev.submissions.map(s =>
           s.id === submissionId
-            ? { ...s, grade, status: "graded" }
+            ? { ...s, grade, gradeLabel: String(grade), status: "graded" }
             : s
         ),
       };
@@ -215,7 +327,7 @@ const GradingPanel = () => {
         if (submission.grade !== null) {
           return (
             <div className="flex items-center gap-2">
-              <span className="font-semibold">{submission.grade}%</span>
+              <span className="font-semibold">{formatGradeLabel(submission)}</span>
               <Button
                 variant="ghost"
                 onClick={() => startEditing(submission)}

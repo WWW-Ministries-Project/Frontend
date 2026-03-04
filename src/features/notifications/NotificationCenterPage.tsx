@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
 import type { InAppNotification } from "@/utils/api/notifications/interfaces";
 import {
@@ -15,8 +16,19 @@ import {
   humanizeNotificationType,
   resolveNotificationNavigationTarget,
 } from "./utils";
+import {
+  enableDeviceNotifications,
+  getDeviceNotificationPermissionState,
+  isPushSubscriptionSupported,
+} from "./deviceNotifications";
 
 type NotificationTab = "unread" | "all";
+type DeviceNotificationState = NotificationPermission | "unsupported";
+
+const resolveDeviceNotificationState = (): DeviceNotificationState => {
+  if (!isPushSubscriptionSupported()) return "unsupported";
+  return getDeviceNotificationPermissionState();
+};
 
 const getPriorityChipClasses = (priority: string) => {
   const normalized = priority.toUpperCase();
@@ -56,6 +68,10 @@ export const NotificationCenterPage = () => {
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<NotificationTab>("unread");
+  const [deviceNotificationState, setDeviceNotificationState] =
+    useState<DeviceNotificationState>(() => resolveDeviceNotificationState());
+  const [enablingDeviceNotifications, setEnablingDeviceNotifications] =
+    useState(false);
 
   const notifications = useInAppNotificationStore((state) => state.notifications);
   const unreadCount = useInAppNotificationStore((state) => state.unreadCount);
@@ -89,6 +105,21 @@ export const NotificationCenterPage = () => {
     void fetchUnreadCount();
   }, [fetchUnreadCount]);
 
+  useEffect(() => {
+    const refreshState = () => {
+      setDeviceNotificationState(resolveDeviceNotificationState());
+    };
+
+    refreshState();
+    window.addEventListener("focus", refreshState);
+    document.addEventListener("visibilitychange", refreshState);
+
+    return () => {
+      window.removeEventListener("focus", refreshState);
+      document.removeEventListener("visibilitychange", refreshState);
+    };
+  }, []);
+
   const unreadNotifications = useMemo(
     () => notifications.filter((notification) => !notification.isRead),
     [notifications]
@@ -103,6 +134,75 @@ export const NotificationCenterPage = () => {
 
     openNotification(notification, location.pathname, navigate);
   };
+
+  const handleEnableDeviceNotifications = async () => {
+    if (enablingDeviceNotifications) return;
+
+    setEnablingDeviceNotifications(true);
+
+    try {
+      const result = await enableDeviceNotifications();
+
+      if (result === "enabled") {
+        showNotification(
+          "Device notifications are now enabled on this device.",
+          "success",
+          { title: "Notifications" }
+        );
+      } else if (result === "unsupported") {
+        showNotification(
+          "This browser does not support device push notifications.",
+          "error",
+          {
+            title: "Notifications",
+            durationMs: 9000,
+          }
+        );
+      } else if (result === "denied") {
+        showNotification(
+          "Notifications are blocked. Allow notifications for this site in browser settings, then try again.",
+          "error",
+          {
+            title: "Notifications",
+            durationMs: 9000,
+          }
+        );
+      } else {
+        showNotification(
+          "Unable to register this device for notifications. Please try again.",
+          "error",
+          { title: "Notifications" }
+        );
+      }
+    } finally {
+      setDeviceNotificationState(resolveDeviceNotificationState());
+      setEnablingDeviceNotifications(false);
+    }
+  };
+
+  const deviceStatusLabel = useMemo(() => {
+    if (deviceNotificationState === "unsupported") {
+      return "Device alerts unavailable";
+    }
+
+    if (deviceNotificationState === "granted") {
+      return "Device alerts enabled";
+    }
+
+    if (deviceNotificationState === "denied") {
+      return "Device alerts blocked";
+    }
+
+    return "Device alerts off";
+  }, [deviceNotificationState]);
+
+  const deviceButtonLabel = useMemo(() => {
+    if (deviceNotificationState === "granted") {
+      return "Re-sync device notifications";
+    }
+
+    return "Enable device notifications";
+  }, [deviceNotificationState]);
 
   return (
     <div className="app-page-padding">
@@ -123,6 +223,26 @@ export const NotificationCenterPage = () => {
                 }`}
               />
               {connected ? "Connected" : "Reconnecting"}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => {
+                void handleEnableDeviceNotifications();
+              }}
+              disabled={
+                deviceNotificationState === "unsupported" ||
+                enablingDeviceNotifications
+              }
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {enablingDeviceNotifications
+                ? "Enabling..."
+                : deviceButtonLabel}
+            </button>
+
+            <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
+              {deviceStatusLabel}
             </span>
 
             <button

@@ -145,7 +145,11 @@ export const ViewCohort = () => {
         </div>
       </section>
 
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="!max-w-[46rem]"
+      >
         <ClassForm
           onClose={() => setIsModalOpen(false)}
           loading={postLoading || updateLoading}

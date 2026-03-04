@@ -1,7 +1,3 @@
-import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel";
-import Instructor from "@/pages/MembersPage/Pages/Instructor";
-import Market from "@/pages/MembersPage/Pages/Market";
-
 export const relativePath = {
   root: "/",
   login: "/login",
@@ -54,6 +50,10 @@ export const relativePath = {
       cohort: "cohort/:id",
       class: "class/:id",
       student: "student/:id",
+      instructorPortal: "instructor-portal",
+      instructorCohort: ":programId/cohort",
+      instructorAssMan: ":programId/cohort/:cohortId",
+      instructorGradingPanel: ":programId/cohort/:cohortId/grades/:topicId",
       certificate: "ministry-school/programs/cohort/class/student/certificate",
     },
     settings: {

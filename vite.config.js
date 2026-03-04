@@ -70,6 +70,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          importScripts: ["pwa-push-worker.js"],
           globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
           cleanupOutdatedCaches: true,
           clientsClaim: true,

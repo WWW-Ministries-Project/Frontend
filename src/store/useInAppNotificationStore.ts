@@ -7,6 +7,10 @@ import {
   normalizeNotificationCollection,
   parseUnreadCount,
 } from "@/features/notifications/utils";
+import {
+  playIncomingNotificationSound,
+  showForegroundDeviceNotification,
+} from "@/features/notifications/deviceNotifications";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import type { InAppNotification } from "@/utils/api/notifications/interfaces";
@@ -252,7 +256,13 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
       const toastKeys = [...state.recentlyToastedKeys];
 
       if (source === "sse") {
+        if (merged.added.length > 0) {
+          playIncomingNotificationSound();
+        }
+
         merged.added.forEach((notification) => {
+          showForegroundDeviceNotification(notification);
+
           if (!shouldToastHighPriority(notification, toastKeys)) return;
 
           showNotification(
