@@ -7,7 +7,7 @@ import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { relativePath } from "@/utils";
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeline";
 import EditableTable from "../components/EditableTable";
 import RequestAttachments from "../components/RequestAttachments";
@@ -18,7 +18,19 @@ import { getApproverDisplayName, getEditMeta } from "../utils/requestMetadata";
 
 const RequestDetails = () => {
   const navigate = useNavigate();
-  const requestsPath = `${relativePath.home.main}/requests`;
+  const location = useLocation();
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const requisitionSource = searchParams.get("source");
+  const isFromStaffRequisitions = requisitionSource === "staff";
+  const requisitionListPath = isFromStaffRequisitions
+    ? `${relativePath.home.main}/requests/staff_requests`
+    : `${relativePath.home.main}/requests`;
+  const requisitionListLabel = isFromStaffRequisitions
+    ? "Requisitions"
+    : "My Requisition";
 
   const {
     loading,
@@ -85,8 +97,8 @@ const RequestDetails = () => {
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
-    { label: "Requests", link: requestsPath },
-    { label: "Request Details", link: "" },
+    { label: requisitionListLabel, link: requisitionListPath },
+    { label: "Requisition Details", link: "" },
   ];
 
   return (
@@ -159,8 +171,8 @@ const RequestDetails = () => {
       <Modal open={openSubmitRequestSignature} onClose={closeSubmitRequestModal}>
         <AddSignature
           cancel={closeSubmitRequestModal}
-          text="Send request"
-          header="Request Signing"
+          text="Send requisition"
+          header="Requisition Signing"
           handleSignature={handleRequestSignature}
           onSubmit={handleSubmitRequest}
           loading={isSubmittingRequest}
@@ -180,7 +192,7 @@ const RequestDetails = () => {
             )}
             {!loading && requestData && isDraft && (
               <Button
-                value="Send request"
+                value="Send requisition"
                 variant="primary"
                 onClick={openSubmitRequestModal}
                 loading={isSubmittingRequest}
@@ -221,9 +233,13 @@ const RequestDetails = () => {
             You do not have permission to access this requisition.
             <div className="mt-3">
               <Button
-                value="Back to requests"
+                value={
+                  isFromStaffRequisitions
+                    ? "Back to requisitions"
+                    : "Back to my requisition"
+                }
                 variant="ghost"
-                onClick={() => navigate(requestsPath)}
+                onClick={() => navigate(requisitionListPath)}
               />
             </div>
           </div>
@@ -231,7 +247,7 @@ const RequestDetails = () => {
 
         {!loading && detailsError && !isRequisitionAccessDenied && (
           <div className="rounded-lg border border-error/40 bg-errorBG p-4 text-sm text-error">
-            Failed to load request details. Please refresh and try again.
+            Failed to load requisition details. Please refresh and try again.
           </div>
         )}
 

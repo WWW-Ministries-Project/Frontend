@@ -73,7 +73,7 @@ const dedupeOptions = (options: DropdownOption[]): DropdownOption[] => {
 const Request = () => {
   const { id } = useParams();
   const decodedId = id ? window.atob(String(id)) : "";
-  const requestsPath = `${relativePath.home.main}/requests`;
+  const myRequisitionPath = `${relativePath.home.main}/requests`;
 
   const { setInitialRows, events: storedEvents } = useStore((state) => ({
     setInitialRows: state.setInitialRows,
@@ -261,7 +261,7 @@ const Request = () => {
     attachmentLists: requestData?.attachmentLists ?? [],
   };
 
-  const title = id ? "Update request" : "Create request";
+  const title = id ? "Update requisition" : "Create requisition";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
   const isNoSignature = Boolean(id && !requestData?.requester?.user_sign);
   const isDraftRequest = (requestData?.summary?.status ?? "Draft") === "Draft";
@@ -269,8 +269,8 @@ const Request = () => {
   const editMeta = useMemo(() => getEditMeta(requestData), [requestData]);
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
-    { label: "Requests", link: requestsPath },
-    { label: id ? "Update Request" : "Create Request", link: "" },
+    { label: "My Requisition", link: myRequisitionPath },
+    { label: id ? "Update Requisition" : "Create Requisition", link: "" },
   ];
 
   return (
@@ -302,7 +302,7 @@ const Request = () => {
             )}
             {isLoadingExistingRequest && (
               <div className="rounded-lg border border-lightGray p-4 text-sm text-primaryGray">
-                Loading request details...
+                Loading requisition details...
               </div>
             )}
 
@@ -335,7 +335,7 @@ const Request = () => {
                       <AddSignature
                         cancel={closeModal}
                         text="Submit"
-                        header="Request Signing"
+                        header="Requisition Signing"
                         handleSignature={handleSignature}
                         loading={loading || addingImage}
                         defaultSignature={defaultSignature}
@@ -358,7 +358,7 @@ const Request = () => {
 
                   <section className="rounded-xl border border-lightGray p-4 md:p-5">
                     <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
-                      Request Information
+                      Requisition Information
                     </h4>
                     <FormWrapperNew>
                       <Field
@@ -429,7 +429,7 @@ const Request = () => {
                   <section className="rounded-xl border border-lightGray p-4 md:p-5">
                     <div className="mb-2 flex items-center justify-between">
                       <h4 className="text-sm font-semibold uppercase tracking-wide text-primary">
-                        Request Items
+                        Requisition Items
                       </h4>
                       <span className="text-xs text-primaryGray">
                         Upload image per item row
@@ -447,7 +447,7 @@ const Request = () => {
                         General Attachments
                       </h4>
                       <p className="text-xs text-primaryGray">
-                        Optional supporting files for the overall request.
+                        Optional supporting files for the overall requisition.
                       </p>
                     </div>
                     <MultiImageComponent
@@ -491,7 +491,13 @@ const Request = () => {
                       />
                     )}
                     <Button
-                      value={!id ? "Send request" : isDraftRequest ? "Submit request" : "Update"}
+                      value={
+                        !id
+                          ? "Send requisition"
+                          : isDraftRequest
+                            ? "Submit requisition"
+                            : "Update"
+                      }
                       variant="default"
                       loading={!openSignature && (loading || addingImage)}
                       onClick={() => {

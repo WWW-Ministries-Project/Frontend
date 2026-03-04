@@ -20,7 +20,7 @@ import { tableColumns } from "../utils/tableColums";
 const MyRequisitions = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
-  const requestsPath = `${relativePath.home.main}/requests`;
+  const myRequisitionPath = `${relativePath.home.main}/requests`;
 
   const { data, loading, error } = useFetch<ApiResponse<Requisition[]>>(
     api.fetch.fetchMyRequests as (
@@ -53,8 +53,8 @@ const MyRequisitions = () => {
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
-    { label: "Requests", link: requestsPath },
-    { label: "My Requests", link: "" },
+    { label: "Requisition", link: myRequisitionPath },
+    { label: "My Requisition", link: "" },
   ];
 
   return (
@@ -63,17 +63,17 @@ const MyRequisitions = () => {
         <div>
           <PageHeader
             title="My Requisitions"
-            buttonValue="Request item"
+            buttonValue="Requisition item"
             onClick={() => navigate("/home/requests/request")}
           />
           <p className="text-sm text-primaryGray">
-            View and manage requisition requests submitted by you.
+            View and manage requisitions submitted by you.
           </p>
         </div>
 
         <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {[
-            { label: "Total Requests", value: metrics.total },
+            { label: "Total Requisitions", value: metrics.total },
             { label: "Drafts", value: metrics.drafts },
             { label: "Awaiting Approval", value: metrics.awaiting },
             { label: "Rejected", value: metrics.rejected },
@@ -91,10 +91,12 @@ const MyRequisitions = () => {
 
         <section className="app-card p-4 md:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-primary">My Request History</h3>
+            <h3 className="text-base font-semibold text-primary">
+              My Requisition History
+            </h3>
             <SearchBar
               className="w-full md:w-[340px]"
-              placeholder="Search requests..."
+              placeholder="Search requisitions..."
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             />
@@ -116,7 +118,7 @@ const MyRequisitions = () => {
             <EmptyState
               scope="page"
               msg="No requisitions found"
-              description="You have not created any requisition requests yet."
+              description="You have not created any requisitions yet."
             />
           )}
 

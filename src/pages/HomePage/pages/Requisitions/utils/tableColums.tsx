@@ -8,7 +8,7 @@ import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
 import { DateTime } from "luxon";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import type {
   Requisition,
 } from "../types/requestInterface";
@@ -24,16 +24,36 @@ const amountFormatter = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 });
 
+type RequisitionSource = "my" | "staff";
+
+const resolveRequisitionSource = (pathname: string): RequisitionSource => {
+  const normalizedPath = pathname.replace(/\/+$/, "");
+  if (
+    normalizedPath === "/home/requests/staff_requests" ||
+    normalizedPath.startsWith("/home/requests/staff_requests/")
+  ) {
+    return "staff";
+  }
+  return "my";
+};
+
+const buildRequisitionDetailsPath = (
+  encodedId: string,
+  source: RequisitionSource
+) => `/home/requests/${encodedId}?source=${source}`;
+
 export const tableColumns: ColumnDef<Requisition>[] = [
   {
     header: "Requisition ID",
     cell: ({ row }) => {
       const ItemButton = () => {
         const navigate = useNavigate();
+        const location = useLocation();
 
         const handleClick = () => {
           const encodedId = window.btoa(row.original.requisition_id);
-          navigate(`/home/requests/${encodedId}`);
+          const source = resolveRequisitionSource(location.pathname);
+          navigate(buildRequisitionDetailsPath(encodedId, source));
         };
 
         return (
@@ -178,8 +198,10 @@ export const tableColumns: ColumnDef<Requisition>[] = [
         const [showActions, setShowActions] = useState(false);
         const actionRef = useRef<HTMLDivElement>(null);
         const navigate = useNavigate();
+        const location = useLocation();
         const requisitionId = row.original.requisition_id;
         const encodedId = window.btoa(requisitionId);
+        const source = resolveRequisitionSource(location.pathname);
         const { executeDelete, success, error } = useDelete(
           api.delete.deleteRequest
         );
@@ -207,7 +229,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
 
         useEffect(() => {
           if (success) {
-            showNotification("Request deleted successfully");
+            showNotification("Requisition deleted successfully");
             removeRequest(requisitionId);
           }
           if (error) {
@@ -235,7 +257,7 @@ export const tableColumns: ColumnDef<Requisition>[] = [
               <div className="absolute right-0 top-9 z-20">
                 <Action
                   onView={() => {
-                    navigate(`/home/requests/${encodedId}`);
+                    navigate(buildRequisitionDetailsPath(encodedId, source));
                   }}
                   onEdit={() => {
                     navigate(`/home/requests/request/${encodedId}`);

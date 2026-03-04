@@ -17,6 +17,7 @@ export const sidebarIcons: Record<
   string,
   React.ComponentType<React.SVGProps<SVGSVGElement>>
 > = {
+  Home: DashboardIcon,
   Dashboard: DashboardIcon,
   Membership: MembersIcon,
   Members: MembersIcon,
@@ -30,6 +31,8 @@ export const sidebarIcons: Record<
   Finance: FinanceIcon,
   "School of Ministry": MinistrySchoolIcon,
   Settings: SettingsIcon,
+  Requisition: RequestIcon,
+  Requisitions: RequestIcon,
   Requests: RequestIcon,
   "Life Centers": LifeCenterIcon,
   "Market Place": MarketIcon,

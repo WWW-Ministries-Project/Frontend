@@ -157,7 +157,7 @@ export const routes: AppRoute[] = [
       },
       {
         path: relativePath.home.dashboard,
-        name: "Dashboard",
+        name: "Home",
         element: <DashBoardPage />,
         isPrivate: false,
         sideTab: true,
@@ -471,39 +471,39 @@ export const routes: AppRoute[] = [
    
       {
         path: "requests",
-        name: "Requests",
+        name: "Requisition",
         isPrivate: true,
         permissionNeeded: "view_events",
         sideTab: true,
         children: [
           {
             path: "",
-            name: "My Requests",
+            name: "My Requisition",
             element: <MyRequisitions />,
             isPrivate: true,
             sideTab: true,
           },
           {
             path: ":id",
-            name: "Requests Details",
+            name: "Requisition Details",
             element: <RequestDetails />,
             isPrivate: true,
           },
           {
             path: "request",
-            name: "Request",
+            name: "Requisition",
             element: <Request />,
             isPrivate: true,
           },
           {
             path: "request/:id",
-            name: "Request",
+            name: "Requisition",
             element: <Request />,
             isPrivate: true,
           },
           {
             path: "staff_requests",
-            name: "Staff Requests",
+            name: "Requisitions",
             element: <Requisitions />,
             isPrivate: true,
             sideTab: true,
