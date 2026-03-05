@@ -10,6 +10,42 @@ export type ProgramsPayloadType = {
   ministry_required: boolean;
 };
 
+export const COHORT_STATUS = {
+  UPCOMING: "Upcoming",
+  ONGOING: "Ongoing",
+  COMPLETED: "Completed",
+} as const;
+
+export type CohortStatus = (typeof COHORT_STATUS)[keyof typeof COHORT_STATUS];
+
+export const COHORT_STATUS_VALUES: CohortStatus[] = [
+  COHORT_STATUS.UPCOMING,
+  COHORT_STATUS.ONGOING,
+  COHORT_STATUS.COMPLETED,
+];
+
+const cohortStatusAliases: Record<string, CohortStatus> = {
+  upcoming: COHORT_STATUS.UPCOMING,
+  ongoing: COHORT_STATUS.ONGOING,
+  active: COHORT_STATUS.ONGOING,
+  current: COHORT_STATUS.ONGOING,
+  completed: COHORT_STATUS.COMPLETED,
+};
+
+export const normalizeCohortStatus = (
+  status?: string | null
+): CohortStatus | null => {
+  const key = (status ?? "").trim().toLowerCase();
+  if (!key) return null;
+  return cohortStatusAliases[key] ?? null;
+};
+
+export const getCohortStatusLabel = (status?: string | null): string => {
+  const normalized = normalizeCohortStatus(status);
+  if (normalized) return normalized;
+  return (status ?? "").trim() || "Unknown";
+};
+
 export type ProgramResponse = {
   id: number;
   title: string;

@@ -3,7 +3,12 @@ import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { useRouteAccess } from "@/context/RouteAccessContext";
-import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import {
+  COHORT_STATUS,
+  getCohortStatusLabel,
+  normalizeCohortStatus,
+  ProgramResponse,
+} from "@/utils/api/ministrySchool/interfaces";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -152,7 +157,11 @@ const ProgramsCard = ({
         <h4 className="text-sm font-semibold">Cohorts</h4>
         <div className="space-y-2">
           {cohorts.length > 0 ? (
-            cohorts.map((cohort) => (
+            cohorts.map((cohort) => {
+              const normalizedStatus = normalizeCohortStatus(cohort.status);
+              const statusLabel = getCohortStatusLabel(cohort.status);
+
+              return (
                 <div
                   key={cohort.id}
                   className="border border-lightGray rounded-lg p-3 transition-colors hover:bg-lightGray/20"
@@ -166,18 +175,19 @@ const ProgramsCard = ({
                   </div>
                   <Badge
                     className={`text-xs px-3 py-1 ${
-                      cohort.status === "Active"
+                      normalizedStatus === COHORT_STATUS.ONGOING
                         ? "bg-green-50 text-green-700 border-green-200"
-                        : cohort.status === "Completed"
+                        : normalizedStatus === COHORT_STATUS.COMPLETED
                         ? "bg-blue-50 text-blue-700 border-blue-200"
                         : "bg-lightGray/40 text-primaryGray border-lightGray"
                     }`}
                   >
-                    {cohort.status}
+                    {statusLabel}
                   </Badge>
                 </div>
               </div>
-            ))
+              );
+            })
           ) : (
             <div className="border border-dashed border-lightGray rounded-lg p-4 text-center text-primaryGray text-sm">
               No cohorts added yet

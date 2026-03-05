@@ -77,18 +77,20 @@ const ViewStudent = () => {
   };
 
   return (
-    <div className="">
+    <div className="pt-2">
       {studentData?.data.id && (
-        <TopicAssessment
-          topics={topics || []}
-          editMode={editMode}
-          enrollmentId={studentData?.data.id}
-          onCancel={() => setEditMode(false)}
-          toggleEditMode={toggleEditMode}
-          onUpdate={(data) => updateData(data)}
-          loading={loading}
-          studentData={studentData?.data}
-        />
+        <div className="rounded-xl border border-lightGray bg-white p-4 md:p-6">
+          <TopicAssessment
+            topics={topics || []}
+            editMode={editMode}
+            enrollmentId={studentData?.data.id}
+            onCancel={() => setEditMode(false)}
+            toggleEditMode={toggleEditMode}
+            onUpdate={(data) => updateData(data)}
+            loading={loading}
+            studentData={studentData?.data}
+          />
+        </div>
       )}
     </div>
   );
@@ -112,18 +114,30 @@ const Details = ({
   const displayPhone = resolveStudentPhone(data, fallbackPhone);
 
   return (
-    <div className="flex flex-wrap gap-x-12 w-full">
-      <div className="space-y-1">
-        <div className="font-semibold">Name</div>
-        <div className="break-words">{displayName}</div>
+    <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      <InfoCard label="Name" value={displayName} />
+      <InfoCard label="Email" value={displayEmail} breakMode="break-all" />
+      <InfoCard label="Phone number" value={displayPhone} breakMode="break-all" />
+    </div>
+  );
+};
+
+const InfoCard = ({
+  label,
+  value,
+  breakMode = "break-words",
+}: {
+  label: string;
+  value: string;
+  breakMode?: string;
+}) => {
+  return (
+    <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+      <div className="text-xs font-semibold uppercase tracking-wide text-white/80">
+        {label}
       </div>
-      <div className="space-y-1">
-        <div className="font-semibold ">Email</div>
-        <div className="break-all">{displayEmail}</div>
-      </div>
-      <div className="space-y-1">
-        <div className="font-semibold">Phone number</div>
-        <div className="break-all">{displayPhone}</div>
+      <div className={`text-sm font-medium text-white ${breakMode}`}>
+        {value || "-"}
       </div>
     </div>
   );

@@ -2,10 +2,41 @@ import { Button } from "@/components";
 import { Actions } from "@/components/ui/form/Actions";
 import EmptyState from "@/components/EmptyState";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { showNotification } from "@/pages/HomePage/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-// import { CertificateTemplate } from "./CertificateTemplate";
+import { useEffect, useMemo, useState } from "react";
 import { EnrollmentDataType } from "@/utils";
+import { createLmsActionTracker, isLmsFeatureEnabled } from "../utils/lmsGuardrails";
+
+const SCORE_MIN = 0;
+const SCORE_MAX = 100;
+
+type TopicStatus = "PASS" | "FAIL" | "PENDING";
+
+const normalizeScore = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed;
+};
+
+const serializeTopicState = (topics: Topic[]) =>
+  JSON.stringify(
+    topics.map((topic) => ({
+      id: topic.id,
+      score: normalizeScore(topic.score),
+      status: topic.status ?? "PENDING",
+      notes: topic.notes ?? "",
+    }))
+  );
+
+const buildScoreError = (score: number | null): string | null => {
+  if (score === null) return null;
+  if (score < SCORE_MIN || score > SCORE_MAX) {
+    return `Score must be between ${SCORE_MIN} and ${SCORE_MAX}.`;
+  }
+  return null;
+};
 
 export const TopicAssessment = ({
   topics,
@@ -34,14 +65,22 @@ export const TopicAssessment = ({
   }) => void;
   studentData?: EnrollmentDataType | null;
 }) => {
+  const gradingGuardrailsEnabled = isLmsFeatureEnabled("grading_guardrails");
   const [updatedTopics, setUpdatedTopics] = useState<Topic[]>([]);
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("[]");
+  const [scoreErrors, setScoreErrors] = useState<Record<string, string>>({});
+  const [bulkScore, setBulkScore] = useState("");
+  const [bulkStatus, setBulkStatus] = useState<TopicStatus>("PASS");
 
   useEffect(() => {
-    setUpdatedTopics(topics ?? []);
+    const nextTopics = topics ?? [];
+    setUpdatedTopics(nextTopics);
+    setInitialSnapshot(serializeTopicState(nextTopics));
+    setScoreErrors({});
   }, [topics]);
 
   const averageScore = updatedTopics.length
-    ? updatedTopics.reduce((acc, topic) => acc + (topic.score || 0), 0) /
+    ? updatedTopics.reduce((acc, topic) => acc + (normalizeScore(topic.score) ?? 0), 0) /
       updatedTopics.length
     : 0;
   const progress = updatedTopics.length
@@ -50,10 +89,25 @@ export const TopicAssessment = ({
       100
     : 0;
 
-  const handleStatusChange = (
-    id: number | string,
-    newStatus: "PASS" | "FAIL" | "PENDING"
-  ) => {
+  const hasUnsavedChanges = useMemo(() => {
+    return serializeTopicState(updatedTopics) !== initialSnapshot;
+  }, [initialSnapshot, updatedTopics]);
+
+  useEffect(() => {
+    if (!gradingGuardrailsEnabled || !editMode || !hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [editMode, gradingGuardrailsEnabled, hasUnsavedChanges]);
+
+  const handleStatusChange = (id: number | string, newStatus: TopicStatus) => {
     setUpdatedTopics((prevTopics) =>
       prevTopics.map((topic) =>
         topic.id === id ? { ...topic, status: newStatus } : topic
@@ -61,30 +115,140 @@ export const TopicAssessment = ({
     );
   };
 
-  const handleScoreChange = (
-    id: number | string,
-    newScore: number | undefined
-  ) => {
+  const handleScoreChange = (id: number | string, value: string) => {
+    const trimmed = value.trim();
+    const parsedScore = trimmed === "" ? null : Number(trimmed);
+    const isNumeric = parsedScore === null || Number.isFinite(parsedScore);
+    const boundedError =
+      parsedScore !== null && Number.isFinite(parsedScore)
+        ? buildScoreError(parsedScore)
+        : null;
+    const errorMessage =
+      trimmed !== "" && (!isNumeric || boundedError !== null)
+        ? `Score must be between ${SCORE_MIN} and ${SCORE_MAX}.`
+        : "";
+
     setUpdatedTopics((prevTopics) =>
       prevTopics.map((topic) =>
-        topic.id === id ? { ...topic, score: newScore ?? null } : topic
+        topic.id === id
+          ? {
+              ...topic,
+              score:
+                trimmed === "" || !isNumeric
+                  ? null
+                  : parsedScore,
+            }
+          : topic
       )
     );
+
+    setScoreErrors((prev) => {
+      const next = { ...prev };
+      if (errorMessage) {
+        next[String(id)] = errorMessage;
+      } else {
+        delete next[String(id)];
+      }
+      return next;
+    });
   };
 
-  // Function to update the topics
-  const updateTopics = async () => {
-    const progressUpdates = updatedTopics.map((topic) => ({
-      topicId: Number(topic.id),
-      enrollmentId: enrollmentId,
-      score: topic.score === null ? undefined : topic.score,
-      status: topic.status ?? "PENDING",
-      notes: topic.notes ?? undefined,
-    }));
+  const applyBulkScore = () => {
+    const parsed = Number(bulkScore);
+    if (!Number.isFinite(parsed) || buildScoreError(parsed)) {
+      showNotification(`Bulk score must be between ${SCORE_MIN} and ${SCORE_MAX}.`, "error");
+      return;
+    }
 
-    // Prepare the payload
-    const payload = { progressUpdates };
-    onUpdate(payload);
+    setUpdatedTopics((prevTopics) =>
+      prevTopics.map((topic) => ({
+        ...topic,
+        score: parsed,
+      }))
+    );
+    setScoreErrors({});
+    showNotification("Bulk score applied.", "success");
+  };
+
+  const applyBulkStatus = () => {
+    setUpdatedTopics((prevTopics) =>
+      prevTopics.map((topic) => ({
+        ...topic,
+        status: bulkStatus,
+      }))
+    );
+    showNotification(`Status set to ${bulkStatus.toLowerCase()} for all topics.`, "success");
+  };
+
+  const validateTopics = () => {
+    const validationErrors: Record<string, string> = {};
+
+    updatedTopics.forEach((topic) => {
+      const score = normalizeScore(topic.score);
+      const scoreError = buildScoreError(score);
+
+      if (scoreError) {
+        validationErrors[String(topic.id)] = scoreError;
+      }
+
+      if ((topic.status === "PASS" || topic.status === "FAIL") && score === null) {
+        validationErrors[String(topic.id)] =
+          "Set a score before marking this topic as pass or fail.";
+      }
+    });
+
+    setScoreErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      showNotification("Fix score validation issues before saving.", "error");
+      return false;
+    }
+
+    return true;
+  };
+
+  const updateTopics = () => {
+    if (gradingGuardrailsEnabled && !hasUnsavedChanges) {
+      showNotification("No changes to save.", "success");
+      return;
+    }
+
+    if (gradingGuardrailsEnabled && !validateTopics()) {
+      return;
+    }
+
+    const progressUpdates = updatedTopics.map((topic) => {
+      const normalizedScore = normalizeScore(topic.score);
+      return {
+        topicId: Number(topic.id),
+        enrollmentId,
+        score: normalizedScore === null ? undefined : normalizedScore,
+        status: topic.status ?? "PENDING",
+        notes: topic.notes ?? undefined,
+      };
+    });
+
+    createLmsActionTracker("admin.student.progress_update", {
+      enrollmentId,
+      updates: progressUpdates.length,
+    }).success();
+    onUpdate({ progressUpdates });
+  };
+
+  const handleCancel = () => {
+    if (gradingGuardrailsEnabled && hasUnsavedChanges) {
+      const shouldDiscard = window.confirm(
+        "You have unsaved changes. Do you want to discard them?"
+      );
+      if (!shouldDiscard) {
+        return;
+      }
+    }
+
+    setUpdatedTopics(topics ?? []);
+    setScoreErrors({});
+    setBulkScore("");
+    onCancel();
   };
 
   const columns: ColumnDef<Topic>[] = [
@@ -96,21 +260,27 @@ export const TopicAssessment = ({
       header: "Score",
       accessorKey: "score",
       cell: ({ row }) => {
+        const scoreError = scoreErrors[String(row.original.id)];
         return (
-          <>
+          <div className="space-y-1 min-w-[110px]">
             {editMode ? (
-                <input
-                  type="number"
-                  className="px-4 py-2 border border-lightGray rounded-lg"
-                  value={row.original.score ?? ""}
-                  onChange={(e) =>
-                    handleScoreChange(row.original.id, Number(e.target.value))
-                  }
+              <input
+                type="number"
+                min={SCORE_MIN}
+                max={SCORE_MAX}
+                className={`px-3 py-2 border rounded-lg w-full ${
+                  gradingGuardrailsEnabled && scoreError ? "border-red-400" : "border-lightGray"
+                }`}
+                value={row.original.score ?? ""}
+                onChange={(e) => handleScoreChange(row.original.id, e.target.value)}
               />
             ) : (
-              row.original.score || 0
+              row.original.score ?? "-"
             )}
-          </>
+            {editMode && gradingGuardrailsEnabled && scoreError && (
+              <p className="text-xs text-red-600">{scoreError}</p>
+            )}
+          </div>
         );
       },
     },
@@ -123,11 +293,11 @@ export const TopicAssessment = ({
             {editMode ? (
               <select
                 className="px-4 py-2 border border-lightGray rounded-lg"
-                value={row.original.status}
+                value={row.original.status ?? "PENDING"}
                 onChange={(e) =>
                   handleStatusChange(
                     row.original.id,
-                    e.target.value as "PASS" | "FAIL" | "PENDING"
+                    e.target.value as TopicStatus
                   )
                 }
               >
@@ -158,16 +328,16 @@ export const TopicAssessment = ({
                 value={row.original.notes ?? ""}
                 onChange={(e) => {
                   setUpdatedTopics((prevTopics) =>
-                    prevTopics.map((t) =>
-                      t.id === row.original.id
-                        ? { ...t, notes: e.target.value }
-                        : t
+                    prevTopics.map((topic) =>
+                      topic.id === row.original.id
+                        ? { ...topic, notes: e.target.value }
+                        : topic
                     )
                   );
                 }}
               />
             ) : (
-              <p>{row.original.notes}</p>
+              <p>{row.original.notes || "-"}</p>
             )}
           </>
         );
@@ -178,41 +348,85 @@ export const TopicAssessment = ({
   return (
     <div className="py-4">
       <div className="space-y-6">
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold">Topic Assessment</h2>
             <p>Evaluate student performance for each topic in the program</p>
           </div>
           {!editMode && toggleEditMode && (
-            <div className="space-x-2">
-              <Button
-                variant="primary"
-                value="Edit"
-                onClick={toggleEditMode}
-              />
-            </div>
+            <Button variant="primary" value="Edit" onClick={toggleEditMode} />
           )}
         </div>
 
         <div className="border px-4 p-2 rounded-xl space-y-2">
           <div>
-            <h2 className="text-lg font-medium"> Overall Assessment</h2>
+            <h2 className="text-lg font-medium">Overall Assessment</h2>
             <p className="text-sm">Summary across all topics</p>
           </div>
 
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div>
-                <p className="font-medium text-lg">Average Score: </p>
-                <p>{averageScore.toFixed(2)}%</p>
-              </div>
-              <div>
-                <p className="font-medium text-lg">Progress: </p>
-                <p>{progress.toFixed(2)}% Complete</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div>
+              <p className="font-medium text-lg">Average Score:</p>
+              <p>{averageScore.toFixed(2)}%</p>
+            </div>
+            <div>
+              <p className="font-medium text-lg">Progress:</p>
+              <p>{progress.toFixed(2)}% Complete</p>
             </div>
           </div>
         </div>
+
+        {editMode && gradingGuardrailsEnabled && (
+          <div className="rounded-xl border border-lightGray bg-white p-4 space-y-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-primaryGray">Bulk Score</label>
+                  <input
+                    type="number"
+                    min={SCORE_MIN}
+                    max={SCORE_MAX}
+                    value={bulkScore}
+                    onChange={(event) => setBulkScore(event.target.value)}
+                    className="h-10 rounded-lg border border-lightGray px-3 text-sm"
+                    placeholder="0-100"
+                  />
+                </div>
+                <Button
+                  value="Apply Score"
+                  variant="secondary"
+                  onClick={applyBulkScore}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-primaryGray">Bulk Status</label>
+                  <select
+                    value={bulkStatus}
+                    onChange={(event) => setBulkStatus(event.target.value as TopicStatus)}
+                    className="h-10 rounded-lg border border-lightGray px-3 text-sm"
+                  >
+                    <option value="PASS">Pass</option>
+                    <option value="FAIL">Fail</option>
+                    <option value="PENDING">Pending</option>
+                  </select>
+                </div>
+                <Button
+                  value="Apply Status"
+                  variant="secondary"
+                  onClick={applyBulkStatus}
+                />
+              </div>
+            </div>
+
+            {hasUnsavedChanges && (
+              <p className="text-xs text-amber-700">
+                You have unsaved grading changes.
+              </p>
+            )}
+          </div>
+        )}
 
         {updatedTopics.length === 0 ? (
           <EmptyState
@@ -224,21 +438,14 @@ export const TopicAssessment = ({
           <TableComponent columns={columns} data={updatedTopics ?? []} />
         )}
 
-        <div className="flex ">
-          <div className="w-full">
-            {editMode && (
-              <Actions
-                onCancel={onCancel}
-                onSubmit={updateTopics}
-                loading={loading}
-              />
-            )}
-            
-          </div>
-        </div>
+        {editMode && (
+          <Actions
+            onCancel={handleCancel}
+            onSubmit={updateTopics}
+            loading={loading}
+          />
+        )}
       </div>
-
-      {/* Certificate Modal */}
     </div>
   );
 };
@@ -247,7 +454,7 @@ interface Topic {
   id: number | string;
   name: string;
   score?: number | null;
-  status?: "PASS" | "FAIL" | "PENDING";
+  status?: TopicStatus;
   notes?: string | null;
   completedAt?: string | null;
   progressId?: number;

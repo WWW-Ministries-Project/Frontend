@@ -8,14 +8,18 @@ import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
 import {
+  COHORT_STATUS,
   CohortType,
+  normalizeCohortStatus,
   ProgramResponse,
+  ProgramsPayloadType,
 } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "../../utils";
 import { ProgramsCard } from "./Components/ProgramCard";
 import { IProgramForm, ProgramForm } from "./Components/ProgramForm";
+import { createLmsActionTracker } from "./utils/lmsGuardrails";
 
 export const MinistrySchool = () => {
   //api
@@ -44,9 +48,13 @@ export const MinistrySchool = () => {
   };
 
   const deleteProgram = async (programId: number | string) => {
+    const tracker = createLmsActionTracker("admin.program.delete", {
+      programId: String(programId),
+    });
     await executeDelete({
       id: String(programId),
     }).then(() => {
+      tracker.success();
       showNotification("Program deleted successfully", "success");
       refetch();
     });
@@ -65,11 +73,14 @@ export const MinistrySchool = () => {
   const getCohortToShow = (
     cohorts: CohortType[] = []
   ): CohortType[] | undefined => {
-    const activeCohort = cohorts.find((cohort) => cohort.status === "Ongoing");
+    const activeCohort = cohorts.find(
+      (cohort) => normalizeCohortStatus(cohort.status) === COHORT_STATUS.ONGOING
+    );
     if (activeCohort) return [activeCohort];
 
     const upcomingCohort = cohorts.find(
-      (cohort) => cohort.status === "Upcoming"
+      (cohort) =>
+        normalizeCohortStatus(cohort.status) === COHORT_STATUS.UPCOMING
     );
     if (upcomingCohort) return [upcomingCohort];
 
@@ -77,18 +88,35 @@ export const MinistrySchool = () => {
   };
 
   const handleSubmit = (value: IProgramForm): void => {
+    const payload: ProgramsPayloadType = {
+      title: value.title,
+      description: value.description,
+      topics: value.topics,
+      prerequisites: value.isPrerequisitesChecked ? value.prerequisites : [],
+      member_required: value.member_required,
+      leader_required: value.leader_required,
+      ministry_required: value.ministry_required,
+    };
+
     if (selectedProgram) {
-      updateProgram(value, { id: String(selectedProgram.id) });
+      const tracker = createLmsActionTracker("admin.program.update", {
+        programId: String(selectedProgram.id),
+      });
+      updateProgram(payload, { id: String(selectedProgram.id) });
+      tracker.success({ message: "Update request submitted." });
     } else {
-      postProgram(value)
+      const tracker = createLmsActionTracker("admin.program.create");
+      postProgram(payload)
         .then(() => {
           return refetch();
         })
         .then(() => {
+          tracker.success();
           setIsModalOpen(false);
           showNotification("Program Created Successfully");
         })
         .catch((error) => {
+          tracker.failure({ error });
           showNotification(error.message, "error");
         });
     }
