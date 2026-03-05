@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
 import { useParams } from "react-router-dom";
@@ -28,6 +28,12 @@ type ProgramCompletionStatus = {
   topics?: Topic[];
 };
 
+type CompletionPrompt = {
+  completedTopicName: string;
+  nextTopicId: string | number;
+  nextTopicName: string;
+};
+
 /**
  * EnrolledProgram Component
  * Displays a program's details with topics, assignments, and materials
@@ -45,6 +51,7 @@ const EnrolledProgram: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [viewCertificate, setViewCertificate] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [completionPrompt, setCompletionPrompt] = useState<CompletionPrompt | null>(null);
 
   const { data, refetch } = useFetch<ApiResponse<ProgramCompletionStatus>>(
     api.fetch.fetchMyProgram as (
@@ -53,61 +60,108 @@ const EnrolledProgram: React.FC = () => {
     { programId: programId ?? "", userId }
   );
 
+  useEffect(() => {
+    if (!data?.data) return;
 
- useEffect(() => {
-  if (!data?.data) return;
+    const backendTopics = data.data.topics ?? [];
+    setTopics(backendTopics);
 
-  setIsLoading(true);
+    if (backendTopics.length === 0) {
+      setNavItems([]);
+      setSelectedTopicId(null);
+      setIsLoading(false);
+      return;
+    }
 
-  const program = data.data;
-  const backendTopics = program.topics ?? [];
+    const selectedFromCurrentState =
+      selectedTopicId !== null
+        ? backendTopics.find((topic) => String(topic.id) === String(selectedTopicId))
+        : null;
 
-  setTopics(backendTopics);
+    const fallbackTopic = backendTopics.find((topic) => !topic.completed) ?? backendTopics[0];
+    const activeTopic = selectedFromCurrentState ?? fallbackTopic;
 
-  if (backendTopics.length > 0) {
-    // Find first incomplete topic
-    const firstIncompleteTopic =
-      backendTopics.find((t) => !t.completed) ?? backendTopics[0];
-
-    const items = backendTopics.map((t) => ({
-      id: t.id,
-      name: t.name,
-      active: t.id === firstIncompleteTopic.id,
-      completed: t.completed || false,
-      type: t.learningUnit?.type ?? undefined,
+    const items = backendTopics.map((topic) => ({
+      id: topic.id,
+      name: topic.name,
+      active: String(topic.id) === String(activeTopic.id),
+      completed: topic.completed || false,
+      type: topic.learningUnit?.type ?? undefined,
     }));
 
     setNavItems(items);
-    setSelectedTopicId(firstIncompleteTopic.id);
-  } else {
-    setNavItems([]);
-    setSelectedTopicId(null);
-  }
+    setSelectedTopicId(activeTopic.id);
+    setIsLoading(false);
+  }, [data, selectedTopicId]);
 
-  setIsLoading(false);
-}, [data]);
+  useEffect(() => {
+    if (!data?.data?.completed || !user || !programId) return;
 
-useEffect(() => {
-  if (!data?.data?.completed || !user || !programId) return;
+    const celebrationKey = `program_completed_${programId}_${user.id}`;
+    const hasCelebrated = localStorage.getItem(celebrationKey);
 
-  const celebrationKey = `program_completed_${programId}_${user.id}`;
-  const hasCelebrated = localStorage.getItem(celebrationKey);
+    if (!hasCelebrated) {
+      setShowCelebration(true);
+      localStorage.setItem(celebrationKey, "true");
+    }
+  }, [data, user, programId]);
 
-  if (!hasCelebrated) {
-    setShowCelebration(true);
-    localStorage.setItem(celebrationKey, "true");
-  }
-}, [data, user, programId]);
-
-  const handleTopicSelect = (navId: string | number) => {
+  const handleTopicSelect = useCallback((navId: string | number) => {
     setNavItems((items) =>
-      items.map((i) => ({ ...i, active: i.id === navId }))
+      items.map((item) => ({ ...item, active: String(item.id) === String(navId) }))
     );
     setSelectedTopicId(navId);
-  };
+    setCompletionPrompt(null);
+  }, []);
 
-  const selectedTopic =
-    topics.find((t) => String(t.id) === String(selectedTopicId)) ?? null;
+  const selectedTopic = useMemo(
+    () => topics.find((topic) => String(topic.id) === String(selectedTopicId)) ?? null,
+    [topics, selectedTopicId]
+  );
+
+  const selectedTopicIndex = useMemo(
+    () => topics.findIndex((topic) => String(topic.id) === String(selectedTopicId)),
+    [topics, selectedTopicId]
+  );
+
+  const previousTopic = selectedTopicIndex > 0 ? topics[selectedTopicIndex - 1] : null;
+  const nextTopic =
+    selectedTopicIndex >= 0 && selectedTopicIndex < topics.length - 1
+      ? topics[selectedTopicIndex + 1]
+      : null;
+
+  const completedTopics = useMemo(
+    () => topics.filter((topic) => topic.completed).length,
+    [topics]
+  );
+  const progressPercentage = topics.length
+    ? Math.round((completedTopics / topics.length) * 100)
+    : 0;
+
+  const handleTopicCompleted = useCallback(
+    (completedTopicId: string | number) => {
+      const completedIndex = topics.findIndex(
+        (topic) => String(topic.id) === String(completedTopicId)
+      );
+      if (completedIndex < 0) return;
+
+      const nextAvailableTopic = topics[completedIndex + 1];
+      if (!nextAvailableTopic) return;
+
+      setCompletionPrompt({
+        completedTopicName: topics[completedIndex]?.name ?? "Topic",
+        nextTopicId: nextAvailableTopic.id,
+        nextTopicName: nextAvailableTopic.name,
+      });
+    },
+    [topics]
+  );
+
+  const goToPromptNextTopic = useCallback(() => {
+    if (!completionPrompt) return;
+    handleTopicSelect(completionPrompt.nextTopicId);
+    setCompletionPrompt(null);
+  }, [completionPrompt, handleTopicSelect]);
 
     
 
@@ -177,10 +231,56 @@ useEffect(() => {
               <div className="">
                 {selectedTopic ? (
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <h2 className="text-xl font-semibold text-primary">
-                        {selectedTopic.name}
-                      </h2>
+                    <div className="rounded-xl border border-lightGray bg-white p-4 shadow-sm">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-primaryGray/80">
+                            Learning Progress
+                          </p>
+                          <p className="text-sm font-medium text-primary">
+                            {completedTopics}/{topics.length} topics completed
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            value="Previous Topic"
+                            variant="secondary"
+                            className="min-w-[140px]"
+                            onClick={() => previousTopic && handleTopicSelect(previousTopic.id)}
+                            disabled={!previousTopic}
+                          />
+                          <Button
+                            value={nextTopic ? "Next Topic" : "Last Topic"}
+                            variant="primary"
+                            className="min-w-[140px]"
+                            onClick={() => nextTopic && handleTopicSelect(nextTopic.id)}
+                            disabled={!nextTopic}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="mb-2 flex items-center justify-between text-xs font-medium text-primaryGray">
+                          <span>{progressPercentage}% complete</span>
+                          <span>Topic {Math.max(selectedTopicIndex + 1, 1)} of {topics.length}</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-lightGray/40">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all duration-500"
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-lightGray bg-white p-5 shadow-sm">
+                      <div className="mb-4 flex flex-wrap items-center gap-2">
+                        <h2 className="text-xl font-semibold text-primary">{selectedTopic.name}</h2>
+                        <span className="rounded-full bg-lightGray/40 px-3 py-1 text-xs font-semibold text-primaryGray">
+                          Topic {Math.max(selectedTopicIndex + 1, 1)}
+                        </span>
+                      </div>
                       <div
                         className="prose max-w-none text-primaryGray"
                         dangerouslySetInnerHTML={{
@@ -200,6 +300,11 @@ useEffect(() => {
                     topicScore={selectedTopic.score ?? undefined}
                     topicCompletedAt={selectedTopic.completedAt}
                     activation={selectedTopic.activation}
+
+                    hasNextTopic={Boolean(nextTopic)}
+                    nextTopicName={nextTopic?.name}
+                    onGoToNextTopic={nextTopic ? () => handleTopicSelect(nextTopic.id) : undefined}
+                    onTopicCompleted={handleTopicCompleted}
 
                     refetch={refetch}
                     />
@@ -295,6 +400,37 @@ useEffect(() => {
               value="Close"
               variant="secondary"
               onClick={() => setShowCelebration(false)}
+            />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(completionPrompt)}
+        onClose={() => setCompletionPrompt(null)}
+        className="max-w-md"
+      >
+        <div className="space-y-5 p-6">
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-primary">Topic Completed</h3>
+            <p className="text-sm text-primaryGray">
+              You completed <span className="font-semibold text-primary">{completionPrompt?.completedTopicName}</span>.
+              Would you like to continue to{" "}
+              <span className="font-semibold text-primary">{completionPrompt?.nextTopicName}</span>?
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button
+              value="Stay Here"
+              variant="secondary"
+              onClick={() => setCompletionPrompt(null)}
+            />
+            <Button
+              value="Go To Next Topic"
+              variant="primary"
+              className="inline-flex items-center gap-2"
+              onClick={goToPromptNextTopic}
             />
           </div>
         </div>

@@ -24,6 +24,10 @@ interface Props {
   userId?: string | number;
   programId?: string | number;
   refetch: () => void;
+  hasNextTopic?: boolean;
+  nextTopicName?: string;
+  onGoToNextTopic?: () => void;
+  onTopicCompleted?: (topicId: string | number) => void;
 }
 
 const typeBadgeMap: Record<
@@ -162,15 +166,24 @@ export const LearningUnits: React.FC<Props> = ({
   topicCompletedAt,
   activation,
   refetch,
+  hasNextTopic,
+  nextTopicName,
+  onGoToNextTopic,
+  onTopicCompleted,
 }) => {
   const { updateData: markTopicAsCompleted } = usePut(api.put.markTopicAsCompleted);
   const youtubePlayerRef = useRef<{ destroy?: () => void } | null>(null);
+  const completionTransitionRef = useRef<{
+    topicKey: string;
+    wasCompleted: boolean;
+  } | null>(null);
 
   // MCQ state
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [attemptsUsed, setAttemptsUsed] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [hasWatchedVideo, setHasWatchedVideo] = useState(Boolean(topicCompleted));
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
   const isAssignment = unit?.type === "assignment";
   const isVideo = unit?.type === "video";
@@ -369,8 +382,37 @@ export const LearningUnits: React.FC<Props> = ({
     markVideoAsWatched,
   ]);
 
+  useEffect(() => {
+    if (topicId === undefined || topicId === null) return;
+
+    const topicKey = String(topicId);
+    const isCurrentlyCompleted = Boolean(topicCompleted);
+    const previousState = completionTransitionRef.current;
+
+    if (!previousState || previousState.topicKey !== topicKey) {
+      completionTransitionRef.current = {
+        topicKey,
+        wasCompleted: isCurrentlyCompleted,
+      };
+      return;
+    }
+
+    if (!previousState.wasCompleted && isCurrentlyCompleted) {
+      onTopicCompleted?.(topicId);
+    }
+
+    completionTransitionRef.current = {
+      topicKey,
+      wasCompleted: isCurrentlyCompleted,
+    };
+  }, [topicId, topicCompleted, onTopicCompleted]);
+
   const assignmentStatus = topicStatus;
   const isRetryLimitReached = !hasRetriesLeft && assignmentStatus !== "PASS";
+  const canRetryAssessment =
+    hasSubmittedAtLeastOnce &&
+    hasRetriesLeft &&
+    !isSubmissionLocked;
 
   const assignmentLockMessage = isLockedByDueDate
     ? "This assignment is locked because the due date has passed. Submissions are no longer accepted."
@@ -394,6 +436,8 @@ export const LearningUnits: React.FC<Props> = ({
   };
 
   const markCompleted = async () => {
+    if (isMarkingComplete || topicCompleted) return;
+
     if (isVideo && !topicCompleted && !hasWatchedVideo) {
       showNotification(
         "Watch the video to the end before marking this topic as completed.",
@@ -402,6 +446,7 @@ export const LearningUnits: React.FC<Props> = ({
       return;
     }
 
+    setIsMarkingComplete(true);
     try {
       const payload = {
         topicId,
@@ -411,22 +456,36 @@ export const LearningUnits: React.FC<Props> = ({
       await refetch();
     } catch {
       showNotification("Could not update topic completion. Please try again.", "error");
+    } finally {
+      setIsMarkingComplete(false);
     }
   };
 
   const badge = unit ? typeBadgeMap[unit.type] : undefined;
+  const canMoveToNextTopic = Boolean(topicCompleted && hasNextTopic && onGoToNextTopic);
 
   return (
-    <div className="border border-lightGray rounded-lg p-4 space-y-4 bg-white">
+    <div className="space-y-5 rounded-xl border border-lightGray bg-white p-5 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <Badge className={`text-xs ${badge?.className ?? ""}`}>{badge?.label}</Badge>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className={`text-xs ${badge?.className ?? ""}`}>{badge?.label}</Badge>
+          <Badge
+            className={`text-xs ${
+              topicCompleted
+                ? "border-green-300 bg-green-100 text-green-700"
+                : "border-lightGray bg-lightGray/20 text-primaryGray"
+            }`}
+          >
+            {topicCompleted ? "Completed" : "In Progress"}
+          </Badge>
+        </div>
 
         <div className="flex items-center gap-3">
           {unit?.type !== "assignment" && (
             <button
               type="button"
-              disabled={Boolean(topicCompleted) || (isVideo && !hasWatchedVideo)}
+              disabled={Boolean(topicCompleted) || isMarkingComplete || (isVideo && !hasWatchedVideo)}
               onClick={() => {
                 if (topicCompleted) return;
                 void markCompleted();
@@ -434,20 +493,35 @@ export const LearningUnits: React.FC<Props> = ({
               className={`text-xs px-3 py-1 rounded-md border ${
                 topicCompleted
                   ? "bg-green-100 text-green-700 border-green-300"
+                  : isMarkingComplete
+                    ? "bg-primary/10 text-primary border-primary/20 cursor-wait"
                   : isVideo && !hasWatchedVideo
                     ? "bg-lightGray/20 text-primaryGray/70 border-lightGray cursor-not-allowed"
                     : "bg-white text-primaryGray border-lightGray"
               }`}
             >
-              {topicCompleted
-                ? "Completed"
-                : isVideo && !hasWatchedVideo
-                  ? "Watch video to complete"
-                  : "Mark as completed"}
+              <span className="inline-flex items-center gap-1.5">
+                {isMarkingComplete && (
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                )}
+                {topicCompleted
+                  ? "Completed"
+                  : isMarkingComplete
+                    ? "Completing..."
+                    : isVideo && !hasWatchedVideo
+                      ? "Watch video to complete"
+                      : "Mark as completed"}
+              </span>
             </button>
           )}
         </div>
       </div>
+
+      {topicCompleted && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs text-green-700">
+          Completed on {topicCompletedAt ? new Date(topicCompletedAt).toLocaleString() : "this topic"}
+        </div>
+      )}
 
       {/* Lesson Note */}
       {unit?.type === "lesson-note" && (
@@ -702,7 +776,7 @@ export const LearningUnits: React.FC<Props> = ({
                 Completed on {topicCompletedAt ? new Date(topicCompletedAt).toLocaleString() : "In progress"}
               </p>
 
-              {assignmentStatus === "FAIL" && hasRetriesLeft && !isSubmissionLocked && (
+              {canRetryAssessment && (
                 <button
                   type="button"
                   className="mt-4 rounded-md bg-lightGray/30 px-4 py-2 text-sm hover:bg-lightGray/50"
@@ -741,6 +815,29 @@ export const LearningUnits: React.FC<Props> = ({
           <p className="text-xs text-primaryGray">
             Upload your answer as a document (PDF or Word).
           </p>
+        </div>
+      )}
+
+      {topicCompleted && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-primary">Great work on this topic.</p>
+              <p className="text-sm text-primaryGray">
+                {hasNextTopic
+                  ? `Move forward to ${nextTopicName ?? "the next topic"} when you are ready.`
+                  : "You have reached the last topic in this program."}
+              </p>
+            </div>
+
+            {canMoveToNextTopic && (
+              <Button
+                value="Go To Next Topic"
+                variant="primary"
+                onClick={onGoToNextTopic}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
