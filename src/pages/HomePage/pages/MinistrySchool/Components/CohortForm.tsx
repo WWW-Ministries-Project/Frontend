@@ -2,7 +2,7 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
-import { formatInputDate } from "@/utils";
+import { COHORT_STATUS, COHORT_STATUS_VALUES, CohortStatus, formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
 import { useEffect, useMemo } from "react";
 import { date, object, ref, string } from "yup";
@@ -138,11 +138,10 @@ export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) =>
             <Field
               component={FormikSelectField}
               label="Status *"
-              options={[
-                { value: "Upcoming", label: "Upcoming" },
-                { value: "Ongoing", label: "Ongoing" },
-                { value: "Completed", label: "Completed" },
-              ]}
+              options={COHORT_STATUS_VALUES.map((status) => ({
+                value: status,
+                label: status,
+              }))}
               id="status"
               name="status"
               placeholder="e.g., Upcoming, Ongoing, Completed"
@@ -167,7 +166,7 @@ export interface ICohortForm {
   description: string;
   startDate: string;
   applicationDeadline: string;
-  status: string;
+  status: CohortStatus;
 }
 const initialValues: ICohortForm = {
   name: "",
@@ -175,7 +174,7 @@ const initialValues: ICohortForm = {
   description: "",
   startDate: "",
   applicationDeadline: "",
-  status: "Upcoming",
+  status: COHORT_STATUS.UPCOMING,
 };
 const validationSchema = object({
   name: string().required("Cohort name is required"),

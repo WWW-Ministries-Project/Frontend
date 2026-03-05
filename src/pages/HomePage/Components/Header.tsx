@@ -16,6 +16,7 @@ interface AccessibleMenuProps {
   label: string;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLButtonElement>;
+  align?: "left" | "right";
   children: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ const AccessibleMenu = ({
   label,
   onClose,
   triggerRef,
+  align = "left",
   children,
 }: AccessibleMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,13 +67,15 @@ const AccessibleMenu = ({
 
   if (!isOpen) return null;
 
+  const alignmentClass = align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left";
+
   return (
     <div
       ref={menuRef}
       role="menu"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="absolute top-10  mt-2 w-56 bg-white border rounded-md shadow-lg"
+      className={`absolute top-full mt-2 z-50 w-56 max-w-[calc(100vw-1rem)] bg-white border rounded-md shadow-lg ${alignmentClass}`}
     >
       {children}
     </div>
@@ -374,6 +378,7 @@ export const Header = ({ handleShowNav }: IProps) => {
             label="Profile menu"
             onClose={() => setIsProfileMenuOpen(false)}
             triggerRef={profileButtonRef}
+            align="right"
           >
             {isMinistryWorker && (
               <button

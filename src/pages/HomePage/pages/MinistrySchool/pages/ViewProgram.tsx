@@ -2,7 +2,7 @@ import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
-import type { CohortType } from "@/utils";
+import { COHORT_STATUS, normalizeCohortStatus, type CohortType } from "@/utils";
 import { api } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -69,7 +69,7 @@ export const ViewProgram = () => {
       description: cohort.description,
       startDate: cohort.startDate,
       applicationDeadline: cohort.applicationDeadline,
-      status: cohort.status,
+      status: normalizeCohortStatus(cohort.status) ?? COHORT_STATUS.UPCOMING,
     };
     setSelectedCohort(formattedCohort);
     setIsModalOpen(true);
