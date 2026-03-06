@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import ChurchLogo from "@/components/ChurchLogo";
 import { ProfilePicture } from "@/components";
+import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
 
@@ -246,7 +247,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 bg-white md:text-sm lg:text-md"
+      className="sticky top-0 z-40  md:text-sm lg:text-md"
     >
       <div className="flex items-center justify-between px-4 ">
         {/* Left */}
@@ -380,6 +381,12 @@ export const Header = ({ handleShowNav }: IProps) => {
             triggerRef={profileButtonRef}
             align="right"
           >
+            <div className="border-b border-lightGray px-4 py-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                Appearance
+              </p>
+              <ThemeModeSelector className="w-full min-w-[140px]" />
+            </div>
             {isMinistryWorker && (
               <button
                 role="menuitem"

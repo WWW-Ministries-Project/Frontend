@@ -63,7 +63,7 @@ const MyRequisitions = () => {
         <div>
           <PageHeader
             title="My Requisitions"
-            buttonValue="Requisition item"
+            buttonValue="Create requisition"
             onClick={() => navigate("/home/requests/request")}
           />
           <p className="text-sm text-primaryGray">

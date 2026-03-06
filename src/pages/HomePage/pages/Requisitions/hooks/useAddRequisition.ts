@@ -201,9 +201,11 @@ export const useAddRequisition = () => {
     setOpenSignature(false);
   };
 
-  const imageChange = (images: image[]) => {
-    setImages(images);
-  };
+  const imageChange = useCallback((nextImages: image[]) => {
+    setImages((previousImages) =>
+      previousImages === nextImages ? previousImages : nextImages
+    );
+  }, []);
 
   const handleUpload = useCallback(
     async (formData: FormData) => {
@@ -310,7 +312,6 @@ export const useAddRequisition = () => {
         setData(upsertResponse as RequisitionMutationResponse);
 
         const shouldSubmitForApproval = Boolean(options?.submitForApproval);
-        const shouldRedirectToDetails = Boolean(options?.redirectToDetails);
         const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
         const detailsPath = resolvedId
           ? `${REQUESTS_BASE_PATH}/${window.btoa(String(resolvedId))}`
@@ -355,13 +356,9 @@ export const useAddRequisition = () => {
         }
 
         setOpenSignature(false);
-
-        if (shouldRedirectToDetails) {
-          navigate(detailsPath, { replace: true });
-          return;
-        }
-
-        navigate(detailsPath, { replace: true });
+        navigate(requisitionId ? detailsPath : REQUESTS_BASE_PATH, {
+          replace: true,
+        });
       } catch (error) {
         const normalizedError =
           error instanceof Error ? error : new Error("Unknown error");

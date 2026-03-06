@@ -1,7 +1,6 @@
 import {
   extractNotificationsFromPayload,
   getNotificationIdentity,
-  isHighPriorityNotification,
   isRecentNotification,
   mergeNotifications,
   normalizeNotificationCollection,
@@ -95,12 +94,11 @@ const toErrorMessage = (error: unknown): string => {
   return "Unexpected error";
 };
 
-const shouldToastHighPriority = (
+const shouldToastIncomingNotification = (
   notification: InAppNotification,
   recentlyToastedKeys: string[]
 ): boolean => {
   if (notification.isRead) return false;
-  if (!isHighPriorityNotification(notification.priority)) return false;
   if (!isRecentNotification(notification.createdAt)) return false;
 
   const key = getNotificationIdentity(notification);
@@ -263,13 +261,17 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         merged.added.forEach((notification) => {
           showForegroundDeviceNotification(notification);
 
-          if (!shouldToastHighPriority(notification, toastKeys)) return;
+          if (!shouldToastIncomingNotification(notification, toastKeys)) return;
+
+          const isCritical = notification.priority?.toUpperCase() === "CRITICAL";
+          const notificationMessage =
+            notification.body || notification.title || "You have a new notification.";
 
           showNotification(
-            notification.body || "You have a new high-priority notification.",
-            notification.priority?.toUpperCase() === "CRITICAL" ? "error" : "success",
+            notificationMessage,
+            isCritical ? "error" : "success",
             {
-              title: notification.title || "High-priority update",
+              title: notification.title || "New notification",
             }
           );
 

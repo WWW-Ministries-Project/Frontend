@@ -6,7 +6,6 @@ import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ApiResponse } from "@/utils/interfaces";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PageHeader from "../../../Components/PageHeader";
 import PageOutline from "../../../Components/PageOutline";
 import TableComponent from "../../../Components/reusable/TableComponent";
@@ -18,7 +17,6 @@ import {
 import { tableColumns } from "../utils/tableColums";
 
 const Requisitions = () => {
-  const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const myRequisitionPath = `${relativePath.home.main}/requests`;
 
@@ -61,11 +59,7 @@ const Requisitions = () => {
     <PageOutline crumbs={crumbs}>
       <div className="space-y-5">
         <div>
-          <PageHeader
-            title="Requisitions"
-            buttonValue="Requisition item"
-            onClick={() => navigate("/home/requests/request")}
-          />
+          <PageHeader title="Requisitions" />
           <p className="text-sm text-primaryGray">
             Track requisitions, approvals, and current processing status.
           </p>

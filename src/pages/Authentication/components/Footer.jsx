@@ -1,7 +1,13 @@
+import { ThemeModeSelector } from "@/components/ThemeModeSelector";
+
 const Footer = () => {
   return (
     <footer className="px-4 pb-4">
-      <div className="flex justify-end">
+      <div className="flex items-end justify-between gap-3">
+        <div className="w-full max-w-[160px]">
+          <p className="mb-1 text-xs font-medium text-white/90">Theme</p>
+          <ThemeModeSelector className="w-full" />
+        </div>
         <a
           href="https://wa.me/qr/6TUNEFPG5RGMD1"
           target="_blank"

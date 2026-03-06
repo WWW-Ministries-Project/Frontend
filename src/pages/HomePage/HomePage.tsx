@@ -105,7 +105,7 @@ export function HomePage() {
 
   if (!token) return <Navigate to="/login" replace />;
   return (
-    <main className="app-shell-padding h-[100dvh] w-full overflow-hidden bg-background">
+    <main className="app-shell-padding h-[100dvh] w-full overflow-hidden bg-white">
       <div className="flex h-full min-h-0 flex-col gap-3">
         <div className="flex-shrink-0">
           <Header handleShowNav={handleShowNav} />

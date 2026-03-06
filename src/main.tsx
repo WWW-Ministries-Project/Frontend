@@ -7,6 +7,7 @@ import { NotificationRealtimeConnector } from "./features/notifications/Notifica
 import { NotificationCard } from "./components/NotificationCard";
 import { ScrollbarVisibilityManager } from "./components/ScrollbarVisibilityManager";
 import { AuthWrapper } from "./context/AuthWrapper";
+import { ThemeProvider } from "./context/ThemeContext";
 import "./index.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
 
@@ -18,24 +19,26 @@ registerSW({
 
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  // <React.StrictMode>
-  //   <RouterProvider router={router} />
-  // </React.StrictMode>
-  <BrowserRouter
-    future={{
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    }}
-  >
-    {/* <RenderRoutes  /> */}
-    <AuthWrapper>
-      <>
-        <ScrollbarVisibilityManager />
-        <NotificationDeviceConnector />
-        <NotificationRealtimeConnector />
-        <RenderRoutes />
-        <NotificationCard />
-      </>
-    </AuthWrapper>
-  </BrowserRouter>
+  <ThemeProvider>
+    {/* <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode> */}
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      {/* <RenderRoutes  /> */}
+      <AuthWrapper>
+        <>
+          <ScrollbarVisibilityManager />
+          <NotificationDeviceConnector />
+          <NotificationRealtimeConnector />
+          <RenderRoutes />
+          <NotificationCard />
+        </>
+      </AuthWrapper>
+    </BrowserRouter>
+  </ThemeProvider>
 );

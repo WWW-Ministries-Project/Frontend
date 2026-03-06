@@ -27,18 +27,19 @@ export const WelcomeHeader = ({ showFull = false, theme }: { showFull?: boolean,
             Jesus
           </p>
 
-          <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
-            <p className="text-sm text-blue-100 mb-1">
-              Theme for the Year {new Date().getFullYear()}
-            </p>
-            <h2 className="text-lg md:text-xl font-semibold mb-1">
-              {/* &quot; */}
+          {theme && (
+            <div className="bg-white bg-opacity-20 rounded-lg p-4 backdrop-blur-sm">
+              <p className="text-sm text-blue-100 mb-1">
+                Theme for the Year {new Date().getFullYear()}
+              </p>
+              <h2 className="text-lg md:text-xl font-semibold mb-1">
+                {/* &quot; */}
               {theme?.title ?? ""}
               {/* &quot; */}
             </h2>
             <p className="font-medium">{theme?.verse ?? ""}</p>
             <p className="text-sm text-blue-200 italic">{theme?.verseReference ?? ""}</p>
-          </div>
+          </div>)}
         </div>
 
         {/* Decorative elements */}

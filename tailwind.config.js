@@ -1,42 +1,45 @@
+const colorVar = cssVarName => `rgb(var(${cssVarName}) / <alpha-value>)`;
+
 const brandColors = {
-  primary: "#080D2D",
-  secondary: "#9A5D1A",
-  background: "#FFFFFF",
+  primary: colorVar("--color-primary"),
+  secondary: colorVar("--color-secondary"),
+  background: colorVar("--color-background"),
 
-  primaryGray: "#4B5563",
-  mainGray: "#6B7280",
-  lightGray: "#D8DAE5",
-  borderGray: "#E0E3EB",
-  inputBackground: "#F8F9FC",
+  primaryGray: colorVar("--color-primaryGray"),
+  mainGray: colorVar("--color-mainGray"),
+  lightGray: colorVar("--color-lightGray"),
+  borderGray: colorVar("--color-borderGray"),
+  inputBackground: colorVar("--color-inputBackground"),
 
-  success: "#166534",
-  error: "#B91C1C",
-  warning: "#B45309",
+  success: colorVar("--color-success"),
+  error: colorVar("--color-error"),
+  warning: colorVar("--color-warning"),
 
-  shadow: "#00000026",
-  blur: "#222222CC",
-  modalOverlay: "#080D2D99",
-  hoverGold: "#A2621C",
+  shadow: colorVar("--color-shadow"),
+  blur: colorVar("--color-blur"),
+  modalOverlay: colorVar("--color-modalOverlay"),
+  hoverGold: colorVar("--color-hoverGold"),
 
-  lighter: "#1A2255",
-  lightest: "#2C3877",
-  accent: "#3D4B99",
-  pale: "#4E5FBB",
+  lighter: colorVar("--color-lighter"),
+  lightest: colorVar("--color-lightest"),
+  accent: colorVar("--color-accent"),
+  pale: colorVar("--color-pale"),
 };
 
 const legacyColors = {
-  wwmBlue: "#080D2D",
-  wwwGray: "#62626A",
-  wwwGrey2: "#6B7B8A",
-  errorBG: "#FBEAE6",
-  bgWhite: "#F9F9F9",
-  gold: "#EFBF04",
-  lighterBlack: "#575570",
-  neutralGray: "#E8EDFF",
+  wwmBlue: colorVar("--color-wwmBlue"),
+  wwwGray: colorVar("--color-wwwGray"),
+  wwwGrey2: colorVar("--color-wwwGrey2"),
+  errorBG: colorVar("--color-errorBG"),
+  bgWhite: colorVar("--color-bgWhite"),
+  gold: colorVar("--color-gold"),
+  lighterBlack: colorVar("--color-lighterBlack"),
+  neutralGray: colorVar("--color-neutralGray"),
 };
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     fontFamily: {
@@ -71,8 +74,20 @@ export default {
       colors: {
         ...brandColors,
         ...legacyColors,
+        white: colorVar("--color-white"),
+        black: colorVar("--color-black"),
         gray: {
-          DEFAULT: "#575F6A",
+          50: colorVar("--color-gray-50"),
+          100: colorVar("--color-gray-100"),
+          200: colorVar("--color-gray-200"),
+          300: colorVar("--color-gray-300"),
+          400: colorVar("--color-gray-400"),
+          500: colorVar("--color-gray-500"),
+          600: colorVar("--color-gray-600"),
+          700: colorVar("--color-gray-700"),
+          800: colorVar("--color-gray-800"),
+          900: colorVar("--color-gray-900"),
+          DEFAULT: colorVar("--color-gray-600"),
         },
       },
       animation: {
