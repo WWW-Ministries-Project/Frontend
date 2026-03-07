@@ -4,11 +4,14 @@ import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { navigateRef } from "@/pages/HomePage/navigationRef";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
+import { useUserStore } from "@/store/userStore";
+import { decodeToken } from "@/utils/helperFunctions";
 import { IFamilyInformationRaw, IMemberInfo, MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import { Banner } from "../Components/Banner";
+import BannerWrapper from "@/pages/MembersPage/layouts/BannerWrapper";
 
 const normalizeMemberStatus = (
   status?: string | null
@@ -48,26 +51,22 @@ export const ProfileDetails = () => {
   const canManageMembers = canManage("Members");
 
   const { id } = useParams();
-  const user_id = id ? decodeQuery(id) : undefined;
-  const shouldFetchByUserId = Boolean(user_id);
+  const routeUserId = id ? decodeQuery(id) : undefined;
+  const storedUserId = useUserStore((state) => state.id);
+  const tokenPayload = decodeToken();
+  const tokenUserId = tokenPayload?.id ? String(tokenPayload.id) : "";
+  const requestedUserId = routeUserId || storedUserId || tokenUserId || undefined;
+  const shouldFetchByUserId = Boolean(requestedUserId);
 
   const { data: memberDataResponse, loading: memberLoading } = useFetch(
     api.fetch.fetchAMember,
-    shouldFetchByUserId ? { user_id } : undefined,
+    shouldFetchByUserId ? { user_id: String(requestedUserId) } : undefined,
     !shouldFetchByUserId
   );
 
-  const { data: currentUserDataResponse, loading: currentUserLoading } = useFetch(
-    api.fetch.fetchCurrentUser,
-    undefined,
-    shouldFetchByUserId
-  );
-
-  const details = (
-    memberDataResponse?.data || currentUserDataResponse?.data
-  ) as IMemberInfo | undefined;
+  const details = memberDataResponse?.data as IMemberInfo | undefined;
   const resolvedUserId =
-    user_id ||
+    requestedUserId ||
     (details?.id !== undefined && details?.id !== null
       ? String(details.id)
       : undefined);
@@ -101,7 +100,7 @@ export const ProfileDetails = () => {
 
   const editableMemberId = details?.id || prefillMember?.id;
   const showInitialLoadingState =
-    (memberLoading || currentUserLoading) && !details && !prefillMember;
+    memberLoading && !details && !prefillMember;
 
   const handleEdit = (memberId: number | string) => {
     if (navigateRef.current)
@@ -113,102 +112,108 @@ export const ProfileDetails = () => {
       );
   };
 
-  return (
-    <div>
-      <div className="sticky top-0 z-40 w-full">
-        <Banner>
-          <div className="w-full relative text-white rounded-t-lg">
-            <div
-              className="rounded-t-lg left-0 w-full h-full flex items-center justify-between bg-cover"
-              style={{
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }}
-            >
-              <div className="sm:flex justify-between items-cente container mx-auto">
-                <div className="flex gap-4 items-center">
-                  <ProfilePicture
-                    className="w-24 h-24 md:w-32 md:h-32 outline outline-white"
-                    textClass="font-bold overflow-hidden text-2xl"
-                    src={displayPhoto}
-                    alt="cover Image"
-                    name={displayName}
-                    id="coverPic"
-                  />
+  const profileBannerContent = (
+    <div className="w-full relative text-white">
+      <div
+        className="left-0 w-full h-full flex items-center justify-between bg-cover"
+        style={{
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="w-full sm:flex justify-between items-center">
+          <div className="flex gap-4 items-center">
+            <ProfilePicture
+              className="w-24 h-24 md:w-32 md:h-32 outline outline-white"
+              textClass="font-bold overflow-hidden text-2xl"
+              src={displayPhoto}
+              alt="cover Image"
+              name={displayName}
+              id="coverPic"
+            />
 
-                  <article className="md:inline space-y-2">
-                    <div className="font-bold text-sm md:text-2xl">{displayName}</div>
-                    <div className="flex gap-2 text-xs md:text-sm">
-                      <span>#</span>
-                      <span>{displayMemberId}</span>
-                    </div>
+            <article className="md:inline space-y-2">
+              <div className="font-bold text-sm md:text-2xl">{displayName}</div>
+              <div className="flex gap-2 text-xs md:text-sm">
+                <span>#</span>
+                <span>{displayMemberId}</span>
+              </div>
 
-                    {showInitialLoadingState && (
-                      <p className="text-xs md:text-sm text-white/90">Loading profile details...</p>
-                    )}
+              {showInitialLoadingState && (
+                <p className="text-xs md:text-sm text-white/90">Loading profile details...</p>
+              )}
 
-                    <div className="md:flex items-center gap-2 text-xs md:text-sm">
-                      {displayEmail && (
-                        <p className="flex items-center gap-2">
-                          <span>
-                            <EnvelopeIcon className="h-4" />
-                          </span>
-                          <span>{displayEmail}</span>
-                        </p>
-                      )}
-                      <div className="hidden md:block">
-                        {displayEmail && displayPhone && <p>|</p>}
-                      </div>
-                      {displayPhone && (
-                        <p className="flex items-center gap-2 pt-2 md:pt-0">
-                          <span>
-                            <PhoneIcon className="h-4" />
-                          </span>
-                          <span>{displayPhone}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="hidden md:flex gap-2">
-                      {membershipTypeLabel && (
-                        <Badge className="text-sm border-primary bg-white border text-primary w-fit">
-                          {membershipTypeLabel}
-                        </Badge>
-                      )}
-                      <Badge className="text-sm border-primary bg-white border text-primary normal-case">
-                        {memberStatusLabel}
-                      </Badge>
-                    </div>
-
-                    <div className="flex md:hidden gap-2 pt-2">
-                      {membershipTypeLabel && (
-                        <Badge className="text-xs border-primary bg-white border text-primary w-fit">
-                          {membershipTypeLabel}
-                        </Badge>
-                      )}
-                      <Badge className="text-xs border-primary bg-white border text-primary normal-case">
-                        {memberStatusLabel}
-                      </Badge>
-                    </div>
-                  </article>
+              <div className="md:flex items-center gap-2 text-xs md:text-sm">
+                {displayEmail && (
+                  <p className="flex items-center gap-2">
+                    <span>
+                      <EnvelopeIcon className="h-4" />
+                    </span>
+                    <span>{displayEmail}</span>
+                  </p>
+                )}
+                <div className="hidden md:block">
+                  {displayEmail && displayPhone && <p>|</p>}
                 </div>
-
-                {canManageMembers && !isMemberRoute && (
-                  <div className="pt-4 md:pt-0">
-                    <Button
-                      value="Edit Profile"
-                      onClick={() =>
-                        editableMemberId && handleEdit(String(editableMemberId))
-                      }
-                      className="w-full px-5 py-3 bg-transparent min-h-8 bg-white text-primary text-xs md:text-sm lg:text-base "
-                    />
-                  </div>
+                {displayPhone && (
+                  <p className="flex items-center gap-2 pt-2 md:pt-0">
+                    <span>
+                      <PhoneIcon className="h-4" />
+                    </span>
+                    <span>{displayPhone}</span>
+                  </p>
                 )}
               </div>
-            </div>
+
+              <div className="hidden md:flex gap-2">
+                {membershipTypeLabel && (
+                  <Badge className="text-sm border-primary bg-white border text-primary w-fit">
+                    {membershipTypeLabel}
+                  </Badge>
+                )}
+                <Badge className="text-sm border-primary bg-white border text-primary normal-case">
+                  {memberStatusLabel}
+                </Badge>
+              </div>
+
+              <div className="flex md:hidden gap-2 pt-2">
+                {membershipTypeLabel && (
+                  <Badge className="text-xs border-primary bg-white border text-primary w-fit">
+                    {membershipTypeLabel}
+                  </Badge>
+                )}
+                <Badge className="text-xs border-primary bg-white border text-primary normal-case">
+                  {memberStatusLabel}
+                </Badge>
+              </div>
+            </article>
           </div>
-        </Banner>
+
+          {canManageMembers && !isMemberRoute && (
+            <div className="pt-4 md:pt-0">
+              <Button
+                value="Edit Profile"
+                onClick={() =>
+                  editableMemberId && handleEdit(String(editableMemberId))
+                }
+                className="w-full px-5 py-3 bg-transparent min-h-8 bg-white text-primary text-xs md:text-sm lg:text-base "
+              />
+            </div>
+          )}
+        </div>
       </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {isMemberRoute ? (
+        <BannerWrapper>{profileBannerContent}</BannerWrapper>
+      ) : (
+        <div className="sticky top-0 z-40 w-full">
+          <Banner>{profileBannerContent}</Banner>
+        </div>
+      )}
 
       <section className="bg-white w-full h-full mb-4 mx-auto">
         <div className="hideScrollbar pb-4 mx-auto rounded-b-xl overflow-y-auto">
@@ -217,7 +222,7 @@ export const ProfileDetails = () => {
               handleEdit,
               details,
               familyData,
-              loading: memberLoading || currentUserLoading || familyLoading,
+              loading: memberLoading || familyLoading,
             }}
           />
         </div>
