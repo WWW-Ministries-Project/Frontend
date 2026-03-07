@@ -1,11 +1,28 @@
-import { ProfilePicture } from "@/components";
+import { Button, ProfilePicture } from "@/components";
+import { encodeQuery } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
-import { formatDatefull } from "@/utils";
+import { formatDatefull, relativePath } from "@/utils";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const ProfileSummary = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const userData = useUserStore((state) => state);
-  console.log("user data", userData);
-  
+  const isMemberRoute = location.pathname.startsWith(relativePath.member.main);
+  const adminProfilePath = userData?.id
+    ? `${relativePath.home.main}/members/${encodeQuery(userData.id)}`
+    : "";
+  const profilePath = isMemberRoute ? relativePath.member.profile : adminProfilePath;
+
+  const membershipNumber = userData?.member_id || "-";
+  const membershipSince = (() => {
+    if (!userData?.member_since) return "-";
+
+    const parsedDate = new Date(userData.member_since);
+    if (Number.isNaN(parsedDate.getTime())) return "-";
+
+    return formatDatefull(parsedDate);
+  })();
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -27,18 +44,21 @@ export const ProfileSummary = () => {
           <p className="mb-1 text-sm text-gray-600 break-all">
             {userData?.email || "Email not available"}
           </p>
-          {userData?.phone && (
-            <p className="text-sm text-gray-600 break-all">{userData.phone}</p>
-          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <p className="text-sm font-medium text-gray-500 mb-1">
+            Membership Number
+          </p>
+          <p className="text-sm text-gray-800 break-words [overflow-wrap:anywhere]">
+            {membershipNumber}
+          </p>
+        </div>
         <div>
           <p className="text-sm font-medium text-gray-500 mb-1">Member Since</p>
-          <p className="text-sm text-gray-800">
-            {formatDatefull(userData?.member_since || "") || "-"}
-          </p>
+          <p className="text-sm text-gray-800">{membershipSince}</p>
         </div>
         <div>
           <p className="text-sm font-medium text-gray-500 mb-1">Member Type</p>
@@ -48,29 +68,16 @@ export const ProfileSummary = () => {
         </div>
       </div>
 
-      <div className="mb-6">
-        <p className="text-sm font-medium text-gray-500 mb-3">
-          Ministries & Department
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {userData?.department &&
-          Array.isArray(userData.department) &&
-          userData.department.length > 0 ? (
-            userData.department.map((department, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-primary text-white text-xs rounded-full"
-              >
-                {department}
-              </span>
-            ))
-          ) : (
-            <span className="text-sm text-gray-500 italic">
-              No departments assigned
-            </span>
-          )}
-        </div>
-      </div>
+      <Button
+        value="View Profile"
+        variant="secondary"
+        className="w-full"
+        disabled={!profilePath}
+        onClick={() => {
+          if (!profilePath) return;
+          navigate(profilePath);
+        }}
+      />
     </div>
   );
 };

@@ -7,7 +7,7 @@ const Alert = (props) => {
       id={props.id}
       role="alert"
       aria-live="assertive"
-      className={`flex items-center gap-2 rounded-md border border-red-200 bg-errorBG px-3 py-2 text-xs text-error ${props.className || ""}`}
+      className={`flex items-center gap-2 rounded-md border border-error/35 bg-errorBG px-3 py-2 text-xs text-error ${props.className || ""}`}
     >
       <img src={important} alt="" className="h-4 w-4" aria-hidden="true" />
       <span>{props.text}</span>

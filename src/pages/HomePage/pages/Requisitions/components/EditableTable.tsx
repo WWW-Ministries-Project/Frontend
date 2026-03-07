@@ -3,6 +3,11 @@ import { useStore } from "@/store/useStore";
 import DeleteIcon from "@/assets/DeleteIcon";
 import { Button } from "@/components";
 
+const amountFormatter = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 const TableHeader = ({
   header,
   className = "",
@@ -10,7 +15,9 @@ const TableHeader = ({
   header: string;
   className?: string;
 }) => (
-  <th className={`border border-lightGray bg-[#F8F9FC] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary ${className}`}>
+  <th
+    className={`border border-lightGray bg-inputBackground px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary ${className}`}
+  >
     {header}
   </th>
 );
@@ -50,6 +57,12 @@ const TableInput = ({
     className={`app-input min-h-9 border-none bg-transparent px-2 py-1 ${className}`}
     value={value}
     onChange={onChange}
+    onWheel={(event) => {
+      if (type !== "number") return;
+      if (document.activeElement !== event.currentTarget) return;
+      event.preventDefault();
+      event.currentTarget.blur();
+    }}
     disabled={disabled}
     min={type === "number" ? 0 : undefined}
     step={type === "number" ? "any" : undefined}
@@ -120,7 +133,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
   const formatAmount = (value: number) => {
     const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed.toFixed(2) : "0.00";
+    return amountFormatter.format(Number.isFinite(parsed) ? parsed : 0);
   };
 
   const textPosition = isEditable ? "text-left" : "text-center";
@@ -197,7 +210,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
               <div
                 key={row.id}
                 className={`space-y-3 border-b border-lightGray p-4 ${
-                  index % 2 === 0 ? "bg-white" : "bg-[#FAFBFD]"
+                  index % 2 === 0 ? "bg-white" : "bg-inputBackground/45"
                 }`}
               >
                 <div className="space-y-1">
@@ -228,15 +241,21 @@ const EditableTable: React.FC<EditableTableProps> = ({
                   </div>
                   <div className="space-y-1">
                     <p className={fieldLabelClass}>Amount</p>
-                    <TableInput
-                      type="number"
-                      value={row.amount}
-                      onChange={(e) =>
-                        handleInputChange(index, "amount", e.target.value)
-                      }
-                      disabled={!isEditable}
-                      className={textPosition}
-                    />
+                    {isEditable ? (
+                      <TableInput
+                        type="number"
+                        value={row.amount}
+                        onChange={(e) =>
+                          handleInputChange(index, "amount", e.target.value)
+                        }
+                        disabled={!isEditable}
+                        className={textPosition}
+                      />
+                    ) : (
+                      <p className={`app-input min-h-9 border-none bg-transparent px-2 py-1 font-medium ${textPosition}`}>
+                        {formatAmount(row.amount)}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -270,7 +289,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
               </div>
             ))}
 
-            <div className="flex items-center justify-between bg-[#F8F9FC] px-4 py-3 text-sm font-semibold text-primary">
+            <div className="flex items-center justify-between bg-inputBackground px-4 py-3 text-sm font-semibold text-primary">
               <span>Total</span>
               <span>{formatAmount(totalSum)}</span>
             </div>
@@ -298,7 +317,10 @@ const EditableTable: React.FC<EditableTableProps> = ({
               </thead>
               <tbody>
                 {rows.map((row, index) => (
-                  <tr key={row.id} className="odd:bg-white even:bg-[#FAFBFD]">
+                  <tr
+                    key={row.id}
+                    className="odd:bg-white even:bg-inputBackground/45"
+                  >
                     <TableData className="min-w-[260px]">
                       <TableInput
                         type="text"
@@ -322,15 +344,21 @@ const EditableTable: React.FC<EditableTableProps> = ({
                       />
                     </TableData>
                     <TableData>
-                      <TableInput
-                        type="number"
-                        value={row.amount}
-                        onChange={(e) =>
-                          handleInputChange(index, "amount", e.target.value)
-                        }
-                        disabled={!isEditable}
-                        className={textPosition}
-                      />
+                      {isEditable ? (
+                        <TableInput
+                          type="number"
+                          value={row.amount}
+                          onChange={(e) =>
+                            handleInputChange(index, "amount", e.target.value)
+                          }
+                          disabled={!isEditable}
+                          className={textPosition}
+                        />
+                      ) : (
+                        <p className={`app-input min-h-9 border-none bg-transparent px-2 py-1 font-medium ${textPosition}`}>
+                          {formatAmount(row.amount)}
+                        </p>
+                      )}
                     </TableData>
                     <TableData className="text-center font-medium">
                       {formatAmount(row.total)}
@@ -338,12 +366,15 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     <TableData>{renderImageControls(row, index)}</TableData>
                     {isEditable && (
                       <TableData className="text-center">
-                        <DeleteIcon onClick={() => deleteRow(index)} />
+                        <DeleteIcon
+                          fill="rgb(var(--color-primaryGray))"
+                          onClick={() => deleteRow(index)}
+                        />
                       </TableData>
                     )}
                   </tr>
                 ))}
-                <tr className="font-semibold">
+                <tr className="bg-inputBackground/65 font-semibold text-primary">
                   <TableData colSpan={3} className="pl-3.5">
                     Total
                   </TableData>

@@ -75,6 +75,7 @@ export const NotificationCenterPage = () => {
 
   const notifications = useInAppNotificationStore((state) => state.notifications);
   const unreadCount = useInAppNotificationStore((state) => state.unreadCount);
+  const totalCount = useInAppNotificationStore((state) => state.totalCount);
   const loading = useInAppNotificationStore((state) => state.loading);
   const loadingMore = useInAppNotificationStore((state) => state.loadingMore);
   const hasMore = useInAppNotificationStore((state) => state.hasMore);
@@ -82,6 +83,9 @@ export const NotificationCenterPage = () => {
   const error = useInAppNotificationStore((state) => state.error);
   const fetchUnreadCount = useInAppNotificationStore(
     (state) => state.fetchUnreadCount
+  );
+  const fetchTotalCount = useInAppNotificationStore(
+    (state) => state.fetchTotalCount
   );
   const fetchNotifications = useInAppNotificationStore(
     (state) => state.fetchNotifications
@@ -102,8 +106,8 @@ export const NotificationCenterPage = () => {
   }, [activeTab, fetchNotifications]);
 
   useEffect(() => {
-    void fetchUnreadCount();
-  }, [fetchUnreadCount]);
+    void Promise.all([fetchUnreadCount(), fetchTotalCount()]);
+  }, [fetchTotalCount, fetchUnreadCount]);
 
   useEffect(() => {
     const refreshState = () => {
@@ -126,6 +130,9 @@ export const NotificationCenterPage = () => {
   );
 
   const visibleNotifications = activeTab === "unread" ? unreadNotifications : notifications;
+  const allCount = activeTab === "all" && totalCount <= 0
+    ? notifications.length
+    : totalCount;
 
   const handleOpenNotification = async (notification: InAppNotification) => {
     if (!notification.isRead) {
@@ -255,7 +262,7 @@ export const NotificationCenterPage = () => {
                   append: false,
                   query: tabQuery,
                 });
-                void fetchUnreadCount();
+                void Promise.all([fetchUnreadCount(), fetchTotalCount()]);
               }}
               className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
             >
@@ -299,7 +306,7 @@ export const NotificationCenterPage = () => {
                 : "border border-gray-200 text-gray-600 hover:bg-gray-50"
             }`}
           >
-            All ({notifications.length})
+            All ({allCount})
           </button>
         </div>
 

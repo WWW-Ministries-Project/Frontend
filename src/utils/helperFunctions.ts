@@ -5,6 +5,29 @@ import { DateTime } from "luxon";
 import { flattenPermissionsToLegacyFlags } from "./accessControl";
 import { userTypeWithToken } from "./interfaces";
 
+type TokenIdentityAliases = {
+  id?: string | number;
+  member_id?: string | number;
+  memberId?: string | number;
+  user_id?: string | number;
+  userId?: string | number;
+};
+
+const normalizeTokenId = (
+  payload: Partial<TokenIdentityAliases>
+): string => {
+  const candidate =
+    payload.id ??
+    payload.member_id ??
+    payload.memberId ??
+    payload.user_id ??
+    payload.userId;
+
+  if (candidate === null || candidate === undefined) return "";
+  const normalized = String(candidate).trim();
+  return normalized;
+};
+
 export const getToken = () => {
   return Cookies.get("token");
 };
@@ -20,7 +43,14 @@ export const removeToken = () => {
 export const decodeToken = (value?: string): userTypeWithToken | undefined => {
   const token = value ? value : getToken();
   if (!token) return undefined;
-  return jwtDecode(token);
+  const decoded = jwtDecode<userTypeWithToken & TokenIdentityAliases>(token);
+  // console.log("decoded token", decoded);
+  
+
+  return {
+    ...decoded,
+    id: normalizeTokenId(decoded),
+  };
 };
 export const getInitials = (string = "No Name") => {
   string = string.length > 0 ? string : "No Name";

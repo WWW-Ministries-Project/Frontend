@@ -45,6 +45,7 @@ const initialValues: LoginValues = {
 
 const USER_PROFILE_FIELDS = [
   "id",
+  "member_id",
   "email",
   "name",
   "phone",
@@ -54,6 +55,7 @@ const USER_PROFILE_FIELDS = [
   "membership_type",
   "ministry_worker",
   "department",
+  "department_positions",
   "life_center_leader",
   "instructor",
 ] as const;
@@ -188,6 +190,9 @@ const extractUserProfileFromSources = (
 
   if (mergedProfile.id !== undefined) {
     mergedProfile.id = String(mergedProfile.id);
+  }
+  if (mergedProfile.member_id !== undefined && mergedProfile.member_id !== null) {
+    mergedProfile.member_id = String(mergedProfile.member_id);
   }
 
   return mergedProfile;

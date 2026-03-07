@@ -24,6 +24,7 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const user = useUserStore((state) => ({
     id: state.id,
+    member_id: state.member_id,
     name: state.name,
     email: state.email,
     phone: state.phone,
@@ -35,6 +36,9 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
     membership_type: state.membership_type,
     ministry_worker: state.ministry_worker,
     department: state.department,
+    department_positions: state.department_positions,
+    life_center_leader: state.life_center_leader,
+    instructor: state.instructor,
   }));
 
   const setUser = useUserStore((state) => state.setUser);
