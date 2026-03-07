@@ -8,19 +8,21 @@ import { useEffect } from "react";
 
 const toneClasses: Record<
   AlertItem["type"],
-  { container: string; icon: string; title: string }
+  { container: string; icon: string; title: string; message: string }
 > = {
   success: {
     container:
-      "border-emerald-200 bg-emerald-50/95 shadow-[0_10px_30px_-20px_rgba(5,150,105,0.65)]",
-    icon: "text-emerald-600",
-    title: "text-emerald-900",
+      "border-lightGray bg-white ring-1 ring-success/20 shadow-[var(--shadow-card)]",
+    icon: "text-success",
+    title: "text-primary",
+    message: "text-primaryGray",
   },
   error: {
     container:
-      "border-rose-200 bg-rose-50/95 shadow-[0_10px_30px_-20px_rgba(220,38,38,0.7)]",
-    icon: "text-rose-600",
-    title: "text-rose-900",
+      "border-lightGray bg-white ring-1 ring-error/25 shadow-[var(--shadow-card)]",
+    icon: "text-error",
+    title: "text-primary",
+    message: "text-primaryGray",
   },
 };
 
@@ -56,11 +58,13 @@ const NotificationItem = ({ alert }: { alert: AlertItem }) => {
           <h4 className={`text-sm font-semibold leading-5 ${tones.title}`}>
             {alert.title}
           </h4>
-          <p className="mt-1 text-sm leading-5 text-gray-700">{alert.message}</p>
+          <p className={`mt-1 text-sm leading-5 ${tones.message}`}>
+            {alert.message}
+          </p>
         </div>
         <button
           type="button"
-          className="rounded-md p-1 text-gray-500 transition hover:bg-black/5 hover:text-gray-700"
+          className="rounded-md p-1 text-primaryGray transition hover:bg-lightGray/20 hover:text-primary"
           onClick={() => removeNotification(alert.id)}
           aria-label="Dismiss notification"
         >

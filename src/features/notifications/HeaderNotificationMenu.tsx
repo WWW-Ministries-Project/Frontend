@@ -66,8 +66,6 @@ export const HeaderNotificationMenu = ({
   const notifications = useInAppNotificationStore((state) => state.notifications);
   const unreadCount = useInAppNotificationStore((state) => state.unreadCount);
   const connected = useInAppNotificationStore((state) => state.connected);
-  const initialLoaded = useInAppNotificationStore((state) => state.initialLoaded);
-  const refresh = useInAppNotificationStore((state) => state.refresh);
   const markAsRead = useInAppNotificationStore((state) => state.markAsRead);
   const markAsUnread = useInAppNotificationStore((state) => state.markAsUnread);
   const markAllAsRead = useInAppNotificationStore((state) => state.markAllAsRead);
@@ -77,14 +75,12 @@ export const HeaderNotificationMenu = ({
     : `${relativePath.home.main}/${relativePath.home.notifications}`;
 
   const previewNotifications = useMemo(
-    () => notifications.slice(0, 6),
+    () =>
+      notifications
+        .filter((notification) => !notification.isRead)
+        .slice(0, 6),
     [notifications]
   );
-
-  useEffect(() => {
-    if (initialLoaded) return;
-    void refresh();
-  }, [initialLoaded, refresh]);
 
   useEffect(() => {
     if (!isOpen) return;

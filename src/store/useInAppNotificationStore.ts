@@ -31,6 +31,7 @@ interface FetchNotificationsOptions {
 interface InAppNotificationStore {
   notifications: InAppNotification[];
   unreadCount: number;
+  totalCount: number;
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
@@ -42,6 +43,7 @@ interface InAppNotificationStore {
   recentlyToastedKeys: string[];
   refresh: () => Promise<void>;
   fetchUnreadCount: () => Promise<void>;
+  fetchTotalCount: () => Promise<void>;
   fetchNotifications: (options?: FetchNotificationsOptions) => Promise<void>;
   loadMore: () => Promise<void>;
   ingestNotificationPayload: (
@@ -120,6 +122,7 @@ const isUnreadOnlyQuery = (query: QueryType | undefined): boolean => {
 const createInitialState = () => ({
   notifications: [] as InAppNotification[],
   unreadCount: 0,
+  totalCount: 0,
   loading: false,
   loadingMore: false,
   hasMore: true,
@@ -181,12 +184,21 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         ).length;
 
         const unreadOnlyRequest = isUnreadOnlyQuery(effectiveQuery);
+        const resolvedTotalCount =
+          typeof collection.total === "number"
+            ? Math.max(0, collection.total)
+            : typeof response.meta?.total === "number"
+              ? Math.max(0, response.meta.total)
+              : null;
 
         set((previousState) => ({
           notifications: merged.notifications,
           hasMore,
           currentPage: page,
           activeQuery: effectiveQuery,
+          totalCount: unreadOnlyRequest
+            ? previousState.totalCount
+            : resolvedTotalCount ?? merged.notifications.length,
           unreadCount: unreadOnlyRequest
             ? previousState.unreadCount
             : Math.max(previousState.unreadCount, unreadCountFromList),
@@ -217,6 +229,28 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         ).length;
 
         set({ unreadCount: fallbackUnreadCount });
+      }
+    },
+
+    fetchTotalCount: async () => {
+      try {
+        const response = await api.fetch.fetchNotifications({
+          page: 1,
+          limit: 1,
+        });
+        const collection = normalizeNotificationCollection(response.data);
+
+        const resolvedTotalCount =
+          typeof collection.total === "number"
+            ? Math.max(0, collection.total)
+            : typeof response.meta?.total === "number"
+              ? Math.max(0, response.meta.total)
+              : null;
+
+        if (resolvedTotalCount === null) return;
+        set({ totalCount: resolvedTotalCount });
+      } catch {
+        // Keep last known total count.
       }
     },
 
@@ -288,6 +322,10 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
       set({
         notifications: merged.notifications,
         unreadCount,
+        totalCount:
+          state.totalCount > 0
+            ? state.totalCount + merged.added.length
+            : merged.notifications.length,
         recentlyToastedKeys: toastKeys.slice(-MAX_TOAST_KEYS),
       });
     },

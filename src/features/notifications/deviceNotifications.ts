@@ -253,7 +253,11 @@ export const enableDeviceNotifications =
     return synced ? "enabled" : "failed";
   };
 
-export const removeDevicePushSubscription = async (): Promise<void> => {
+export const removeDevicePushSubscription = async (
+  options?: {
+    skipBackendUnsubscribe?: boolean;
+  }
+): Promise<void> => {
   if (!isPushSubscriptionSupported()) return;
 
   const registration = await getServiceWorkerRegistration();
@@ -265,10 +269,12 @@ export const removeDevicePushSubscription = async (): Promise<void> => {
 
     const payload = buildSubscriptionPayload(subscription);
 
-    try {
-      await api.post.unsubscribeFromNotificationPush(payload);
-    } catch {
-      // Ignore backend unsubscribe errors.
+    if (!options?.skipBackendUnsubscribe) {
+      try {
+        await api.post.unsubscribeFromNotificationPush(payload);
+      } catch {
+        // Ignore backend unsubscribe errors.
+      }
     }
 
     try {

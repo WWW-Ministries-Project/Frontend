@@ -57,9 +57,6 @@ export const NotificationRealtimeConnector = () => {
       return;
     }
 
-    // On auth-bound mount/login, fetch unread count once; SSE keeps it synced.
-    void fetchUnreadCount();
-
     let eventSource: EventSource | null = null;
     let reconnectTimer: number | null = null;
     let fallbackPollTimer: number | null = null;
@@ -102,6 +99,7 @@ export const NotificationRealtimeConnector = () => {
       if (fallbackPollTimer !== null) return;
 
       fallbackPollTimer = window.setInterval(() => {
+        if (document.visibilityState === "hidden") return;
         void syncFromApi(false);
       }, 15_000);
     };
@@ -223,6 +221,8 @@ export const NotificationRealtimeConnector = () => {
       }
     };
 
+    // Bootstrap data once, then let SSE and server events keep it current.
+    void syncFromApi(true);
     void connect();
 
     return () => {

@@ -27,8 +27,13 @@ export const NotificationDeviceConnector = () => {
 
   useEffect(() => {
     const token = getToken();
-    if (!token || !userId) {
-      void removeDevicePushSubscription();
+    if (!token) {
+      // No authenticated user context; avoid unauthorized backend unsubscribe calls.
+      void removeDevicePushSubscription({ skipBackendUnsubscribe: true });
+      return;
+    }
+
+    if (!userId) {
       return;
     }
 

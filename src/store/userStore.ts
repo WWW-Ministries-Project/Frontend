@@ -69,9 +69,10 @@ export const useUserStore = create<UserState & UserActions>()(
   persist(
     (set) => ({
       id: "",
+      member_id: "",
       name: "",
       email: "",
-      phone: "",
+      phone: null,
       user_category: "",
       permissions: {},
       access_permissions: {},
@@ -80,9 +81,13 @@ export const useUserStore = create<UserState & UserActions>()(
       membership_type: "",
       ministry_worker: false,
       department: undefined,
+      department_positions: [],
+      life_center_leader: false,
+      instructor: false,
 
       setUser: ({
         id,
+        member_id,
         name,
         email,
         phone,
@@ -92,6 +97,9 @@ export const useUserStore = create<UserState & UserActions>()(
         membership_type,
         ministry_worker,
         department,
+        department_positions,
+        life_center_leader,
+        instructor,
         permissions,
         access_permissions,
       }) => {
@@ -118,16 +126,20 @@ export const useUserStore = create<UserState & UserActions>()(
             : flattenPermissionsToLegacyFlags(normalizedPermissionPayload);
 
         set({
-          id,
+          id: id ? String(id) : "",
+          member_id: member_id ? String(member_id) : "",
           name,
           email,
-          phone,
+          phone: phone ?? null,
           user_category,
           profile_img,
-          member_since,
+          member_since: member_since ?? null,
           membership_type,
           ministry_worker,
           department,
+          department_positions,
+          life_center_leader: Boolean(life_center_leader),
+          instructor: Boolean(instructor),
           permissions: legacyPermissions ?? {},
           access_permissions: normalizedPermissionPayload,
         });
@@ -136,9 +148,10 @@ export const useUserStore = create<UserState & UserActions>()(
       clearUser: () =>
         set({
           id: "",
+          member_id: "",
           name: "",
           email: "",
-          phone: "",
+          phone: null,
           user_category: "",
           permissions: {},
           access_permissions: {},
@@ -147,6 +160,9 @@ export const useUserStore = create<UserState & UserActions>()(
           membership_type: "",
           ministry_worker: false,
           department: undefined,
+          department_positions: [],
+          life_center_leader: false,
+          instructor: false,
         }),
     }),
     {
