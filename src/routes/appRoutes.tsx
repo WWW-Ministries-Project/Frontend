@@ -954,6 +954,20 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        path: relativePath.member.profile,
+        name: "member_profile",
+        element: <ProfileDetails />,
+        isPrivate: false,
+        children: [
+          {
+            path: "",
+            name: "member_profile_info",
+            element: <MemberInformation />,
+            isPrivate: false,
+          },
+        ],
+      },
+      {
         path: relativePath.member.market,
         name: "Member Market",
         element: <Market />,

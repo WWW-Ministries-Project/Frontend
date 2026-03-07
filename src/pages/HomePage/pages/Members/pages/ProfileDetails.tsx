@@ -43,28 +43,44 @@ const getMembershipTypeLabel = (membershipType?: string): string => {
 
 export const ProfileDetails = () => {
   const location = useLocation();
+  const isMemberRoute = location.pathname.startsWith("/member");
   const { canManage } = useAccessControl();
   const canManageMembers = canManage("Members");
 
   const { id } = useParams();
   const user_id = id ? decodeQuery(id) : undefined;
+  const shouldFetchByUserId = Boolean(user_id);
 
-  const { data, loading: memberLoading } = useFetch(
+  const { data: memberDataResponse, loading: memberLoading } = useFetch(
     api.fetch.fetchAMember,
-    user_id ? { user_id } : undefined,
-    !user_id
+    shouldFetchByUserId ? { user_id } : undefined,
+    !shouldFetchByUserId
   );
+
+  const { data: currentUserDataResponse, loading: currentUserLoading } = useFetch(
+    api.fetch.fetchCurrentUser,
+    undefined,
+    shouldFetchByUserId
+  );
+
+  const details = (
+    memberDataResponse?.data || currentUserDataResponse?.data
+  ) as IMemberInfo | undefined;
+  const resolvedUserId =
+    user_id ||
+    (details?.id !== undefined && details?.id !== null
+      ? String(details.id)
+      : undefined);
 
   const { data: familyDataResponse, loading: familyLoading } = useFetch(
     api.fetch.fetchMemberFamily,
-    user_id ? { user_id } : undefined,
-    !user_id
+    resolvedUserId ? { user_id: resolvedUserId } : undefined,
+    !resolvedUserId
   );
 
   const prefillMember = (location.state as ProfileLocationState | null)
     ?.prefillMember;
 
-  const details = data?.data as IMemberInfo | undefined;
   const familyData = (familyDataResponse?.data || []) as
     | IFamilyInformationRaw
     | unknown[];
@@ -84,7 +100,8 @@ export const ProfileDetails = () => {
   );
 
   const editableMemberId = details?.id || prefillMember?.id;
-  const showInitialLoadingState = memberLoading && !details && !prefillMember;
+  const showInitialLoadingState =
+    (memberLoading || currentUserLoading) && !details && !prefillMember;
 
   const handleEdit = (memberId: number | string) => {
     if (navigateRef.current)
@@ -176,7 +193,7 @@ export const ProfileDetails = () => {
                   </article>
                 </div>
 
-                {canManageMembers && (
+                {canManageMembers && !isMemberRoute && (
                   <div className="pt-4 md:pt-0">
                     <Button
                       value="Edit Profile"
@@ -200,7 +217,7 @@ export const ProfileDetails = () => {
               handleEdit,
               details,
               familyData,
-              loading: memberLoading || familyLoading,
+              loading: memberLoading || currentUserLoading || familyLoading,
             }}
           />
         </div>

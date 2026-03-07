@@ -91,6 +91,7 @@ export const relativePath = {
   member: {
     main: "/member",
     dashboard: "/member/dashboard",
+    profile: "/member/profile",
     notifications: "/member/notifications",
     market: "/member/market/",
     productDetails: "/member/market/product/:id",
