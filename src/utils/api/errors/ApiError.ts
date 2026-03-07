@@ -4,12 +4,19 @@ import { AxiosError } from "axios";
 class ApiError extends Error {
   statusCode: number;
   details?: unknown;
+  requestPath?: string;
 
-  constructor(message: string, statusCode: number, details?: unknown) {
+  constructor(
+    message: string,
+    statusCode: number,
+    details?: unknown,
+    requestPath?: string
+  ) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
     this.details = details;
+    this.requestPath = requestPath;
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
@@ -22,6 +29,18 @@ class ApiErrorHandler {
     "jwt expired",
     "token expired",
   ];
+  private static readonly PERMISSION_DENIAL_MARKERS = [
+    "access denied",
+    "permission denied",
+    "insufficient permission",
+    "insufficient permissions",
+    "forbidden",
+    "not allowed",
+    "unauthorized to access",
+    "you do not have permission",
+  ];
+
+  private static readonly PUSH_PUBLIC_KEY_PATH = "/notifications/push/public-key";
 
   private static asNonEmptyString(value: unknown): string | null {
     if (typeof value !== "string") return null;
@@ -86,6 +105,32 @@ class ApiErrorHandler {
     );
   }
 
+  private static isPermissionDeniedMessage(message: string): boolean {
+    const normalizedMessage = message.trim().toLowerCase();
+    if (!normalizedMessage) return false;
+
+    return this.PERMISSION_DENIAL_MARKERS.some((marker) =>
+      normalizedMessage.includes(marker)
+    );
+  }
+
+  private static resolveRequestPath(error: AxiosError): string {
+    const requestUrl = error.config?.url;
+    if (!requestUrl) return "";
+
+    try {
+      const resolvedUrl = new URL(requestUrl, window.location.origin);
+      return resolvedUrl.pathname.toLowerCase();
+    } catch {
+      return String(requestUrl).toLowerCase();
+    }
+  }
+
+  private static isPushPublicKeyRequest(path: string): boolean {
+    if (!path) return false;
+    return path.includes(this.PUSH_PUBLIC_KEY_PATH);
+  }
+
   private static parseRetryAfterSeconds(value: unknown): number | null {
     const normalizedValue = this.asNonEmptyString(value);
     if (!normalizedValue) return null;
@@ -141,11 +186,20 @@ class ApiErrorHandler {
       const fallbackMessage =
         this.asNonEmptyString(error.message) || "An unexpected error occurred";
       const statusCode = error.response?.status ?? 500;
+      const requestPath = this.resolveRequestPath(error);
       const normalizedError = new ApiError(
         extractedMessage || fallbackMessage,
         statusCode,
-        payload
+        payload,
+        requestPath
       );
+
+      if (
+        statusCode === 503 &&
+        this.isPushPublicKeyRequest(requestPath)
+      ) {
+        throw normalizedError;
+      }
 
       if (statusCode === 401) {
         if (this.isSessionExpiredMessage(normalizedError.message)) {
@@ -153,6 +207,13 @@ class ApiErrorHandler {
             "Your session has expired. Please login again.",
             "error",
             "Authentication"
+          );
+        } else if (this.isPermissionDeniedMessage(normalizedError.message)) {
+          showNotification(
+            normalizedError.message ||
+              "You do not have permission to perform this action.",
+            "error",
+            "Access denied"
           );
         } else {
           showNotification(

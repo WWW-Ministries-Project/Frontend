@@ -22,6 +22,8 @@ const NOTIFICATION_LEADER_KEY = "churchproject.notifications.realtime.leader";
 const NOTIFICATION_EVENT_KEY = "churchproject.notifications.realtime.event";
 const NOTIFICATION_CHANNEL_NAME = "churchproject.notifications.realtime";
 const NOTIFICATION_SNAPSHOT_KEY = "churchproject.notifications.realtime.snapshot";
+const NOTIFICATION_LAST_EVENT_ID_KEY =
+  "churchproject.notifications.realtime.last_event_id";
 
 const LEADER_HEARTBEAT_MS = 4_000;
 const LEADER_STALE_MS = 12_000;
@@ -161,6 +163,12 @@ const parseSsePayload = (value: string): unknown => {
   }
 };
 
+const parseLastEventId = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized ? normalized : null;
+};
+
 export const NotificationRealtimeConnector = () => {
   const {
     user: { id: userId },
@@ -215,6 +223,7 @@ export const NotificationRealtimeConnector = () => {
     let reconnectAttempts = 0;
     let lastResyncAt = 0;
     let syncInFlight: Promise<void> | null = null;
+    let lastEventId = "";
 
     const clearTimer = (timer: number | null) => {
       if (timer === null) return;
@@ -284,6 +293,31 @@ export const NotificationRealtimeConnector = () => {
         // Ignore storage failures.
       }
     };
+
+    const readStoredLastEventId = (): string => {
+      if (!storageAvailable) return "";
+
+      try {
+        return parseLastEventId(
+          localStorage.getItem(NOTIFICATION_LAST_EVENT_ID_KEY)
+        ) || "";
+      } catch {
+        return "";
+      }
+    };
+
+    const writeStoredLastEventId = (value: string) => {
+      if (!storageAvailable) return;
+      if (!value) return;
+
+      try {
+        localStorage.setItem(NOTIFICATION_LAST_EVENT_ID_KEY, value);
+      } catch {
+        // Ignore storage failures.
+      }
+    };
+
+    lastEventId = readStoredLastEventId();
 
     const clearReconnectTimer = () => {
       clearTimer(reconnectTimer);
@@ -419,15 +453,27 @@ export const NotificationRealtimeConnector = () => {
       eventSource = null;
     };
 
+    const rememberLastEventId = (event: MessageEvent<string>) => {
+      const nextLastEventId = parseLastEventId(event.lastEventId);
+      if (!nextLastEventId) return;
+
+      lastEventId = nextLastEventId;
+      writeStoredLastEventId(nextLastEventId);
+    };
+
     const onNotificationEvent = (event: MessageEvent<string>) => {
+      rememberLastEventId(event);
       const payload = parseSsePayload(event.data);
       if (payload === null) return;
 
       ingestNotificationPayload(payload, "sse");
+      applyUnreadCountPayload(payload);
       publishCrossTab("notification", payload);
+      publishCrossTab("unread_count", payload);
     };
 
     const onUnreadCountEvent = (event: MessageEvent<string>) => {
+      rememberLastEventId(event);
       const payload = parseSsePayload(event.data);
       if (payload === null) return;
 
@@ -436,6 +482,7 @@ export const NotificationRealtimeConnector = () => {
     };
 
     const onReadAllEvent = (event: MessageEvent<string>) => {
+      rememberLastEventId(event);
       const payload = parseSsePayload(event.data);
       applyReadAllFromServer(payload ?? undefined);
       publishCrossTab("read_all", payload ?? undefined);
@@ -443,6 +490,7 @@ export const NotificationRealtimeConnector = () => {
     };
 
     const onConnectedEvent = (event: MessageEvent<string>) => {
+      rememberLastEventId(event);
       setConnected(true);
       clearFallbackPoll();
       publishCrossTab("connected");
@@ -525,7 +573,10 @@ export const NotificationRealtimeConnector = () => {
 
         const streamToken = parseNotificationStreamToken(tokenResponse.data);
 
-        const url = resolveNotificationSseUrl(streamToken || undefined);
+        const url = resolveNotificationSseUrl(
+          streamToken || undefined,
+          lastEventId || undefined
+        );
         eventSource = new EventSource(url);
 
         eventSource.onopen = () => {

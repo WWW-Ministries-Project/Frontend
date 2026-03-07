@@ -55,8 +55,10 @@ export const NotificationDeviceConnector = () => {
         return;
       }
 
-      const synced = await syncDevicePushSubscriptionIfGranted();
-      if (synced || isDisposed) return;
+      const syncResult = await syncDevicePushSubscriptionIfGranted();
+      if (syncResult === "enabled" || syncResult === "push-disabled" || isDisposed) {
+        return;
+      }
 
       clearRetryTimer();
       retryTimer = window.setTimeout(() => {

@@ -174,6 +174,15 @@ export const NotificationCenterPage = () => {
             durationMs: 9000,
           }
         );
+      } else if (result === "push-disabled") {
+        showNotification(
+          "Web push is not configured for this environment. In-app notifications remain available.",
+          "error",
+          {
+            title: "Notifications",
+            durationMs: 9000,
+          }
+        );
       } else {
         showNotification(
           "Unable to register this device for notifications. Please try again.",

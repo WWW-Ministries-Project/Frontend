@@ -1,4 +1,5 @@
 import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
 import type {
   InAppNotification,
   NotificationPushSubscriptionPayload,
@@ -14,6 +15,13 @@ const DEFAULT_NOTIFICATION_BADGE = "/pwa/icon-maskable-192.png";
 
 let audioContextInstance: AudioContext | null = null;
 let hasBoundAudioUnlockListeners = false;
+
+const PUSH_PUBLIC_KEY_PATH = "/notifications/push/public-key";
+
+export type EnsureDevicePushSubscriptionResult =
+  | "enabled"
+  | "push-disabled"
+  | "failed";
 
 const toRecord = (value: unknown): UnknownRecord | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -63,6 +71,49 @@ const extractPushPublicKey = (payload: unknown): string | null => {
   }
 
   return null;
+};
+
+const parsePushEnabledFlag = (payload: unknown): boolean | null => {
+  const record = toRecord(payload);
+  if (!record) return null;
+
+  const nestedRecord = toRecord(record.data);
+  const candidates = [record.pushEnabled, record.push_enabled, nestedRecord?.pushEnabled, nestedRecord?.push_enabled];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "boolean") {
+      return candidate;
+    }
+  }
+
+  return null;
+};
+
+const normalizeErrorMessage = (value: unknown): string => {
+  if (!value) return "";
+  if (typeof value === "string") return value.toLowerCase();
+  if (value instanceof Error) return value.message.toLowerCase();
+  return "";
+};
+
+const isPushDisabledError = (error: unknown): boolean => {
+  if (error instanceof ApiError) {
+    if (
+      error.statusCode === 503 &&
+      typeof error.requestPath === "string" &&
+      error.requestPath.includes(PUSH_PUBLIC_KEY_PATH)
+    ) {
+      return true;
+    }
+
+    if (error.statusCode === 503) {
+      const detailFlag = parsePushEnabledFlag(error.details);
+      if (detailFlag === false) return true;
+      return normalizeErrorMessage(error.message).includes("push is not configured");
+    }
+  }
+
+  return false;
 };
 
 const urlBase64ToUint8Array = (value: string): Uint8Array => {
@@ -199,37 +250,50 @@ export const getDeviceNotificationPermissionState =
     return Notification.permission;
   };
 
-export const ensureDevicePushSubscription = async (): Promise<boolean> => {
-  if (!isPushSubscriptionSupported()) return false;
-  if (Notification.permission !== "granted") return false;
+export const ensureDevicePushSubscription =
+  async (): Promise<EnsureDevicePushSubscriptionResult> => {
+    if (!isPushSubscriptionSupported()) return "failed";
+    if (Notification.permission !== "granted") return "failed";
 
-  const registration = await getServiceWorkerRegistration();
-  if (!registration) return false;
+    const registration = await getServiceWorkerRegistration();
+    if (!registration) return "failed";
 
-  try {
-    let subscription = await registration.pushManager.getSubscription();
+    try {
+      let subscription = await registration.pushManager.getSubscription();
 
-    if (!subscription) {
-      const publicKeyResponse = await api.fetch.fetchNotificationsPushPublicKey();
-      const publicKey = extractPushPublicKey(publicKeyResponse.data);
-      if (!publicKey) return false;
+      if (!subscription) {
+        let publicKey: string | null = null;
+        try {
+          const publicKeyResponse = await api.fetch.fetchNotificationsPushPublicKey();
+          publicKey = extractPushPublicKey(publicKeyResponse.data);
 
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        appServerKey: urlBase64ToUint8Array(publicKey),
-      });
+          const pushEnabledFlag = parsePushEnabledFlag(publicKeyResponse.data);
+          if (pushEnabledFlag === false || !publicKey) {
+            return "push-disabled";
+          }
+        } catch (error) {
+          if (isPushDisabledError(error)) {
+            return "push-disabled";
+          }
+          return "failed";
+        }
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          appServerKey: urlBase64ToUint8Array(publicKey),
+        });
+      }
+
+      await api.post.subscribeToNotificationPush(buildSubscriptionPayload(subscription));
+      return "enabled";
+    } catch {
+      return "failed";
     }
+  };
 
-    await api.post.subscribeToNotificationPush(buildSubscriptionPayload(subscription));
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const syncDevicePushSubscriptionIfGranted = async (): Promise<boolean> => {
-  if (!isPushSubscriptionSupported()) return false;
-  if (Notification.permission !== "granted") return false;
+export const syncDevicePushSubscriptionIfGranted = async (): Promise<EnsureDevicePushSubscriptionResult> => {
+  if (!isPushSubscriptionSupported()) return "failed";
+  if (Notification.permission !== "granted") return "failed";
 
   return ensureDevicePushSubscription();
 };
@@ -238,6 +302,7 @@ export type EnableDeviceNotificationsResult =
   | "enabled"
   | "unsupported"
   | "denied"
+  | "push-disabled"
   | "failed";
 
 export const enableDeviceNotifications =
@@ -250,7 +315,7 @@ export const enableDeviceNotifications =
     }
 
     const synced = await ensureDevicePushSubscription();
-    return synced ? "enabled" : "failed";
+    return synced === "enabled" ? "enabled" : synced;
   };
 
 export const removeDevicePushSubscription = async (
