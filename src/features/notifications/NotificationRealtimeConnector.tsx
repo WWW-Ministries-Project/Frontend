@@ -21,6 +21,7 @@ const SSE_EVENTS = {
 const NOTIFICATION_LEADER_KEY = "churchproject.notifications.realtime.leader";
 const NOTIFICATION_EVENT_KEY = "churchproject.notifications.realtime.event";
 const NOTIFICATION_CHANNEL_NAME = "churchproject.notifications.realtime";
+const NOTIFICATION_SNAPSHOT_KEY = "churchproject.notifications.realtime.snapshot";
 
 const LEADER_HEARTBEAT_MS = 4_000;
 const LEADER_STALE_MS = 12_000;
@@ -29,6 +30,8 @@ const RESYNC_THROTTLE_MS = 60_000;
 const FALLBACK_POLL_MS = 60_000;
 const RECONNECT_BASE_MS = 2_000;
 const RECONNECT_MAX_MS = 120_000;
+const SNAPSHOT_TTL_MS = 120_000;
+const MAX_SNAPSHOT_ITEMS = 30;
 
 type RealtimeLeaderLease = {
   tabId: string;
@@ -40,13 +43,20 @@ type CrossTabMessageType =
   | "disconnected"
   | "notification"
   | "unread_count"
-  | "read_all";
+  | "read_all"
+  | "snapshot";
 
 type CrossTabMessage = {
   type: CrossTabMessageType;
   from: string;
   timestamp: number;
   payload?: unknown;
+};
+
+type NotificationSnapshot = {
+  timestamp: number;
+  notifications: unknown[];
+  unreadCount?: number;
 };
 
 const createTabId = (): string => {
@@ -98,7 +108,8 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "disconnected" &&
     type !== "notification" &&
     type !== "unread_count" &&
-    type !== "read_all"
+    type !== "read_all" &&
+    type !== "snapshot"
   ) {
     return null;
   }
@@ -108,6 +119,32 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     from,
     timestamp,
     payload: input.payload,
+  };
+};
+
+const parseNotificationSnapshot = (value: unknown): NotificationSnapshot | null => {
+  if (!value || typeof value !== "object") return null;
+
+  const input = value as Partial<NotificationSnapshot>;
+  const timestamp =
+    typeof input.timestamp === "number" && Number.isFinite(input.timestamp)
+      ? Math.floor(input.timestamp)
+      : 0;
+  const notifications = Array.isArray(input.notifications)
+    ? input.notifications
+    : [];
+  const unreadCount =
+    typeof input.unreadCount === "number" && Number.isFinite(input.unreadCount)
+      ? Math.max(0, Math.floor(input.unreadCount))
+      : undefined;
+
+  if (timestamp <= 0) return null;
+  if (!notifications.length && unreadCount === undefined) return null;
+
+  return {
+    timestamp,
+    notifications,
+    unreadCount,
   };
 };
 
@@ -226,6 +263,28 @@ export const NotificationRealtimeConnector = () => {
       }
     };
 
+    const readStoredSnapshot = (): NotificationSnapshot | null => {
+      if (!storageAvailable) return null;
+
+      try {
+        return parseNotificationSnapshot(
+          JSON.parse(localStorage.getItem(NOTIFICATION_SNAPSHOT_KEY) || "null")
+        );
+      } catch {
+        return null;
+      }
+    };
+
+    const writeStoredSnapshot = (snapshot: NotificationSnapshot) => {
+      if (!storageAvailable) return;
+
+      try {
+        localStorage.setItem(NOTIFICATION_SNAPSHOT_KEY, JSON.stringify(snapshot));
+      } catch {
+        // Ignore storage failures.
+      }
+    };
+
     const clearReconnectTimer = () => {
       clearTimer(reconnectTimer);
       reconnectTimer = null;
@@ -271,6 +330,37 @@ export const NotificationRealtimeConnector = () => {
       }
     };
 
+    const applySnapshot = (value: unknown, allowStale: boolean) => {
+      const snapshot = parseNotificationSnapshot(value);
+      if (!snapshot) return;
+
+      if (!allowStale && Date.now() - snapshot.timestamp > SNAPSHOT_TTL_MS) {
+        return;
+      }
+
+      if (snapshot.notifications.length) {
+        ingestNotificationPayload(snapshot.notifications, "manual");
+      }
+
+      if (typeof snapshot.unreadCount === "number") {
+        applyUnreadCountPayload({ unreadCount: snapshot.unreadCount });
+      }
+    };
+
+    const publishSnapshot = () => {
+      if (isDisposed || !isLeader) return;
+
+      const state = useInAppNotificationStore.getState();
+      const snapshot: NotificationSnapshot = {
+        timestamp: Date.now(),
+        notifications: state.notifications.slice(0, MAX_SNAPSHOT_ITEMS),
+        unreadCount: state.unreadCount,
+      };
+
+      writeStoredSnapshot(snapshot);
+      publishCrossTab("snapshot", snapshot);
+    };
+
     const syncFromApi = async (force = false) => {
       if (isDisposed) return;
 
@@ -302,6 +392,10 @@ export const NotificationRealtimeConnector = () => {
 
       syncInFlight = runSync;
       await runSync;
+
+      if (isLeader) {
+        publishSnapshot();
+      }
     };
 
     const startFallbackPoll = () => {
@@ -345,6 +439,7 @@ export const NotificationRealtimeConnector = () => {
       const payload = parseSsePayload(event.data);
       applyReadAllFromServer(payload ?? undefined);
       publishCrossTab("read_all", payload ?? undefined);
+      publishSnapshot();
     };
 
     const onConnectedEvent = (event: MessageEvent<string>) => {
@@ -359,6 +454,7 @@ export const NotificationRealtimeConnector = () => {
       ingestNotificationPayload(payload, "sse");
       publishCrossTab("unread_count", payload);
       publishCrossTab("notification", payload);
+      publishSnapshot();
     };
 
     const attachListeners = () => {
@@ -569,6 +665,11 @@ export const NotificationRealtimeConnector = () => {
 
       if (message.type === "read_all") {
         applyReadAllFromServer(message.payload);
+        return;
+      }
+
+      if (message.type === "snapshot") {
+        applySnapshot(message.payload, true);
       }
     };
 
@@ -609,7 +710,11 @@ export const NotificationRealtimeConnector = () => {
       }
 
       tryAcquireLeadership();
-      void syncFromApi(true);
+      if (isLeader) {
+        void syncFromApi(true);
+      } else {
+        applySnapshot(readStoredSnapshot(), false);
+      }
     };
 
     const onOnline = () => {
@@ -648,8 +753,8 @@ export const NotificationRealtimeConnector = () => {
     window.addEventListener("offline", onOffline);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
-    // Load the latest state once, then keep followers in sync via cross-tab fanout.
-    void syncFromApi(true);
+    // Hydrate quickly from a recent leader snapshot to avoid per-tab bootstrap API bursts.
+    applySnapshot(readStoredSnapshot(), false);
     startFollowerCheck();
     tryAcquireLeadership();
 

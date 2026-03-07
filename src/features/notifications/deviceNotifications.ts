@@ -207,13 +207,13 @@ export const ensureDevicePushSubscription = async (): Promise<boolean> => {
   if (!registration) return false;
 
   try {
-    const publicKeyResponse = await api.fetch.fetchNotificationsPushPublicKey();
-    const publicKey = extractPushPublicKey(publicKeyResponse.data);
-    if (!publicKey) return false;
-
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
+      const publicKeyResponse = await api.fetch.fetchNotificationsPushPublicKey();
+      const publicKey = extractPushPublicKey(publicKeyResponse.data);
+      if (!publicKey) return false;
+
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         appServerKey: urlBase64ToUint8Array(publicKey),
