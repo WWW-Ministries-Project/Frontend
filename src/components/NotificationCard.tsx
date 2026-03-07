@@ -82,7 +82,8 @@ export const NotificationCard = () => {
 
   return (
     <section
-      className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:w-full"
+      style={{ top: "calc(var(--app-header-height) + 1rem)" }}
+      className="pointer-events-none fixed right-4 z-[130] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:w-full"
       aria-label="Notifications"
     >
       {alerts.map((alert) => (
