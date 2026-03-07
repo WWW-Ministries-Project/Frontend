@@ -7,7 +7,7 @@ import { relativePath } from "@/utils/const";
 
 type UnknownRecord = Record<string, unknown>;
 
-const HIGH_PRIORITY = new Set(["HIGH", "CRITICAL", "URGENT", "P1"]);
+const HIGH_PRIORITY = new Set(["HIGH", "CRITICAL"]);
 const DEFAULT_SSE_PATH = "notifications/stream";
 
 const toRecord = (value: unknown): UnknownRecord | null => {
@@ -579,7 +579,10 @@ export const parseNotificationStreamToken = (payload: unknown): string | null =>
   );
 };
 
-export const resolveNotificationSseUrl = (streamToken?: string): string => {
+export const resolveNotificationSseUrl = (
+  streamToken?: string,
+  lastEventId?: string
+): string => {
   const normalizedPath = DEFAULT_SSE_PATH.startsWith("/")
     ? DEFAULT_SSE_PATH.slice(1)
     : DEFAULT_SSE_PATH;
@@ -592,21 +595,36 @@ export const resolveNotificationSseUrl = (streamToken?: string): string => {
   try {
     const url = new URL(normalizedPath, origin);
     const normalizedToken = toNonEmptyString(streamToken);
+    const normalizedLastEventId = toNonEmptyString(lastEventId);
 
     if (normalizedToken) {
       url.searchParams.set("stream_token", normalizedToken);
+    }
+    if (normalizedLastEventId) {
+      url.searchParams.set("lastEventId", normalizedLastEventId);
+      url.searchParams.set("last_event_id", normalizedLastEventId);
     }
 
     return url.toString();
   } catch {
     const baseUrlValue = `${window.location.origin}/${normalizedPath}`;
     const normalizedToken = toNonEmptyString(streamToken);
-    if (!normalizedToken) return baseUrlValue;
+    const normalizedLastEventId = toNonEmptyString(lastEventId);
+    const query = new URLSearchParams();
+
+    if (normalizedToken) {
+      query.set("stream_token", normalizedToken);
+    }
+
+    if (normalizedLastEventId) {
+      query.set("lastEventId", normalizedLastEventId);
+      query.set("last_event_id", normalizedLastEventId);
+    }
+
+    if ([...query.keys()].length === 0) return baseUrlValue;
 
     const separator = baseUrlValue.includes("?") ? "&" : "?";
-    return `${baseUrlValue}${separator}stream_token=${encodeURIComponent(
-      normalizedToken
-    )}`;
+    return `${baseUrlValue}${separator}${query.toString()}`;
   }
 };
 

@@ -1,6 +1,7 @@
 import {
   extractNotificationsFromPayload,
   getNotificationIdentity,
+  isHighPriorityNotification,
   isRecentNotification,
   mergeNotifications,
   normalizeNotificationCollection,
@@ -100,6 +101,7 @@ const shouldToastIncomingNotification = (
   notification: InAppNotification,
   recentlyToastedKeys: string[]
 ): boolean => {
+  if (!isHighPriorityNotification(notification.priority)) return false;
   if (notification.isRead) return false;
   if (!isRecentNotification(notification.createdAt)) return false;
 
