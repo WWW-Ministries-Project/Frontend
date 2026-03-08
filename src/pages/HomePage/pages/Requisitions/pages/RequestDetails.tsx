@@ -6,6 +6,7 @@ import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { relativePath } from "@/utils";
+import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeline";
@@ -39,7 +40,14 @@ const RequestDetails = () => {
     actionType,
     openComment,
     openCommentModal,
+    openApproveWithSimilarItemsCheck,
     closeComment,
+    openSimilarItemsModal,
+    closeSimilarItemsModal,
+    continueApproveAfterSimilarItemsCheck,
+    similarItems,
+    similarItemsLookbackDays,
+    isLoadingSimilarItems,
     comment,
     setComment,
     approvalSignature,
@@ -94,6 +102,13 @@ const RequestDetails = () => {
   }, [requisitionId]);
 
   const trimmedApprovalSignature = approvalSignature.trim();
+  const similarItemsHeading = useMemo(() => {
+    if (similarItemsLookbackDays && similarItemsLookbackDays > 0) {
+      return `Requested in the last ${similarItemsLookbackDays} days`;
+    }
+
+    return "Requested in the configured lookback period";
+  }, [similarItemsLookbackDays]);
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
@@ -101,8 +116,86 @@ const RequestDetails = () => {
     { label: "Requisition Details", link: "" },
   ];
 
+  const formatSimilarItemDate = (value?: string | null) => {
+    if (!value) {
+      return "Unknown date";
+    }
+
+    const parsedDate = DateTime.fromISO(value);
+    return parsedDate.isValid ? parsedDate.toFormat("dd LLL yyyy") : "Unknown date";
+  };
+
   return (
     <PageOutline crumbs={crumbs}>
+      <Modal open={openSimilarItemsModal} onClose={closeSimilarItemsModal}>
+        <div className="space-y-5 p-6 md:p-8">
+          <p className="text-center text-xl font-semibold text-primary">
+            Similar item requests
+          </p>
+          <p className="text-sm text-primaryGray">{similarItemsHeading}</p>
+
+          {isLoadingSimilarItems ? (
+            <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
+              Loading similar requests...
+            </div>
+          ) : similarItems.length === 0 ? (
+            <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
+              No matching item requests were found in this period.
+            </div>
+          ) : (
+            <div className="app-scrollbar max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+              {similarItems.map((item, index) => (
+                <div
+                  key={`${item.requisition_id}-${item.item_name}-${index}`}
+                  className="rounded-xl border border-lightGray p-3"
+                >
+                  <div className="flex items-start gap-3">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.item_name}
+                        className="h-14 w-14 rounded-lg border border-lightGray object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-lightGray text-[10px] text-primaryGray">
+                        No image
+                      </div>
+                    )}
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-semibold text-primary">
+                        {item.item_name}
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Requisition: {item.generated_id || `#${item.requisition_id}`}
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Requester: {item.requester_name || "Unknown requester"}
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Date: {formatSimilarItemDate(item.request_date)}
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Quantity: {item.quantity ?? "N/A"} | Status:{" "}
+                        {item.status || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button value="Cancel" variant="ghost" onClick={closeSimilarItemsModal} />
+            <Button
+              value="Continue to approval"
+              variant="primary"
+              onClick={continueApproveAfterSimilarItemsCheck}
+              disabled={isLoadingSimilarItems}
+            />
+          </div>
+        </div>
+      </Modal>
       <Modal open={openComment} onClose={closeComment}>
         <div className="space-y-6 p-6 md:p-8">
           <p className="text-center text-xl font-semibold text-primary">{commentHeader}</p>
@@ -209,7 +302,8 @@ const RequestDetails = () => {
                 <Button
                   value="Approve"
                   variant="primary"
-                  onClick={() => openCommentModal("approve")}
+                  onClick={openApproveWithSimilarItemsCheck}
+                  disabled={isLoadingSimilarItems}
                 />
               </>
             )}
@@ -294,7 +388,11 @@ const RequestDetails = () => {
 
               <div>
                 <h3 className="text-base font-semibold text-primary">Requested Items</h3>
-                <EditableTable isEditable={false} data={products} />
+                <EditableTable
+                  isEditable={false}
+                  data={products}
+                  currency={requestData?.currency}
+                />
               </div>
 
               <RequisitionApprovalTimeline

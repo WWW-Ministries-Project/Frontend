@@ -351,7 +351,8 @@ const Request = () => {
                           });
 
                           submissionIntentRef.current = "SUBMIT";
-                          handleSubmit();
+                          closeModal();
+                          await handleSubmit();
                         }}
                       />
                     </Modal>

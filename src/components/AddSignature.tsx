@@ -64,7 +64,7 @@ export default function AddSignature({
         </p>
       </div>
 
-      <div className="mt-5 rounded-xl border border-lightGray bg-[#F8F9FC] p-4">
+      <div className="mt-5 rounded-xl border border-lightGray bg-inputBackground/60 p-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
           Signature Preview
         </p>

@@ -194,6 +194,9 @@ const ApprovalSettings = () => {
   ]);
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [similarItemLookbackDays, setSimilarItemLookbackDays] = useState<
+    number | undefined
+  >(undefined);
 
   const {
     data: approvalConfigData,
@@ -325,6 +328,12 @@ const ApprovalSettings = () => {
     );
 
     setIsActive(Boolean(config.is_active ?? true));
+    setSimilarItemLookbackDays(
+      Number.isInteger(config.similar_item_lookback_days) &&
+        Number(config.similar_item_lookback_days) > 0
+        ? Number(config.similar_item_lookback_days)
+        : undefined
+    );
   }, [approvalConfigData]);
 
   const handleApproverTypeChange = (
@@ -393,8 +402,15 @@ const ApprovalSettings = () => {
       notification_user_ids: selectedNotificationUsers.map((id) => Number(id)),
       approvers,
       is_active: isActive,
+      similar_item_lookback_days: similarItemLookbackDays,
     };
-  }, [approverRules, isActive, selectedNotificationUsers, selectedRequesters]);
+  }, [
+    approverRules,
+    isActive,
+    selectedNotificationUsers,
+    selectedRequesters,
+    similarItemLookbackDays,
+  ]);
 
   const handleSaveChanges = async () => {
     const payload = buildPayload();

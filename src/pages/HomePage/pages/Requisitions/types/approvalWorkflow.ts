@@ -16,6 +16,7 @@ export type RequisitionApprovalConfigPayload = {
   approvers: ApprovalStep[];
   notification_user_ids?: number[];
   is_active?: boolean;
+  similar_item_lookback_days?: number;
 };
 
 export type RequisitionApprovalConfig = RequisitionApprovalConfigPayload & {
@@ -53,4 +54,20 @@ export type RequisitionApprovalActionPayload = {
 
 export type SubmitRequisitionPayload = {
   requisition_id: number;
+};
+
+export type SimilarRequisitionItem = {
+  item_name: string;
+  image_url?: string | null;
+  requisition_id: number;
+  generated_id?: string | null;
+  request_date?: string | null;
+  requester_name?: string | null;
+  status?: string | null;
+  quantity?: number | null;
+};
+
+export type RequisitionSimilarItemsResponse = {
+  lookback_days_used?: number | null;
+  items?: SimilarRequisitionItem[];
 };

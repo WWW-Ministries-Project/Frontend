@@ -42,7 +42,10 @@ import type {
   AiUsageSummary,
 } from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
-import type { RequisitionApprovalConfig } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import type {
+  RequisitionApprovalConfig,
+  RequisitionSimilarItemsResponse,
+} from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import type {
   InAppNotification,
   NotificationListPayload,
@@ -187,6 +190,12 @@ export class ApiCalls {
     ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
   > => {
     return this.fetchFromApi("requisitions/get-approval-config");
+  };
+
+  fetchRequisitionPreApprovalSimilarItems = (
+    query?: QueryType
+  ): Promise<ApiResponse<RequisitionSimilarItemsResponse>> => {
+    return this.fetchFromApi("requisitions/pre-approval-similar-items", query);
   };
 
   // In-app Notifications

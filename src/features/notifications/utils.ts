@@ -89,11 +89,42 @@ const getObjectValue = (
   return undefined;
 };
 
+const hasNotificationHint = (record: UnknownRecord): boolean => {
+  const hasIdentity =
+    getObjectValue(record, ["id", "notification_id", "notificationId"]) !==
+      undefined ||
+    getObjectValue(record, ["dedupeKey", "dedupe_key"]) !== undefined;
+
+  if (hasIdentity) return true;
+
+  const hasMessageContent =
+    getObjectValue(record, ["title", "heading"]) !== undefined ||
+    getObjectValue(record, ["body", "message", "content"]) !== undefined;
+
+  if (hasMessageContent) return true;
+
+  const hasType =
+    toNonEmptyString(getObjectValue(record, ["type", "event_type"])) !== undefined;
+
+  const hasMetadataHint =
+    getObjectValue(record, ["entityType", "entity_type"]) !== undefined ||
+    getObjectValue(record, ["entityId", "entity_id"]) !== undefined ||
+    getObjectValue(record, ["actionUrl", "action_url", "url", "link"]) !==
+      undefined ||
+    getObjectValue(record, ["priority", "importance", "level"]) !== undefined ||
+    getObjectValue(record, ["isRead", "is_read"]) !== undefined ||
+    getObjectValue(record, ["readAt", "read_at"]) !== undefined ||
+    getObjectValue(record, ["createdAt", "created_at", "timestamp"]) !== undefined;
+
+  return hasType && hasMetadataHint;
+};
+
 export const normalizeInAppNotification = (
   payload: unknown
 ): InAppNotification | null => {
   const record = toRecord(payload);
   if (!record) return null;
+  if (!hasNotificationHint(record)) return null;
 
   const rawType =
     toNonEmptyString(getObjectValue(record, ["type", "event_type"])) ||
@@ -241,9 +272,25 @@ const extractEmbeddedNotificationPayload = (payload: unknown): unknown[] => {
   const record = toRecord(payload);
   if (!record) return [];
 
-  const direct = getObjectValue(record, ["notification", "payload"]);
-  if (Array.isArray(direct)) return direct;
-  if (direct) return [direct];
+  const extractFromRecord = (source: UnknownRecord): unknown[] => {
+    const direct = getObjectValue(source, ["notification", "payload"]);
+    if (Array.isArray(direct)) return direct;
+    if (direct) return [direct];
+    return [];
+  };
+
+  const directPayload = extractFromRecord(record);
+  if (directPayload.length > 0) return directPayload;
+
+  const nestedRecord = toRecord(record.data);
+  if (!nestedRecord) return [];
+
+  const nestedPayload = extractFromRecord(nestedRecord);
+  if (nestedPayload.length > 0) return nestedPayload;
+
+  if (hasNotificationHint(nestedRecord)) {
+    return [nestedRecord];
+  }
 
   return [];
 };
@@ -257,11 +304,18 @@ export const extractNotificationsFromPayload = (
   }
 
   const embeddedPayload = extractEmbeddedNotificationPayload(payload);
-  if (!embeddedPayload.length) return [];
+  if (embeddedPayload.length > 0) {
+    return embeddedPayload
+      .map((item) => normalizeInAppNotification(item))
+      .filter((item): item is InAppNotification => Boolean(item));
+  }
 
-  return embeddedPayload
-    .map((item) => normalizeInAppNotification(item))
-    .filter((item): item is InAppNotification => Boolean(item));
+  const directNotification = normalizeInAppNotification(payload);
+  if (directNotification) {
+    return [directNotification];
+  }
+
+  return [];
 };
 
 export const parseUnreadCount = (payload: unknown): number | null => {
