@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import {
   ApprovalInstance,
   RequisitionApprovalActionPayload,
+  SimilarRequisitionMatchedItemGroup,
   RequisitionSimilarItemsResponse,
   SimilarRequisitionItem,
 } from "../types/approvalWorkflow";
@@ -21,6 +22,11 @@ export type ActionType =
   | "approve"
   | "addAttachment"
   | "removeAttachment";
+
+export type SimilarItemComparisonGroup = {
+  requestedItem: SimilarRequisitionItem;
+  matchItems: SimilarRequisitionItem[];
+};
 
 const notificationMessages: Record<
   ActionType,
@@ -83,22 +89,104 @@ const toPositiveInt = (value: unknown): number | null => {
 };
 
 const normalizeSimilarItemsResponse = (
-  payload: unknown
-): { lookbackDays: number | null; items: SimilarRequisitionItem[] } => {
+  payload: unknown,
+  currentRequisitionId: number
+): { lookbackDays: number | null; groups: SimilarItemComparisonGroup[] } => {
   if (!payload || typeof payload !== "object") {
-    return { lookbackDays: null, items: [] };
+    return { lookbackDays: null, groups: [] };
   }
 
   const data = payload as RequisitionSimilarItemsResponse;
+  const matchedItems = Array.isArray(data.matched_items)
+    ? data.matched_items
+    : [];
+
+  const groupedMatchedItems = matchedItems.map((group) => {
+    const normalizedGroup = group as SimilarRequisitionMatchedItemGroup;
+    const groupImage = normalizedGroup.current_item_image_url ?? null;
+    const groupName = String(normalizedGroup.current_item_name ?? "").trim();
+    const groupMatches = Array.isArray(normalizedGroup.matches)
+      ? normalizedGroup.matches
+      : [];
+
+    const normalizedMatches = groupMatches
+      .filter(
+        (match): match is SimilarRequisitionItem =>
+          Boolean(
+            match &&
+              typeof match.requisition_id === "number" &&
+              Number.isFinite(match.requisition_id)
+          )
+      )
+      .map((match) => ({
+        ...match,
+        item_name: String(match.item_name || groupName || "Unknown item"),
+        image_url: match.image_url ?? groupImage,
+      }));
+
+    const requestedItem =
+      normalizedMatches.find(
+        (match) => Number(match.requisition_id) === currentRequisitionId
+      ) ?? {
+        item_name: groupName || "Unknown item",
+        image_url: groupImage,
+        requisition_id: currentRequisitionId,
+      };
+
+    const matchItems = normalizedMatches.filter(
+      (match) => Number(match.requisition_id) !== currentRequisitionId
+    );
+
+    return {
+      requestedItem,
+      matchItems,
+    };
+  });
+
+  if (groupedMatchedItems.length > 0) {
+    return {
+      lookbackDays: toPositiveInt(data.lookback_days_used),
+      groups: groupedMatchedItems,
+    };
+  }
+
+  const flatItems = Array.isArray(data.items)
+    ? data.items.filter(
+        (item): item is SimilarRequisitionItem =>
+          Boolean(item && typeof item.item_name === "string")
+      )
+    : [];
+
+  const byItemName = flatItems.reduce<Record<string, SimilarRequisitionItem[]>>(
+    (acc, item) => {
+      const key = String(item.item_name || "").trim().toLowerCase() || "unknown-item";
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    },
+    {}
+  );
+
+  const groups = Object.values(byItemName).map((itemsInGroup) => {
+    const requestedItem =
+      itemsInGroup.find(
+        (match) => Number(match.requisition_id) === currentRequisitionId
+      ) ?? itemsInGroup[0];
+    const matchItems = itemsInGroup.filter(
+      (item) => Number(item.requisition_id) !== Number(requestedItem.requisition_id)
+    );
+
+    return {
+      requestedItem,
+      matchItems,
+    };
+  });
 
   return {
     lookbackDays: toPositiveInt(data.lookback_days_used),
-    items: Array.isArray(data.items)
-      ? data.items.filter(
-          (item): item is SimilarRequisitionItem =>
-            Boolean(item && typeof item.item_name === "string")
-        )
-      : [],
+    groups,
   };
 };
 
@@ -140,9 +228,9 @@ export const useRequisitionDetail = () => {
     useState(false);
   const [requestSignature, setRequestSignature] = useState("");
   const [openSimilarItemsModal, setOpenSimilarItemsModal] = useState(false);
-  const [similarItems, setSimilarItems] = useState<SimilarRequisitionItem[]>(
-    []
-  );
+  const [similarItemGroups, setSimilarItemGroups] = useState<
+    SimilarItemComparisonGroup[]
+  >([]);
   const [similarItemsLookbackDays, setSimilarItemsLookbackDays] = useState<
     number | null
   >(null);
@@ -217,9 +305,9 @@ export const useRequisitionDetail = () => {
       const response = await api.fetch.fetchRequisitionPreApprovalSimilarItems({
         requisition_id: id,
       });
-      const normalizedData = normalizeSimilarItemsResponse(response.data);
+      const normalizedData = normalizeSimilarItemsResponse(response.data, id);
 
-      setSimilarItems(normalizedData.items);
+      setSimilarItemGroups(normalizedData.groups);
       setSimilarItemsLookbackDays(normalizedData.lookbackDays);
       setOpenSimilarItemsModal(true);
     } catch (error) {
@@ -592,7 +680,7 @@ export const useRequisitionDetail = () => {
     openSimilarItemsModal,
     closeSimilarItemsModal,
     continueApproveAfterSimilarItemsCheck,
-    similarItems,
+    similarItemGroups,
     similarItemsLookbackDays,
     isLoadingSimilarItems,
     comment,

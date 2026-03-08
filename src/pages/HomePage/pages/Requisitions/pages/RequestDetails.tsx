@@ -15,6 +15,7 @@ import RequestAttachments from "../components/RequestAttachments";
 import RequisitionComments from "../components/RequisitionComments";
 import RequisitionSummary from "../components/RequisitionSummary";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
+import { SimilarRequisitionItem } from "../types/approvalWorkflow";
 import { getApproverDisplayName, getEditMeta } from "../utils/requestMetadata";
 
 const RequestDetails = () => {
@@ -45,7 +46,7 @@ const RequestDetails = () => {
     openSimilarItemsModal,
     closeSimilarItemsModal,
     continueApproveAfterSimilarItemsCheck,
-    similarItems,
+    similarItemGroups,
     similarItemsLookbackDays,
     isLoadingSimilarItems,
     comment,
@@ -125,6 +126,45 @@ const RequestDetails = () => {
     return parsedDate.isValid ? parsedDate.toFormat("dd LLL yyyy") : "Unknown date";
   };
 
+  const renderSimilarItemCard = (
+    item: SimilarRequisitionItem,
+    label: "Requested item" | "Match"
+  ) => (
+    <div className="rounded-xl border border-lightGray p-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primaryGray">
+        {label}
+      </p>
+      <div className="flex items-start gap-3">
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.item_name}
+            className="h-14 w-14 rounded-lg border border-lightGray object-cover"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-lightGray text-[10px] text-primaryGray">
+            No image
+          </div>
+        )}
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-semibold text-primary">{item.item_name}</p>
+          <p className="text-xs text-primaryGray">
+            Requisition: {item.generated_id || `#${item.requisition_id}`}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Requester: {item.requester_name || "Unknown requester"}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Date: {formatSimilarItemDate(item.request_date)}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Quantity: {item.quantity ?? "N/A"} | Status: {item.status || "N/A"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <PageOutline crumbs={crumbs}>
       <Modal open={openSimilarItemsModal} onClose={closeSimilarItemsModal}>
@@ -138,47 +178,38 @@ const RequestDetails = () => {
             <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
               Loading similar requests...
             </div>
-          ) : similarItems.length === 0 ? (
+          ) : similarItemGroups.length === 0 ? (
             <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
               No matching item requests were found in this period.
             </div>
           ) : (
             <div className="app-scrollbar max-h-[22rem] space-y-3 overflow-y-auto pr-1">
-              {similarItems.map((item, index) => (
+              {similarItemGroups.map((group, index) => (
                 <div
-                  key={`${item.requisition_id}-${item.item_name}-${index}`}
-                  className="rounded-xl border border-lightGray p-3"
+                  key={`${group.requestedItem.item_name}-${group.requestedItem.requisition_id}-${index}`}
+                  className="space-y-3 rounded-xl border border-lightGray p-3"
                 >
-                  <div className="flex items-start gap-3">
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.item_name}
-                        className="h-14 w-14 rounded-lg border border-lightGray object-cover"
-                      />
+                  {renderSimilarItemCard(group.requestedItem, "Requested item")}
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                      Matches ({group.matchItems.length})
+                    </p>
+                    {group.matchItems.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-lightGray bg-inputBackground/40 p-3 text-xs text-primaryGray">
+                        No previous matching requisitions found for this item.
+                      </div>
                     ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-lightGray text-[10px] text-primaryGray">
-                        No image
+                      <div className="space-y-2">
+                        {group.matchItems.map((match, matchIndex) => (
+                          <div
+                            key={`${match.requisition_id}-${match.item_name}-${matchIndex}`}
+                          >
+                            {renderSimilarItemCard(match, "Match")}
+                          </div>
+                        ))}
                       </div>
                     )}
-                    <div className="min-w-0 space-y-1">
-                      <p className="text-sm font-semibold text-primary">
-                        {item.item_name}
-                      </p>
-                      <p className="text-xs text-primaryGray">
-                        Requisition: {item.generated_id || `#${item.requisition_id}`}
-                      </p>
-                      <p className="text-xs text-primaryGray">
-                        Requester: {item.requester_name || "Unknown requester"}
-                      </p>
-                      <p className="text-xs text-primaryGray">
-                        Date: {formatSimilarItemDate(item.request_date)}
-                      </p>
-                      <p className="text-xs text-primaryGray">
-                        Quantity: {item.quantity ?? "N/A"} | Status:{" "}
-                        {item.status || "N/A"}
-                      </p>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -225,7 +256,7 @@ const RequestDetails = () => {
                 Signature is required before final approval submission.
               </p>
 
-              <div className="rounded-xl border border-lightGray bg-[#F8F9FC] p-4">
+              <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
                   Signature Preview
                 </p>
