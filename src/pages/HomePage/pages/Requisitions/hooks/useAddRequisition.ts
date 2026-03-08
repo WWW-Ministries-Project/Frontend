@@ -312,7 +312,12 @@ export const useAddRequisition = () => {
         setData(upsertResponse as RequisitionMutationResponse);
 
         const shouldSubmitForApproval = Boolean(options?.submitForApproval);
+        const shouldRedirectToDetails = Boolean(options?.redirectToDetails);
         const resolvedId = resolveRequisitionId(upsertResponse.data, requisitionId);
+        if (shouldRedirectToDetails && !resolvedId) {
+          throw new Error("Unable to open requisition details. Missing requisition ID.");
+        }
+
         const detailsPath = resolvedId
           ? `${REQUESTS_BASE_PATH}/${window.btoa(String(resolvedId))}`
           : REQUESTS_BASE_PATH;
@@ -335,13 +340,14 @@ export const useAddRequisition = () => {
               "success"
             );
           } catch (submitError) {
+            const normalizedSubmitError =
+              submitError instanceof Error
+                ? submitError
+                : new Error("Failed to submit requisition for approval.");
             if (!(submitError instanceof ApiError)) {
-              const normalizedSubmitError =
-                submitError instanceof Error
-                  ? submitError
-                  : new Error("Failed to submit requisition for approval.");
               handleOpenNotification(normalizedSubmitError.message, "error");
             }
+            throw normalizedSubmitError;
           }
         } else {
           handleOpenNotification(
@@ -356,7 +362,7 @@ export const useAddRequisition = () => {
         }
 
         setOpenSignature(false);
-        navigate(requisitionId ? detailsPath : REQUESTS_BASE_PATH, {
+        navigate(shouldRedirectToDetails ? detailsPath : REQUESTS_BASE_PATH, {
           replace: true,
         });
       } catch (error) {

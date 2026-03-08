@@ -10,6 +10,8 @@ import { useParams } from "react-router-dom";
 import {
   ApprovalInstance,
   RequisitionApprovalActionPayload,
+  RequisitionSimilarItemsResponse,
+  SimilarRequisitionItem,
 } from "../types/approvalWorkflow";
 import { IRequisitionDetails } from "../types/requestInterface";
 
@@ -72,6 +74,34 @@ const getResponseMessage = (payload: unknown, fallback: string): string => {
   return message ?? fallback;
 };
 
+const toPositiveInt = (value: unknown): number | null => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+};
+
+const normalizeSimilarItemsResponse = (
+  payload: unknown
+): { lookbackDays: number | null; items: SimilarRequisitionItem[] } => {
+  if (!payload || typeof payload !== "object") {
+    return { lookbackDays: null, items: [] };
+  }
+
+  const data = payload as RequisitionSimilarItemsResponse;
+
+  return {
+    lookbackDays: toPositiveInt(data.lookback_days_used),
+    items: Array.isArray(data.items)
+      ? data.items.filter(
+          (item): item is SimilarRequisitionItem =>
+            Boolean(item && typeof item.item_name === "string")
+        )
+      : [],
+  };
+};
+
 export const useRequisitionDetail = () => {
   const { id } = useParams();
   const {
@@ -109,6 +139,14 @@ export const useRequisitionDetail = () => {
   const [openSubmitRequestSignature, setOpenSubmitRequestSignature] =
     useState(false);
   const [requestSignature, setRequestSignature] = useState("");
+  const [openSimilarItemsModal, setOpenSimilarItemsModal] = useState(false);
+  const [similarItems, setSimilarItems] = useState<SimilarRequisitionItem[]>(
+    []
+  );
+  const [similarItemsLookbackDays, setSimilarItemsLookbackDays] = useState<
+    number | null
+  >(null);
+  const [isLoadingSimilarItems, setIsLoadingSimilarItems] = useState(false);
 
   const { addingImage } = useImageUpload();
 
@@ -128,6 +166,15 @@ export const useRequisitionDetail = () => {
     setComment("");
     setApprovalSignature("");
     setOpenComment(false);
+  };
+
+  const closeSimilarItemsModal = () => {
+    setOpenSimilarItemsModal(false);
+  };
+
+  const continueApproveAfterSimilarItemsCheck = () => {
+    closeSimilarItemsModal();
+    openCommentModal("approve");
   };
 
   const commentHeader = useMemo(() => {
@@ -151,6 +198,46 @@ export const useRequisitionDetail = () => {
   const refreshDetails = useCallback(async () => {
     await refetch();
   }, [refetch]);
+
+  const openApproveWithSimilarItemsCheck = async () => {
+    const id = Number(requisitionId);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      handleOpenNotification(
+        "Invalid requisition identifier.",
+        "error",
+        "Requisition"
+      );
+      return;
+    }
+
+    setIsLoadingSimilarItems(true);
+
+    try {
+      const response = await api.fetch.fetchRequisitionPreApprovalSimilarItems({
+        requisition_id: id,
+      });
+      const normalizedData = normalizeSimilarItemsResponse(response.data);
+
+      setSimilarItems(normalizedData.items);
+      setSimilarItemsLookbackDays(normalizedData.lookbackDays);
+      setOpenSimilarItemsModal(true);
+    } catch (error) {
+      if (!(error instanceof ApiError)) {
+        handleOpenNotification(
+          error instanceof Error
+            ? error.message
+            : "Unable to load previous similar requisition items.",
+          "error",
+          "Approve Requisition"
+        );
+      }
+
+      openCommentModal("approve");
+    } finally {
+      setIsLoadingSimilarItems(false);
+    }
+  };
 
   const updateRequisition = useCallback(
     async (payload: Record<string, unknown>, type: ActionType) => {
@@ -500,7 +587,14 @@ export const useRequisitionDetail = () => {
     setOpenComment,
     actionType,
     openCommentModal,
+    openApproveWithSimilarItemsCheck,
     closeComment,
+    openSimilarItemsModal,
+    closeSimilarItemsModal,
+    continueApproveAfterSimilarItemsCheck,
+    similarItems,
+    similarItemsLookbackDays,
+    isLoadingSimilarItems,
     comment,
     setComment,
     approvalSignature,

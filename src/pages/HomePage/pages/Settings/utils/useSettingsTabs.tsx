@@ -16,6 +16,8 @@ interface UseSettingsTabsProps {
   handleDelete: (item: DepartmentType | PositionType) => void;
 }
 
+export type GeneralSettingsTab = "Department" | "Position" | "Requisition";
+
 export function useSettingsTabs({
   setDisplayForm,
   setEditMode,
@@ -25,10 +27,10 @@ export function useSettingsTabs({
   const userId = useUserStore((state) => state.id);
   const settingsStore = useSettingsStore();
   const membersOptions = useStore((state) => state.membersOptions);
-  const {positions: positionData, total: positionTotal} = settingsStore;
-  const {departments: departmentData, total: departmentTotal} = settingsStore;
-  const tabs = ["Department", "Position"];
-  const [selectedTab, setSelectedTab] = useState<string>(tabs[0]);
+  const { positions: positionData, total: positionTotal } = settingsStore;
+  const { departments: departmentData, total: departmentTotal } = settingsStore;
+  const tabs: GeneralSettingsTab[] = ["Department", "Position", "Requisition"];
+  const [selectedTab, setSelectedTab] = useState<GeneralSettingsTab>(tabs[0]);
   const [columns, setColumns] = useState<
     ColumnDef<DepartmentType | PositionType>[]
   >([]);
@@ -148,28 +150,41 @@ export function useSettingsTabs({
       setColumns(departmentColumns);
       setData(departmentData);
       setTotal(departmentTotal);
-    } else {
+      return;
+    }
+
+    if (selectedTab === "Position") {
       setColumns(positionsColumns);
       setData(positionData);
       setTotal(positionTotal);
+      return;
     }
+
+    setColumns([]);
+    setData([]);
+    setTotal(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, departmentData, positionData]);
 
   const selectOptions = useMemo(() => {
     return selectedTab === "Department"
       ? membersOptions
-      : settingsStore.departmentsOptions;
+      : selectedTab === "Position"
+        ? settingsStore.departmentsOptions
+        : [];
   }, [selectedTab, membersOptions, settingsStore]);
 
-  const handleTabSelect = (tab: string) => {
+  const handleTabSelect = (tab: GeneralSettingsTab) => {
     setSelectedTab(tab);
     if (tab === "Department") {
       setSelectedId("department_head");
       setSelectLabel("Department Head");
-    } else {
+    } else if (tab === "Position") {
       setSelectedId("department_id");
       setSelectLabel("Department");
+    } else {
+      setSelectedId("");
+      setSelectLabel("");
     }
     setInputValue({ created_by: userId, name: "" });
   };

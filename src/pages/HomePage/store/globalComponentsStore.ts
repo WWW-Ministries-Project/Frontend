@@ -78,8 +78,13 @@ export const useNotificationStore = create<NotificationSlice>((set, get) => ({
       notification.title ||
       (type === "error" ? "Action failed" : "Action completed");
 
+    const generatedId =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `alert-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
     const normalizedAlert: AlertItem = {
-      id: notification.id || crypto.randomUUID(),
+      id: notification.id || generatedId,
       title,
       message: notification.message,
       type,

@@ -83,6 +83,7 @@ interface EditableTableProps {
   data?: TableRow[];
   onImageUpload?: (file: File) => Promise<string | null>;
   imageUploadLoading?: boolean;
+  currency?: string;
 }
 
 const EditableTable: React.FC<EditableTableProps> = ({
@@ -90,6 +91,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   data,
   onImageUpload,
   imageUploadLoading = false,
+  currency,
 }) => {
   const { addRow, deleteRow, rows, updateRow, setInitialRows } = useStore();
   const [uploadingRowId, setUploadingRowId] = useState<string | number | null>(
@@ -134,6 +136,14 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const formatAmount = (value: number) => {
     const parsed = Number(value);
     return amountFormatter.format(Number.isFinite(parsed) ? parsed : 0);
+  };
+
+  const formatTotalAmount = (value: number) => {
+    const formattedAmount = formatAmount(value);
+    const normalizedCurrency = String(currency ?? "").trim();
+    return normalizedCurrency
+      ? `${normalizedCurrency} ${formattedAmount}`
+      : formattedAmount;
   };
 
   const textPosition = isEditable ? "text-left" : "text-center";
@@ -291,7 +301,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
             <div className="flex items-center justify-between bg-inputBackground px-4 py-3 text-sm font-semibold text-primary">
               <span>Total</span>
-              <span>{formatAmount(totalSum)}</span>
+              <span>{formatTotalAmount(totalSum)}</span>
             </div>
           </div>
 
@@ -379,7 +389,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     Total
                   </TableData>
                   <TableData className="text-center">
-                    {formatAmount(totalSum)}
+                    {formatTotalAmount(totalSum)}
                   </TableData>
                   <TableData />
                   {isEditable && <TableData />}
