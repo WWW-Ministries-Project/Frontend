@@ -67,7 +67,14 @@ export type SimilarRequisitionItem = {
   quantity?: number | null;
 };
 
+export type SimilarRequisitionMatchedItemGroup = {
+  current_item_name: string;
+  current_item_image_url?: string | null;
+  matches?: SimilarRequisitionItem[];
+};
+
 export type RequisitionSimilarItemsResponse = {
   lookback_days_used?: number | null;
   items?: SimilarRequisitionItem[];
+  matched_items?: SimilarRequisitionMatchedItemGroup[];
 };
