@@ -3,6 +3,8 @@ export type ApproverType =
   | "POSITION"
   | "SPECIFIC_PERSON";
 
+export type ApprovalModule = "REQUISITION" | "EVENT_REPORT";
+
 export type ApprovalStep = {
   order: number;
   type: ApproverType;
@@ -10,19 +12,43 @@ export type ApprovalStep = {
   user_id?: number;
 };
 
-export type RequisitionApprovalConfigPayload = {
-  module: "REQUISITION";
-  requester_user_ids: number[];
+type ApprovalConfigPayloadBase = {
   approvers: ApprovalStep[];
   notification_user_ids?: number[];
   is_active?: boolean;
   similar_item_lookback_days?: number;
 };
 
-export type RequisitionApprovalConfig = RequisitionApprovalConfigPayload & {
+export type RequisitionApprovalConfigPayload = ApprovalConfigPayloadBase & {
+  module: "REQUISITION";
+  requester_user_ids: number[];
+};
+
+export type EventReportApprovalConfigPayload = ApprovalConfigPayloadBase & {
+  module?: "EVENT_REPORT";
+  requester_user_ids?: number[];
+};
+
+export type ApprovalConfigPayload =
+  | RequisitionApprovalConfigPayload
+  | EventReportApprovalConfigPayload;
+
+type ApprovalConfigBase = ApprovalConfigPayloadBase & {
   id?: number;
+  module: ApprovalModule;
+  requester_user_ids: number[];
   is_active: boolean;
 };
+
+export type RequisitionApprovalConfig = ApprovalConfigBase & {
+  module: "REQUISITION";
+};
+
+export type EventReportApprovalConfig = ApprovalConfigBase & {
+  module: "EVENT_REPORT";
+};
+
+export type ApprovalConfig = RequisitionApprovalConfig | EventReportApprovalConfig;
 
 export type ApprovalInstanceStatus =
   | "WAITING"

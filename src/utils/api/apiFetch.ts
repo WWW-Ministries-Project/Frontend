@@ -43,7 +43,7 @@ import type {
 } from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
 import type {
-  RequisitionApprovalConfig,
+  ApprovalConfig,
   RequisitionSimilarItemsResponse,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import type {
@@ -137,6 +137,18 @@ export class ApiCalls {
     return this.fetchFromApi("event/upcoming-events", query);
   };
 
+  fetchEventById = (
+    query?: QueryType
+  ): Promise<ApiResponse<Record<string, unknown>>> => {
+    return this.fetchFromApi("event/get-event", query);
+  };
+
+  fetchEventReportDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("event-reports/get-report", query);
+  };
+
   // Position Management
   fetchPositions = (
     query?: QueryType
@@ -186,10 +198,16 @@ export class ApiCalls {
     return this.fetchFromApi("requisitions/my-requisitions", query);
   };
 
-  fetchRequisitionApprovalConfig = (): Promise<
-    ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+  fetchRequisitionApprovalConfig = (query?: QueryType): Promise<
+    ApiResponse<ApprovalConfig | ApprovalConfig[] | null>
   > => {
-    return this.fetchFromApi("requisitions/get-approval-config");
+    return this.fetchFromApi("requisitions/get-approval-config", query);
+  };
+
+  fetchEventReportApprovalConfig = (query?: QueryType): Promise<
+    ApiResponse<ApprovalConfig | ApprovalConfig[] | null>
+  > => {
+    return this.fetchFromApi("event-reports/get-approval-config", query);
   };
 
   fetchRequisitionPreApprovalSimilarItems = (
