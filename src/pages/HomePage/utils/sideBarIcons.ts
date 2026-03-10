@@ -36,4 +36,5 @@ export const sidebarIcons: Record<
   Requests: RequestIcon,
   "Life Centers": LifeCenterIcon,
   "Market Place": MarketIcon,
+  Reports: RequestIcon,
 };

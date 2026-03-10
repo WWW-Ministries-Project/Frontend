@@ -35,6 +35,11 @@ export const relativePath = {
       manage: "manage-event",
       view: "view-event",
     },
+    reports: {
+      main: "reports",
+      eventReports: "reports/event-reports",
+      eventReportDetails: "reports/event-reports/:id",
+    },
     assets: {
       main: "assets",
       manage: "assets/manage-asset",
