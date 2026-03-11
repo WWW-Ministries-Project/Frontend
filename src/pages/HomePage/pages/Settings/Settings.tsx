@@ -15,6 +15,8 @@ import {
   RequisitionApprovalConfig,
   RequisitionApprovalConfigPayload,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { RoleEligibilityConfig } from "@/utils/api/settings/eligibilityInterfaces";
 import { useUserStore } from "@/store/userStore";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
@@ -24,7 +26,13 @@ import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showNotification } from "../../utils";
+import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
+import {
+  buildEligibilityRulesPayload,
+  createEmptyEligibilityRules,
+  normalizeEligibilityRules,
+} from "./utils/eligibilityRules";
 import { useSettingsTabs } from "./utils/useSettingsTabs";
 
 const DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS = 30;
@@ -102,6 +110,8 @@ function Settings() {
     useState(String(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS));
   const [isSavingRequisitionSettings, setIsSavingRequisitionSettings] =
     useState(false);
+  const [isSavingEligibilityRules, setIsSavingEligibilityRules] =
+    useState(false);
 
   const {
     data: approvalConfigData,
@@ -113,6 +123,28 @@ function Settings() {
   >(
     api.fetch.fetchRequisitionApprovalConfig as () => Promise<
       ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
+    >,
+    undefined,
+    true
+  );
+  const {
+    data: programsResponse,
+    loading: programsLoading,
+    error: programsError,
+    refetch: refetchPrograms,
+  } = useFetch<ApiResponse<ProgramResponse[]>>(
+    api.fetch.fetchAllPrograms as () => Promise<ApiResponse<ProgramResponse[]>>,
+    undefined,
+    true
+  );
+  const {
+    data: eligibilityConfigResponse,
+    loading: eligibilityConfigLoading,
+    error: eligibilityConfigError,
+    refetch: refetchEligibilityConfig,
+  } = useFetch<ApiResponse<RoleEligibilityConfig | null>>(
+    api.fetch.fetchRoleEligibilityConfig as () => Promise<
+      ApiResponse<RoleEligibilityConfig | null>
     >,
     undefined,
     true
@@ -287,6 +319,16 @@ function Settings() {
     }
   }, [handleCloseForm, refetchApprovalConfig, selectedTab]);
 
+  useEffect(() => {
+    if (selectedTab !== "Eligibility Rules") {
+      return;
+    }
+
+    handleCloseForm();
+    refetchPrograms();
+    refetchEligibilityConfig();
+  }, [handleCloseForm, refetchEligibilityConfig, refetchPrograms, selectedTab]);
+
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
     handleSearchChange(e.target.value);
 
@@ -366,19 +408,86 @@ function Settings() {
     return approvalConfigError.message || "Unable to load requisition settings.";
   }, [approvalConfigError]);
 
+  const programOptions = useMemo(
+    () =>
+      (programsResponse?.data ?? []).map((program) => ({
+        label: program.title,
+        value: String(program.id),
+      })),
+    [programsResponse]
+  );
+
+  const eligibilityRules = useMemo(
+    () =>
+      normalizeEligibilityRules(
+        eligibilityConfigResponse?.data ?? createEmptyEligibilityRules()
+      ),
+    [eligibilityConfigResponse]
+  );
+
+  const displayEligibilityRulesError = useMemo(() => {
+    if (eligibilityConfigError) {
+      return (
+        eligibilityConfigError.message || "Unable to load eligibility rules."
+      );
+    }
+
+    if (programsError) {
+      return programsError.message || "Unable to load programs.";
+    }
+
+    return null;
+  }, [eligibilityConfigError, programsError]);
+
+  const handleSaveEligibilityRules = async (
+    rules: ReturnType<typeof createEmptyEligibilityRules>
+  ) => {
+    setIsSavingEligibilityRules(true);
+
+    try {
+      const response = await api.post.upsertRoleEligibilityConfig(
+        buildEligibilityRulesPayload(rules)
+      );
+
+      showNotification(
+        getResponseMessage(
+          response.data,
+          "Eligibility rules saved successfully."
+        ),
+        "success"
+      );
+
+      await refetchEligibilityConfig();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return;
+      }
+
+      showNotification(
+        error instanceof Error
+          ? error.message
+          : "Unable to save eligibility rules.",
+        "error"
+      );
+    } finally {
+      setIsSavingEligibilityRules(false);
+    }
+  };
+
   return (
     <PageOutline>
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage department, position, and requisition configuration settings.
+          Manage department, position, requisition, and eligibility rules
+          configuration settings.
         </p>
         <div className="flex mt-2 mb-6 ">
           <div className="border border-lightGray flex gap-2 rounded-lg p-1">
             {tabs.map((tab) => (
               <div
                 key={tab}
-                className={`rounded-lg text-center p-2 w-40 cursor-pointer ${
+                className={`rounded-lg text-center px-4 py-2 min-w-[10rem] cursor-pointer ${
                   selectedTab === tab ? "bg-lightGray font-semibold" : ""
                 }`}
                 onClick={() => setSelectedTab(tab)}
@@ -390,7 +499,7 @@ function Settings() {
         </div>
       </div>
 
-      {selectedTab !== "Requisition" && (
+      {selectedTab !== "Requisition" && selectedTab !== "Eligibility Rules" && (
         <>
           <PageHeader
             className="font-semibold text-xl"
@@ -452,6 +561,27 @@ function Settings() {
               editMode={editMode}
             />
           </Modal>
+        </>
+      )}
+
+      {selectedTab === "Eligibility Rules" && (
+        <>
+          <PageHeader
+            className="font-semibold text-xl"
+            title="Eligibility Rules"
+          />
+          <EligibilityRules
+            initialRules={eligibilityRules}
+            programOptions={programOptions}
+            loading={programsLoading || eligibilityConfigLoading}
+            saving={isSavingEligibilityRules}
+            error={displayEligibilityRulesError}
+            onRetry={() => {
+              refetchPrograms();
+              refetchEligibilityConfig();
+            }}
+            onSave={handleSaveEligibilityRules}
+          />
         </>
       )}
 

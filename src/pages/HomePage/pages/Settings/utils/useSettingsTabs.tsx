@@ -16,7 +16,11 @@ interface UseSettingsTabsProps {
   handleDelete: (item: DepartmentType | PositionType) => void;
 }
 
-export type GeneralSettingsTab = "Department" | "Position" | "Requisition";
+export type GeneralSettingsTab =
+  | "Department"
+  | "Position"
+  | "Requisition"
+  | "Eligibility Rules";
 
 export function useSettingsTabs({
   setDisplayForm,
@@ -29,7 +33,12 @@ export function useSettingsTabs({
   const membersOptions = useStore((state) => state.membersOptions);
   const { positions: positionData, total: positionTotal } = settingsStore;
   const { departments: departmentData, total: departmentTotal } = settingsStore;
-  const tabs: GeneralSettingsTab[] = ["Department", "Position", "Requisition"];
+  const tabs: GeneralSettingsTab[] = [
+    "Department",
+    "Position",
+    "Requisition",
+    "Eligibility Rules",
+  ];
   const [selectedTab, setSelectedTab] = useState<GeneralSettingsTab>(tabs[0]);
   const [columns, setColumns] = useState<
     ColumnDef<DepartmentType | PositionType>[]
