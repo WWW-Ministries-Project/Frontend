@@ -28,6 +28,7 @@ import {
   Programs,
 } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
+import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
@@ -190,6 +191,12 @@ export class ApiCalls {
     ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
   > => {
     return this.fetchFromApi("requisitions/get-approval-config");
+  };
+
+  fetchRoleEligibilityConfig = (): Promise<
+    ApiResponse<RoleEligibilityConfig | null>
+  > => {
+    return this.fetchFromApi("settings/get-role-eligibility-config");
   };
 
   fetchRequisitionPreApprovalSimilarItems = (

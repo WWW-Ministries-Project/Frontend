@@ -11,6 +11,10 @@ import {
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
+import type {
+  RoleEligibilityConfig,
+  RoleEligibilityConfigPayload,
+} from "./settings/eligibilityInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
@@ -113,6 +117,11 @@ export class ApiCreationCalls {
     payload: RequisitionApprovalConfigPayload
   ): Promise<ApiResponse<RequisitionApprovalConfig>> => {
     return this.postToApi("requisitions/upsert-approval-config", payload);
+  };
+  upsertRoleEligibilityConfig = (
+    payload: RoleEligibilityConfigPayload
+  ): Promise<ApiResponse<RoleEligibilityConfig>> => {
+    return this.postToApi("settings/upsert-role-eligibility-config", payload);
   };
   submitRequisition = (
     payload: SubmitRequisitionPayload

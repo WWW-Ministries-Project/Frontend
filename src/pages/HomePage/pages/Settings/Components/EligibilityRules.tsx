@@ -1,16 +1,11 @@
 import { Button } from "@/components";
 import MultiSelect from "@/components/MultiSelect";
-import { showNotification } from "@/pages/HomePage/utils";
+import {
+  ELIGIBILITY_ROLES,
+  EligibilityRulesState,
+  sanitizeEligibilityRules,
+} from "../utils/eligibilityRules";
 import { useEffect, useMemo, useState } from "react";
-
-type EligibilityRoleKey =
-  | "member"
-  | "ministry_worker"
-  | "instructor"
-  | "life_center_leader"
-  | "head_of_department";
-
-type EligibilityRulesState = Record<EligibilityRoleKey, string[]>;
 
 interface ProgramOption {
   label: string;
@@ -18,112 +13,26 @@ interface ProgramOption {
 }
 
 interface EligibilityRulesProps {
+  initialRules: EligibilityRulesState;
   programOptions: ProgramOption[];
   loading?: boolean;
+  saving?: boolean;
   error?: string | null;
   onRetry: () => void;
+  onSave: (rules: EligibilityRulesState) => void;
 }
-
-interface EligibilityRole {
-  key: EligibilityRoleKey;
-  label: string;
-}
-
-const ELIGIBILITY_RULES_STORAGE_KEY = "settings-eligibility-rules";
-
-const ELIGIBILITY_ROLES: EligibilityRole[] = [
-  { key: "member", label: "Member" },
-  { key: "ministry_worker", label: "Ministry worker" },
-  { key: "instructor", label: "Instructor" },
-  { key: "life_center_leader", label: "Life center leader" },
-  { key: "head_of_department", label: "Head of department" },
-];
-
-const createEmptyRules = (): EligibilityRulesState => ({
-  member: [],
-  ministry_worker: [],
-  instructor: [],
-  life_center_leader: [],
-  head_of_department: [],
-});
-
-const normalizeRuleValues = (value: unknown): string[] => {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return [...new Set(
-    value.flatMap((item) =>
-      typeof item === "string" || typeof item === "number"
-        ? [String(item)]
-        : []
-    )
-  )];
-};
-
-const normalizeEligibilityRules = (value: unknown): EligibilityRulesState => {
-  const baseRules = createEmptyRules();
-
-  if (!value || typeof value !== "object") {
-    return baseRules;
-  }
-
-  const valueRecord = value as Record<string, unknown>;
-
-  return ELIGIBILITY_ROLES.reduce<EligibilityRulesState>((accumulator, role) => {
-    accumulator[role.key] = normalizeRuleValues(valueRecord[role.key]);
-    return accumulator;
-  }, baseRules);
-};
-
-const loadStoredRules = (): EligibilityRulesState => {
-  if (typeof window === "undefined") {
-    return createEmptyRules();
-  }
-
-  try {
-    const savedValue = window.localStorage.getItem(
-      ELIGIBILITY_RULES_STORAGE_KEY
-    );
-
-    if (!savedValue) {
-      return createEmptyRules();
-    }
-
-    return normalizeEligibilityRules(JSON.parse(savedValue));
-  } catch {
-    return createEmptyRules();
-  }
-};
-
-const sanitizeRules = (
-  rules: EligibilityRulesState,
-  validProgramIds: Set<string>
-): EligibilityRulesState => {
-  if (validProgramIds.size === 0) {
-    return rules;
-  }
-
-  return ELIGIBILITY_ROLES.reduce<EligibilityRulesState>((accumulator, role) => {
-    accumulator[role.key] = rules[role.key].filter((value) =>
-      validProgramIds.has(value)
-    );
-    return accumulator;
-  }, createEmptyRules());
-};
 
 export const EligibilityRules = ({
+  initialRules,
   programOptions,
   loading = false,
+  saving = false,
   error,
   onRetry,
+  onSave,
 }: EligibilityRulesProps) => {
-  const [rules, setRules] = useState<EligibilityRulesState>(() =>
-    loadStoredRules()
-  );
-  const [initialRules, setInitialRules] = useState<EligibilityRulesState>(() =>
-    loadStoredRules()
-  );
+  const [rules, setRules] = useState<EligibilityRulesState>(initialRules);
+  const [savedRules, setSavedRules] = useState<EligibilityRulesState>(initialRules);
 
   const validProgramIds = useMemo(
     () => new Set(programOptions.map((program) => program.value)),
@@ -131,23 +40,30 @@ export const EligibilityRules = ({
   );
 
   useEffect(() => {
+    setRules(initialRules);
+    setSavedRules(initialRules);
+  }, [initialRules]);
+
+  useEffect(() => {
     if (validProgramIds.size === 0) {
       return;
     }
 
-    setRules((previousRules) => sanitizeRules(previousRules, validProgramIds));
-    setInitialRules((previousRules) =>
-      sanitizeRules(previousRules, validProgramIds)
+    setRules((previousRules) =>
+      sanitizeEligibilityRules(previousRules, validProgramIds)
+    );
+    setSavedRules((previousRules) =>
+      sanitizeEligibilityRules(previousRules, validProgramIds)
     );
   }, [validProgramIds]);
 
   const hasChanges = useMemo(
-    () => JSON.stringify(rules) !== JSON.stringify(initialRules),
-    [initialRules, rules]
+    () => JSON.stringify(rules) !== JSON.stringify(savedRules),
+    [rules, savedRules]
   );
 
   const handleRoleProgramsChange = (
-    roleKey: EligibilityRoleKey,
+    roleKey: keyof EligibilityRulesState,
     selectedPrograms: string[]
   ) => {
     setRules((previousRules) => ({
@@ -156,22 +72,8 @@ export const EligibilityRules = ({
     }));
   };
 
-  const handleSave = () => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(
-        ELIGIBILITY_RULES_STORAGE_KEY,
-        JSON.stringify(rules)
-      );
-      setInitialRules(rules);
-      showNotification("Eligibility rules saved successfully.", "success");
-    } catch {
-      showNotification("Unable to save eligibility rules.", "error");
-    }
-  };
+  const isSelectionDisabled =
+    loading || saving || Boolean(error) || programOptions.length === 0;
 
   return (
     <section className="app-card space-y-6 p-4 md:p-5">
@@ -186,7 +88,9 @@ export const EligibilityRules = ({
       </div>
 
       {loading && (
-        <p className="text-xs text-primaryGray">Loading programs...</p>
+        <p className="text-xs text-primaryGray">
+          Loading eligibility rules...
+        </p>
       )}
 
       {error && (
@@ -238,7 +142,7 @@ export const EligibilityRules = ({
                 onChange={(values) => handleRoleProgramsChange(role.key, values)}
                 placeholder="Select required programs"
                 emptyMsg="No programs selected"
-                disabled={loading || programOptions.length === 0}
+                disabled={isSelectionDisabled}
               />
             </div>
           );
@@ -248,8 +152,9 @@ export const EligibilityRules = ({
       <div className="flex justify-end">
         <Button
           value="Save Changes"
-          onClick={handleSave}
-          disabled={!hasChanges || loading}
+          onClick={() => onSave(rules)}
+          disabled={!hasChanges || loading || saving || Boolean(error)}
+          loading={saving}
         />
       </div>
     </section>
