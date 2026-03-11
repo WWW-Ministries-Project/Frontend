@@ -15,6 +15,7 @@ import {
   RequisitionApprovalConfig,
   RequisitionApprovalConfigPayload,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { useUserStore } from "@/store/userStore";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
@@ -24,6 +25,7 @@ import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showNotification } from "../../utils";
+import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
 import { useSettingsTabs } from "./utils/useSettingsTabs";
 
@@ -102,6 +104,7 @@ function Settings() {
     useState(String(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS));
   const [isSavingRequisitionSettings, setIsSavingRequisitionSettings] =
     useState(false);
+  const [hasRequestedPrograms, setHasRequestedPrograms] = useState(false);
 
   const {
     data: approvalConfigData,
@@ -114,6 +117,16 @@ function Settings() {
     api.fetch.fetchRequisitionApprovalConfig as () => Promise<
       ApiResponse<RequisitionApprovalConfig | RequisitionApprovalConfig[] | null>
     >,
+    undefined,
+    true
+  );
+  const {
+    data: programsResponse,
+    loading: programsLoading,
+    error: programsError,
+    refetch: refetchPrograms,
+  } = useFetch<ApiResponse<ProgramResponse[]>>(
+    api.fetch.fetchAllPrograms as () => Promise<ApiResponse<ProgramResponse[]>>,
     undefined,
     true
   );
@@ -287,6 +300,24 @@ function Settings() {
     }
   }, [handleCloseForm, refetchApprovalConfig, selectedTab]);
 
+  useEffect(() => {
+    if (selectedTab !== "Eligibility Rules") {
+      return;
+    }
+
+    handleCloseForm();
+
+    if (!hasRequestedPrograms) {
+      setHasRequestedPrograms(true);
+      refetchPrograms();
+    }
+  }, [
+    handleCloseForm,
+    hasRequestedPrograms,
+    refetchPrograms,
+    selectedTab,
+  ]);
+
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
     handleSearchChange(e.target.value);
 
@@ -366,19 +397,37 @@ function Settings() {
     return approvalConfigError.message || "Unable to load requisition settings.";
   }, [approvalConfigError]);
 
+  const programOptions = useMemo(
+    () =>
+      (programsResponse?.data ?? []).map((program) => ({
+        label: program.title,
+        value: String(program.id),
+      })),
+    [programsResponse]
+  );
+
+  const displayProgramsError = useMemo(() => {
+    if (!programsError) {
+      return null;
+    }
+
+    return programsError.message || "Unable to load programs.";
+  }, [programsError]);
+
   return (
     <PageOutline>
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage department, position, and requisition configuration settings.
+          Manage department, position, requisition, and eligibility rules
+          configuration settings.
         </p>
         <div className="flex mt-2 mb-6 ">
           <div className="border border-lightGray flex gap-2 rounded-lg p-1">
             {tabs.map((tab) => (
               <div
                 key={tab}
-                className={`rounded-lg text-center p-2 w-40 cursor-pointer ${
+                className={`rounded-lg text-center px-4 py-2 min-w-[10rem] cursor-pointer ${
                   selectedTab === tab ? "bg-lightGray font-semibold" : ""
                 }`}
                 onClick={() => setSelectedTab(tab)}
@@ -390,7 +439,7 @@ function Settings() {
         </div>
       </div>
 
-      {selectedTab !== "Requisition" && (
+      {selectedTab !== "Requisition" && selectedTab !== "Eligibility Rules" && (
         <>
           <PageHeader
             className="font-semibold text-xl"
@@ -452,6 +501,21 @@ function Settings() {
               editMode={editMode}
             />
           </Modal>
+        </>
+      )}
+
+      {selectedTab === "Eligibility Rules" && (
+        <>
+          <PageHeader
+            className="font-semibold text-xl"
+            title="Eligibility Rules"
+          />
+          <EligibilityRules
+            programOptions={programOptions}
+            loading={programsLoading}
+            error={displayProgramsError}
+            onRetry={() => refetchPrograms()}
+          />
         </>
       )}
 
