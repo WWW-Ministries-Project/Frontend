@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { CountryField } from "@/components/fields/CountryField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
 import FormikSelectField from "@/components/FormikSelect";
@@ -19,6 +20,19 @@ type SyncEventDateFormValues = {
     eventId?: string | number;
   };
 };
+
+const genderOptions = [
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+];
+
+const maritalStatusOptions = [
+  { label: "Single", value: "SINGLE" },
+  { label: "Married", value: "MARRIED" },
+  { label: "Divorced", value: "DIVORCED" },
+  { label: "Widow", value: "WIDOW" },
+  { label: "Widower", value: "WIDOWER" },
+];
 
 const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | number; date?: string }[] }) => {
   const { values, setFieldValue } = useFormikContext<SyncEventDateFormValues>();
@@ -73,7 +87,7 @@ const VisitorFormComponent = ({
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
-        {({ handleSubmit, setFieldValue, values }) => (
+        {({ setFieldValue, values }) => (
           <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
             <SyncEventDate eventsOptions={eventsOptions} />
             {showHeader && (
@@ -90,6 +104,27 @@ const VisitorFormComponent = ({
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <FormLayout>
                 <NameInfo prefix="personal_info" />
+                <Field
+                  component={FormikSelectField}
+                  label="Gender"
+                  options={genderOptions}
+                  name="personal_info.gender"
+                  id="personal_info.gender"
+                  placeholder="Select gender"
+                />
+                <Field
+                  component={FormikSelectField}
+                  label="Marital Status"
+                  options={maritalStatusOptions}
+                  name="personal_info.marital_status"
+                  id="personal_info.marital_status"
+                  placeholder="Select marital status"
+                />
+                <CountryField
+                  prefix="personal_info"
+                  label="Nationality"
+                  placeholder="Select nationality"
+                />
                 <ContactsSubForm prefix="contact_info" />
                 <Field
                   component={FormikInputDiv}
@@ -163,7 +198,7 @@ const VisitorFormComponent = ({
             <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
               <div className="flex justify-end gap-3">
                 <Button
-                  onClick={()=>handleSubmit}
+                  type="submit"
                   loading={loading}
                   disabled={loading}
                   value="Submit"
@@ -192,7 +227,11 @@ const howHeardOptions = [
 ];
 
 export interface IVisitorForm {
-  personal_info: INameInfo;
+  personal_info: INameInfo & {
+    gender?: string;
+    marital_status?: string;
+    nationality?: string;
+  };
   contact_info: IContactsSubForm & { address: string };
   visit: {
     date: string;
@@ -205,7 +244,12 @@ export interface IVisitorForm {
 }
 
 const initialValues: IVisitorForm = {
-  personal_info: NameInfo.initialValues,
+  personal_info: {
+    ...NameInfo.initialValues,
+    gender: "",
+    marital_status: "",
+    nationality: "",
+  },
   contact_info: { ...ContactsSubForm.initialValues, address: "" },
   visit: {
     date: "",
@@ -218,7 +262,12 @@ const initialValues: IVisitorForm = {
 };
 
 const validationSchema = object({
-  personal_info: object().shape(NameInfo.validationSchema),
+  personal_info: object().shape({
+    ...NameInfo.validationSchema,
+    gender: string(),
+    marital_status: string(),
+    nationality: string(),
+  }),
   contact_info: object().shape({
     ...ContactsSubForm.validationSchema,
     address: string().required(),

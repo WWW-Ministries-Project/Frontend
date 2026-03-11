@@ -1,12 +1,25 @@
 import { create } from "zustand";
 
 export type AlertKind = "success" | "error";
+export type AlertDetailTone = AlertKind | "neutral";
+
+export interface AlertDetailItem {
+  label: string;
+  description?: string;
+}
+
+export interface AlertDetailSection {
+  title: string;
+  tone?: AlertDetailTone;
+  items: AlertDetailItem[];
+}
 
 interface NotificationType {
   id?: string;
   title?: string;
   message: string;
   type?: AlertKind;
+  details?: AlertDetailSection[];
   onClose?: () => void;
   show?: boolean;
   durationMs?: number;
@@ -17,6 +30,7 @@ export interface AlertItem {
   title: string;
   message: string;
   type: AlertKind;
+  details: AlertDetailSection[];
   onClose: () => void;
   durationMs: number;
 }
@@ -88,8 +102,11 @@ export const useNotificationStore = create<NotificationSlice>((set, get) => ({
       title,
       message: notification.message,
       type,
+      details: notification.details ?? [],
       onClose: notification.onClose ?? (() => {}),
-      durationMs: notification.durationMs ?? (type === "error" ? 7000 : 5000),
+      durationMs:
+        notification.durationMs ??
+        (notification.details?.length ? 12000 : type === "error" ? 7000 : 5000),
     };
 
     set((state) => {

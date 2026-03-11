@@ -53,6 +53,9 @@ export const mapVisitorToForm = (
       first_name: visitor.firstName,
       last_name: visitor.lastName,
       other_name: visitor.otherName || "",
+      gender: visitor.gender || "",
+      marital_status: visitor.marital_status || "",
+      nationality: visitor.nationality || "",
     },
     contact_info: {
       email: visitor.email,

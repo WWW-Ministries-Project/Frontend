@@ -10,6 +10,10 @@ import {
   CohortPayloadType,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
+import type {
+  BulkUpdateMemberStatusPayload,
+  BulkUpdateMemberStatusResponse,
+} from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import type {
   RoleEligibilityConfig,
@@ -94,6 +98,13 @@ export class ApiCreationCalls {
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
+
+  bulkUpdateMemberStatus = (
+    payload: BulkUpdateMemberStatusPayload
+  ): Promise<ApiResponse<BulkUpdateMemberStatusResponse>> => {
+    return this.postToApi("user/update-member-status/bulk", payload);
+  };
+
   createEvent = (
     payload: Record<string, unknown>
   ): Promise<ApiResponse<unknown>> => {
