@@ -3,6 +3,7 @@ import {
   useLoaderStore,
   useNotificationStore,
 } from "../store/globalComponentsStore";
+import type { AlertDetailSection } from "../store/globalComponentsStore";
 
 type DialogValue = {
   id: string | number;
@@ -39,6 +40,7 @@ export const showNotification = (
   optionsOrOnClose?:
     | {
         title?: string;
+        details?: AlertDetailSection[];
         onClose?: () => void;
         durationMs?: number;
       }
@@ -47,6 +49,7 @@ export const showNotification = (
   legacyTitle?: string
 ) => {
   let title: string | undefined = legacyTitle;
+  let details: AlertDetailSection[] | undefined;
   let onClose: (() => void) | undefined;
   let durationMs: number | undefined;
 
@@ -56,6 +59,7 @@ export const showNotification = (
     title = optionsOrOnClose;
   } else if (optionsOrOnClose) {
     title = optionsOrOnClose.title ?? title;
+    details = optionsOrOnClose.details;
     onClose = optionsOrOnClose.onClose;
     durationMs = optionsOrOnClose.durationMs;
   }
@@ -67,6 +71,7 @@ export const showNotification = (
     onClose,
     type,
     title,
+    details,
     durationMs,
   });
 };

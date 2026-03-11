@@ -3,7 +3,11 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { encodeQuery, showNotification } from "@/pages/HomePage/utils";
-import { MembersType } from "@/utils";
+import type {
+  BulkUpdateMemberStatusResponse,
+  BulkUpdateMemberStatusResult,
+  MembersType,
+} from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { formatDate, formatPhoneNumber } from "@/utils/helperFunctions";
 import { useEffect, useMemo, useState } from "react";
@@ -14,8 +18,13 @@ type ProgressionStatus = "CONFIRMED" | "MEMBER";
 type MemberStatus = "UNCONFIRMED" | "CONFIRMED" | "MEMBER";
 type MemberTab = "UNCONFIRMED" | "CONFIRMED";
 type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
+type MemberSelectionState = Record<MemberTab, Array<MembersType["id"]>>;
 
 const MEMBERS_PAGE_SIZE = 12;
+const createEmptySelectionState = (): MemberSelectionState => ({
+  UNCONFIRMED: [],
+  CONFIRMED: [],
+});
 
 const getPaginationItems = (
   currentPage: number,
@@ -75,6 +84,47 @@ const getMemberDisplayName = (member: MembersType): string => {
   return fullName || "No Name";
 };
 
+const getMemberNotificationLabel = (member: MembersType): string => {
+  const displayName = getMemberDisplayName(member);
+  return member.member_id ? `${displayName} (${member.member_id})` : displayName;
+};
+
+const getBulkResultNotificationLabel = (
+  result: BulkUpdateMemberStatusResult,
+  membersById: Map<string, MembersType>
+): string => {
+  const member = membersById.get(String(result.user_id));
+  return member ? getMemberNotificationLabel(member) : `User ${result.user_id}`;
+};
+
+const getBulkResultSuccessMessage = (
+  result: BulkUpdateMemberStatusResult,
+  status: ProgressionStatus
+): string => {
+  if (result.message) return result.message;
+  if (result.current_status) return `Now ${formatMemberStatus(result.current_status)}.`;
+
+  return status === "CONFIRMED"
+    ? "Moved to confirmed member."
+    : "Moved to functional member.";
+};
+
+const getBulkResultFailureMessage = (
+  result: BulkUpdateMemberStatusResult,
+  status: ProgressionStatus
+): string => {
+  if (result.message && result.code && !result.message.includes(result.code)) {
+    return `${result.code}: ${result.message}`;
+  }
+
+  if (result.message) return result.message;
+  if (result.code) return result.code;
+
+  return status === "CONFIRMED"
+    ? "Could not confirm this member."
+    : "Could not make this member functional.";
+};
+
 const hasMemberStatus = (member: MembersType, expectedStatus: MemberStatus): boolean =>
   normalizeMemberStatus(member.status) === expectedStatus;
 
@@ -115,6 +165,15 @@ interface MembersTableProps {
   canPerformAction?: (member: MembersType) => boolean;
   blockedActionLabel?: string;
   processingId: string | number | null;
+  selectedIds: Array<MembersType["id"]>;
+  onToggleMemberSelection: (memberId: MembersType["id"]) => void;
+  onToggleSelectAll: (members: MembersType[]) => void;
+  onClearSelection: () => void;
+  bulkActionLabel: string;
+  onBulkAction: () => void;
+  bulkActionLoading?: boolean;
+  selectionDisabled?: boolean;
+  actionsDisabled?: boolean;
 }
 
 const MembersTable = ({
@@ -133,6 +192,15 @@ const MembersTable = ({
   canPerformAction,
   blockedActionLabel,
   processingId,
+  selectedIds,
+  onToggleMemberSelection,
+  onToggleSelectAll,
+  onClearSelection,
+  bulkActionLabel,
+  onBulkAction,
+  bulkActionLoading = false,
+  selectionDisabled = false,
+  actionsDisabled = false,
 }: MembersTableProps) => {
   const safeTotalPages = Math.max(totalPages, 1);
   const safeCurrentPage = Math.min(Math.max(currentPage, 1), safeTotalPages);
@@ -141,6 +209,10 @@ const MembersTable = ({
   const paginationItems = getPaginationItems(safeCurrentPage, safeTotalPages);
   const canGoBack = safeCurrentPage > 1;
   const canGoForward = safeCurrentPage < safeTotalPages;
+  const selectedIdsSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const visibleSelectedCount = members.filter((member) => selectedIdsSet.has(member.id)).length;
+  const allVisibleSelected = members.length > 0 && visibleSelectedCount === members.length;
+  const hasVisibleSelection = visibleSelectedCount > 0 && !allVisibleSelected;
 
   const goToPage = (page: number) => {
     const safePage = Math.min(Math.max(page, 1), safeTotalPages);
@@ -156,6 +228,38 @@ const MembersTable = ({
         <p className="text-sm text-gray-600">{description}</p>
       </div>
 
+      {selectedIds.length > 0 ? (
+        <div className="mx-4 mt-4 rounded-lg border border-primary/15 bg-primary/5 p-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-primary">
+                {selectedIds.length} member{selectedIds.length === 1 ? "" : "s"} selected
+              </p>
+              <p className="text-xs text-primaryGray">
+                The header checkbox selects members on the current page. Selection stays intact while
+                you move between pages.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                value={bulkActionLabel}
+                variant="primary"
+                onClick={onBulkAction}
+                loading={bulkActionLoading}
+                disabled={bulkActionLoading || actionsDisabled}
+              />
+              <Button
+                value="Clear Selection"
+                variant="secondary"
+                onClick={onClearSelection}
+                disabled={bulkActionLoading || actionsDisabled}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {totalMembers === 0 ? (
         <div className="p-4">
           <EmptyState scope="section" msg={emptyStateMessage} />
@@ -166,6 +270,21 @@ const MembersTable = ({
             <table className="w-full text-sm">
               <thead className="bg-lightGray text-primary">
                 <tr>
+                  <th className="px-4 py-3 text-left font-semibold w-14">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      ref={(element) => {
+                        if (element) {
+                          element.indeterminate = hasVisibleSelection;
+                        }
+                      }}
+                      onChange={() => onToggleSelectAll(members)}
+                      disabled={selectionDisabled || members.length === 0}
+                      className="h-4 w-4 rounded border-lightGray text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={`Select all ${title.toLowerCase()} on this page`}
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left font-semibold">Name</th>
                   <th className="px-4 py-3 text-left font-semibold">Email</th>
                   <th className="px-4 py-3 text-left font-semibold">Phone</th>
@@ -178,7 +297,7 @@ const MembersTable = ({
                   const isProcessing = processingId === member.id;
                   const canPerform = canPerformAction ? canPerformAction(member) : true;
                   const isActionBlocked = !canPerform;
-                  const isDisabled = isProcessing || isActionBlocked;
+                  const isDisabled = isProcessing || isActionBlocked || actionsDisabled;
                   const actionText = isProcessing
                     ? "Processing..."
                     : isActionBlocked && blockedActionLabel
@@ -187,6 +306,16 @@ const MembersTable = ({
 
                   return (
                     <tr key={member.id} className="border-t border-lightGray">
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIdsSet.has(member.id)}
+                          onChange={() => onToggleMemberSelection(member.id)}
+                          disabled={selectionDisabled}
+                          className="h-4 w-4 rounded border-lightGray text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={`Select ${getMemberDisplayName(member)}`}
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <button
                           type="button"
@@ -326,6 +455,13 @@ export const MemberConfirmation = () => {
   const [activeTab, setActiveTab] = useState<MemberTab>("UNCONFIRMED");
   const [unconfirmedPage, setUnconfirmedPage] = useState(1);
   const [confirmedPage, setConfirmedPage] = useState(1);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<MemberSelectionState>(
+    createEmptySelectionState()
+  );
+  const [bulkProcessing, setBulkProcessing] = useState<{
+    tab: MemberTab;
+    status: ProgressionStatus;
+  } | null>(null);
 
   const members = useMemo(() => data?.data || [], [data]);
   const filteredMembers = useMemo(
@@ -377,7 +513,18 @@ export const MemberConfirmation = () => {
   useEffect(() => {
     setUnconfirmedPage(1);
     setConfirmedPage(1);
+    setSelectedMemberIds(createEmptySelectionState());
   }, [searchQuery]);
+
+  useEffect(() => {
+    const unconfirmedIds = new Set(unconfirmedMembers.map((member) => member.id));
+    const confirmedIds = new Set(confirmedMembers.map((member) => member.id));
+
+    setSelectedMemberIds((previousSelection) => ({
+      UNCONFIRMED: previousSelection.UNCONFIRMED.filter((id) => unconfirmedIds.has(id)),
+      CONFIRMED: previousSelection.CONFIRMED.filter((id) => confirmedIds.has(id)),
+    }));
+  }, [unconfirmedMembers, confirmedMembers]);
 
   const paginatedUnconfirmedMembers = useMemo(() => {
     const start = (unconfirmedPage - 1) * unconfirmedPageSize;
@@ -394,6 +541,18 @@ export const MemberConfirmation = () => {
       ? paginatedUnconfirmedMembers
       : paginatedConfirmedMembers;
   const activeLoading = loading;
+
+  const selectedUnconfirmedMembers = useMemo(() => {
+    const selectedIdsSet = new Set(selectedMemberIds.UNCONFIRMED);
+    return unconfirmedMembers.filter((member) => selectedIdsSet.has(member.id));
+  }, [selectedMemberIds.UNCONFIRMED, unconfirmedMembers]);
+
+  const selectedConfirmedMembers = useMemo(() => {
+    const selectedIdsSet = new Set(selectedMemberIds.CONFIRMED);
+    return confirmedMembers.filter((member) => selectedIdsSet.has(member.id));
+  }, [selectedMemberIds.CONFIRMED, confirmedMembers]);
+
+  const isAnyActionProcessing = Boolean(processingId) || Boolean(bulkProcessing);
 
   const updateStatus = async (member: MembersType, status: ProgressionStatus) => {
     setProcessingId(member.id);
@@ -440,6 +599,149 @@ export const MemberConfirmation = () => {
     }
 
     await updateStatus(member, "MEMBER");
+  };
+
+  const toggleMemberSelection = (
+    tab: MemberTab,
+    memberId: MembersType["id"]
+  ) => {
+    if (isAnyActionProcessing) return;
+
+    setSelectedMemberIds((previousSelection) => {
+      const currentIds = previousSelection[tab];
+      const nextIds = currentIds.includes(memberId)
+        ? currentIds.filter((id) => id !== memberId)
+        : [...currentIds, memberId];
+
+      return {
+        ...previousSelection,
+        [tab]: nextIds,
+      };
+    });
+  };
+
+  const toggleSelectAllMembers = (
+    tab: MemberTab,
+    membersOnPage: MembersType[]
+  ) => {
+    if (isAnyActionProcessing || membersOnPage.length === 0) return;
+
+    setSelectedMemberIds((previousSelection) => {
+      const currentIds = previousSelection[tab];
+      const pageIds = membersOnPage.map((member) => member.id);
+      const allPageMembersSelected = pageIds.every((id) => currentIds.includes(id));
+
+      return {
+        ...previousSelection,
+        [tab]: allPageMembersSelected
+          ? currentIds.filter((id) => !pageIds.includes(id))
+          : Array.from(new Set([...currentIds, ...pageIds])),
+      };
+    });
+  };
+
+  const clearSelection = (tab: MemberTab) => {
+    setSelectedMemberIds((previousSelection) => ({
+      ...previousSelection,
+      [tab]: [],
+    }));
+  };
+
+  const runBulkStatusUpdate = async (
+    tab: MemberTab,
+    membersToUpdate: MembersType[],
+    status: ProgressionStatus
+  ) => {
+    if (!membersToUpdate.length) {
+      showNotification("Select at least one member to continue", "error");
+      return;
+    }
+
+    setBulkProcessing({ tab, status });
+
+    try {
+      const bulkResponse: BulkUpdateMemberStatusResponse = (
+        await api.post.bulkUpdateMemberStatus({
+          status,
+          user_ids: membersToUpdate.map((member) => member.id),
+        })
+      ).data;
+      const responseResults = bulkResponse.results || [];
+      const successfulResults = responseResults.filter((result) => result.success);
+      const failedResults = responseResults.filter((result) => !result.success);
+      const failedIdSet = new Set(
+        failedResults.map((result) => String(result.user_id))
+      );
+      const successCount = bulkResponse.success_count;
+      const failureCount = bulkResponse.failure_count;
+      const membersById = new Map(
+        membersToUpdate.map((member) => [String(member.id), member])
+      );
+
+      showNotification(
+        `${successCount} succeeded, ${failureCount} failed.`,
+        failureCount > 0 ? "error" : "success",
+        {
+          title:
+            status === "CONFIRMED"
+              ? failureCount > 0
+                ? "Bulk confirmation completed with failures"
+                : "Bulk confirmation completed"
+              : failureCount > 0
+              ? "Bulk functional promotion completed with failures"
+              : "Bulk functional promotion completed",
+          details: [
+            ...(successfulResults.length > 0
+              ? [
+                  {
+                    title: "Successful",
+                    tone: "success" as const,
+                    items: successfulResults.map((result) => ({
+                      label: getBulkResultNotificationLabel(result, membersById),
+                      description: getBulkResultSuccessMessage(result, status),
+                    })),
+                  },
+                ]
+              : []),
+            ...(failedResults.length > 0
+              ? [
+                  {
+                    title: "Failed",
+                    tone: "error" as const,
+                    items: failedResults.map((result) => ({
+                      label: getBulkResultNotificationLabel(result, membersById),
+                      description: getBulkResultFailureMessage(result, status),
+                    })),
+                  },
+                ]
+              : []),
+          ],
+        }
+      );
+
+      setSelectedMemberIds((previousSelection) => ({
+        ...previousSelection,
+        [tab]: previousSelection[tab].filter((id) => failedIdSet.has(String(id))),
+      }));
+
+      await refetch();
+    } catch {
+      // Request-level error notifications are handled by API error middleware.
+    } finally {
+      setBulkProcessing(null);
+    }
+  };
+
+  const handleBulkConfirm = async () => {
+    await runBulkStatusUpdate(
+      "UNCONFIRMED",
+      selectedUnconfirmedMembers,
+      "CONFIRMED"
+    );
+  };
+
+  const handleBulkMakeFunctional = async () => {
+    await runBulkStatusUpdate("CONFIRMED", selectedConfirmedMembers, "MEMBER");
   };
 
   const handleMemberClick = (member: MembersType) => {
@@ -533,6 +835,22 @@ export const MemberConfirmation = () => {
           canPerformAction={(member) => hasMemberStatus(member, "UNCONFIRMED")}
           blockedActionLabel="Not Eligible"
           processingId={processingId}
+          selectedIds={selectedMemberIds.UNCONFIRMED}
+          onToggleMemberSelection={(memberId) =>
+            toggleMemberSelection("UNCONFIRMED", memberId)
+          }
+          onToggleSelectAll={(membersOnPage) =>
+            toggleSelectAllMembers("UNCONFIRMED", membersOnPage)
+          }
+          onClearSelection={() => clearSelection("UNCONFIRMED")}
+          bulkActionLabel={`Bulk Confirm (${selectedMemberIds.UNCONFIRMED.length})`}
+          onBulkAction={handleBulkConfirm}
+          bulkActionLoading={
+            bulkProcessing?.tab === "UNCONFIRMED" &&
+            bulkProcessing?.status === "CONFIRMED"
+          }
+          selectionDisabled={isAnyActionProcessing}
+          actionsDisabled={isAnyActionProcessing}
         />
       ) : (
         <MembersTable
@@ -555,6 +873,22 @@ export const MemberConfirmation = () => {
           canPerformAction={(member) => hasMemberStatus(member, "CONFIRMED")}
           blockedActionLabel="Not Confirmed"
           processingId={processingId}
+          selectedIds={selectedMemberIds.CONFIRMED}
+          onToggleMemberSelection={(memberId) =>
+            toggleMemberSelection("CONFIRMED", memberId)
+          }
+          onToggleSelectAll={(membersOnPage) =>
+            toggleSelectAllMembers("CONFIRMED", membersOnPage)
+          }
+          onClearSelection={() => clearSelection("CONFIRMED")}
+          bulkActionLabel={`Bulk Make Functional (${selectedMemberIds.CONFIRMED.length})`}
+          onBulkAction={handleBulkMakeFunctional}
+          bulkActionLoading={
+            bulkProcessing?.tab === "CONFIRMED" &&
+            bulkProcessing?.status === "MEMBER"
+          }
+          selectionDisabled={isAnyActionProcessing}
+          actionsDisabled={isAnyActionProcessing}
         />
       )}
 

@@ -2,16 +2,21 @@ import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useCountryStore } from "@/pages/HomePage/store/coutryStore";
+import { fetchCountries } from "@/pages/HomePage/utils/apiCalls";
 import { showNotification } from "@/pages/HomePage/utils";
 import { VisitorType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { formatDate, formatPhoneNumber } from "@/utils/helperFunctions";
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
 type VisitorWithMemberLink = VisitorType & {
   member_id?: string;
   memberId?: string;
   linked_member_id?: string;
+  gender?: string;
+  nationality?: string;
+  marital_status?: string;
 };
 
 type VisitorConversionForm = {
@@ -22,8 +27,24 @@ type VisitorConversionForm = {
   email: string;
   countryCode: string;
   phone: string;
+  gender: string;
+  nationality: string;
+  maritalStatus: string;
   membershipType: "IN_HOUSE" | "ONLINE";
 };
+
+const genderOptions = [
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+] as const;
+
+const maritalStatusOptions = [
+  { label: "Single", value: "SINGLE" },
+  { label: "Married", value: "MARRIED" },
+  { label: "Divorced", value: "DIVORCED" },
+  { label: "Widow", value: "WIDOW" },
+  { label: "Widower", value: "WIDOWER" },
+] as const;
 
 const getMemberLinkId = (visitor: VisitorType): string | null => {
   const visitorWithLink = visitor as VisitorWithMemberLink;
@@ -37,6 +58,8 @@ const getMemberLinkId = (visitor: VisitorType): string | null => {
 };
 
 const mapVisitorToForm = (visitor: VisitorType): VisitorConversionForm => {
+  const visitorWithProfile = visitor as VisitorWithMemberLink;
+
   return {
     title: visitor.title || "",
     firstName: visitor.firstName || "",
@@ -45,6 +68,9 @@ const mapVisitorToForm = (visitor: VisitorType): VisitorConversionForm => {
     email: visitor.email || "",
     countryCode: visitor.country_code || "",
     phone: visitor.phone || "",
+    gender: visitorWithProfile.gender || "",
+    nationality: visitorWithProfile.nationality || "",
+    maritalStatus: visitorWithProfile.marital_status || "",
     membershipType: "IN_HOUSE",
   };
 };
@@ -61,17 +87,34 @@ const toConversionPayload = (
     email: values.email.trim(),
     country_code: values.countryCode.trim(),
     primary_number: values.phone.trim(),
+    ...(values.gender ? { gender: values.gender } : {}),
+    ...(values.nationality.trim()
+      ? { nationality: values.nationality.trim() }
+      : {}),
+    ...(values.maritalStatus
+      ? { marital_status: values.maritalStatus }
+      : {}),
     membership_type: values.membershipType,
     source_visitor_id: String(visitorId),
   };
 };
 
 const extractVisitors = (source: unknown): VisitorType[] => {
-  if (Array.isArray(source)) return source as VisitorType[];
+  let currentSource = source;
 
-  if (source && typeof source === "object" && "data" in source) {
-    const nestedSource = (source as { data?: unknown }).data;
-    if (Array.isArray(nestedSource)) return nestedSource as VisitorType[];
+  for (let depth = 0; depth < 4; depth += 1) {
+    if (Array.isArray(currentSource)) return currentSource as VisitorType[];
+
+    if (
+      currentSource &&
+      typeof currentSource === "object" &&
+      "data" in currentSource
+    ) {
+      currentSource = (currentSource as { data?: unknown }).data;
+      continue;
+    }
+
+    break;
   }
 
   return [];
@@ -80,16 +123,36 @@ const extractVisitors = (source: unknown): VisitorType[] => {
 export const VisitorToMembership = () => {
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
   const { refetch: refetchMembers } = useFetch(api.fetch.fetchAllMembers, undefined, true);
+  const countryOptions = useCountryStore((state) => state.countryOptions);
+  const setCountries = useCountryStore((state) => state.setCountries);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState<VisitorType | null>(null);
   const [formValues, setFormValues] = useState<VisitorConversionForm | null>(null);
   const [processingVisitorId, setProcessingVisitorId] = useState<string | number | null>(null);
 
+  useEffect(() => {
+    if (countryOptions.length > 0) return;
+
+    let isMounted = true;
+
+    void fetchCountries().then((countries) => {
+      if (!isMounted || !countries.length) return;
+      setCountries(countries);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [countryOptions.length, setCountries]);
+
   const allVisitors = useMemo(() => extractVisitors(data?.data), [data]);
 
-  const interestedVisitors = useMemo(
-    () => allVisitors.filter((visitor) => Boolean(visitor.membershipWish)),
+  const convertibleVisitors = useMemo(
+    () =>
+      allVisitors
+        .filter((visitor) => !visitor.is_member && !getMemberLinkId(visitor))
+        .sort((left, right) => Number(Boolean(right.membershipWish)) - Number(Boolean(left.membershipWish))),
     [allVisitors]
   );
 
@@ -151,23 +214,24 @@ export const VisitorToMembership = () => {
 
   return (
     <div className="space-y-4">
-      {loading && interestedVisitors.length === 0 ? (
+      {loading && convertibleVisitors.length === 0 ? (
         <div className="text-sm text-gray-600">Loading visitors...</div>
       ) : null}
 
-      {interestedVisitors.length === 0 ? (
+      {convertibleVisitors.length === 0 ? (
         <EmptyState
           scope="page"
-          msg="No visitors currently interested in membership"
+          msg="No visitors are currently available for membership conversion"
         />
       ) : (
         <section className="rounded-xl border border-lightGray overflow-hidden">
           <div className="p-4 border-b border-lightGray">
             <h2 className="text-lg font-semibold text-primary">
-              Visitor-to-Membership ({interestedVisitors.length})
+              Visitor-to-Membership ({convertibleVisitors.length})
             </h2>
             <p className="text-sm text-gray-600">
-              Convert interested visitors to confirmed members while retaining visitor records.
+              Convert visitors to confirmed members while retaining visitor records. Visitors who
+              expressed membership interest are listed first.
             </p>
           </div>
 
@@ -180,12 +244,13 @@ export const VisitorToMembership = () => {
                   <th className="px-4 py-3 text-left font-semibold">Email</th>
                   <th className="px-4 py-3 text-left font-semibold">Phone</th>
                   <th className="px-4 py-3 text-left font-semibold">Date Registered</th>
+                  <th className="px-4 py-3 text-left font-semibold">Interest</th>
                   <th className="px-4 py-3 text-left font-semibold">Member Link</th>
                   <th className="px-4 py-3 text-left font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {interestedVisitors.map((visitor) => {
+                {convertibleVisitors.map((visitor) => {
                   const linkedMemberId = getMemberLinkId(visitor);
                   const alreadyConverted = Boolean(visitor.is_member || linkedMemberId);
                   const isProcessing = processingVisitorId === visitor.id;
@@ -201,6 +266,9 @@ export const VisitorToMembership = () => {
                         {formatPhoneNumber(visitor.country_code, visitor.phone)}
                       </td>
                       <td className="px-4 py-3">{formatDate(visitor.createdAt, "long")}</td>
+                      <td className="px-4 py-3">
+                        {visitor.membershipWish ? "Interested" : "Not marked"}
+                      </td>
                       <td className="px-4 py-3">
                         {linkedMemberId
                           ? `Linked: ${linkedMemberId}`
@@ -309,6 +377,54 @@ export const VisitorToMembership = () => {
                 onChange={(event) => handleInputChange("phone", event)}
                 className="mt-1 w-full border border-lightGray rounded-md px-3 py-2"
               />
+            </label>
+
+            <label className="text-sm text-gray-700">
+              Gender <span className="text-gray-400">(Optional)</span>
+              <select
+                value={formValues?.gender || ""}
+                onChange={(event) => handleInputChange("gender", event)}
+                className="mt-1 w-full border border-lightGray rounded-md px-3 py-2"
+              >
+                <option value="">Select gender</option>
+                {genderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm text-gray-700">
+              Nationality <span className="text-gray-400">(Optional)</span>
+              <select
+                value={formValues?.nationality || ""}
+                onChange={(event) => handleInputChange("nationality", event)}
+                className="mt-1 w-full border border-lightGray rounded-md px-3 py-2"
+              >
+                <option value="">Select nationality</option>
+                {countryOptions.map((option) => (
+                  <option key={String(option.value)} value={String(option.value)}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm text-gray-700">
+              Marital Status <span className="text-gray-400">(Optional)</span>
+              <select
+                value={formValues?.maritalStatus || ""}
+                onChange={(event) => handleInputChange("maritalStatus", event)}
+                className="mt-1 w-full border border-lightGray rounded-md px-3 py-2"
+              >
+                <option value="">Select marital status</option>
+                {maritalStatusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="text-sm text-gray-700">

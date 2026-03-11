@@ -216,7 +216,7 @@ export const routes: AppRoute[] = [
           },
           {
             path: relativePath.home.membership.management.main,
-            name: "Member Admin",
+            name: "Membership manager",
             element: <MembershipManagement />,
             isPrivate: true,
             permissionNeeded: "manage_members",

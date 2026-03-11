@@ -31,6 +31,21 @@ const iconMap = {
   error: ExclamationCircleIcon,
 };
 
+const detailToneClasses = {
+  success: {
+    title: "text-success",
+    bullet: "bg-success",
+  },
+  error: {
+    title: "text-error",
+    bullet: "bg-error",
+  },
+  neutral: {
+    title: "text-primary",
+    bullet: "bg-primary/45",
+  },
+} as const;
+
 const NotificationItem = ({ alert }: { alert: AlertItem }) => {
   const { removeNotification } = useNotificationStore();
 
@@ -61,6 +76,49 @@ const NotificationItem = ({ alert }: { alert: AlertItem }) => {
           <p className={`mt-1 text-sm leading-5 ${tones.message}`}>
             {alert.message}
           </p>
+
+          {alert.details.length > 0 ? (
+            <div className="mt-3 max-h-52 space-y-3 overflow-y-auto rounded-lg border border-lightGray/80 bg-lightGray/20 p-3">
+              {alert.details.map((section) => {
+                const detailTone =
+                  detailToneClasses[section.tone ?? "neutral"];
+
+                return (
+                  <section key={`${alert.id}-${section.title}`} className="space-y-2">
+                    <p
+                      className={`text-xs font-semibold uppercase tracking-wide ${detailTone.title}`}
+                    >
+                      {section.title}
+                    </p>
+
+                    <ul className="space-y-2">
+                      {section.items.map((item) => (
+                        <li
+                          key={`${section.title}-${item.label}-${item.description ?? ""}`}
+                          className="flex items-start gap-2"
+                        >
+                          <span
+                            className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${detailTone.bullet}`}
+                            aria-hidden="true"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-primary">
+                              {item.label}
+                            </p>
+                            {item.description ? (
+                              <p className="text-xs leading-5 text-primaryGray">
+                                {item.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
         <button
           type="button"
@@ -83,7 +141,7 @@ export const NotificationCard = () => {
   return (
     <section
       style={{ top: "calc(var(--app-header-height) + 1rem)" }}
-      className="pointer-events-none fixed right-4 z-[130] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:w-full"
+      className="pointer-events-none fixed right-4 z-[130] flex w-[calc(100%-2rem)] max-w-xl flex-col gap-3 sm:w-full"
       aria-label="Notifications"
     >
       {alerts.map((alert) => (

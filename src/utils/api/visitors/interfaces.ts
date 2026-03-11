@@ -4,6 +4,9 @@ export type VisitorType = {
   firstName: string;
   lastName: string;
   otherName?: string;
+  gender?: string;
+  nationality?: string;
+  marital_status?: string;
   email: string;
   phone: string;
   country: string;
