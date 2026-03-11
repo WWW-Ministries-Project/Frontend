@@ -89,6 +89,8 @@ import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReportDetails";
+import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
 import { Navigate } from "react-router-dom";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
@@ -358,6 +360,42 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_events",
             sideTab: true,
+          },
+        ],
+      },
+      {
+        path: relativePath.home.reports.main,
+        name: "Reports",
+        isPrivate: true,
+        permissionNeeded: "view_events",
+        sideTab: true,
+        children: [
+          {
+            path: "",
+            name: "Reports Default",
+            element: (
+              <Navigate
+                to={`${relativePath.home.main}/${relativePath.home.reports.eventReports}`}
+                replace
+              />
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_events",
+          },
+          {
+            path: "event-reports",
+            name: "Event Reports",
+            element: <EventReports />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+            sideTab: true,
+          },
+          {
+            path: "event-reports/:id",
+            name: "Event Report Details",
+            element: <EventReportDetails />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
           },
         ],
       },

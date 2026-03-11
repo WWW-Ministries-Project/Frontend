@@ -7,7 +7,6 @@ import calendar from "/src/assets/calendar.svg";
 import location from "/src/assets/location.svg";
 import defaultImage1 from "/src/assets/image.svg";
 import Elipse from "/src/assets/ellipse.svg";
-import { relativePath } from "@/utils";
 
 interface IProps {
   showOptions: boolean;
@@ -16,6 +15,8 @@ interface IProps {
   onNavigate: (path: string) => void;
   onDelete: (event: CalendarEvent) => void;
   onShowOptions: (id: string | number) => void;
+  readOnly?: boolean;
+  onSelect?: (event: CalendarEvent) => void;
 }
 
 export const EventsCard = (props: IProps) => {
@@ -24,12 +25,17 @@ export const EventsCard = (props: IProps) => {
   const day = eventDate.getDate();
 
   const isPast = compareDates(props.event.start_date + "");
+  const isReadOnly = Boolean(props.readOnly);
+  const handleSelect = () => {
+    props.onSelect?.(props.event);
+  };
 
   return (
     <CardWrapper className="group rounded-xl overflow-hidden border border-lightGray bg-white hover:shadow-lg transition-shadow duration-200">
       {/* Poster */}
       <div
-        className="relative h-44 cursor-pointer"
+        className={`relative h-44 ${isReadOnly ? "cursor-pointer" : ""}`}
+        onClick={isReadOnly ? handleSelect : undefined}
         // onClick={() =>
         //   props.onNavigate(
         //     `${relativePath.home.events.view}?event_id=${props.event.id}`
@@ -52,37 +58,42 @@ export const EventsCard = (props: IProps) => {
         </div>
 
         {/* Options */}
-        <div
-          className="absolute top-3 right-3"
-          onClick={(e) => {
-            e.stopPropagation();
-            props.onShowOptions(props.event.id);
-          }}
-        >
-          <img src={Elipse} alt="options" className="cursor-pointer" />
-          {props.showOptions && (
-            <Action
-              onDelete={() => props.onDelete(props.event)}
-              // onView={() =>
-              //   props.onNavigate(
-              //     `${relativePath.home.events.view}?event_id=${props.event.id}`
-              //   )
-              // }
-              onEdit={() =>
-                props.onNavigate(
-                  `/home/manage-event?event_id=${props.event.id}`
-                )
-              }
-            />
-          )}
-        </div>
+        {!isReadOnly && (
+          <div
+            className="absolute top-3 right-3"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onShowOptions(props.event.id);
+            }}
+          >
+            <img src={Elipse} alt="options" className="cursor-pointer" />
+            {props.showOptions && (
+              <Action
+                onDelete={() => props.onDelete(props.event)}
+                // onView={() =>
+                //   props.onNavigate(
+                //     `${relativePath.home.events.view}?event_id=${props.event.id}`
+                //   )
+                // }
+                onEdit={() =>
+                  props.onNavigate(
+                    `/home/manage-event?event_id=${props.event.id}`
+                  )
+                }
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-3">
         {/* Title */}
         <div
-          className="flex items-center gap-2 cursor-pointer"
+          className={`flex items-center gap-2 ${
+            isReadOnly ? "cursor-pointer" : ""
+          }`}
+          onClick={isReadOnly ? handleSelect : undefined}
           // onClick={() =>
           //   props.onNavigate(
           //     `${relativePath.home.events.view}?event_id=${props.event.id}`

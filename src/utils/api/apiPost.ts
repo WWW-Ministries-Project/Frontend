@@ -37,8 +37,9 @@ import {
 } from "./appointment/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
 import type {
+  ApprovalConfig,
+  EventReportApprovalConfigPayload,
   RequisitionApprovalActionPayload,
-  RequisitionApprovalConfig,
   RequisitionApprovalConfigPayload,
   SubmitRequisitionPayload,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
@@ -115,13 +116,19 @@ export class ApiCreationCalls {
   };
   upsertRequisitionApprovalConfig = (
     payload: RequisitionApprovalConfigPayload
-  ): Promise<ApiResponse<RequisitionApprovalConfig>> => {
+  ): Promise<ApiResponse<ApprovalConfig>> => {
     return this.postToApi("requisitions/upsert-approval-config", payload);
   };
   upsertRoleEligibilityConfig = (
     payload: RoleEligibilityConfigPayload
   ): Promise<ApiResponse<RoleEligibilityConfig>> => {
     return this.postToApi("settings/upsert-role-eligibility-config", payload);
+  };
+
+  upsertEventReportApprovalConfig = (
+    payload: EventReportApprovalConfigPayload
+  ): Promise<ApiResponse<ApprovalConfig>> => {
+    return this.postToApi("event-reports/upsert-approval-config", payload);
   };
   submitRequisition = (
     payload: SubmitRequisitionPayload
@@ -132,6 +139,45 @@ export class ApiCreationCalls {
     payload: RequisitionApprovalActionPayload
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("requisitions/approval-action", payload);
+  };
+
+  upsertEventReportFinance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/upsert-finance", payload);
+  };
+
+  approveEventReportDepartment = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/department-approval-action", payload);
+  };
+
+  approveEventReportChurchAttendance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(
+      "event-reports/church-attendance-approval-action",
+      payload
+    );
+  };
+
+  approveEventReportFinance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/finance-approval-action", payload);
+  };
+
+  submitEventReportForFinalApproval = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/submit-final-approval", payload);
+  };
+
+  eventReportFinalApprovalAction = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/final-approval-action", payload);
   };
 
   subscribeToNotificationPush = (
