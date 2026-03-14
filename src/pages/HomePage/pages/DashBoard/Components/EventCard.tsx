@@ -2,6 +2,7 @@ import { formatDatefull, formatTime } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { ApiError } from "@/utils/api/errors/ApiError";
+import { Modal } from "@/components/Modal";
 import {
   CalendarDaysIcon,
   ClockIcon,
@@ -42,6 +43,7 @@ const resolveEventId = (rawValue: unknown): string | number | null => {
 export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IProps) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
@@ -53,6 +55,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
   const isMemberPortal =
     typeof window !== "undefined" &&
     window.location.pathname.startsWith("/member");
+  const canRegisterForEvent = isMemberPortal && event.requires_registration;
 
   /* ------------------------------- Date helpers ------------------------------- */
   const getDateOnly = (iso: string) => {
@@ -262,6 +265,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       return;
     }
 
+    setIsRegistrationDialogOpen(false);
     setIsRegistering(true);
 
     try {
@@ -499,19 +503,56 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
           </div>
         )}
 
-        {showInModal && isMemberPortal && (
+        {canRegisterForEvent && (
           <div>
             <button
               type="button"
-              onClick={handleRegisterForEvent}
+              onClick={() => setIsRegistrationDialogOpen(true)}
               disabled={isRegistering}
               className="mt-2 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isRegistering ? "Registering..." : "Register for event"}
+              {isRegistering ? "Registering..." : "Register"}
             </button>
           </div>
         )}
       </div>
+
+      <Modal
+        open={isRegistrationDialogOpen}
+        persist={false}
+        className="max-w-md"
+        onClose={() => setIsRegistrationDialogOpen(false)}
+      >
+        <div className="p-6">
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold text-primary">
+              Confirm event registration
+            </h3>
+            <p className="text-sm text-primaryGray">
+              Register for {event?.event_name || "this event"}?
+            </p>
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-lightGray px-4 py-2 text-sm font-medium text-primaryGray transition-colors hover:bg-gray-50"
+              onClick={() => setIsRegistrationDialogOpen(false)}
+              disabled={isRegistering}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleRegisterForEvent}
+              disabled={isRegistering}
+            >
+              {isRegistering ? "Registering..." : "Confirm"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Share/Add menu: bottom sheet on mobile, popover on ≥sm */}
       {showShareMenu && (

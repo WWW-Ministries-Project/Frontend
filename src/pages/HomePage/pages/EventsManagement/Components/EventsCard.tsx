@@ -26,6 +26,7 @@ export const EventsCard = (props: IProps) => {
 
   const isPast = compareDates(props.event.start_date + "");
   const isReadOnly = Boolean(props.readOnly);
+  const isClickable = Boolean(props.onSelect);
   const handleSelect = () => {
     props.onSelect?.(props.event);
   };
@@ -34,8 +35,8 @@ export const EventsCard = (props: IProps) => {
     <CardWrapper className="group rounded-xl overflow-hidden border border-lightGray bg-white hover:shadow-lg transition-shadow duration-200">
       {/* Poster */}
       <div
-        className={`relative h-44 ${isReadOnly ? "cursor-pointer" : ""}`}
-        onClick={isReadOnly ? handleSelect : undefined}
+        className={`relative h-44 ${isClickable ? "cursor-pointer" : ""}`}
+        onClick={isClickable ? handleSelect : undefined}
         // onClick={() =>
         //   props.onNavigate(
         //     `${relativePath.home.events.view}?event_id=${props.event.id}`
@@ -91,9 +92,9 @@ export const EventsCard = (props: IProps) => {
         {/* Title */}
         <div
           className={`flex items-center gap-2 ${
-            isReadOnly ? "cursor-pointer" : ""
+            isClickable ? "cursor-pointer" : ""
           }`}
-          onClick={isReadOnly ? handleSelect : undefined}
+          onClick={isClickable ? handleSelect : undefined}
           // onClick={() =>
           //   props.onNavigate(
           //     `${relativePath.home.events.view}?event_id=${props.event.id}`

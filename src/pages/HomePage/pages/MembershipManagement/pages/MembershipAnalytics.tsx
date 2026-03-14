@@ -2,6 +2,7 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api, MembersType } from "@/utils";
+import { SoulWonListType } from "@/utils/api/lifeCenter/interfaces";
 import { VisitorType } from "@/utils/api/visitors/interfaces";
 import { DateTime } from "luxon";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
@@ -75,6 +76,14 @@ const normalizeStatus = (value: unknown): "UNCONFIRMED" | "CONFIRMED" | "MEMBER"
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
+
+const isSoulWonMemberLinked = (soul: SoulWonListType) => {
+  return (
+    safeBoolean(soul.isMember) ||
+    Boolean(soul.memberId) ||
+    Boolean(soul.member?.id)
+  );
+};
 
 const extractVisitors = (source: unknown): VisitorType[] => {
   if (Array.isArray(source)) return source as VisitorType[];
@@ -260,6 +269,11 @@ export const MembershipAnalytics = () => {
 
     limit: 5000,
   });
+  const {
+    data: soulsWonResponse,
+    loading: soulsWonLoading,
+    error: soulsWonError,
+  } = useFetch(api.fetch.fetchSoulsWon);
 
   const members = useMemo(() => {
     if (!Array.isArray(membersResponse?.data)) return [];
@@ -269,6 +283,11 @@ export const MembershipAnalytics = () => {
   const visitors = useMemo(() => {
     return extractVisitors(visitorsResponse?.data);
   }, [visitorsResponse]);
+
+  const soulsWon = useMemo(() => {
+    if (!Array.isArray(soulsWonResponse?.data)) return [];
+    return soulsWonResponse.data as SoulWonListType[];
+  }, [soulsWonResponse]);
 
   const departments = useMemo(() => {
     return Array.from(
@@ -315,6 +334,10 @@ export const MembershipAnalytics = () => {
   const filteredVisitors = useMemo(() => {
     return visitors.filter((visitor) => isWithinRange(visitor.createdAt, effectiveDateRange));
   }, [visitors, effectiveDateRange]);
+
+  const filteredSoulsWon = useMemo(() => {
+    return soulsWon.filter((soul) => isWithinRange(safeString(soul.date_won), effectiveDateRange));
+  }, [effectiveDateRange, soulsWon]);
 
   const statusCounts = useMemo(() => {
     return filteredMembers.reduce(
@@ -445,6 +468,17 @@ export const MembershipAnalytics = () => {
 
     return { totalVisitors, interested, converted };
   }, [filteredVisitors]);
+
+  const soulWonFunnel = useMemo(() => {
+    const totalSoulsWon = filteredSoulsWon.length;
+    const converted = filteredSoulsWon.filter((soul) => isSoulWonMemberLinked(soul)).length;
+
+    return { totalSoulsWon, converted };
+  }, [filteredSoulsWon]);
+
+  const soulWonConversionRate = useMemo(() => {
+    return toPercent(soulWonFunnel.converted, soulWonFunnel.totalSoulsWon || 1);
+  }, [soulWonFunnel]);
 
   const ministryWorkerCount = useMemo(
     () => filteredMembers.filter((member) => isMinistryWorker(member)).length,
@@ -767,6 +801,25 @@ export const MembershipAnalytics = () => {
           </div>
 
           <div className="rounded-xl border bg-white p-4">
+            <h3 className="font-semibold text-primary">Soulwon to Member</h3>
+            <div className="h-64 mt-3">
+              <Bar
+                data={{
+                  labels: ["Souls won", "Converted"],
+                  datasets: [
+                    {
+                      label: "People",
+                      data: [soulWonFunnel.totalSoulsWon, soulWonFunnel.converted],
+                      backgroundColor: ["#A78BFA", "#16A34A"],
+                    },
+                  ],
+                }}
+                options={{ responsive: true, maintainAspectRatio: false }}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-white p-4">
             <h3 className="font-semibold text-primary">Health Indicator (Status Mix)</h3>
             <p className="text-xs text-gray-600">Uses status: unconfirmed, confirmed, functional member.</p>
             <div className="h-64 mt-3">
@@ -785,7 +838,7 @@ export const MembershipAnalytics = () => {
             </div>
           </div>
 
-          <div className="rounded-xl border bg-white p-4 lg:col-span-2">
+          <div className="rounded-xl border bg-white p-4">
             <h3 className="font-semibold text-primary">Member to Ministry Worker</h3>
             <div className="h-64 mt-3">
               <Doughnut
@@ -817,6 +870,11 @@ export const MembershipAnalytics = () => {
               Retention after onboarding is{" "}
               <span className="font-semibold">{onboardingRetentionRate.toFixed(1)}%</span>; this
               should rise together with new joiners to confirm healthy assimilation.
+            </p>
+            <p>
+              Soulwon-to-member conversion is{" "}
+              <span className="font-semibold">{soulWonConversionRate.toFixed(1)}%</span> for the
+              current filter period.
             </p>
           </div>
         </div>
@@ -1106,7 +1164,7 @@ export const MembershipAnalytics = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="rounded-xl border bg-white p-4">
               <h3 className="font-semibold text-primary">Visitor Cycle: Visitor to Member</h3>
               <p className="text-xs text-gray-600 mb-3">
@@ -1121,6 +1179,28 @@ export const MembershipAnalytics = () => {
                         label: "People",
                         data: [visitorFunnel.totalVisitors, visitorFunnel.converted],
                         backgroundColor: ["#94A3B8", "#16A34A"],
+                      },
+                    ],
+                  }}
+                  options={{ responsive: true, maintainAspectRatio: false }}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-white p-4">
+              <h3 className="font-semibold text-primary">Soulwon Cycle: Soulwon to Member</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                Tracks how many life center soul-winning records later become members.
+              </p>
+              <div className="h-64">
+                <Bar
+                  data={{
+                    labels: ["Total souls won", "Converted to members"],
+                    datasets: [
+                      {
+                        label: "People",
+                        data: [soulWonFunnel.totalSoulsWon, soulWonFunnel.converted],
+                        backgroundColor: ["#C4B5FD", "#16A34A"],
                       },
                     ],
                   }}
@@ -1186,7 +1266,11 @@ export const MembershipAnalytics = () => {
               <span className="font-semibold">
                 {toPercent(visitorFunnel.converted, visitorFunnel.totalVisitors || 1).toFixed(1)}%
               </span>{" "}
-              and member-to-worker conversion is{" "}
+              and soulwon-to-member conversion is{" "}
+              <span className="font-semibold">{soulWonConversionRate.toFixed(1)}%</span>.
+            </p>
+            <p>
+              Member-to-worker conversion is{" "}
               <span className="font-semibold">{churchEngagementRate.toFixed(1)}%</span>.
             </p>
           </div>
@@ -1390,13 +1474,13 @@ export const MembershipAnalytics = () => {
 
         <AnalyticsContractsPanel contract={membershipContract} />
 
-        {membersError ? (
+        {membersError || soulsWonError ? (
           <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             Failed to load one or more membership datasets. Some charts may be partial.
           </div>
         ) : null}
 
-        {membersLoading ? (
+        {membersLoading || soulsWonLoading ? (
           <div className="rounded border px-4 py-3 text-sm text-gray-600">Loading membership analytics...</div>
         ) : null}
       </div>

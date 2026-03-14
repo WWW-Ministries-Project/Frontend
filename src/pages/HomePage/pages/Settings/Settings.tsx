@@ -20,7 +20,6 @@ import { RoleEligibilityConfig } from "@/utils/api/settings/eligibilityInterface
 import { useUserStore } from "@/store/userStore";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
-import { DepartmentType } from "@/utils";
 import { SearchBar } from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
@@ -28,6 +27,8 @@ import TableComponent from "../../Components/reusable/TableComponent";
 import { showNotification } from "../../utils";
 import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
+import { LogsSettings } from "./Components/LogsSettings";
+import { NotificationSettings } from "./Components/NotificationSettings";
 import {
   buildEligibilityRulesPayload,
   createEmptyEligibilityRules,
@@ -90,7 +91,6 @@ function Settings() {
     setFilter,
     handleSearchChange,
     refetchPositions,
-    refetchDepartments,
   }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any = useOutletContext();
 
@@ -151,36 +151,17 @@ function Settings() {
   );
 
   const {
-    postData: postDepartment,
-    data: department,
-    error: departmentError,
-    loading: departmentLoading,
-  } = usePost(api.post.createDepartment);
-  const {
     postData: postPosition,
     data: position,
     error: positionError,
     loading: positionLoading,
   } = usePost(api.post.createPosition);
-
-  const {
-    updateData: updateDepartment,
-    loading: departmentUpdateLoading,
-    error: departmentUpdateError,
-    data: departmentUpdate,
-  } = usePut(api.put.updateDepartment);
   const {
     updateData: updatePosition,
     loading: positionUpdateLoading,
     error: positionUpdateError,
     data: positionUpdate,
   } = usePut(api.put.updatePosition);
-
-  const {
-    executeDelete: deleteDepartment,
-    success: departmentDelete,
-    error: departmentDeleteError,
-  } = useDelete(api.delete.deleteDepartment);
   const {
     executeDelete: deletePosition,
     success: positionDelete,
@@ -192,16 +173,12 @@ function Settings() {
     setEditMode(false);
   }, []);
 
-  const handleDelete = (itemToDelete: DepartmentType) => {
-    if (selectedTab === "Department") {
-      deleteDepartment({ id: itemToDelete.id + "" });
-      return;
-    }
-
-    if (selectedTab === "Position") {
+  const handleDelete = useCallback(
+    (itemToDelete: { id: number }) => {
       deletePosition({ id: itemToDelete.id + "" });
-    }
-  };
+    },
+    [deletePosition]
+  );
 
   const {
     tabs,
@@ -232,73 +209,44 @@ function Settings() {
 
   // Created data effect
   useEffect(() => {
-    if (department || position) {
+    if (position) {
       showNotification("Created successfully", "success");
-      const refetch = position
-        ? () => refetchPositions().then(refetchDepartments)
-        : refetchDepartments;
-
-      refetch();
+      refetchPositions();
       handleCloseForm();
     }
-    if (departmentError || positionError) {
-      const errorMessage =
-        departmentError?.message ||
-        positionError?.message ||
-        "Something went wrong";
+    if (positionError) {
+      const errorMessage = positionError.message || "Something went wrong";
       showNotification(errorMessage, "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [department, position, departmentError, positionError]);
+  }, [position, positionError]);
 
   // Updated data effect
   useEffect(() => {
-    if (departmentUpdate || positionUpdate) {
+    if (positionUpdate) {
       showNotification("Updated successfully", "success");
-
-      const refetch = positionUpdate
-        ? () => refetchPositions().then(refetchDepartments)
-        : refetchDepartments;
-
-      refetch();
+      refetchPositions();
       handleCloseForm();
     }
-    if (departmentUpdateError || positionUpdateError) {
-      const errorMessage =
-        departmentUpdateError?.message ||
-        positionUpdateError?.message ||
-        "Something went wrong";
+    if (positionUpdateError) {
+      const errorMessage = positionUpdateError.message || "Something went wrong";
       showNotification(errorMessage, "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    departmentUpdate,
-    positionUpdate,
-    departmentUpdateError,
-    positionUpdateError,
-  ]);
+  }, [positionUpdate, positionUpdateError]);
 
   // Deleted data effect
   useEffect(() => {
-    if (departmentDelete || positionDelete) {
+    if (positionDelete) {
       showNotification("Deleted successfully", "success");
-      if (departmentDelete) refetchDepartments();
-      else refetchPositions();
+      refetchPositions();
     }
-    if (departmentDeleteError || positionDeleteError) {
-      const errorMessage =
-        departmentDeleteError?.message ||
-        positionDeleteError?.message ||
-        "Something went wrong";
+    if (positionDeleteError) {
+      const errorMessage = positionDeleteError.message || "Something went wrong";
       showNotification(errorMessage, "error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    departmentDelete,
-    positionDelete,
-    departmentDeleteError,
-    positionDeleteError,
-  ]);
+  }, [positionDelete, positionDeleteError]);
 
   useEffect(() => {
     const configuredLookbackDays = toPositiveInteger(
@@ -329,27 +277,38 @@ function Settings() {
     refetchEligibilityConfig();
   }, [handleCloseForm, refetchEligibilityConfig, refetchPrograms, selectedTab]);
 
+  useEffect(() => {
+    if (selectedTab !== "Notifications") {
+      return;
+    }
+
+    handleCloseForm();
+  }, [handleCloseForm, selectedTab]);
+
+  useEffect(() => {
+    if (selectedTab !== "Logs") {
+      return;
+    }
+
+    handleCloseForm();
+  }, [handleCloseForm, selectedTab]);
+
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
     handleSearchChange(e.target.value);
 
   const handleFormSubmit = () => {
-    if (selectedTab === "Department") {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      editMode ? updateDepartment(inputValue) : postDepartment(inputValue);
-    } else if (selectedTab === "Position") {
+    if (selectedTab === "Position") {
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       editMode ? updatePosition(inputValue) : postPosition(inputValue);
     }
   };
   const handlePageChange = useCallback(
     (page: number, take: number) => {
-      if (selectedTab === "Department") {
-        refetchDepartments({limit: take,page});
-      } else if (selectedTab === "Position") {
+      if (selectedTab === "Position") {
         refetchPositions({page, limit:take});
       }
     },
-    [refetchDepartments, refetchPositions, selectedTab]
+    [refetchPositions, selectedTab]
   );
 
   const handleSaveRequisitionSettings = async () => {
@@ -479,11 +438,11 @@ function Settings() {
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage department, position, requisition, and eligibility rules
-          configuration settings.
+          Manage position, requisition, log routing, notification, and
+          eligibility rule configuration settings.
         </p>
-        <div className="flex mt-2 mb-6 ">
-          <div className="border border-lightGray flex gap-2 rounded-lg p-1">
+        <div className="mt-2 mb-6 overflow-x-auto">
+          <div className="flex min-w-max gap-2 rounded-lg border border-lightGray p-1">
             {tabs.map((tab) => (
               <div
                 key={tab}
@@ -499,7 +458,7 @@ function Settings() {
         </div>
       </div>
 
-      {selectedTab !== "Requisition" && selectedTab !== "Eligibility Rules" && (
+      {selectedTab === "Position" && (
         <>
           <PageHeader
             className="font-semibold text-xl"
@@ -552,15 +511,27 @@ function Settings() {
               CloseForm={handleCloseForm}
               onSubmit={handleFormSubmit}
               loading={
-                departmentUpdateLoading ||
                 positionUpdateLoading ||
-                departmentLoading ||
                 positionLoading
               }
               selectLabel={selectLabel}
               editMode={editMode}
             />
           </Modal>
+        </>
+      )}
+
+      {selectedTab === "Notifications" && (
+        <>
+          <PageHeader className="font-semibold text-xl" title="Notifications" />
+          <NotificationSettings />
+        </>
+      )}
+
+      {selectedTab === "Logs" && (
+        <>
+          <PageHeader className="font-semibold text-xl" title="Logs" />
+          <LogsSettings />
         </>
       )}
 

@@ -7,12 +7,13 @@ export interface Department {
   description?: string;
   department_head?: number;
   department_head_info?: { id: number; name: string };
+  member_count?: number;
   position?: Position[];
 }
 
 export interface DepartmentSlice {
   departments: Department[];
-  total: number;
+  departmentTotal: number;
   departmentsOptions: ISelectOption[];
   positionOptions: Record<number, ISelectOption[]>;
   addDepartment: (department: Department) => void;
@@ -35,7 +36,7 @@ export interface PositionOption {
 
 export interface PositionSlice {
   positions: Position[];
-  total: number;
+  positionTotal: number;
   // positionsOptions: PositionOption[];
   addPosition: (position: Position) => void;
   removePosition: (positionId: number | string) => void;

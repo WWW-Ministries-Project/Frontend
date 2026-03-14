@@ -114,7 +114,7 @@ Business impact:
 ## Phase 1 (0-4 weeks): Foundation
 
 - Stand up AI backend service contracts:
-  - `GET /ai/credentials?provider=openai|gemini`
+  - `GET /ai/credentials?provider=openai|gemini|claude`
   - `POST /ai/credentials`
   - `PUT /ai/credentials/{id}`
   - `POST /ai/chat`

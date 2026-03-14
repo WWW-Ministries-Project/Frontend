@@ -18,6 +18,7 @@ export const AllEventCard = ({
 }: IProps) => {
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
+  const badgeColor = getBadgeColor(item.event_type);
 
   const handleShowOptions = useCallback((id: string) => {
       setSelectedEventId((prev) => (prev === id ? "" : id));
@@ -28,16 +29,23 @@ export const AllEventCard = ({
 
   return (
     <div 
-      className="w-full max-w-[591px] flex flex-col rounded-2xl text-[#101840] border border-lightGray p-4 bg-white relative"
+      className="w-full max-w-[591px] rounded-2xl border border-lightGray bg-white p-4 text-primary shadow-sm transition-shadow hover:shadow-md relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between  items-center">
-        <h2 className="text-xl font-medium">{item.event_name}</h2>
+        <h2 className="text-xl font-medium text-primary">{item.event_name}</h2>
         
         {/* Badge - hidden on hover */}
         <div className={`flex-shrink-0 transition-opacity duration-200 ${isHovered ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-          <Badge className={`bg-[${getBadgeColor(item.event_type)}] text-xs`}>
+          <Badge
+            className="border text-xs"
+            style={{
+              backgroundColor: `${badgeColor}20`,
+              borderColor: `${badgeColor}40`,
+              color: badgeColor,
+            }}
+          >
             {item.event_type}
           </Badge>
         </div>
@@ -57,7 +65,7 @@ export const AllEventCard = ({
         </div>
       </div>
 
-      <div className="text-gray-600 text-sm leading-relaxed">
+      <div className="text-sm leading-relaxed text-primaryGray">
         {item.event_description}
       </div>
     </div>

@@ -19,12 +19,23 @@ import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
 } from "./settings/eligibilityInterfaces";
+import type {
+  SystemNotificationSettingsConfig,
+  SystemNotificationSettingsPayload,
+} from "./settings/systemNotificationInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { EventType } from "./events/interfaces";
+import {
+  BiometricAttendanceImportJob,
+  BiometricAttendanceImportPayload,
+  EventType,
+  PublicEventRegistrationPayload,
+  ValidateEventMemberPayload,
+  ValidatedEventMember,
+} from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
@@ -134,6 +145,12 @@ export class ApiCreationCalls {
     payload: RoleEligibilityConfigPayload
   ): Promise<ApiResponse<RoleEligibilityConfig>> => {
     return this.postToApi("settings/upsert-role-eligibility-config", payload);
+  };
+
+  upsertSystemNotificationConfig = (
+    payload: SystemNotificationSettingsPayload
+  ): Promise<ApiResponse<SystemNotificationSettingsConfig>> => {
+    return this.postToApi("settings/upsert-system-notification-config", payload);
   };
 
   upsertEventReportApprovalConfig = (
@@ -383,10 +400,28 @@ export class ApiCreationCalls {
     return this.postToApi("event/church-attendance", payload);
   }
 
+  importBiometricAttendance = (
+    payload: BiometricAttendanceImportPayload
+  ): Promise<ApiResponse<BiometricAttendanceImportJob>> => {
+    return this.postToApi("event/import-biometric-attendance", payload);
+  };
+
   registerEvent = (payload: {
     event_id: string | number;
   }): Promise<ApiResponse<unknown>> => {
     return this.postToApi("event/register", payload);
+  };
+
+  validatePublicEventMember = (
+    payload: ValidateEventMemberPayload
+  ): Promise<ApiResponse<ValidatedEventMember>> => {
+    return this.postToApi("event/public-validate-member", payload);
+  };
+
+  publicRegisterEvent = (
+    payload: PublicEventRegistrationPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/public-register", payload);
   };
 
   //Create theme

@@ -135,25 +135,15 @@ const MyAppointments = () => {
 
     return bookingsResponse.data
       .map((item) => normalizeAppointmentRecord(item, membersLookup))
-      .filter((item): item is Appointment => item !== null);
+      .filter((item): item is Appointment => item !== null)
+      .filter((appointment) => !isPastAppointment(appointment.date));
   }, [bookingsResponse, membersLookup]);
 
   const groupedAppointments = useMemo<Record<string, Appointment[]>>(() => {
-    const upcomingAndCurrent = appointments.filter(
-      (appointment) => !isPastAppointment(appointment.date)
-    );
-    const past = appointments.filter((appointment) =>
-      isPastAppointment(appointment.date)
-    );
-
     const grouped: Record<string, Appointment[]> = {};
 
-    if (upcomingAndCurrent.length > 0) {
-      grouped["Upcoming & Current Appointments"] = upcomingAndCurrent;
-    }
-
-    if (past.length > 0) {
-      grouped["Past Appointments"] = past;
+    if (appointments.length > 0) {
+      grouped["Current & Upcoming Appointments"] = appointments;
     }
 
     return grouped;

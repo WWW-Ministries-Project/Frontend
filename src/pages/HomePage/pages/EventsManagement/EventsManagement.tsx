@@ -21,6 +21,8 @@ import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
 import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
 
+const SHOW_UPCOMING_STORAGE_KEY = "eventsShowUpcoming_v2";
+
 const EventsManagement = () => {
   const navigate = useNavigate();
   const DEFAULT_EVENTS_PAGE_SIZE = 99;
@@ -54,14 +56,23 @@ const EventsManagement = () => {
 
   const [showUpcoming, setShowUpcoming] = useState<boolean>(() => {
     try {
-      return JSON.parse(localStorage.getItem("showUpcoming") || "false");
+      const storedValue = localStorage.getItem(SHOW_UPCOMING_STORAGE_KEY);
+      if (storedValue === null) {
+        return true;
+      }
+
+      const parsedValue = JSON.parse(storedValue);
+      return typeof parsedValue === "boolean" ? parsedValue : true;
     } catch {
-      return false;
+      return true;
     }
   });
 
   useEffect(() => {
-    localStorage.setItem("showUpcoming", JSON.stringify(showUpcoming));
+    localStorage.setItem(
+      SHOW_UPCOMING_STORAGE_KEY,
+      JSON.stringify(showUpcoming)
+    );
   }, [showUpcoming]);
 
   type GroupMode = "date" | "type";
@@ -160,11 +171,11 @@ const EventsManagement = () => {
     setFilterDate(null);
     setGroupMode("date");
     setOpenAccordions({});
-    setShowUpcoming(false);
+    setShowUpcoming(true);
     setActiveDateFilter(null);
 
     // clear persisted filters
-    localStorage.removeItem("showUpcoming");
+    localStorage.removeItem(SHOW_UPCOMING_STORAGE_KEY);
     setPage(1);
   }, [
     setPage,
@@ -214,6 +225,13 @@ const EventsManagement = () => {
       );
     },
     [handleDelete]
+  );
+
+  const handleOpenEventDetails = useCallback(
+    (event: CalendarEvent) => {
+      navigate(`/home/events/events/view-event?event_id=${event.id}`);
+    },
+    [navigate]
   );
 
   const isPresentOrUpcomingEvent = (event: eventType) => {
@@ -436,6 +454,7 @@ const EventsManagement = () => {
                             onDelete={handleDeleteModal}
                             showOptions={showOptions === row.original.id}
                             onShowOptions={() => handleShowOptions(row.original.id)}
+                            onSelect={handleOpenEventDetails}
                           />
                         )}
                         filter={filterEvents}
@@ -460,6 +479,7 @@ const EventsManagement = () => {
           onDelete={handleDeleteModal}
           onShowOptions={handleShowOptions}
           showOptions={showOptions}
+          onViewEvent={handleOpenEventDetails}
         />
       )}
 

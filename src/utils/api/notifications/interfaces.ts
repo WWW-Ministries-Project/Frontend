@@ -59,3 +59,17 @@ export interface NotificationPushSubscriptionPayload {
   language?: string;
   timezone?: string;
 }
+
+export interface NotificationPreference {
+  type: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  hasStoredPreference?: boolean;
+}
+
+export interface UpdateNotificationPreferencePayload {
+  inAppEnabled?: boolean;
+  emailEnabled?: boolean;
+  smsEnabled?: boolean;
+}

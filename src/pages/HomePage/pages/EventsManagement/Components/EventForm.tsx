@@ -38,13 +38,17 @@ const validationSchema = object().shape({
 
 const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
   const initial: EventType = useMemo(() => editData || initialValues, [editData]);
+  const formTitle = editData?.id ? "Update Event" : "Create Event";
+  const formSubtitle = editData?.id
+    ? "Review and update this event record."
+    : "Add a new event to your system";
 
   return (
-    <div className=" ">
-      <div className="w-full bg-primary p-4 px-6 sticky top-0">
+    <div className="text-primary">
+      <div className="sticky top-0 w-full bg-primary p-4 px-6">
         <div className="text-white text-xl font-bold">
-          Create Event
-          <p className="text-sm font-normal">Add a new event to your system</p>
+          {formTitle}
+          <p className="text-sm font-normal text-white/80">{formSubtitle}</p>
         </div>
       </div>
 
@@ -90,8 +94,8 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
                 col={50}
               />
 
-              <div className="sticky bottom-0 border-t">
-                <div className="py-4 flex justify-end gap-2">
+              <div className="sticky bottom-0 border-t border-lightGray">
+                <div className="flex justify-end gap-2 border-lightGray bg-white/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80">
                   <Button
                     value={editData?.id ? "Update" : "Save"}
                     variant="primary"

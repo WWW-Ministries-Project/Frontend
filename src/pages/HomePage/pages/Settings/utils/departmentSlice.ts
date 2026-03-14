@@ -9,7 +9,7 @@ const createDepartmentSlice: StateCreator<
   DepartmentSlice
 > = (set, get) => ({
   departments: [],
-  total: 0,
+  departmentTotal: 0,
   departmentsOptions: [],
   positionOptions: {},
 
@@ -40,7 +40,7 @@ const createDepartmentSlice: StateCreator<
   },
 
   setDepartments: (departments: Department[], total: number = 0) => {
-    set({ departments, total });
+    set({ departments, departmentTotal: total });
     get().setDepartmentsOptions();
     get().setPositionOptions();
   },

@@ -121,8 +121,8 @@ export function AccessRights() {
           <span
             className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
               row.original.hasExclusions
-                ? "bg-red-100 text-red-700"
-                : "bg-emerald-100 text-emerald-700"
+                ? "bg-error/10 text-error"
+                : "bg-success/10 text-success"
             }`}
           >
             {row.original.hasExclusions ? "Configured" : "None"}
@@ -152,7 +152,7 @@ export function AccessRights() {
               variant="ghost"
               onClick={() => handleDelete(row.original)}
               disabled={!canManageAccessRights}
-              className="!px-3 !py-1 !min-h-8 text-xs text-red-600 hover:bg-red-50"
+              className="!min-h-8 !px-3 !py-1 text-xs text-error hover:bg-error/10"
             />
           </div>
         ),
@@ -173,13 +173,13 @@ export function AccessRights() {
       <PageHeader title="Access Level Studio" />
 
       <section className="space-y-6">
-        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-orange-50 to-white p-5">
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-secondary/10 to-white p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-primary">
                 Create and manage access levels
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-primaryGray">
                 Design roles, update permissions, and retire old access levels
                 from one screen.
               </p>
@@ -194,7 +194,7 @@ export function AccessRights() {
           </div>
 
           {!canManageAccessRights && (
-            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            <p className="mt-3 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
               You currently have view-only access for Access Rights. Edit/Delete
               controls are visible but disabled.
             </p>
@@ -221,7 +221,7 @@ export function AccessRights() {
               data={rows}
               filter={filter}
               setFilter={setFilter}
-              rowClass="even:bg-white odd:bg-[#F7F8FA]"
+              rowClass="even:bg-white odd:bg-gray-50"
               className="shadow-sm"
               showNumberColumn={false}
             />

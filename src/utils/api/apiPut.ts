@@ -35,6 +35,7 @@ import type {
   UpdateAiCredentialPayload,
 } from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type { UpdateNotificationPreferencePayload } from "./notifications/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -524,5 +525,19 @@ export class ApiUpdateCalls {
     payload: Record<string, never> = {}
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.patchData("notifications/read-all", payload);
+  };
+
+  updateNotificationPreference = (
+    notificationType: string,
+    payload: UpdateNotificationPreferencePayload
+  ): Promise<ApiResponse<unknown>> => {
+    if (!notificationType?.trim()) {
+      throw new Error("Notification type is required to update preferences");
+    }
+
+    return this.apiExecution.patchData(
+      `notifications/preferences/${encodeURIComponent(notificationType)}`,
+      payload
+    );
   };
 }

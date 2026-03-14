@@ -34,22 +34,22 @@ const ACCESS_OPTIONS: Array<{
   {
     value: "No_Access",
     label: "No Access",
-    chipClass: "bg-gray-200 text-gray-700",
+    chipClass: "border border-lightGray bg-gray-100 text-primary",
   },
   {
     value: "Can_View",
     label: "View",
-    chipClass: "bg-blue-100 text-blue-700",
+    chipClass: "border border-primary/15 bg-primary/10 text-primary",
   },
   {
     value: "Can_Manage",
     label: "Manage",
-    chipClass: "bg-amber-100 text-amber-700",
+    chipClass: "border border-secondary/20 bg-secondary/10 text-secondary",
   },
   {
     value: "Super_Admin",
     label: "Admin",
-    chipClass: "bg-violet-100 text-violet-700",
+    chipClass: "border border-accent/20 bg-accent/10 text-accent",
   },
 ];
 
@@ -327,7 +327,7 @@ export function ManageAccess() {
         <div className="app-page-padding app-scrollbar min-h-0 flex-1 space-y-6 overflow-y-auto pb-8">
           <PageHeader title={`${id ? "Update" : "Create"} Access Level`} />
 
-          <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-orange-50 to-white p-5">
+          <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-secondary/10 to-white p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="w-full lg:max-w-xl">
                 <InputDiv
@@ -339,23 +339,23 @@ export function ManageAccess() {
                   onChange={(_, value) => setName(String(value))}
                   className="w-full"
                 />
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-2 text-sm text-primaryGray">
                   Build one clear role template and assign it to users from
                   Settings {">"} Users.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-700">
+                <span className="inline-flex items-center rounded-full border border-lightGray bg-gray-100 px-3 py-1 text-xs font-medium text-primary">
                   No Access: {summary.noAccess}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                <span className="inline-flex items-center rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   View: {summary.view}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                <span className="inline-flex items-center rounded-full border border-secondary/20 bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
                   Manage: {summary.manage}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
+                <span className="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
                   Admin: {summary.admin}
                 </span>
               </div>
@@ -363,17 +363,17 @@ export function ManageAccess() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700">Quick Presets</p>
+            <p className="text-sm font-medium text-primary">Quick Presets</p>
             <div className="grid gap-3 md:grid-cols-3">
               {PRESETS.map((preset) => (
                 <button
                   key={preset.key}
                   type="button"
                   onClick={() => applyPreset(preset.factory)}
-                  className="rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-primary/40 hover:shadow-sm"
+                  className="rounded-xl border border-lightGray bg-white p-4 text-left transition hover:border-primary/40 hover:shadow-sm"
                 >
                   <p className="font-semibold text-primary">{preset.title}</p>
-                  <p className="mt-1 text-sm text-gray-600">{preset.subtitle}</p>
+                  <p className="mt-1 text-sm text-primaryGray">{preset.subtitle}</p>
                 </button>
               ))}
             </div>
@@ -384,7 +384,7 @@ export function ManageAccess() {
               <section key={group} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-primary">{group}</h3>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-primaryGray">
                     Required modules are marked and must always have a valid
                     level.
                   </p>
@@ -394,7 +394,7 @@ export function ManageAccess() {
                   {modules.map((module) => (
                     <div
                       key={module.key}
-                      className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                      className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
                     >
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div>
@@ -408,12 +408,12 @@ export function ManageAccess() {
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-sm text-gray-600">
+                          <p className="mt-1 text-sm text-primaryGray">
                             {module.description}
                           </p>
                         </div>
 
-                        <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                        <div className="inline-flex rounded-lg border border-lightGray bg-gray-100 p-1">
                           {ACCESS_OPTIONS.map((option) => {
                             const selected = permissions[module.key] === option.value;
                             return (
@@ -426,7 +426,7 @@ export function ManageAccess() {
                                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                                   selected
                                     ? `${option.chipClass} shadow-sm`
-                                    : "text-gray-600 hover:bg-white"
+                                    : "text-primaryGray hover:bg-white"
                                 }`}
                               >
                                 {option.label}
@@ -437,11 +437,11 @@ export function ManageAccess() {
                       </div>
 
                       {isExclusionEnabled(module.key) && (
-                        <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+                        <div className="mt-4 rounded-lg border border-dashed border-lightGray bg-gray-50 p-3">
                           <p className="text-sm font-medium text-primary">
                             Excluded members
                           </p>
-                          <p className="mt-1 text-xs text-gray-600">
+                          <p className="mt-1 text-xs text-primaryGray">
                             Excluded users will not be accessible in this
                             module. Selected values are submitted as `user_id`
                             numbers.
@@ -466,7 +466,7 @@ export function ManageAccess() {
           </div>
         </div>
 
-        <div className="app-page-padding shrink-0 border-t border-gray-200 bg-white">
+        <div className="app-page-padding shrink-0 border-t border-lightGray bg-white">
           <div className="flex justify-end gap-2 py-3">
             <Button
               value="Cancel"

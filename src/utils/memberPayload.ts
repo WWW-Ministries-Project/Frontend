@@ -11,7 +11,7 @@ type PayloadWithOptionalOtherNames = {
   > | null;
 };
 
-const normalizeOtherName = (value: string | null | undefined) => value ?? "";
+const normalizeOptionalText = (value: string | null | undefined) => value ?? "";
 
 export const normalizeOptionalOtherNames = <T extends PayloadWithOptionalOtherNames>(
   payload: T
@@ -19,7 +19,11 @@ export const normalizeOptionalOtherNames = <T extends PayloadWithOptionalOtherNa
   const personalInfo = payload.personal_info
     ? {
         ...payload.personal_info,
-        other_name: normalizeOtherName(payload.personal_info.other_name),
+        title: normalizeOptionalText(
+          (payload.personal_info as PersonWithOtherName & { title?: string | null })
+            .title
+        ),
+        other_name: normalizeOptionalText(payload.personal_info.other_name),
       }
     : payload.personal_info;
 
@@ -28,7 +32,10 @@ export const normalizeOptionalOtherNames = <T extends PayloadWithOptionalOtherNa
         member
           ? {
               ...member,
-              other_name: normalizeOtherName(member.other_name),
+              title: normalizeOptionalText(
+                (member as PersonWithOtherName & { title?: string | null }).title
+              ),
+              other_name: normalizeOptionalText(member.other_name),
               relation: normalizeFamilyRelation(member.relation),
             }
           : member

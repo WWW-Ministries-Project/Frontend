@@ -37,6 +37,7 @@ interface CalendarProps {
   onDelete: (event: CalendarEvent) => void;
   onShowOptions: (eventId: string | number) => void;
   showOptions: string | number | null;
+  onViewEvent?: (event: CalendarEvent) => void;
 }
 
 interface CalendarData {
@@ -88,6 +89,7 @@ const Calendar: React.FC<CalendarProps> = ({
   onDelete,
   onShowOptions,
   showOptions,
+  onViewEvent,
   ...props
 }) => {
   const navigate = useNavigate();
@@ -243,9 +245,13 @@ const Calendar: React.FC<CalendarProps> = ({
   const handleEventClick = useCallback(
     (e: React.MouseEvent<Element>, ev: CalendarEvent) => {
       e.stopPropagation();
+      if (onViewEvent) {
+        onViewEvent(ev);
+        return;
+      }
       handleModalOpen(e, ev, true);
     },
-    [handleModalOpen]
+    [handleModalOpen, onViewEvent]
   );
 
   const handleCloseEventModal = useCallback(() => {

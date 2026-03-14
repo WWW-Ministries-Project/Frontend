@@ -58,7 +58,7 @@ const EventReports = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [filterDate, setFilterDate] = useState<Date | null>(null);
   const [filterEvents, setFilterEvents] = useState("");
-  const [showUpcoming, setShowUpcoming] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(true);
   const [groupMode, setGroupMode] = useState<GroupMode>("date");
   const [activeDateFilter, setActiveDateFilter] =
     useState<MonthYearFilter | null>(null);
@@ -113,7 +113,7 @@ const EventReports = () => {
     setFilterDate(null);
     setGroupMode("date");
     setOpenAccordions({});
-    setShowUpcoming(false);
+    setShowUpcoming(true);
     setActiveDateFilter(null);
     setPage(1);
   }, [setPage]);

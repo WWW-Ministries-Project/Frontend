@@ -3,7 +3,7 @@ import { Actions } from "@/components/ui";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { decodeQuery } from "@/pages/HomePage/utils";
+import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { validateFamilyPayload } from "@/utils/familyRelations";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
@@ -16,6 +16,14 @@ import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { showNotification } from "@/pages/HomePage/utils";
+
+type ManageMemberLocationState = {
+  afterSubmitPath?: string;
+  prefillMemberForm?: IMembersForm;
+  prefillSourceLabel?: string;
+  sourceSoulWonId?: string | number;
+  sourceVisitorId?: string | number;
+};
 
 const mapErrorsToTouched = (errors: unknown): unknown => {
   if (Array.isArray(errors)) {
@@ -57,6 +65,12 @@ export function ManageMember() {
   const params = new URLSearchParams(location.search);
   const id = decodeQuery(params.get("member_id") || "");
   const isEditMode = Boolean(id);
+  const locationState = location.state as ManageMemberLocationState | null;
+  const prefillMemberForm = !isEditMode ? locationState?.prefillMemberForm : undefined;
+  const prefillSourceLabel = !isEditMode ? locationState?.prefillSourceLabel : undefined;
+  const afterSubmitPath = locationState?.afterSubmitPath;
+  const sourceSoulWonId = !isEditMode ? locationState?.sourceSoulWonId : undefined;
+  const sourceVisitorId = !isEditMode ? locationState?.sourceVisitorId : undefined;
 
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
@@ -85,10 +99,12 @@ export function ManageMember() {
   const initialValue = useMemo(() => {
     if (member?.data) {
       return mapUserData(member.data);
+    } else if (prefillMemberForm) {
+      return prefillMemberForm;
     } else {
       return initialValues;
     }
-  }, [member?.data]);
+  }, [member?.data, prefillMemberForm]);
 
   useEffect(() => {
     if (data || updatedData) {
@@ -96,12 +112,23 @@ export function ManageMember() {
         outletContext.refetchMembers();
       }
 
-      navigate("/home/members", {
+      if (updatedData) {
+        const editedMemberId = member?.data?.id ?? id;
+
+        if (editedMemberId !== undefined && editedMemberId !== null) {
+          navigate(`/home/members/${encodeQuery(editedMemberId)}`, {
+            state: { task: "update" },
+          });
+          return;
+        }
+      }
+
+      navigate(afterSubmitPath ?? "/home/members", {
         state: { task: data ? "add" : "update" },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, updatedData]);
+  }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);
 
   const handleCancel = () => {
     navigate(-1);
@@ -154,7 +181,13 @@ export function ManageMember() {
         }
         await updateData(dataToSend, { user_id: String(memberId) });
       } else {
-        await postData(dataToSend);
+        await postData({
+          ...dataToSend,
+          ...(sourceSoulWonId ? { source_soul_won_id: sourceSoulWonId } : {}),
+          ...(sourceVisitorId
+            ? { source_visitor_id: String(sourceVisitorId) }
+            : {}),
+        });
       }
     } catch (error) {
       const message =
@@ -190,6 +223,11 @@ export function ManageMember() {
           <div className="text text-[#8F95B2] mb-4">
             Fill the form below with the member information
           </div>
+          {prefillSourceLabel ? (
+            <div className="mb-2 rounded-lg border border-lightGray bg-lightGray/40 px-4 py-3 text-sm text-primary">
+              Prefilled from {prefillSourceLabel}. Complete the remaining required details and save.
+            </div>
+          ) : null}
         </div>
         <Formik
           enableReinitialize={true}
