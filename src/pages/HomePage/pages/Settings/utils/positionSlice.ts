@@ -7,9 +7,9 @@ const createPositionSlice: StateCreator<
   [["zustand/devtools", never]],
   [],
   PositionSlice
-> = (set, get) => ({
+> = (set, _get) => ({
   positions: [],
-  total: 0,
+  positionTotal: 0,
   // positionsOptions: [],
   addPosition: (position: Position) => {
     set((state) => ({
@@ -32,7 +32,7 @@ const createPositionSlice: StateCreator<
     // get().setPositionsOptions();
   },
   setPositions: (positions: Position[], total: number) => {
-    set({ positions, total });
+    set({ positions, positionTotal: total });
     // get().setPositionsOptions();
   },
   // setPositionsOptions: () => {

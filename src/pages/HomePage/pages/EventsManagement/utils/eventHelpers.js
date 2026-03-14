@@ -57,37 +57,131 @@ export const eventInput = {
   event_type: "",
   start_date: "",
   event_name_id: "",
-  // end_date: "",
-  // start_time: "",
-  // end_time: "",
-  // location: "",
-  // description: "",
+  start_time: "",
+  end_time: "",
+  location: "",
+  description: "",
   repetitive: "no",
-  // repeatUnit: "months",
-  // repeatDays: [],
-  // onDays: [],
-  // ends: "end_of_year",
-  // endsOn: "",
   day_event: "one",
   end_date: "",
-  // poster: "",
+  recurrence_end_date: "",
+  requires_registration: false,
+  registration_end_date: "",
+  registration_capacity: "",
+  registration_audience: "MEMBERS_AND_NON_MEMBERS",
   recurring: {
     frequency: "weekly",
     interval: 1,
     daysOfWeek: [],
-    //   dayOfMonth: null,
-    //   monthOfYear: null,
   },
 };
 
-export const eventUpdateFormValidator = object().shape({
-  // name: string().required("Required"),
-  // event_type: string().required("Required"),
-  event_name_id: string().required("Required"),
-  start_date: date("invalid date").required("Required"),
-  start_time: string().required("Required"),
-  end_time: string().required("Required"),
-});
+export const eventUpdateFormValidator = object()
+  .shape({
+    event_name_id: string().required("Required"),
+    start_date: date("invalid date").required("Required"),
+    start_time: string().required("Required"),
+    end_time: string().required("Required"),
+    end_date: date("invalid date")
+      .transform((value, originalValue) =>
+        originalValue === "" || originalValue === null ? null : value
+      )
+      .nullable(),
+    registration_end_date: date("invalid date")
+      .transform((value, originalValue) =>
+        originalValue === "" || originalValue === null ? null : value
+      )
+      .nullable(),
+    registration_capacity: number()
+      .transform((value, originalValue) =>
+        originalValue === "" || originalValue === null
+          ? null
+          : Number(originalValue)
+      )
+      .nullable()
+      .integer("Capacity must be a whole number")
+      .min(1, "Minimum is 1"),
+  })
+  .test(
+    "update-event-end-date-range",
+    "Event end date cannot be before start date",
+    function validateUpdateEndDateRange(value) {
+      if (!value?.start_date || !value?.end_date) return true;
+
+      const startDate = new Date(value.start_date);
+      const endDate = new Date(value.end_date);
+
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        return true;
+      }
+
+      if (endDate < startDate) {
+        return this.createError({
+          path: "end_date",
+          message: "Event end date cannot be before start date",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "update-registration-settings-required",
+    "Registration details are required",
+    function validateUpdateRegistrationSettings(value) {
+      if (!value?.requires_registration) {
+        return true;
+      }
+
+      if (!value.registration_end_date) {
+        return this.createError({
+          path: "registration_end_date",
+          message: "Registration end date is required",
+        });
+      }
+
+      if (
+        value.registration_capacity === undefined ||
+        value.registration_capacity === null ||
+        value.registration_capacity === ""
+      ) {
+        return this.createError({
+          path: "registration_capacity",
+          message: "Capacity is required",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "update-registration-end-date-range",
+    "Registration end date cannot be after start date",
+    function validateUpdateRegistrationDateRange(value) {
+      if (!value?.requires_registration || !value?.start_date || !value?.registration_end_date) {
+        return true;
+      }
+
+      const startDate = new Date(value.start_date);
+      const registrationEndDate = new Date(value.registration_end_date);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(registrationEndDate.getTime())
+      ) {
+        return true;
+      }
+
+      if (registrationEndDate > startDate) {
+        return this.createError({
+          path: "registration_end_date",
+          message: "Registration end date cannot be after start date",
+        });
+      }
+
+      return true;
+    }
+  );
 
 export const eventFormValidator = eventUpdateFormValidator.shape({
   day_event: string()
@@ -95,6 +189,11 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
     .required("Required"),
   repetitive: string().oneOf(["yes", "no"], "Invalid value").required("Required"),
   end_date: date("invalid date")
+    .transform((value, originalValue) =>
+      originalValue === "" || originalValue === null ? null : value
+    )
+    .nullable(),
+  recurrence_end_date: date("invalid date")
     .transform((value, originalValue) =>
       originalValue === "" || originalValue === null ? null : value
     )
@@ -118,17 +217,14 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
     .nullable(),
 })
   .test(
-    "end-date-required",
-    "End date is required",
+    "event-end-date-required",
+    "Event end date is required",
     function validateEndDateRequirement(value) {
       if (!value) return true;
-      if (
-        (value.day_event === "multi" || value.repetitive === "yes") &&
-        !value.end_date
-      ) {
+      if (value.day_event === "multi" && !value.end_date) {
         return this.createError({
           path: "end_date",
-          message: "End date is required",
+          message: "Event end date is required",
         });
       }
       return true;
@@ -138,7 +234,9 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
     "end-date-after-start-date",
     "End date cannot be before start date",
     function validateEndDateRange(value) {
-      if (!value?.start_date || !value?.end_date) return true;
+      if (!value?.start_date || !value?.end_date || value.day_event !== "multi") {
+        return true;
+      }
 
       const startDate = new Date(value.start_date);
       const endDate = new Date(value.end_date);
@@ -150,7 +248,49 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
       if (endDate < startDate) {
         return this.createError({
           path: "end_date",
-          message: "End date cannot be before start date",
+          message: "Event end date cannot be before start date",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "recurrence-end-date-required",
+    "Recurrence end date is required",
+    function validateRecurrenceEndDateRequirement(value) {
+      if (!value || value.repetitive !== "yes") return true;
+
+      if (!value.recurrence_end_date) {
+        return this.createError({
+          path: "recurrence_end_date",
+          message: "Recurrence end date is required",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "recurrence-end-date-after-start-date",
+    "Recurrence end date cannot be before start date",
+    function validateRecurrenceEndDateRange(value) {
+      if (!value?.start_date || !value?.recurrence_end_date) return true;
+
+      const startDate = new Date(value.start_date);
+      const recurrenceEndDate = new Date(value.recurrence_end_date);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(recurrenceEndDate.getTime())
+      ) {
+        return true;
+      }
+
+      if (recurrenceEndDate < startDate) {
+        return this.createError({
+          path: "recurrence_end_date",
+          message: "Recurrence end date cannot be before start date",
         });
       }
 
@@ -161,10 +301,7 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
     "recurring-values-required",
     "Recurring details are required",
     function validateRecurringFields(value) {
-      if (
-        !value ||
-        (value.repetitive !== "yes" && value.day_event !== "multi")
-      ) {
+      if (!value || value.repetitive !== "yes" || value.day_event === "multi") {
         return true;
       }
 
@@ -174,7 +311,7 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
         ? recurring.daysOfWeek
         : [];
 
-      if (!days.length) {
+      if (recurring.frequency === "weekly" && !days.length) {
         return this.createError({
           path: "recurring.daysOfWeek",
           message: "Select at least one day",
@@ -206,6 +343,70 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
             message: "Repeat Unit is required",
           });
         }
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "registration-settings-required",
+    "Registration details are required",
+    function validateRegistrationSettings(value) {
+      if (!value?.requires_registration) {
+        return true;
+      }
+
+      if (!value.registration_end_date) {
+        return this.createError({
+          path: "registration_end_date",
+          message: "Registration end date is required",
+        });
+      }
+
+      if (
+        value.registration_capacity === undefined ||
+        value.registration_capacity === null ||
+        value.registration_capacity === ""
+      ) {
+        return this.createError({
+          path: "registration_capacity",
+          message: "Capacity is required",
+        });
+      }
+
+      if (!value.registration_audience) {
+        return this.createError({
+          path: "registration_audience",
+          message: "Select who can register",
+        });
+      }
+
+      return true;
+    }
+  )
+  .test(
+    "registration-end-date-range",
+    "Registration end date cannot be after start date",
+    function validateRegistrationEndDateRange(value) {
+      if (!value?.requires_registration || !value?.start_date || !value?.registration_end_date) {
+        return true;
+      }
+
+      const startDate = new Date(value.start_date);
+      const registrationEndDate = new Date(value.registration_end_date);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(registrationEndDate.getTime())
+      ) {
+        return true;
+      }
+
+      if (registrationEndDate > startDate) {
+        return this.createError({
+          path: "registration_end_date",
+          message: "Registration end date cannot be after start date",
+        });
       }
 
       return true;

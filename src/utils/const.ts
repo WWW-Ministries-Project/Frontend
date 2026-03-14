@@ -19,11 +19,16 @@ export const relativePath = {
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
+      departments: {
+        main: "departments-and-ministries",
+        details: "departments-and-ministries/:id",
+      },
       analytics: "analytics",
       management: {
         main: "membership-management",
         memberConfirmation: "member-confirmation",
         visitorToMembership: "visitor-to-membership",
+        soulwonToMembership: "soulwon-to-membership",
       },
     },
     visitors: {
@@ -39,6 +44,11 @@ export const relativePath = {
       main: "reports",
       eventReports: "reports/event-reports",
       eventReportDetails: "reports/event-reports/:id",
+    },
+    attendance: {
+      main: "church-attendance",
+      eventAttendance: "event-attendance",
+      analytics: "analytics",
     },
     assets: {
       main: "assets",

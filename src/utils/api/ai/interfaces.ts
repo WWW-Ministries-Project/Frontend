@@ -1,5 +1,5 @@
 export type AiRole = "user" | "assistant" | "system";
-export type AiProvider = "openai" | "gemini";
+export type AiProvider = "openai" | "gemini" | "claude";
 export type AiUsageInterval = "day" | "week" | "month";
 
 export interface AiChatRequest {
@@ -54,6 +54,10 @@ export interface AiChatResponse {
   message_id?: string;
   role?: AiRole;
   reply: string;
+  provider?: AiProvider;
+  model?: string;
+  fallback_used?: boolean;
+  fallback_reason?: string;
   created_at?: string;
   usage?: {
     prompt_tokens?: number;

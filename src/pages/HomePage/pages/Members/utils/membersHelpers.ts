@@ -81,6 +81,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
         )
         .map((member) => ({
           ...member,
+          title: member.title ?? "",
           other_name: member.other_name ?? "",
           relation: normalizeFamilyRelation(member.relation),
         }))

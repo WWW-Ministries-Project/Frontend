@@ -54,6 +54,19 @@ export const membershipContract: AnalyticsModuleContract = {
         "stages: visitors total -> visitors where membershipWish=true -> visitors where is_member=true",
     },
     {
+      key: "soulwon_to_member_funnel",
+      title: "Soulwon to Member Funnel",
+      payloadType: "funnel",
+      sourceEndpoints: ["GET /lifecenter/soulswon", "GET /user/list-users"],
+      request: {
+        filters: ["date_range", "lifeCenterId", "wonById"],
+      },
+      responseShape:
+        '{"type":"funnel","stages":[{"stage":"soul_won","count":180},{"stage":"member","count":64}]}',
+      formula:
+        "stages: souls won total -> souls where memberId is not null",
+    },
+    {
       key: "program_participation_rate",
       title: "Program Participation Rate",
       payloadType: "ratio",

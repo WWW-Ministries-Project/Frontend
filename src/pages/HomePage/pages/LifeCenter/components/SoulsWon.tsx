@@ -81,7 +81,7 @@ export const SoulsWon = ({
         showNotification("Soul deleted successfully", "success");
       });
     },
-    [executeDelete, routeName]
+    [executeDelete, handleSuccess, routeName]
   );
 
   const handleSave = async (formData: ISoulsWonForm) => {
@@ -161,7 +161,7 @@ export const SoulsWon = ({
       setSoulWon(null);
       setOpenModal(false);
     }
-  }, [postResponse?.data, updateResponse]);
+  }, [handleSuccess, postResponse?.data, soulWon, updateResponse]);
 
   return (
     <div className="space-y-6">
@@ -234,8 +234,15 @@ export const SoulsWon = ({
                               key={record.id}
                               className="relative border rounded-lg p-4 shadow-sm bg-white space-y-2"
                             >
-                              <div className="font-medium">
-                                {record.first_name} {record.last_name}
+                              <div className="flex items-center gap-2 pr-10">
+                                <div className="font-medium">
+                                  {record.first_name} {record.last_name}
+                                </div>
+                                {record.isMember ? (
+                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                    Member
+                                  </span>
+                                ) : null}
                               </div>
 
                               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -257,6 +264,13 @@ export const SoulsWon = ({
                                 <UserIcon className="h-4 w-4 text-gray-500" />
                                 <span>{record.wonByName}</span>
                               </div>
+
+                              {record.isMember && record.memberName ? (
+                                <div className="text-xs text-green-700">
+                                  Member record: {record.memberName}
+                                  {record.memberMemberId ? ` (${record.memberMemberId})` : ""}
+                                </div>
+                              ) : null}
 
                               <div
                                 className="pt-2 absolute right-2 top-1"

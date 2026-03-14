@@ -21,6 +21,11 @@ interface ChatEntry {
   role: AiRole;
   content: string;
   createdAt: string;
+  provider?: AiProvider;
+  model?: string;
+  fallbackUsed?: boolean;
+  fallbackReason?: string;
+  totalTokens?: number;
 }
 
 interface FailedAiRequest {
@@ -56,6 +61,12 @@ const AI_MODULE_OPTIONS = [
   { label: "Finance", value: "finance" },
 ];
 
+const AI_PROVIDER_OPTIONS: Array<{ label: string; value: AiProvider }> = [
+  { label: "OpenAI", value: "openai" },
+  { label: "Claude", value: "claude" },
+  { label: "Gemini", value: "gemini" },
+];
+
 const MODEL_OPTIONS: Array<{
   label: string;
   value: string;
@@ -63,7 +74,13 @@ const MODEL_OPTIONS: Array<{
 }> = [
   { label: "GPT-4.1 Mini", value: "gpt-4.1-mini", provider: "openai" },
   { label: "GPT-4.1", value: "gpt-4.1", provider: "openai" },
-  { label: "Gemini 2.0 Flash", value: "gemini-2.0-flash", provider: "gemini" },
+  {
+    label: "Claude Haiku 4.5 (Lowest cost)",
+    value: "claude-haiku-4-5",
+    provider: "claude",
+  },
+  { label: "Claude Sonnet 4.6", value: "claude-sonnet-4-6", provider: "claude" },
+  { label: "Claude Opus 4.6", value: "claude-opus-4-6", provider: "claude" },
   { label: "Gemini 2.5 Flash", value: "gemini-2.5-flash", provider: "gemini" },
   { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro", provider: "gemini" },
   {
@@ -71,12 +88,6 @@ const MODEL_OPTIONS: Array<{
     value: "gemini-2.5-flash-lite",
     provider: "gemini",
   },
-  {
-    label: "Gemini 1.5 Flash (Latest)",
-    value: "gemini-1.5-flash-latest",
-    provider: "gemini",
-  },
-  { label: "Gemini 1.5 Pro", value: "gemini-1.5-pro", provider: "gemini" },
 ];
 
 const MODEL_PROVIDER_LOOKUP = MODEL_OPTIONS.reduce<Record<string, AiProvider>>(
@@ -87,11 +98,30 @@ const MODEL_PROVIDER_LOOKUP = MODEL_OPTIONS.reduce<Record<string, AiProvider>>(
   {}
 );
 
-const createEntry = (role: AiRole, content: string): ChatEntry => ({
-  id: `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+const getProviderLabel = (provider?: AiProvider | string | null) => {
+  const normalizedProvider = String(provider || "").trim().toLowerCase();
+  const matchedProvider = AI_PROVIDER_OPTIONS.find(
+    (item) => item.value === normalizedProvider
+  );
+  return matchedProvider?.label ?? "Unknown";
+};
+
+const createEntry = (
+  role: AiRole,
+  content: string,
+  options: Partial<Omit<ChatEntry, "role" | "content">> = {}
+): ChatEntry => ({
+  id:
+    options.id ||
+    `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
   role,
   content,
-  createdAt: new Date().toISOString(),
+  createdAt: options.createdAt || new Date().toISOString(),
+  provider: options.provider,
+  model: options.model,
+  fallbackUsed: options.fallbackUsed,
+  fallbackReason: options.fallbackReason,
+  totalTokens: options.totalTokens,
 });
 
 const createIdempotencyKey = () => {
@@ -152,7 +182,15 @@ const mergeUsageSnapshot = (
 };
 
 const mapAssistantResponse = (response: AiChatResponse): ChatEntry =>
-  createEntry("assistant", response.reply || "No response from AI service.");
+  createEntry("assistant", response.reply || "No response from AI service.", {
+    id: response.message_id,
+    createdAt: response.created_at,
+    provider: response.provider,
+    model: response.model,
+    fallbackUsed: response.fallback_used,
+    fallbackReason: response.fallback_reason,
+    totalTokens: response.usage?.total_tokens,
+  });
 
 const isSessionExpiredMessage = (message: string) => {
   const normalizedMessage = message.trim().toLowerCase();
@@ -349,17 +387,23 @@ export const AIConsole = () => {
         const fetchedCredentials = response.data ?? [];
         setCredentials(fetchedCredentials);
 
-        if (!selectedCredentialId && fetchedCredentials.length > 0) {
-          setSelectedCredentialId(fetchedCredentials[0].id);
-          setUpdateCredentialForm((previousValue) => ({
-            ...previousValue,
-            isActive: fetchedCredentials[0].is_active,
-          }));
-        }
+        const preferredCredential =
+          fetchedCredentials.find(
+            (credential) => credential.id === selectedCredentialId
+          ) ?? fetchedCredentials[0];
+
+        setSelectedCredentialId(preferredCredential?.id ?? "");
+        setUpdateCredentialForm((previousValue) => ({
+          ...previousValue,
+          apiKey: "",
+          apiSecret: "",
+          isActive: preferredCredential?.is_active ?? true,
+        }));
       } catch (error) {
         const parsedError = parseAiError(error);
         setCredentialsError(parsedError.message);
         setCredentials([]);
+        setSelectedCredentialId("");
       } finally {
         setIsLoadingCredentials(false);
       }
@@ -389,7 +433,9 @@ export const AIConsole = () => {
         if (!hasActiveCredential) {
           return {
             ok: false,
-            message: `Selected model requires an active ${modelProvider.toUpperCase()} credential.`,
+            message: `Selected model requires an active ${getProviderLabel(
+              modelProvider
+            )} credential.`,
           };
         }
 
@@ -614,7 +660,16 @@ export const AIConsole = () => {
         ...previousValue,
         createEntry(
           "assistant",
-          `[Insight:${insightModule}] ${responseData.reply || "No insight returned."}`
+          `[Insight:${insightModule}] ${responseData.reply || "No insight returned."}`,
+          {
+            id: responseData.message_id,
+            createdAt: responseData.created_at,
+            provider: responseData.provider,
+            model: responseData.model,
+            fallbackUsed: responseData.fallback_used,
+            fallbackReason: responseData.fallback_reason,
+            totalTokens: responseData.usage?.total_tokens,
+          }
         ),
       ]);
       setUsage((previousValue) =>
@@ -651,7 +706,9 @@ export const AIConsole = () => {
     try {
       const response = await api.post.createAiCredential(payload);
       setCredentialsInfo(
-        `Credential created for ${response.data.provider}. Secret is stored securely.`
+        `Credential created for ${getProviderLabel(
+          response.data.provider
+        )}. Secret is stored securely.`
       );
       setCreateCredentialForm({
         apiKey: "",
@@ -798,11 +855,17 @@ export const AIConsole = () => {
                 Selected model provider:{" "}
                 <span className="font-semibold">
                   {selectedModelProvider
-                    ? selectedModelProvider.toUpperCase()
+                    ? getProviderLabel(selectedModelProvider)
                     : "Unknown"}
                 </span>
                 . An active credential for this provider is required.
               </p>
+              {selectedModelProvider === "claude" ? (
+                <p className="mt-1 text-xs text-amber-700">
+                  Anthropic API does not expose free Claude models. The lowest-cost
+                  current Claude option here is Claude Haiku 4.5.
+                </p>
+              ) : null}
 
               <div className="mt-4 h-80 space-y-3 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3">
                 {messages.map((message) => (
@@ -815,6 +878,38 @@ export const AIConsole = () => {
                     }`}
                   >
                     {message.content}
+                    <div
+                      className={`mt-2 text-[10px] ${
+                        message.role === "user"
+                          ? "text-white/80"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {message.role === "assistant" && message.provider ? (
+                        <span>
+                          {getProviderLabel(message.provider)}
+                          {message.model ? ` • ${message.model}` : ""}
+                        </span>
+                      ) : (
+                        <span>{message.role === "user" ? "You" : "Assistant"}</span>
+                      )}
+                      <span>{` • ${formatDateTime(message.createdAt)}`}</span>
+                      {typeof message.totalTokens === "number" ? (
+                        <span>{` • ${formatCount(message.totalTokens)} tokens`}</span>
+                      ) : null}
+                      {message.fallbackUsed ? <span> • fallback used</span> : null}
+                    </div>
+                    {message.fallbackReason ? (
+                      <div
+                        className={`mt-1 text-[10px] ${
+                          message.role === "user"
+                            ? "text-white/80"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        Reason: {message.fallbackReason}
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -1001,18 +1096,18 @@ export const AIConsole = () => {
               </p>
 
               <div className="mt-3 flex gap-2">
-                {(["openai", "gemini"] as AiProvider[]).map((item) => (
+                {AI_PROVIDER_OPTIONS.map((item) => (
                   <button
-                    key={item}
+                    key={item.value}
                     type="button"
-                    onClick={() => setProvider(item)}
+                    onClick={() => setProvider(item.value)}
                     className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-                      provider === item
+                      provider === item.value
                         ? "bg-primary text-white"
                         : "border border-gray-300 text-primary"
                     }`}
                   >
-                    {item.toUpperCase()}
+                    {item.label}
                   </button>
                 ))}
               </div>

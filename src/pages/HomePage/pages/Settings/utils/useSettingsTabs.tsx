@@ -1,7 +1,6 @@
 //TODO STill need cleanup do when time permits
 import { useUserStore } from "@/store/userStore";
-import { useStore } from "@/store/useStore";
-import { DepartmentType, PositionType } from "@/utils";
+import { PositionType } from "@/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import deleteIcon from "../../../../../assets/delete.svg";
@@ -13,14 +12,15 @@ interface UseSettingsTabsProps {
   setDisplayForm: (value: boolean) => void;
   setEditMode: (value: boolean) => void;
   setInputValue: (value: Record<string, string | number | undefined>) => void;
-  handleDelete: (item: DepartmentType | PositionType) => void;
+  handleDelete: (item: PositionType) => void;
 }
 
 export type GeneralSettingsTab =
-  | "Department"
   | "Position"
   | "Requisition"
-  | "Eligibility Rules";
+  | "Eligibility Rules"
+  | "Notifications"
+  | "Logs";
 
 export function useSettingsTabs({
   setDisplayForm,
@@ -30,79 +30,20 @@ export function useSettingsTabs({
 }: UseSettingsTabsProps) {
   const userId = useUserStore((state) => state.id);
   const settingsStore = useSettingsStore();
-  const membersOptions = useStore((state) => state.membersOptions);
-  const { positions: positionData, total: positionTotal } = settingsStore;
-  const { departments: departmentData, total: departmentTotal } = settingsStore;
+  const { positions: positionData, positionTotal } = settingsStore;
   const tabs: GeneralSettingsTab[] = [
-    "Department",
     "Position",
     "Requisition",
+    "Notifications",
+    "Logs",
     "Eligibility Rules",
   ];
   const [selectedTab, setSelectedTab] = useState<GeneralSettingsTab>(tabs[0]);
-  const [columns, setColumns] = useState<
-    ColumnDef<DepartmentType | PositionType>[]
-  >([]);
-  const [data, setData] = useState<(DepartmentType | PositionType)[]>([]);
+  const [columns, setColumns] = useState<ColumnDef<PositionType>[]>([]);
+  const [data, setData] = useState<PositionType[]>([]);
   const [total, setTotal] = useState<number>(0);
-  const [selectedId, setSelectedId] = useState<string>("department_head");
-  const [selectLabel, setSelectLabel] = useState<string>("Department Head");
-
-  const departmentColumns: ColumnDef<DepartmentType>[] = useMemo(
-    () => [
-      {
-        header: "Department",
-        accessorKey: "name",
-      },
-      {
-        header: "Department Head",
-        accessorKey: "department_head_info",
-        cell: (info) => {
-          const value = info.getValue();
-          return value && typeof value === "object" && "name" in value
-            ? value.name
-            : "N/A";
-        },
-      },
-      {
-        header: "Description",
-        accessorKey: "description",
-        cell: (info) => info.getValue() ?? "N/A",
-      },
-      {
-        header: "Actions",
-        accessorKey: "status",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <img
-              src={edit}
-              alt="edit icon"
-              className="cursor-pointer"
-              onClick={() => {
-                setInputValue({
-                  id: row.original?.id,
-                  name: row.original?.name,
-                  description: row.original?.description,
-                  department_head: row.original?.department_head_info?.id,
-                });
-                setEditMode(true);
-                setDisplayForm(true);
-              }}
-            />
-            <img
-              src={deleteIcon}
-              alt="delete icon"
-              className="cursor-pointer"
-              onClick={() =>
-                showDeleteDialog(row.original, () => handleDelete(row.original))
-              }
-            />
-          </div>
-        ),
-      },
-    ],
-    [setInputValue, setEditMode, setDisplayForm, handleDelete]
-  );
+  const [selectedId, setSelectedId] = useState<string>("department_id");
+  const [selectLabel, setSelectLabel] = useState<string>("Department");
 
   const positionsColumns: ColumnDef<PositionType>[] = useMemo(
     () => [
@@ -155,13 +96,6 @@ export function useSettingsTabs({
   );
 
   useEffect(() => {
-    if (selectedTab === "Department") {
-      setColumns(departmentColumns);
-      setData(departmentData);
-      setTotal(departmentTotal);
-      return;
-    }
-
     if (selectedTab === "Position") {
       setColumns(positionsColumns);
       setData(positionData);
@@ -173,22 +107,15 @@ export function useSettingsTabs({
     setData([]);
     setTotal(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTab, departmentData, positionData]);
+  }, [selectedTab, positionData, positionTotal, positionsColumns]);
 
   const selectOptions = useMemo(() => {
-    return selectedTab === "Department"
-      ? membersOptions
-      : selectedTab === "Position"
-        ? settingsStore.departmentsOptions
-        : [];
-  }, [selectedTab, membersOptions, settingsStore]);
+    return selectedTab === "Position" ? settingsStore.departmentsOptions : [];
+  }, [selectedTab, settingsStore.departmentsOptions]);
 
   const handleTabSelect = (tab: GeneralSettingsTab) => {
     setSelectedTab(tab);
-    if (tab === "Department") {
-      setSelectedId("department_head");
-      setSelectLabel("Department Head");
-    } else if (tab === "Position") {
+    if (tab === "Position") {
       setSelectedId("department_id");
       setSelectLabel("Department");
     } else {

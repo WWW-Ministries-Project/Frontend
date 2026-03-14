@@ -6,7 +6,7 @@ import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import { api, EventType } from "@/utils";
 import clsx from "clsx";
 import { Field, Form, Formik, getIn } from "formik";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   formatInputDate,
   getChangedValues,
@@ -33,7 +33,13 @@ interface EventsFormValues {
   };
   repetitive?: string;
   end_date?: string;
+  recurrence_end_date?: string;
   location?: string;
+  requires_registration?: boolean;
+  registration_end_date?: string;
+  registration_capacity?: number | string;
+  registration_audience?: "MEMBERS_ONLY" | "MEMBERS_AND_NON_MEMBERS";
+  public_registration_url?: string | null;
   [key: string]: unknown;
 }
 
@@ -90,6 +96,127 @@ const normalizeRecurringDays = (value: unknown): number[] => {
   return [];
 };
 
+const addDaysToDateInput = (value: string, days: number) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+const inferDayEvent = (startDate?: string, endDate?: string) => {
+  if (!startDate || !endDate) return "one";
+
+  const parsedStartDate = new Date(startDate);
+  const parsedEndDate = new Date(endDate);
+
+  if (
+    Number.isNaN(parsedStartDate.getTime()) ||
+    Number.isNaN(parsedEndDate.getTime())
+  ) {
+    return "one";
+  }
+
+  return parsedEndDate > parsedStartDate ? "multi" : "one";
+};
+
+const RegistrationDefaultsSync = ({
+  form,
+}: {
+  form: any;
+  updating?: boolean;
+}) => {
+  const { setFieldValue, values } = form;
+
+  useEffect(() => {
+    const startDate = String(values.start_date || "");
+    if (!startDate) return;
+
+    if (values.day_event === "multi") {
+      const nextDay = addDaysToDateInput(startDate, 1);
+      if (
+        !values.end_date ||
+        new Date(String(values.end_date)) <= new Date(startDate)
+      ) {
+        setFieldValue("end_date", nextDay, false);
+      }
+      return;
+    }
+
+    if (values.end_date !== startDate) {
+      setFieldValue("end_date", startDate, false);
+    }
+  }, [setFieldValue, values.day_event, values.end_date, values.start_date]);
+
+  useEffect(() => {
+    const startDate = String(values.start_date || "");
+    if (!startDate) return;
+
+    if (values.repetitive === "yes") {
+      if (!values.recurrence_end_date) {
+        setFieldValue("recurrence_end_date", startDate, false);
+      }
+      return;
+    }
+
+    if (values.recurrence_end_date) {
+      setFieldValue("recurrence_end_date", "", false);
+    }
+  }, [
+    setFieldValue,
+    values.recurrence_end_date,
+    values.repetitive,
+    values.start_date,
+  ]);
+
+  useEffect(() => {
+    const startDate = String(values.start_date || "");
+    if (!startDate) return;
+
+    if (values.requires_registration) {
+      if (!values.registration_end_date) {
+        setFieldValue("registration_end_date", startDate, false);
+      }
+      return;
+    }
+
+    if (
+      values.registration_end_date ||
+      values.registration_capacity ||
+      values.registration_audience !== "MEMBERS_AND_NON_MEMBERS"
+    ) {
+      setFieldValue("registration_end_date", "", false);
+      setFieldValue("registration_capacity", "", false);
+      setFieldValue(
+        "registration_audience",
+        "MEMBERS_AND_NON_MEMBERS",
+        false
+      );
+    }
+  }, [
+    setFieldValue,
+    values.registration_audience,
+    values.registration_capacity,
+    values.registration_end_date,
+    values.requires_registration,
+    values.start_date,
+  ]);
+
+  useEffect(() => {
+    if (
+      values.day_event === "multi" &&
+      Array.isArray(values.recurring?.daysOfWeek) &&
+      values.recurring.daysOfWeek.length > 0
+    ) {
+      setFieldValue("recurring.daysOfWeek", [], false);
+    }
+  }, [setFieldValue, values.day_event, values.recurring?.daysOfWeek]);
+
+  return null;
+};
+
 const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
   const { data: eventsData } = useFetch(api.fetch.fetchAllUniqueEvents);
   const eventOptions = useMemo(
@@ -142,13 +269,40 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
       end_date: props.inputValue.end_date
         ? formatInputDate(String(props.inputValue.end_date)) ?? ""
         : "",
+      recurrence_end_date: props.inputValue.recurrence_end_date
+        ? formatInputDate(String(props.inputValue.recurrence_end_date)) ?? ""
+        : "",
       start_time: String(props.inputValue.start_time || "").slice(0, 5),
       end_time: String(props.inputValue.end_time || "").slice(0, 5),
-      day_event: String(props.inputValue.day_event || "one"),
+      day_event: String(
+        props.inputValue.day_event ||
+          inferDayEvent(
+            props.inputValue.start_date ? String(props.inputValue.start_date) : "",
+            props.inputValue.end_date ? String(props.inputValue.end_date) : ""
+          ) ||
+          "one"
+      ),
       repetitive:
         String(props.inputValue.repetitive || "no").toLowerCase() === "yes"
           ? "yes"
           : "no",
+      requires_registration:
+        props.inputValue.requires_registration === true ||
+        String(props.inputValue.requires_registration).toLowerCase() === "true",
+      registration_end_date: props.inputValue.registration_end_date
+        ? formatInputDate(String(props.inputValue.registration_end_date)) ?? ""
+        : "",
+      registration_capacity:
+        props.inputValue.registration_capacity !== undefined &&
+        props.inputValue.registration_capacity !== null &&
+        String(props.inputValue.registration_capacity).trim() !== ""
+          ? Number(props.inputValue.registration_capacity)
+          : "",
+      registration_audience:
+        String(props.inputValue.registration_audience || "MEMBERS_AND_NON_MEMBERS")
+          .toUpperCase() === "MEMBERS_ONLY"
+          ? "MEMBERS_ONLY"
+          : "MEMBERS_AND_NON_MEMBERS",
       recurring: {
         interval:
           props.inputValue.recurring?.interval !== undefined &&
@@ -169,31 +323,43 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     <Formik<EventsFormValues>
       onSubmit={(val) => {
         const parsedDays = normalizeRecurringDays(val.recurring?.daysOfWeek);
-        const shouldIncludeRecurringDays =
-          val.repetitive === "yes" || val.day_event === "multi";
+        const isMultiDay = val.day_event === "multi";
+        const isRecurring = val.repetitive === "yes";
+        const normalizedEndDate = isMultiDay
+          ? val.end_date || addDaysToDateInput(String(val.start_date || ""), 1)
+          : val.start_date || "";
 
         const preparedValues: EventsFormValues = {
           ...val,
-          recurring: shouldIncludeRecurringDays
+          end_date: normalizedEndDate,
+          recurrence_end_date: isRecurring ? val.recurrence_end_date : "",
+          recurring: isRecurring
             ? {
-                ...(val.repetitive === "yes"
-                  ? {
-                      interval:
-                        val.recurring?.interval !== undefined &&
-                        val.recurring?.interval !== null
-                          ? Number(val.recurring.interval)
-                          : undefined,
-                      frequency: val.recurring?.frequency,
-                    }
-                  : {}),
-                daysOfWeek: parsedDays,
+                interval:
+                  val.recurring?.interval !== undefined &&
+                  val.recurring?.interval !== null
+                    ? Number(val.recurring.interval)
+                    : undefined,
+                frequency: val.recurring?.frequency,
+                ...(isMultiDay ||
+                val.recurring?.frequency !== "weekly"
+                  ? {}
+                  : {
+                      daysOfWeek: parsedDays,
+                    }),
               }
             : undefined,
+          requires_registration: Boolean(val.requires_registration),
+          registration_end_date: val.requires_registration
+            ? val.registration_end_date
+            : "",
+          registration_capacity: val.requires_registration
+            ? val.registration_capacity
+            : "",
+          registration_audience: val.requires_registration
+            ? val.registration_audience
+            : "MEMBERS_AND_NON_MEMBERS",
         };
-
-        if (preparedValues.repetitive !== "yes" && preparedValues.day_event !== "multi") {
-          preparedValues.end_date = "";
-        }
 
         const changedValues = props.updating
           ? getChangedValues(normalizedInitialValues, preparedValues)
@@ -208,6 +374,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     >
       {(form) => (
         <Form className="mt-4 flex w-full flex-col gap-6">
+          <RegistrationDefaultsSync form={form} updating={props.updating} />
           <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
             <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Event Information</h2>
@@ -289,221 +456,359 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               />
             </div>
 
-            {!props.updating && (
-              <div className="mt-6 space-y-5">
-                <div>
-                  <p className="text-sm font-medium text-primary">Event Duration</p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {[
-                      {
-                        label: "One-day Event",
-                        value: "one",
-                        description: "Runs within a single day.",
-                      },
-                      {
-                        label: "Multi-day Event",
-                        value: "multi",
-                        description: "Spans more than one day.",
-                      },
-                    ].map((option) => {
-                      const isActive = form.values.day_event === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            form.setFieldValue("day_event", option.value);
-                            if (
-                              option.value === "one" &&
-                              form.values.repetitive !== "yes"
-                            ) {
-                              form.setFieldValue("end_date", "");
-                              form.setFieldValue("recurring.daysOfWeek", []);
-                            }
-                          }}
-                          className={clsx(
-                            "rounded-lg border px-4 py-3 text-left transition-colors",
-                            isActive
-                              ? "border-primary bg-primary/5 text-primary"
-                              : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
-                          )}
-                        >
-                          <p className="text-sm font-semibold">{option.label}</p>
-                          <p className="mt-1 text-xs">{option.description}</p>
-                        </button>
-                      );
-                    })}
+            <div className="mt-6 space-y-5">
+              {!props.updating && (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-primary">Event Duration</p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {[
+                        {
+                          label: "One-day Event",
+                          value: "one",
+                          description: "Ends the same day it starts.",
+                        },
+                        {
+                          label: "Multi-day Event",
+                          value: "multi",
+                          description: "Runs across consecutive dates.",
+                        },
+                      ].map((option) => {
+                        const isActive = form.values.day_event === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => {
+                              form.setFieldValue("day_event", option.value);
+                              if (option.value === "one") {
+                                form.setFieldValue(
+                                  "end_date",
+                                  form.values.start_date || "",
+                                  false
+                                );
+                                form.setFieldValue("recurring.daysOfWeek", [], false);
+                                return;
+                              }
+
+                              form.setFieldValue(
+                                "end_date",
+                                addDaysToDateInput(
+                                  String(form.values.start_date || ""),
+                                  1
+                                ),
+                                false
+                              );
+                            }}
+                            className={clsx(
+                              "rounded-lg border px-4 py-3 text-left transition-colors",
+                              isActive
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
+                            )}
+                          >
+                            <p className="text-sm font-semibold">{option.label}</p>
+                            <p className="mt-1 text-xs">{option.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {getIn(form.touched, "day_event") && getIn(form.errors, "day_event") && (
+                      <p className="mt-2 text-sma text-error">
+                        {String(getIn(form.errors, "day_event"))}
+                      </p>
+                    )}
                   </div>
-                  {getIn(form.touched, "day_event") && getIn(form.errors, "day_event") && (
-                    <p className="mt-2 text-sma text-error">
-                      {String(getIn(form.errors, "day_event"))}
+
+                  <div>
+                    <p className="text-sm font-medium text-primary">
+                      Is this event repetitive?
                     </p>
-                  )}
-                </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {[
+                        {
+                          label: "Yes, repeat event",
+                          value: "yes",
+                          description: "Use a recurrence end date for the final occurrence.",
+                        },
+                        {
+                          label: "No, one schedule",
+                          value: "no",
+                          description: "Create a single event schedule.",
+                        },
+                      ].map((option) => {
+                        const isActive = form.values.repetitive === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => {
+                              form.setFieldValue("repetitive", option.value);
+                              if (option.value === "yes") {
+                                form.setFieldValue(
+                                  "recurring.interval",
+                                  form.values.recurring?.interval || 1,
+                                  false
+                                );
+                                form.setFieldValue(
+                                  "recurring.frequency",
+                                  form.values.recurring?.frequency || "weekly",
+                                  false
+                                );
+                                return;
+                              }
 
-                <div>
-                  <p className="text-sm font-medium text-primary">
-                    Is this event repetitive?
-                  </p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {[
-                      {
-                        label: "Yes, repeat event",
-                        value: "yes",
-                        description: "Set recurrence rules and days.",
-                      },
-                      {
-                        label: "No, one schedule",
-                        value: "no",
-                        description: "Event occurs once in this timeframe.",
-                      },
-                    ].map((option) => {
-                      const isActive = form.values.repetitive === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            form.setFieldValue("repetitive", option.value);
-                            if (option.value === "yes") {
-                              form.setFieldValue(
-                                "recurring.interval",
-                                form.values.recurring?.interval || 1
-                              );
-                              form.setFieldValue(
-                                "recurring.frequency",
-                                form.values.recurring?.frequency || "weekly"
-                              );
-                              return;
-                            }
-                            if (form.values.day_event === "one") {
-                              form.setFieldValue("end_date", "");
-                              form.setFieldValue("recurring.daysOfWeek", []);
-                            }
-                          }}
-                          className={clsx(
-                            "rounded-lg border px-4 py-3 text-left transition-colors",
-                            isActive
-                              ? "border-primary bg-primary/5 text-primary"
-                              : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
-                          )}
-                        >
-                          <p className="text-sm font-semibold">{option.label}</p>
-                          <p className="mt-1 text-xs">{option.description}</p>
-                        </button>
-                      );
-                    })}
+                              form.setFieldValue("recurrence_end_date", "", false);
+                              form.setFieldValue("recurring.daysOfWeek", [], false);
+                            }}
+                            className={clsx(
+                              "rounded-lg border px-4 py-3 text-left transition-colors",
+                              isActive
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
+                            )}
+                          >
+                            <p className="text-sm font-semibold">{option.label}</p>
+                            <p className="mt-1 text-xs">{option.description}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                </>
+              )}
 
-                {(form.values.day_event === "multi" || form.values.repetitive === "yes") && (
+              {form.values.day_event === "multi" && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field
+                    component={FormikInputDiv}
+                    label="Event End Date"
+                    type="date"
+                    id="end_date"
+                    name="end_date"
+                    min={form.values.start_date || maxMinValueForDate().minDate}
+                    max={maxMinValueForDate().maxDate}
+                    value={form.values.end_date}
+                  />
+                </div>
+              )}
+
+              {!props.updating && form.values.repetitive === "yes" && (
+                <div className="space-y-4 rounded-lg border border-lightGray/90 bg-gray-50 p-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field
                       component={FormikInputDiv}
-                      label={
-                        form.values.repetitive === "yes"
-                          ? "Recurrence End Date"
-                          : "Event End Date"
-                      }
-                      type="date"
-                      id="end_date"
-                      name="end_date"
-                      min={form.values.start_date || maxMinValueForDate().minDate}
-                      max={maxMinValueForDate().maxDate}
-                      value={form.values.end_date}
+                      label="Repeat Every"
+                      type="number"
+                      id="recurring.interval"
+                      name="recurring.interval"
+                      min="1"
+                    />
+                    <Field
+                      component={FormikSelectField}
+                      label="Repeat Unit"
+                      id="recurring.frequency"
+                      name="recurring.frequency"
+                      options={[
+                        { label: "Day(s)", value: "daily" },
+                        { label: "Week(s)", value: "weekly" },
+                        { label: "Month(s)", value: "monthly" },
+                      ]}
                     />
                   </div>
-                )}
 
-                {(form.values.repetitive === "yes" ||
-                  form.values.day_event === "multi") && (
-                  <div className="space-y-4 rounded-lg border border-lightGray/90 bg-[#F9FAFC] p-4">
-                    {form.values.repetitive === "yes" && (
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <Field
-                          component={FormikInputDiv}
-                          label="Repeat Every"
-                          type="number"
-                          id="recurring.interval"
-                          name="recurring.interval"
-                          min="1"
-                        />
-                        <Field
-                          component={FormikSelectField}
-                          label="Repeat Unit"
-                          id="recurring.frequency"
-                          name="recurring.frequency"
-                          options={[
-                            { label: "Day(s)", value: "daily" },
-                            { label: "Week(s)", value: "weekly" },
-                            { label: "Month(s)", value: "monthly" },
-                          ]}
-                        />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field
+                      component={FormikInputDiv}
+                      label="Recurrence End Date"
+                      type="date"
+                      id="recurrence_end_date"
+                      name="recurrence_end_date"
+                      min={form.values.start_date || maxMinValueForDate().minDate}
+                      max={maxMinValueForDate().maxDate}
+                      value={form.values.recurrence_end_date}
+                    />
+                  </div>
+
+                  {form.values.day_event !== "multi" &&
+                    form.values.recurring?.frequency === "weekly" && (
+                      <div>
+                        <p className="text-sm font-medium text-primary">Recurs On</p>
+                        <p className="mt-1 text-xs text-primaryGray">
+                          Select the weekday(s) for each weekly occurrence.
+                        </p>
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
+                          {WEEKDAY_OPTIONS.map((day) => {
+                            const selectedDays = normalizeRecurringDays(
+                              form.values.recurring?.daysOfWeek
+                            );
+                            const isSelected = selectedDays.includes(day.value);
+                            return (
+                              <button
+                                key={day.value}
+                                type="button"
+                                aria-pressed={isSelected}
+                                title={day.label}
+                                onClick={() => {
+                                  const updatedDays = isSelected
+                                    ? selectedDays.filter(
+                                        (currentDay) => currentDay !== day.value
+                                      )
+                                    : [...selectedDays, day.value].sort(
+                                        (a, b) =>
+                                          WEEKDAY_ORDER.indexOf(a) -
+                                          WEEKDAY_ORDER.indexOf(b)
+                                      );
+                                  form.setFieldValue(
+                                    "recurring.daysOfWeek",
+                                    updatedDays
+                                  );
+                                  form.setFieldTouched(
+                                    "recurring.daysOfWeek",
+                                    true,
+                                    false
+                                  );
+                                }}
+                                className={clsx(
+                                  "rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
+                                  isSelected
+                                    ? "border-primary bg-primary text-white"
+                                    : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+                                )}
+                              >
+                                {day.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {((getIn(form.touched, "recurring.daysOfWeek") as boolean) ||
+                          form.submitCount > 0) &&
+                          getIn(form.errors, "recurring.daysOfWeek") && (
+                            <p className="mt-2 text-sma text-error">
+                              {String(getIn(form.errors, "recurring.daysOfWeek"))}
+                            </p>
+                          )}
                       </div>
                     )}
 
-                    <div>
-                      <p className="text-sm font-medium text-primary">
-                        {form.values.repetitive === "yes" ? "Recurs On" : "Runs On"}
-                      </p>
-                      <p className="mt-1 text-xs text-primaryGray">
-                        {form.values.repetitive === "yes"
-                          ? "Select one or more days this repetitive event should run."
-                          : "Select one or more days this multi-day event should run."}
-                      </p>
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
-                        {WEEKDAY_OPTIONS.map((day) => {
-                          const selectedDays = normalizeRecurringDays(
-                            form.values.recurring?.daysOfWeek
-                          );
-                          const isSelected = selectedDays.includes(day.value);
-                          return (
-                            <button
-                              key={day.value}
-                              type="button"
-                              aria-pressed={isSelected}
-                              title={day.label}
-                              onClick={() => {
-                                const updatedDays = isSelected
-                                  ? selectedDays.filter(
-                                      (currentDay) => currentDay !== day.value
-                                    )
-                                  : [...selectedDays, day.value].sort(
-                                      (a, b) =>
-                                        WEEKDAY_ORDER.indexOf(a) -
-                                        WEEKDAY_ORDER.indexOf(b)
-                                    );
-                                form.setFieldValue("recurring.daysOfWeek", updatedDays);
-                                form.setFieldTouched(
-                                  "recurring.daysOfWeek",
-                                  true,
-                                  false
-                                );
-                              }}
-                              className={clsx(
-                                "rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-                                isSelected
-                                  ? "border-primary bg-primary text-white"
-                                  : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
-                              )}
-                            >
-                              {day.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {((getIn(form.touched, "recurring.daysOfWeek") as boolean) ||
-                        form.submitCount > 0) &&
-                        getIn(form.errors, "recurring.daysOfWeek") && (
-                          <p className="mt-2 text-sma text-error">
-                            {String(getIn(form.errors, "recurring.daysOfWeek"))}
-                          </p>
+                  {form.values.day_event === "multi" && (
+                    <p className="text-xs text-primaryGray">
+                      Multi-day recurrences reuse the event start date pattern and
+                      keep the same duration for every occurrence.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
+            <div className="mb-4 space-y-1">
+              <h2 className="H400 text-primary">Registration</h2>
+              <p className="text-sma text-primaryGray">
+                Decide whether attendees must register before the event.
+              </p>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <p className="text-sm font-medium text-primary">
+                  Does this event require registration?
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {[
+                    {
+                      label: "No registration",
+                      value: false,
+                      description: "Attendees do not need to register first.",
+                    },
+                    {
+                      label: "Registration required",
+                      value: true,
+                      description: "Set the registration closing date and audience.",
+                    },
+                  ].map((option) => {
+                    const isActive =
+                      Boolean(form.values.requires_registration) === option.value;
+                    return (
+                      <button
+                        key={String(option.value)}
+                        type="button"
+                        onClick={() =>
+                          form.setFieldValue(
+                            "requires_registration",
+                            option.value
+                          )
+                        }
+                        className={clsx(
+                          "rounded-lg border px-4 py-3 text-left transition-colors",
+                          isActive
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
                         )}
-                    </div>
-                  </div>
-                )}
+                      >
+                        <p className="text-sm font-semibold">{option.label}</p>
+                        <p className="mt-1 text-xs">{option.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            )}
+
+              {form.values.requires_registration && (
+                <div className="space-y-4 rounded-lg border border-lightGray/90 bg-gray-50 p-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field
+                      component={FormikInputDiv}
+                      label="Registration End Date"
+                      type="date"
+                      id="registration_end_date"
+                      name="registration_end_date"
+                      min={maxMinValueForDate().minDate}
+                      max={form.values.start_date || maxMinValueForDate().maxDate}
+                      value={form.values.registration_end_date}
+                    />
+                    <Field
+                      component={FormikInputDiv}
+                      label="Expected Capacity"
+                      type="number"
+                      id="registration_capacity"
+                      name="registration_capacity"
+                      min="1"
+                    />
+                  </div>
+
+                  <Field
+                    component={FormikSelectField}
+                    label="Who Can Register?"
+                    id="registration_audience"
+                    name="registration_audience"
+                    options={[
+                      {
+                        label: "Members & Non-members",
+                        value: "MEMBERS_AND_NON_MEMBERS",
+                      },
+                      {
+                        label: "Members Only",
+                        value: "MEMBERS_ONLY",
+                      },
+                    ]}
+                  />
+
+                  {props.updating && form.values.public_registration_url && (
+                    <Field
+                      component={FormikInputDiv}
+                      label="Public Registration URL"
+                      type="text"
+                      id="public_registration_url"
+                      name="public_registration_url"
+                      disabled
+                      value={String(form.values.public_registration_url || "")}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">

@@ -1,12 +1,14 @@
 interface IProps {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export const Badge = ({ children, className }: IProps) => {
+export const Badge = ({ children, className, style }: IProps) => {
   return (
     <div>
       <div
+        style={style}
         className={` ${
           className
             ? className

@@ -18,27 +18,23 @@ interface IProps {
 
 const LEVEL_META: Record<
   PermissionValue,
-  { label: string; className: string; dotClass: string }
+  { label: string; className: string }
 > = {
   No_Access: {
     label: "No Access",
-    className: "bg-gray-200 text-gray-700",
-    dotClass: "bg-gray-600",
+    className: "border border-lightGray bg-gray-100 text-primary",
   },
   Can_View: {
     label: "Can View",
-    className: "bg-blue-100 text-blue-700",
-    dotClass: "bg-blue-600",
+    className: "border border-primary/15 bg-primary/10 text-primary",
   },
   Can_Manage: {
     label: "Can Manage",
-    className: "bg-amber-100 text-amber-700",
-    dotClass: "bg-amber-600",
+    className: "border border-secondary/20 bg-secondary/10 text-secondary",
   },
   Super_Admin: {
     label: "Super Admin",
-    className: "bg-violet-100 text-violet-700",
-    dotClass: "bg-violet-600",
+    className: "border border-accent/20 bg-accent/10 text-accent",
   },
 };
 
@@ -99,7 +95,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{name}</h2>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+        <span className="rounded-full border border-lightGray bg-gray-100 px-3 py-1 text-xs font-medium text-primary">
           {configuredModules.length} configured modules
         </span>
       </div>
@@ -118,12 +114,12 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
             return (
               <article
                 key={module.key}
-                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-primary">{module.label}</p>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-primaryGray">
                       {module.description}
                     </p>
                   </div>
@@ -132,16 +128,14 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${meta.className}`}
                     >
-                      <span
-                        className={`mr-2 inline-block h-2 w-2 rounded-full ${meta.dotClass}`}
-                      />
+                      <span className="mr-2 inline-block h-2 w-2 rounded-full bg-current" />
                       {meta.label}
                     </span>
                   )}
                 </div>
 
                 {module.excludedUsers.length > 0 && (
-                  <div className="mt-3 rounded-lg bg-red-50 p-2 text-xs text-red-700">
+                  <div className="mt-3 rounded-lg bg-error/10 p-2 text-xs text-error">
                     Excluded user IDs: {module.excludedUsers.join(", ")}
                   </div>
                 )}

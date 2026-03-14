@@ -4,12 +4,18 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
-import { EventResponseType, EventType } from "./events/interfaces";
+import {
+  BiometricAttendanceImportJob,
+  BiometricEventAttendanceListResponse,
+  EventResponseType,
+  EventType,
+} from "./events/interfaces";
 import {
   LifeCenterDetailsType,
   LifeCenterMemberType,
   LifeCenterStatsType,
   LifeCenterType,
+  SoulWonListType,
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
@@ -27,8 +33,12 @@ import {
   ProgramResponse,
   Programs,
 } from "./ministrySchool/interfaces";
-import { DepartmentType } from "./settings/departmentInterfaces";
+import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
+import type {
+  SystemNotificationAdminCandidate,
+  SystemNotificationSettingsConfig,
+} from "./settings/systemNotificationInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
@@ -50,6 +60,7 @@ import type {
 import type {
   InAppNotification,
   NotificationListPayload,
+  NotificationPreference,
   NotificationPushPublicKeyPayload,
   NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
@@ -140,8 +151,14 @@ export class ApiCalls {
 
   fetchEventById = (
     query?: QueryType
-  ): Promise<ApiResponse<Record<string, unknown>>> => {
+  ): Promise<ApiResponse<EventResponseType>> => {
     return this.fetchFromApi("event/get-event", query);
+  };
+
+  fetchPublicEventById = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType>> => {
+    return this.fetchFromApi("event/public-event", query);
   };
 
   fetchEventReportDetails = (
@@ -162,6 +179,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.fetchFromApi("department/list-departments", query);
+  };
+
+  fetchDepartmentDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<DepartmentDetailsType | null>> => {
+    return this.fetchFromApi("department/get-department", query);
   };
 
   // Asset Management
@@ -217,6 +240,18 @@ export class ApiCalls {
     return this.fetchFromApi("settings/get-role-eligibility-config");
   };
 
+  fetchSystemNotificationConfig = (): Promise<
+    ApiResponse<SystemNotificationSettingsConfig>
+  > => {
+    return this.fetchFromApi("settings/system-notification-config");
+  };
+
+  fetchSystemNotificationAdmins = (): Promise<
+    ApiResponse<SystemNotificationAdminCandidate[]>
+  > => {
+    return this.fetchFromApi("settings/system-notification-admins");
+  };
+
   fetchRequisitionPreApprovalSimilarItems = (
     query?: QueryType
   ): Promise<ApiResponse<RequisitionSimilarItemsResponse>> => {
@@ -246,6 +281,12 @@ export class ApiCalls {
     ApiResponse<string | NotificationPushPublicKeyPayload>
   > => {
     return this.fetchFromApi("notifications/push/public-key");
+  };
+
+  fetchNotificationPreferences = (
+    query?: QueryType
+  ): Promise<ApiResponse<NotificationPreference[] | NotificationPreference>> => {
+    return this.fetchFromApi("notifications/preferences", query);
   };
 
   // Program Management
@@ -453,6 +494,12 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
   };
 
+  fetchSoulsWon = (
+    query?: QueryType
+  ): Promise<ApiResponse<SoulWonListType[]>> => {
+    return this.fetchFromApi(`lifecenter/soulswon`, query);
+  };
+
   fetchMarkets = (query?: QueryType): Promise<ApiResponse<IMarket[]>> => {
     return this.fetchFromApi(`market/list-markets`, query);
   };
@@ -544,6 +591,18 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("event/church-attendance", query);
   }
+
+  fetchBiometricAttendance = (
+    query?: QueryType
+  ): Promise<ApiResponse<BiometricEventAttendanceListResponse>> => {
+    return this.fetchFromApi("event/biometric-attendance", query);
+  };
+
+  fetchBiometricAttendanceImportJob = (
+    query?: QueryType
+  ): Promise<ApiResponse<BiometricAttendanceImportJob>> => {
+    return this.fetchFromApi("event/import-biometric-attendance-job", query);
+  };
 
   // Fetch annual theme
   fetchAnnualTheme = (

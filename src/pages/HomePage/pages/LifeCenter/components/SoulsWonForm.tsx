@@ -140,6 +140,10 @@ export interface ISoulsWonForm extends INameInfo {
   contact_number?: string;
   id: string;
   lifeCenterId: string;
+  isMember?: boolean;
+  memberId?: string | number | null;
+  memberName?: string;
+  memberMemberId?: string;
 }
 
 const initialValues: ISoulsWonForm = {

@@ -39,7 +39,10 @@ import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
 import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
 import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
+import { DepartmentDetails } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentDetails";
+import { DepartmentsAndMinistries } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentsAndMinistries";
 import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/pages/MemberConfirmation";
+import { SoulwonToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/SoulwonToMembership";
 import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
@@ -72,6 +75,7 @@ import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
+import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
@@ -215,6 +219,14 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_members",
           },
           {
+            path: relativePath.home.membership.departments.main,
+            name: "Departments and Ministries",
+            element: <DepartmentsAndMinistries />,
+            isPrivate: true,
+            permissionNeeded: "view_departments",
+            sideTab: true,
+          },
+          {
             path: relativePath.home.membership.management.main,
             name: "Membership manager",
             element: <MembershipManagement />,
@@ -248,6 +260,13 @@ export const routes: AppRoute[] = [
                 isPrivate: true,
                 permissionNeeded: "manage_members",
               },
+              {
+                path: relativePath.home.membership.management.soulwonToMembership,
+                name: "Soulwon-to-Membership",
+                element: <SoulwonToMembership />,
+                isPrivate: true,
+                permissionNeeded: "manage_members",
+              },
             ],
           },
           {
@@ -257,6 +276,13 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_members",
             sideTab: true,
+          },
+          {
+            path: relativePath.home.membership.departments.details,
+            name: "Department Details",
+            element: <DepartmentDetails />,
+            isPrivate: true,
+            permissionNeeded: "view_departments",
           },
         ],
       },
@@ -424,6 +450,14 @@ export const routes: AppRoute[] = [
             path: "",
             name: "Church Attendance",
             element: <ChurchAttendance />,
+            isPrivate: true,
+            permissionNeeded: "view_church_attendance",
+            sideTab: true,
+          },
+          {
+            path: "event-attendance",
+            name: "Event Attendance",
+            element: <EventAttendance />,
             isPrivate: true,
             permissionNeeded: "view_church_attendance",
             sideTab: true,
@@ -916,12 +950,12 @@ export const routes: AppRoute[] = [
         name: "VisitorRegistration",
         isPrivate: false,
       },
-      // {
-      //   path: "events/register-event",
-      //   element: <EventRegister />,
-      //   name: "Event Registration",
-      //   isPrivate: false,
-      // },
+      {
+        path: "events/register-event",
+        element: <EventRegister />,
+        name: "Event Registration",
+        isPrivate: false,
+      },
       {
         path: "products",
         name: "products",
@@ -970,11 +1004,8 @@ export const routes: AppRoute[] = [
   {
     path: "events/register-event",
     name: "Event Register",
-    element: (
-      <ProtectedRoute>
-        <EventRegister />
-      </ProtectedRoute>
-    ),
+    element: <EventRegister />,
+    isPrivate: false,
   },
   {
     path: "/member",

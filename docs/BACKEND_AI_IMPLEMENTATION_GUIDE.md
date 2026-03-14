@@ -75,7 +75,7 @@ Use one route family consistently in frontend config.
 
 ## 3.0 Credentials endpoints
 
-- `GET /ai/credentials?provider=openai|gemini`
+- `GET /ai/credentials?provider=openai|gemini|claude`
 - `POST /ai/credentials`
 - `PUT /ai/credentials/{id}`
 
@@ -88,7 +88,7 @@ Request:
 ```json
 {
   "message": "Summarize visitor follow-up risk for this week",
-  "model": "gpt-4.1-mini",
+  "model": "claude-sonnet-4-6",
   "conversation_id": "optional-uuid",
   "context": {
     "module": "visitors",
@@ -107,6 +107,9 @@ Response:
     "message_id": "uuid",
     "reply": "Here are the highest-risk visitors...",
     "created_at": "2026-02-28T08:30:00.000Z",
+    "provider": "claude",
+    "model": "claude-sonnet-4-6",
+    "fallback_used": false,
     "usage": {
       "prompt_tokens": 640,
       "completion_tokens": 372,
@@ -160,6 +163,11 @@ Use for admin analytics charts and anomaly monitoring.
 
 Use for deterministic AI jobs per module (e.g., attendance insights, requisition risks).
 Send `model` in request body for insights as well.
+
+Provider routing is model-based:
+- `gpt-*` and `o*` route to OpenAI
+- `claude-*` route to Claude
+- `gemini-*` route to Gemini
 
 ---
 

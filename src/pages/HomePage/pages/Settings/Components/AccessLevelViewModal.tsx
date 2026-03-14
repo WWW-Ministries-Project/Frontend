@@ -102,16 +102,16 @@ export const AccessLevelViewModal = ({
     <Modal open={open} persist={false} onClose={onClose} className="max-w-5xl">
       {accessRight && (
         <div className="flex h-full min-h-[32rem] flex-col">
-          <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-6 py-5">
+          <div className="sticky top-0 z-10 border-b border-lightGray bg-white px-6 py-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-primaryGray">
                   Access Level
                 </p>
                 <h3 className="text-2xl font-semibold text-primary">
                   {accessRight.name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-primaryGray">
                   {configuredModules} configured modules • {assignedUsers.length}{" "}
                   assigned member{assignedUsers.length === 1 ? "" : "s"}
                 </p>
@@ -130,7 +130,7 @@ export const AccessLevelViewModal = ({
                       value="Delete"
                       variant="ghost"
                       onClick={() => onDelete(accessRight)}
-                      className="!min-h-9 !px-3 !py-1 text-xs text-red-600 hover:bg-red-50"
+                      className="!min-h-9 !px-3 !py-1 text-xs text-error hover:bg-error/10"
                     />
                   </>
                 )}
@@ -143,14 +143,14 @@ export const AccessLevelViewModal = ({
               </div>
             </div>
 
-            <div className="mt-4 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+            <div className="mt-4 inline-flex rounded-lg border border-lightGray bg-gray-100 p-1">
               <button
                 type="button"
                 onClick={() => setActiveTab("access_info")}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                   activeTab === "access_info"
                     ? "bg-white text-primary shadow-sm"
-                    : "text-gray-600 hover:bg-white"
+                    : "text-primaryGray hover:bg-white"
                 }`}
               >
                 Access Level Information
@@ -161,7 +161,7 @@ export const AccessLevelViewModal = ({
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                   activeTab === "assigned_members"
                     ? "bg-white text-primary shadow-sm"
-                    : "text-gray-600 hover:bg-white"
+                    : "text-primaryGray hover:bg-white"
                 }`}
               >
                 Assign Members
@@ -173,11 +173,11 @@ export const AccessLevelViewModal = ({
             {activeTab === "access_info" ? (
               <div className="space-y-6">
                 {accessRight.description ? (
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  <div className="rounded-xl border border-lightGray bg-gray-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-primaryGray">
                       Description
                     </p>
-                    <p className="mt-1 text-sm text-gray-700">
+                    <p className="mt-1 text-sm text-primaryGray">
                       {accessRight.description}
                     </p>
                   </div>
@@ -193,13 +193,13 @@ export const AccessLevelViewModal = ({
                     <h4 className="text-lg font-semibold text-primary">
                       Excluded Users
                     </h4>
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                    <span className="rounded-full bg-error/10 px-3 py-1 text-xs font-medium text-error">
                       {exclusionUserCount} excluded
                     </span>
                   </div>
 
                   {exclusionGroups.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+                    <div className="rounded-lg border border-dashed border-lightGray bg-gray-50 p-4 text-sm text-primaryGray">
                       No exclusion users configured for this access level.
                     </div>
                   ) : (
@@ -207,7 +207,7 @@ export const AccessLevelViewModal = ({
                       {exclusionGroups.map((group) => (
                         <article
                           key={group.domain}
-                          className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                          className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
                         >
                           <p className="font-semibold text-primary">
                             {group.domainLabel}
@@ -216,7 +216,7 @@ export const AccessLevelViewModal = ({
                             {group.users.map((user) => (
                               <span
                                 key={`${group.domain}-${user.id}`}
-                                className="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700"
+                                className="inline-flex rounded-full bg-error/10 px-2.5 py-1 text-xs font-medium text-error"
                               >
                                 {getExclusionUserName(user)}
                               </span>
@@ -234,7 +234,7 @@ export const AccessLevelViewModal = ({
                   <h4 className="text-lg font-semibold text-primary">
                     Assigned Members
                   </h4>
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     {assignedUsers.length} members
                   </span>
                 </div>
@@ -254,13 +254,13 @@ export const AccessLevelViewModal = ({
                       return (
                         <article
                           key={user.id}
-                          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                          className="flex items-center gap-3 rounded-xl border border-lightGray bg-white p-4 shadow-sm"
                         >
                           {avatarUrl ? (
                             <img
                               src={avatarUrl}
                               alt={displayName}
-                              className="h-11 w-11 rounded-full border border-gray-200 object-cover"
+                              className="h-11 w-11 rounded-full border border-lightGray object-cover"
                             />
                           ) : (
                             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -272,7 +272,7 @@ export const AccessLevelViewModal = ({
                             <p className="truncate font-semibold text-primary">
                               {displayName}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-primaryGray">
                               User ID: {user.id}
                             </p>
                           </div>
