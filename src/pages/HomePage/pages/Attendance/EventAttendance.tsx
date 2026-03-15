@@ -62,6 +62,24 @@ const formatTimeOnly = (value: string) => {
   });
 };
 
+const formatDepartmentPosition = (departmentPosition: {
+  department_name: string | null;
+  position_name: string | null;
+}) => {
+  if (
+    departmentPosition.department_name &&
+    departmentPosition.position_name
+  ) {
+    return `${departmentPosition.department_name} - ${departmentPosition.position_name}`;
+  }
+
+  return (
+    departmentPosition.department_name ||
+    departmentPosition.position_name ||
+    "No department position"
+  );
+};
+
 const EventAttendanceImportModal = ({
   open,
   onClose,
@@ -744,6 +762,13 @@ export default function EventAttendance() {
                           </p>
                           <p className="text-xs text-primaryGray">
                             {record.member_id || "No member ID"}
+                          </p>
+                          <p className="mt-1 text-xs text-primaryGray">
+                            {record.department_positions.length > 0
+                              ? record.department_positions
+                                  .map((entry) => formatDepartmentPosition(entry))
+                                  .join(", ")
+                              : "No department position"}
                           </p>
                         </div>
 

@@ -46,7 +46,10 @@ type DepartmentSection = {
   headName: string;
   headUserId: string;
   attendees: DepartmentAttendee[];
-  approval: ApprovalState;
+  totalMembers: number;
+  presentMembers: number;
+  absentMembers: number;
+  attendancePercentage: number;
 };
 
 type AttendanceRecord = {
@@ -92,7 +95,10 @@ type BackendDepartment = {
   headName: string;
   headUserId: string;
   attendees: DepartmentAttendee[];
-  approval: ApprovalState;
+  totalMembers: number;
+  presentMembers: number;
+  absentMembers: number;
+  attendancePercentage: number;
 };
 
 const reportViewTabs = ["Data", "Insight"] as const;
@@ -106,6 +112,11 @@ const amountFormatter = new Intl.NumberFormat("en-US", {
 const countFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
+});
+
+const percentFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
 });
 
 ensureAnalyticsChartsRegistered();
@@ -323,11 +334,32 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const userRecord = toRecord(record.user);
   const userInfo = toRecord(userRecord.user_info);
   const nestedUser = toRecord(userInfo.user);
+  const scopedDepartmentRecord = toRecord(userRecord.department);
+  const scopedDepartmentInfo = toRecord(
+    scopedDepartmentRecord.department_info ?? scopedDepartmentRecord.departmentInfo
+  );
+  const departmentPosition = toRecord(
+    toArray(
+      record.department_positions ??
+        record.departmentPositions ??
+        userRecord.department_positions ??
+        userRecord.departmentPositions ??
+        nestedUser.department_positions ??
+        nestedUser.departmentPositions ??
+        userInfo.department_positions ??
+        userInfo.departmentPositions
+    )[0]
+  );
+  const departmentPositionRecord = toRecord(
+    departmentPosition.department ??
+      departmentPosition.department_info ??
+      departmentPosition.departmentInfo
+  );
   const departmentRecord = toRecord(
     record.department ??
       nestedUser.department ??
       userInfo.department ??
-      userRecord.department
+      scopedDepartmentInfo
   );
 
   const attendeeName = firstNonEmptyString(
@@ -348,6 +380,9 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const departmentId = firstNonEmptyString(
     record.department_id,
     record.departmentId,
+    userRecord.department_id,
+    scopedDepartmentRecord.department_id,
+    departmentPosition.department_id,
     nestedUser.department_id,
     userInfo.department_id,
     departmentRecord.id
@@ -356,6 +391,9 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const departmentName = firstNonEmptyString(
     record.department_name,
     record.departmentName,
+    userRecord.department_name,
+    departmentPosition.department_name,
+    departmentPositionRecord.name,
     nestedUser.department_name,
     userInfo.department_name,
     departmentRecord.name,
@@ -449,9 +487,6 @@ const EventReportDetails = () => {
   const [openDepartments, setOpenDepartments] = useState<Record<string, boolean>>(
     {}
   );
-  const [departmentApprovalOverrides, setDepartmentApprovalOverrides] = useState<
-    Record<string, ApprovalState>
-  >({});
   const [churchApprovalOverride, setChurchApprovalOverride] =
     useState<ApprovalState | null>(null);
   const [financeApprovalOverrides, setFinanceApprovalOverrides] = useState<{
@@ -467,7 +502,6 @@ const EventReportDetails = () => {
     createFinanceLineItem("expense"),
   ]);
 
-  const [approvingDepartmentId, setApprovingDepartmentId] = useState("");
   const [isApprovingChurch, setIsApprovingChurch] = useState(false);
   const [financeActionLoadingRole, setFinanceActionLoadingRole] = useState<
     "COUNTING_LEADER" | "FINANCE_REP" | ""
@@ -736,187 +770,181 @@ const EventReportDetails = () => {
   }, [eventDetails.event_attendance]);
 
   const fallbackAttendeesByDepartment = useMemo(() => {
-    return fallbackDepartmentAttendees.reduce<Record<string, DepartmentAttendee[]>>(
-      (accumulator, attendee) => {
-        const key = attendee.departmentId || attendee.departmentName || "UNASSIGNED";
-        if (!accumulator[key]) {
-          accumulator[key] = [];
-        }
+    const grouped = new Map<string, Map<string, DepartmentAttendee>>();
 
-        accumulator[key].push(attendee);
+    fallbackDepartmentAttendees.forEach((attendee) => {
+      const key = attendee.departmentId || attendee.departmentName || "UNASSIGNED";
+      const bucket = grouped.get(key) || new Map<string, DepartmentAttendee>();
+      const attendeeKey = attendee.userId || attendee.id;
+      const existing = bucket.get(attendeeKey);
+
+      if (!existing || attendee.arrivalTime < existing.arrivalTime) {
+        bucket.set(attendeeKey, attendee);
+      }
+
+      grouped.set(key, bucket);
+    });
+
+    return Array.from(grouped.entries()).reduce<Record<string, DepartmentAttendee[]>>(
+      (accumulator, [key, attendees]) => {
+        accumulator[key] = Array.from(attendees.values());
         return accumulator;
       },
       {}
     );
   }, [fallbackDepartmentAttendees]);
 
-  const backendDepartments = useMemo(() => {
-    const mapped: Record<string, BackendDepartment> = {};
-
-    toArray(
+  const backendDepartmentSections = useMemo<DepartmentSection[]>(() => {
+    return toArray(
       reportDetails.departments ??
         reportDetails.department_overview ??
         reportDetails.departmentOverview
-    ).forEach((item) => {
-      const record = toRecord(item);
-      const departmentRecord = toRecord(record.department);
-      const headRecord = toRecord(
-        record.head ??
-          record.department_head ??
-          record.departmentHead ??
-          record.hod ??
-          record.department_head_info
-      );
+    )
+      .map((item) => {
+        const record = toRecord(item);
+        const departmentRecord = toRecord(record.department);
+        const headRecord = toRecord(
+          record.head ??
+            record.department_head ??
+            record.departmentHead ??
+            record.hod ??
+            record.department_head_info
+        );
 
-      const id = firstNonEmptyString(
-        record.department_id,
-        record.departmentId,
-        record.id,
-        departmentRecord.id
-      );
+        const id = firstNonEmptyString(
+          record.department_id,
+          record.departmentId,
+          record.id,
+          departmentRecord.id
+        );
 
-      const name = firstNonEmptyString(
-        record.department_name,
-        record.departmentName,
-        record.name,
-        departmentRecord.name
-      );
+        const name = firstNonEmptyString(
+          record.department_name,
+          record.departmentName,
+          record.name,
+          departmentRecord.name
+        );
 
-      if (!id && !name) {
-        return;
-      }
+        if (!id && !name) {
+          return null;
+        }
 
-      const normalizedAttendees = toArray(
-        record.attendees ?? record.members ?? record.department_members
-      )
-        .map((attendee) => normalizeAttendeeRecord(attendee))
-        .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
+        const attendees = toArray(
+          record.attendees ?? record.members ?? record.department_members
+        )
+          .map((attendee) => normalizeAttendeeRecord(attendee))
+          .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
+        const totalMembers = toNumberValue(
+          record.total_members ?? record.totalMembers ?? record.member_count ?? record.memberCount
+        );
+        const presentMembers =
+          toNumberValue(record.present_members ?? record.presentMembers) ||
+          attendees.length;
+        const absentMembers =
+          toNumberValue(record.absent_members ?? record.absentMembers) ||
+          Math.max(totalMembers - presentMembers, 0);
+        const attendancePercentage =
+          toNumberValue(
+            record.attendance_percentage ?? record.attendancePercentage
+          ) || (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
 
-      const headUserId = firstNonEmptyString(
-        record.head_user_id,
-        record.headUserId,
-        record.department_head,
-        record.hod_user_id,
-        record.hodUserId,
-        headRecord.id
-      );
+        return {
+          id: id || name,
+          name: name || "Unknown Department",
+          headName: firstNonEmptyString(
+            record.head_name,
+            record.headName,
+            record.hod_name,
+            record.hodName,
+            headRecord.name,
+            "No head assigned"
+          ),
+          headUserId: firstNonEmptyString(
+            record.head_user_id,
+            record.headUserId,
+            record.department_head,
+            record.hod_user_id,
+            record.hodUserId,
+            headRecord.id
+          ),
+          attendees,
+          totalMembers,
+          presentMembers,
+          absentMembers,
+          attendancePercentage,
+        } satisfies DepartmentSection;
+      })
+      .filter((department): department is DepartmentSection => Boolean(department));
+  }, [reportDetails]);
 
-      const key = id || name.toLowerCase();
+  const departmentSections = useMemo(() => {
+    if (backendDepartmentSections.length > 0) {
+      return backendDepartmentSections;
+    }
 
-      mapped[key] = {
-        id: id || name,
-        name: name || "Unknown Department",
-        headName: firstNonEmptyString(
-          record.head_name,
-          record.headName,
-          record.hod_name,
-          record.hodName,
-          headRecord.name,
-          "No head assigned"
-        ),
-        headUserId,
-        attendees: normalizedAttendees,
-        approval: buildApprovalState(record.approval ?? record, user.id, headUserId === user.id),
-      };
-    });
-
-    return mapped;
-  }, [reportDetails, user.id]);
-
-  const baseDepartmentSections = useMemo(() => {
     const departments = Array.isArray(departmentsResponse?.data)
       ? departmentsResponse.data
       : [];
-
     const usedFallbackKeys = new Set<string>();
     const sectionList: DepartmentSection[] = departments.map((department) => {
       const departmentId = String(department.id);
       const departmentName = firstNonEmptyString(department.name, "Unnamed Department");
-      const backendDepartment =
-        backendDepartments[departmentId] || backendDepartments[departmentName.toLowerCase()];
-
-      const fallbackAttendees =
+      const attendees =
         fallbackAttendeesByDepartment[departmentId] ||
         fallbackAttendeesByDepartment[departmentName] ||
         [];
 
-      if (fallbackAttendees.length > 0) {
+      if (attendees.length > 0) {
         usedFallbackKeys.add(departmentId);
         usedFallbackKeys.add(departmentName);
       }
 
-      const attendees =
-        backendDepartment && backendDepartment.attendees.length > 0
-          ? backendDepartment.attendees
-          : fallbackAttendees;
-
-      const headUserId =
-        backendDepartment?.headUserId ||
-        firstNonEmptyString(
-          department.department_head,
-          department.department_head_info?.id
-        );
-
-      const fallbackCanApprove = headUserId === user.id;
+      const totalMembers = toNumberValue(department.member_count);
+      const presentMembers = attendees.length;
+      const absentMembers = Math.max(totalMembers - presentMembers, 0);
+      const attendancePercentage =
+        totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0;
 
       return {
         id: departmentId,
-        name: backendDepartment?.name || departmentName,
-        headName:
-          backendDepartment?.headName ||
-          firstNonEmptyString(
-            department.department_head_info?.name,
-            "No head assigned"
-          ),
-        headUserId,
+        name: departmentName,
+        headName: firstNonEmptyString(
+          department.department_head_info?.name,
+          "No head assigned"
+        ),
+        headUserId: firstNonEmptyString(
+          department.department_head,
+          department.department_head_info?.id
+        ),
         attendees,
-        approval:
-          backendDepartment?.approval ||
-          buildApprovalState({}, user.id, fallbackCanApprove),
+        totalMembers,
+        presentMembers,
+        absentMembers,
+        attendancePercentage,
       };
     });
 
     Object.entries(fallbackAttendeesByDepartment).forEach(([key, attendees]) => {
       if (usedFallbackKeys.has(key)) return;
 
+      const presentMembers = attendees.length;
       sectionList.push({
         id: key,
         name: attendees[0]?.departmentName || "Unassigned",
         headName: "No head assigned",
         headUserId: "",
         attendees,
-        approval: buildApprovalState({}, user.id, false),
+        totalMembers: presentMembers,
+        presentMembers,
+        absentMembers: 0,
+        attendancePercentage: presentMembers > 0 ? 100 : 0,
       });
     });
 
-    Object.values(backendDepartments).forEach((department) => {
-      const exists = sectionList.some((section) => section.id === department.id);
-      if (exists) return;
-
-      sectionList.push({
-        id: department.id,
-        name: department.name,
-        headName: department.headName,
-        headUserId: department.headUserId,
-        attendees: department.attendees,
-        approval: department.approval,
-      });
-    });
-
-    return sectionList.sort((first, second) => first.name.localeCompare(second.name));
-  }, [backendDepartments, departmentsResponse?.data, fallbackAttendeesByDepartment, user.id]);
-
-  const departmentSections = useMemo(() => {
-    return baseDepartmentSections.map((section) => {
-      const override = departmentApprovalOverrides[section.id];
-      if (!override) return section;
-
-      return {
-        ...section,
-        approval: override,
-      };
-    });
-  }, [baseDepartmentSections, departmentApprovalOverrides]);
+    return sectionList
+      .filter((department) => department.totalMembers > 0 || department.presentMembers > 0)
+      .sort((first, second) => first.name.localeCompare(second.name));
+  }, [backendDepartmentSections, departmentsResponse?.data, fallbackAttendeesByDepartment]);
 
   useEffect(() => {
     if (!departmentSections.length) return;
@@ -1022,38 +1050,41 @@ const EventReportDetails = () => {
 
   const departmentPresenceSeries = useMemo(() => {
     const sortedDepartments = [...departmentSections].sort(
-      (first, second) => second.attendees.length - first.attendees.length
+      (first, second) => second.attendancePercentage - first.attendancePercentage
     );
 
     return {
       labels: sortedDepartments.map((department) => department.name),
-      values: sortedDepartments.map((department) => department.attendees.length),
+      values: sortedDepartments.map((department) =>
+        Number(department.attendancePercentage.toFixed(1))
+      ),
       colors: sortedDepartments.map((department) => {
-        if (department.approval.status === "APPROVED") return "#16A34A";
-        if (department.approval.status === "REJECTED") return "#DC2626";
-        return "#2563EB";
+        if (department.attendancePercentage >= 75) return "#16A34A";
+        if (department.attendancePercentage >= 40) return "#F59E0B";
+        return "#DC2626";
       }),
     };
   }, [departmentSections]);
 
-  const departmentApprovalBreakdown = useMemo(
-    () =>
-      departmentSections.reduce(
-        (accumulator, department) => {
-          if (department.approval.status === "APPROVED") {
-            accumulator.approved += 1;
-          } else if (department.approval.status === "REJECTED") {
-            accumulator.rejected += 1;
-          } else {
-            accumulator.pending += 1;
-          }
+  const departmentCoverageSummary = useMemo(() => {
+    const totalMembers = departmentSections.reduce(
+      (total, department) => total + department.totalMembers,
+      0
+    );
+    const presentMembers = departmentSections.reduce(
+      (total, department) => total + department.presentMembers,
+      0
+    );
+    const absentMembers = Math.max(totalMembers - presentMembers, 0);
 
-          return accumulator;
-        },
-        { approved: 0, pending: 0, rejected: 0 }
-      ),
-    [departmentSections]
-  );
+    return {
+      totalMembers,
+      presentMembers,
+      absentMembers,
+      attendancePercentage:
+        totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0,
+    };
+  }, [departmentSections]);
 
   const churchCompositionSeries = useMemo(
     () => ({
@@ -1152,8 +1183,9 @@ const EventReportDetails = () => {
       scales: {
         x: {
           beginAtZero: true,
+          max: 100,
           ticks: {
-            precision: 0,
+            callback: (value: string | number) => `${value}%`,
           },
         },
       },
@@ -1220,26 +1252,12 @@ const EventReportDetails = () => {
     []
   );
 
-  const approvedDepartmentCount = useMemo(
-    () =>
-      departmentSections.filter(
-        (department) => department.approval.status === "APPROVED"
-      ).length,
-    [departmentSections]
-  );
-
-  const allDepartmentsApproved =
-    departmentSections.length === 0 ||
-    approvedDepartmentCount === departmentSections.length;
-
   const financeApprovalsComplete =
     countingLeaderApproval.status === "APPROVED" &&
     financeRepApproval.status === "APPROVED";
 
   const checklistReadyForFinalApproval =
-    allDepartmentsApproved &&
-    churchApproval.status === "APPROVED" &&
-    financeApprovalsComplete;
+    churchApproval.status === "APPROVED" && financeApprovalsComplete;
 
   const baseFinalApproval = useMemo<FinalApprovalState>(() => {
     const finalRecord = toRecord(
@@ -1358,41 +1376,6 @@ const EventReportDetails = () => {
     canCurrentUserApprove,
   });
 
-  const handleDepartmentApproval = async (department: DepartmentSection) => {
-    if (!department.approval.canCurrentUserApprove) {
-      showNotification(
-        "Only the assigned head of department can approve this section.",
-        "error"
-      );
-      return;
-    }
-
-    setApprovingDepartmentId(department.id);
-
-    try {
-      await api.post.approveEventReportDepartment({
-        event_id: reportEventId,
-        department_id: department.id,
-        action: "APPROVE",
-        event_date: effectiveReportDate,
-      });
-
-      showNotification("Department approved successfully.", "success");
-      void refetchReportDetails(reportDetailsQuery);
-    } catch {
-      showNotification(
-        "Department approval captured locally. Backend endpoint is pending.",
-        "error"
-      );
-    } finally {
-      setDepartmentApprovalOverrides((current) => ({
-        ...current,
-        [department.id]: buildApprovedState(false),
-      }));
-      setApprovingDepartmentId("");
-    }
-  };
-
   const handleChurchAttendanceApproval = async () => {
     if (!churchApproval.canCurrentUserApprove) {
       showNotification(
@@ -1488,7 +1471,7 @@ const EventReportDetails = () => {
   const handleSubmitFinalApproval = async () => {
     if (!checklistReadyForFinalApproval) {
       showNotification(
-        "All section approvals must be completed before final approval submission.",
+        "Church attendance and finance approvals must be completed before final approval submission.",
         "error"
       );
       return;
@@ -1656,7 +1639,7 @@ const EventReportDetails = () => {
 
         <p className="text-xs text-primaryGray">
           {activeReportViewTab === "Data" &&
-            "Detailed records, approvals, and editable report data."}
+            "Detailed records, attendance ratios, and editable report data."}
           {activeReportViewTab === "Insight" &&
             "Visual analytics and trends for quick interpretation."}
         </p>
@@ -1666,7 +1649,9 @@ const EventReportDetails = () => {
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-primary">Department Overview</h2>
           <span className="text-xs text-primaryGray">
-            {approvedDepartmentCount}/{departmentSections.length} approved
+            {countFormatter.format(departmentCoverageSummary.presentMembers)} present out of{" "}
+            {countFormatter.format(departmentCoverageSummary.totalMembers)} members (
+            {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%)
           </span>
         </div>
 
@@ -1680,7 +1665,7 @@ const EventReportDetails = () => {
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
                   <p className="text-sm font-medium text-primary">
-                    Members Present by Department
+                    Department Attendance Rate
                   </p>
                   <div className="mt-3 h-72">
                     <Bar
@@ -1688,7 +1673,7 @@ const EventReportDetails = () => {
                         labels: departmentPresenceSeries.labels,
                         datasets: [
                           {
-                            label: "Members Present",
+                            label: "Attendance %",
                             data: departmentPresenceSeries.values,
                             backgroundColor: departmentPresenceSeries.colors,
                             borderRadius: 6,
@@ -1703,20 +1688,19 @@ const EventReportDetails = () => {
 
                 <article className="rounded-lg border border-lightGray p-3">
                   <p className="text-sm font-medium text-primary">
-                    Department Approval Status
+                    Overall Department Coverage
                   </p>
                   <div className="mt-3 h-72">
                     <Doughnut
                       data={{
-                        labels: ["Approved", "Pending", "Rejected"],
+                        labels: ["Present", "Absent"],
                         datasets: [
                           {
                             data: [
-                              departmentApprovalBreakdown.approved,
-                              departmentApprovalBreakdown.pending,
-                              departmentApprovalBreakdown.rejected,
+                              departmentCoverageSummary.presentMembers,
+                              departmentCoverageSummary.absentMembers,
                             ],
-                            backgroundColor: ["#16A34A", "#F59E0B", "#DC2626"],
+                            backgroundColor: ["#16A34A", "#E5E7EB"],
                           },
                         ],
                       }}
@@ -1731,8 +1715,6 @@ const EventReportDetails = () => {
               <div className="space-y-3">
                 {departmentSections.map((department) => {
                   const isOpen = openDepartments[department.id] ?? false;
-                  const isDepartmentApprovalLoading =
-                    approvingDepartmentId === department.id;
 
                   return (
                     <article
@@ -1752,8 +1734,12 @@ const EventReportDetails = () => {
                         <div>
                           <p className="font-medium text-primary">{department.name}</p>
                           <p className="text-xs text-primaryGray">
-                            {department.attendees.length} member
-                            {department.attendees.length === 1 ? "" : "s"} present
+                            {countFormatter.format(department.presentMembers)} present out of{" "}
+                            {countFormatter.format(department.totalMembers)} members
+                          </p>
+                          <p className="text-xs text-primaryGray">
+                            {percentFormatter.format(department.attendancePercentage)}%
+                            attendance rate
                           </p>
                         </div>
                         <span className="text-lg text-primary">{isOpen ? "−" : "+"}</span>
@@ -1805,36 +1791,17 @@ const EventReportDetails = () => {
                               {department.headName || "Not assigned"}
                             </span>
                           </p>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-                                department.approval.status
-                              )}`}
-                            >
-                              {statusLabelMap[department.approval.status]}
-                            </span>
-                            {department.approval.approvedAt && (
-                              <span className="text-xs text-primaryGray">
-                                {formatDateTime(department.approval.approvedAt)}
-                              </span>
-                            )}
-                            {department.approval.approvedByName && (
-                              <span className="text-xs text-primaryGray">
-                                by {department.approval.approvedByName}
-                              </span>
-                            )}
-                          </div>
+                          <p className="text-xs text-primaryGray">
+                            Present: {countFormatter.format(department.presentMembers)} | Absent:{" "}
+                            {countFormatter.format(department.absentMembers)}
+                          </p>
                         </div>
-
-                        {department.approval.status !== "APPROVED" &&
-                          department.approval.canCurrentUserApprove && (
-                            <Button
-                              value="Approve"
-                              variant="secondary"
-                              onClick={() => handleDepartmentApproval(department)}
-                              loading={isDepartmentApprovalLoading}
-                            />
-                          )}
+                        <div className="rounded-lg bg-lightGray/40 px-3 py-2 text-right">
+                          <p className="text-xs text-primaryGray">Attendance Rate</p>
+                          <p className="font-semibold text-primary">
+                            {percentFormatter.format(department.attendancePercentage)}%
+                          </p>
+                        </div>
                       </footer>
                     </article>
                   );
@@ -2363,9 +2330,14 @@ const EventReportDetails = () => {
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-lightGray p-3 text-sm">
-            <p className="text-xs text-primaryGray">Department Approvals</p>
+            <p className="text-xs text-primaryGray">Department Coverage</p>
             <p className="font-semibold text-primary">
-              {approvedDepartmentCount}/{departmentSections.length} approved
+              {countFormatter.format(departmentCoverageSummary.presentMembers)}/
+              {countFormatter.format(departmentCoverageSummary.totalMembers)} present
+            </p>
+            <p className="text-xs text-primaryGray">
+              {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%
+              attendance rate
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3 text-sm">
@@ -2397,7 +2369,8 @@ const EventReportDetails = () => {
 
           {!checklistReadyForFinalApproval && (
             <p className="mt-2 text-xs text-[#996A13]">
-              Complete all section approvals before final approval can proceed.
+              Church attendance and finance approvals must be completed before
+              final approval can proceed.
             </p>
           )}
 
