@@ -1,6 +1,68 @@
 import { array, date, number, object, string } from "yup";
 import { formatDate } from "/src/utils/helperFunctions";
 
+const getDisplayValue = (...values) => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  }
+
+  return "-";
+};
+
+const formatAttendanceArrival = (value) => {
+  if (!value) return "-";
+
+  if (typeof value === "string" && /^\d{2}:\d{2}/.test(value)) {
+    return value.slice(0, 5);
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return getDisplayValue(value);
+  }
+
+  return parsed.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getAttendanceName = (record) =>
+  getDisplayValue(
+    record?.name,
+    record?.full_name,
+    record?.member_name,
+    record?.memberName,
+    record?.user_name,
+    record?.user?.user_info?.name,
+    record?.user?.user_info?.user?.name,
+    record?.user?.name
+  );
+
+const getAttendancePhone = (record) =>
+  getDisplayValue(
+    record?.phone,
+    record?.primary_number,
+    record?.user?.primary_number,
+    record?.user?.user_info?.primary_number
+  );
+
+const getAttendanceArrival = (record) =>
+  formatAttendanceArrival(
+    record?.arrival_time ??
+      record?.arrivalTime ??
+      record?.checked_in_at ??
+      record?.checkedInAt ??
+      record?.created_at ??
+      record?.createdAt
+  );
+
+const getAttendanceDate = (record) => {
+  const visitedAt = record?.created_at ?? record?.createdAt;
+  return visitedAt ? formatDate(visitedAt) : "-";
+};
+
 export const months = [
   { name: "January", value: 1 },
   { name: "February", value: 2 },
@@ -20,25 +82,30 @@ export const registeredEventAttendance = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => row.original.user.user_info.user.name,
+    cell: ({ row }) => getAttendanceName(row.original),
   },
   {
     header: "Membership",
-    cell: ({ row }) => row.original.event_status,
+    cell: ({ row }) =>
+      getDisplayValue(
+        row.original.event_status,
+        row.original.membership_type,
+        row.original.membershipStatus
+      ),
   },
   {
     header: "Phone",
     accessorKey: "user_info.primary_number",
-    cell: ({ row }) => row.original.user.user_info.primary_number,
+    cell: ({ row }) => getAttendancePhone(row.original),
   },
   {
     header: "Arrival",
-    cell: ({ row }) => row.original.user.user_info.name,
+    cell: ({ row }) => getAttendanceArrival(row.original),
   },
   {
     header: "Last visited",
     accessorKey: "created_at",
-    cell: ({ row }) => formatDate(row.original.created_at),
+    cell: ({ row }) => getAttendanceDate(row.original),
   },
 ];
 

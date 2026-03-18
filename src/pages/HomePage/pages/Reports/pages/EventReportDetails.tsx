@@ -37,6 +37,9 @@ type DepartmentAttendee = {
   name: string;
   arrivalTime: string;
   arrivalAt: string;
+  reportedTime: string;
+  relativeToStart: string;
+  attendanceStatus: TimingStatus | "";
   userId: string;
   departmentId: string;
   departmentName: string;
@@ -130,8 +133,8 @@ type BackendDepartment = {
   attendancePercentage: number;
 };
 
-type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "UNCLASSIFIED";
-type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE";
+type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "ABSENT" | "UNCLASSIFIED";
+type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE" | "ABSENT";
 type RelativeDirectionFilter = "ALL" | "BEFORE" | "AFTER";
 
 type DepartmentInsightRow = {
@@ -231,6 +234,16 @@ const toNumberValue = (value: unknown): number => {
   return 0;
 };
 
+const toOptionalNumberValue = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+};
+
 const toBooleanValue = (value: unknown): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
@@ -240,6 +253,19 @@ const toBooleanValue = (value: unknown): boolean => {
   }
 
   return false;
+};
+
+const toOptionalBooleanValue = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return null;
+    if (["true", "1", "yes", "y"].includes(normalized)) return true;
+    if (["false", "0", "no", "n"].includes(normalized)) return false;
+  }
+
+  return null;
 };
 
 const firstNonEmptyString = (...values: unknown[]): string => {
@@ -405,6 +431,19 @@ const buildDepartmentAttendeeLookupKey = (
   attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">
 ) => `${departmentId}::${attendee.userId || attendee.id || attendee.name}`;
 
+const normalizeTimingStatusValue = (value: unknown): TimingStatus | null => {
+  const status = toStringValue(value)
+    .replace(/[\s-]+/g, "_")
+    .toUpperCase();
+
+  if (status === "EARLY") return "EARLY";
+  if (status === "ON_TIME" || status === "ONTIME") return "ON_TIME";
+  if (status === "LATE") return "LATE";
+  if (status === "ABSENT") return "ABSENT";
+
+  return null;
+};
+
 const normalizeApprovalStatus = (value: unknown): ApprovalStatus => {
   const status = toStringValue(value).toUpperCase();
 
@@ -426,7 +465,6 @@ const normalizeFinalApprovalStatus = (value: unknown): FinalApprovalStatus => {
 
 const buildApprovalState = (
   value: unknown,
-  currentUserId: string,
   fallbackCanApprove = false
 ): ApprovalState => {
   const record = toRecord(value);
@@ -459,12 +497,8 @@ const buildApprovalState = (
       record.actedAt
     ),
     canCurrentUserApprove:
-      toBooleanValue(record.can_current_user_approve) ||
-      toBooleanValue(record.canCurrentUserApprove) ||
-      (approvedByUserId
-        ? approvedByUserId === currentUserId &&
-          normalizeApprovalStatus(record.status) !== "APPROVED"
-        : false) ||
+      toOptionalBooleanValue(record.can_current_user_approve) ??
+      toOptionalBooleanValue(record.canCurrentUserApprove) ??
       fallbackCanApprove,
   };
 
@@ -505,6 +539,7 @@ const timingStatusLabelMap: Record<TimingStatus, string> = {
   EARLY: "Early",
   ON_TIME: "On Time",
   LATE: "Late",
+  ABSENT: "Absent",
   UNCLASSIFIED: "Unclassified",
 };
 
@@ -519,6 +554,10 @@ const getTimingBadgeClasses = (status: TimingStatus) => {
 
   if (status === "LATE") {
     return "bg-[#FFF0D5] text-[#B54708]";
+  }
+
+  if (status === "ABSENT") {
+    return "bg-[#FEE4E2] text-[#B42318]";
   }
 
   return "bg-[#EDEFF5] text-lighterBlack";
@@ -611,12 +650,30 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     record.created_at,
     record.createdAt
   );
+  const reportedTime = firstNonEmptyString(
+    record.reported_time,
+    record.reportedTime
+  );
+  const relativeToStart = firstNonEmptyString(
+    record.relative_to_start,
+    record.relativeToStart
+  );
+  const attendanceStatus = normalizeTimingStatusValue(record.status);
 
   return {
     id: firstNonEmptyString(record.id, `${userId}-${attendeeName}`),
     name: attendeeName,
     arrivalTime: formatArrivalTime(arrivalRaw),
     arrivalAt: arrivalRaw,
+    reportedTime:
+      reportedTime && reportedTime !== "-" && reportedTime !== "—"
+        ? reportedTime
+        : "",
+    relativeToStart:
+      relativeToStart && relativeToStart !== "-" && relativeToStart !== "—"
+        ? relativeToStart
+        : "",
+    attendanceStatus: attendanceStatus ?? "",
     userId,
     departmentId,
     departmentName,
@@ -1072,19 +1129,26 @@ const EventReportDetails = () => {
         )
           .map((attendee) => normalizeAttendeeRecord(attendee))
           .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
-        const totalMembers = toNumberValue(
-          record.total_members ?? record.totalMembers ?? record.member_count ?? record.memberCount
-        );
+        const totalMembers =
+          toOptionalNumberValue(
+            record.total_members ??
+              record.totalMembers ??
+              record.member_count ??
+              record.memberCount
+          ) ?? attendees.length;
+        const derivedPresentMembers = attendees.filter(
+          (attendee) => attendee.attendanceStatus !== "ABSENT"
+        ).length;
         const presentMembers =
-          toNumberValue(record.present_members ?? record.presentMembers) ||
-          attendees.length;
+          toOptionalNumberValue(record.present_members ?? record.presentMembers) ??
+          derivedPresentMembers;
         const absentMembers =
-          toNumberValue(record.absent_members ?? record.absentMembers) ||
+          toOptionalNumberValue(record.absent_members ?? record.absentMembers) ??
           Math.max(totalMembers - presentMembers, 0);
         const attendancePercentage =
-          toNumberValue(
+          toOptionalNumberValue(
             record.attendance_percentage ?? record.attendancePercentage
-          ) || (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
+          ) ?? (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
 
         return {
           id: id || name,
@@ -1221,19 +1285,22 @@ const EventReportDetails = () => {
             name: attendee.name,
             departmentId: department.id,
             departmentName: department.name,
-            arrivalTime: attendee.arrivalTime,
+            arrivalTime: attendee.reportedTime || attendee.arrivalTime,
             arrivalAt: arrivalDateTime.isValid
               ? arrivalDateTime.toISO() || arrivalRaw
               : arrivalRaw,
             reportedAtLabel: arrivalDateTime.isValid
               ? arrivalDateTime.toFormat("dd LLL yyyy, HH:mm")
-              : attendee.arrivalTime || "—",
-            relativeToStartLabel: formatRelativeToStart(minutesFromStart),
+              : "",
+            relativeToStartLabel:
+              attendee.relativeToStart ||
+              (attendee.attendanceStatus === "ABSENT"
+                ? "—"
+                : formatRelativeToStart(minutesFromStart)),
             minutesFromStart,
-            timingStatus: getTimingStatus(
-              minutesFromStart,
-              attendanceTimingRuleMinutes
-            ),
+            timingStatus:
+              attendee.attendanceStatus ||
+              getTimingStatus(minutesFromStart, attendanceTimingRuleMinutes),
             arrivalSortValue,
           } satisfies DepartmentInsightRow;
         })
@@ -1326,6 +1393,7 @@ const EventReportDetails = () => {
           if (row.timingStatus === "EARLY") summary.early += 1;
           if (row.timingStatus === "ON_TIME") summary.onTime += 1;
           if (row.timingStatus === "LATE") summary.late += 1;
+          if (row.timingStatus === "ABSENT") summary.absent += 1;
           if (row.timingStatus === "UNCLASSIFIED") summary.unclassified += 1;
 
           return summary;
@@ -1334,6 +1402,7 @@ const EventReportDetails = () => {
           early: 0,
           onTime: 0,
           late: 0,
+          absent: 0,
           unclassified: 0,
         }
       ),
@@ -1410,10 +1479,9 @@ const EventReportDetails = () => {
 
     return buildApprovalState(
       churchRecord.approval ?? churchRecord,
-      user.id,
       toBooleanValue(churchRecord.can_current_user_approve)
     );
-  }, [reportDetails, user.id]);
+  }, [reportDetails]);
 
   const churchApproval = churchApprovalOverride || backendChurchApproval;
 
@@ -1449,10 +1517,9 @@ const EventReportDetails = () => {
         financeRecord.countingLeaderApproval ??
         approvalsRecord.counting_leader ??
         approvalsRecord.countingLeader,
-      user.id,
       false
     );
-  }, [financeRecord, user.id]);
+  }, [financeRecord]);
 
   const baseFinanceRepApproval = useMemo(() => {
     const approvalsRecord = toRecord(financeRecord.approvals);
@@ -1462,10 +1529,9 @@ const EventReportDetails = () => {
         financeRecord.financeRepApproval ??
         approvalsRecord.finance_rep ??
         approvalsRecord.financeRep,
-      user.id,
       false
     );
-  }, [financeRecord, user.id]);
+  }, [financeRecord]);
 
   const countingLeaderApproval =
     financeApprovalOverrides.countingLeader || baseCountingLeaderApproval;
@@ -1733,15 +1799,16 @@ const EventReportDetails = () => {
         finalRecord.approvedAt
       ),
       canCurrentUserSubmit:
-        toBooleanValue(finalRecord.can_current_user_submit) ||
-        toBooleanValue(finalRecord.canCurrentUserSubmit) ||
-        user.user_category === "admin",
+        toOptionalBooleanValue(finalRecord.can_current_user_submit) ??
+        toOptionalBooleanValue(finalRecord.canCurrentUserSubmit) ??
+        false,
       canCurrentUserApprove:
-        toBooleanValue(finalRecord.can_current_user_approve) ||
-        toBooleanValue(finalRecord.canCurrentUserApprove),
+        toOptionalBooleanValue(finalRecord.can_current_user_approve) ??
+        toOptionalBooleanValue(finalRecord.canCurrentUserApprove) ??
+        false,
       viewers,
     };
-  }, [reportDetails, user.user_category]);
+  }, [reportDetails]);
 
   const finalApproval = finalApprovalOverride || baseFinalApproval;
 
@@ -2137,6 +2204,7 @@ const EventReportDetails = () => {
                       <option value="EARLY">Early</option>
                       <option value="ON_TIME">On Time</option>
                       <option value="LATE">Late</option>
+                      <option value="ABSENT">Absent</option>
                     </select>
                   </label>
 
@@ -2223,6 +2291,13 @@ const EventReportDetails = () => {
                     {countFormatter.format(departmentInsightSummary.unclassified)}{" "}
                     records could not be classified because the event start time or
                     arrival timestamp was incomplete.
+                  </p>
+                )}
+
+                {departmentInsightSummary.absent > 0 && (
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(departmentInsightSummary.absent)} members
+                    were marked absent by the report payload.
                   </p>
                 )}
 
@@ -2331,9 +2406,11 @@ const EventReportDetails = () => {
                               <td className="px-4 py-3">
                                 <div className="space-y-1">
                                   <p className="text-primary">{row.arrivalTime}</p>
-                                  <p className="text-xs text-primaryGray">
-                                    {row.reportedAtLabel}
-                                  </p>
+                                  {row.reportedAtLabel && (
+                                    <p className="text-xs text-primaryGray">
+                                      {row.reportedAtLabel}
+                                    </p>
+                                  )}
                                 </div>
                               </td>
                               <td className="px-4 py-3">{row.relativeToStartLabel}</td>
@@ -2413,7 +2490,7 @@ const EventReportDetails = () => {
                           {normalizedDataSearchTerm && (
                             <p className="text-xs text-primaryGray">
                               Showing {countFormatter.format(department.visibleCount)} of{" "}
-                              {countFormatter.format(department.attendees.length)} present
+                              {countFormatter.format(department.attendees.length)} member
                               records
                             </p>
                           )}
@@ -2447,7 +2524,7 @@ const EventReportDetails = () => {
                                     colSpan={4}
                                     className="px-4 py-4 text-primaryGray"
                                   >
-                                    No attendance records matched your search for this
+                                    No member records matched your search for this
                                     department.
                                   </td>
                                 </tr>
@@ -2473,9 +2550,9 @@ const EventReportDetails = () => {
                                       <td className="px-4 py-3">
                                         <div className="space-y-1">
                                           <p className="text-primary">
-                                            {attendee.arrivalTime}
+                                            {attendee.reportedTime || attendee.arrivalTime}
                                           </p>
-                                          {insightRow && (
+                                          {insightRow?.reportedAtLabel && (
                                             <p className="text-xs text-primaryGray">
                                               {insightRow.reportedAtLabel}
                                             </p>
