@@ -369,55 +369,8 @@ export const attendanceContract: AnalyticsModuleContract = {
     {
       key: "total_attendance_trend",
       title: "Total Attendance Trend",
-      payloadType: "timeseries",
-      sourceEndpoints: ["GET /event/church-attendance"],
-      request: {
-        filters: ["date_range", "eventId", "date", "membership_type"],
-        groupBy: ["day", "week", "month"],
-      },
-      responseShape:
-        '{"type":"timeseries","granularity":"week","series":[{"period":"2026-W07","value":850}],"total":850}',
-      formula:
-        "sum(adultMale + adultFemale + childrenMale + childrenFemale + youthMale + youthFemale) per bucket",
-    },
-    {
-      key: "adult_children_youth_mix",
-      title: "Adults vs Children vs Youth",
-      payloadType: "breakdown",
-      sourceEndpoints: ["GET /event/church-attendance"],
-      request: {
-        filters: ["date_range", "eventId", "group"],
-      },
-      responseShape:
-        '{"type":"breakdown","items":[{"key":"adults","value":1200,"percent":54.5},{"key":"children","value":600,"percent":27.3},{"key":"youth","value":400,"percent":18.2}]}',
-      formula: "aggregate subgroup totals and compute share",
-    },
-    {
-      key: "male_female_mix",
-      title: "Male vs Female Mix",
-      payloadType: "breakdown",
-      sourceEndpoints: ["GET /event/church-attendance"],
-      request: {
-        filters: ["date_range", "eventId", "group"],
-      },
-      responseShape:
-        '{"type":"breakdown","items":[{"key":"male","value":1100,"percent":50.0},{"key":"female","value":1100,"percent":50.0}]}',
-      formula: "sum male fields vs female fields across attendance records",
-    },
-    {
-      key: "avg_attendance_per_event",
-      title: "Average Attendance per Event",
-      payloadType: "ratio",
-      sourceEndpoints: ["GET /event/church-attendance"],
-      request: {
-        filters: ["date_range", "eventId"],
-      },
-      responseShape: '{"type":"ratio","numerator":2200,"denominator":14,"value":157.1}',
-      formula: "total attendance / distinct event count",
-    },
-    {
-      key: "visiting_pastors_trend",
-      title: "Visiting Pastors Trend",
+      description:
+        "Shows turnout over time across members, visitors, and visitor clergy.",
       payloadType: "timeseries",
       sourceEndpoints: ["GET /event/church-attendance"],
       request: {
@@ -425,8 +378,176 @@ export const attendanceContract: AnalyticsModuleContract = {
         groupBy: ["day", "week", "month"],
       },
       responseShape:
-        '{"type":"timeseries","granularity":"month","series":[{"period":"2026-01","value":12}],"total":12}',
-      formula: "sum(visitingPastors) per bucket",
+        '{"type":"timeseries","granularity":"week","series":[{"period":"2026-W07","value":850}],"total":850}',
+      formula:
+        "sum(adultMale + adultFemale + childrenMale + childrenFemale + youthMale + youthFemale + visitorTotal) per bucket",
+    },
+    {
+      key: "attendance_composition",
+      title: "Attendance Composition",
+      description:
+        "Breaks attendance into adults, children, youth, and overall gender totals.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/church-attendance"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"adults","value":1200,"percent":54.5},{"key":"children","value":600,"percent":27.3},{"key":"youth","value":400,"percent":18.2}]}',
+      formula:
+        "aggregate adults, children, youth, male, and female counts from attendance records",
+    },
+    {
+      key: "attendance_presence_mix",
+      title: "Members vs Visitors vs Visitor Clergy",
+      description:
+        "Shows how much turnout came from members versus visitor-side attendance.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/church-attendance"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"members","value":1800,"percent":72.0},{"key":"visitors","value":500,"percent":20.0},{"key":"visitor_clergy","value":200,"percent":8.0}]}',
+      formula:
+        "sum member attendance totals vs visitorsTotal vs visitorClergyTotal across attendance records",
+    },
+    {
+      key: "event_attendance_leaderboard",
+      title: "Event Attendance Leaderboard",
+      description:
+        "Ranks events by recorded attendance, visitors, and visitor clergy turnout.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/church-attendance", "GET /event/list-events"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"Sunday Service","value":420},{"key":"Revival Night","value":310}]}',
+      formula: "group recorded attendance by event and rank descending by totalAttendance",
+    },
+    {
+      key: "event_type_performance",
+      title: "Event Type Performance",
+      description:
+        "Compares average turnout by event type using recorded attendance.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/church-attendance", "GET /event/list-events"],
+      request: {
+        filters: ["date_range", "eventId", "event_type"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"SERVICE","value":220},{"key":"PROGRAM","value":160}]}',
+      formula:
+        "group recorded events by event_type and compute average attendance per event",
+    },
+    {
+      key: "day_time_performance",
+      title: "Day and Time Performance",
+      description:
+        "Shows which weekdays and start times produce stronger average turnout.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/church-attendance", "GET /event/list-events"],
+      request: {
+        filters: ["date_range", "eventId", "event_type"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"Sunday","value":260},{"key":"Morning","value":210}]}',
+      formula:
+        "join recorded attendance to event start_date/start_time and average turnout by weekday and time slot",
+    },
+    {
+      key: "registration_vs_actual",
+      title: "Registration vs Actual Attendance",
+      description:
+        "Compares completed-event registrations against recorded attendance.",
+      payloadType: "ratio",
+      sourceEndpoints: ["GET /event/list-events", "GET /event/church-attendance"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"ratio","numerator":640,"denominator":700,"value":91.4}',
+      formula:
+        "sum(totalAttendance for completed registered events) / sum(registration_count)",
+    },
+    {
+      key: "capacity_utilization",
+      title: "Capacity Utilization",
+      description:
+        "Measures how actual attendance compares with configured event capacity.",
+      payloadType: "ratio",
+      sourceEndpoints: ["GET /event/list-events", "GET /event/church-attendance"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"ratio","numerator":540,"denominator":600,"value":90.0}',
+      formula:
+        "sum(totalAttendance for capacity-configured events) / sum(registration_capacity)",
+    },
+    {
+      key: "first_time_repeat_visitors",
+      title: "First-Time vs Repeat Visitors",
+      description:
+        "Splits visitor attendance into first-time and returning visitors using visit history.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /visitor/visitors"],
+      request: {
+        filters: ["date_range", "eventId", "howHeard"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"first_time","value":180,"percent":62.1},{"key":"repeat","value":110,"percent":37.9}]}',
+      formula: "count visitors where visitCount <= 1 vs visitCount > 1",
+    },
+    {
+      key: "visitor_source_mix",
+      title: "Visitor Source Mix",
+      description:
+        "Shows which referral channels are driving visitor attendance.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /visitor/visitors"],
+      request: {
+        filters: ["date_range", "eventId", "howHeard"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"Friend","value":90,"percent":31.0},{"key":"Social Media","value":70,"percent":24.1}]}',
+      formula: "group visitor attendance by howHeard/referral source",
+    },
+    {
+      key: "biometric_punctuality",
+      title: "Biometric Punctuality",
+      description:
+        "Classifies biometric arrivals as early, on time, late, or unclassified against event start time.",
+      payloadType: "breakdown",
+      sourceEndpoints: ["GET /event/biometric-attendance", "GET /event/list-events"],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"breakdown","items":[{"key":"on_time","value":120,"percent":55.0},{"key":"late","value":70,"percent":32.1}]}',
+      formula:
+        "compare first_punch_at to event start_date + start_time using early/on-time/late thresholds",
+    },
+    {
+      key: "attendance_data_quality",
+      title: "Attendance Data Quality",
+      description:
+        "Flags missing summaries and data gaps that weaken attendance reporting accuracy.",
+      payloadType: "score",
+      sourceEndpoints: [
+        "GET /event/list-events",
+        "GET /event/church-attendance",
+        "GET /visitor/visitors",
+        "GET /event/biometric-attendance",
+      ],
+      request: {
+        filters: ["date_range", "eventId"],
+      },
+      responseShape:
+        '{"type":"score","value":82.0,"grade":"B","flags":{"missing_summaries":4,"visitor_gender_missing":12}}',
+      formula:
+        "count completed events missing attendance summary, biometric-only events, visitor-only events, and visitor gender gaps",
     },
   ],
 };

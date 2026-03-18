@@ -20,6 +20,10 @@ export type VisitorType = {
   howHeard: string;
   consentToContact: boolean;
   membershipWish: boolean;
+  isClergy?: boolean;
+  churchName?: string | null;
+  churchLocation?: string | null;
+  churchRole?: string | null;
   createdAt: string;
   updatedAt: string;
   visitCount: number;

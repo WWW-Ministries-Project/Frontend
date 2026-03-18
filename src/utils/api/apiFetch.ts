@@ -25,6 +25,7 @@ import type {
 } from "./marketPlace/interface";
 import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
+  CertificateData,
   CohortAssignment,
   DetailedCohortType,
   DetailedCourseType,
@@ -34,6 +35,7 @@ import {
   Programs,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
+import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import type {
   SystemNotificationAdminCandidate,
@@ -240,6 +242,12 @@ export class ApiCalls {
     return this.fetchFromApi("settings/get-role-eligibility-config");
   };
 
+  fetchAttendanceTimingConfig = (): Promise<
+    ApiResponse<AttendanceTimingSettingsConfig>
+  > => {
+    return this.fetchFromApi("settings/attendance-timing-config");
+  };
+
   fetchSystemNotificationConfig = (): Promise<
     ApiResponse<SystemNotificationSettingsConfig>
   > => {
@@ -400,6 +408,21 @@ export class ApiCalls {
     query?:QueryType
   ): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("program/program-completion-status", query);
+  };
+
+  fetchProgramCertificate = (
+    query?: QueryType
+  ): Promise<ApiResponse<CertificateData>> => {
+    return this.fetchFromApi("program/certificate", query);
+  };
+
+  fetchCertificateVerification = (
+    query?: QueryType
+  ): Promise<ApiResponse<CertificateData>> => {
+    const certificateNumber = String(query?.certificateNumber ?? "").trim();
+    return this.fetchFromApi(
+      `program/certificate/verify/${encodeURIComponent(certificateNumber)}`
+    );
   };
 
   // Check active assignment

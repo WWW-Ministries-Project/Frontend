@@ -40,6 +40,7 @@ const attendanceTotal = (record: AttendanceRecord) => {
     Number(record.childrenFemale ?? record.children_female ?? 0),
     Number(record.youthMale ?? record.youth_male ?? 0),
     Number(record.youthFemale ?? record.youth_female ?? 0),
+    Number(record.visitorTotal ?? record.visitor_total ?? record.visitors ?? 0),
   ].reduce((acc, item) => (Number.isFinite(item) ? acc + item : acc), 0);
 };
 

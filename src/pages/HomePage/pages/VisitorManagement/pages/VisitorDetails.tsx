@@ -42,6 +42,15 @@ export const VisitorDetails = () => {
     error: putError,
   } = usePut(api.put.updateVisitor);
   const visitor = useMemo(() => data?.data, [data]);
+  const visitorClergyInfo = useMemo(() => {
+    if (!visitor?.isClergy) return null;
+
+    return {
+      churchName: visitor.churchName || "",
+      churchLocation: visitor.churchLocation || "",
+      churchRole: visitor.churchRole || "",
+    };
+  }, [visitor?.churchLocation, visitor?.churchName, visitor?.churchRole, visitor?.isClergy]);
   const responsibleMemberNames = useMemo(() => {
     const names =
       visitor?.responsibleMembersNames?.map((member) => member.name).filter(Boolean) || [];
@@ -231,6 +240,29 @@ export const VisitorDetails = () => {
                 <div className="font-semibold text-sm sm:text-base">How they heard about us:</div>
                 <div className="text-sm sm:text-base break-words">{visitor?.howHeard}</div>
               </div>
+
+              {visitorClergyInfo ? (
+                <>
+                  <HorizontalLine />
+
+                  <div className="space-y-2">
+                    <div className="font-semibold text-sm sm:text-base">
+                      Clergy Information
+                    </div>
+                    <div className="text-sm sm:text-base break-words">
+                      Church: {visitorClergyInfo.churchName}
+                    </div>
+                    <div className="text-sm sm:text-base break-words">
+                      Location: {visitorClergyInfo.churchLocation}
+                    </div>
+                    {visitorClergyInfo.churchRole ? (
+                      <div className="text-sm sm:text-base break-words">
+                        Role: {visitorClergyInfo.churchRole}
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : null}
 
               <HorizontalLine />
 

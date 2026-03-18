@@ -441,8 +441,7 @@ export interface CertificateData {
   programTitle: string;
   completionDate: string;
   issueDate: string;
-  certificateId: string;
-  signatoryName: string;
-  signatoryTitle: string;
+  certificateNumber: string;
   verificationUrl: string;
+  qrCodeDataUrl: string;
 }

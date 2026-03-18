@@ -21,6 +21,15 @@ type SyncEventDateFormValues = {
   };
 };
 
+type SyncClergyFieldsFormValues = {
+  isClergy?: string;
+  clergy_info?: {
+    churchName?: string;
+    churchLocation?: string;
+    churchRole?: string;
+  };
+};
+
 const genderOptions = [
   { label: "Male", value: "Male" },
   { label: "Female", value: "Female" },
@@ -32,6 +41,11 @@ const maritalStatusOptions = [
   { label: "Divorced", value: "DIVORCED" },
   { label: "Widow", value: "WIDOW" },
   { label: "Widower", value: "WIDOWER" },
+];
+
+const clergyOptions = [
+  { label: "Yes", value: "yes" },
+  { label: "No", value: "no" },
 ];
 
 const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | number; date?: string }[] }) => {
@@ -50,6 +64,34 @@ const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | num
       setFieldValue("visit.date", formattedDate);
     }
   }, [values?.visit?.eventId, eventsOptions, setFieldValue]);
+
+  return null;
+};
+
+const SyncClergyFields = () => {
+  const { values, setFieldValue } = useFormikContext<SyncClergyFieldsFormValues>();
+
+  React.useEffect(() => {
+    if (values?.isClergy === "yes") return;
+
+    if (values?.clergy_info?.churchName) {
+      setFieldValue("clergy_info.churchName", "");
+    }
+
+    if (values?.clergy_info?.churchLocation) {
+      setFieldValue("clergy_info.churchLocation", "");
+    }
+
+    if (values?.clergy_info?.churchRole) {
+      setFieldValue("clergy_info.churchRole", "");
+    }
+  }, [
+    setFieldValue,
+    values?.isClergy,
+    values?.clergy_info?.churchLocation,
+    values?.clergy_info?.churchName,
+    values?.clergy_info?.churchRole,
+  ]);
 
   return null;
 };
@@ -83,13 +125,14 @@ const VisitorFormComponent = ({
     <div className="bg-white  rounded-lg w-full  mx-auto">
       <Formik
         initialValues={selectedVisitor || initialValues}
-        // validationSchema={validationSchema}
+        validate={validateVisitorForm}
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
         {({ setFieldValue, values }) => (
           <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
             <SyncEventDate eventsOptions={eventsOptions} />
+            <SyncClergyFields />
             {showHeader && (
               <div className="sticky top-0 z-10">
                 <FormHeader>
@@ -133,6 +176,52 @@ const VisitorFormComponent = ({
                   name={`contact_info.address`}
                   id={`contact_info.address`}
                 />
+                <div className="md:col-span-2 rounded-lg border border-lightGray/70 bg-lightGray/20 p-4">
+                  <div className="mb-4">
+                    <p className="text-sm font-semibold text-primary">
+                      Clergy Information
+                    </p>
+                    <p className="text-xs text-primaryGray">
+                      If the visitor is clergy, add their church details.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field
+                      component={FormikSelectField}
+                      options={clergyOptions}
+                      label="Is the visitor clergy?"
+                      placeholder="Select an option"
+                      name="isClergy"
+                      id="isClergy"
+                    />
+                    {values.isClergy === "yes" ? (
+                      <>
+                        <Field
+                          component={FormikInputDiv}
+                          label="Church *"
+                          placeholder="Enter church name"
+                          name="clergy_info.churchName"
+                          id="clergy_info.churchName"
+                        />
+                        <Field
+                          component={FormikInputDiv}
+                          label="Church Location *"
+                          placeholder="Enter church location"
+                          name="clergy_info.churchLocation"
+                          id="clergy_info.churchLocation"
+                        />
+                        <Field
+                          component={FormikInputDiv}
+                          className="md:col-span-2"
+                          label="Role in the Church (Optional)"
+                          placeholder="Enter church role"
+                          name="clergy_info.churchRole"
+                          id="clergy_info.churchRole"
+                        />
+                      </>
+                    ) : null}
+                  </div>
+                </div>
                 <Field
                   component={FormikSelectField}
                   options={eventsOptions}
@@ -233,6 +322,12 @@ export interface IVisitorForm {
     nationality?: string;
   };
   contact_info: IContactsSubForm & { address: string };
+  isClergy: string;
+  clergy_info: {
+    churchName: string;
+    churchLocation: string;
+    churchRole: string;
+  };
   visit: {
     date: string;
     howHeard: string;
@@ -251,6 +346,12 @@ const initialValues: IVisitorForm = {
     nationality: "",
   },
   contact_info: { ...ContactsSubForm.initialValues, address: "" },
+  isClergy: "no",
+  clergy_info: {
+    churchName: "",
+    churchLocation: "",
+    churchRole: "",
+  },
   visit: {
     date: "",
     howHeard: "",
@@ -277,6 +378,42 @@ const validationSchema = object({
     howHeard: string().required("How did you hear about us?"),
   }),
 });
+
+const validateVisitorForm = (values: IVisitorForm) => {
+  const errors: {
+    clergy_info?: {
+      churchName?: string;
+      churchLocation?: string;
+    };
+  } = {};
+
+  if (values.isClergy !== "yes") {
+    return errors;
+  }
+
+  const churchName = values.clergy_info.churchName?.trim();
+  const churchLocation = values.clergy_info.churchLocation?.trim();
+
+  if (!churchName || !churchLocation) {
+    errors.clergy_info = {};
+  }
+
+  if (!churchName) {
+    errors.clergy_info = {
+      ...errors.clergy_info,
+      churchName: "Church is required",
+    };
+  }
+
+  if (!churchLocation) {
+    errors.clergy_info = {
+      ...errors.clergy_info,
+      churchLocation: "Church location is required",
+    };
+  }
+
+  return errors;
+};
 
 export const VisitorForm = Object.assign(VisitorFormComponent, {
   initialValues,

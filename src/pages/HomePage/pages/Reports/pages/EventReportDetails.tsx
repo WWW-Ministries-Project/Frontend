@@ -5,7 +5,8 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { ensureAnalyticsChartsRegistered } from "@/pages/HomePage/pages/Analytics/chartSetup";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { showNotification } from "@/pages/HomePage/utils";
-import { api, DepartmentType, relativePath, VisitorType } from "@/utils";
+import { api, DepartmentType, relativePath } from "@/utils";
+import type { AttendanceTimingSettingsConfig } from "@/utils/api/settings/attendanceTimingInterfaces";
 import { ApiResponse } from "@/utils/interfaces";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
@@ -35,6 +36,7 @@ type DepartmentAttendee = {
   id: string;
   name: string;
   arrivalTime: string;
+  arrivalAt: string;
   userId: string;
   departmentId: string;
   departmentName: string;
@@ -63,7 +65,21 @@ type AttendanceRecord = {
   childrenFemale: number;
   youthMale: number;
   youthFemale: number;
-  visitingPastors: number;
+  visitors: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorClergy: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorTotal: {
+    male: number;
+    female: number;
+    total: number;
+  };
 };
 
 type AttendanceTotals = {
@@ -73,8 +89,21 @@ type AttendanceTotals = {
   childrenFemale: number;
   youthMale: number;
   youthFemale: number;
-  visitingPastors: number;
-  visitors: number;
+  visitors: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorClergy: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorTotal: {
+    male: number;
+    female: number;
+    total: number;
+  };
   totalWithoutVisitors: number;
   totalAttendance: number;
 };
@@ -101,6 +130,36 @@ type BackendDepartment = {
   attendancePercentage: number;
 };
 
+type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "UNCLASSIFIED";
+type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE";
+type RelativeDirectionFilter = "ALL" | "BEFORE" | "AFTER";
+
+type DepartmentInsightRow = {
+  id: string;
+  userId: string;
+  name: string;
+  departmentId: string;
+  departmentName: string;
+  arrivalTime: string;
+  arrivalAt: string;
+  reportedAtLabel: string;
+  relativeToStartLabel: string;
+  minutesFromStart: number | null;
+  timingStatus: TimingStatus;
+  arrivalSortValue: number | null;
+};
+
+type DepartmentDataSectionView = DepartmentSection & {
+  visibleAttendees: DepartmentAttendee[];
+  visibleCount: number;
+};
+
+type AttendanceTimingRuleMinutes = {
+  early: number;
+  onTime: number;
+  late: number;
+};
+
 const reportViewTabs = ["Data", "Insight"] as const;
 type ReportViewTab = (typeof reportViewTabs)[number];
 
@@ -118,6 +177,28 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 });
+
+const DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES = 15;
+
+const DEFAULT_ATTENDANCE_TIMING_CONFIG: AttendanceTimingSettingsConfig = {
+  early: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  on_time: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  late: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  updated_at: null,
+  updated_by: null,
+};
 
 ensureAnalyticsChartsRegistered();
 
@@ -233,6 +314,97 @@ const formatArrivalTime = (value: unknown): string => {
   return raw;
 };
 
+const normalizeTimeOnly = (value: unknown): string => {
+  const raw = toStringValue(value);
+  if (!raw) return "";
+
+  const isoParsed = DateTime.fromISO(raw);
+  if (isoParsed.isValid) {
+    return isoParsed.toFormat("HH:mm:ss");
+  }
+
+  if (/^\d{2}:\d{2}:\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  if (/^\d{2}:\d{2}$/.test(raw)) {
+    return `${raw}:00`;
+  }
+
+  return "";
+};
+
+const buildEventStartDateTime = (
+  dateValue: unknown,
+  timeValue: unknown
+): DateTime | null => {
+  const date = normalizeDateOnly(dateValue);
+  const time = normalizeTimeOnly(timeValue);
+
+  if (!date || !time) return null;
+
+  const parsed = DateTime.fromISO(`${date}T${time}`);
+  return parsed.isValid ? parsed : null;
+};
+
+const formatMinutesDistance = (minutes: number): string => {
+  const absoluteMinutes = Math.abs(Math.round(minutes));
+  const hours = Math.floor(absoluteMinutes / 60);
+  const remainingMinutes = absoluteMinutes % 60;
+
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h`;
+  }
+
+  return `${remainingMinutes}m`;
+};
+
+const normalizeTimingRuleMinutes = (
+  value: unknown,
+  fallback = DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES
+) => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+};
+
+const getTimingStatus = (
+  minutesFromStart: number | null,
+  rules: AttendanceTimingRuleMinutes
+): TimingStatus => {
+  if (minutesFromStart === null) return "UNCLASSIFIED";
+  if (minutesFromStart <= -rules.early) return "EARLY";
+  if (minutesFromStart >= rules.late) return "LATE";
+  if (Math.abs(minutesFromStart) <= rules.onTime) return "ON_TIME";
+  return "ON_TIME";
+};
+
+const formatRelativeToStart = (minutesFromStart: number | null): string => {
+  if (minutesFromStart === null) {
+    return "Event start time unavailable";
+  }
+
+  if (minutesFromStart === 0) {
+    return "At start time";
+  }
+
+  const direction = minutesFromStart < 0 ? "before" : "after";
+  return `${formatMinutesDistance(minutesFromStart)} ${direction} start`;
+};
+
+const buildDepartmentAttendeeLookupKey = (
+  departmentId: string,
+  attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">
+) => `${departmentId}::${attendee.userId || attendee.id || attendee.name}`;
+
 const normalizeApprovalStatus = (value: unknown): ApprovalStatus => {
   const status = toStringValue(value).toUpperCase();
 
@@ -329,6 +501,29 @@ const statusLabelMap: Record<ApprovalStatus | FinalApprovalStatus, string> = {
   REJECTED: "Rejected",
 };
 
+const timingStatusLabelMap: Record<TimingStatus, string> = {
+  EARLY: "Early",
+  ON_TIME: "On Time",
+  LATE: "Late",
+  UNCLASSIFIED: "Unclassified",
+};
+
+const getTimingBadgeClasses = (status: TimingStatus) => {
+  if (status === "EARLY") {
+    return "bg-[#DBEAFE] text-[#1D4ED8]";
+  }
+
+  if (status === "ON_TIME") {
+    return "bg-[#D2F4EA] text-[#039855]";
+  }
+
+  if (status === "LATE") {
+    return "bg-[#FFF0D5] text-[#B54708]";
+  }
+
+  return "bg-[#EDEFF5] text-lighterBlack";
+};
+
 const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const record = toRecord(value);
   const userRecord = toRecord(record.user);
@@ -421,6 +616,7 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     id: firstNonEmptyString(record.id, `${userId}-${attendeeName}`),
     name: attendeeName,
     arrivalTime: formatArrivalTime(arrivalRaw),
+    arrivalAt: arrivalRaw,
     userId,
     departmentId,
     departmentName,
@@ -434,6 +630,33 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
   if (!date) return null;
 
   const eventId = firstNonEmptyString(record.eventId, record.event_id);
+  const visitors = {
+    male: toNumberValue(record.visitorsMale ?? record.visitors_male),
+    female: toNumberValue(record.visitorsFemale ?? record.visitors_female),
+    total: toNumberValue(record.visitorsTotal ?? record.visitors_total),
+  };
+  const visitorClergy = {
+    male: toNumberValue(
+      record.visitorClergyMale ?? record.visitor_clergy_male
+    ),
+    female: toNumberValue(
+      record.visitorClergyFemale ?? record.visitor_clergy_female
+    ),
+    total: toNumberValue(
+      record.visitorClergyTotal ?? record.visitor_clergy_total
+    ),
+  };
+  const visitorTotal = {
+    male:
+      toNumberValue(record.visitorTotalMale ?? record.visitor_total_male) ||
+      visitors.male + visitorClergy.male,
+    female:
+      toNumberValue(record.visitorTotalFemale ?? record.visitor_total_female) ||
+      visitors.female + visitorClergy.female,
+    total:
+      toNumberValue(record.visitorTotal ?? record.visitor_total ?? record.visitors) ||
+      visitors.total + visitorClergy.total,
+  };
 
   return {
     id: firstNonEmptyString(record.id, record.attendance_id, `${eventId}-${date}`),
@@ -446,9 +669,9 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
     childrenFemale: toNumberValue(record.childrenFemale ?? record.children_female),
     youthMale: toNumberValue(record.youthMale ?? record.youth_male),
     youthFemale: toNumberValue(record.youthFemale ?? record.youth_female),
-    visitingPastors: toNumberValue(
-      record.visitingPastors ?? record.visiting_pastors
-    ),
+    visitors,
+    visitorClergy,
+    visitorTotal,
   };
 };
 
@@ -510,6 +733,13 @@ const EventReportDetails = () => {
   const [finalActionLoading, setFinalActionLoading] = useState<
     "SUBMIT" | "APPROVE" | "REJECT" | ""
   >("");
+  const [insightDepartmentFilter, setInsightDepartmentFilter] = useState("ALL");
+  const [insightTimingStatusFilter, setInsightTimingStatusFilter] =
+    useState<TimingStatusFilter>("ALL");
+  const [insightRelativeDirection, setInsightRelativeDirection] =
+    useState<RelativeDirectionFilter>("ALL");
+  const [insightRelativeHours, setInsightRelativeHours] = useState("2");
+  const [dataSearchTerm, setDataSearchTerm] = useState("");
 
   const reportEventId = String(id || "");
 
@@ -571,10 +801,12 @@ const EventReportDetails = () => {
     ) => Promise<ApiResponse<unknown>>
   );
 
-  const { data: visitorsResponse } = useFetch<ApiResponse<VisitorType[]>>(
-    api.fetch.fetchAllVisitors as (
-      query?: Record<string, string | number>
-    ) => Promise<ApiResponse<VisitorType[]>>
+  const { data: attendanceTimingConfigResponse } = useFetch<
+    ApiResponse<AttendanceTimingSettingsConfig>
+  >(
+    api.fetch.fetchAttendanceTimingConfig as () => Promise<
+      ApiResponse<AttendanceTimingSettingsConfig>
+    >
   );
 
   const reportDetails = useMemo(
@@ -616,6 +848,41 @@ const EventReportDetails = () => {
   const effectiveReportDate =
     selectedDate || normalizedEventDateFromQuery || eventStartDate || "";
 
+  const eventStartTime = useMemo(
+    () =>
+      firstNonEmptyString(
+        reportDetails.start_time,
+        reportDetails.startTime,
+        eventDetails.start_time,
+        eventDetails.startTime
+      ),
+    [
+      eventDetails.startTime,
+      eventDetails.start_time,
+      reportDetails.startTime,
+      reportDetails.start_time,
+    ]
+  );
+
+  const eventStartDateTime = useMemo(
+    () => buildEventStartDateTime(effectiveReportDate || eventStartDate, eventStartTime),
+    [effectiveReportDate, eventStartDate, eventStartTime]
+  );
+
+  const attendanceTimingConfig = useMemo(
+    () => attendanceTimingConfigResponse?.data || DEFAULT_ATTENDANCE_TIMING_CONFIG,
+    [attendanceTimingConfigResponse]
+  );
+
+  const attendanceTimingRuleMinutes = useMemo<AttendanceTimingRuleMinutes>(
+    () => ({
+      early: normalizeTimingRuleMinutes(attendanceTimingConfig.early?.minutes),
+      onTime: normalizeTimingRuleMinutes(attendanceTimingConfig.on_time?.minutes),
+      late: normalizeTimingRuleMinutes(attendanceTimingConfig.late?.minutes),
+    }),
+    [attendanceTimingConfig]
+  );
+
   const eventIdTokens = useMemo(() => {
     const tokenSet = new Set<string>();
 
@@ -646,31 +913,6 @@ const EventReportDetails = () => {
     });
   }, [attendanceResponse?.data, eventIdTokens, eventName]);
 
-  const visitorsForEvent = useMemo(() => {
-    const visitors = Array.isArray(visitorsResponse?.data)
-      ? visitorsResponse.data
-      : [];
-
-    return visitors.filter((visitor) => {
-      const visitorRecord = toRecord(visitor);
-      const visitorEventId = firstNonEmptyString(
-        visitor.eventId,
-        visitorRecord.event_id
-      );
-      const visitorEventName = firstNonEmptyString(
-        visitor.eventName,
-        visitorRecord.event_name
-      );
-
-      if (visitorEventId && eventIdTokens.has(visitorEventId)) return true;
-      if (visitorEventName && visitorEventName.toLowerCase() === eventName.toLowerCase()) {
-        return true;
-      }
-
-      return false;
-    });
-  }, [eventIdTokens, eventName, visitorsResponse?.data]);
-
   const availableDates = useMemo(() => {
     const dateSet = new Set<string>();
 
@@ -680,13 +922,8 @@ const EventReportDetails = () => {
       if (record.date) dateSet.add(record.date);
     });
 
-    visitorsForEvent.forEach((visitor) => {
-      const date = normalizeDateOnly(visitor.visitDate);
-      if (date) dateSet.add(date);
-    });
-
     return Array.from(dateSet).sort((a, b) => b.localeCompare(a));
-  }, [eventStartDate, normalizedAttendanceRecords, visitorsForEvent]);
+  }, [eventStartDate, normalizedAttendanceRecords]);
 
   useEffect(() => {
     if (selectedDate) return;
@@ -711,16 +948,6 @@ const EventReportDetails = () => {
     [normalizedAttendanceRecords, selectedDate]
   );
 
-  const visitorsForSelectedDate = useMemo(
-    () =>
-      visitorsForEvent.filter((visitor) => {
-        const visitDate = normalizeDateOnly(visitor.visitDate);
-        if (!selectedDate) return true;
-        return visitDate === selectedDate;
-      }),
-    [selectedDate, visitorsForEvent]
-  );
-
   const attendanceTotals = useMemo<AttendanceTotals>(() => {
     const totals = attendanceForSelectedDate.reduce(
       (accumulator, record) => {
@@ -730,7 +957,15 @@ const EventReportDetails = () => {
         accumulator.childrenFemale += record.childrenFemale;
         accumulator.youthMale += record.youthMale;
         accumulator.youthFemale += record.youthFemale;
-        accumulator.visitingPastors += record.visitingPastors;
+        accumulator.visitors.male += record.visitors.male;
+        accumulator.visitors.female += record.visitors.female;
+        accumulator.visitors.total += record.visitors.total;
+        accumulator.visitorClergy.male += record.visitorClergy.male;
+        accumulator.visitorClergy.female += record.visitorClergy.female;
+        accumulator.visitorClergy.total += record.visitorClergy.total;
+        accumulator.visitorTotal.male += record.visitorTotal.male;
+        accumulator.visitorTotal.female += record.visitorTotal.female;
+        accumulator.visitorTotal.total += record.visitorTotal.total;
         return accumulator;
       },
       {
@@ -740,8 +975,9 @@ const EventReportDetails = () => {
         childrenFemale: 0,
         youthMale: 0,
         youthFemale: 0,
-        visitingPastors: 0,
-        visitors: visitorsForSelectedDate.length,
+        visitors: { male: 0, female: 0, total: 0 },
+        visitorClergy: { male: 0, female: 0, total: 0 },
+        visitorTotal: { male: 0, female: 0, total: 0 },
         totalWithoutVisitors: 0,
         totalAttendance: 0,
       }
@@ -753,13 +989,13 @@ const EventReportDetails = () => {
       totals.childrenMale +
       totals.childrenFemale +
       totals.youthMale +
-      totals.youthFemale +
-      totals.visitingPastors;
+      totals.youthFemale;
 
-    totals.totalAttendance = totals.totalWithoutVisitors + totals.visitors;
+    totals.totalAttendance =
+      totals.totalWithoutVisitors + totals.visitorTotal.total;
 
     return totals;
-  }, [attendanceForSelectedDate, visitorsForSelectedDate.length]);
+  }, [attendanceForSelectedDate]);
 
   const fallbackDepartmentAttendees = useMemo(() => {
     const attendees = toArray(eventDetails.event_attendance)
@@ -777,8 +1013,10 @@ const EventReportDetails = () => {
       const bucket = grouped.get(key) || new Map<string, DepartmentAttendee>();
       const attendeeKey = attendee.userId || attendee.id;
       const existing = bucket.get(attendeeKey);
+      const attendeeArrivalKey = attendee.arrivalAt || attendee.arrivalTime;
+      const existingArrivalKey = existing?.arrivalAt || existing?.arrivalTime || "";
 
-      if (!existing || attendee.arrivalTime < existing.arrivalTime) {
+      if (!existing || attendeeArrivalKey < existingArrivalKey) {
         bucket.set(attendeeKey, attendee);
       }
 
@@ -946,6 +1184,200 @@ const EventReportDetails = () => {
       .sort((first, second) => first.name.localeCompare(second.name));
   }, [backendDepartmentSections, departmentsResponse?.data, fallbackAttendeesByDepartment]);
 
+  const departmentInsightRows = useMemo<DepartmentInsightRow[]>(() => {
+    const reportDate = effectiveReportDate || eventStartDate;
+
+    return departmentSections
+      .flatMap((department) =>
+        department.attendees.map((attendee) => {
+          const arrivalRaw = attendee.arrivalAt || attendee.arrivalTime;
+          let arrivalDateTime = DateTime.fromISO(arrivalRaw);
+
+          if (!arrivalDateTime.isValid) {
+            const fallbackTime = normalizeTimeOnly(arrivalRaw);
+            const fallbackDateTime =
+              reportDate && fallbackTime
+                ? buildEventStartDateTime(reportDate, fallbackTime)
+                : null;
+
+            if (fallbackDateTime) {
+              arrivalDateTime = fallbackDateTime;
+            }
+          }
+
+          const arrivalSortValue = arrivalDateTime.isValid
+            ? arrivalDateTime.toMillis()
+            : null;
+          const minutesFromStart =
+            eventStartDateTime && arrivalDateTime.isValid
+              ? Math.round(
+                  arrivalDateTime.diff(eventStartDateTime, "minutes").minutes
+                )
+              : null;
+
+          return {
+            id: buildDepartmentAttendeeLookupKey(department.id, attendee),
+            userId: attendee.userId,
+            name: attendee.name,
+            departmentId: department.id,
+            departmentName: department.name,
+            arrivalTime: attendee.arrivalTime,
+            arrivalAt: arrivalDateTime.isValid
+              ? arrivalDateTime.toISO() || arrivalRaw
+              : arrivalRaw,
+            reportedAtLabel: arrivalDateTime.isValid
+              ? arrivalDateTime.toFormat("dd LLL yyyy, HH:mm")
+              : attendee.arrivalTime || "—",
+            relativeToStartLabel: formatRelativeToStart(minutesFromStart),
+            minutesFromStart,
+            timingStatus: getTimingStatus(
+              minutesFromStart,
+              attendanceTimingRuleMinutes
+            ),
+            arrivalSortValue,
+          } satisfies DepartmentInsightRow;
+        })
+      )
+      .sort((left, right) => {
+        if (left.arrivalSortValue !== null && right.arrivalSortValue !== null) {
+          return left.arrivalSortValue - right.arrivalSortValue;
+        }
+
+        if (left.arrivalSortValue !== null) return -1;
+        if (right.arrivalSortValue !== null) return 1;
+
+        return left.name.localeCompare(right.name);
+      });
+  }, [
+    attendanceTimingRuleMinutes,
+    departmentSections,
+    effectiveReportDate,
+    eventStartDate,
+    eventStartDateTime,
+  ]);
+
+  const departmentInsightRowsByAttendeeKey = useMemo(() => {
+    return departmentInsightRows.reduce<Map<string, DepartmentInsightRow>>((map, row) => {
+      map.set(row.id, row);
+      return map;
+    }, new Map<string, DepartmentInsightRow>());
+  }, [departmentInsightRows]);
+
+  const departmentFilterOptions = useMemo(
+    () =>
+      departmentSections
+        .map((department) => ({
+          id: department.id,
+          name: department.name,
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name)),
+    [departmentSections]
+  );
+
+  const insightRelativeHoursValue = useMemo(
+    () => Math.max(toNumberValue(insightRelativeHours), 0),
+    [insightRelativeHours]
+  );
+
+  const filteredDepartmentInsightRows = useMemo(() => {
+    return departmentInsightRows.filter((row) => {
+      if (
+        insightDepartmentFilter !== "ALL" &&
+        row.departmentId !== insightDepartmentFilter
+      ) {
+        return false;
+      }
+
+      if (
+        insightTimingStatusFilter !== "ALL" &&
+        row.timingStatus !== insightTimingStatusFilter
+      ) {
+        return false;
+      }
+
+      if (insightRelativeDirection === "ALL") {
+        return true;
+      }
+
+      if (row.minutesFromStart === null) {
+        return false;
+      }
+
+      const thresholdMinutes = insightRelativeHoursValue * 60;
+
+      if (insightRelativeDirection === "BEFORE") {
+        return row.minutesFromStart <= -thresholdMinutes;
+      }
+
+      return row.minutesFromStart >= thresholdMinutes;
+    });
+  }, [
+    departmentInsightRows,
+    insightDepartmentFilter,
+    insightRelativeDirection,
+    insightRelativeHoursValue,
+    insightTimingStatusFilter,
+  ]);
+
+  const departmentInsightSummary = useMemo(
+    () =>
+      filteredDepartmentInsightRows.reduce(
+        (summary, row) => {
+          if (row.timingStatus === "EARLY") summary.early += 1;
+          if (row.timingStatus === "ON_TIME") summary.onTime += 1;
+          if (row.timingStatus === "LATE") summary.late += 1;
+          if (row.timingStatus === "UNCLASSIFIED") summary.unclassified += 1;
+
+          return summary;
+        },
+        {
+          early: 0,
+          onTime: 0,
+          late: 0,
+          unclassified: 0,
+        }
+      ),
+    [filteredDepartmentInsightRows]
+  );
+
+  const normalizedDataSearchTerm = dataSearchTerm.trim().toLowerCase();
+
+  const dataDepartmentSections = useMemo<DepartmentDataSectionView[]>(() => {
+    return departmentSections
+      .map((department) => {
+        if (!normalizedDataSearchTerm) {
+          return {
+            ...department,
+            visibleAttendees: department.attendees,
+            visibleCount: department.attendees.length,
+          };
+        }
+
+        const departmentMatches = department.name
+          .toLowerCase()
+          .includes(normalizedDataSearchTerm);
+
+        const visibleAttendees = departmentMatches
+          ? department.attendees
+          : department.attendees.filter((attendee) =>
+              attendee.name.toLowerCase().includes(normalizedDataSearchTerm)
+            );
+
+        if (!departmentMatches && visibleAttendees.length === 0) {
+          return null;
+        }
+
+        return {
+          ...department,
+          visibleAttendees,
+          visibleCount: visibleAttendees.length,
+        };
+      })
+      .filter(
+        (department): department is DepartmentDataSectionView => Boolean(department)
+      );
+  }, [departmentSections, normalizedDataSearchTerm]);
+
   useEffect(() => {
     if (!departmentSections.length) return;
 
@@ -956,6 +1388,18 @@ const EventReportDetails = () => {
       };
     });
   }, [departmentSections]);
+
+  useEffect(() => {
+    if (!normalizedDataSearchTerm || dataDepartmentSections.length === 0) return;
+
+    setOpenDepartments((current) => {
+      const next = { ...current };
+      dataDepartmentSections.forEach((department) => {
+        next[department.id] = true;
+      });
+      return next;
+    });
+  }, [dataDepartmentSections, normalizedDataSearchTerm]);
 
   const backendChurchApproval = useMemo(() => {
     const churchRecord = toRecord(
@@ -1088,22 +1532,21 @@ const EventReportDetails = () => {
 
   const churchCompositionSeries = useMemo(
     () => ({
-      labels: ["Adults", "Children", "Youth", "Visiting Pastors", "Visitors"],
+      labels: ["Adults", "Children", "Youth", "Visitors", "Visitor Clergy"],
       male: [
         attendanceTotals.adultMale,
         attendanceTotals.childrenMale,
         attendanceTotals.youthMale,
-        0,
-        0,
+        attendanceTotals.visitors.male,
+        attendanceTotals.visitorClergy.male,
       ],
       female: [
         attendanceTotals.adultFemale,
         attendanceTotals.childrenFemale,
         attendanceTotals.youthFemale,
-        0,
-        0,
+        attendanceTotals.visitors.female,
+        attendanceTotals.visitorClergy.female,
       ],
-      other: [0, 0, 0, attendanceTotals.visitingPastors, attendanceTotals.visitors],
     }),
     [attendanceTotals]
   );
@@ -1119,19 +1562,12 @@ const EventReportDetails = () => {
         record.childrenFemale +
         record.youthMale +
         record.youthFemale +
-        record.visitingPastors;
+        record.visitorTotal.total;
 
       totalsByDate.set(
         record.date,
         (totalsByDate.get(record.date) || 0) + attendanceWithoutVisitors
       );
-    });
-
-    visitorsForEvent.forEach((visitor) => {
-      const visitDate = normalizeDateOnly(visitor.visitDate);
-      if (!visitDate) return;
-
-      totalsByDate.set(visitDate, (totalsByDate.get(visitDate) || 0) + 1);
     });
 
     const trendDates = Array.from(
@@ -1142,7 +1578,7 @@ const EventReportDetails = () => {
       labels: trendDates.map((date) => formatDate(date)),
       values: trendDates.map((date) => totalsByDate.get(date) || 0),
     };
-  }, [availableDates, normalizedAttendanceRecords, visitorsForEvent]);
+  }, [availableDates, normalizedAttendanceRecords]);
 
   const incomeBreakdownSeries = useMemo(
     () =>
@@ -1662,50 +2098,259 @@ const EventReportDetails = () => {
         ) : (
           <>
             {activeReportViewTab === "Insight" && (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-                  <p className="text-sm font-medium text-primary">
-                    Department Attendance Rate
-                  </p>
-                  <div className="mt-3 h-72">
-                    <Bar
-                      data={{
-                        labels: departmentPresenceSeries.labels,
-                        datasets: [
-                          {
-                            label: "Attendance %",
-                            data: departmentPresenceSeries.values,
-                            backgroundColor: departmentPresenceSeries.colors,
-                            borderRadius: 6,
-                            maxBarThickness: 28,
-                          },
-                        ],
-                      }}
-                      options={horizontalBarOptions}
-                    />
-                  </div>
-                </article>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Department
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightDepartmentFilter}
+                      onChange={(event) =>
+                        setInsightDepartmentFilter(event.target.value)
+                      }
+                    >
+                      <option value="ALL">All departments</option>
+                      {departmentFilterOptions.map((department) => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                <article className="rounded-lg border border-lightGray p-3">
-                  <p className="text-sm font-medium text-primary">
-                    Overall Department Coverage
-                  </p>
-                  <div className="mt-3 h-72">
-                    <Doughnut
-                      data={{
-                        labels: ["Present", "Absent"],
-                        datasets: [
-                          {
-                            data: [
-                              departmentCoverageSummary.presentMembers,
-                              departmentCoverageSummary.absentMembers,
-                            ],
-                            backgroundColor: ["#16A34A", "#E5E7EB"],
-                          },
-                        ],
-                      }}
-                      options={doughnutOptions}
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Timing Status
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightTimingStatusFilter}
+                      onChange={(event) =>
+                        setInsightTimingStatusFilter(
+                          event.target.value as TimingStatusFilter
+                        )
+                      }
+                    >
+                      <option value="ALL">All statuses</option>
+                      <option value="EARLY">Early</option>
+                      <option value="ON_TIME">On Time</option>
+                      <option value="LATE">Late</option>
+                    </select>
+                  </label>
+
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Relative Filter
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightRelativeDirection}
+                      onChange={(event) =>
+                        setInsightRelativeDirection(
+                          event.target.value as RelativeDirectionFilter
+                        )
+                      }
+                    >
+                      <option value="ALL">No time filter</option>
+                      <option value="BEFORE">Before start</option>
+                      <option value="AFTER">After start</option>
+                    </select>
+                  </label>
+
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Hours from Start
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightRelativeHours}
+                      onChange={(event) => setInsightRelativeHours(event.target.value)}
                     />
+                  </label>
+                </div>
+
+                <div className="rounded-lg border border-lightGray bg-gray-50 px-3 py-2 text-xs text-primaryGray">
+                  {eventStartDateTime ? (
+                    <>
+                      Timing is measured against the event start at{" "}
+                      <span className="font-medium text-primary">
+                        {eventStartDateTime.toFormat("dd LLL yyyy, HH:mm")}
+                      </span>
+                      . Early starts at {formatMinutesDistance(attendanceTimingRuleMinutes.early)} before, on time stays within{" "}
+                      {formatMinutesDistance(attendanceTimingRuleMinutes.onTime)}, and late starts at{" "}
+                      {formatMinutesDistance(attendanceTimingRuleMinutes.late)} after
+                      the event start.
+                    </>
+                  ) : (
+                    "Timing status needs a valid event start date and time."
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Early</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.early)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">On Time</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.onTime)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Late</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.late)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Matching Members</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(filteredDepartmentInsightRows.length)}
+                    </p>
+                  </article>
+                </div>
+
+                {departmentInsightSummary.unclassified > 0 && (
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(departmentInsightSummary.unclassified)}{" "}
+                    records could not be classified because the event start time or
+                    arrival timestamp was incomplete.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                  <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
+                    <p className="text-sm font-medium text-primary">
+                      Department Attendance Rate
+                    </p>
+                    <div className="mt-3 h-72">
+                      <Bar
+                        data={{
+                          labels: departmentPresenceSeries.labels,
+                          datasets: [
+                            {
+                              label: "Attendance %",
+                              data: departmentPresenceSeries.values,
+                              backgroundColor: departmentPresenceSeries.colors,
+                              borderRadius: 6,
+                              maxBarThickness: 28,
+                            },
+                          ],
+                        }}
+                        options={horizontalBarOptions}
+                      />
+                    </div>
+                  </article>
+
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-sm font-medium text-primary">
+                      Overall Department Coverage
+                    </p>
+                    <div className="mt-3 h-72">
+                      <Doughnut
+                        data={{
+                          labels: ["Present", "Absent"],
+                          datasets: [
+                            {
+                              data: [
+                                departmentCoverageSummary.presentMembers,
+                                departmentCoverageSummary.absentMembers,
+                              ],
+                              backgroundColor: ["#16A34A", "#E5E7EB"],
+                            },
+                          ],
+                        }}
+                        options={doughnutOptions}
+                      />
+                    </div>
+                  </article>
+                </div>
+
+                <article className="overflow-hidden rounded-lg border border-lightGray">
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-4 py-3">
+                    <div>
+                      <p className="font-medium text-primary">
+                        Department Reporting Detail
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Member, department, reported time, and timing status.
+                      </p>
+                    </div>
+                    <span className="text-xs text-primaryGray">
+                      {countFormatter.format(filteredDepartmentInsightRows.length)} records
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-t border-lightGray text-sm">
+                      <thead>
+                        <tr className="bg-white">
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Member
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Department
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Reported Time
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Relative to Start
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredDepartmentInsightRows.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-4 py-4 text-primaryGray"
+                            >
+                              No member records matched the current filters.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredDepartmentInsightRows.map((row) => (
+                            <tr
+                              key={row.id}
+                              className="border-t border-lightGray align-top"
+                            >
+                              <td className="px-4 py-3">{row.name}</td>
+                              <td className="px-4 py-3">{row.departmentName}</td>
+                              <td className="px-4 py-3">
+                                <div className="space-y-1">
+                                  <p className="text-primary">{row.arrivalTime}</p>
+                                  <p className="text-xs text-primaryGray">
+                                    {row.reportedAtLabel}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">{row.relativeToStartLabel}</td>
+                              <td className="px-4 py-3">
+                                <span
+                                  className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                    row.timingStatus
+                                  )}`}
+                                >
+                                  {timingStatusLabelMap[row.timingStatus]}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </article>
               </div>
@@ -1713,7 +2358,31 @@ const EventReportDetails = () => {
 
             {activeReportViewTab === "Data" && (
               <div className="space-y-3">
-                {departmentSections.map((department) => {
+                <div className="flex flex-col gap-3 rounded-lg border border-lightGray p-3 md:flex-row md:items-end md:justify-between">
+                  <label className="w-full max-w-xl space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Search Department or Member
+                    </span>
+                    <input
+                      type="text"
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      placeholder="Search department name or member name"
+                      value={dataSearchTerm}
+                      onChange={(event) => setDataSearchTerm(event.target.value)}
+                    />
+                  </label>
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(dataDepartmentSections.length)} departments
+                    matched
+                  </p>
+                </div>
+
+                {dataDepartmentSections.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                    No departments or members matched your search.
+                  </p>
+                ) : (
+                  dataDepartmentSections.map((department) => {
                   const isOpen = openDepartments[department.id] ?? false;
 
                   return (
@@ -1741,6 +2410,13 @@ const EventReportDetails = () => {
                             {percentFormatter.format(department.attendancePercentage)}%
                             attendance rate
                           </p>
+                          {normalizedDataSearchTerm && (
+                            <p className="text-xs text-primaryGray">
+                              Showing {countFormatter.format(department.visibleCount)} of{" "}
+                              {countFormatter.format(department.attendees.length)} present
+                              records
+                            </p>
+                          )}
                         </div>
                         <span className="text-lg text-primary">{isOpen ? "−" : "+"}</span>
                       </button>
@@ -1754,27 +2430,78 @@ const EventReportDetails = () => {
                                   Name
                                 </th>
                                 <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Arrival Time
+                                  Reported Time
+                                </th>
+                                <th className="px-4 py-3 text-left font-semibold text-primary">
+                                  Relative to Start
+                                </th>
+                                <th className="px-4 py-3 text-left font-semibold text-primary">
+                                  Status
                                 </th>
                               </tr>
                             </thead>
                             <tbody>
-                              {department.attendees.length === 0 ? (
+                              {department.visibleAttendees.length === 0 ? (
                                 <tr>
                                   <td
-                                    colSpan={2}
+                                    colSpan={4}
                                     className="px-4 py-4 text-primaryGray"
                                   >
-                                    No attendance records found for this department.
+                                    No attendance records matched your search for this
+                                    department.
                                   </td>
                                 </tr>
                               ) : (
-                                department.attendees.map((attendee) => (
-                                  <tr key={attendee.id} className="border-t border-lightGray">
-                                    <td className="px-4 py-3">{attendee.name}</td>
-                                    <td className="px-4 py-3">{attendee.arrivalTime}</td>
-                                  </tr>
-                                ))
+                                department.visibleAttendees.map((attendee) => {
+                                  const insightRow =
+                                    departmentInsightRowsByAttendeeKey.get(
+                                      buildDepartmentAttendeeLookupKey(
+                                        department.id,
+                                        attendee
+                                      )
+                                    );
+
+                                  return (
+                                    <tr
+                                      key={buildDepartmentAttendeeLookupKey(
+                                        department.id,
+                                        attendee
+                                      )}
+                                      className="border-t border-lightGray"
+                                    >
+                                      <td className="px-4 py-3">{attendee.name}</td>
+                                      <td className="px-4 py-3">
+                                        <div className="space-y-1">
+                                          <p className="text-primary">
+                                            {attendee.arrivalTime}
+                                          </p>
+                                          {insightRow && (
+                                            <p className="text-xs text-primaryGray">
+                                              {insightRow.reportedAtLabel}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        {insightRow?.relativeToStartLabel ||
+                                          "Event start time unavailable"}
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <span
+                                          className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                            insightRow?.timingStatus ||
+                                              "UNCLASSIFIED"
+                                          )}`}
+                                        >
+                                          {timingStatusLabelMap[
+                                            insightRow?.timingStatus ||
+                                              "UNCLASSIFIED"
+                                          ]}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
                               )}
                             </tbody>
                           </table>
@@ -1805,7 +2532,8 @@ const EventReportDetails = () => {
                       </footer>
                     </article>
                   );
-                })}
+                  })
+                )}
               </div>
             )}
           </>
@@ -1840,11 +2568,6 @@ const EventReportDetails = () => {
                       label: "Female",
                       data: churchCompositionSeries.female,
                       backgroundColor: "#F97316",
-                    },
-                    {
-                      label: "Other",
-                      data: churchCompositionSeries.other,
-                      backgroundColor: "#0EA5E9",
                     },
                   ],
                 }}
@@ -1922,15 +2645,39 @@ const EventReportDetails = () => {
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visiting Pastors</p>
+            <p className="text-xs text-primaryGray">Visitors (Male)</p>
             <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitingPastors)}
+              {countFormatter.format(attendanceTotals.visitors.male)}
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitors</p>
+            <p className="text-xs text-primaryGray">Visitors (Female)</p>
             <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitors)}
+              {countFormatter.format(attendanceTotals.visitors.female)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitors Total</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitors.total)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy (Male)</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.male)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy (Female)</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.female)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy Total</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.total)}
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
