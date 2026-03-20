@@ -2,7 +2,7 @@ import EmptyState from "@/components/EmptyState";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import { SearchBar } from "@/components/SearchBar";
-import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -14,7 +14,7 @@ import {
   relativePath,
   VisitorType,
 } from "@/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { QueryType } from "@/utils/interfaces";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageOutline from "../../Components/PageOutline";
@@ -26,10 +26,19 @@ import { mapVisitorToForm } from "./utils";
 import AddAnotherConfirmation from "../../Components/reusable/AddAnotherConfirmation";
 import { Button } from "@/components";
 
+const formatLastFollowUp = (rawValue?: string) => {
+  if (!rawValue) return "—";
+
+  const parsedDate = new Date(rawValue);
+  if (Number.isNaN(parsedDate.getTime())) return rawValue;
+
+  return formatDate(parsedDate, "long");
+};
+
 export function VisitorManagement() {
-  const {
-    user: { permissions },
-  } = useAuth();
+  const VISITOR_PAGE_SIZE = "5000";
+  const { canManage } = useAccessControl();
+  const canManageVisitors = canManage("Visitors");
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | string>("");
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
@@ -39,27 +48,43 @@ export function VisitorManagement() {
     (IVisitorForm & { id: string }) | undefined
   >(undefined);
   const [formResetKey, setFormResetKey] = useState(0);
-  const { data, loading, refetch } = useFetch(api.fetch.fetchAllVisitors);
 
-  const visitorsArray: VisitorType[] = useMemo(() => {
-    if (!data?.data) return [];
+  const [filterVisitors, setFilterVisitors] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterVisitors(e.target.value);
+  };
 
-    // Case 1: API returns array directly
-    if (Array.isArray(data.data)) {
-      return data.data;
-    }
+  const [filters, setFilters] = useState({
+    createdMonth: "",
+    visitMonth: "",
+    eventId: "",
+    referral: "",
+  });
+  const visitorQuery = useMemo<QueryType>(() => {
+    const next: QueryType = {
+      page: "1",
+      take: VISITOR_PAGE_SIZE,
+    };
 
-    // Case 2: API returns paginated object { data: [], meta: {} }
-    if (Array.isArray((data.data as any)?.data)) {
-      return (data.data as any).data;
-    }
+    if (appliedSearch) next.search = appliedSearch;
+    if (filters.createdMonth) next.createdMonth = filters.createdMonth;
+    if (filters.visitMonth) next.visitMonth = filters.visitMonth;
+    if (filters.eventId) next.eventId = filters.eventId;
+    if (filters.referral) next.referral = filters.referral;
 
-    console.warn("Unexpected visitors response shape:", data.data);
-    return [];
-  }, [data]);
+    return next;
+  }, [appliedSearch, filters]);
+  const { data, loading, refetch } = useFetch(
+    api.fetch.fetchAllVisitors,
+    visitorQuery,
+  );
+  const visitorsArray: VisitorType[] = Array.isArray(data?.data)
+    ? data.data
+    : [];
   const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
-
-  
   const {
     postData,
     loading: postLoading,
@@ -71,70 +96,22 @@ export function VisitorManagement() {
     data: putSuccess,
   } = usePut(api.put.updateVisitor);
 
-  const [filterVisitors, setFilterVisitors] = useState("");
-  const [showFilter, setShowFilter] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterVisitors(e.target.value);
-  };
-
-  const currentMonth = `${new Date().getFullYear()}-${String(
-    new Date().getMonth() + 1
-  ).padStart(2, "0")}`;
-
-  const [filters, setFilters] = useState({
-    createdMonth: "",
-    visitMonth: "",
-    event: "",
-    referral: "",
-  });
-
   const handleFilterChange = (key: keyof typeof filters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const visitors = useMemo(() => {
-    return visitorsArray.filter((visitor: VisitorType) => {
-      const createdDate = new Date(visitor.createdAt);
-      const visitDate = new Date(visitor.visitDate!);
-
-      const createdMatch = filters.createdMonth
-        ? `${createdDate.getFullYear()}-${String(
-            createdDate.getMonth() + 1
-          ).padStart(2, "0")}` === filters.createdMonth
-        : true;
-
-      const visitMatch = filters.visitMonth
-        ? `${visitDate.getFullYear()}-${String(
-            visitDate.getMonth() + 1
-          ).padStart(2, "0")}` === filters.visitMonth
-        : true;
-
-      const eventMatch = filters.event
-        ? visitor?.eventName === filters.event
-        : true;
-
-      const referralMatch = filters.referral
-        ? visitor.howHeard === filters.referral
-        : true;
-
-      const searchMatch = filterVisitors
-        ? `${visitor.firstName} ${visitor.lastName} ${visitor.email ?? ""} ${
-            visitor.phone ?? ""
-          }`
-            .toLowerCase()
-            .includes(filterVisitors.toLowerCase())
-        : true;
-
-      return (
-        createdMatch &&
-        visitMatch &&
-        eventMatch &&
-        referralMatch &&
-        searchMatch
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const normalizedSearch = filterVisitors.trim();
+      setAppliedSearch((currentSearch) =>
+        currentSearch === normalizedSearch ? currentSearch : normalizedSearch,
       );
-    });
-  }, [visitorsArray, filters, filterVisitors]);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [filterVisitors]);
+
+  const visitors = visitorsArray;
 
   const [groupBy, setGroupBy] = useState<"date" | "event">("date");
 
@@ -162,12 +139,15 @@ export function VisitorManagement() {
     if (groupBy === "date") {
       return Object.fromEntries(
         Object.entries(groups)
-          .sort(([a], [b]) => new Date(b + "-01").getTime() - new Date(a + "-01").getTime())
+          .sort(
+            ([a], [b]) =>
+              new Date(b + "-01").getTime() - new Date(a + "-01").getTime(),
+          )
           .map(([key, value]) => {
             const d = new Date(key + "-01");
             const label = `${d.toLocaleString("default", { month: "long" })} ${d.getFullYear()}`;
             return [label, value];
-          })
+          }),
       );
     }
 
@@ -184,7 +164,8 @@ export function VisitorManagement() {
       defaultKey =
         keys
           .map((k) => ({ key: k, date: new Date(k) }))
-          .sort((a, b) => b.date.getTime() - a.date.getTime())[0]?.key || keys[0];
+          .sort((a, b) => b.date.getTime() - a.date.getTime())[0]?.key ||
+        keys[0];
     }
 
     setOpenGroups({ [defaultKey]: true });
@@ -192,13 +173,23 @@ export function VisitorManagement() {
 
   const eventOptions = useMemo(() => {
     return Array.from(
-      new Set(visitorsArray.map((v) => v.eventName).filter(Boolean))
-    );
+      new Map(
+        visitorsArray
+          .filter(
+            (visitor) => Boolean(visitor.eventId) && Boolean(visitor.eventName),
+          )
+          .map((visitor) => [
+            String(visitor.eventId),
+            String(visitor.eventName),
+          ]),
+      ),
+      ([id, name]) => ({ id, name }),
+    ).sort((left, right) => left.name.localeCompare(right.name));
   }, [visitorsArray]);
 
   const referralOptions = useMemo(() => {
     return Array.from(
-      new Set(visitorsArray.map((v) => v.howHeard).filter(Boolean))
+      new Set(visitorsArray.map((v) => v.howHeard).filter(Boolean)),
     );
   }, [visitorsArray]);
 
@@ -254,8 +245,11 @@ export function VisitorManagement() {
     setIsModalOpen(false);
     setSelectedVisitor(undefined);
   };
+  const applySearch = () => {
+    const normalizedSearch = filterVisitors.trim();
+    setAppliedSearch(normalizedSearch);
+  };
   const handleSubmit = (visitor: IVisitorForm & { id?: string }) => {
-    
     if (selectedVisitor) updateData(visitor, { id: selectedVisitor.id });
     else postData(visitor);
   };
@@ -336,8 +330,18 @@ export function VisitorManagement() {
   //   },
   // ];
 
-  // Determine if backend returned any data at all
-  const hasBackendData = visitorsArray.length > 0;
+  const hasActiveQuery = Boolean(
+    appliedSearch ||
+    filters.createdMonth ||
+    filters.visitMonth ||
+    filters.eventId ||
+    filters.referral,
+  );
+  const hasLoadedVisitors = data !== null;
+  const showPageEmptyState =
+    hasLoadedVisitors && !loading && visitors.length === 0 && !hasActiveQuery;
+  const showQueryEmptyState =
+    hasLoadedVisitors && !loading && visitors.length === 0 && hasActiveQuery;
 
   return (
     <PageOutline crumbs={crumbs}>
@@ -354,7 +358,7 @@ export function VisitorManagement() {
           <HeaderControls
             title="Visitor Management"
             subtitle="Register, track, and analyze visitor information"
-            btnName={permissions.manage_visitors ? "Register visitor" : ""}
+            btnName={canManageVisitors ? "Register visitor" : ""}
             hasFilter
             hasSearch
             showFilter={showFilter}
@@ -376,53 +380,70 @@ export function VisitorManagement() {
                   value={filterVisitors}
                   onChange={handleSearchChange}
                   id="searchVisitors"
+                  onSubmit={applySearch}
                 />
               )}
               {showFilter && (
                 <>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">Created month</label>
+                      <label className="text-xs text-gray-600 mb-1">
+                        Created month
+                      </label>
                       <input
                         type="month"
                         className="h-10 border rounded px-3"
                         value={filters.createdMonth}
-                        onChange={(e) => handleFilterChange("createdMonth", e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange("createdMonth", e.target.value)
+                        }
                       />
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">Visit month</label>
+                      <label className="text-xs text-gray-600 mb-1">
+                        Visit month
+                      </label>
                       <input
                         type="month"
                         className="h-10 border rounded px-3"
                         value={filters.visitMonth}
-                        onChange={(e) => handleFilterChange("visitMonth", e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange("visitMonth", e.target.value)
+                        }
                       />
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">Event</label>
+                      <label className="text-xs text-gray-600 mb-1">
+                        Event
+                      </label>
                       <select
                         className="h-10 border rounded px-3"
-                        value={filters.event}
-                        onChange={(e) => handleFilterChange("event", e.target.value)}
+                        value={filters.eventId}
+                        onChange={(e) =>
+                          handleFilterChange("eventId", e.target.value)
+                        }
                       >
                         <option value="">All Events</option>
                         {eventOptions.map((event) => (
-                          <option key={event} value={event}>
-                            {event}
+                          <option key={event.id} value={event.id}>
+                            {event.name}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">Referral</label>
+                      <label className="text-xs text-gray-600 mb-1">
+                        Referral
+                      </label>
                       <select
                         className="h-10 border rounded px-3"
                         value={filters.referral}
-                        onChange={(e) => handleFilterChange("referral", e.target.value)}
+                        onChange={(e) =>
+                          handleFilterChange("referral", e.target.value)
+                        }
                       >
                         <option value="">All Referrals</option>
                         {referralOptions.map((ref) => (
@@ -433,21 +454,21 @@ export function VisitorManagement() {
                       </select>
                     </div>
                   </div>
-                 <div className="flex flex-col ">
-                      <label className="text-xs text-gray-600 mb-1">Reset</label>
+                  <div className="flex flex-col ">
+                    <label className="text-xs text-gray-600 mb-1">Reset</label>
                     <button
-                    className="h-10 px-4 border rounded text-sm"
-                    onClick={() =>
-                      setFilters({
-                        createdMonth: '',
-                        visitMonth: '',
-                        event: "",
-                        referral: "",
-                      })
-                    }
-                  >
-                    Reset Filters
-                  </button>
+                      className="h-10 px-4 border rounded text-sm"
+                      onClick={() =>
+                        setFilters({
+                          createdMonth: "",
+                          visitMonth: "",
+                          eventId: "",
+                          referral: "",
+                        })
+                      }
+                    >
+                      Reset Filters
+                    </button>
                   </div>
                 </>
               )}
@@ -473,15 +494,21 @@ export function VisitorManagement() {
             </button>
           </div>
 
-          {!hasBackendData && !loading && (
-            <EmptyState msg="No visitor found" />
+          {showPageEmptyState && (
+            <EmptyState
+              scope="page"
+              title="No visitors yet"
+              description="Visitor records will appear here after a visitor is registered or synced."
+            />
           )}
 
-          {hasBackendData && visitors.length === 0 && (
-            <EmptyState msg="No visitors match the selected filters" />
+          {showQueryEmptyState && (
+            <EmptyState
+              scope="section"
+              title="No visitors found"
+              description="No visitors match the current search or filters. Try a different name, contact detail, event, or referral source."
+            />
           )}
-
-          
 
           {Object.entries(groupedVisitors).map(([group, items]) => (
             <div key={group} className="space-y-3">
@@ -494,10 +521,10 @@ export function VisitorManagement() {
                   }))
                 }
               >
-                <div className="flex gap-x-2"><span>{group}</span>({items.length})</div>
-                <span className="text-sm">
-                  {openGroups[group] ? "−" : "+"}
-                </span>
+                <div className="flex gap-x-2">
+                  <span>{group}</span>({items.length})
+                </div>
+                <span className="text-sm">{openGroups[group] ? "−" : "+"}</span>
               </button>
 
               {openGroups[group] && (
@@ -517,22 +544,29 @@ export function VisitorManagement() {
                       >
                         <ActionButton
                           showOptions={visitor.id === selectedId}
-                          hideDelete={false}
+                          hideDelete={!canManageVisitors}
                           onView={() => navigate(`visitor/${visitor.id}`)}
-                          onEdit={() => {
-                            setSelectedVisitor(mapVisitorToForm(visitor));
-                            setIsModalOpen(true);
-                            
-                          }}
-                          onDelete={() => {
-                            showDeleteDialog(
-                              {
-                                name: `${visitor.lastName} ${visitor.firstName}`,
-                                id: visitor.id,
-                              },
-                              deleteVisitor
-                            );
-                          }}
+                          onEdit={
+                            canManageVisitors
+                              ? () => {
+                                  setSelectedVisitor(mapVisitorToForm(visitor));
+                                  setIsModalOpen(true);
+                                }
+                              : undefined
+                          }
+                          onDelete={
+                            canManageVisitors
+                              ? () => {
+                                  showDeleteDialog(
+                                    {
+                                      name: `${visitor.lastName} ${visitor.firstName}`,
+                                      id: visitor.id,
+                                    },
+                                    deleteVisitor,
+                                  );
+                                }
+                              : undefined
+                          }
                         />
                       </div>
                       <div className="space-y-2">
@@ -541,28 +575,41 @@ export function VisitorManagement() {
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Visit date:</span>{" "}
-                          {formatDate(visitor?.visitDate!)}
+                          <span className="font-medium text-gray-700">
+                            Visit date:
+                          </span>{" "}
+                          {visitor.visitDate
+                            ? formatDate(visitor.visitDate)
+                            : "—"}
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Phone:</span>{" "}
-                          {formatPhoneNumber(visitor.country_code, visitor.phone)}
+                          <span className="font-medium text-gray-700">
+                            Phone:
+                          </span>{" "}
+                          {formatPhoneNumber(
+                            visitor.country_code,
+                            visitor.phone,
+                          )}
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Event:</span>{" "}
+                          <span className="font-medium text-gray-700">
+                            Event:
+                          </span>{" "}
                           {visitor.eventName || "—"}
                         </div>
 
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Follow-up status:</span>{" "}
-                          {visitor.followUp || "—"}
+                          <span className="font-medium text-gray-700">
+                            Last follow-up:
+                          </span>{" "}
+                          {formatLastFollowUp(visitor.followUp)}
                         </div>
 
                         <Button
-                        value="View full profile"
-                        variant="secondary"
+                          value="View full profile"
+                          variant="secondary"
                           className="mt-2 inline-flex items-center text-sm font-medium border-gray-200 text-primary hover:underline w-full"
                           onClick={() => navigate(`visitor/${visitor.id}`)}
                         />
@@ -575,7 +622,11 @@ export function VisitorManagement() {
           ))}
         </div>
       )}
-      <Modal open={isModalOpen} className="max-w-5xl" onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        className="max-w-5xl"
+        onClose={() => setIsModalOpen(false)}
+      >
         <VisitorForm
           key={formResetKey}
           onClose={handleModalClose}
@@ -598,7 +649,8 @@ export function VisitorManagement() {
                 Register another visitor?
               </h3>
               <p className="text-sm text-gray-600">
-                The visitor was registered successfully. Would you like to add another?
+                The visitor was registered successfully. Would you like to add
+                another?
               </p>
             </div>
           }
@@ -614,7 +666,6 @@ export function VisitorManagement() {
             setSelectedVisitor(undefined);
           }}
         />
-       
       </Modal>
     </PageOutline>
   );

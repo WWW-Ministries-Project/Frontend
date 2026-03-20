@@ -124,7 +124,7 @@ export const ViewCohort = () => {
           </div>
 
           {cohortData?.courses.length === 0 ? (
-            <EmptyState msg={"No class found"} />
+            <EmptyState scope="section" msg={"No class found"} />
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
               {cohortData?.courses.map((classItem) => (
@@ -145,7 +145,11 @@ export const ViewCohort = () => {
         </div>
       </section>
 
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="!max-w-[46rem]"
+      >
         <ClassForm
           onClose={() => setIsModalOpen(false)}
           loading={postLoading || updateLoading}

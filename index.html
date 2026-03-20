@@ -4,20 +4,52 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/logo/main-logo.svg" />
-  <link rel="apple-touch-icon" href="/pwa/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/pwa/apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/pwa/apple-touch-icon-167.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/pwa/apple-touch-icon-152.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- <link href="https://fonts.googleapis.com/css2?family=Manrope&family=Roboto&display=swap" rel="stylesheet"> -->
-  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#080D2D" />
+  <meta name="application-name" content="WWM Portal" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="WWM Portal" />
+  <meta name="format-detection" content="telephone=no" />
   <title>WWM Portal</title>
+  <script>
+    (function () {
+      var storageKey = "wwm-ui-theme";
+      var storedValue = null;
+      try {
+        storedValue = localStorage.getItem(storageKey);
+      } catch (error) {
+        storedValue = null;
+      }
+      var mode = storedValue === "light" || storedValue === "dark" || storedValue === "system"
+        ? storedValue
+        : "system";
+      var resolvedTheme = mode === "system"
+        ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        : mode;
+
+      var root = document.documentElement;
+      root.setAttribute("data-theme-mode", mode);
+      root.setAttribute("data-theme", resolvedTheme);
+      root.classList.toggle("dark", resolvedTheme === "dark");
+      root.style.colorScheme = resolvedTheme;
+
+      var themeColor = document.querySelector('meta[name="theme-color"]');
+      if (themeColor) {
+        themeColor.setAttribute("content", resolvedTheme === "dark" ? "#0B1220" : "#F3F5FA");
+      }
+    })();
+  </script>
 </head>
 
 <body>

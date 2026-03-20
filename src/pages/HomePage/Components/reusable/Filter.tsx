@@ -12,26 +12,30 @@ interface FilterProps {
 }
 
 const Filter: React.FC<FilterProps> = (props) => {
+  const hasEmptyOption = props.options.some((option) => option.value === "");
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    props.onChange(value, name);
+    props.onChange(name, value);
   };
 
   return (
     <div className={props.className || ""}>
-     <label className="text-sm" >{props.label}</label>
+      {props.label ? (
+        <label className="mb-1 block text-sm">{props.label}</label>
+      ) : null}
       <select
         name={props.name}
         id={props.name}
         size={props.size}
         value={props.value}
-        className={`h-10 border border-[#dcdcdc] bg-white rounded-lg p-1 ${
-          props.className || ""
-        }`}
+        className="h-10 w-full rounded-lg border border-[#dcdcdc] bg-white px-3 text-sm text-primary"
         onChange={handleChange}
         aria-label={props.placeholder || "Filter options"}
       >
-        <option value="">{props.placeholder || "Select an option"}</option>
+        {!hasEmptyOption ? (
+          <option value="">{props.placeholder || "Select an option"}</option>
+        ) : null}
         {props.options.map((option, index) => (
           <option key={props.name + option.value + index} value={option.value}>
             {option.label}

@@ -1,51 +1,149 @@
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { ColumnDef } from "@tanstack/react-table";
+import EmptyState from "@/components/EmptyState";
+import {
+  ACCESS_LEVEL_DOMAINS,
+  EXCLUSION_SUPPORTED_DOMAINS,
+  ExclusionsMap,
+  getDomainLabel,
+  normalizePermissionPayload,
+  PermissionDomain,
+  PermissionMap,
+  PermissionValue,
+} from "@/utils/accessControl";
 import { useMemo } from "react";
-import { AccessRightOption } from "../utils/settingsInterfaces";
-import TableData from "./TableData";
 
 interface IProps {
   name: string;
-  permissions: Record<string, string>;
+  permissions: Record<string, unknown>;
 }
-export const ActiveAccess = (props: IProps) => {
-  const accessColumns: ColumnDef<AccessRightOption>[] = [
-    { header: "Modules / Sub-modules", accessorKey: "name" },
-    {
-      header: "Access Level Management",
-      accessorKey: "accessLevel",
-      cell: ({ row }) => TableData(row.original.accessLevel),
-    },
-  ];
+
+const LEVEL_META: Record<
+  PermissionValue,
+  { label: string; className: string }
+> = {
+  No_Access: {
+    label: "No Access",
+    className: "border border-lightGray bg-gray-100 text-primary",
+  },
+  Can_View: {
+    label: "Can View",
+    className: "border border-primary/15 bg-primary/10 text-primary",
+  },
+  Can_Manage: {
+    label: "Can Manage",
+    className: "border border-secondary/20 bg-secondary/10 text-secondary",
+  },
+  Super_Admin: {
+    label: "Super Admin",
+    className: "border border-accent/20 bg-accent/10 text-accent",
+  },
+};
+
+const supportsExclusions = (domain: string) =>
+  EXCLUSION_SUPPORTED_DOMAINS.includes(domain as PermissionDomain);
+
+export const ActiveAccess = ({ name, permissions }: IProps) => {
+  const normalized = useMemo(
+    () => normalizePermissionPayload(permissions as PermissionMap),
+    [permissions]
+  );
 
   const modules = useMemo(() => {
-    const accessLevelMap: Record<string, string> = {
-      Can_View: "Can View",
-      Can_Manage: "Can Manage",
-      Super_Admin: "Super Admin",
-    };
+    const exclusions = (normalized.Exclusions || {}) as ExclusionsMap;
 
-    return props.permissions
-      ? Object.entries(props.permissions).map(([name, accessLevel], index) => ({
-          id: index,
-          name: name.replace(/_/g, " "),
-          accessLevel: accessLevelMap[accessLevel] || accessLevel || "",
-        }))
-      : [];
-  }, [props.permissions]);
+    const knownModules = ACCESS_LEVEL_DOMAINS.map((domain) => {
+      const value = normalized[domain.key] as PermissionValue | undefined;
+      return {
+        key: domain.key,
+        label: domain.label,
+        description: domain.description,
+        value,
+        excludedUsers: supportsExclusions(domain.key)
+          ? exclusions[domain.key] || []
+          : [],
+      };
+    });
+
+    const knownKeys = new Set([
+      ...ACCESS_LEVEL_DOMAINS.map((domain) => domain.key),
+      "Exclusions",
+    ]);
+
+    const customModules = Object.entries(normalized)
+      .filter(
+        ([key, value]) =>
+          key !== "Exclusions" &&
+          !knownKeys.has(key) &&
+          (value === "No_Access" ||
+            value === "Can_View" ||
+            value === "Can_Manage" ||
+            value === "Super_Admin")
+      )
+      .map(([key, value]) => ({
+        key,
+        label: getDomainLabel(key),
+        description: "Additional configured domain",
+        value: value as PermissionValue,
+        excludedUsers: supportsExclusions(key) ? exclusions[key] || [] : [],
+      }));
+
+    return [...knownModules, ...customModules];
+  }, [normalized]);
+
+  const configuredModules = modules.filter((module) => Boolean(module.value));
 
   return (
-    <>
-      <div className="flex justify-between">
-        <h2 className="text-lg font-semibold mb-4">{props.name}</h2>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{name}</h2>
+        <span className="rounded-full border border-lightGray bg-gray-100 px-3 py-1 text-xs font-medium text-primary">
+          {configuredModules.length} configured modules
+        </span>
       </div>
-      <TableComponent
-      //   @ts-expect-error i have no idea what is happening and I wrote the table component myself 🤷🏾‍♂️ good luck
-        columns={accessColumns}
-        data={modules || []}
-        rowClass="even:bg-white odd:bg-lightGray/10"
-        className={""}
-      />
-    </>
+
+      {configuredModules.length === 0 ? (
+        <EmptyState
+          scope="section"
+          msg="No module permissions found"
+          description="This access right does not have any module permissions configured."
+        />
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {configuredModules.map((module) => {
+            const meta = module.value ? LEVEL_META[module.value] : null;
+
+            return (
+              <article
+                key={module.key}
+                className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-primary">{module.label}</p>
+                    <p className="mt-1 text-sm text-primaryGray">
+                      {module.description}
+                    </p>
+                  </div>
+
+                  {meta && (
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${meta.className}`}
+                    >
+                      <span className="mr-2 inline-block h-2 w-2 rounded-full bg-current" />
+                      {meta.label}
+                    </span>
+                  )}
+                </div>
+
+                {module.excludedUsers.length > 0 && (
+                  <div className="mt-3 rounded-lg bg-error/10 p-2 text-xs text-error">
+                    Excluded user IDs: {module.excludedUsers.join(", ")}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 };

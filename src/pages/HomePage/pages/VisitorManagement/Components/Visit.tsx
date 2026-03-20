@@ -1,5 +1,6 @@
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
+import EmptyState from "@/components/EmptyState";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -32,9 +33,7 @@ export const Visits = ({ visitorId, visits, onRefetch }: IProps) => {
   const { updateData: updateVisit, loading: putLoading } = usePut(
     api.put.updateVisit
   );
-  const { executeDelete, loading: deleteLoading } = useDelete(
-    api.delete.deleteVisit
-  );
+  const { executeDelete } = useDelete(api.delete.deleteVisit);
 
   // Function to toggle the options menu for each row
   const handleShowOptions = (id: number | string) => {
@@ -110,7 +109,15 @@ export const Visits = ({ visitorId, visits, onRefetch }: IProps) => {
         screenWidth={window.innerWidth}
       />
       <div className="relative">
-        <TableComponent data={visits} columns={header} />
+        {visits.length === 0 ? (
+          <EmptyState
+            scope="section"
+            msg="No visit history yet"
+            description="This visitor does not have any recorded visits yet."
+          />
+        ) : (
+          <TableComponent data={visits} columns={header} />
+        )}
       </div>
 
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>

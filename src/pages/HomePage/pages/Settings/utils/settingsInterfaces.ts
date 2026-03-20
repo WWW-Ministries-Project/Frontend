@@ -1,4 +1,5 @@
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+import { ExclusionsMap, PermissionValue } from "@/utils/accessControl";
 
 export interface Department {
   id: number;
@@ -6,12 +7,13 @@ export interface Department {
   description?: string;
   department_head?: number;
   department_head_info?: { id: number; name: string };
+  member_count?: number;
   position?: Position[];
 }
 
 export interface DepartmentSlice {
   departments: Department[];
-  total: number;
+  departmentTotal: number;
   departmentsOptions: ISelectOption[];
   positionOptions: Record<number, ISelectOption[]>;
   addDepartment: (department: Department) => void;
@@ -34,7 +36,7 @@ export interface PositionOption {
 
 export interface PositionSlice {
   positions: Position[];
-  total: number;
+  positionTotal: number;
   // positionsOptions: PositionOption[];
   addPosition: (position: Position) => void;
   removePosition: (positionId: number | string) => void;
@@ -45,11 +47,32 @@ export interface PositionSlice {
 
 export type StoreState = DepartmentSlice & PositionSlice;
 
+export interface AccessLevelAssignedUser {
+  id: number;
+  name?: string;
+  full_name?: string;
+  user_info?: {
+    photo?: string;
+  };
+}
+
+export interface AccessLevelExclusionUser {
+  id: number;
+  name?: string;
+  full_name?: string;
+}
+
 //access right
 export interface AccessRight {
   id: number;
   name: string;
-  permissions?: Record<string, string>;
+  description?: string | null;
+  permissions?: {
+    [key: string]: PermissionValue | ExclusionsMap | undefined;
+    Exclusions?: ExclusionsMap;
+  };
+  users_assigned?: AccessLevelAssignedUser[];
+  exclusion_users?: Record<string, AccessLevelExclusionUser[]>;
 }
 export interface AccessRightOption {
   id: number;

@@ -1,33 +1,58 @@
+import AddSignature from "@/components/AddSignature";
 import { Button } from "@/components";
-import {ProfilePicture} from "@/components/ProfilePicture";
+import { Modal } from "@/components/Modal";
+import { ProfilePicture } from "@/components/ProfilePicture";
+import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import RequisitionSummary from "../components/RequisitionSummary";
+import { relativePath } from "@/utils";
+import { DateTime } from "luxon";
+import { useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeline";
 import EditableTable from "../components/EditableTable";
-import RequisitionComments from "../components/RequisitionComments";
-import RequisitionSignatureSection from "../components/RequisitionSignatureSection";
-import { Modal } from "@/components/Modal";
 import RequestAttachments from "../components/RequestAttachments";
-import AddSignature from "@/components/AddSignature";
-import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
+import RequisitionComments from "../components/RequisitionComments";
+import RequisitionSummary from "../components/RequisitionSummary";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
-import { useNavigate } from "react-router-dom";
+import { SimilarRequisitionItem } from "../types/approvalWorkflow";
+import { getApproverDisplayName, getEditMeta } from "../utils/requestMetadata";
 
 const RequestDetails = () => {
-    const navigate = useNavigate();
-  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const requisitionSource = searchParams.get("source");
+  const isFromStaffRequisitions = requisitionSource === "staff";
+  const requisitionListPath = isFromStaffRequisitions
+    ? `${relativePath.home.main}/requests/staff_requests`
+    : `${relativePath.home.main}/requests`;
+  const requisitionListLabel = isFromStaffRequisitions
+    ? "Requisitions"
+    : "My Requisition";
 
   const {
     loading,
+    detailsError,
     requestData,
     actionType,
     openComment,
-    openSignature,
     openCommentModal,
+    openApproveWithSimilarItemsCheck,
     closeComment,
+    openSimilarItemsModal,
+    closeSimilarItemsModal,
+    continueApproveAfterSimilarItemsCheck,
+    similarItemGroups,
+    similarItemsLookbackDays,
+    isLoadingSimilarItems,
     comment,
     setComment,
+    approvalSignature,
+    setApprovalSignature,
     commentHeader,
     isUpdating,
     handleComment,
@@ -36,142 +61,401 @@ const RequestDetails = () => {
     handleRemoveAttachment,
     attachmentId,
     isEditable,
+    isDraft,
     products,
     isApprovedOrRejected,
-    handleOpenSignature,
-    addingImage,
-    handleSignature,
-    handleAddSignature,
-    requisitionId:id
+    requisitionId,
+    openSubmitRequestSignature,
+    openSubmitRequestModal,
+    closeSubmitRequestModal,
+    requestSignature,
+    handleRequestSignature,
+    handleSubmitRequest,
+    isSubmittingRequest,
+    approvalInstances,
+    currentApprovalStep,
+    canCurrentUserApprove,
+    displayStatus,
+    submitButtonDisabled,
   } = useRequisitionDetail();
 
   const requester = requestData?.requester;
+  const currentApproverName = useMemo(
+    () =>
+      currentApprovalStep ? getApproverDisplayName(currentApprovalStep) : null,
+    [currentApprovalStep]
+  );
+  const isRequisitionAccessDenied = useMemo(() => {
+    const message =
+      detailsError instanceof Error ? detailsError.message : String(detailsError);
+    return message
+      .toLowerCase()
+      .includes("you do not have permission to access this requisition");
+  }, [detailsError]);
+  const editMeta = useMemo(() => getEditMeta(requestData), [requestData]);
+
+  const encodedRequestId = useMemo(() => {
+    try {
+      return window.btoa(String(requisitionId));
+    } catch {
+      return "";
+    }
+  }, [requisitionId]);
+
+  const trimmedApprovalSignature = approvalSignature.trim();
+  const similarItemsHeading = useMemo(() => {
+    if (similarItemsLookbackDays && similarItemsLookbackDays > 0) {
+      return `Requested in the last ${similarItemsLookbackDays} days`;
+    }
+
+    return "Requested in the configured lookback period";
+  }, [similarItemsLookbackDays]);
+
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: requisitionListLabel, link: requisitionListPath },
+    { label: "Requisition Details", link: "" },
+  ];
+
+  const formatSimilarItemDate = (value?: string | null) => {
+    if (!value) {
+      return "Unknown date";
+    }
+
+    const parsedDate = DateTime.fromISO(value);
+    return parsedDate.isValid ? parsedDate.toFormat("dd LLL yyyy") : "Unknown date";
+  };
+
+  const renderSimilarItemCard = (
+    item: SimilarRequisitionItem,
+    label: "Requested item" | "Match"
+  ) => (
+    <div className="rounded-xl border border-lightGray p-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primaryGray">
+        {label}
+      </p>
+      <div className="flex items-start gap-3">
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.item_name}
+            className="h-14 w-14 rounded-lg border border-lightGray object-cover"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-lightGray text-[10px] text-primaryGray">
+            No image
+          </div>
+        )}
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-semibold text-primary">{item.item_name}</p>
+          <p className="text-xs text-primaryGray">
+            Requisition: {item.generated_id || `#${item.requisition_id}`}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Requester: {item.requester_name || "Unknown requester"}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Date: {formatSimilarItemDate(item.request_date)}
+          </p>
+          <p className="text-xs text-primaryGray">
+            Quantity: {item.quantity ?? "N/A"} | Status: {item.status || "N/A"}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <PageOutline>
-      {/* Modals */}
-      <Modal open={openSignature} onClose={handleOpenSignature}>
-        <AddSignature
-          cancel={handleOpenSignature}
-          handleSignature={handleSignature}
-          onSubmit={handleAddSignature}
-          loading={addingImage || isUpdating}
-        />
-      </Modal>
-
-      <Modal open={openComment} onClose={closeComment}>
-        <div className="p-10 flex flex-col gap-8">
-          <p className="text-center text-primary font-bold text-xl ">
-            {commentHeader}
+    <PageOutline crumbs={crumbs}>
+      <Modal open={openSimilarItemsModal} onClose={closeSimilarItemsModal}>
+        <div className="space-y-5 p-6 md:p-8">
+          <p className="text-center text-xl font-semibold text-primary">
+            Similar item requests
           </p>
+          <p className="text-sm text-primaryGray">{similarItemsHeading}</p>
+
+          {isLoadingSimilarItems ? (
+            <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
+              Loading similar requests...
+            </div>
+          ) : similarItemGroups.length === 0 ? (
+            <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
+              No matching item requests were found in this period.
+            </div>
+          ) : (
+            <div className="app-scrollbar max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+              {similarItemGroups.map((group, index) => (
+                <div
+                  key={`${group.requestedItem.item_name}-${group.requestedItem.requisition_id}-${index}`}
+                  className="space-y-3 rounded-xl border border-lightGray p-3"
+                >
+                  {renderSimilarItemCard(group.requestedItem, "Requested item")}
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                      Matches ({group.matchItems.length})
+                    </p>
+                    {group.matchItems.length === 0 ? (
+                      <div className="rounded-lg border border-dashed border-lightGray bg-inputBackground/40 p-3 text-xs text-primaryGray">
+                        No previous matching requisitions found for this item.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {group.matchItems.map((match, matchIndex) => (
+                          <div
+                            key={`${match.requisition_id}-${match.item_name}-${matchIndex}`}
+                          >
+                            {renderSimilarItemCard(match, "Match")}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button value="Cancel" variant="ghost" onClick={closeSimilarItemsModal} />
+            <Button
+              value="Continue to approval"
+              variant="primary"
+              onClick={continueApproveAfterSimilarItemsCheck}
+              disabled={isLoadingSimilarItems}
+            />
+          </div>
+        </div>
+      </Modal>
+      <Modal open={openComment} onClose={closeComment}>
+        <div className="space-y-6 p-6 md:p-8">
+          <p className="text-center text-xl font-semibold text-primary">{commentHeader}</p>
           <Textarea
-            label="Comment"
+            label={actionType === "approve" ? "Comment (optional)" : "Comment"}
             value={comment}
             onChange={setComment}
             placeholder="Enter comment..."
           />
+
+          {actionType === "approve" && (
+            <div className="space-y-2">
+              <label
+                htmlFor="approval-signature"
+                className="text-sm font-semibold text-primary"
+              >
+                Signature
+              </label>
+              <input
+                id="approval-signature"
+                className="app-input w-full"
+                placeholder="Type your full name"
+                value={approvalSignature}
+                onChange={(event) => setApprovalSignature(event.target.value)}
+              />
+              <p className="text-xs text-primaryGray">
+                Signature is required before final approval submission.
+              </p>
+
+              <div className="rounded-xl border border-lightGray bg-inputBackground/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                  Signature Preview
+                </p>
+                <div className="mt-3 min-h-[78px] rounded-lg border border-lightGray bg-white px-4 py-3">
+                  {trimmedApprovalSignature ? (
+                    <p className="app-signature-text break-words text-[2rem] text-primary md:text-[2.25rem]">
+                      {trimmedApprovalSignature}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-primaryGray">
+                      Signature preview will appear here.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {actionType === "reject" && (
-            <p className="text-primary text-sm">
-              By clicking "Submit", you agreed to disapproving this request
+            <p className="text-sm text-primaryGray">
+              Provide a clear reason for disapproval before submitting.
             </p>
           )}
-          <div className="flex gap-4 justify-end">
-            <Button
-              value="Cancel"
-              variant="ghost"
-              onClick={closeComment}
-            />
+          <div className="flex justify-end gap-3">
+            <Button value="Cancel" variant="ghost" onClick={closeComment} />
             <Button
               value="Submit"
               variant="primary"
               onClick={handleComment}
-              disabled={!comment}
+              disabled={submitButtonDisabled}
               loading={isUpdating}
             />
           </div>
         </div>
       </Modal>
+      <Modal open={openSubmitRequestSignature} onClose={closeSubmitRequestModal}>
+        <AddSignature
+          cancel={closeSubmitRequestModal}
+          text="Send requisition"
+          header="Requisition Signing"
+          handleSignature={handleRequestSignature}
+          onSubmit={handleSubmitRequest}
+          loading={isSubmittingRequest}
+          defaultSignature={requestSignature}
+        />
+      </Modal>
 
-      {/* Page Header */}
-      <PageHeader title="Requisition Details">
-        <div className="flex gap-2">
-          {isEditable && (
-            <Button
-              value="Edit"
-              variant="ghost"
-              onClick={() => navigate(`/home/requests/request/${id}`)}
-            />
-          )}
-          {!isApprovedOrRejected && (
-            <>
+      <div className="space-y-5">
+        <PageHeader title="Requisition Details">
+          <div className="flex flex-wrap gap-2">
+            {isEditable && encodedRequestId && (
               <Button
-                value="Disapprove"
-                variant="secondary"
-                onClick={() => openCommentModal("reject")}
+                value="Edit"
+                variant="ghost"
+                onClick={() => navigate(`/home/requests/request/${encodedRequestId}`)}
               />
+            )}
+            {!loading && requestData && isDraft && (
               <Button
-                value="Approve"
+                value="Send requisition"
                 variant="primary"
-                onClick={handleOpenSignature}
+                onClick={openSubmitRequestModal}
+                loading={isSubmittingRequest}
+                disabled={isSubmittingRequest || isUpdating}
               />
-            </>
-          )}
-        </div>
-      </PageHeader>
+            )}
+            {!isApprovedOrRejected && canCurrentUserApprove && (
+              <>
+                <Button
+                  value="Reject"
+                  variant="secondary"
+                  onClick={() => openCommentModal("reject")}
+                />
+                <Button
+                  value="Approve"
+                  variant="primary"
+                  onClick={openApproveWithSimilarItemsCheck}
+                  disabled={isLoadingSimilarItems}
+                />
+              </>
+            )}
+          </div>
+        </PageHeader>
 
-      <section className="grid grid-cols-4 gap-4 text-primary">
-        {/* Left Section */}
-        <section className="border rounded-xl p-3 col-span-3 border-[#D9D9D9] h-fit">
-          <div className="flex gap-3">
-            <ProfilePicture
-              alt="profile pic"
-              className="w-[7rem] h-[7rem] border shadow-md"
-              name={requestData?.requester?.name}
-            />
-            <div>
-              <div className="font-bold">{requestData?.requester?.name}</div>
-              <div className="text-primary">
-                {requestData?.requester?.position ?? "N/A"}
-              </div>
-              <div className="text-primary">
-                {requestData?.requester?.email}
-              </div>
+        {!isApprovedOrRejected && !canCurrentUserApprove && currentApprovalStep && (
+          <p className="text-sm text-primaryGray">
+            Awaiting action from approver {currentApproverName}.
+          </p>
+        )}
+
+        {loading && (
+          <div className="app-card p-4 text-sm text-primaryGray">
+            Loading requisition details...
+          </div>
+        )}
+
+        {!loading && isRequisitionAccessDenied && (
+          <div className="rounded-lg border border-error/40 bg-errorBG p-4 text-sm text-error">
+            You do not have permission to access this requisition.
+            <div className="mt-3">
+              <Button
+                value={
+                  isFromStaffRequisitions
+                    ? "Back to requisitions"
+                    : "Back to my requisition"
+                }
+                variant="ghost"
+                onClick={() => navigate(requisitionListPath)}
+              />
             </div>
           </div>
-          <HorizontalLine />
-          <div className="pl-4">
-            <PageHeader title="Request Details" />
-          </div>
-          <EditableTable isEditable={false} data={products} />
-          <HorizontalLine />
-          <RequisitionSignatureSection
-            requester={{...requester,user_sign:requestData?.summary?.user_sign ?? null}}
-            requuest_approvals={requestData?.request_approvals}
-          />
-        </section>
+        )}
 
-        {/* Right Section */}
-        <section className="flex flex-col gap-4 col-span-1">
-          <RequisitionSummary
-            summary={requestData?.summary}
-            currency={requestData?.currency}
-          />
-          <RequisitionComments
-            isEditable={isEditable}
-            openCommentModal={openCommentModal}
-            comments={requestData?.request_comments ?? []}
-          />
-          <RequestAttachments
-            attachments={attachments}
-            isEditable={isEditable}
-            addAttachement={handleAddAttachment}
-            removAttachment={handleRemoveAttachment}
-            isLoading={isUpdating}
-            action={actionType}
-            fileId={attachmentId}
-          />
-        </section>
-      </section>
+        {!loading && detailsError && !isRequisitionAccessDenied && (
+          <div className="rounded-lg border border-error/40 bg-errorBG p-4 text-sm text-error">
+            Failed to load requisition details. Please refresh and try again.
+          </div>
+        )}
+
+        {!loading && !detailsError && requestData && (
+          <section className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <section className="app-card space-y-5 p-4 md:p-5">
+              <h3 className="text-base font-semibold text-primary">Requester information</h3>
+              <div className="flex flex-wrap items-center gap-4 justify-between rounded-lg border border-lightGray p-4">
+                <div className="flex items-start gap-4">
+                  <ProfilePicture
+                    alt="requester profile"
+                    className="h-[4.5rem] w-[4.5rem] border shadow-sm"
+                    name={requester?.name}
+                  />
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-lg font-semibold text-primary">
+                      {requester?.name || "Unknown requester"}
+                    </p>
+                    <p className="text-sm text-primaryGray">
+                      {requestData?.summary?.department || "No department"}
+                    </p>
+                    <p className="text-sm text-primaryGray">
+                      {requester?.position ?? "No position"}
+                    </p>
+                    <p className="text-sm text-primaryGray">{requester?.email || "N/A"}</p>
+                    {editMeta.hasEditMeta && (
+                      <p className="text-xs text-primaryGray">
+                        Last edited by {editMeta.editorName || "Unknown editor"} on{" "}
+                        {editMeta.formattedEditedAt || "Unknown date"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <span className="app-signature-text break-words text-3xl text-primary">
+                    {requestData?.request_approvals?.requester_sign ??
+                      requestData?.summary?.user_sign ??
+                      requestData?.requester?.user_sign ??
+                      null}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base font-semibold text-primary">Requested Items</h3>
+                <EditableTable
+                  isEditable={false}
+                  data={products}
+                  currency={requestData?.currency}
+                />
+              </div>
+
+              <RequisitionApprovalTimeline
+                approvalInstances={approvalInstances}
+                currentApprovalStep={currentApprovalStep}
+              />
+            </section>
+
+            <section className="space-y-4">
+              <RequisitionSummary
+                summary={requestData?.summary}
+                currency={requestData?.currency}
+                status={displayStatus}
+              />
+              <RequisitionComments
+                isEditable={isEditable}
+                openCommentModal={openCommentModal}
+                comments={requestData?.request_comments ?? []}
+              />
+              <RequestAttachments
+                attachments={attachments}
+                isEditable={isEditable}
+                addAttachement={handleAddAttachment}
+                removAttachment={handleRemoveAttachment}
+                isLoading={isUpdating}
+                action={actionType}
+                fileId={attachmentId}
+              />
+            </section>
+          </section>
+        )}
+      </div>
     </PageOutline>
   );
 };

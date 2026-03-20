@@ -4,8 +4,14 @@ const isPastDate = (date: string | Date) => {
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 import EmptyState from "@/components/EmptyState";
-import type { CohortType } from "@/utils";
+import {
+  COHORT_STATUS,
+  getCohortStatusLabel,
+  normalizeCohortStatus,
+  type CohortType,
+} from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +24,7 @@ interface IProps {
 }
 
 export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
 
   const menuRef = useRef<HTMLDivElement | null>(null); // Reference for the menu container
@@ -72,13 +79,14 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
                 value="Add Cohort"
                 className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
                 onClick={onCreate}
+                disabled={!canManageCurrentRoute}
               />
             </div>
           </div>
         </section>
 
         {cohorts.length === 0 ? (
-            <EmptyState msg={"No cohort found"} />
+            <EmptyState scope="section" msg={"No cohort found"} />
         ) : (
           <section className="w-full">
             <div className="grid grid-cols-6 gap-4 font-semibold text-primaryGray px-4 py-3 mb-4">
@@ -93,95 +101,91 @@ export const AllCohorts = ({ onCreate, cohorts, onEdit, onDelete }: IProps) => {
             </div>
             <div className=" text-primary">
               <div className="space-y-3">
-                {cohorts?.map((cohort) => (
-                  <div
-                    key={cohort.id}
-                    className="border border-lightGray rounded-lg p-4 space-y-3"
-                  >
-                    <div className="grid grid-cols-6 gap-4 items-center">
-                    
-                        <div className="font-semibold text-lg truncate cursor-pointer"
-                        onClick={() => navigate(`cohort/${cohort.id}`)}
-                        >
-                        {cohort?.name}
-                      </div>
-                      
-                      <p>
-                        
-                        {formatDate(cohort.startDate)}
-                      </p>
-                      <p>
-                        {/* <span className="font-semibold">Duration:</span> */}
-                        {cohort.duration}
-                      </p>
-                      {/* Application Deadline: show badge if past and active, otherwise show date */}
-                      {isPastDate(cohort.applicationDeadline) && cohort.status === "ongoing" ? (
-                        <Badge className="bg-red-100 text-red-600 text-xs">
-                          Application Closed
-                        </Badge>
-                      ) : (
-                        <p>{formatDate(cohort.applicationDeadline)}</p>
-                      )}
-                      <Badge
-                        className={`text-xs border-lightGray ${
-                          cohort?.status === "Active"
-                            ? "bg-primary/20 text-primary"
-                            : "bg-yellow-100 text-primary"
-                        }`}
-                      >
-                        {cohort.status}
-                      </Badge>
+                {cohorts?.map((cohort) => {
+                  const normalizedStatus = normalizeCohortStatus(cohort.status);
+                  const statusLabel = getCohortStatusLabel(cohort.status);
+                  const statusClass =
+                    normalizedStatus === COHORT_STATUS.ONGOING
+                      ? "bg-primary/20 text-primary"
+                      : normalizedStatus === COHORT_STATUS.COMPLETED
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-primary";
 
-                      <div className="relative flex justify-end gap-2">
-                        {/* <Button
-                        value="Manage Cohort"
-                        className="p-2 m-1 text-white min-h-10 max-h-14 bg-primary"
-                        onClick={() => navigate(`cohort/${cohort.id}`)}
-                      /> */}
-                        <button
-                          ref={buttonRef} // Reference to the button
-                          className="text-primary"
-                          onClick={() => toggleMenu(cohort.id)}
+                  return (
+                    <div
+                      key={cohort.id}
+                      className="border border-lightGray rounded-lg p-4 space-y-3"
+                    >
+                      <div className="grid grid-cols-6 gap-4 items-center">
+                        <div
+                          className="font-semibold text-lg truncate cursor-pointer"
+                          onClick={() => navigate(`cohort/${cohort.id}`)}
                         >
-                          <img
-                            src={ellipse}
-                            alt="options"
-                            className="cursor-pointer"
-                          />
-                        </button>
-                        {isMenuOpen === cohort.id && (
-                          <div
-                            ref={menuRef}
-                            className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
-                          >
-                            <ul className="py-1">
-                               <li
-                                className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                                onClick={() => navigate(`cohort/${cohort.id}`)}
-                              >
-                                Manage Cohort
-                              </li>
-                              <li
-                                className="px-4 py-2 hover:bg-lightGray cursor-pointer"
-                                onClick={() => handleEdit(cohort)}
-                              >
-                                Edit Cohort
-                              </li>
+                          {cohort?.name}
+                        </div>
 
-                              <hr className="text-lightGray" />
-                              <li
-                                onClick={() => onDelete(cohort.id)}
-                                className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
-                              >
-                                Delete Cohort
-                              </li>
-                            </ul>
-                          </div>
+                        <p>{formatDate(cohort.startDate)}</p>
+                        <p>{cohort.duration}</p>
+                        {isPastDate(cohort.applicationDeadline) &&
+                        normalizedStatus === COHORT_STATUS.ONGOING ? (
+                          <Badge className="bg-red-100 text-red-600 text-xs">
+                            Application Closed
+                          </Badge>
+                        ) : (
+                          <p>{formatDate(cohort.applicationDeadline)}</p>
                         )}
+                        <Badge className={`text-xs border-lightGray ${statusClass}`}>
+                          {statusLabel}
+                        </Badge>
+
+                        <div className="relative flex justify-end gap-2">
+                          {canManageCurrentRoute && (
+                            <button
+                              ref={buttonRef}
+                              className="text-primary"
+                              onClick={() => toggleMenu(cohort.id)}
+                            >
+                              <img
+                                src={ellipse}
+                                alt="options"
+                                className="cursor-pointer"
+                              />
+                            </button>
+                          )}
+                          {canManageCurrentRoute && isMenuOpen === cohort.id && (
+                            <div
+                              ref={menuRef}
+                              className="absolute right-0 bottom-0 mt-2 w-48 bg-white border border-lightGray rounded-lg shadow-lg"
+                            >
+                              <ul className="py-1">
+                                <li
+                                  className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                                  onClick={() => navigate(`cohort/${cohort.id}`)}
+                                >
+                                  Manage Cohort
+                                </li>
+                                <li
+                                  className="px-4 py-2 hover:bg-lightGray cursor-pointer"
+                                  onClick={() => handleEdit(cohort)}
+                                >
+                                  Edit Cohort
+                                </li>
+
+                                <hr className="text-lightGray" />
+                                <li
+                                  onClick={() => onDelete(cohort.id)}
+                                  className="px-4 py-2 cursor-pointer text-red-600 hover:bg-red-50"
+                                >
+                                  Delete Cohort
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>

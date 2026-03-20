@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import clsx from "clsx";
 
 interface Option {
@@ -27,7 +27,48 @@ const Multiselect: React.FC<MultiselectProps> = ({
   className,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, undefined, {
+          sensitivity: "base",
+          numeric: true,
+        })
+      ),
+    [options]
+  );
+
+  const shouldSearch = sortedOptions.length > 5;
+  const filteredOptions = useMemo(() => {
+    if (!shouldSearch || !searchTerm.trim()) {
+      return sortedOptions;
+    }
+
+    const q = searchTerm.toLowerCase();
+    return sortedOptions.filter((option) =>
+      option.label.toLowerCase().includes(q)
+    );
+  }, [searchTerm, shouldSearch, sortedOptions]);
+
+  const selectedChips = useMemo(
+    () =>
+      selectedValues
+        .map((value) => {
+          const option = sortedOptions.find((item) => item.value === value);
+          return option ?? { value, label: value };
+        })
+        .sort((a, b) =>
+          a.label.localeCompare(b.label, undefined, {
+            sensitivity: "base",
+            numeric: true,
+          })
+        ),
+    [selectedValues, sortedOptions]
+  );
 
   /* ------------------------ handlers ------------------------ */
 
@@ -49,12 +90,19 @@ const Multiselect: React.FC<MultiselectProps> = ({
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setSearchTerm("");
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && shouldSearch) {
+      searchRef.current?.focus();
+    }
+  }, [isOpen, shouldSearch]);
 
   /* ------------------------ styles ------------------------ */
 
@@ -68,7 +116,15 @@ const Multiselect: React.FC<MultiselectProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(v => !v)}
+        onClick={() =>
+          !disabled &&
+          setIsOpen((prev) => {
+            if (prev) {
+              setSearchTerm("");
+            }
+            return !prev;
+          })
+        }
         className={clsx(
           triggerStyles,
           "border-gray-300",
@@ -102,21 +158,37 @@ const Multiselect: React.FC<MultiselectProps> = ({
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full rounded-lg border bg-white shadow-lg">
+          {shouldSearch && (
+            <div className="border-b px-2 py-2">
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="app-input"
+              />
+            </div>
+          )}
           <div className="max-h-56 overflow-y-auto">
-            {options.map(option => (
-              <label
-                key={option.value}
-                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedValues.includes(option.value)}
-                  onChange={() => toggleValue(option.value)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/20"
-                />
-                {option.label}
-              </label>
-            ))}
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <label
+                  key={option.value}
+                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedValues.includes(option.value)}
+                    onChange={() => toggleValue(option.value)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/20"
+                  />
+                  {option.label}
+                </label>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500">No results</div>
+            )}
           </div>
         </div>
       )}
@@ -124,8 +196,8 @@ const Multiselect: React.FC<MultiselectProps> = ({
       {/* Selected chips */}
       <div className="mt-2 flex flex-wrap gap-2">
         {selectedValues.length > 0 ? (
-          selectedValues.map(value => {
-            const option = options.find(o => o.value === value);
+          selectedChips.map((option) => {
+            const value = option.value;
             return (
               <span
                 key={value}

@@ -12,19 +12,38 @@ import { Field, Form, Formik, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
 import { number, object, string } from "yup";
 
-export type AttendanceGroup = "ADULTS" | "CHILDREN" | "BOTH";
+export interface AttendanceVisitorBucket {
+  male: number;
+  female: number;
+  total: number;
+}
+
+export interface AttendanceVisitorBreakdown {
+  visitors: AttendanceVisitorBucket;
+  visitorClergy: AttendanceVisitorBucket;
+  total: AttendanceVisitorBucket;
+}
 
 export interface IChurchAttendanceForm {
   eventId: string;
   date: string;
-  group: AttendanceGroup;
   adultMale?: number;
   adultFemale?: number;
   childrenMale?: number;
   childrenFemale?: number;
   youthMale?: number;
   youthFemale?: number;
-  visitingPastors?: number;
+  visitors?: number;
+  visitorBreakdown?: AttendanceVisitorBreakdown;
+  visitorsMale?: number;
+  visitorsFemale?: number;
+  visitorsTotal?: number;
+  visitorClergyMale?: number;
+  visitorClergyFemale?: number;
+  visitorClergyTotal?: number;
+  visitorTotalMale?: number;
+  visitorTotalFemale?: number;
+  visitorTotal?: number;
   recordedBy: string;
   lastUpdatedBy: string;
   id?: string | number;
@@ -73,14 +92,10 @@ const ChurchAttendanceFormComponent = ({
   loading,
   refetch,
 }: Props) => {
-  const initialValues = useMemo<IChurchAttendanceForm>(() => {
-    const group = initialData?.group;
-    const normalizedGroup: AttendanceGroup =
-      group === "ADULTS" || group === "CHILDREN" || group === "BOTH"
-        ? group
-        : "BOTH";
-    return { ...defaultValues, ...initialData, group: normalizedGroup };
-  }, [initialData]);
+  const initialValues = useMemo<IChurchAttendanceForm>(
+    () => ({ ...defaultValues, ...initialData }),
+    [initialData]
+  );
 
   const { eventsOptions } = useStore();
   const { user } = useAuth();
@@ -123,14 +138,12 @@ const ChurchAttendanceFormComponent = ({
     const payload = {
       eventId: values.eventId,
       date: values.date,
-      group: "BOTH" as const,
       adultMale: values.adultMale ?? 0,
       adultFemale: values.adultFemale ?? 0,
       childrenMale: values.childrenMale ?? 0,
       childrenFemale: values.childrenFemale ?? 0,
       youthMale: values.youthMale ?? 0,
       youthFemale: values.youthFemale ?? 0,
-      visitingPastors: values.visitingPastors ?? 0,
       recordedBy: user.id,
       recordedByName: user.name,
     };
@@ -246,15 +259,6 @@ const ChurchAttendanceFormComponent = ({
                     min="0"
                     placeholder="0"
                   />
-                  <Field
-                    component={FormikInputDiv}
-                    type="number"
-                    label="Visiting Pastors"
-                    id="visitingPastors"
-                    name="visitingPastors"
-                    min="0"
-                    placeholder="0"
-                  />
                 </div>
               </div>
 
@@ -285,14 +289,12 @@ const ChurchAttendanceFormComponent = ({
 const defaultValues: IChurchAttendanceForm = {
   eventId: "",
   date: "",
-  group: "BOTH",
   adultMale: 0,
   adultFemale: 0,
   childrenMale: 0,
   childrenFemale: 0,
   youthMale: 0,
   youthFemale: 0,
-  visitingPastors: 0,
   recordedBy: "Current User",
   lastUpdatedBy: "Current User",
 };
@@ -308,14 +310,12 @@ const attendanceCountSchema = number()
 const validationSchema = object({
   eventId: string().required("Event is required"),
   date: string().required("Date is required"),
-  group: string().required(),
   adultMale: attendanceCountSchema,
   adultFemale: attendanceCountSchema,
   childrenMale: attendanceCountSchema,
   childrenFemale: attendanceCountSchema,
   youthMale: attendanceCountSchema,
   youthFemale: attendanceCountSchema,
-  visitingPastors: attendanceCountSchema,
 });
 
 export const ChurchAttendanceForm = Object.assign(

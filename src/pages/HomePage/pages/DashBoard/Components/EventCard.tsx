@@ -1,18 +1,19 @@
 import { formatDatefull, formatTime } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
+import { api } from "@/utils/api/apiCalls";
+import { ApiError } from "@/utils/api/errors/ApiError";
+import { Modal } from "@/components/Modal";
 import {
   CalendarDaysIcon,
   ClockIcon,
   MapPinIcon,
-  XCircleIcon,
   ShareIcon,
-  PlusIcon,
   XMarkIcon,
   ArrowTopRightOnSquareIcon,
   EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { eventType } from "../../EventsManagement/utils/eventInterfaces";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface IProps {
   event: eventType;
@@ -21,9 +22,40 @@ interface IProps {
   showInModal?: boolean;
 }
 
+const resolveEventId = (rawValue: unknown): string | number | null => {
+  if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+    return rawValue;
+  }
+
+  if (typeof rawValue !== "string") return null;
+
+  const trimmedValue = rawValue.trim();
+  if (!trimmedValue) return null;
+
+  const numericValue = Number(trimmedValue);
+  if (Number.isFinite(numericValue)) {
+    return numericValue;
+  }
+
+  return trimmedValue;
+};
+
 export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IProps) => {
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileShareMenuRef = useRef<HTMLDivElement | null>(null);
+  const desktopShareMenuRef = useRef<HTMLDivElement | null>(null);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const isMemberPortal =
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/member");
+  const canRegisterForEvent = event.requires_registration;
 
   /* ------------------------------- Date helpers ------------------------------- */
   const getDateOnly = (iso: string) => {
@@ -221,6 +253,56 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
     }
   };
 
+  const handleRegisterForEvent = useCallback(async () => {
+    const eventId = resolveEventId(event.id);
+
+    if (!eventId) {
+      showNotification(
+        "Unable to register for this event right now.",
+        "error",
+        "Event registration"
+      );
+      return;
+    }
+
+    setIsRegistrationDialogOpen(false);
+    setIsRegistering(true);
+
+    try {
+      const response = await api.post.registerEvent({ event_id: eventId });
+      const responseRecord =
+        response && typeof response === "object"
+          ? (response as { data?: unknown })
+          : null;
+      const payload = responseRecord?.data;
+      const payloadRecord =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>)
+          : null;
+
+      const successMessage =
+        (payloadRecord?.message as string) ||
+        (payloadRecord?.status as string) ||
+        "You are registered for this event.";
+
+      showNotification(successMessage, "success", "Event registration");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return;
+      }
+
+      showNotification(
+        error instanceof Error
+          ? error.message
+          : "Unable to register for this event right now.",
+        "error",
+        "Event registration"
+      );
+    } finally {
+      setIsRegistering(false);
+    }
+  }, [event.id]);
+
   const handleAddToCalendar = (type: "google" | "outlook") => {
     const url =
       type === "google" ? generateGoogleCalendarUrl() : generateOutlookCalendarUrl();
@@ -235,6 +317,70 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
     }
     setShowShareMenu(false);
   };
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = menuButtonRef.current;
+    if (!trigger) return;
+
+    const isDesktop = window.matchMedia("(min-width: 640px)").matches;
+    if (!isDesktop) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuWidth = 256; // Tailwind w-64
+    const estimatedMenuHeight = desktopShareMenuRef.current?.offsetHeight || 300;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 8;
+    const offset = 8;
+
+    let left = triggerRect.right - menuWidth;
+    left = Math.max(margin, Math.min(left, viewportWidth - menuWidth - margin));
+
+    const canFitBelow =
+      triggerRect.bottom + offset + estimatedMenuHeight <= viewportHeight - margin;
+    const top = canFitBelow
+      ? triggerRect.bottom + offset
+      : Math.max(margin, triggerRect.top - estimatedMenuHeight - offset);
+
+    setMenuPosition({ top, left });
+  }, []);
+
+  useEffect(() => {
+    if (!showShareMenu) return;
+
+    const rafId = window.requestAnimationFrame(updateMenuPosition);
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        mobileShareMenuRef.current?.contains(target) ||
+        desktopShareMenuRef.current?.contains(target) ||
+        menuButtonRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setShowShareMenu(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowShareMenu(false);
+    };
+
+    const handleReposition = () => updateMenuPosition();
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
+  }, [showShareMenu, updateMenuPosition]);
 
   /* ----------------------------- Precomputed text ----------------------------- */
   const userTimeStr = convertToUserTimezone(event.start_date, event.start_time);
@@ -263,7 +409,8 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
         )}
         
           <button
-            onClick={() => setShowShareMenu(true)}
+            ref={menuButtonRef}
+            onClick={() => setShowShareMenu((prev) => !prev)}
             className="p-2 sm:p-2.5 bg-white flex items-center rounded-lg gap-2  hover:shadow-lg transition-shadow duration-200 border border-gray-200 active:scale-95"
             title="Add to calendar or share"
             aria-haspopup="dialog"
@@ -285,10 +432,10 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
         )}
       </div>
 
-      {/* Click outside to close (for desktop popover) */}
+      {/* Click outside to close (shared mobile/desktop backdrop) */}
       {showShareMenu && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[60]"
           onClick={() => setShowShareMenu(false)}
           aria-hidden="true"
         />
@@ -355,17 +502,68 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
             <span className=" text-gray-700">{event.location}</span>
           </div>
         )}
+
+        {canRegisterForEvent && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setIsRegistrationDialogOpen(true)}
+              disabled={isRegistering}
+              className="mt-2 inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isRegistering ? "Registering..." : "Register"}
+            </button>
+          </div>
+        )}
       </div>
+
+      <Modal
+        open={isRegistrationDialogOpen}
+        persist={false}
+        className="max-w-md"
+        onClose={() => setIsRegistrationDialogOpen(false)}
+      >
+        <div className="p-6">
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold text-primary">
+              Confirm event registration
+            </h3>
+            <p className="text-sm text-primaryGray">
+              Register for {event?.event_name || "this event"}?
+            </p>
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-lightGray px-4 py-2 text-sm font-medium text-primaryGray transition-colors hover:bg-gray-50"
+              onClick={() => setIsRegistrationDialogOpen(false)}
+              disabled={isRegistering}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleRegisterForEvent}
+              disabled={isRegistering}
+            >
+              {isRegistering ? "Registering..." : "Confirm"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Share/Add menu: bottom sheet on mobile, popover on ≥sm */}
       {showShareMenu && (
         <>
           {/* Bottom sheet (mobile) */}
           <div
+            ref={mobileShareMenuRef}
             role="dialog"
             aria-modal="true"
             className="
-              fixed sm:hidden z-50 left-0 right-0 bottom-0
+              fixed sm:hidden z-[70] left-0 right-0 bottom-0
               bg-white rounded-t-2xl shadow-2xl border-t border-gray-200
               p-3 pt-2
             "
@@ -422,12 +620,14 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
 
           {/* Popover (desktop/tablet) */}
           <div
+            ref={desktopShareMenuRef}
             role="dialog"
             aria-modal="true"
             className="
-              hidden sm:block absolute z-[70] right-0 top-12 bg-white rounded-lg shadow-lg border border-gray-200
+              hidden sm:block fixed z-[70] bg-white rounded-lg shadow-lg border border-gray-200
               py-2 w-64
             "
+            style={{ top: menuPosition.top, left: menuPosition.left }}
           >
             <div className="px-3 py-1 text-xs text-gray-500 font-medium border-b border-gray-100">
               Add to Calendar

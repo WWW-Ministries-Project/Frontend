@@ -1,8 +1,6 @@
 import { AppRoute } from "@/routes/appRoutes";
 import { ReactNode, useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { useAuth } from "../../../context/AuthWrapper";
-import { NavigationLink } from "./NavigationLink";
+import { matchPath, NavLink, useLocation } from "react-router-dom";
 
 interface IProps {
   item: {
@@ -15,7 +13,45 @@ interface IProps {
   show: boolean;
   showChildren: boolean;
   toggleSubMenu: () => void;
+  onNavigate?: () => void;
+  onParentActivate?: () => void;
 }
+
+const HOME_ROUTE_BASE = "/home";
+
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, "");
+  if (!trimmed) return "/";
+  return trimmed.replace(/\/{2,}/g, "/");
+};
+
+const resolveHomePath = (path: string) => {
+  if (!path) return HOME_ROUTE_BASE;
+  if (path.startsWith("/")) return normalizePath(path);
+  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
+};
+
+const routeMatches = (pathname: string, routePath: string, end = false) =>
+  Boolean(
+    matchPath(
+      { path: normalizePath(routePath), end },
+      normalizePath(pathname)
+    )
+  );
+
+const routeMatchesDescendant = (pathname: string, routePath: string) => {
+  const normalizedPath = normalizePath(routePath);
+  return (
+    routeMatches(pathname, normalizedPath, true) ||
+    routeMatches(pathname, `${normalizedPath}/*`, false)
+  );
+};
+
+const joinRelativePaths = (base: string, child?: string) => {
+  const normalizedBase = base.replace(/\/+$/, "");
+  if (!child) return normalizedBase;
+  return `${normalizedBase}/${child.replace(/^\/+/, "")}`;
+};
 
 export const SideBarSubMenu = ({
   item,
@@ -24,34 +60,35 @@ export const SideBarSubMenu = ({
   show,
   showChildren,
   toggleSubMenu,
+  onNavigate,
+  onParentActivate,
 }: IProps) => {
   const location = useLocation();
-  const {
-    user: { permissions },
-  } = useAuth();
 
-  // Compute active state for parent
-  const isActive =
-    location.pathname === item.path ||
-    location.pathname.startsWith(item.path) ||
-    location.pathname.includes(item.path);
+  const parentRoutePath = useMemo(
+    () => resolveHomePath(item.path),
+    [item.path]
+  );
 
-  // Filter children by permissions and sideTab
+  // Compute active state for parent using normalized absolute paths.
+  const isActive = routeMatches(location.pathname, parentRoutePath, false);
+
+  // Keep all child modules visible. Route-level guards handle access denial.
   const filteredChildren = useMemo(
-    () =>
-      item.children.filter(
-        (child) =>
-          child.sideTab &&
-          (!child.isPrivate ||
-            !child.permissionNeeded ||
-            permissions[child.permissionNeeded])
-      ),
-    [item.children, permissions]
+    () => item.children.filter((child) => child.sideTab),
+    [item.children]
   );
 
   // Build child route path
   const getChildPath = (child: AppRoute) =>
-    `${parentPath}${child.path ? "/" + child.path : ""}`;
+    joinRelativePaths(parentPath, child.path);
+  const getChildAbsolutePath = (child: AppRoute) =>
+    resolveHomePath(getChildPath(child));
+
+  const handleParentClick = () => {
+    if (!show && onParentActivate) onParentActivate();
+    toggleSubMenu();
+  };
 
   return (
     <div>
@@ -65,18 +102,21 @@ export const SideBarSubMenu = ({
           )}
 
           {/* Main Parent Menu */}
-          <div
-            onClick={toggleSubMenu}
+          <button
+            type="button"
+            onClick={handleParentClick}
+            aria-expanded={showChildren}
+            aria-label={`${item.name} menu`}
             className={`text-primary transition z-10 cursor-pointer ${
               showChildren || isActive
-                ? "text-primary bg-lightGray rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
+                ? "text-primary sidebar-active-surface rounded-tl-xl rounded-tr-xl lg:rounded-tr-none"
                 : "rounded-s-xl"
             }
             ${
               !showChildren && isActive
-                ? "text-primary bg-lightGray rounded-s-xl"
+                ? "text-primary sidebar-active-surface rounded-s-xl"
                 : ""
-            }`}
+            } w-full text-left`}
           >
             <div className="flex items-center mx-2 justify-between gap-1">
               <div className="flex items-center gap-2 transition py-4 rounded-xl">
@@ -99,27 +139,38 @@ export const SideBarSubMenu = ({
                 </svg>
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Submenu Items */}
           {showChildren && filteredChildren.length > 0 && (
             <div
               className={`pl-3 ${
-                showChildren ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none bg-lightGray" : ""
+                showChildren
+                  ? "rounded-bl-xl rounded-br-xl lg:rounded-br-none sidebar-active-surface"
+                  : ""
               } ${showChildren && isActive ? "rounded-bl-xl" : ""}`}
             >
               {filteredChildren.map((child) => (
                 <div key={child.name + child.path}>
                   <NavLink
-                    end
-                    to={getChildPath(child)}
-                    className={({ isActive }) =>
-                      ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
-                        isActive
+                    to={getChildAbsolutePath(child)}
+                    onClick={onNavigate}
+                    end={!child.path}
+                    className={({ isActive }) => {
+                      const childRoutePath = getChildAbsolutePath(child);
+                      const childIsActive = !child.path
+                        ? routeMatches(location.pathname, childRoutePath, true)
+                        : routeMatchesDescendant(
+                            location.pathname,
+                            childRoutePath
+                          );
+
+                      return ` hover:font-semibold transition h-10 z-10 flex items-center py-4 px-4 ${
+                        isActive || childIsActive
                           ? "font-extrabold text-primary transition"
                           : "hover:text-primary"
-                      }`
-                    }
+                      }`;
+                    }}
                   >
                     {child.name}
                   </NavLink>
@@ -137,16 +188,26 @@ export const SideBarSubMenu = ({
         </div>
       ) : (
         <div>
-          {/* Navigation link rendering */}
-          {isActive && (
+          {/* Collapsed parent control */}
+          {(isActive || showChildren) && (
             <div className="flex justify-end relative">
               <div className="scrollable-shape-top"></div>
             </div>
           )}
-          <NavigationLink item={item} show={show}>
+          <button
+            type="button"
+            onClick={handleParentClick}
+            aria-expanded={showChildren}
+            aria-label={`${item.name} menu`}
+            className={`w-full gap-2 text-primary transition-[background-color,color] duration-200 h-10 z-10 flex items-center justify-center py-7 rounded-s-xl rounded-e-xl lg:rounded-e-none ${
+              isActive || showChildren
+                ? "sidebar-active-surface text-primary"
+                : "hover:text-primary"
+            }`}
+          >
             {children}
-          </NavigationLink>
-          {isActive && (
+          </button>
+          {(isActive || showChildren) && (
             <div className="flex justify-end relative">
               <div className="scrollable-shape-bottom"></div>
             </div>

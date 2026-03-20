@@ -6,7 +6,7 @@ import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetail
 import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
-import { api, ClassOption, Programs } from "@/utils";
+import { api, ClassOption, Programs, relativePath } from "@/utils";
 import { ApiCreationCalls } from "@/utils/api/apiPost";
 import { Badge } from "@/components/Badge";
 import {
@@ -15,6 +15,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type ProgramFilter = "all" | "member_required" | "leader_required" | "ministry_required";
 
@@ -24,6 +25,7 @@ const ProgramApply = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [filter, setFilter] = useState<ProgramFilter>("all");
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const apiPost = useMemo(() => new ApiCreationCalls(), []);
   const user = useUserStore();
@@ -83,6 +85,7 @@ const ProgramApply = () => {
 
     setSubmitting(true);
     try {
+      const enrolledProgramId = activeProgram.id;
       const response = await apiPost.enrollUser({
         user_id: user.id,
         course_id: Number(selectedClassId),
@@ -95,6 +98,11 @@ const ProgramApply = () => {
         );
         setOpen(false);
         refetch();
+        navigate(
+          `${relativePath.member.main}/${relativePath.member.schoolOfMinistries.myEnrolledPrograms}/${encodeURIComponent(
+            String(enrolledProgramId)
+          )}`
+        );
       } else {
         showNotification(
           (response as { message?: string }).message || "Enrollment failed. Please try again.",
@@ -210,15 +218,22 @@ const ProgramApply = () => {
             ))
           ) : (
             <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
-              <EmptyState />
-              <h2 className="mb-2 text-2xl font-bold text-primary">No Programs Available</h2>
-              <p className="text-sm text-primaryGray">Programs will appear here once they are published.</p>
+              <EmptyState
+                scope="section"
+                title="No Programs Available"
+                description="Programs will appear here once they are published."
+              />
             </div>
           )}
         </div>
       </div>
 
-      <Modal open={open} persist onClose={() => setOpen(false)}>
+      <Modal
+        open={open}
+        persist
+        onClose={() => setOpen(false)}
+        className="h-[92vh] max-w-6xl p-0 md:h-[90vh]"
+      >
         <ProgramDetailsModal
           program={activeProgram}
           selectedClassId={selectedClassId}

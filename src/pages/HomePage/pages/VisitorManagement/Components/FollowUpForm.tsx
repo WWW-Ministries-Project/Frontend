@@ -2,7 +2,6 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout } from "@/components/ui";
-import { useStore } from "@/store/useStore";
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
 import { date, object, string } from "yup";
@@ -12,6 +11,7 @@ interface IProps {
   initialData?: IFollowUpForm;
   onSubmit: (data: IFollowUpForm) => void;
   loading: boolean;
+  assignedToOptions: Array<{ value: string | number; label: string }>;
 }
 
 const FollowUpFormComponent = ({
@@ -19,12 +19,13 @@ const FollowUpFormComponent = ({
   onSubmit,
   onClose,
   loading,
+  assignedToOptions,
 }: IProps) => {
-  const { membersOptions } = useStore();
   const initial: IFollowUpForm = useMemo(
     () => initialData || initialValues,
     [initialData]
   );
+  const hasResponsibleMembers = assignedToOptions.length > 0;
 
   return (
     <div className="bg-white rounded-lg w-full  mx-auto z-40">
@@ -66,11 +67,21 @@ const FollowUpFormComponent = ({
             />
             <Field
               component={FormikSelectField}
-              options={membersOptions}
+              options={assignedToOptions}
               label="Assigned To *"
-              placeholder="Assigned To"
+              placeholder={
+                hasResponsibleMembers
+                  ? "Select responsible member"
+                  : "No responsible members available"
+              }
               id="assignedTo"
               name="assignedTo"
+              disabled={!hasResponsibleMembers}
+              helperText={
+                hasResponsibleMembers
+                  ? undefined
+                  : "Add responsible members to this visitor before recording follow-up."
+              }
             />
             <Field
               component={FormikInputDiv}
@@ -89,7 +100,7 @@ const FollowUpFormComponent = ({
                 value="Submit"
                 variant="primary"
                 type="submit"
-                disabled={loading}
+                disabled={loading || !hasResponsibleMembers}
                 loading={loading}
                 onClick={handleSubmit}
               />

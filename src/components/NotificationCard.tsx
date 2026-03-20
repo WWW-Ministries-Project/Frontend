@@ -8,19 +8,21 @@ import { useEffect } from "react";
 
 const toneClasses: Record<
   AlertItem["type"],
-  { container: string; icon: string; title: string }
+  { container: string; icon: string; title: string; message: string }
 > = {
   success: {
     container:
-      "border-emerald-200 bg-emerald-50/95 shadow-[0_10px_30px_-20px_rgba(5,150,105,0.65)]",
-    icon: "text-emerald-600",
-    title: "text-emerald-900",
+      "border-lightGray bg-white ring-1 ring-success/20 shadow-[var(--shadow-card)]",
+    icon: "text-success",
+    title: "text-primary",
+    message: "text-primaryGray",
   },
   error: {
     container:
-      "border-rose-200 bg-rose-50/95 shadow-[0_10px_30px_-20px_rgba(220,38,38,0.7)]",
-    icon: "text-rose-600",
-    title: "text-rose-900",
+      "border-lightGray bg-white ring-1 ring-error/25 shadow-[var(--shadow-card)]",
+    icon: "text-error",
+    title: "text-primary",
+    message: "text-primaryGray",
   },
 };
 
@@ -28,6 +30,21 @@ const iconMap = {
   success: CheckCircleIcon,
   error: ExclamationCircleIcon,
 };
+
+const detailToneClasses = {
+  success: {
+    title: "text-success",
+    bullet: "bg-success",
+  },
+  error: {
+    title: "text-error",
+    bullet: "bg-error",
+  },
+  neutral: {
+    title: "text-primary",
+    bullet: "bg-primary/45",
+  },
+} as const;
 
 const NotificationItem = ({ alert }: { alert: AlertItem }) => {
   const { removeNotification } = useNotificationStore();
@@ -56,11 +73,56 @@ const NotificationItem = ({ alert }: { alert: AlertItem }) => {
           <h4 className={`text-sm font-semibold leading-5 ${tones.title}`}>
             {alert.title}
           </h4>
-          <p className="mt-1 text-sm leading-5 text-gray-700">{alert.message}</p>
+          <p className={`mt-1 text-sm leading-5 ${tones.message}`}>
+            {alert.message}
+          </p>
+
+          {alert.details.length > 0 ? (
+            <div className="mt-3 max-h-52 space-y-3 overflow-y-auto rounded-lg border border-lightGray/80 bg-lightGray/20 p-3">
+              {alert.details.map((section) => {
+                const detailTone =
+                  detailToneClasses[section.tone ?? "neutral"];
+
+                return (
+                  <section key={`${alert.id}-${section.title}`} className="space-y-2">
+                    <p
+                      className={`text-xs font-semibold uppercase tracking-wide ${detailTone.title}`}
+                    >
+                      {section.title}
+                    </p>
+
+                    <ul className="space-y-2">
+                      {section.items.map((item) => (
+                        <li
+                          key={`${section.title}-${item.label}-${item.description ?? ""}`}
+                          className="flex items-start gap-2"
+                        >
+                          <span
+                            className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${detailTone.bullet}`}
+                            aria-hidden="true"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-primary">
+                              {item.label}
+                            </p>
+                            {item.description ? (
+                              <p className="text-xs leading-5 text-primaryGray">
+                                {item.description}
+                              </p>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
         <button
           type="button"
-          className="rounded-md p-1 text-gray-500 transition hover:bg-black/5 hover:text-gray-700"
+          className="rounded-md p-1 text-primaryGray transition hover:bg-lightGray/20 hover:text-primary"
           onClick={() => removeNotification(alert.id)}
           aria-label="Dismiss notification"
         >
@@ -78,7 +140,8 @@ export const NotificationCard = () => {
 
   return (
     <section
-      className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-3 sm:w-full"
+      style={{ top: "calc(var(--app-header-height) + 1rem)" }}
+      className="pointer-events-none fixed right-4 z-[130] flex w-[calc(100%-2rem)] max-w-xl flex-col gap-3 sm:w-full"
       aria-label="Notifications"
     >
       {alerts.map((alert) => (

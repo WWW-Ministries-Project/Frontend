@@ -4,6 +4,7 @@ import { NavLink, Outlet } from "react-router-dom";
 const tabs = [
   { label: "Member Confirmation", path: "member-confirmation" },
   { label: "Visitor-to-Membership", path: "visitor-to-membership" },
+  { label: "Soulwon-to-Membership", path: "soulwon-to-membership" },
 ] as const;
 
 export const MembershipManagement = () => {
@@ -13,7 +14,7 @@ export const MembershipManagement = () => {
         <section className="space-y-2">
           <h1 className="text-2xl font-semibold text-primary">Membership Management</h1>
           <p className="text-sm text-gray-600">
-            Confirm members and convert interested visitors into confirmed members.
+            Confirm members and convert visitors or life center soul-winning records into member records.
           </p>
         </section>
 

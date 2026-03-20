@@ -1,8 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { HeaderControls } from "@/components/HeaderControls";
+import EmptyState from "@/components/EmptyState";
 import { ProfilePicture } from "@/components/ProfilePicture";
 import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -10,7 +10,6 @@ import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
-import edit from "/src/assets/edit.svg";
 import { Modal } from "@/components/Modal";
 import { ViewUser } from "./pages/ViewUser";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
@@ -23,7 +22,6 @@ export const UserManagement = () => {
   const [showSearch, setShowSearch] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string>()
-  const navigate = useNavigate();
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "User Management", link: "" },
@@ -134,17 +132,25 @@ export const UserManagement = () => {
         />
       )}
       { }
-      <TableComponent
-        columns={usersColumns}
-        data={users}
-        columnFilters={[]}
-        setColumnFilters={() => { }}
-        displayedCount={12}
-        total={total}
-        onPageChange={(page, limit) => {
-          refetchMembers({ limit: String(limit), page: String(page) });
-        }}
-      />
+      {users.length === 0 ? (
+        <EmptyState
+          scope="page"
+          msg="No users found"
+          description="No ministry workers are currently configured as users."
+        />
+      ) : (
+        <TableComponent
+          columns={usersColumns}
+          data={users}
+          columnFilters={[]}
+          setColumnFilters={() => { }}
+          displayedCount={12}
+          total={total}
+          onPageChange={(page, limit) => {
+            refetchMembers({ limit: String(limit), page: String(page) });
+          }}
+        />
+      )}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ViewUser
           id={`${selectedUserId}`}

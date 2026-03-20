@@ -1,3 +1,5 @@
+import type { FamilyRelation } from "@/utils/familyRelations";
+
 type statsType = {
   total_members: number;
   total_males: number;
@@ -23,6 +25,28 @@ export type activateMemberType = {
   is_active: boolean;
   member_id: string;
   status: "UNCONFIRMED" | "CONFIRMED" | "MEMBER";
+};
+
+export type BulkUpdateMemberStatusPayload = {
+  status: "CONFIRMED" | "MEMBER";
+  user_ids: Array<string | number>;
+};
+
+export type BulkUpdateMemberStatusResult = {
+  user_id: string | number;
+  success: boolean;
+  previous_status?: "UNCONFIRMED" | "CONFIRMED" | "MEMBER" | null;
+  current_status?: "UNCONFIRMED" | "CONFIRMED" | "MEMBER" | null;
+  code?: string;
+  message?: string;
+};
+
+export type BulkUpdateMemberStatusResponse = {
+  status: "CONFIRMED" | "MEMBER";
+  requested_count: number;
+  success_count: number;
+  failure_count: number;
+  results: BulkUpdateMemberStatusResult[];
 };
 
 export type MembersType = {
@@ -52,6 +76,41 @@ export type AccessLevelType = {
   description: string | null;
   permissions: Record<string, string>;
 };
+
+export interface IEnrolledPrograms {
+  summary?: IEnrolledProgramSummary;
+  items?: IEnrolledProgramItem[];
+}
+
+export interface IEnrolledProgramSummary {
+  total?: number;
+  completed?: number;
+  in_progress?: number;
+}
+
+export interface IEnrolledProgramItem {
+  enrollment_id: number | string;
+  enrolled_at?: string;
+  program?: {
+    id?: number | string;
+    name?: string;
+  };
+  cohort?: {
+    id?: number | string;
+    name?: string;
+    status?: string;
+  };
+  facilitator?: {
+    id?: number | string;
+    name?: string;
+  };
+  status?: {
+    completed?: boolean;
+    label?: string;
+    completed_at?: string | null;
+  };
+}
+
 export interface IMemberInfo {
   id: string | number;
   membership_Id: string;
@@ -100,7 +159,8 @@ export interface IMemberInfo {
     phone_number?: string;
     country_code?: string;
   };
-  family: unknown[];
+  family: IFamilyMemberRecord[];
+  enrolled_programs?: IEnrolledPrograms;
   department_positions: Array<
     | string
     | {
@@ -112,6 +172,23 @@ export interface IMemberInfo {
   >;
   photo: string;
   country: string;
+}
+
+export interface IFamilyMemberRecord {
+  user_id?: string | number;
+  relation?: FamilyRelation | string;
+  title?: string;
+  first_name?: string;
+  other_name?: string;
+  last_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  marital_status?: string;
+  nationality?: string;
+  email?: string;
+  country_code?: string;
+  primary_number?: string;
+  [key: string]: unknown;
 }
 
 export interface IFamilyUserInfo {

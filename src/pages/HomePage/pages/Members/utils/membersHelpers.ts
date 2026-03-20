@@ -1,5 +1,6 @@
 import { IPersonalDetails } from "@/components/subform";
 import { IMemberInfo } from "@/utils";
+import { normalizeFamilyRelation } from "@/utils/familyRelations";
 import { IMembersForm } from "../Components/MembersForm";
 
 export const titleOptions = [
@@ -72,18 +73,31 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
   const formatDate = (date: string) => (date ? date.split("T")[0] : "");
   const formatPhone = (phone: string) =>
     phone ? phone.replace(/[^0-9]/g, "") : "";
+  const normalizedFamily = Array.isArray(input.family)
+    ? input.family
+        .filter(
+          (member): member is IPersonalDetails & Record<string, unknown> =>
+            typeof member === "object" && member !== null
+        )
+        .map((member) => ({
+          ...member,
+          title: member.title ?? "",
+          other_name: member.other_name ?? "",
+          relation: normalizeFamilyRelation(member.relation),
+        }))
+    : [];
 
   return {
     personal_info: {
       title: input.title || "",
       first_name: input.first_name,
-      other_name: input.other_name,
+      other_name: input.other_name ?? "",
       last_name: input.last_name,
       date_of_birth: formatDate(input.date_of_birth),
       gender: input.gender || "",
       marital_status: input.marital_status || "",
       nationality: input.nationality || "",
-      has_children: input.family.length > 0,
+      has_children: normalizedFamily.length > 0,
     },
     picture: { src: input.photo || "", picture: null },
     contact_info: {
@@ -115,6 +129,6 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
       member_since: formatDate(input.member_since),
     },
     department_positions: mapDepartmentPositions(input),
-    family: (input.family as IPersonalDetails[]) || [],
+    family: normalizedFamily,
   };
 };

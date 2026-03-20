@@ -50,7 +50,7 @@ export const SoulsWonForm = ({
       onSubmit={(values) => onSubmit(values)}
     >
       {({ handleSubmit }) => (
-        <Form className="flex flex-col xl:w-[50vw] bg-white rounded-lg shadow-sm max-h-[80vh] overflow-hidden">
+        <Form className="flex h-[80vh] w-full max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-lg bg-white shadow-sm">
           {/* Sticky Header */}
           <div className="sticky top-0 z-10 bg-primary text-white">
             <FormHeader>
@@ -140,6 +140,10 @@ export interface ISoulsWonForm extends INameInfo {
   contact_number?: string;
   id: string;
   lifeCenterId: string;
+  isMember?: boolean;
+  memberId?: string | number | null;
+  memberName?: string;
+  memberMemberId?: string;
 }
 
 const initialValues: ISoulsWonForm = {

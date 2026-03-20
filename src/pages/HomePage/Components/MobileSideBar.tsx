@@ -1,23 +1,61 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
-import { useEffect, useRef, useState } from "react";
-import { sidebarIcons } from "../utils";
-import { NavigationLink } from "./NavigationLink";
-import { SideBarSubMenu } from "./SidebarSubmenu";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { SidebarNavList } from "./SidebarNavList";
 
 interface IProps {
   show: boolean;
   onClick?: () => void;
 }
 
+const HOME_ROUTE_BASE = "/home";
+
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, "");
+  if (!trimmed) return "/";
+  return trimmed.replace(/\/{2,}/g, "/");
+};
+
+const resolveHomePath = (path: string) => {
+  if (!path) return HOME_ROUTE_BASE;
+  if (path.startsWith("/")) return normalizePath(path);
+  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
+};
+
+const isPathActive = (pathname: string, path: string) => {
+  const normalizedPathname = normalizePath(pathname);
+  const normalizedPath = normalizePath(path);
+  return (
+    normalizedPathname === normalizedPath ||
+    normalizedPathname.startsWith(`${normalizedPath}/`)
+  );
+};
+
 export const MobileSideBar = ({ show, onClick }: IProps) => {
-  const items: AppRoute[] = sideTabs;
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const location = useLocation();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement | null>(null);
+  // Keep all modules visible. Route-level guards handle access denial on navigation.
+  const items: AppRoute[] = useMemo(() => sideTabs, []);
+  const activeTabNames = useMemo(() => {
+    const names: Record<string, boolean> = {};
+
+    items.forEach((item) => {
+      const resolvedPath = resolveHomePath(item.path);
+      names[item.name] = isPathActive(location.pathname, resolvedPath);
+    });
+
+    return names;
+  }, [items, location.pathname]);
 
   useEffect(() => {
-    if (!show) setOpenSubMenu(null);
+    if (!show) setOpenMenus({});
   }, [show]);
+
+  useEffect(() => {
+    setOpenMenus({});
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!show) return;
@@ -28,7 +66,7 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
         !sidebarRef.current.contains(event.target as Node)
       ) {
         if (onClick) onClick();
-        setOpenSubMenu(null);
+        setOpenMenus({});
       }
     };
 
@@ -38,12 +76,12 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
     };
   }, [show, onClick]);
 
-  const handleToggleSubMenu = (name: string) => {
-    setOpenSubMenu((prev) => (prev === name ? null : name));
+  const handleToggleSubMenu = (menuName: string) => {
+    setOpenMenus((prev) => (prev[menuName] ? {} : { [menuName]: true }));
   };
 
   const handleLinkClick = () => {
-    setOpenSubMenu(null);
+    setOpenMenus({});
     if (onClick) onClick();
   };
 
@@ -54,59 +92,22 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
         top: "var(--app-header-height)",
         height: "calc(100dvh - var(--app-header-height))",
       }}
-      className={`fixed left-0 z-[60] rounded-r-xl bg-white shadow-xl transition-transform duration-300 ease-in-out transform overflow-auto ${
+      className={`fixed left-0 z-[60] w-[250px] rounded-r-xl bg-white shadow-xl transition-transform duration-300 ease-in-out transform ${
         show ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="h-full w-[250px] p-4">
+      <div className="flex h-full min-h-0 flex-col p-4">
         {/* navigation links */}
-        <div className="overflow-y-auto">
-          {items.map((item) => {
-            const IconComponent = sidebarIcons[item.name];
-
-            if (!IconComponent) {
-              if (process.env.NODE_ENV === "development") {
-                console.error(`Icon component for ${item.name} not found`);
-              }
-              return null;
-            }
-
-            return (
-              <div key={item.name}>
-                {item.children && item.children.some((child) => child.sideTab) ? (
-                  <SideBarSubMenu
-                    item={{ ...item, children: item.children ?? [] }}
-                    parentPath={item.path}
-                    show={show}
-                    showChildren={openSubMenu === item.name}
-                    toggleSubMenu={() => handleToggleSubMenu(item.name)}
-                  >
-                    <IconComponent
-                      className={`${
-                        show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
-                      }`}
-                    />
-                  </SideBarSubMenu>
-                ) : (
-                  <NavigationLink item={item} show={show}>
-                    <button
-                      type="button"
-                      onClick={handleLinkClick}
-                      className="w-full flex items-center gap-2 text-left"
-                      aria-label={item.name}
-                    >
-                      <IconComponent
-                        className={`${
-                          show ? "mr-2" : "min-w-[1rem] min-h-[20px]"
-                        }`}
-                      />
-                      {show && item.name}
-                    </button>
-                  </NavigationLink>
-                )}
-              </div>
-            );
-          })}
+        <div className="sidebar-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden touch-pan-y">
+          <SidebarNavList
+            items={items}
+            show={show}
+            openMenus={openMenus}
+            activeTabNames={activeTabNames}
+            onToggleSubMenu={handleToggleSubMenu}
+            onNavigate={handleLinkClick}
+            iconClassName={`${show ? "mr-2" : "min-w-[1rem] min-h-[20px]"}`}
+          />
         </div>
       </div>
     </div>

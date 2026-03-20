@@ -10,57 +10,114 @@ import MultiImageComponent, {
 } from "@/pages/HomePage/Components/MultiImageComponent";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import { useStore } from "@/store/useStore";
+import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
+import { EventType } from "@/utils/api/events/interfaces";
+import { DepartmentType } from "@/utils/api/settings/departmentInterfaces";
 import { ApiResponse } from "@/utils/interfaces";
 import FormWrapperNew from "@/Wrappers/FormWrapperNew";
 import { Field, Formik } from "formik";
-import { useEffect, useMemo, useState } from "react";
+import { DateTime } from "luxon";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import EditableTable from "../components/EditableTable";
 import { IRequest, useAddRequisition } from "../hooks/useAddRequisition";
 import { IRequisitionDetails } from "../types/requestInterface";
+import { getEditMeta } from "../utils/requestMetadata";
 import { addRequisitionSchema } from "../utils/requisitionSchema";
 
+type SubmissionIntent = "SAVE" | "SAVE_DRAFT" | "SUBMIT";
+
+type DropdownOption = {
+  label: string;
+  value: string | number;
+};
+
+const toOption = (
+  label: unknown,
+  value: unknown
+): DropdownOption | null => {
+  const normalizedLabel = String(label ?? "").trim();
+
+  if (!normalizedLabel) {
+    return null;
+  }
+
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  return {
+    label: normalizedLabel,
+    value: value as string | number,
+  };
+};
+
+const dedupeOptions = (options: DropdownOption[]): DropdownOption[] => {
+  const seenValues = new Set<string>();
+
+  return options.filter((option) => {
+    const key = String(option.value);
+
+    if (!key || seenValues.has(key)) {
+      return false;
+    }
+
+    seenValues.add(key);
+    return true;
+  });
+};
+
 const Request = () => {
-  const { setInitialRows, events: allEvents, addEvent } = useStore();
-  const { departments: allDepartments, addDepartment } = useSettingsStore();
-
-  const departments = useMemo(() => {
-    return Array.isArray(allDepartments)
-      ? allDepartments.map((dept) => ({
-          name: dept?.name,
-          value: dept?.id,
-        }))
-      : [];
-  }, [allDepartments]);
-
-  const events = useMemo(() => {
-    return Array.isArray(allEvents)
-      ? allEvents.map((event) => ({
-          name: event?.name,
-          value: event?.id,
-        }))
-      : [];
-  }, [allEvents]);
-
   const { id } = useParams();
   const decodedId = id ? window.atob(String(id)) : "";
+  const myRequisitionPath = `${relativePath.home.main}/requests`;
+
+  const { setInitialRows, events: storedEvents } = useStore((state) => ({
+    setInitialRows: state.setInitialRows,
+    events: state.events,
+  }));
+
+  const { departments: storedDepartments } = useSettingsStore((state) => ({
+    departments: state.departments,
+  }));
 
   const [requestData, setRequestData] = useState<
     IRequisitionDetails | undefined
   >(undefined);
+  const [initialImages, setInitialImages] = useState<image[]>([]);
+  const submissionIntentRef = useRef<SubmissionIntent>("SAVE");
+
+  const { data: departmentsData, loading: departmentsLoading } = useFetch<
+    ApiResponse<DepartmentType[]>
+  >(
+    api.fetch.fetchDepartments as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<DepartmentType[]>>
+  );
+
+  const { data: eventsData, loading: eventsLoading } = useFetch<
+    ApiResponse<EventType[]>
+  >(
+    api.fetch.fetchAllUniqueEvents as (
+      query?: Record<string, string | number>
+    ) => Promise<ApiResponse<EventType[]>>
+  );
+
   const { data } = useFetch<ApiResponse<IRequisitionDetails>>(
     api.fetch.fetchRequisitionDetails as (
       query?: Record<string, string | number>
     ) => Promise<ApiResponse<IRequisitionDetails>>,
-    { id: decodedId }
+    { id: decodedId },
+    !decodedId
   );
+
   const {
     user: { name },
   } = useAuth();
+
   const {
     currencies,
     handleSubmit,
@@ -72,219 +129,336 @@ const Request = () => {
     addingImage,
     handleSignature,
     signature,
-    handleUpload,
     handleUploadImage,
+    handleItemImageUpload,
   } = useAddRequisition();
-  const [formattedRequestDate, setFormattedRequestDate] = useState<string>("");
-  const [initialImages, setInitialImages] = useState<image[]>([]);
+
+  useEffect(() => {
+    if (!decodedId) {
+      setRequestData(undefined);
+      setInitialRows([]);
+      setInitialImages([]);
+    }
+  }, [decodedId, setInitialRows]);
 
   useEffect(() => {
     const response = data?.data;
-    if (response) {
-      setRequestData(response);
-      const products = data?.data?.products?.map((product) => ({
+
+    if (!response) {
+      return;
+    }
+
+    setRequestData(response);
+
+    const products =
+      response.products?.map((product) => ({
         name: product?.name,
         amount: product?.unitPrice,
         quantity: product?.quantity,
         total: product?.quantity * product?.unitPrice,
+        image_url: product?.image_url ?? product?.image ?? "",
         id: product?.id,
-      }));
-      if (products?.length) {
-        setInitialRows(products);
-      }
+      })) ?? [];
 
-      if (response.attachmentLists?.length) {
-        const images = response.attachmentLists?.map((img, idx) => {
-          return {
-            id: img.id,
-            image: img.URL,
-          };
-        });
-        setInitialImages(images);
-      }
-    }
+    setInitialRows(products);
+
+    const images =
+      response.attachmentLists?.map((attachment) => ({
+        id: attachment.id,
+        image: attachment.URL,
+      })) ?? [];
+
+    setInitialImages(images);
   }, [data, setInitialRows]);
 
-  useEffect(() => {
-    const fetchFormattedDate = async () => {
-      if (requestData?.summary?.request_date) {
-        const date = await getFormatedDate(requestData.summary.request_date);
-        setFormattedRequestDate(date);
-      }
-    };
-    fetchFormattedDate();
-  }, [requestData]);
+  const departmentOptions = useMemo(() => {
+    const source =
+      departmentsData?.data?.length && departmentsData.data.length > 0
+        ? departmentsData.data
+        : storedDepartments;
 
-  const getFormatedDate = async (date: string) => {
-    const { DateTime } = await import("luxon");
-    return DateTime.fromISO(date).toFormat("yyyy-MM-dd");
-  };
+    const mapped = source
+      .map((department) => toOption(department?.name, department?.id))
+      .filter((option): option is DropdownOption => Boolean(option));
+
+    const requestDepartmentId = requestData?.summary?.department_id;
+    const requestDepartment = requestData?.summary?.department;
+
+    if (
+      requestDepartmentId &&
+      !mapped.some(
+        (option) => String(option.value) === String(requestDepartmentId)
+      )
+    ) {
+      const fallback = toOption(
+        requestDepartment || `Department ${requestDepartmentId}`,
+        requestDepartmentId
+      );
+
+      if (fallback) {
+        mapped.push(fallback);
+      }
+    }
+
+    return dedupeOptions(mapped);
+  }, [departmentsData?.data, requestData?.summary, storedDepartments]);
+
+  const eventOptions = useMemo(() => {
+    const source =
+      eventsData?.data?.length && eventsData.data.length > 0
+        ? eventsData.data
+        : storedEvents;
+
+    const mapped = source
+      .map((event) => {
+        const normalizedEvent = event as {
+          id?: string | number;
+          name?: string;
+          event_name?: string;
+          event_name_id?: string | number;
+        };
+
+        const label =
+          normalizedEvent?.name ?? normalizedEvent?.event_name ?? "";
+        const value =
+          normalizedEvent?.id ?? normalizedEvent?.event_name_id ?? "";
+
+        return toOption(label, value);
+      })
+      .filter((option): option is DropdownOption => Boolean(option));
+
+    const requestProgramId = requestData?.summary?.program_id;
+    const requestProgramName = requestData?.summary?.program;
+
+    if (
+      requestProgramId &&
+      !mapped.some((option) => String(option.value) === String(requestProgramId))
+    ) {
+      const fallback = toOption(
+        requestProgramName || `Event ${requestProgramId}`,
+        requestProgramId
+      );
+
+      if (fallback) {
+        mapped.push(fallback);
+      }
+    }
+
+    return dedupeOptions(mapped);
+  }, [eventsData?.data, requestData?.summary, storedEvents]);
 
   const initialValues: IRequest = {
-    requester_name: name,
+    requester_name: requestData?.requester?.name ?? name,
     department_id: requestData?.summary?.department_id ?? "",
     event_id: requestData?.summary?.program_id ?? "",
-    request_date: formattedRequestDate,
+    request_date: requestData?.summary?.request_date
+      ? DateTime.fromISO(requestData.summary.request_date).toFormat("yyyy-MM-dd")
+      : DateTime.now().toFormat("yyyy-MM-dd"),
     comment: requestData?.comment ?? "",
-    currency: requestData?.currency ?? "",
+    currency: requestData?.currency || "GHS",
     approval_status: requestData?.summary?.status ?? "Draft",
     user_sign: requestData?.requester?.user_sign ?? "",
     attachmentLists: requestData?.attachmentLists ?? [],
   };
 
-  const title = id ? "Update request" : "Raise request";
+  const title = id ? "Update requisition" : "Create requisition";
   const defaultSignature = id ? requestData?.requester?.user_sign ?? "" : "";
-  const isNoSignature = id && !requestData?.requester?.user_sign;
+  const isNoSignature = Boolean(id && !requestData?.requester?.user_sign);
+  const isDraftRequest = (requestData?.summary?.status ?? "Draft") === "Draft";
+  const isLoadingExistingRequest = Boolean(id && !requestData);
+  const editMeta = useMemo(() => getEditMeta(requestData), [requestData]);
+  const crumbs = [
+    { label: "Home", link: relativePath.home.main },
+    { label: "My Requisition", link: myRequisitionPath },
+    { label: id ? "Update Requisition" : "Create Requisition", link: "" },
+  ];
 
-  useEffect(() => {
-    const { summary } = requestData || {};
-    const { program_id, department_id, program } = summary || {};
-    if (!(id && (program_id || department_id))) {
-      return;
-    } else {
-      const event = allEvents?.find(
-        (event) => Number(event?.id) === Number(program_id)
-      );
-
-      if (!event && program_id !== undefined && program) {
-        addEvent({
-          id: Number(program_id),
-          name: String(program),
-          start_date: "",
-          end_date: "",
-          start_time: "",
-          end_time: "",
-        });
-      }
-    }
-  }, [requestData, allEvents]);
   return (
     <div className="p-4">
-      <section className="mx-auto p-8 container lg:w-4/6 bg-white rounded-xl">
-        <PageOutline>
-          <div className="">
+      <PageOutline crumbs={crumbs}>
+        <section className="mx-auto w-full max-w-6xl">
+          <div className="app-card space-y-4 p-4 md:p-6">
             <PageHeader title={title} />
+            <p className="text-sm text-primaryGray">
+              Complete the requisition details below. Add item images directly at
+              the item row level for clearer approvals.
+            </p>
+            {id && (
+              <div className="rounded-lg border border-lightGray bg-[#F8F9FC] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                  Requester
+                </p>
+                <p className="mt-1 text-base font-semibold text-primary">
+                  {initialValues.requester_name || "Unknown requester"}
+                </p>
+                <p className="mt-1 text-sm text-primaryGray">
+                  {editMeta.hasEditMeta
+                    ? `Last edited by ${editMeta.editorName || "Unknown editor"} on ${
+                        editMeta.formattedEditedAt || "Unknown date"
+                      }`
+                    : "Last edited: Not edited yet"}
+                </p>
+              </div>
+            )}
+            {isLoadingExistingRequest && (
+              <div className="rounded-lg border border-lightGray p-4 text-sm text-primaryGray">
+                Loading requisition details...
+              </div>
+            )}
 
-            <Formik
-              initialValues={initialValues}
-              onSubmit={async (values) => {
-                const data = await handleUploadImage();
-                handleSubmit({ ...values, attachmentLists: data });
-              }}
-              validationSchema={addRequisitionSchema}
-              enableReinitialize
-            >
-              {({
-                handleSubmit,
-                setValues,
-                values,
-                validateForm,
-                setTouched,
-              }) => (
-                <>
-                  <Modal open={openSignature} onClose={closeModal}>
-                    <AddSignature
-                      cancel={closeModal}
-                      text="Submit"
-                      header="Request Signing"
-                      handleSignature={handleSignature}
-                      loading={loading || addingImage}
-                      defaultSignature={defaultSignature}
-                      onSubmit={async () => {
-                        try {
-                          let updatedSignature = signature.signature as string;
-
-                          if (signature.isImage && signature.signature) {
-                            const formData = new FormData();
-                            formData.append("file", signature.signature);
-
-                            const response = await handleUpload(formData);
-
-                            if (response?.URL) {
-                              updatedSignature = response.URL;
-                            }
+            {!isLoadingExistingRequest && (
+              <Formik
+                initialValues={initialValues}
+                onSubmit={async (values) => {
+                  const submissionIntent = submissionIntentRef.current;
+                  const uploadedAttachments = await handleUploadImage();
+                  await handleSubmit(
+                    { ...values, attachmentLists: uploadedAttachments },
+                    {
+                      submitForApproval: submissionIntent === "SUBMIT",
+                      redirectToDetails: true,
+                    }
+                  );
+                }}
+                validationSchema={addRequisitionSchema}
+                enableReinitialize
+              >
+                {({
+                  handleSubmit,
+                  setValues,
+                  values,
+                  validateForm,
+                  setTouched,
+                }) => (
+                  <>
+                    <Modal open={openSignature} onClose={closeModal}>
+                      <AddSignature
+                        cancel={closeModal}
+                        text="Submit"
+                        header="Requisition Signing"
+                        handleSignature={handleSignature}
+                        loading={loading || addingImage}
+                        defaultSignature={defaultSignature}
+                        onSubmit={async () => {
+                          const updatedSignature = signature.trim();
+                          if (!updatedSignature) {
+                            return;
                           }
 
-                          setValues({
+                          await setValues({
                             ...values,
-                            approval_status: "Awaiting_HOD_Approval",
                             user_sign: updatedSignature,
                           });
 
-                          // Delay calling handleSubmit to ensure values are updated
-                          await new Promise((resolve) =>
-                            setTimeout(resolve, 0)
-                          );
-                          handleSubmit();
-                        } catch (error) {
-                          console.error(
-                            "Error in AddSignature submission:",
-                            error
-                          );
+                          submissionIntentRef.current = "SUBMIT";
+                          closeModal();
+                          await handleSubmit();
+                        }}
+                      />
+                    </Modal>
+
+                  <section className="rounded-xl border border-lightGray p-4 md:p-5">
+                    <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
+                      Requisition Information
+                    </h4>
+                    <FormWrapperNew>
+                      <Field
+                        component={FormikInputDiv}
+                        name="requester_name"
+                        label="Requester"
+                        id="requester_name"
+                        disabled
+                      />
+                      <Field
+                        component={FormikSelectField}
+                        name="department_id"
+                        label="Department"
+                        options={departmentOptions}
+                        id="department_id"
+                        placeholder="Select department"
+                        helperText={
+                          departmentOptions.length === 0
+                            ? departmentsLoading
+                              ? "Loading departments..."
+                              : "No departments available"
+                            : undefined
                         }
-                      }}
+                      />
+                      <Field
+                        component={FormikSelectField}
+                        name="event_id"
+                        label="Event"
+                        options={eventOptions}
+                        id="event_id"
+                        placeholder="Select event"
+                        helperText={
+                          eventOptions.length === 0
+                            ? eventsLoading
+                              ? "Loading events..."
+                              : "No events available"
+                            : undefined
+                        }
+                      />
+                      <Field
+                        component={FormikInputDiv}
+                        name="request_date"
+                        label="Date of requisition"
+                        id="request_date"
+                        type="date"
+                      />
+                      <Field
+                        component={FormikSelectField}
+                        name="currency"
+                        label="Currency"
+                        id="currency"
+                        options={currencies}
+                        placeholder="Select currency"
+                        helperText="Default: Ghana Cedi (GHS)"
+                      />
+                      <span aria-hidden="true" />
+                      <Field
+                        component={FormikInputDiv}
+                        name="comment"
+                        label="Comment"
+                        id="comment"
+                        type="textarea"
+                        className="md:col-span-2"
+                      />
+                    </FormWrapperNew>
+                  </section>
+
+                  <section className="rounded-xl border border-lightGray p-4 md:p-5">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                        Requisition Items
+                      </h4>
+                      <span className="text-xs text-primaryGray">
+                        Upload image per item row
+                      </span>
+                    </div>
+                    <EditableTable
+                      onImageUpload={handleItemImageUpload}
+                      imageUploadLoading={addingImage}
                     />
-                  </Modal>
-                  <FormWrapperNew>
-                    <Field
-                      component={FormikInputDiv}
-                      name="requester_name"
-                      label="Requester"
-                      id="requester_name"
-                      disabled
-                    />
-                    <Field
-                      component={FormikSelectField}
-                      name="department_id"
-                      label="Department"
-                      options={departments}
-                      id="department_id"
-                      placeholder="Select department"
-                    />
-                    <Field
-                      component={FormikSelectField}
-                      name="event_id"
-                      label="Program"
-                      options={events}
-                      required={true}
-                      id="event_id"
-                      placeholder="Select program/event"
-                    />
-                    <Field
-                      component={FormikInputDiv}
-                      name="request_date"
-                      label="Date of requisition"
-                      id="request_date"
-                      type="date"
-                    />
-                    <Field
-                      component={FormikSelectField}
-                      name="currency"
-                      label="Currency"
-                      id="currency"
-                      options={currencies}
-                      placeholder="Select currency"
-                    />
-                    <span> &nbsp;</span>
-                    <Field
-                      component={FormikInputDiv}
-                      name="comment"
-                      label="Comment"
-                      id="comment"
-                      type="textarea"
-                      col={50}
-                    />
+                  </section>
+
+                  <section className="rounded-xl border border-lightGray p-4 md:p-5">
+                    <div className="mb-3">
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                        General Attachments
+                      </h4>
+                      <p className="text-xs text-primaryGray">
+                        Optional supporting files for the overall requisition.
+                      </p>
+                    </div>
                     <MultiImageComponent
-                      placeholder="Atatchments"
+                      placeholder="Attachments"
                       imageChange={imageChange}
                       initialImages={initialImages ?? []}
                     />
-                  </FormWrapperNew>
+                  </section>
 
-                  <HorizontalLine />
-                  <EditableTable />
-                  <HorizontalLine />
-                  <div className="w-full flex justify-end gap-x-4 mt-4">
+                  <div className="mt-2 flex w-full flex-wrap justify-end gap-3">
                     <Button
                       value="Cancel"
                       variant="ghost"
@@ -292,19 +466,19 @@ const Request = () => {
                         window.history.back();
                       }}
                     />
-                    {!id && (
+                    {(!id || isDraftRequest) && (
                       <Button
-                        value="Save as Draft"
+                        value={id ? "Update Draft" : "Save as Draft"}
                         variant="secondary"
-                        onClick={() => {
-                          setValues({
+                        onClick={async () => {
+                          submissionIntentRef.current = "SAVE_DRAFT";
+                          await setValues({
                             ...values,
                             approval_status: "Draft",
-                            user_sign: null,
+                            user_sign: values.user_sign || null,
                           });
                           handleSubmit();
                         }}
-                        type="submit"
                         loading={loading || addingImage}
                       />
                     )}
@@ -318,26 +492,32 @@ const Request = () => {
                       />
                     )}
                     <Button
-                      value={id ? "Update" : "Send request"}
-                      variant="default"
-                      loading={
-                        !!id && !openSignature && (loading || addingImage)
+                      value={
+                        !id
+                          ? "Send requisition"
+                          : isDraftRequest
+                            ? "Submit requisition"
+                            : "Update"
                       }
+                      variant="default"
+                      loading={!openSignature && (loading || addingImage)}
                       onClick={() => {
-                        if (!id) {
+                        if (!id || isDraftRequest) {
                           handleAddSignature(validateForm, setTouched);
                         } else {
+                          submissionIntentRef.current = "SAVE";
                           handleSubmit();
                         }
                       }}
                     />
                   </div>
-                </>
-              )}
-            </Formik>
+                  </>
+                )}
+              </Formik>
+            )}
           </div>
-        </PageOutline>
-      </section>
+        </section>
+      </PageOutline>
     </div>
   );
 };

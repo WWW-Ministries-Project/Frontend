@@ -180,7 +180,7 @@ const AllEvent = () => {
 
       {/* Results summary */}
       <div className="mb-4">
-        <p className="text-gray-600">
+        <p className="text-primaryGray">
           Showing {filteredEvents?.length} of {allEvents.length} events
           {selectedTab !== "All" && ` in ${selectedTab.toLowerCase()}`}
           {searchQuery && ` matching "${searchQuery}"`}
@@ -200,12 +200,12 @@ const AllEvent = () => {
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <div className="text-gray-500">
+            <div className="text-primaryGray">
               <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
               </svg>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
-              <p className="text-gray-500 mb-4">
+              <h3 className="mb-2 text-lg font-medium text-primary">No events found</h3>
+              <p className="mb-4 text-primaryGray">
                 {searchQuery 
                   ? `No events match your search "${searchQuery}"`
                   : `No events found in ${selectedTab} category`
@@ -214,7 +214,7 @@ const AllEvent = () => {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                  className="font-medium text-primary hover:text-primary/80"
                 >
                   Clear search
                 </button>

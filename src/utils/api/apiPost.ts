@@ -10,13 +10,36 @@ import {
   CohortPayloadType,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
+import type {
+  BulkUpdateMemberStatusPayload,
+  BulkUpdateMemberStatusResponse,
+} from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
+import type {
+  AttendanceTimingSettingsConfig,
+  AttendanceTimingSettingsPayload,
+} from "./settings/attendanceTimingInterfaces";
+import type {
+  RoleEligibilityConfig,
+  RoleEligibilityConfigPayload,
+} from "./settings/eligibilityInterfaces";
+import type {
+  SystemNotificationSettingsConfig,
+  SystemNotificationSettingsPayload,
+} from "./settings/systemNotificationInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import type {
   FollowUpPayloadType,
   VisitPayloadType,
 } from "./visitors/interfaces";
-import { EventType } from "./events/interfaces";
+import {
+  BiometricAttendanceImportJob,
+  BiometricAttendanceImportPayload,
+  EventType,
+  PublicEventRegistrationPayload,
+  ValidateEventMemberPayload,
+  ValidatedEventMember,
+} from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
@@ -32,6 +55,28 @@ import {
   StaffAvailability,
 } from "./appointment/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  ApprovalConfig,
+  EventReportApprovalConfigPayload,
+  RequisitionApprovalActionPayload,
+  RequisitionApprovalConfigPayload,
+  SubmitRequisitionPayload,
+} from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import axios from "@/axiosInstance";
+import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import type {
+  AiChatRequest,
+  AiChatResponse,
+  AiCredentialRecord,
+  AiInsightResponse,
+  AiInsightsRequest,
+  CreateAiCredentialPayload,
+} from "./ai/interfaces";
+import type { NotificationPushSubscriptionPayload } from "./notifications/interfaces";
+
+interface PostRequestOptions {
+  headers?: Record<string, string>;
+}
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -47,9 +92,34 @@ export class ApiCreationCalls {
     return this.apiExecution.postData(path, payload);
   }
 
+  private async postToApiWithOptions<T>(
+    path: string,
+    payload: unknown,
+    options?: PostRequestOptions
+  ): Promise<ApiResponse<T>> {
+    const url = `${baseUrl}${path}`;
+    const response = await axios.post<{ data: T }>(url, payload, {
+      headers: options?.headers,
+    });
+
+    return {
+      data: response.data.data,
+      status: response.status,
+      error: "",
+      success: true,
+    };
+  }
+
   createMember = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/register", payload);
   };
+
+  bulkUpdateMemberStatus = (
+    payload: BulkUpdateMemberStatusPayload
+  ): Promise<ApiResponse<BulkUpdateMemberStatusResponse>> => {
+    return this.postToApi("user/update-member-status/bulk", payload);
+  };
+
   createEvent = (
     payload: Record<string, unknown>
   ): Promise<ApiResponse<unknown>> => {
@@ -70,6 +140,96 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("requisitions/create-requisition", payload);
   };
+  upsertRequisitionApprovalConfig = (
+    payload: RequisitionApprovalConfigPayload
+  ): Promise<ApiResponse<ApprovalConfig>> => {
+    return this.postToApi("requisitions/upsert-approval-config", payload);
+  };
+  upsertRoleEligibilityConfig = (
+    payload: RoleEligibilityConfigPayload
+  ): Promise<ApiResponse<RoleEligibilityConfig>> => {
+    return this.postToApi("settings/upsert-role-eligibility-config", payload);
+  };
+
+  upsertAttendanceTimingConfig = (
+    payload: AttendanceTimingSettingsPayload
+  ): Promise<ApiResponse<AttendanceTimingSettingsConfig>> => {
+    return this.postToApi("settings/upsert-attendance-timing-config", payload);
+  };
+
+  upsertSystemNotificationConfig = (
+    payload: SystemNotificationSettingsPayload
+  ): Promise<ApiResponse<SystemNotificationSettingsConfig>> => {
+    return this.postToApi("settings/upsert-system-notification-config", payload);
+  };
+
+  upsertEventReportApprovalConfig = (
+    payload: EventReportApprovalConfigPayload
+  ): Promise<ApiResponse<ApprovalConfig>> => {
+    return this.postToApi("event-reports/upsert-approval-config", payload);
+  };
+  submitRequisition = (
+    payload: SubmitRequisitionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("requisitions/submit-requisition", payload);
+  };
+  requisitionApprovalAction = (
+    payload: RequisitionApprovalActionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("requisitions/approval-action", payload);
+  };
+
+  upsertEventReportFinance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/upsert-finance", payload);
+  };
+
+  approveEventReportDepartment = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/department-approval-action", payload);
+  };
+
+  approveEventReportChurchAttendance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(
+      "event-reports/church-attendance-approval-action",
+      payload
+    );
+  };
+
+  approveEventReportFinance = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/finance-approval-action", payload);
+  };
+
+  submitEventReportForFinalApproval = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/submit-final-approval", payload);
+  };
+
+  eventReportFinalApprovalAction = (
+    payload: unknown
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/final-approval-action", payload);
+  };
+
+  subscribeToNotificationPush = (
+    payload: NotificationPushSubscriptionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("notifications/push/subscribe", payload);
+  };
+
+  unsubscribeFromNotificationPush = (
+    payload: NotificationPushSubscriptionPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("notifications/push/unsubscribe", payload);
+  };
+
   createAccessRight = <T>(payload: unknown): Promise<ApiResponse<T>> =>
     this.postToApi<T>("access/create-access-level", payload);
 
@@ -125,6 +285,13 @@ export class ApiCreationCalls {
 
   forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("user/forgot-password", payload);
+  };
+
+  changePassword = <T>(payload: {
+    current_password: string;
+    newpassword: string;
+  }): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/change-password", payload);
   };
 
   /*Visitor Management*/
@@ -243,6 +410,30 @@ export class ApiCreationCalls {
     return this.postToApi("event/church-attendance", payload);
   }
 
+  importBiometricAttendance = (
+    payload: BiometricAttendanceImportPayload
+  ): Promise<ApiResponse<BiometricAttendanceImportJob>> => {
+    return this.postToApi("event/import-biometric-attendance", payload);
+  };
+
+  registerEvent = (payload: {
+    event_id: string | number;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/register", payload);
+  };
+
+  validatePublicEventMember = (
+    payload: ValidateEventMemberPayload
+  ): Promise<ApiResponse<ValidatedEventMember>> => {
+    return this.postToApi("event/public-validate-member", payload);
+  };
+
+  publicRegisterEvent = (
+    payload: PublicEventRegistrationPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event/public-register", payload);
+  };
+
   //Create theme
   createAnnualTheme = (
     payload: unknown
@@ -283,5 +474,31 @@ export class ApiCreationCalls {
     payload: FinanceData
   ): Promise<ApiResponse<FinancialRecord>> => {
     return this.postToApi("financials/create-financial", payload);
+  };
+
+  createAiCredential = (
+    payload: CreateAiCredentialPayload
+  ): Promise<ApiResponse<AiCredentialRecord>> => {
+    return this.postToApi("ai/credentials", payload);
+  };
+
+  sendAiMessage = (
+    payload: AiChatRequest,
+    options?: { idempotencyKey?: string }
+  ): Promise<ApiResponse<AiChatResponse>> => {
+    const idempotencyKey = options?.idempotencyKey?.trim();
+    const headers = idempotencyKey
+      ? { "Idempotency-Key": idempotencyKey }
+      : undefined;
+
+    return this.postToApiWithOptions("ai/chat", payload, { headers });
+  };
+
+  createAiInsights = (
+    module: string,
+    payload: AiInsightsRequest
+  ): Promise<ApiResponse<AiInsightResponse>> => {
+    const encodedModule = encodeURIComponent(module.trim());
+    return this.postToApi(`ai/insights/${encodedModule}`, payload);
   };
 }

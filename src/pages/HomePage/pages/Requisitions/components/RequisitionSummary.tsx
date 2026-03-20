@@ -1,66 +1,90 @@
-import React from "react";
+import React, { useMemo } from "react";
 import StatusPill from "@/components/StatusPill";
-import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import { DateTime } from "luxon";
-import { IRequestSummary, RequisitionStatusType } from "../types/requestInterface";
+import {
+  IRequestSummary,
+  RequisitionStatusType,
+} from "../types/requestInterface";
 
-const RequisitionSummary = React.memo(
-  ({
-    summary,
-    currency,
-  }: Readonly<{
-    summary: IRequestSummary | undefined;
-    currency: string | undefined;
-  }>) => {
+const amountFormatter = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const RequisitionSummaryComponent = ({
+  summary,
+  currency,
+  status,
+}: Readonly<{
+  summary: IRequestSummary | undefined;
+  currency: string | undefined;
+  status?: RequisitionStatusType;
+}>) => {
+    const requestDate = useMemo(() => {
+      const parsed = summary?.request_date
+        ? DateTime.fromISO(summary.request_date)
+        : null;
+
+      return parsed?.isValid ? parsed.toFormat("dd LLL yyyy") : "N/A";
+    }, [summary?.request_date]);
+
+    const eventName =
+      summary?.event_name || summary?.event || summary?.program || "N/A";
+
     const items = [
       {
-        title: "Requisition id",
-        value: summary?.requisition_id,
+        title: "Requisition ID",
+        value: summary?.requisition_id || "N/A",
       },
       {
         title: "Department",
-        value: summary?.department,
+        value: summary?.department || "N/A",
       },
       {
-        title: "Program",
-        value: summary?.program,
+        title: "Event",
+        value: eventName,
       },
       {
-        title: "Request date",
-        value: DateTime.fromISO(summary?.request_date as string).toFormat(
-          "dd/MM/yyyy"
-        ),
+        title: "Requisition Date",
+        value: requestDate,
       },
       {
-        title: "Total cost",
-        value: `${currency} ${summary?.total_cost?.toFixed(2)}`,
+        title: "Total Cost",
+        value: `${currency || "GHS"} ${amountFormatter.format(
+          Number(summary?.total_cost ?? 0)
+        )}`,
       },
     ];
+
     return (
-      <aside className="border rounded-lg p-3 h-fit border-[#D9D9D9]">
-        <div className="font-semibold text-primary">
-          <PageHeader title="Requisition Summary" />
-        </div>
-        <div className="flex flex-col gap-3">
+      <aside className="app-card h-fit p-4">
+        <h3 className="text-base font-semibold text-primary">Requisition Summary</h3>
+
+        <div className="mt-4 space-y-3">
           {items.map((item) => (
             <div
               key={item.title}
-              className="flex  whitespace-nowrap gap-3 text-left"
+              className="grid grid-cols-[110px_1fr] items-start gap-2 text-sm"
             >
-              <span className="font-semibold text-primary ">{item.title}:</span>
-              <span className="text-left font-normal text-primary">
-                {item.value}
-              </span>
+              <span className="font-medium text-primaryGray">{item.title}</span>
+              <span className="font-medium text-primary">{item.value}</span>
             </div>
           ))}
-          <div className="flex items-center   gap-3 text-left">
-            <span className="font-semibold text-primary ">Status</span>
-            <StatusPill text={summary?.status as RequisitionStatusType} />
+
+          <div className="grid grid-cols-[110px_1fr] items-center gap-2 text-sm">
+            <span className="font-medium text-primaryGray">Status</span>
+            <StatusPill
+              text={(status || summary?.status || "Draft") as RequisitionStatusType}
+            />
           </div>
         </div>
       </aside>
     );
-  }
-);
+  };
+
+const RequisitionSummary = React.memo(RequisitionSummaryComponent);
+
+RequisitionSummaryComponent.displayName = "RequisitionSummary";
+RequisitionSummary.displayName = "RequisitionSummary";
 
 export default RequisitionSummary;

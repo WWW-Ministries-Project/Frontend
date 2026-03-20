@@ -36,26 +36,37 @@ const toOptionalStringValue = (value: unknown): string | undefined => {
   return undefined;
 };
 
-const normalizeGroup = (value: unknown): IChurchAttendanceForm["group"] => {
-  if (value === "ADULTS" || value === "CHILDREN" || value === "BOTH") {
-    return value;
-  }
-  return "BOTH";
-};
-
 const normalizeAttendanceRecord = (
   record: Record<string, unknown>
 ): IChurchAttendanceForm => ({
   eventId: toStringValue(record.eventId ?? record.event_id),
   date: toStringValue(record.date),
-  group: normalizeGroup(record.group),
   adultMale: toNumber(record.adultMale ?? record.adult_male),
   adultFemale: toNumber(record.adultFemale ?? record.adult_female),
   childrenMale: toNumber(record.childrenMale ?? record.children_male),
   childrenFemale: toNumber(record.childrenFemale ?? record.children_female),
   youthMale: toNumber(record.youthMale ?? record.youth_male),
   youthFemale: toNumber(record.youthFemale ?? record.youth_female),
-  visitingPastors: toNumber(record.visitingPastors ?? record.visiting_pastors),
+  visitors: toNumber(record.visitors),
+  visitorsMale: toNumber(record.visitorsMale ?? record.visitors_male),
+  visitorsFemale: toNumber(record.visitorsFemale ?? record.visitors_female),
+  visitorsTotal: toNumber(record.visitorsTotal ?? record.visitors_total),
+  visitorClergyMale: toNumber(
+    record.visitorClergyMale ?? record.visitor_clergy_male
+  ),
+  visitorClergyFemale: toNumber(
+    record.visitorClergyFemale ?? record.visitor_clergy_female
+  ),
+  visitorClergyTotal: toNumber(
+    record.visitorClergyTotal ?? record.visitor_clergy_total
+  ),
+  visitorTotalMale: toNumber(
+    record.visitorTotalMale ?? record.visitor_total_male
+  ),
+  visitorTotalFemale: toNumber(
+    record.visitorTotalFemale ?? record.visitor_total_female
+  ),
+  visitorTotal: toNumber(record.visitorTotal ?? record.visitor_total),
   recordedBy: toStringValue(record.recordedBy ?? record.recorded_by),
   lastUpdatedBy: toStringValue(
     record.lastUpdatedBy ?? record.last_updated_by
@@ -88,7 +99,6 @@ export default function ChurchAttendance() {
   const [filters, setFilters] = useState({
     event: "",
     month: "",
-    group: "",
   });
 
   const { eventsOptions } = useStore();
@@ -115,8 +125,7 @@ export default function ChurchAttendance() {
       const monthMatch = filters.month
         ? r.date.startsWith(filters.month)
         : true;
-      const groupMatch = filters.group ? r.group === filters.group : true;
-      return eventMatch && monthMatch && groupMatch;
+      return eventMatch && monthMatch;
     });
   }, [attendance, filters]);
 
@@ -125,7 +134,9 @@ export default function ChurchAttendance() {
     filteredAttendance.forEach((record) => {
       const key =
         groupBy === "event"
-          ? eventLookup[record?.eventId] ?? "Unknown Event"
+          ? record.event_name ||
+            eventLookup[record?.eventId] ||
+            (record.eventId ? `Event ${record.eventId}` : "Unknown Event")
           : record.date.slice(0, 7);
       if (!groups[key]) groups[key] = [];
       groups[key].push(record);
@@ -207,29 +218,11 @@ export default function ChurchAttendance() {
             />
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs text-gray-600 mb-1">Group</label>
-            <select
-              className="h-10 border rounded px-3"
-              value={filters.group}
-              onChange={(e) =>
-                setFilters((p) => ({ ...p, group: e.target.value }))
-              }
-            >
-              <option value="">All</option>
-              <option value="ADULTS">Adults</option>
-              <option value="CHILDREN">Children</option>
-              <option value="BOTH">Both</option>
-            </select>
-          </div>
-
           <div className="flex flex-col justify-end">
             <Button
               value="Reset"
               variant="secondary"
-              onClick={() =>
-                setFilters({ event: "", month: "", group: "" })
-              }
+              onClick={() => setFilters({ event: "", month: "" })}
             />
           </div>
         </div>
@@ -255,7 +248,7 @@ export default function ChurchAttendance() {
       </div>
 
       {filteredAttendance.length === 0 && (
-        <EmptyState msg="No attendance records found" />
+        <EmptyState scope="page" msg="No attendance records found" />
       )}
 
       <div className="space-y-6">
@@ -282,7 +275,7 @@ export default function ChurchAttendance() {
                     key={
                       record.id
                         ? String(record.id)
-                        : `${record.eventId}-${record.date}-${record.group}`
+                        : `${record.eventId}-${record.date}`
                     }
                     record={record}
                     onEdit={(rec) => {
@@ -293,7 +286,10 @@ export default function ChurchAttendance() {
                       if (record.id !== undefined) {
                         showDeleteDialog(
                           {
-                            name: eventLookup[record.eventId] ?? "Attendance record",
+                            name:
+                              record.event_name ||
+                              eventLookup[record.eventId] ||
+                              "Attendance record",
                             id: record.id,
                           },
                           deleteAttendance

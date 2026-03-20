@@ -4,21 +4,24 @@ import PageOutline from "../../Components/PageOutline";
 import AnnualThemeCard from "./Components/AnnualThemeCard";
 import { Modal } from "@/components/Modal";
 import AnnualThemeForm from "./Components/AnnualThemeForm";
+import type { IAnnualThemeForm } from "./Components/AnnualThemeForm";
 import { api } from "@/utils/api/apiCalls";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showDeleteDialog, showNotification } from "../../utils";
+import EmptyState from "@/components/EmptyState";
 
+type AnnualThemeItem = IAnnualThemeForm & { id: string | number };
 
 const AnnualThemeManager = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedTheme, setSelectedTheme] = useState<any | null>(null);
-    const [themes, setThemes] = useState<any[]>();
+    const [selectedTheme, setSelectedTheme] = useState<AnnualThemeItem | null>(null);
+    const [themes, setThemes] = useState<AnnualThemeItem[]>([]);
 
       const { data, loading, refetch } = useFetch(api.fetch.fetchAnnualTheme);
       const { executeDelete, success } = useDelete(api.delete.deleteAnnualTheme);
 
-    const handleEditTheme = (theme: any) => {
+    const handleEditTheme = (theme: AnnualThemeItem) => {
       setSelectedTheme(theme);
       setIsFormOpen(true);
     };
@@ -26,14 +29,14 @@ const AnnualThemeManager = () => {
 
     useEffect(() => {
         if (data && data.data && Array.isArray(data.data)) {
-          setThemes(data.data);
+          setThemes(data.data as AnnualThemeItem[]);
         }
       }, [data]);
     
       useEffect(() => {
         if (success) {
           refetch();
-          showNotification("Attendance record deleted successfully", "success");
+          showNotification("Theme deleted successfully", "success");
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [success]);
@@ -60,7 +63,7 @@ const AnnualThemeManager = () => {
                   />
 
             <div>
-        {(themes as any[] || []).map((theme) => (
+        {themes.map((theme) => (
             <AnnualThemeCard
               key={theme.id}
               theme={theme}
@@ -79,6 +82,13 @@ const AnnualThemeManager = () => {
                     }}
             />
         ))}
+        {!loading && themes.length === 0 && (
+          <EmptyState
+            scope="page"
+            msg="No annual themes found"
+            description="Create your first annual theme to keep church communication aligned."
+          />
+        )}
             </div>
 
 

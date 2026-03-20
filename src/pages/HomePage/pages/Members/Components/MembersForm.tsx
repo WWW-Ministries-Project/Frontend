@@ -1,7 +1,7 @@
 import { ProfilePicture } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
-import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
+import { FormHeader, FormLayout, FullWidth, ProgressStepper } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   ChildrenSubForm,
@@ -16,7 +16,7 @@ import {
   WorkInfoSubForm,
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { array, boolean, date, object, string } from "yup";
 import {
   DepartmentPositionSubForm,
@@ -25,6 +25,20 @@ import {
 import { RadioInput } from "./RadioInput";
 
 type StepKey = "basic" | "contact" | "church" | "work" | "family";
+
+const hasNestedError = (errorValue: unknown): boolean => {
+  if (Array.isArray(errorValue)) {
+    return errorValue.some((item) => hasNestedError(item));
+  }
+
+  if (errorValue && typeof errorValue === "object") {
+    return Object.values(errorValue as Record<string, unknown>).some((item) =>
+      hasNestedError(item)
+    );
+  }
+
+  return Boolean(errorValue);
+};
 
 const getSteps = (hasChildren: boolean) => {
   const steps = [
@@ -73,63 +87,99 @@ interface IProps {
     goNext: () => void;
     goBack: () => void;
     isLastStep: boolean;
+    focusFirstErrorStep: (errors: unknown) => void;
   }) => void;
 }
 
 const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) => {
-  const { values, errors, touched, setFieldValue } =
-    useFormikContext<IMembersForm>();
+  const { values, errors, setFieldValue } = useFormikContext<IMembersForm>();
   const has_children = values.personal_info?.has_children ?? false;
 
-  const steps = getSteps(has_children);
+  const steps = useMemo(() => getSteps(has_children), [has_children]);
+  const progressSteps = useMemo(
+    (): { id: StepKey; label: string; description: string; ariaLabel: string }[] =>
+      steps.map((step) => ({
+        id: step.key,
+        label: step.title,
+        description: step.description,
+        ariaLabel: `${step.title}. ${step.description}`,
+      })),
+    [steps]
+  );
 
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
   const previousIsUserRef = useRef(values.is_user);
+  const previousHasChildrenRef = useRef(has_children);
 
   const currentIndex = steps.findIndex((s) => s.key === currentStep);
 
+  const stepHasError = useCallback(
+    (step: StepKey, formErrors: unknown): boolean => {
+      const errorsRecord =
+        formErrors && typeof formErrors === "object"
+          ? (formErrors as Record<string, unknown>)
+          : {};
+
+      switch (step) {
+        case "basic":
+          return hasNestedError(errorsRecord.personal_info);
+        case "contact":
+          return (
+            hasNestedError(errorsRecord.contact_info) ||
+            hasNestedError(errorsRecord.emergency_contact)
+          );
+        case "church":
+          return (
+            hasNestedError(errorsRecord.church_info) ||
+            (values.is_user && hasNestedError(errorsRecord.department_positions))
+          );
+        case "work":
+          return hasNestedError(errorsRecord.work_info);
+        case "family":
+          return has_children && hasNestedError(errorsRecord.family);
+        default:
+          return false;
+      }
+    },
+    [has_children, values.is_user]
+  );
+
   const isStepValid = (step: StepKey) => {
-    switch (step) {
-      case "basic":
-        return !errors.personal_info;
-      case "contact":
-        return !errors.contact_info && !errors.emergency_contact;
-      case "church":
-        if (errors.church_info) return false;
-        if (values.is_user && errors.department_positions) return false;
-        return true;
-      case "work":
-        return !errors.work_info;
-      case "family":
-        return !errors.family;
-      default:
-        return false;
-    }
+    return !stepHasError(step, errors);
   };
 
-  const goNext = () => {
+  const focusFirstErrorStep = useCallback(
+    (formErrors: unknown) => {
+      const firstInvalidStep = steps.find((step) =>
+        stepHasError(step.key, formErrors)
+      );
+      if (firstInvalidStep) {
+        setCurrentStep(firstInvalidStep.key);
+      }
+    },
+    [stepHasError, steps]
+  );
+
+  const goNext = useCallback(() => {
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1].key);
     }
-  };
+  }, [currentIndex, steps]);
 
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1].key);
     }
-  };
-
-  const skipStep = () => {
-    goNext();
-  };
+  }, [currentIndex, steps]);
 
   useEffect(() => {
     onRegisterControls?.({
       goNext,
       goBack,
       isLastStep: currentIndex === steps.length - 1,
+      focusFirstErrorStep,
     });
-  }, [goNext, goBack, currentIndex, steps.length]);
+  }, [goNext, goBack, currentIndex, steps.length, focusFirstErrorStep, onRegisterControls]);
 
   useEffect(() => {
     if (previousIsUserRef.current === values.is_user) return;
@@ -153,13 +203,18 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   }, [setFieldValue, values.department_positions, values.is_user]);
 
   useEffect(() => {
-    if (has_children) {
-      setFieldValue("family", initialValues.family);
-    } else {
+    if (previousHasChildrenRef.current === has_children) return;
+    previousHasChildrenRef.current = has_children;
+
+    if (!has_children) {
       setFieldValue("family", []);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [has_children]);
+
+    if (!Array.isArray(values.family) || values.family.length === 0) {
+      setFieldValue("family", initialValues.family);
+    }
+  }, [has_children, setFieldValue, values.family]);
 
   useEffect(() => {
     if (!has_children && currentStep === "family") {
@@ -169,58 +224,15 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8 w-full overflow-auto">
-        {steps.map((step, index) => {
-          const isActive = step.key === currentStep;
-          const isCompleted = isStepValid(step.key);
-
-          return (
-            <div
-              key={step.key}
-              onClick={() => {
-                setCurrentStep(step.key);
-              }}
-              className={`
-                relative flex items-center gap-3 flex-1 cursor-pointer group w-full p-3  transition-all
-                ${
-                  isActive
-                    ? "bg-white border-t border-x border-gray-300 rounded-t-xl  -mb-px"
-                    : isCompleted
-                    ? "bg-green-50 border-b border-gray-300  hover:bg-green-50"
-                    : "bg-gray-50 border-b border-gray-300  hover:bg-gray-50"
-                }
-              `}
-            >
-              {/* {isActive && (
-                <div className="absolute inset-x-12 -bottom-1 h-1 bg-primary rounded-full" />
-              )} */}
-              <div
-                className={`
-                  h-10 min-w-10 rounded-lg flex items-center justify-center font-semibold transition-all
-                  ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : isCompleted
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-300 text-gray-700 group-hover:bg-primary/20"
-                  }
-                `}
-              >
-                {index + 1}
-              </div>
-              <div className="hidden md:block truncate">
-                <p
-                  className={`font-medium leading-tight truncate ${
-                    isActive ? "text-primary" : isCompleted ? "text-green-700" : "text-gray-700"
-                  }`}
-                >
-                  {step.title}
-                </p>
-                <p className="text-xs text-gray-500">{step.description}</p>
-              </div>
-            </div>
-          );
-        })}
+      <div className="mb-8">
+        <ProgressStepper
+          steps={progressSteps}
+          activeStep={currentStep}
+          onStepChange={(step) => setCurrentStep(step)}
+          ariaLabel="Member registration progress"
+          className="rounded-xl border border-lightGray bg-white p-3"
+          isStepCompleted={(step) => isStepValid(step.id)}
+        />
       </div>
 
       <FormLayout>

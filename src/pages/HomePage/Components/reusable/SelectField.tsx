@@ -9,7 +9,8 @@ import clsx from "clsx";
 
 interface Option {
   value: string | number;
-  label: string;
+  label?: string;
+  name?: string;
 }
 
 interface SelectFieldProps {
@@ -51,7 +52,27 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const selectedOption = options.find(o => o.value === value);
+  const getOptionLabel = useCallback((option: Option) => {
+    const text = option.label ?? option.name;
+    if (typeof text === "string" && text.trim()) {
+      return text;
+    }
+    return String(option.value ?? "");
+  }, []);
+
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        getOptionLabel(a).localeCompare(getOptionLabel(b), undefined, {
+          sensitivity: "base",
+          numeric: true,
+        })
+      ),
+    [options, getOptionLabel]
+  );
+
+  const shouldSearch = searchable || sortedOptions.length > 5;
+  const selectedOption = sortedOptions.find((o) => o.value === value);
 
   /* ---------------------------- styles ---------------------------- */
 
@@ -66,13 +87,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   /* ---------------------------- logic ---------------------------- */
 
   const filteredOptions = useMemo(() => {
-    if (!searchable || !searchTerm.trim()) return options;
+    if (!shouldSearch || !searchTerm.trim()) return sortedOptions;
 
     const q = searchTerm.toLowerCase();
-    return options.filter(o =>
-      o.label.toLowerCase().includes(q)
+    return sortedOptions.filter((o) =>
+      getOptionLabel(o).toLowerCase().includes(q)
     );
-  }, [options, searchTerm, searchable]);
+  }, [sortedOptions, searchTerm, shouldSearch, getOptionLabel]);
 
   const handleSelect = (option: Option) => {
     onChange(id, option.value);
@@ -93,14 +114,14 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   }, [handleClickOutside]);
 
   useEffect(() => {
-    if (isOpen && searchable) {
+    if (isOpen && shouldSearch) {
       searchRef.current?.focus();
     }
-  }, [isOpen, searchable]);
+  }, [isOpen, shouldSearch]);
 
   /* ---------------------------- native select (non-searchable) ---------------------------- */
 
-  if (!searchable) {
+  if (!shouldSearch) {
     return (
       <div className={clsx("flex flex-col gap-1", className)}>
         {label && (
@@ -125,9 +146,9 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             {placeholder}
           </option>
 
-          {options.map(option => (
+          {sortedOptions.map(option => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {getOptionLabel(option)}
             </option>
           ))}
         </select>
@@ -154,7 +175,15 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           disabled={disabled}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
-          onClick={() => !disabled && setIsOpen(v => !v)}
+          onClick={() =>
+            !disabled &&
+            setIsOpen((prev) => {
+              if (prev) {
+                setSearchTerm("");
+              }
+              return !prev;
+            })
+          }
           className={clsx(
             baseControl,
             stateStyles,
@@ -162,7 +191,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           )}
         >
           <span className={selectedOption ? "text-gray-900" : "text-gray-500"}>
-            {selectedOption?.label || placeholder}
+            {selectedOption ? getOptionLabel(selectedOption) : placeholder}
           </span>
 
           <svg
@@ -215,7 +244,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                       option.value === value && "bg-gray-50 text-primary"
                     )}
                   >
-                    {option.label}
+                    {getOptionLabel(option)}
                   </button>
                 ))
               )}

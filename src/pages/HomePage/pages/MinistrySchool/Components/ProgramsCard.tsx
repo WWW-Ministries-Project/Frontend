@@ -2,7 +2,13 @@ import CardWrappers from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
-import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { useRouteAccess } from "@/context/RouteAccessContext";
+import {
+  COHORT_STATUS,
+  getCohortStatusLabel,
+  normalizeCohortStatus,
+  ProgramResponse,
+} from "@/utils/api/ministrySchool/interfaces";
 import { formatDate } from "@/utils/helperFunctions";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +54,7 @@ const ProgramsCard = ({
   applyCard = false,
   handleApply
 }: ProgramsCardProps) => {
+  const { canManageCurrentRoute } = useRouteAccess();
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -150,7 +157,11 @@ const ProgramsCard = ({
         <h4 className="text-sm font-semibold">Cohorts</h4>
         <div className="space-y-2">
           {cohorts.length > 0 ? (
-            cohorts.map((cohort) => (
+            cohorts.map((cohort) => {
+              const normalizedStatus = normalizeCohortStatus(cohort.status);
+              const statusLabel = getCohortStatusLabel(cohort.status);
+
+              return (
                 <div
                   key={cohort.id}
                   className="border border-lightGray rounded-lg p-3 transition-colors hover:bg-lightGray/20"
@@ -164,18 +175,19 @@ const ProgramsCard = ({
                   </div>
                   <Badge
                     className={`text-xs px-3 py-1 ${
-                      cohort.status === "Active"
+                      normalizedStatus === COHORT_STATUS.ONGOING
                         ? "bg-green-50 text-green-700 border-green-200"
-                        : cohort.status === "Completed"
+                        : normalizedStatus === COHORT_STATUS.COMPLETED
                         ? "bg-blue-50 text-blue-700 border-blue-200"
                         : "bg-lightGray/40 text-primaryGray border-lightGray"
                     }`}
                   >
-                    {cohort.status}
+                    {statusLabel}
                   </Badge>
                 </div>
               </div>
-            ))
+              );
+            })
           ) : (
             <div className="border border-dashed border-lightGray rounded-lg p-4 text-center text-primaryGray text-sm">
               No cohorts added yet
@@ -207,17 +219,19 @@ const ProgramsCard = ({
           />
 
           <div className="relative" ref={menuRef}>
-            <button
-              className="p-2 rounded-full transition-colors hover:bg-lightGray/30"
-              onClick={toggleMenu}
-              aria-label="Program options"
-              aria-expanded={isMenuOpen}
-              aria-haspopup="true"
-            >
-              <img src={ellipse} alt="" className="w-5 h-5" />
-            </button>
+            {canManageCurrentRoute && (
+              <button
+                className="p-2 rounded-full transition-colors hover:bg-lightGray/30"
+                onClick={toggleMenu}
+                aria-label="Program options"
+                aria-expanded={isMenuOpen}
+                aria-haspopup="true"
+              >
+                <img src={ellipse} alt="" className="w-5 h-5" />
+              </button>
+            )}
 
-            {isMenuOpen && (
+            {canManageCurrentRoute && isMenuOpen && (
               <div
                 className="absolute right-0 mt-2 w-56 bg-white border border-lightGray rounded-lg shadow-lg z-10"
                 role="menu"

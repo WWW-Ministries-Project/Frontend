@@ -2,7 +2,31 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import parsePhoneNumber from "libphonenumber-js";
 import { DateTime } from "luxon";
+import { flattenPermissionsToLegacyFlags } from "./accessControl";
 import { userTypeWithToken } from "./interfaces";
+
+type TokenIdentityAliases = {
+  id?: string | number;
+  member_id?: string | number;
+  memberId?: string | number;
+  user_id?: string | number;
+  userId?: string | number;
+};
+
+const normalizeTokenId = (
+  payload: Partial<TokenIdentityAliases>
+): string => {
+  const candidate =
+    payload.id ??
+    payload.member_id ??
+    payload.memberId ??
+    payload.user_id ??
+    payload.userId;
+
+  if (candidate === null || candidate === undefined) return "";
+  const normalized = String(candidate).trim();
+  return normalized;
+};
 
 export const getToken = () => {
   return Cookies.get("token");
@@ -19,7 +43,14 @@ export const removeToken = () => {
 export const decodeToken = (value?: string): userTypeWithToken | undefined => {
   const token = value ? value : getToken();
   if (!token) return undefined;
-  return jwtDecode(token);
+  const decoded = jwtDecode<userTypeWithToken & TokenIdentityAliases>(token);
+  // console.log("decoded token", decoded);
+  
+
+  return {
+    ...decoded,
+    id: normalizeTokenId(decoded),
+  };
 };
 export const getInitials = (string = "No Name") => {
   string = string.length > 0 ? string : "No Name";
@@ -98,37 +129,7 @@ export const getChangedValues = (
 };
 
 export function convertPermissions(permissions: Record<string, string>) {
-  const result: Record<string, boolean> = {};
-
-  const permMapping: Record<string, string> = {
-    Can_View: "view",
-    Can_Manage: "manage",
-    Super_Admin: "admin",
-  };
-
-  for (const [key, value] of Object.entries(permissions)) {
-    if (!value) continue;
-
-    const permKey = permMapping[value];
-    if (permKey) {
-      const formattedKey = `${permKey}_${key.toLowerCase().replace(/ /g, "_")}`;
-      result[formattedKey] = true;
-
-      if (value === "Can_Manage") {
-        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
-        result[viewKey] = true;
-      }
-
-      if (value === "Super_Admin") {
-        const viewKey = `view_${key.toLowerCase().replace(/ /g, "_")}`;
-        const manageKey = `manage_${key.toLowerCase().replace(/ /g, "_")}`;
-        result[viewKey] = true;
-        result[manageKey] = true;
-      }
-    }
-  }
-
-  return result;
+  return flattenPermissionsToLegacyFlags(permissions);
 }
 export const currentYear = new Date().getFullYear();
 

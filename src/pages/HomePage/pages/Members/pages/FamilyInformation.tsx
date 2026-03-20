@@ -1,33 +1,53 @@
-import { useFetch } from "@/CustomHooks/useFetch";
-import { api, formatDate, formatPhoneNumber, IFamilyInformationRaw, IFamilyPerson, IFamilyRelationRaw, IMemberInfo } from "@/utils";
-import { useOutletContext } from "react-router-dom";
+import EmptyState from "@/components/EmptyState";
+import { formatDate, formatPhoneNumber } from "@/utils";
+import { FamilyRelation, normalizeFamilyRelation } from "@/utils/familyRelations";
 
-// Define interfaces matching backend response with nested user_info
+type FamilyMemberView = {
+  relation?: string;
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  country_code?: string;
+  primary_number?: string;
+};
 
-const groupByRelation = (items: any[] = []) => {
-  return items.reduce((acc: Record<string, any[]>, item) => {
-    const key = item.relation || "other";
+const relationSections: { key: FamilyRelation; title: string; badgeLabel: string }[] = [
+  { key: "spouse", title: "Spouses", badgeLabel: "Spouse" },
+  { key: "parent", title: "Parents", badgeLabel: "Parent" },
+  { key: "child", title: "Children", badgeLabel: "Child" },
+  { key: "sibling", title: "Siblings", badgeLabel: "Sibling" },
+  { key: "guardian", title: "Guardians", badgeLabel: "Guardian" },
+  { key: "dependent", title: "Dependents", badgeLabel: "Dependent" },
+  { key: "grandparent", title: "Grandparents", badgeLabel: "Grandparent" },
+  { key: "grandchild", title: "Grandchildren", badgeLabel: "Grandchild" },
+  { key: "in-law", title: "In-laws", badgeLabel: "In-law" },
+];
+
+const knownRelations = new Set(relationSections.map((section) => section.key));
+
+const groupByRelation = (items: FamilyMemberView[] = []) => {
+  return items.reduce((acc: Record<string, FamilyMemberView[]>, item) => {
+    const key = normalizeFamilyRelation(item.relation) || "other";
     if (!acc[key]) acc[key] = [];
     acc[key].push(item);
     return acc;
   }, {});
 };
 
-export const FamilyInformation = ({ familyData }: { familyData: any[] }) => {
-  // const { familyData:data } = useOutletContext<{
-  //   familyData: IFamilyInformationRaw;
-  // }>();
-
-  console.log("family data", familyData);
-
+export const FamilyInformation = ({ familyData }: { familyData: FamilyMemberView[] }) => {
   const grouped = groupByRelation(familyData);
 
   const hasAnyFamilyData = familyData && familyData.length > 0;
+  const otherRelations = Object.entries(grouped)
+    .filter(([relation]) => relation !== "other" && !knownRelations.has(relation as FamilyRelation))
+    .flatMap(([, members]) => members);
+  const uncategorizedRelations = [...(grouped.other || []), ...otherRelations];
 
-  // Generic relation section renderer
   const renderRelationSection = (
     title: string,
-    items: any[] = [],
+    items: FamilyMemberView[] = [],
     badgeLabel: string
   ) => {
     if (!items || items.length === 0) {
@@ -79,38 +99,22 @@ export const FamilyInformation = ({ familyData }: { familyData: any[] }) => {
   return (
     <div className="bg-white rounded-b-lg pt-0 mx-auto text-gray-800">
       {!hasAnyFamilyData ? (
-        <EmptyState />
+        <EmptyState
+          scope="section"
+          msg="No family information available"
+          description="Family relationships have not been added for this member yet."
+        />
       ) : (
         <>
-          {renderRelationSection(
-            "Spouses",
-            grouped.spouse,
-            "Spouse"
+          {relationSections.map((section) =>
+            renderRelationSection(
+              section.title,
+              grouped[section.key],
+              section.badgeLabel
+            )
           )}
 
-          {renderRelationSection(
-            "Children",
-            grouped.child,
-            "Child"
-          )}
-
-          {renderRelationSection(
-            "Parents",
-            grouped.parent,
-            "Parent"
-          )}
-
-          {renderRelationSection(
-            "Siblings",
-            grouped.sibling,
-            "Sibling"
-          )}
-
-          {renderRelationSection(
-            "Others",
-            grouped.other,
-            "Relation"
-          )}
+          {renderRelationSection("Other Relations", uncategorizedRelations, "Relation")}
         </>
       )}
     </div>
@@ -150,15 +154,4 @@ const Section = ({
     </h2>
     {children}
   </section>
-);
-
-const EmptyState = () => (
-  <div className="py-12 flex flex-col items-center justify-center text-center text-gray-500">
-    <p className="text-lg font-semibold text-gray-700 mb-2">
-      No family information available
-    </p>
-    <p className="max-w-md">
-      Family relationships have not been added for this member yet.
-    </p>
-  </div>
 );

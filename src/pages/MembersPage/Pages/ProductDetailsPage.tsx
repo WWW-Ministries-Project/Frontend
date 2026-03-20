@@ -36,7 +36,10 @@ export function ProductDetailsPage() {
 
       {/* Error / empty state */}
       {!loading && (!product || !product?.data) && (
-        <EmptyState />
+        <EmptyState
+          scope="page"
+          msg={error ? "Failed to load product details" : "Product not found"}
+        />
       )}
 
       {/* Loaded state */}

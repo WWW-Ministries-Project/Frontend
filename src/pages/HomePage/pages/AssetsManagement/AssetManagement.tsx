@@ -119,7 +119,9 @@ export const AssetManagement = () => {
           )}
         </section>
       </div>
-      {assertsData.length === 0 && <EmptyState msg={"No assets found"} />}
+      {assertsData.length === 0 && (
+        <EmptyState scope="page" msg={"No assets found"} />
+      )}
     </PageOutline>
   );
 };

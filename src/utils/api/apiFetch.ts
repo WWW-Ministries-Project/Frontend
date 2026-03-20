@@ -4,12 +4,18 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
-import { EventResponseType, EventType } from "./events/interfaces";
+import {
+  BiometricAttendanceImportJob,
+  BiometricEventAttendanceListResponse,
+  EventResponseType,
+  EventType,
+} from "./events/interfaces";
 import {
   LifeCenterDetailsType,
   LifeCenterMemberType,
   LifeCenterStatsType,
   LifeCenterType,
+  SoulWonListType,
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
@@ -19,6 +25,7 @@ import type {
 } from "./marketPlace/interface";
 import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
 import {
+  CertificateData,
   CohortAssignment,
   DetailedCohortType,
   DetailedCourseType,
@@ -27,7 +34,13 @@ import {
   ProgramResponse,
   Programs,
 } from "./ministrySchool/interfaces";
-import { DepartmentType } from "./settings/departmentInterfaces";
+import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
+import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
+import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
+import type {
+  SystemNotificationAdminCandidate,
+  SystemNotificationSettingsConfig,
+} from "./settings/systemNotificationInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
 import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
@@ -36,7 +49,24 @@ import {
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
+import type {
+  AiCredentialRecord,
+  AiUsageHistoryResponse,
+  AiUsageSummary,
+} from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  ApprovalConfig,
+  RequisitionSimilarItemsResponse,
+} from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
+import type {
+  InAppNotification,
+  NotificationListPayload,
+  NotificationPreference,
+  NotificationPushPublicKeyPayload,
+  NotificationStreamTokenPayload,
+  NotificationUnreadCountPayload,
+} from "./notifications/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -68,6 +98,10 @@ export class ApiCalls {
 
   fetchAMember = (query?: QueryType): Promise<ApiResponse<IMemberInfo>> => {
     return this.fetchFromApi("user/get-user", query);
+  };
+
+  fetchCurrentUser = (): Promise<ApiResponse<IMemberInfo>> => {
+    return this.fetchFromApi("user/current-user");
   };
 
   fetchMemberFamily = (query?: QueryType): Promise<ApiResponse<IFamilyInformationRaw>> => {
@@ -117,6 +151,24 @@ export class ApiCalls {
     return this.fetchFromApi("event/upcoming-events", query);
   };
 
+  fetchEventById = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType>> => {
+    return this.fetchFromApi("event/get-event", query);
+  };
+
+  fetchPublicEventById = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType>> => {
+    return this.fetchFromApi("event/public-event", query);
+  };
+
+  fetchEventReportDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.fetchFromApi("event-reports/get-report", query);
+  };
+
   // Position Management
   fetchPositions = (
     query?: QueryType
@@ -129,6 +181,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.fetchFromApi("department/list-departments", query);
+  };
+
+  fetchDepartmentDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<DepartmentDetailsType | null>> => {
+    return this.fetchFromApi("department/get-department", query);
   };
 
   // Asset Management
@@ -153,17 +211,90 @@ export class ApiCalls {
   fetchRequisitions = (
     query?: QueryType
   ): Promise<ApiResponse<unknown[]>> => {
-    return this.fetchFromApi("requisitions/staff-requisition", query);
+    return this.fetchFromApi("requisitions/list-requisition", query);
   };
 
   fetchRequisitionDetails = (
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.fetchFromApi("requisitions/get-requisition/", query);
+    return this.fetchFromApi("requisitions/get-requisition", query);
   };
 
   fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
+
+  fetchRequisitionApprovalConfig = (query?: QueryType): Promise<
+    ApiResponse<ApprovalConfig | ApprovalConfig[] | null>
+  > => {
+    return this.fetchFromApi("requisitions/get-approval-config", query);
+  };
+
+  fetchEventReportApprovalConfig = (query?: QueryType): Promise<
+    ApiResponse<ApprovalConfig | ApprovalConfig[] | null>
+  > => {
+    return this.fetchFromApi("event-reports/get-approval-config", query);
+  };
+
+  fetchRoleEligibilityConfig = (): Promise<
+    ApiResponse<RoleEligibilityConfig | null>
+  > => {
+    return this.fetchFromApi("settings/get-role-eligibility-config");
+  };
+
+  fetchAttendanceTimingConfig = (): Promise<
+    ApiResponse<AttendanceTimingSettingsConfig>
+  > => {
+    return this.fetchFromApi("settings/attendance-timing-config");
+  };
+
+  fetchSystemNotificationConfig = (): Promise<
+    ApiResponse<SystemNotificationSettingsConfig>
+  > => {
+    return this.fetchFromApi("settings/system-notification-config");
+  };
+
+  fetchSystemNotificationAdmins = (): Promise<
+    ApiResponse<SystemNotificationAdminCandidate[]>
+  > => {
+    return this.fetchFromApi("settings/system-notification-admins");
+  };
+
+  fetchRequisitionPreApprovalSimilarItems = (
+    query?: QueryType
+  ): Promise<ApiResponse<RequisitionSimilarItemsResponse>> => {
+    return this.fetchFromApi("requisitions/pre-approval-similar-items", query);
+  };
+
+  // In-app Notifications
+  fetchNotifications = (
+    query?: QueryType
+  ): Promise<ApiResponse<InAppNotification[] | NotificationListPayload>> => {
+    return this.fetchFromApi("notifications", query);
+  };
+
+  fetchNotificationsUnreadCount = (): Promise<
+    ApiResponse<number | NotificationUnreadCountPayload>
+  > => {
+    return this.fetchFromApi("notifications/unread-count");
+  };
+
+  fetchNotificationsStreamToken = (): Promise<
+    ApiResponse<string | NotificationStreamTokenPayload>
+  > => {
+    return this.fetchFromApi("notifications/stream-token");
+  };
+
+  fetchNotificationsPushPublicKey = (): Promise<
+    ApiResponse<string | NotificationPushPublicKeyPayload>
+  > => {
+    return this.fetchFromApi("notifications/push/public-key");
+  };
+
+  fetchNotificationPreferences = (
+    query?: QueryType
+  ): Promise<ApiResponse<NotificationPreference[] | NotificationPreference>> => {
+    return this.fetchFromApi("notifications/preferences", query);
   };
 
   // Program Management
@@ -279,6 +410,21 @@ export class ApiCalls {
     return this.fetchFromApi("program/program-completion-status", query);
   };
 
+  fetchProgramCertificate = (
+    query?: QueryType
+  ): Promise<ApiResponse<CertificateData>> => {
+    return this.fetchFromApi("program/certificate", query);
+  };
+
+  fetchCertificateVerification = (
+    query?: QueryType
+  ): Promise<ApiResponse<CertificateData>> => {
+    const certificateNumber = String(query?.certificateNumber ?? "").trim();
+    return this.fetchFromApi(
+      `program/certificate/verify/${encodeURIComponent(certificateNumber)}`
+    );
+  };
+
   // Check active assignment
   fetchIsActiveAssignment = (
     query?: QueryType
@@ -371,6 +517,12 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenter-members`, query);
   };
 
+  fetchSoulsWon = (
+    query?: QueryType
+  ): Promise<ApiResponse<SoulWonListType[]>> => {
+    return this.fetchFromApi(`lifecenter/soulswon`, query);
+  };
+
   fetchMarkets = (query?: QueryType): Promise<ApiResponse<IMarket[]>> => {
     return this.fetchFromApi(`market/list-markets`, query);
   };
@@ -420,6 +572,10 @@ export class ApiCalls {
     return this.fetchFromApi(`orders/get-orders-by-market/`, query);
   };
 
+  fetchAllOrders = (query?: QueryType): Promise<ApiResponse<IOrders[]>> => {
+    return this.fetchFromApi(`orders/get-all-orders`, query);
+  };
+
   fetchOrdersByUser = (
     query?: QueryType
   ): Promise<ApiResponse<IOrders[]>> => {
@@ -458,6 +614,18 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("event/church-attendance", query);
   }
+
+  fetchBiometricAttendance = (
+    query?: QueryType
+  ): Promise<ApiResponse<BiometricEventAttendanceListResponse>> => {
+    return this.fetchFromApi("event/biometric-attendance", query);
+  };
+
+  fetchBiometricAttendanceImportJob = (
+    query?: QueryType
+  ): Promise<ApiResponse<BiometricAttendanceImportJob>> => {
+    return this.fetchFromApi("event/import-biometric-attendance-job", query);
+  };
 
   // Fetch annual theme
   fetchAnnualTheme = (
@@ -513,6 +681,25 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
     return this.fetchFromApi("financials/get-financial", query);
+  };
+
+  fetchAiCredentials = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiCredentialRecord[]>> => {
+    return this.fetchFromApi("ai/credentials", query);
+  };
+
+  // AI usage and quota tracking
+  fetchAiUsageSummary = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiUsageSummary>> => {
+    return this.fetchFromApi("ai/usage-summary", query);
+  };
+
+  fetchAiUsageHistory = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiUsageHistoryResponse>> => {
+    return this.fetchFromApi("ai/usage-history", query);
   };
 
 

@@ -34,7 +34,7 @@ const MembersPage = () => {
 
             {/* Header Section */}
             <header 
-                className="sticky top-0 z-40 w-full border-b border-lightGray bg-white shadow-sm"
+                className="sticky top-0 z-[120] w-full border-b border-lightGray bg-white shadow-sm"
                 role="banner"
             >
                 <div className="app-layout-container py-4">

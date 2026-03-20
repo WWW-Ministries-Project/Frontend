@@ -4,7 +4,11 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { FullWidth } from "@/components/ui";
 import { usePost } from "@/CustomHooks/usePost";
 import { Stepper } from "@/pages/Registration/components/Stepper";
+import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
+import { validateFamilyPayload } from "@/utils/familyRelations";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
+import { validateUploadFile } from "@/utils/uploadValidation";
 import {
   ChildrenSubForm,
   IChildrenSubForm,
@@ -24,29 +28,86 @@ import {
   RegistrationContactSubForm,
 } from "./components/subform/ContactSubForm";
 
+const REGISTRATION_REDIRECT_DELAY_MS = 10000;
+
+const hasSuccessfulStatus = (response: unknown): boolean => {
+  if (!response || typeof response !== "object") return false;
+  const status = (response as { status?: unknown }).status;
+  return typeof status === "number" && status >= 200 && status < 300;
+};
+
+const mapErrorsToTouched = (errors: unknown): unknown => {
+  if (Array.isArray(errors)) {
+    return errors.map((item) => mapErrorsToTouched(item));
+  }
+
+  if (errors && typeof errors === "object") {
+    return Object.entries(errors as Record<string, unknown>).reduce<
+      Record<string, unknown>
+    >((acc, [key, value]) => {
+      acc[key] = mapErrorsToTouched(value);
+      return acc;
+    }, {});
+  }
+
+  return true;
+};
+
 export const Registration = () => {
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const [registrationSuccess, setRegistrationSuccess] =
     useState<boolean>(false);
-  const { postData, loading } = usePost(api.post.createMember);
+  const { postData, loading, data: registrationResponse, error } = usePost(
+    api.post.createMember
+  );
 
   useEffect(() => {
     if (registrationSuccess) {
       const timer = setTimeout(() => {
         window.location.href = "https://worldwidewordministries.org/";
-      }, 10000);
+      }, REGISTRATION_REDIRECT_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [registrationSuccess]);
 
+  useEffect(() => {
+    if (!registrationResponse) return;
+
+    if (hasSuccessfulStatus(registrationResponse)) {
+      setRegistrationSuccess(true);
+      return;
+    }
+
+    showNotification("Unable to complete registration. Please try again.", "error");
+  }, [registrationResponse]);
+
+  useEffect(() => {
+    if (!error) return;
+    showNotification(error.message || "Unable to complete registration.", "error");
+  }, [error]);
+
   async function handleSubmit(values: IRegistration) {
-    let dataToSend: IRegistration = { ...values };
+    const familyValidationError = validateFamilyPayload(values.family);
+    if (familyValidationError) {
+      showNotification(familyValidationError, "error");
+      return;
+    }
+
+    let dataToSend: IRegistration = normalizeOptionalOtherNames(values);
 
     try {
       const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
+        const validation = validateUploadFile(uploadedFile, {
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+        });
+
+        if (!validation.valid) {
+          throw new Error(validation.message || "Invalid profile image selected.");
+        }
+
         const formData = new FormData();
         formData.append("file", uploadedFile);
 
@@ -54,7 +115,7 @@ export const Registration = () => {
 
         if (response?.status === 200) {
           dataToSend = {
-            ...values,
+            ...dataToSend,
             picture: { src: response.data.result.link, picture: null },
           };
         } else {
@@ -62,9 +123,12 @@ export const Registration = () => {
         }
       }
       await postData(dataToSend);
-      setRegistrationSuccess(true);
     } catch (error) {
-      console.error("Error during submission:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to complete registration.";
+      showNotification(message, "error");
     }
   }
 
@@ -97,7 +161,8 @@ export const Registration = () => {
             </p>
           </div>
           <p className="text-gray-500 text-sm">
-            You will be redirected to our homepage in 5 seconds...
+            You will be redirected to our homepage in{" "}
+            {Math.floor(REGISTRATION_REDIRECT_DELAY_MS / 1000)} seconds...
           </p>
         </div>
       </div>
@@ -131,7 +196,7 @@ export const Registration = () => {
             const handleNext = async () => {
               const errors: object = await formik.validateForm();
               if (Object.keys(errors).length > 0) {
-                formik.setTouched(errors);
+                formik.setTouched(mapErrorsToTouched(errors));
                 return;
               }
               setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
@@ -167,7 +232,7 @@ interface IRegistration extends IChildrenSubForm, IRegistrationContactSubForm {
     src: string;
     picture: File | null;
   };
-  status: "UNCONFIRMED" | "CONFIRMED" | "REJECTED";
+  status: "UNCONFIRMED" | "CONFIRMED" | "MEMBER";
   church_info: {
     membership_type: "ONLINE" | "IN_HOUSE";
     member_since?: string;

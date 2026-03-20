@@ -3,15 +3,58 @@ import { Actions } from "@/components/ui";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { decodeQuery } from "@/pages/HomePage/utils";
+import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
-import { Formik } from "formik";
+import { validateFamilyPayload } from "@/utils/familyRelations";
+import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
+import { validateUploadFile } from "@/utils/uploadValidation";
+import { Formik, FormikProps, FormikTouched } from "formik";
 import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
+import { showNotification } from "@/pages/HomePage/utils";
+
+type ManageMemberLocationState = {
+  afterSubmitPath?: string;
+  prefillMemberForm?: IMembersForm;
+  prefillSourceLabel?: string;
+  sourceSoulWonId?: string | number;
+  sourceVisitorId?: string | number;
+};
+
+const mapErrorsToTouched = (errors: unknown): unknown => {
+  if (Array.isArray(errors)) {
+    return errors.map((item) => mapErrorsToTouched(item));
+  }
+
+  if (errors && typeof errors === "object") {
+    return Object.entries(errors as Record<string, unknown>).reduce<
+      Record<string, unknown>
+    >((acc, [key, value]) => {
+      acc[key] = mapErrorsToTouched(value);
+      return acc;
+    }, {});
+  }
+
+  return true;
+};
+
+const hasValidationErrors = (errors: unknown): boolean => {
+  if (Array.isArray(errors)) {
+    return errors.some((item) => hasValidationErrors(item));
+  }
+
+  if (errors && typeof errors === "object") {
+    return Object.values(errors as Record<string, unknown>).some((value) =>
+      hasValidationErrors(value)
+    );
+  }
+
+  return Boolean(errors);
+};
 
 export function ManageMember() {
   const navigate = useNavigate();
@@ -22,6 +65,12 @@ export function ManageMember() {
   const params = new URLSearchParams(location.search);
   const id = decodeQuery(params.get("member_id") || "");
   const isEditMode = Boolean(id);
+  const locationState = location.state as ManageMemberLocationState | null;
+  const prefillMemberForm = !isEditMode ? locationState?.prefillMemberForm : undefined;
+  const prefillSourceLabel = !isEditMode ? locationState?.prefillSourceLabel : undefined;
+  const afterSubmitPath = locationState?.afterSubmitPath;
+  const sourceSoulWonId = !isEditMode ? locationState?.sourceSoulWonId : undefined;
+  const sourceVisitorId = !isEditMode ? locationState?.sourceVisitorId : undefined;
 
   const { data: member, refetch } = useFetch(
     api.fetch.fetchAMember,
@@ -39,6 +88,7 @@ export function ManageMember() {
     goNext: () => void;
     goBack: () => void;
     isLastStep: boolean;
+    focusFirstErrorStep: (errors: unknown) => void;
   } | null>(null);
 
   useEffect(() => {
@@ -49,10 +99,12 @@ export function ManageMember() {
   const initialValue = useMemo(() => {
     if (member?.data) {
       return mapUserData(member.data);
+    } else if (prefillMemberForm) {
+      return prefillMemberForm;
     } else {
       return initialValues;
     }
-  }, [member?.data]);
+  }, [member?.data, prefillMemberForm]);
 
   useEffect(() => {
     if (data || updatedData) {
@@ -60,24 +112,52 @@ export function ManageMember() {
         outletContext.refetchMembers();
       }
 
-      navigate("/home/members", {
+      if (updatedData) {
+        const editedMemberId = member?.data?.id ?? id;
+
+        if (editedMemberId !== undefined && editedMemberId !== null) {
+          navigate(`/home/members/${encodeQuery(editedMemberId)}`, {
+            state: { task: "update" },
+          });
+          return;
+        }
+      }
+
+      navigate(afterSubmitPath ?? "/home/members", {
         state: { task: data ? "add" : "update" },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, updatedData]);
+  }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);
 
   const handleCancel = () => {
     navigate(-1);
   };
 
   async function handleSubmit(values: IMembersForm) {
-    let dataToSend = { ...values };
+    const familyValidationError = validateFamilyPayload(values.family, {
+      currentUserId: isEditMode ? member?.data?.id ?? id : undefined,
+    });
+
+    if (familyValidationError) {
+      showNotification(familyValidationError, "error");
+      return;
+    }
+
+    let dataToSend = normalizeOptionalOtherNames(values);
 
     try {
       const uploadedFile = values.picture?.picture;
 
       if (uploadedFile instanceof File) {
+        const validation = validateUploadFile(uploadedFile, {
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+        });
+
+        if (!validation.valid) {
+          throw new Error(validation.message || "Invalid profile image selected.");
+        }
+
         const formData = new FormData();
         formData.append("file", uploadedFile);
 
@@ -85,7 +165,7 @@ export function ManageMember() {
 
         if (response?.status === 200) {
           dataToSend = {
-            ...values,
+            ...dataToSend,
             picture: { src: response.data.result.link, picture: null },
           };
         } else {
@@ -100,15 +180,40 @@ export function ManageMember() {
           throw new Error("Member id is missing");
         }
         await updateData(dataToSend, { user_id: String(memberId) });
+      } else {
+        await postData({
+          ...dataToSend,
+          ...(sourceSoulWonId ? { source_soul_won_id: sourceSoulWonId } : {}),
+          ...(sourceVisitorId
+            ? { source_visitor_id: String(sourceVisitorId) }
+            : {}),
+        });
       }
-      else await postData(dataToSend);
     } catch (error) {
-      console.error("Error during submission:", error);
+      const message =
+        error instanceof Error ? error.message : "Unable to save member details.";
+      showNotification(message, "error");
     }
   }
 
-  console.log("member id", member?.data?.id);
-  
+  const handleSubmitWithValidation = async (formik: FormikProps<IMembersForm>) => {
+    const errors = await formik.validateForm();
+
+    if (hasValidationErrors(errors)) {
+      formik.setTouched(
+        mapErrorsToTouched(errors) as FormikTouched<IMembersForm>,
+        false
+      );
+      stepControls.current?.focusFirstErrorStep(errors);
+      showNotification(
+        "Please complete all required fields before submitting.",
+        "error"
+      );
+      return;
+    }
+
+    await formik.submitForm();
+  };
 
   return (
     <div className="p-4">
@@ -118,6 +223,11 @@ export function ManageMember() {
           <div className="text text-[#8F95B2] mb-4">
             Fill the form below with the member information
           </div>
+          {prefillSourceLabel ? (
+            <div className="mb-2 rounded-lg border border-lightGray bg-lightGray/40 px-4 py-3 text-sm text-primary">
+              Prefilled from {prefillSourceLabel}. Complete the remaining required details and save.
+            </div>
+          ) : null}
         </div>
         <Formik
           enableReinitialize={true}
@@ -125,7 +235,7 @@ export function ManageMember() {
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {({ handleSubmit }) => (
+          {(formik: FormikProps<IMembersForm>) => (
             <>
               <MembersForm
                 onRegisterControls={(controls) => {
@@ -144,9 +254,9 @@ export function ManageMember() {
                   onCancel={handleCancel}
                   onSubmit={
                     isEditMode
-                      ? handleSubmit
+                      ? () => handleSubmitWithValidation(formik)
                       : stepControls.current?.isLastStep
-                      ? handleSubmit
+                      ? () => handleSubmitWithValidation(formik)
                       : undefined
                   }
                   loading={loading || updateLoading}

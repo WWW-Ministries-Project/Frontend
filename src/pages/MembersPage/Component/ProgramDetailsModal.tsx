@@ -1,7 +1,15 @@
-import { FC, memo, useMemo } from "react";
+import { FC, memo, type ReactNode } from "react";
 import { Programs } from "@/utils";
-import { XCircleIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { Actions } from "@/components/ui/form/Actions";
+import { Button } from "@/components";
+import {
+  AcademicCapIcon,
+  BookOpenIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  UserGroupIcon,
+  UsersIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 /* ------------------------------- Utilities ------------------------------- */
 const pctFilled = (enrolled: number, capacity: number) => {
@@ -9,25 +17,31 @@ const pctFilled = (enrolled: number, capacity: number) => {
   return Math.min(100, Math.round((enrolled / capacity) * 100));
 };
 
-const Badge: FC<{ variant?: "default" | "full"; children: React.ReactNode }> = ({ 
+const formatMeetingDays = (meetingDays?: string[] | string) => {
+  if (!meetingDays) return "To be announced";
+  if (Array.isArray(meetingDays)) return meetingDays.filter(Boolean).join(", ");
+  return meetingDays;
+};
+
+const Badge: FC<{ variant?: "default" | "full"; children: ReactNode }> = ({ 
   variant = "default", 
   children 
 }) => (
   <span
-    className={`inline-flex items-center rounded px-2 py-0.5 text-sm font-medium ${
+    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
       variant === "full"
         ? "bg-red-50 text-red-700"
-        : "bg-lightGray/40 text-primaryGray"
+        : "bg-lightGray/50 text-primaryGray"
     }`}
   >
     {children}
   </span>
 );
 
-const ProgressBar: FC<{ value: number }> = ({ value }) => (
+const ProgressBar: FC<{ value: number; isFull?: boolean }> = ({ value, isFull }) => (
   <div className="h-1 w-full overflow-hidden rounded-full bg-lightGray/50">
     <div 
-      className="h-full bg-primary transition-all duration-300" 
+      className={`h-full transition-all duration-300 ${isFull ? "bg-red-500" : "bg-primary"}`}
       style={{ width: `${value}%` }} 
     />
   </div>
@@ -45,15 +59,20 @@ const CourseRadioCard = memo(function CourseRadioCard({
   checked: boolean;
   onChange: (id: string) => void;
 }) {
-  const { id, name, enrolled, capacity, facilitator, meetingDays } = course;
-  const isFull = (enrolled ?? 0) >= (capacity ?? 0) && (capacity ?? 0) > 0;
-  const pct = useMemo(() => pctFilled(enrolled ?? 0, capacity ?? 0), [enrolled, capacity]);
+  const { id, name, enrolled, capacity, facilitator, meetingDays, meetingTime } = course;
+  const totalEnrolled = Number(enrolled ?? 0);
+  const totalCapacity = Number(capacity ?? 0);
+  const isFull = totalCapacity > 0 && totalEnrolled >= totalCapacity;
+  const pct = pctFilled(totalEnrolled, totalCapacity);
+  const seatsLeft = totalCapacity > 0 ? Math.max(totalCapacity - totalEnrolled, 0) : null;
+  const meetingDaysLabel = formatMeetingDays(meetingDays);
+  const meetingTimeLabel = meetingTime || "Time to be announced";
 
   return (
     <label
       htmlFor={`course-${id}`}
-      className={`group block cursor-pointer rounded-lg border border-lightGray p-5 transition-all hover:border-primary ${
-        checked ? "border-primary bg-primary/5" : "bg-white"
+      className={`group block cursor-pointer rounded-xl border border-lightGray p-4 transition-all hover:border-primary ${
+        checked ? "border-primary bg-primary/5 shadow-sm" : "bg-white"
       } ${isFull ? "cursor-not-allowed opacity-50 hover:border-lightGray" : ""}`}
     >
       <div className="flex items-start gap-4">
@@ -65,48 +84,53 @@ const CourseRadioCard = memo(function CourseRadioCard({
           checked={checked}
           onChange={() => onChange(id)}
           disabled={isFull}
-          className="mt-0.5 h-4 w-4 border-lightGray text-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed"
+          className="mt-1 h-4 w-4 border-lightGray text-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed"
           aria-label={`${name}${isFull ? " (Full)" : ""}`}
         />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <h4 className="text-sm font-medium leading-tight text-primary">{name}</h4>
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <h4 className="text-sm font-semibold leading-tight text-primary">{name}</h4>
             <Badge variant={isFull ? "full" : "default"}>
-              {isFull ? "Full" : "Available"}
+              {isFull ? "Class Full" : "Open Seats"}
             </Badge>
           </div>
 
-          <div className="space-y-2.5">
-            {facilitator && (
-              <div className="flex items-center gap-2 text-sm text-primaryGray">
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span>{facilitator}</span>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded-lg bg-lightGray/30 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-primaryGray">Facilitator</p>
+              <div className="mt-1 flex items-center gap-2 text-sm text-primary">
+                <UserGroupIcon className="h-4 w-4 text-primaryGray" />
+                <span>{facilitator || "To be assigned"}</span>
               </div>
-            )}
+            </div>
 
-            {meetingDays && (
-              <div className="flex items-center gap-2 text-sm text-primaryGray">
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{meetingDays}</span>
+            <div className="rounded-lg bg-lightGray/30 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-primaryGray">Schedule</p>
+              <div className="mt-1 flex items-center gap-2 text-sm text-primary">
+                <CalendarDaysIcon className="h-4 w-4 text-primaryGray" />
+                <span>{meetingDaysLabel}</span>
               </div>
-            )}
+              <div className="mt-1 flex items-center gap-2 text-sm text-primary">
+                <ClockIcon className="h-4 w-4 text-primaryGray" />
+                <span>{meetingTimeLabel}</span>
+              </div>
+            </div>
+          </div>
 
-            <div className="space-y-1.5">
+          <div className="space-y-1.5">
               <div className="flex items-center justify-between text-sm text-primaryGray">
                 <span className="flex items-center gap-1.5">
                   <UsersIcon className="h-3.5 w-3.5" />
                   Enrollment
                 </span>
                 <span className="font-medium">
-                  {enrolled ?? 0} / {capacity ?? 0}
+                  {totalEnrolled} / {totalCapacity || "∞"}
                 </span>
               </div>
-              <ProgressBar value={pct} />
-            </div>
+              <ProgressBar value={pct} isFull={isFull} />
+              <p className="text-xs text-primaryGray">
+                {seatsLeft === null ? "Flexible capacity for this class" : `${seatsLeft} seats left`}
+              </p>
           </div>
         </div>
       </div>
@@ -126,131 +150,179 @@ export const ProgramDetailsModal: FC<{
   if (!program) return null;
 
   const hasCourses = (program.courses?.length ?? 0) > 0;
+  const hasTopics = (program.topics?.length ?? 0) > 0;
+  const hasPrerequisites = (program.prerequisites?.length ?? 0) > 0;
+  const audienceTags = [
+    program.member_required ? "Church members" : null,
+    program.ministry_required ? "Ministry workers" : null,
+    program.leader_required ? "Leaders" : null,
+  ].filter(Boolean) as string[];
 
   return (
-    <div className="w-[95vw] max-w-2xl h-[80vh] bg-white rounded-xl shadow-sm flex flex-col">
-      {/* Header */}
-      <div className="sticky top-0 z-20 flex items-start justify-between border-b border-lightGray bg-white p-6 pb-5">
-        <div className="flex-1 pr-4">
-          <h2 className="mb-1 text-xl font-semibold text-primary">{program.name}</h2>
-          {program.upcomingCohort && (
-            <p className="text-sm text-primaryGray">{program.upcomingCohort}</p>
-          )}
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      <div className="sticky top-0 z-20 border-b border-lightGray bg-gradient-to-r from-primary/10 via-white to-lightGray/20 px-6 py-6 md:px-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 pr-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">
+              School of Ministry
+            </p>
+            <h2 className="text-2xl font-semibold text-primary">{program.name}</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-medium text-primary">
+                <CalendarDaysIcon className="h-4 w-4" />
+                {program.upcomingCohort || "Cohort not assigned"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-medium text-primary">
+                <AcademicCapIcon className="h-4 w-4" />
+                {program.courses?.length ?? 0} class{(program.courses?.length ?? 0) === 1 ? "" : "es"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-medium text-primary">
+                <BookOpenIcon className="h-4 w-4" />
+                {program.topics?.length ?? 0} topic{(program.topics?.length ?? 0) === 1 ? "" : "s"}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="-mr-1 -mt-1 rounded-full p-1.5 text-primaryGray transition-colors hover:bg-white hover:text-primary"
+            aria-label="Close program details"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
         </div>
-        <button 
-          type="button" 
-          onClick={onClose}
-          className="-mr-1 -mt-1 p-1 text-primaryGray transition-colors hover:text-primary"
-          aria-label="Close program details"
-        >
-          <XCircleIcon className="h-5 w-5" />
-        </button>
       </div>
 
-      {/* Content */}
-      <div className="app-scrollbar flex-1 space-y-6 overflow-y-auto p-6 pr-4">
-        {/* Description */}
-        {program.description && (
-          <section aria-labelledby="about-program">
-            <h3 id="about-program" className="mb-2 text-sm font-semibold uppercase tracking-wide text-primaryGray">
-              About
-            </h3>
-            <p className="text-sm leading-relaxed text-primaryGray">
-              {program.description}
-            </p>
-          </section>
-        )}
+      <div className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 md:px-8">
+        <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
+          <section className="space-y-6">
+            <div className="rounded-xl border border-lightGray bg-white p-5">
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-primaryGray">
+                Program Overview
+              </h3>
+              <p className="text-sm leading-relaxed text-primaryGray">
+                {program.description || "Program details will be updated soon."}
+              </p>
+            </div>
 
-        {/* Prerequisites */}
-        <section aria-labelledby="prerequisites">
-          <h3 id="prerequisites" className="mb-2 text-sm font-semibold uppercase tracking-wide text-primaryGray">
-            Prerequisites
-          </h3>
-          {!program.prerequisites || program.prerequisites.length === 0 ? (
-            <p className="text-sm text-primaryGray">No prerequisite required</p>
-          ) : (
-            <ul className="space-y-1.5">
-              {program.prerequisites.map((pr, idx) => (
-                <li key={idx} className="flex items-start text-sm text-primaryGray">
-                  <span className="mr-2 text-primaryGray">•</span>
-                  <span>{pr}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {/* Designed For */}
-        <section>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-primaryGray">
-            Designed For
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {program.member_required && <span className="rounded bg-lightGray/30 px-3 py-1.5 text-sm text-primaryGray">
-              Church members
-            </span>}
-            {program.ministry_required && <span className="rounded bg-lightGray/30 px-3 py-1.5 text-sm text-primaryGray">
-              Ministry workers
-            </span>}
-            {program.leader_required && <span className="rounded bg-lightGray/30 px-3 py-1.5 text-sm text-primaryGray">
-              Leaders
-            </span>}
-          </div>
-        </section>
-
-        {/* Topics */}
-        {program.topics && program.topics.length > 0 && (
-          <section>
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-primaryGray">
-              Topics Covered
-            </h3>
-            <div className="flex flex-col gap-2">
-              {program.topics.map((topic, index) => (
-                <div
-                  key={index}
-                  className="rounded bg-lightGray/30 px-3 py-1.5 text-sm text-primaryGray"
-                >
-                  <p className="font-medium">{topic.name}</p>
-                  <p
-                  className="font-light"
-                  dangerouslySetInnerHTML={{ __html: String(topic.description ?? "") }}
-                  />
+            <div className="rounded-xl border border-lightGray bg-white p-5">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-primaryGray">
+                Topics Covered
+              </h3>
+              {!hasTopics ? (
+                <p className="text-sm text-primaryGray">Topics will be published soon.</p>
+              ) : (
+                <div className="space-y-3">
+                  {program.topics.map((topic, index) => (
+                    <div
+                      key={topic.id ?? `${topic.name}-${index}`}
+                      className="rounded-lg border border-lightGray/80 bg-lightGray/10 p-3"
+                    >
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {index + 1}
+                        </span>
+                        <p className="text-sm font-semibold text-primary">{topic.name}</p>
+                      </div>
+                      {topic.description && (
+                        <div
+                          className="text-sm leading-relaxed text-primaryGray"
+                          dangerouslySetInnerHTML={{ __html: String(topic.description) }}
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </section>
-        )}
 
-        {/* Classes */}
-        <section>
-          <fieldset className="space-y-3">
-            <legend className="mb-3 text-sm font-semibold uppercase tracking-wide text-primaryGray">
-              Select Class
-            </legend>
+          <section className="space-y-6">
+            <div className="rounded-xl border border-lightGray bg-white p-5">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-primaryGray">
+                Prerequisites
+              </h3>
+              {!hasPrerequisites ? (
+                <p className="text-sm text-primaryGray">No prerequisite required.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {program.prerequisites!.map((prerequisite, index) => (
+                    <li key={`${prerequisite}-${index}`} className="flex items-start gap-2 text-sm text-primaryGray">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary/60" />
+                      <span>{prerequisite}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-            {!hasCourses ? (
-              <div className="rounded-lg border border-dashed border-lightGray p-8 text-center">
-                <p className="text-sm text-primaryGray">No classes available yet</p>
+            <div className="rounded-xl border border-lightGray bg-white p-5">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-primaryGray">
+                Designed For
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {audienceTags.length ? (
+                  audienceTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-lightGray/40 px-3 py-1.5 text-sm font-medium text-primary"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-primaryGray">Open to all members.</p>
+                )}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {program.courses!.map((cls) => (
-                  <CourseRadioCard
-                    key={cls.id}
-                    course={cls}
-                    checked={selectedClassId === cls.id}
-                    onChange={onSelectClass}
-                  />
-                ))}
-              </div>
-            )}
-          </fieldset>
-        </section>
+            </div>
+
+            <div className="rounded-xl border border-lightGray bg-white p-5">
+              <fieldset className="space-y-3">
+                <legend className="mb-1 text-sm font-semibold uppercase tracking-wide text-primaryGray">
+                  Select Class
+                </legend>
+
+                {!hasCourses ? (
+                  <div className="rounded-lg border border-dashed border-lightGray p-8 text-center">
+                    <p className="text-sm text-primaryGray">No classes available yet.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[45vh] space-y-3 overflow-y-auto pr-1">
+                    {program.courses!.map((course) => (
+                      <CourseRadioCard
+                        key={course.id}
+                        course={course}
+                        checked={selectedClassId === course.id}
+                        onChange={onSelectClass}
+                      />
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            </div>
+          </section>
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="sticky bottom-0 z-20 border-t border-lightGray bg-white px-6 py-4">
-        <Actions onCancel={onClose} onSubmit={onSubmit} loading={!!submitting} SubmitLabel={'Enroll'}/>
+      <div className="sticky bottom-0 z-20 border-t border-lightGray bg-white px-6 py-4 md:px-8">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {!selectedClassId && hasCourses && (
+            <p className="mr-auto text-xs text-primaryGray">Select a class to continue.</p>
+          )}
+          <Button
+            value="Cancel"
+            variant="secondary"
+            onClick={onClose}
+            disabled={!!submitting}
+          />
+          <Button
+            value="Enroll"
+            variant="primary"
+            onClick={onSubmit}
+            loading={!!submitting}
+            disabled={!selectedClassId || !hasCourses || !!submitting}
+          />
+        </div>
       </div>
     </div>
   );

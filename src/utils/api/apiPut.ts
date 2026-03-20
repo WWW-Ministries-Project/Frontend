@@ -4,7 +4,7 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
-import { updateData } from "./apiFunctions";
+import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
@@ -30,7 +30,12 @@ import type {
   UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
+import type {
+  AiCredentialRecord,
+  UpdateAiCredentialPayload,
+} from "./ai/interfaces";
 import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type { UpdateNotificationPreferencePayload } from "./notifications/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -38,6 +43,7 @@ export class ApiUpdateCalls {
   constructor() {
     this.apiExecution = new ApiExecution({
       updateExecutor: updateData,
+      patchExecutor: patchData,
     });
   }
 
@@ -477,6 +483,61 @@ export class ApiUpdateCalls {
       "financials/update-financial",
       payload,
       query
+    );
+  };
+
+  updateAiCredential = (
+    id: string,
+    payload: UpdateAiCredentialPayload
+  ): Promise<ApiResponse<AiCredentialRecord>> => {
+    return this.apiExecution.updateData(`ai/credentials/${id}`, payload);
+  };
+
+  markNotificationRead = (
+    notificationId: string,
+    payload: Record<string, never> = {}
+  ): Promise<ApiResponse<unknown>> => {
+    if (!notificationId) {
+      throw new Error("Notification id is required to mark as read");
+    }
+
+    return this.apiExecution.patchData(
+      `notifications/${notificationId}/read`,
+      payload
+    );
+  };
+
+  markNotificationUnread = (
+    notificationId: string,
+    payload: Record<string, never> = {}
+  ): Promise<ApiResponse<unknown>> => {
+    if (!notificationId) {
+      throw new Error("Notification id is required to mark as unread");
+    }
+
+    return this.apiExecution.patchData(
+      `notifications/${notificationId}/unread`,
+      payload
+    );
+  };
+
+  markAllNotificationsRead = (
+    payload: Record<string, never> = {}
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData("notifications/read-all", payload);
+  };
+
+  updateNotificationPreference = (
+    notificationType: string,
+    payload: UpdateNotificationPreferencePayload
+  ): Promise<ApiResponse<unknown>> => {
+    if (!notificationType?.trim()) {
+      throw new Error("Notification type is required to update preferences");
+    }
+
+    return this.apiExecution.patchData(
+      `notifications/preferences/${encodeURIComponent(notificationType)}`,
+      payload
     );
   };
 }

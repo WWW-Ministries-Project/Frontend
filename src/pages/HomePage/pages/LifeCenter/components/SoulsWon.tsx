@@ -4,14 +4,13 @@ import {
   CalendarDaysIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
-import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { format, getYear, getMonth, getWeek } from "date-fns";
+import { format, getWeek } from "date-fns";
 
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
+import EmptyState from "@/components/EmptyState";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
-import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
@@ -82,7 +81,7 @@ export const SoulsWon = ({
         showNotification("Soul deleted successfully", "success");
       });
     },
-    [executeDelete, routeName]
+    [executeDelete, handleSuccess, routeName]
   );
 
   const handleSave = async (formData: ISoulsWonForm) => {
@@ -162,7 +161,7 @@ export const SoulsWon = ({
       setSoulWon(null);
       setOpenModal(false);
     }
-  }, [postResponse?.data, updateResponse]);
+  }, [handleSuccess, postResponse?.data, soulWon, updateResponse]);
 
   return (
     <div className="space-y-6">
@@ -235,8 +234,15 @@ export const SoulsWon = ({
                               key={record.id}
                               className="relative border rounded-lg p-4 shadow-sm bg-white space-y-2"
                             >
-                              <div className="font-medium">
-                                {record.first_name} {record.last_name}
+                              <div className="flex items-center gap-2 pr-10">
+                                <div className="font-medium">
+                                  {record.first_name} {record.last_name}
+                                </div>
+                                {record.isMember ? (
+                                  <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                    Member
+                                  </span>
+                                ) : null}
                               </div>
 
                               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -258,6 +264,13 @@ export const SoulsWon = ({
                                 <UserIcon className="h-4 w-4 text-gray-500" />
                                 <span>{record.wonByName}</span>
                               </div>
+
+                              {record.isMember && record.memberName ? (
+                                <div className="text-xs text-green-700">
+                                  Member record: {record.memberName}
+                                  {record.memberMemberId ? ` (${record.memberMemberId})` : ""}
+                                </div>
+                              ) : null}
 
                               <div
                                 className="pt-2 absolute right-2 top-1"
@@ -284,14 +297,11 @@ export const SoulsWon = ({
             ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 rounded-lg">
-          <h3 className="text-xl font-medium text-gray-500 mb-2">
-            No Souls Records Yet
-          </h3>
-          <p className="text-gray-400 mb-6 max-w-md text-center">
-            You haven&apos;t recorded any souls yet. Start by adding your first record.
-          </p>
-        </div>
+        <EmptyState
+          scope="section"
+          msg="No souls records yet"
+          description="No souls have been recorded for this life center yet."
+        />
       )}
 
       {/* Form Modal */}
@@ -322,7 +332,7 @@ export const SoulsWon = ({
           </div>
           <div className="mb-6">
             <p className="text-sm text-gray-700">
-              You do not have access to {accessDeniedAction} this data. Please contact the Ministry's IT Directorate for assistance.
+              You do not have access to {accessDeniedAction} this data. Please contact the Ministry&apos;s IT Directorate for assistance.
             </p>
           </div>
           <div className="flex justify-end">

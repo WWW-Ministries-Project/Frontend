@@ -2,18 +2,28 @@ import { TableRow } from "../types/requestInterface";
 import { EditableTableStore } from "../types/requestInterface";
 
 
-const createEditableTableSlice = (set: any):EditableTableStore => ({
+const createEditableTableSlice = (
+  set: (
+    partial:
+      | EditableTableStore
+      | Partial<EditableTableStore>
+      | ((
+          state: EditableTableStore
+        ) => EditableTableStore | Partial<EditableTableStore>)
+  ) => void
+): EditableTableStore => ({
   rows: [],
   addRow: () =>
     set((state: EditableTableStore) => ({
       rows: [
         ...state.rows,
         {
-          name: `item ${state.rows.length + 1}`,
-          quantity: 5,
-          amount: 1,
-          total: 5,
-          id: state.rows.length + 1,
+          name: "",
+          quantity: 0,
+          amount: 0,
+          total: 0,
+          id: `${Date.now()}-${state.rows.length + 1}`,
+          image_url: "",
         },
       ],
     })),

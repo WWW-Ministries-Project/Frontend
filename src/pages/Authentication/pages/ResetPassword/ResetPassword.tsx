@@ -1,167 +1,261 @@
-import axios from "axios";
-import { useState, ChangeEvent, FocusEvent } from "react";
+import axios from "@/axiosInstance";
+import {
+  ChangeEvent,
+  FocusEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "../../../../components";
 import InputPassword from "../../../../components/Password";
 import AuthenticationForm from "../../components/AuthenticationForm";
 import NotificationCard from "../../components/NotificationCard";
 import OuterDiv from "../../components/OuterDiv";
-import { baseUrl, validate } from "../../utils/helpers";
+import { getRetryAfterSecondsFromError } from "../../utils/rateLimit";
+import { validate } from "../../utils/helpers";
 import BackgroundWrapper from "@/Wrappers/BackgroundWrapper";
 
 interface PasswordValues {
+  password1: string;
+  password2: string;
+}
+
+interface FieldErrors {
   password1?: string;
   password2?: string;
 }
 
-interface ErrorState {
-  password1?: boolean;
-  password2?: boolean;
-  status?: boolean;
-}
-
 interface AuthResponse {
   status?: number;
-  data?: unknown;
+  data?: Record<string, unknown> | string;
 }
 
+const initialValues: PasswordValues = {
+  password1: "",
+  password2: "",
+};
 
+const getResponseMessage = (data: AuthResponse["data"]): string | undefined => {
+  if (!data) return undefined;
+  if (typeof data === "string") return data;
+  const possibleMessage = data.message || data.error || data.detail;
+  return typeof possibleMessage === "string" ? possibleMessage : undefined;
+};
 
 function ResetPassword() {
-  const [passwordValues, setPasswordValues] = useState<PasswordValues>({});
+  const [passwordValues, setPasswordValues] = useState<PasswordValues>(initialValues);
   const [response, setResponse] = useState<AuthResponse>({});
-  const [error, setError] = useState<ErrorState>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<keyof PasswordValues, boolean>>({
+    password1: false,
+    password2: false,
+  });
   const [loading, setLoading] = useState(false);
-  const [samePassword, setSamePassword] = useState(true);
-  
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState<number>(0);
+
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get("token");
   const id = searchParams.get("id");
 
-  async function handleSubmit(e?: React.MouseEvent) {
-    e?.preventDefault();
-    if (passwordValues.password2 && samePassword) {
-      setLoading(true);
-      const body = { newpassword: passwordValues.password1 };
-      
-      try {
-        const endpoint = `${baseUrl}user/reset-password?id=${id}&token=${token}`;
-        const response = await axios.post(endpoint, body);
-        setResponse({ status: response.status, data: response.data });
-      } catch (error: unknown) {
-        console.log(error, "error");
-        setResponse((error as { response?: AuthResponse })?.response ?? {});
-      } finally {
-        setLoading(false);
+  const hasValidResetLink = Boolean(token && id);
+  const isRateLimited = retryAfterSeconds > 0;
+
+  useEffect(() => {
+    if (retryAfterSeconds <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setRetryAfterSeconds((previousValue) =>
+        previousValue <= 1 ? 0 : previousValue - 1
+      );
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [retryAfterSeconds]);
+
+  const authErrorText = useMemo(
+    () => getResponseMessage(response.data) || "Unable to reset password. Please request a new reset link.",
+    [response.data]
+  );
+
+  function validateField(name: keyof PasswordValues, values: PasswordValues): string {
+    if (name === "password1") {
+      if (!values.password1.trim()) return "New password is required";
+      if (!validate("password1", values)) return "Enter a valid password";
+    }
+
+    if (name === "password2") {
+      if (!values.password2.trim()) return "Confirm new password";
+      if (!validate("password2", values)) return "Enter a valid password";
+      if (values.password1 !== values.password2) return "Passwords do not match";
+    }
+
+    return "";
+  }
+
+  function validateForm(values: PasswordValues): FieldErrors {
+    return {
+      password1: validateField("password1", values),
+      password2: validateField("password2", values),
+    };
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading || isRateLimited) return;
+
+    if (!hasValidResetLink) {
+      setResponse({
+        status: 400,
+        data: { message: "This reset link is invalid or expired. Please request a new one." },
+      });
+      return;
+    }
+
+    const validationErrors = validateForm(passwordValues);
+    setTouched({ password1: true, password2: true });
+    setErrors(validationErrors);
+
+    if (validationErrors.password1 || validationErrors.password2) {
+      return;
+    }
+
+    setResponse({});
+    setLoading(true);
+    const body = { newpassword: passwordValues.password1 };
+
+    try {
+      const resetResponse = await axios.post(
+        `user/reset-password?id=${id}&token=${token}`,
+        body
+      );
+      setResponse({ status: resetResponse.status, data: resetResponse.data });
+    } catch (error: unknown) {
+      const retryAfter = getRetryAfterSecondsFromError(error);
+      if (retryAfter) {
+        setRetryAfterSeconds((previousValue) =>
+          Math.max(previousValue, retryAfter)
+        );
       }
+
+      const axiosError = error as { response?: AuthResponse };
+      setResponse(axiosError.response || {});
+    } finally {
+      setLoading(false);
     }
   }
 
   function handleBlur(e: FocusEvent<HTMLInputElement>) {
-    const name = e.target.name;
-    const isValid = validate(name, passwordValues);
-    setError((prev) => ({ ...prev, [name]: !isValid }));
-    if (!isValid) e.target.setCustomValidity("Invalid format");
-  }
-
-  function checkPassword(e?: FocusEvent<HTMLInputElement>) {
-    if (passwordValues.password1 === passwordValues.password2) {
-      setSamePassword(true);
-    } else {
-      setSamePassword(false);
-      if (e) e.target.setCustomValidity("Passwords don't match");
-    }
+    const name = e.target.name as keyof PasswordValues;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, passwordValues),
+    }));
   }
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setResponse({});
     const name = e.target.name as keyof PasswordValues;
     const value = e.target.value;
-    
-    setPasswordValues((prev) => ({ ...prev, [name]: value }));
-    
-    // to remove error msg
-    if (error[name as keyof ErrorState]) {
-      if (validate(name, passwordValues)) {
-        setError((prev) => ({ ...prev, [name as keyof ErrorState]: false }));
-        e.target.setCustomValidity("");
-      }
+
+    const nextValues = { ...passwordValues, [name]: value };
+    setPasswordValues(nextValues);
+
+    if (touched[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validateField(name, nextValues),
+      }));
     }
-    
-    // checks if confirm password contains values and if user is done typing once before
-    if (passwordValues.password2 && !samePassword) {
-      checkPassword();
+
+    if (name === "password1" && touched.password2) {
+      setErrors((prev) => ({
+        ...prev,
+        password2: validateField("password2", nextValues),
+      }));
     }
   }
+
+  const samePassword = passwordValues.password1 === passwordValues.password2;
 
   return (
     <BackgroundWrapper>
       <OuterDiv>
         {response?.status === 200 ? (
-          <div className="pt-1 authForm rounded-lg mx-auto bg-wwmBlue">
-            <NotificationCard
-              className={""}
-              header="New Password Set"
-              text="Your new password has been set successfully. Proceed to login with your new password"
-              src={"/assets/authentication/successIcon.svg"}
-            />
-          </div>
+          <NotificationCard
+            header="Password Updated"
+            text="Your new password has been set successfully. You can now log in with your new password."
+            src="/assets/authentication/successIcon.svg"
+            imageAlt="Password reset successful icon"
+            bottomText="Return to login"
+            link="/login"
+          />
         ) : (
           <AuthenticationForm
             response={response}
-            header={"Set new password!"}
-            text={"Enter a new password for your account."}
-            buttonValue={"Login"}
+            header="Set New Password"
+            text="Enter a new password for your account."
+            onSubmit={handleSubmit}
+            errorText={authErrorText}
           >
             <InputPassword
               label="New Password"
               id="password1"
               name="password1"
-              value={passwordValues.password1 || ""}
-              isRequired={error.status && !passwordValues.password1}
+              value={passwordValues.password1}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              placeholder={"New Password"}
-              inputClass={
-                error.status
-                  ? "h-8 rounded-md px-4 mt-2 border-error"
-                  : "h-8 rounded-md px-4 mt-2"
-              }
-              className="!p-0 my-4"
+              placeholder="New password"
+              autoComplete="new-password"
+              required
+              error={touched.password1 ? errors.password1 : ""}
+              className="my-2"
             />
             <InputPassword
               label="Confirm New Password"
               id="password2"
               name="password2"
-              value={passwordValues.password2 || ""}
-              isRequired={error.status && !passwordValues.password2}
+              value={passwordValues.password2}
               samePassword={samePassword}
               onChange={handleInputChange}
-              onBlur={checkPassword}
-              placeholder={"Confirm Password"}
-              inputClass={
-                error.status
-                  ? "h-8 rounded-md px-4 mt-2 border-error"
-                  : "h-8 rounded-md px-4 mt-2"
-              }
-              className="!p-0"
+              onBlur={handleBlur}
+              placeholder="Confirm new password"
+              autoComplete="new-password"
+              required
+              error={touched.password2 ? errors.password2 : ""}
+              className="my-2"
             />
             <Button
-              value={"Set New Password"}
-              variant="secondary"
-              onClick={handleSubmit}
+              type="submit"
+              value={
+                isRateLimited
+                  ? `Retry in ${retryAfterSeconds}s`
+                  : "Set New Password"
+              }
+              variant="primary"
               loading={loading}
-              disabled={!samePassword || loading}
-              className={"w-full h-[38px] border-white my-8 text-white"}
+              disabled={loading || !hasValidResetLink || isRateLimited}
+              className="mt-2 w-full"
             />
-            <div>
-              <div className="text-gray text-center text-sma">
-                <Link to="/login" className="text-white font-bold">
-                  Return to Login
-                </Link>
-              </div>
+            {isRateLimited && (
+              <p className="text-center text-xs text-primaryGray">
+                Too many attempts. Please wait before trying again.
+              </p>
+            )}
+            <div className="text-center text-sm font-semibold">
+              <Link to="/login" className="text-primary hover:underline">
+                Return to login
+              </Link>
             </div>
+
+            {!hasValidResetLink && (
+              <p className="text-center text-xs text-gray">
+                Reset link is missing required parameters. Request a new password reset email.
+              </p>
+            )}
           </AuthenticationForm>
         )}
       </OuterDiv>

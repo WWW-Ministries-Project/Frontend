@@ -1,15 +1,15 @@
-import InstructorPortal from "@/pages/MembersPage/Pages/GradingPanel";
-import Instructor from "@/pages/MembersPage/Pages/Instructor";
-import Market from "@/pages/MembersPage/Pages/Market";
-
 export const relativePath = {
   root: "/",
   login: "/login",
+  changePassword: "/change-password",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  certificateVerification: "/certificate/verify/:certificateNumber",
   home: {
     main: "/home",
     dashboard: "dashboard",
+    notifications: "notifications",
+    ai: "ai",
     members: {
       main: "members",
       mainNew: "/home/members",
@@ -20,10 +20,16 @@ export const relativePath = {
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
+      departments: {
+        main: "departments-and-ministries",
+        details: "departments-and-ministries/:id",
+      },
+      analytics: "analytics",
       management: {
         main: "membership-management",
         memberConfirmation: "member-confirmation",
         visitorToMembership: "visitor-to-membership",
+        soulwonToMembership: "soulwon-to-membership",
       },
     },
     visitors: {
@@ -34,6 +40,16 @@ export const relativePath = {
       main: "events",
       manage: "manage-event",
       view: "view-event",
+    },
+    reports: {
+      main: "reports",
+      eventReports: "reports/event-reports",
+      eventReportDetails: "reports/event-reports/:id",
+    },
+    attendance: {
+      main: "church-attendance",
+      eventAttendance: "event-attendance",
+      analytics: "analytics",
     },
     assets: {
       main: "assets",
@@ -50,6 +66,10 @@ export const relativePath = {
       cohort: "cohort/:id",
       class: "class/:id",
       student: "student/:id",
+      instructorPortal: "instructor-portal",
+      instructorCohort: ":programId/cohort",
+      instructorAssMan: ":programId/cohort/:cohortId",
+      instructorGradingPanel: ":programId/cohort/:cohortId/grades/:topicId",
       certificate: "ministry-school/programs/cohort/class/student/certificate",
     },
     settings: {
@@ -87,6 +107,8 @@ export const relativePath = {
   member: {
     main: "/member",
     dashboard: "/member/dashboard",
+    profile: "/member/profile",
+    notifications: "/member/notifications",
     market: "/member/market/",
     productDetails: "/member/market/product/:id",
     cart: "/member/market/carts",

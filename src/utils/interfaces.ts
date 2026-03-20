@@ -1,5 +1,3 @@
-import Instructor from "@/pages/MembersPage/Pages/Instructor";
-
 export interface pictureType {
   picture: Blob | string;
   src: string;
@@ -40,23 +38,31 @@ export interface ApiCallOptions {
   deleteExecutor?: QueryExecutorType;
   postExecutor?: PayloadExecutorType;
   updateExecutor?: PayloadExecutorType;
+  patchExecutor?: PayloadExecutorType;
 }
 
 export interface userType {
   id: string;
+  member_id?: string;
   email: string;
   name: string;
   permissions: Record<string, boolean>;
+  access_permissions?: Record<string, unknown>;
+  user_category?: "member" | "admin" | string;
   profile_img?: string;
-  phone:string;
-  member_since?: Date;
+  phone: string | null;
+  member_since?: string | Date | null;
   membership_type: string;
-  ministry_worker:boolean;
+  ministry_worker: boolean;
   department?: string[];
-  life_center_leader?:boolean
-  instructor?:boolean
+  department_positions?: Array<string | Record<string, unknown>>;
+  life_center_leader?: boolean;
+  instructor?: boolean;
 }
-export interface userTypeWithToken extends userType {
+export interface userTypeWithToken
+  extends Omit<userType, "permissions" | "access_permissions"> {
+  permissions?: Record<string, unknown> | string[] | null;
+  access_permissions?: Record<string, unknown>;
   iat: number;
   exp: number;
 }

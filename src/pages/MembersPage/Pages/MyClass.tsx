@@ -86,7 +86,7 @@ const MyClass = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-lightGray bg-white py-12 text-primaryGray">
-            <EmptyState />
+            <EmptyState scope="section" />
             <p className="text-lg font-medium text-primary">No Class Found</p>
             <p>You are not currently enrolled in any School of Ministry class.</p>
           </div>

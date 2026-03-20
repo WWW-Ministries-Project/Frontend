@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import hamburger from "/src/assets/sidenav.svg";
 import ChurchLogo from "@/components/ChurchLogo";
 import { ProfilePicture } from "@/components";
+import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
+import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
 
 import { useAuth } from "../../../context/AuthWrapper";
-import { decodeToken, removeToken } from "../../../utils/helperFunctions";
+import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
 import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
@@ -16,6 +17,7 @@ interface AccessibleMenuProps {
   label: string;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLButtonElement>;
+  align?: "left" | "right";
   children: React.ReactNode;
 }
 
@@ -24,6 +26,7 @@ const AccessibleMenu = ({
   label,
   onClose,
   triggerRef,
+  align = "left",
   children,
 }: AccessibleMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,13 +68,15 @@ const AccessibleMenu = ({
 
   if (!isOpen) return null;
 
+  const alignmentClass = align === "right" ? "right-0 origin-top-right" : "left-0 origin-top-left";
+
   return (
     <div
       ref={menuRef}
       role="menu"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className="absolute top-10  mt-2 w-56 bg-white border rounded-md shadow-lg"
+      className={`absolute top-full mt-2 z-50 w-56 max-w-[calc(100vw-1rem)] bg-white border rounded-md shadow-lg ${alignmentClass}`}
     >
       {children}
     </div>
@@ -85,7 +90,7 @@ interface IProps {
 export const Header = ({ handleShowNav }: IProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
@@ -108,9 +113,15 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMinistryWorker = token?.ministry_worker;
   const isLifeCenterLeader = token?.life_center_leader;
   const isInstructor = token?.instructor;
+  const userCategory = (user.user_category ?? token?.user_category ?? "")
+    .trim()
+    .toLowerCase();
+  const isAdminUser = userCategory === "admin";
 
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
+  const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
+  const showAdminAiEntry = !isMemberRoute && isAdminUser;
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -139,10 +150,16 @@ export const Header = ({ handleShowNav }: IProps) => {
     setIsProfileMenuOpen(false);
   };
 
+  const handleChangePassword = () => {
+    setIsProfileMenuOpen(false);
+    navigate(relativePath.changePassword, {
+      state: { from: location.pathname },
+    });
+  };
+
   const handleLogout = () => {
-    removeToken();
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   /* Close dropdowns & mobile nav on outside click */
@@ -230,7 +247,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-40 bg-white md:text-sm lg:text-md"
+      className="sticky top-0 z-[120] md:text-sm lg:text-md"
     >
       <div className="flex items-center justify-between px-4 ">
         {/* Left */}
@@ -324,10 +341,25 @@ export const Header = ({ handleShowNav }: IProps) => {
             </div>
           </nav>
         )}
+        {showAdminAiEntry && (
+          <nav className="flex items-center">
+            <button
+              onClick={() => handleNavigate(adminAIPath)}
+              className={`px-4 py-2 rounded-md font-semibold transition ${
+                isActive(adminAIPath)
+                  ? "bg-primary text-white"
+                  : "text-primary hover:bg-primary/10"
+              }`}
+            >
+              AI
+            </button>
+          </nav>
+        )}
 
         {/* Right */}
         <div ref={profileRef} className="flex items-center gap-3 relative">
           {isMemberRoute && <CartIcon />}
+          <HeaderNotificationMenu isMemberRoute={isMemberRoute} />
 
           <button
             ref={profileButtonRef}
@@ -347,7 +379,14 @@ export const Header = ({ handleShowNav }: IProps) => {
             label="Profile menu"
             onClose={() => setIsProfileMenuOpen(false)}
             triggerRef={profileButtonRef}
+            align="right"
           >
+            <div className="border-b border-lightGray px-4 py-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                Appearance
+              </p>
+              <ThemeModeSelector className="w-full min-w-[140px]" />
+            </div>
             {isMinistryWorker && (
               <button
                 role="menuitem"
@@ -359,6 +398,13 @@ export const Header = ({ handleShowNav }: IProps) => {
                 {isMemberRoute ? "Go to admin portal" : "Go to member portal"}
               </button>
             )}
+            <button
+              role="menuitem"
+              onClick={handleChangePassword}
+              className="w-full text-left px-4 py-3 hover:bg-gray-100"
+            >
+              Change password
+            </button>
             <button
               role="menuitem"
               onClick={handleLogout}
