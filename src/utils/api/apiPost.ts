@@ -16,6 +16,10 @@ import type {
 } from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import type {
+  AttendanceTimingSettingsConfig,
+  AttendanceTimingSettingsPayload,
+} from "./settings/attendanceTimingInterfaces";
+import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
 } from "./settings/eligibilityInterfaces";
@@ -145,6 +149,12 @@ export class ApiCreationCalls {
     payload: RoleEligibilityConfigPayload
   ): Promise<ApiResponse<RoleEligibilityConfig>> => {
     return this.postToApi("settings/upsert-role-eligibility-config", payload);
+  };
+
+  upsertAttendanceTimingConfig = (
+    payload: AttendanceTimingSettingsPayload
+  ): Promise<ApiResponse<AttendanceTimingSettingsConfig>> => {
+    return this.postToApi("settings/upsert-attendance-timing-config", payload);
   };
 
   upsertSystemNotificationConfig = (

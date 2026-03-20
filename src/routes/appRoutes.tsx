@@ -95,6 +95,7 @@ import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
 import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
 import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReportDetails";
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
+import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
 import { Navigate } from "react-router-dom";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
@@ -136,6 +137,11 @@ export const routes: AppRoute[] = [
     path: "/reset-password",
     name: "ResetPassword",
     element: <ResetPassword />,
+  },
+  {
+    path: relativePath.certificateVerification,
+    name: "Certificate Verification",
+    element: <CertificateVerificationPage />,
   },
   {
     path: "/change-password",

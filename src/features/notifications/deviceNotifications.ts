@@ -23,6 +23,13 @@ export type EnsureDevicePushSubscriptionResult =
   | "push-disabled"
   | "failed";
 
+export type DevicePushSetupState =
+  | "unsupported"
+  | "permission_default"
+  | "permission_denied"
+  | "permission_granted_unsubscribed"
+  | "enabled";
+
 const toRecord = (value: unknown): UnknownRecord | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
@@ -178,12 +185,6 @@ const buildSubscriptionPayload = (
   };
 };
 
-const shouldShowForegroundDeviceNotification = (): boolean => {
-  if (typeof document === "undefined") return false;
-
-  return document.visibilityState === "hidden" || !document.hasFocus();
-};
-
 const resolveNotificationUrl = (notification: InAppNotification): {
   url: string;
   external: boolean;
@@ -248,6 +249,31 @@ export const getDeviceNotificationPermissionState =
   (): DeviceNotificationPermissionState => {
     if (!isDeviceNotificationSupported()) return "unsupported";
     return Notification.permission;
+  };
+
+export const getDevicePushSetupState =
+  async (): Promise<DevicePushSetupState> => {
+    if (!isPushSubscriptionSupported()) return "unsupported";
+
+    if (Notification.permission === "denied") {
+      return "permission_denied";
+    }
+
+    if (Notification.permission !== "granted") {
+      return "permission_default";
+    }
+
+    const registration = await getServiceWorkerRegistration();
+    if (!registration) {
+      return "permission_granted_unsubscribed";
+    }
+
+    try {
+      const subscription = await registration.pushManager.getSubscription();
+      return subscription ? "enabled" : "permission_granted_unsubscribed";
+    } catch {
+      return "permission_granted_unsubscribed";
+    }
   };
 
 export const ensureDevicePushSubscription =
@@ -415,7 +441,12 @@ export const showForegroundDeviceNotification = (
 ): void => {
   if (!isDeviceNotificationSupported()) return;
   if (Notification.permission !== "granted") return;
-  if (!shouldShowForegroundDeviceNotification()) return;
+  if (
+    typeof document === "undefined" ||
+    (document.visibilityState !== "visible" && !document.hasFocus())
+  ) {
+    return;
+  }
 
   const target = resolveNotificationUrl(notification);
 

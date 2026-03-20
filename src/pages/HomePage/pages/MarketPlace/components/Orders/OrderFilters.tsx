@@ -30,7 +30,7 @@ export function OrderFilters({
   selectedOrderDate = "",
   showOrderDateFilter = false,
 }: IProps) {
-  const handleChange = function (value: string, name: string) {
+  const handleChange = function (name: string, value: string) {
     onChange(name, value);
   };
 
@@ -41,13 +41,13 @@ export function OrderFilters({
   const { data: types, refetch: refetchTypes } = useFetch(
     api.fetch.fetchProductTypes,
     {},
-    true
+    true,
   );
 
   const { data: categories, refetch: refetchCategories } = useFetch(
     api.fetch.fetchProductCategories,
     {},
-    true
+    true,
   );
 
   const productCategories = useMemo(() => {

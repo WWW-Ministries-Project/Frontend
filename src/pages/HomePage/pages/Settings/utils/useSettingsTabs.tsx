@@ -18,6 +18,7 @@ interface UseSettingsTabsProps {
 export type GeneralSettingsTab =
   | "Position"
   | "Requisition"
+  | "Attendance"
   | "Eligibility Rules"
   | "Notifications"
   | "Logs";
@@ -34,6 +35,7 @@ export function useSettingsTabs({
   const tabs: GeneralSettingsTab[] = [
     "Position",
     "Requisition",
+    "Attendance",
     "Notifications",
     "Logs",
     "Eligibility Rules",

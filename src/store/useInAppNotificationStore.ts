@@ -11,6 +11,7 @@ import {
   playIncomingNotificationSound,
   showForegroundDeviceNotification,
 } from "@/features/notifications/deviceNotifications";
+import { getNotificationActionDefinition } from "@/features/notifications/actionRegistry";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import type { InAppNotification } from "@/utils/api/notifications/interfaces";
@@ -20,7 +21,7 @@ import { create } from "zustand";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_TOAST_KEYS = 120;
 
-type NotificationIngestSource = "sse" | "fetch" | "manual";
+type NotificationIngestSource = "sse" | "broadcast" | "fetch" | "manual";
 
 interface FetchNotificationsOptions {
   page?: number;
@@ -53,9 +54,11 @@ interface InAppNotificationStore {
   ) => void;
   applyUnreadCountPayload: (payload: unknown) => void;
   applyReadAllFromServer: (payload?: unknown) => void;
+  applyClearAllFromServer: (payload?: unknown) => void;
   markAsRead: (notificationId: string) => Promise<boolean>;
   markAsUnread: (notificationId: string) => Promise<boolean>;
   markAllAsRead: () => Promise<boolean>;
+  clearAll: () => Promise<boolean>;
   setConnected: (connected: boolean) => void;
   reset: () => void;
 }
@@ -101,12 +104,32 @@ const shouldToastIncomingNotification = (
   notification: InAppNotification,
   recentlyToastedKeys: string[]
 ): boolean => {
-  if (!isHighPriorityNotification(notification.priority)) return false;
+  const actionDefinition = getNotificationActionDefinition(notification.type);
+  const requiresHighPriority =
+    actionDefinition?.toastForHighPriorityOnly ?? true;
+
+  if (requiresHighPriority && !isHighPriorityNotification(notification.priority)) {
+    return false;
+  }
   if (notification.isRead) return false;
   if (!isRecentNotification(notification.createdAt)) return false;
 
   const key = getNotificationIdentity(notification);
   return !recentlyToastedKeys.includes(key);
+};
+
+const shouldShowRealtimeBrowserNotification = (
+  notification: InAppNotification
+): boolean => {
+  const actionDefinition = getNotificationActionDefinition(notification.type);
+  const requiresHighPriority =
+    actionDefinition?.toastForHighPriorityOnly ?? true;
+
+  if (requiresHighPriority && !isHighPriorityNotification(notification.priority)) {
+    return false;
+  }
+  if (notification.isRead) return false;
+  return isRecentNotification(notification.createdAt);
 };
 
 const isUnreadOnlyQuery = (query: QueryType | undefined): boolean => {
@@ -119,6 +142,37 @@ const isUnreadOnlyQuery = (query: QueryType | undefined): boolean => {
   }
 
   return false;
+};
+
+const parseOptionalNonNegativeInteger = (value: unknown): number | null => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+};
+
+const parseTotalCount = (payload: unknown): number | null => {
+  if (!payload || typeof payload !== "object") return null;
+
+  const record = payload as Record<string, unknown>;
+  const direct =
+    parseOptionalNonNegativeInteger(record.totalCount) ??
+    parseOptionalNonNegativeInteger(record.total_count) ??
+    parseOptionalNonNegativeInteger(record.total);
+
+  if (direct !== null) return direct;
+
+  const nested =
+    record.data && typeof record.data === "object"
+      ? (record.data as Record<string, unknown>)
+      : null;
+
+  if (!nested) return null;
+
+  return (
+    parseOptionalNonNegativeInteger(nested.totalCount) ??
+    parseOptionalNonNegativeInteger(nested.total_count) ??
+    parseOptionalNonNegativeInteger(nested.total)
+  );
 };
 
 const createInitialState = () => ({
@@ -289,13 +343,15 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
 
       const toastKeys = [...state.recentlyToastedKeys];
 
-      if (source === "sse") {
+      if (source === "sse" || source === "broadcast") {
         if (merged.added.length > 0) {
           playIncomingNotificationSound();
         }
 
         merged.added.forEach((notification) => {
-          showForegroundDeviceNotification(notification);
+          if (shouldShowRealtimeBrowserNotification(notification)) {
+            showForegroundDeviceNotification(notification);
+          }
 
           if (!shouldToastIncomingNotification(notification, toastKeys)) return;
 
@@ -355,6 +411,19 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         ),
         unreadCount: parsedUnreadCount === null ? 0 : parsedUnreadCount,
       }));
+    },
+
+    applyClearAllFromServer: (payload) => {
+      const parsedUnreadCount = parseUnreadCount(payload);
+      const parsedTotalCount = parseTotalCount(payload);
+
+      set({
+        notifications: [],
+        unreadCount: parsedUnreadCount === null ? 0 : parsedUnreadCount,
+        totalCount: parsedTotalCount === null ? 0 : parsedTotalCount,
+        hasMore: false,
+        currentPage: 1,
+      });
     },
 
     markAsRead: async (notificationId) => {
@@ -471,6 +540,38 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
           unreadCount: previousUnreadCount,
         });
         showNotification("Unable to mark all notifications as read.", "error");
+        return false;
+      }
+    },
+
+    clearAll: async () => {
+      const state = get();
+      if (state.totalCount <= 0 && state.notifications.length === 0) {
+        return true;
+      }
+
+      const previous = {
+        notifications: state.notifications,
+        unreadCount: state.unreadCount,
+        totalCount: state.totalCount,
+        hasMore: state.hasMore,
+        currentPage: state.currentPage,
+      };
+
+      set({
+        notifications: [],
+        unreadCount: 0,
+        totalCount: 0,
+        hasMore: false,
+        currentPage: 1,
+      });
+
+      try {
+        await api.delete.clearAllNotifications();
+        return true;
+      } catch {
+        set(previous);
+        showNotification("Unable to clear notifications.", "error");
         return false;
       }
     },

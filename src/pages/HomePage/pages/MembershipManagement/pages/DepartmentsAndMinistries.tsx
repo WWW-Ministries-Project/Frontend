@@ -347,15 +347,8 @@ export const DepartmentsAndMinistries = () => {
   };
 
   return (
-    <PageOutline
-      crumbs={[
-        { label: "Home", link: relativePath.home.main },
-        { label: "Membership", link: `${relativePath.home.main}/${relativePath.home.membership.main}` },
-        { label: "Departments and Ministries" },
-      ]}
-    >
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-[1.75rem] bg-primary px-6 py-7 text-white shadow-lg">
+    <div>
+      <section className="relative overflow-hidden bg-primary px-6 py-7 text-white shadow-lg">
           <div className="absolute -right-10 top-0 h-48 w-48 rounded-full bg-secondary/20 blur-3xl" />
           <div className="absolute bottom-0 left-0 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
 
@@ -398,8 +391,13 @@ export const DepartmentsAndMinistries = () => {
             </div>
           </div>
         </section>
+      <PageOutline
+      
+    >
+      <div className="space-y-6">
+        
 
-        <section className="app-card space-y-4 p-5">
+        <section className="space-y-4 ">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-primary">
@@ -540,6 +538,7 @@ export const DepartmentsAndMinistries = () => {
         onSubmit={handleSubmit}
       />
     </PageOutline>
+    </div>
   );
 };
 

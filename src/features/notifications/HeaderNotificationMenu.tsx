@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import {
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils/helperFunctions";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
 import { relativePath } from "@/utils";
 import {
@@ -69,6 +73,7 @@ export const HeaderNotificationMenu = ({
   const markAsRead = useInAppNotificationStore((state) => state.markAsRead);
   const markAsUnread = useInAppNotificationStore((state) => state.markAsUnread);
   const markAllAsRead = useInAppNotificationStore((state) => state.markAllAsRead);
+  const clearAll = useInAppNotificationStore((state) => state.clearAll);
 
   const notificationCenterPath = isMemberRoute
     ? relativePath.member.notifications
@@ -117,6 +122,24 @@ export const HeaderNotificationMenu = ({
     setIsOpen(false);
   };
 
+  const handleClearAll = () => {
+    showDeleteDialog(
+      {
+        id: "all-notifications",
+        name: "all notifications",
+      },
+      async () => {
+        const cleared = await clearAll();
+        if (!cleared) return;
+
+        setIsOpen(false);
+        showNotification("All notifications cleared.", "success", {
+          title: "Notifications",
+        });
+      }
+    );
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -153,17 +176,28 @@ export const HeaderNotificationMenu = ({
           </header>
 
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
-            <button
-              type="button"
-              onClick={() => {
-                void markAllAsRead();
-              }}
-              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={unreadCount === 0}
-            >
-              <CheckIcon className="h-3.5 w-3.5" />
-              Mark all read
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void markAllAsRead();
+                }}
+                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={unreadCount === 0}
+              >
+                <CheckIcon className="h-3.5 w-3.5" />
+                Mark all read
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="rounded px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={notifications.length === 0}
+              >
+                Clear all
+              </button>
+            </div>
 
             <button
               type="button"

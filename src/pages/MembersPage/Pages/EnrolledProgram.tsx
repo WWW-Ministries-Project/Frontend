@@ -4,7 +4,7 @@ import CourseSidebar from "../Component/CourseSidebar";
 import { useParams } from "react-router-dom";
 import BannerWrapper from "../layouts/BannerWrapper";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
-import { api, Topic } from "@/utils";
+import { api, CertificateData, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAuth } from "@/context/AuthWrapper";
 import { Modal } from "@/components/Modal";
@@ -49,7 +49,12 @@ const EnrolledProgram: React.FC = () => {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [viewCertificate, setViewCertificate] = useState(false);
+  const [viewCertificate, setViewCertificate] = useState(true);
+  const [supportsCertificateModal, setSupportsCertificateModal] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(min-width: 640px)").matches
+      : false
+  );
   const [showCelebration, setShowCelebration] = useState(false);
   const [completionPrompt, setCompletionPrompt] = useState<CompletionPrompt | null>(null);
 
@@ -58,6 +63,18 @@ const EnrolledProgram: React.FC = () => {
       query?: QueryType
     ) => Promise<ApiResponse<ProgramCompletionStatus>>,
     { programId: programId ?? "", userId }
+  );
+  const {
+    data: certificateResponse,
+    loading: certificateLoading,
+    error: certificateError,
+    refetch: refetchCertificate,
+  } = useFetch<ApiResponse<CertificateData>>(
+    api.fetch.fetchProgramCertificate as (
+      query?: QueryType
+    ) => Promise<ApiResponse<CertificateData>>,
+    { programId: programId ?? "" },
+    true
   );
 
   useEffect(() => {
@@ -106,6 +123,35 @@ const EnrolledProgram: React.FC = () => {
     }
   }, [data, user, programId]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(min-width: 640px)");
+
+    const handleViewportChange = () => {
+      setSupportsCertificateModal(mediaQuery.matches);
+
+      if (!mediaQuery.matches) {
+        setViewCertificate(false);
+      }
+    };
+
+    handleViewportChange();
+    mediaQuery.addEventListener("change", handleViewportChange);
+
+    return () => mediaQuery.removeEventListener("change", handleViewportChange);
+  }, []);
+
+  useEffect(() => {
+    if (!viewCertificate || !programId || !data?.data?.completed) return;
+    refetchCertificate({ programId });
+  }, [data?.data?.completed, programId, refetchCertificate, viewCertificate]);
+
+  const openCertificateModal = useCallback(() => {
+    if (!supportsCertificateModal) return;
+    setViewCertificate(true);
+  }, [supportsCertificateModal]);
+
   const handleTopicSelect = useCallback((navId: string | number) => {
     setNavItems((items) =>
       items.map((item) => ({ ...item, active: String(item.id) === String(navId) }))
@@ -137,6 +183,8 @@ const EnrolledProgram: React.FC = () => {
   const progressPercentage = topics.length
     ? Math.round((completedTopics / topics.length) * 100)
     : 0;
+  const certificateData = certificateResponse?.data ?? null;
+  const certificateErrorMessage = certificateError?.message ?? null;
 
   const handleTopicCompleted = useCallback(
     (completedTopicId: string | number) => {
@@ -192,14 +240,16 @@ const EnrolledProgram: React.FC = () => {
                 {data?.data?.description}
               </p>
             </div>
-            {data?.data?.completed&&<div>
-              <Button
-                value="View Certificate"
-                variant="primary"
-                className="bg-white text-primary"
-                onClick={() =>setViewCertificate(true)}
-              />
-            </div>}
+            {data?.data?.completed && supportsCertificateModal && (
+              <div>
+                <Button
+                  value="View Certificate"
+                  variant="primary"
+                  className="bg-white text-primary"
+                  onClick={openCertificateModal}
+                />
+              </div>
+            )}
           </div>
         </div>
       </BannerWrapper>
@@ -355,15 +405,17 @@ const EnrolledProgram: React.FC = () => {
           </aside> */}
         </div>
       </main>
-      <Modal open={viewCertificate} onClose={()=>setViewCertificate(false)} className="">
+      <Modal
+        open={viewCertificate}
+        onClose={() => setViewCertificate(false)}
+        className="max-w-[96vw] tablet:max-w-[1200px] h-[80vh] tablet:h-[80vh]"
+      >
         <CertificateModal
           open={viewCertificate}
-          recipientName={user.name}
-          program={data?.data?.title ?? ""}
-          description={`For the success completion of ${
-      data?.data?.title ? `${data?.data?.title} program` : "the program"
-    }. `}
-          onClose={()=>setViewCertificate(false)}
+          certificate={certificateData}
+          loading={certificateLoading}
+          error={certificateErrorMessage}
+          onClose={() => setViewCertificate(false)}
         />
       </Modal>
 
@@ -377,25 +429,27 @@ const EnrolledProgram: React.FC = () => {
             <TrophyIcon className="h-16 w-16 text-yellow-500" />
           </div>
 
-	          <div className="space-y-2">
-	            <h2 className="text-2xl font-bold text-primary">
-	              Congratulations 🎉
-	            </h2>
-	            <p className="text-sm text-primaryGray">
-	              You have successfully completed the program.
-	              We’re proud of your dedication and commitment.
-	            </p>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-primary">
+              Congratulations 🎉
+            </h2>
+            <p className="text-sm text-primaryGray">
+              You have successfully completed the program.
+              We’re proud of your dedication and commitment.
+            </p>
           </div>
 
           <div className="flex justify-center gap-3">
-            <Button
-              value="View Certificate"
-              variant="primary"
-              onClick={() => {
-                setShowCelebration(false);
-                setViewCertificate(true);
-              }}
-            />
+            {supportsCertificateModal && (
+              <Button
+                value="View Certificate"
+                variant="primary"
+                onClick={() => {
+                  setShowCelebration(false);
+                  openCertificateModal();
+                }}
+              />
+            )}
             <Button
               value="Close"
               variant="secondary"

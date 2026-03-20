@@ -42,6 +42,7 @@ export const NotificationDeviceConnector = () => {
     }
 
     let isDisposed = false;
+    let syncInFlight = false;
     let retryTimer: number | null = null;
 
     const clearRetryTimer = () => {
@@ -51,19 +52,35 @@ export const NotificationDeviceConnector = () => {
     };
 
     const syncDeviceSubscription = async () => {
+      if (isDisposed || syncInFlight) {
+        return;
+      }
+
       if (getDeviceNotificationPermissionState() !== "granted") {
+        clearRetryTimer();
         return;
       }
 
-      const syncResult = await syncDevicePushSubscriptionIfGranted();
-      if (syncResult === "enabled" || syncResult === "push-disabled" || isDisposed) {
-        return;
-      }
+      syncInFlight = true;
 
-      clearRetryTimer();
-      retryTimer = window.setTimeout(() => {
-        void syncDeviceSubscription();
-      }, PUSH_RETRY_DELAY_MS);
+      try {
+        const syncResult = await syncDevicePushSubscriptionIfGranted();
+        if (
+          syncResult === "enabled" ||
+          syncResult === "push-disabled" ||
+          isDisposed
+        ) {
+          clearRetryTimer();
+          return;
+        }
+
+        clearRetryTimer();
+        retryTimer = window.setTimeout(() => {
+          void syncDeviceSubscription();
+        }, PUSH_RETRY_DELAY_MS);
+      } finally {
+        syncInFlight = false;
+      }
     };
 
     const onServiceWorkerMessage = (event: MessageEvent<unknown>) => {
@@ -76,9 +93,25 @@ export const NotificationDeviceConnector = () => {
       void syncDeviceSubscription();
     };
 
+    const onWindowFocus = () => {
+      void syncDeviceSubscription();
+    };
+
+    const onWindowOnline = () => {
+      void syncDeviceSubscription();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      void syncDeviceSubscription();
+    };
+
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", onServiceWorkerMessage);
     }
+    window.addEventListener("focus", onWindowFocus);
+    window.addEventListener("online", onWindowOnline);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     void syncDeviceSubscription();
 
@@ -92,6 +125,9 @@ export const NotificationDeviceConnector = () => {
           onServiceWorkerMessage
         );
       }
+      window.removeEventListener("focus", onWindowFocus);
+      window.removeEventListener("online", onWindowOnline);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [userId]);
 

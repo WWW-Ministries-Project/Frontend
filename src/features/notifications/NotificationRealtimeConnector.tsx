@@ -15,6 +15,7 @@ const SSE_EVENTS = {
   notification: "notification",
   notificationUpdated: "notification_updated",
   notificationsReadAll: "notifications_read_all",
+  notificationsCleared: "notifications_cleared",
   unreadCount: "unread_count",
 } as const;
 
@@ -46,6 +47,7 @@ type CrossTabMessageType =
   | "notification"
   | "unread_count"
   | "read_all"
+  | "cleared"
   | "snapshot";
 
 type CrossTabMessage = {
@@ -111,6 +113,7 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "notification" &&
     type !== "unread_count" &&
     type !== "read_all" &&
+    type !== "cleared" &&
     type !== "snapshot"
   ) {
     return null;
@@ -189,6 +192,9 @@ export const NotificationRealtimeConnector = () => {
   );
   const applyReadAllFromServer = useInAppNotificationStore(
     (state) => state.applyReadAllFromServer
+  );
+  const applyClearAllFromServer = useInAppNotificationStore(
+    (state) => state.applyClearAllFromServer
   );
 
   useEffect(() => {
@@ -489,6 +495,14 @@ export const NotificationRealtimeConnector = () => {
       publishSnapshot();
     };
 
+    const onClearAllEvent = (event: MessageEvent<string>) => {
+      rememberLastEventId(event);
+      const payload = parseSsePayload(event.data);
+      applyClearAllFromServer(payload ?? undefined);
+      publishCrossTab("cleared", payload ?? undefined);
+      publishSnapshot();
+    };
+
     const onConnectedEvent = (event: MessageEvent<string>) => {
       rememberLastEventId(event);
       setConnected(true);
@@ -526,6 +540,10 @@ export const NotificationRealtimeConnector = () => {
       eventSource.addEventListener(
         SSE_EVENTS.notificationsReadAll,
         onReadAllEvent as EventListener
+      );
+      eventSource.addEventListener(
+        SSE_EVENTS.notificationsCleared,
+        onClearAllEvent as EventListener
       );
       eventSource.addEventListener(
         SSE_EVENTS.unreadCount,
@@ -705,7 +723,14 @@ export const NotificationRealtimeConnector = () => {
       }
 
       if (message.type === "notification") {
-        ingestNotificationPayload(message.payload, "manual");
+        const shouldSurfaceAsLiveEvent =
+          typeof document !== "undefined" &&
+          (document.visibilityState === "visible" || document.hasFocus());
+
+        ingestNotificationPayload(
+          message.payload,
+          shouldSurfaceAsLiveEvent ? "broadcast" : "manual"
+        );
         return;
       }
 
@@ -716,6 +741,11 @@ export const NotificationRealtimeConnector = () => {
 
       if (message.type === "read_all") {
         applyReadAllFromServer(message.payload);
+        return;
+      }
+
+      if (message.type === "cleared") {
+        applyClearAllFromServer(message.payload);
         return;
       }
 

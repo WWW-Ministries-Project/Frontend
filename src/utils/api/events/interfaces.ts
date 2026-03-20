@@ -168,6 +168,13 @@ export type BiometricAttendanceImportJob = {
   failed_at: string | null;
 };
 
+export type BiometricDepartmentPosition = {
+  department_id: number;
+  department_name: string | null;
+  position_id: number | null;
+  position_name: string | null;
+};
+
 export type BiometricEventAttendanceRecord = {
   event_id: number;
   event_name: string | null;
@@ -175,6 +182,7 @@ export type BiometricEventAttendanceRecord = {
   user_id: number;
   user_name: string | null;
   member_id: string | null;
+  department_positions: BiometricDepartmentPosition[];
   attendance_date: string;
   first_punch_at: string;
   last_punch_at: string;

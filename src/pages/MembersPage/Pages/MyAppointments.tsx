@@ -22,14 +22,7 @@ import {
 } from "@/utils/api/appointment/bookingUtils";
 import { useStore } from "@/store/useStore";
 
-const isPastAppointment = (date: string) => {
-  if (!date) return false;
 
-  const today = new Date();
-  const appointmentDate = new Date(date);
-  appointmentDate.setHours(23, 59, 59, 999);
-  return appointmentDate < today;
-};
 
 const isAppointmentConfirmed = (appointment: Appointment): boolean => {
   const status = toStringValue(appointment.status).toUpperCase().trim();
@@ -136,7 +129,7 @@ const MyAppointments = () => {
     return bookingsResponse.data
       .map((item) => normalizeAppointmentRecord(item, membersLookup))
       .filter((item): item is Appointment => item !== null)
-      .filter((appointment) => !isPastAppointment(appointment.date));
+      
   }, [bookingsResponse, membersLookup]);
 
   const groupedAppointments = useMemo<Record<string, Appointment[]>>(() => {

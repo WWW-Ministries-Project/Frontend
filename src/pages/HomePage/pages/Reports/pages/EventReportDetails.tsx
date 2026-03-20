@@ -5,7 +5,8 @@ import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { ensureAnalyticsChartsRegistered } from "@/pages/HomePage/pages/Analytics/chartSetup";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { showNotification } from "@/pages/HomePage/utils";
-import { api, DepartmentType, relativePath, VisitorType } from "@/utils";
+import { api, DepartmentType, relativePath } from "@/utils";
+import type { AttendanceTimingSettingsConfig } from "@/utils/api/settings/attendanceTimingInterfaces";
 import { ApiResponse } from "@/utils/interfaces";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
@@ -35,6 +36,10 @@ type DepartmentAttendee = {
   id: string;
   name: string;
   arrivalTime: string;
+  arrivalAt: string;
+  reportedTime: string;
+  relativeToStart: string;
+  attendanceStatus: TimingStatus | "";
   userId: string;
   departmentId: string;
   departmentName: string;
@@ -46,7 +51,10 @@ type DepartmentSection = {
   headName: string;
   headUserId: string;
   attendees: DepartmentAttendee[];
-  approval: ApprovalState;
+  totalMembers: number;
+  presentMembers: number;
+  absentMembers: number;
+  attendancePercentage: number;
 };
 
 type AttendanceRecord = {
@@ -60,7 +68,21 @@ type AttendanceRecord = {
   childrenFemale: number;
   youthMale: number;
   youthFemale: number;
-  visitingPastors: number;
+  visitors: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorClergy: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorTotal: {
+    male: number;
+    female: number;
+    total: number;
+  };
 };
 
 type AttendanceTotals = {
@@ -70,8 +92,21 @@ type AttendanceTotals = {
   childrenFemale: number;
   youthMale: number;
   youthFemale: number;
-  visitingPastors: number;
-  visitors: number;
+  visitors: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorClergy: {
+    male: number;
+    female: number;
+    total: number;
+  };
+  visitorTotal: {
+    male: number;
+    female: number;
+    total: number;
+  };
   totalWithoutVisitors: number;
   totalAttendance: number;
 };
@@ -92,7 +127,40 @@ type BackendDepartment = {
   headName: string;
   headUserId: string;
   attendees: DepartmentAttendee[];
-  approval: ApprovalState;
+  totalMembers: number;
+  presentMembers: number;
+  absentMembers: number;
+  attendancePercentage: number;
+};
+
+type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "ABSENT" | "UNCLASSIFIED";
+type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE" | "ABSENT";
+type RelativeDirectionFilter = "ALL" | "BEFORE" | "AFTER";
+
+type DepartmentInsightRow = {
+  id: string;
+  userId: string;
+  name: string;
+  departmentId: string;
+  departmentName: string;
+  arrivalTime: string;
+  arrivalAt: string;
+  reportedAtLabel: string;
+  relativeToStartLabel: string;
+  minutesFromStart: number | null;
+  timingStatus: TimingStatus;
+  arrivalSortValue: number | null;
+};
+
+type DepartmentDataSectionView = DepartmentSection & {
+  visibleAttendees: DepartmentAttendee[];
+  visibleCount: number;
+};
+
+type AttendanceTimingRuleMinutes = {
+  early: number;
+  onTime: number;
+  late: number;
 };
 
 const reportViewTabs = ["Data", "Insight"] as const;
@@ -107,6 +175,33 @@ const countFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
+
+const percentFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
+
+const DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES = 15;
+
+const DEFAULT_ATTENDANCE_TIMING_CONFIG: AttendanceTimingSettingsConfig = {
+  early: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  on_time: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  late: {
+    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+    unit: "MINUTES",
+    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
+  },
+  updated_at: null,
+  updated_by: null,
+};
 
 ensureAnalyticsChartsRegistered();
 
@@ -139,6 +234,16 @@ const toNumberValue = (value: unknown): number => {
   return 0;
 };
 
+const toOptionalNumberValue = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+};
+
 const toBooleanValue = (value: unknown): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
@@ -148,6 +253,19 @@ const toBooleanValue = (value: unknown): boolean => {
   }
 
   return false;
+};
+
+const toOptionalBooleanValue = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return null;
+    if (["true", "1", "yes", "y"].includes(normalized)) return true;
+    if (["false", "0", "no", "n"].includes(normalized)) return false;
+  }
+
+  return null;
 };
 
 const firstNonEmptyString = (...values: unknown[]): string => {
@@ -222,6 +340,110 @@ const formatArrivalTime = (value: unknown): string => {
   return raw;
 };
 
+const normalizeTimeOnly = (value: unknown): string => {
+  const raw = toStringValue(value);
+  if (!raw) return "";
+
+  const isoParsed = DateTime.fromISO(raw);
+  if (isoParsed.isValid) {
+    return isoParsed.toFormat("HH:mm:ss");
+  }
+
+  if (/^\d{2}:\d{2}:\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  if (/^\d{2}:\d{2}$/.test(raw)) {
+    return `${raw}:00`;
+  }
+
+  return "";
+};
+
+const buildEventStartDateTime = (
+  dateValue: unknown,
+  timeValue: unknown
+): DateTime | null => {
+  const date = normalizeDateOnly(dateValue);
+  const time = normalizeTimeOnly(timeValue);
+
+  if (!date || !time) return null;
+
+  const parsed = DateTime.fromISO(`${date}T${time}`);
+  return parsed.isValid ? parsed : null;
+};
+
+const formatMinutesDistance = (minutes: number): string => {
+  const absoluteMinutes = Math.abs(Math.round(minutes));
+  const hours = Math.floor(absoluteMinutes / 60);
+  const remainingMinutes = absoluteMinutes % 60;
+
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h`;
+  }
+
+  return `${remainingMinutes}m`;
+};
+
+const normalizeTimingRuleMinutes = (
+  value: unknown,
+  fallback = DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES
+) => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+};
+
+const getTimingStatus = (
+  minutesFromStart: number | null,
+  rules: AttendanceTimingRuleMinutes
+): TimingStatus => {
+  if (minutesFromStart === null) return "UNCLASSIFIED";
+  if (minutesFromStart <= -rules.early) return "EARLY";
+  if (minutesFromStart >= rules.late) return "LATE";
+  if (Math.abs(minutesFromStart) <= rules.onTime) return "ON_TIME";
+  return "ON_TIME";
+};
+
+const formatRelativeToStart = (minutesFromStart: number | null): string => {
+  if (minutesFromStart === null) {
+    return "Event start time unavailable";
+  }
+
+  if (minutesFromStart === 0) {
+    return "At start time";
+  }
+
+  const direction = minutesFromStart < 0 ? "before" : "after";
+  return `${formatMinutesDistance(minutesFromStart)} ${direction} start`;
+};
+
+const buildDepartmentAttendeeLookupKey = (
+  departmentId: string,
+  attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">
+) => `${departmentId}::${attendee.userId || attendee.id || attendee.name}`;
+
+const normalizeTimingStatusValue = (value: unknown): TimingStatus | null => {
+  const status = toStringValue(value)
+    .replace(/[\s-]+/g, "_")
+    .toUpperCase();
+
+  if (status === "EARLY") return "EARLY";
+  if (status === "ON_TIME" || status === "ONTIME") return "ON_TIME";
+  if (status === "LATE") return "LATE";
+  if (status === "ABSENT") return "ABSENT";
+
+  return null;
+};
+
 const normalizeApprovalStatus = (value: unknown): ApprovalStatus => {
   const status = toStringValue(value).toUpperCase();
 
@@ -243,7 +465,6 @@ const normalizeFinalApprovalStatus = (value: unknown): FinalApprovalStatus => {
 
 const buildApprovalState = (
   value: unknown,
-  currentUserId: string,
   fallbackCanApprove = false
 ): ApprovalState => {
   const record = toRecord(value);
@@ -276,12 +497,8 @@ const buildApprovalState = (
       record.actedAt
     ),
     canCurrentUserApprove:
-      toBooleanValue(record.can_current_user_approve) ||
-      toBooleanValue(record.canCurrentUserApprove) ||
-      (approvedByUserId
-        ? approvedByUserId === currentUserId &&
-          normalizeApprovalStatus(record.status) !== "APPROVED"
-        : false) ||
+      toOptionalBooleanValue(record.can_current_user_approve) ??
+      toOptionalBooleanValue(record.canCurrentUserApprove) ??
       fallbackCanApprove,
   };
 
@@ -318,16 +535,65 @@ const statusLabelMap: Record<ApprovalStatus | FinalApprovalStatus, string> = {
   REJECTED: "Rejected",
 };
 
+const timingStatusLabelMap: Record<TimingStatus, string> = {
+  EARLY: "Early",
+  ON_TIME: "On Time",
+  LATE: "Late",
+  ABSENT: "Absent",
+  UNCLASSIFIED: "Unclassified",
+};
+
+const getTimingBadgeClasses = (status: TimingStatus) => {
+  if (status === "EARLY") {
+    return "bg-[#DBEAFE] text-[#1D4ED8]";
+  }
+
+  if (status === "ON_TIME") {
+    return "bg-[#D2F4EA] text-[#039855]";
+  }
+
+  if (status === "LATE") {
+    return "bg-[#FFF0D5] text-[#B54708]";
+  }
+
+  if (status === "ABSENT") {
+    return "bg-[#FEE4E2] text-[#B42318]";
+  }
+
+  return "bg-[#EDEFF5] text-lighterBlack";
+};
+
 const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const record = toRecord(value);
   const userRecord = toRecord(record.user);
   const userInfo = toRecord(userRecord.user_info);
   const nestedUser = toRecord(userInfo.user);
+  const scopedDepartmentRecord = toRecord(userRecord.department);
+  const scopedDepartmentInfo = toRecord(
+    scopedDepartmentRecord.department_info ?? scopedDepartmentRecord.departmentInfo
+  );
+  const departmentPosition = toRecord(
+    toArray(
+      record.department_positions ??
+        record.departmentPositions ??
+        userRecord.department_positions ??
+        userRecord.departmentPositions ??
+        nestedUser.department_positions ??
+        nestedUser.departmentPositions ??
+        userInfo.department_positions ??
+        userInfo.departmentPositions
+    )[0]
+  );
+  const departmentPositionRecord = toRecord(
+    departmentPosition.department ??
+      departmentPosition.department_info ??
+      departmentPosition.departmentInfo
+  );
   const departmentRecord = toRecord(
     record.department ??
       nestedUser.department ??
       userInfo.department ??
-      userRecord.department
+      scopedDepartmentInfo
   );
 
   const attendeeName = firstNonEmptyString(
@@ -348,6 +614,9 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const departmentId = firstNonEmptyString(
     record.department_id,
     record.departmentId,
+    userRecord.department_id,
+    scopedDepartmentRecord.department_id,
+    departmentPosition.department_id,
     nestedUser.department_id,
     userInfo.department_id,
     departmentRecord.id
@@ -356,6 +625,9 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const departmentName = firstNonEmptyString(
     record.department_name,
     record.departmentName,
+    userRecord.department_name,
+    departmentPosition.department_name,
+    departmentPositionRecord.name,
     nestedUser.department_name,
     userInfo.department_name,
     departmentRecord.name,
@@ -378,11 +650,30 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     record.created_at,
     record.createdAt
   );
+  const reportedTime = firstNonEmptyString(
+    record.reported_time,
+    record.reportedTime
+  );
+  const relativeToStart = firstNonEmptyString(
+    record.relative_to_start,
+    record.relativeToStart
+  );
+  const attendanceStatus = normalizeTimingStatusValue(record.status);
 
   return {
     id: firstNonEmptyString(record.id, `${userId}-${attendeeName}`),
     name: attendeeName,
     arrivalTime: formatArrivalTime(arrivalRaw),
+    arrivalAt: arrivalRaw,
+    reportedTime:
+      reportedTime && reportedTime !== "-" && reportedTime !== "—"
+        ? reportedTime
+        : "",
+    relativeToStart:
+      relativeToStart && relativeToStart !== "-" && relativeToStart !== "—"
+        ? relativeToStart
+        : "",
+    attendanceStatus: attendanceStatus ?? "",
     userId,
     departmentId,
     departmentName,
@@ -396,6 +687,33 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
   if (!date) return null;
 
   const eventId = firstNonEmptyString(record.eventId, record.event_id);
+  const visitors = {
+    male: toNumberValue(record.visitorsMale ?? record.visitors_male),
+    female: toNumberValue(record.visitorsFemale ?? record.visitors_female),
+    total: toNumberValue(record.visitorsTotal ?? record.visitors_total),
+  };
+  const visitorClergy = {
+    male: toNumberValue(
+      record.visitorClergyMale ?? record.visitor_clergy_male
+    ),
+    female: toNumberValue(
+      record.visitorClergyFemale ?? record.visitor_clergy_female
+    ),
+    total: toNumberValue(
+      record.visitorClergyTotal ?? record.visitor_clergy_total
+    ),
+  };
+  const visitorTotal = {
+    male:
+      toNumberValue(record.visitorTotalMale ?? record.visitor_total_male) ||
+      visitors.male + visitorClergy.male,
+    female:
+      toNumberValue(record.visitorTotalFemale ?? record.visitor_total_female) ||
+      visitors.female + visitorClergy.female,
+    total:
+      toNumberValue(record.visitorTotal ?? record.visitor_total ?? record.visitors) ||
+      visitors.total + visitorClergy.total,
+  };
 
   return {
     id: firstNonEmptyString(record.id, record.attendance_id, `${eventId}-${date}`),
@@ -408,9 +726,9 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
     childrenFemale: toNumberValue(record.childrenFemale ?? record.children_female),
     youthMale: toNumberValue(record.youthMale ?? record.youth_male),
     youthFemale: toNumberValue(record.youthFemale ?? record.youth_female),
-    visitingPastors: toNumberValue(
-      record.visitingPastors ?? record.visiting_pastors
-    ),
+    visitors,
+    visitorClergy,
+    visitorTotal,
   };
 };
 
@@ -449,9 +767,6 @@ const EventReportDetails = () => {
   const [openDepartments, setOpenDepartments] = useState<Record<string, boolean>>(
     {}
   );
-  const [departmentApprovalOverrides, setDepartmentApprovalOverrides] = useState<
-    Record<string, ApprovalState>
-  >({});
   const [churchApprovalOverride, setChurchApprovalOverride] =
     useState<ApprovalState | null>(null);
   const [financeApprovalOverrides, setFinanceApprovalOverrides] = useState<{
@@ -467,7 +782,6 @@ const EventReportDetails = () => {
     createFinanceLineItem("expense"),
   ]);
 
-  const [approvingDepartmentId, setApprovingDepartmentId] = useState("");
   const [isApprovingChurch, setIsApprovingChurch] = useState(false);
   const [financeActionLoadingRole, setFinanceActionLoadingRole] = useState<
     "COUNTING_LEADER" | "FINANCE_REP" | ""
@@ -476,6 +790,13 @@ const EventReportDetails = () => {
   const [finalActionLoading, setFinalActionLoading] = useState<
     "SUBMIT" | "APPROVE" | "REJECT" | ""
   >("");
+  const [insightDepartmentFilter, setInsightDepartmentFilter] = useState("ALL");
+  const [insightTimingStatusFilter, setInsightTimingStatusFilter] =
+    useState<TimingStatusFilter>("ALL");
+  const [insightRelativeDirection, setInsightRelativeDirection] =
+    useState<RelativeDirectionFilter>("ALL");
+  const [insightRelativeHours, setInsightRelativeHours] = useState("2");
+  const [dataSearchTerm, setDataSearchTerm] = useState("");
 
   const reportEventId = String(id || "");
 
@@ -537,10 +858,12 @@ const EventReportDetails = () => {
     ) => Promise<ApiResponse<unknown>>
   );
 
-  const { data: visitorsResponse } = useFetch<ApiResponse<VisitorType[]>>(
-    api.fetch.fetchAllVisitors as (
-      query?: Record<string, string | number>
-    ) => Promise<ApiResponse<VisitorType[]>>
+  const { data: attendanceTimingConfigResponse } = useFetch<
+    ApiResponse<AttendanceTimingSettingsConfig>
+  >(
+    api.fetch.fetchAttendanceTimingConfig as () => Promise<
+      ApiResponse<AttendanceTimingSettingsConfig>
+    >
   );
 
   const reportDetails = useMemo(
@@ -582,6 +905,41 @@ const EventReportDetails = () => {
   const effectiveReportDate =
     selectedDate || normalizedEventDateFromQuery || eventStartDate || "";
 
+  const eventStartTime = useMemo(
+    () =>
+      firstNonEmptyString(
+        reportDetails.start_time,
+        reportDetails.startTime,
+        eventDetails.start_time,
+        eventDetails.startTime
+      ),
+    [
+      eventDetails.startTime,
+      eventDetails.start_time,
+      reportDetails.startTime,
+      reportDetails.start_time,
+    ]
+  );
+
+  const eventStartDateTime = useMemo(
+    () => buildEventStartDateTime(effectiveReportDate || eventStartDate, eventStartTime),
+    [effectiveReportDate, eventStartDate, eventStartTime]
+  );
+
+  const attendanceTimingConfig = useMemo(
+    () => attendanceTimingConfigResponse?.data || DEFAULT_ATTENDANCE_TIMING_CONFIG,
+    [attendanceTimingConfigResponse]
+  );
+
+  const attendanceTimingRuleMinutes = useMemo<AttendanceTimingRuleMinutes>(
+    () => ({
+      early: normalizeTimingRuleMinutes(attendanceTimingConfig.early?.minutes),
+      onTime: normalizeTimingRuleMinutes(attendanceTimingConfig.on_time?.minutes),
+      late: normalizeTimingRuleMinutes(attendanceTimingConfig.late?.minutes),
+    }),
+    [attendanceTimingConfig]
+  );
+
   const eventIdTokens = useMemo(() => {
     const tokenSet = new Set<string>();
 
@@ -612,31 +970,6 @@ const EventReportDetails = () => {
     });
   }, [attendanceResponse?.data, eventIdTokens, eventName]);
 
-  const visitorsForEvent = useMemo(() => {
-    const visitors = Array.isArray(visitorsResponse?.data)
-      ? visitorsResponse.data
-      : [];
-
-    return visitors.filter((visitor) => {
-      const visitorRecord = toRecord(visitor);
-      const visitorEventId = firstNonEmptyString(
-        visitor.eventId,
-        visitorRecord.event_id
-      );
-      const visitorEventName = firstNonEmptyString(
-        visitor.eventName,
-        visitorRecord.event_name
-      );
-
-      if (visitorEventId && eventIdTokens.has(visitorEventId)) return true;
-      if (visitorEventName && visitorEventName.toLowerCase() === eventName.toLowerCase()) {
-        return true;
-      }
-
-      return false;
-    });
-  }, [eventIdTokens, eventName, visitorsResponse?.data]);
-
   const availableDates = useMemo(() => {
     const dateSet = new Set<string>();
 
@@ -646,13 +979,8 @@ const EventReportDetails = () => {
       if (record.date) dateSet.add(record.date);
     });
 
-    visitorsForEvent.forEach((visitor) => {
-      const date = normalizeDateOnly(visitor.visitDate);
-      if (date) dateSet.add(date);
-    });
-
     return Array.from(dateSet).sort((a, b) => b.localeCompare(a));
-  }, [eventStartDate, normalizedAttendanceRecords, visitorsForEvent]);
+  }, [eventStartDate, normalizedAttendanceRecords]);
 
   useEffect(() => {
     if (selectedDate) return;
@@ -677,16 +1005,6 @@ const EventReportDetails = () => {
     [normalizedAttendanceRecords, selectedDate]
   );
 
-  const visitorsForSelectedDate = useMemo(
-    () =>
-      visitorsForEvent.filter((visitor) => {
-        const visitDate = normalizeDateOnly(visitor.visitDate);
-        if (!selectedDate) return true;
-        return visitDate === selectedDate;
-      }),
-    [selectedDate, visitorsForEvent]
-  );
-
   const attendanceTotals = useMemo<AttendanceTotals>(() => {
     const totals = attendanceForSelectedDate.reduce(
       (accumulator, record) => {
@@ -696,7 +1014,15 @@ const EventReportDetails = () => {
         accumulator.childrenFemale += record.childrenFemale;
         accumulator.youthMale += record.youthMale;
         accumulator.youthFemale += record.youthFemale;
-        accumulator.visitingPastors += record.visitingPastors;
+        accumulator.visitors.male += record.visitors.male;
+        accumulator.visitors.female += record.visitors.female;
+        accumulator.visitors.total += record.visitors.total;
+        accumulator.visitorClergy.male += record.visitorClergy.male;
+        accumulator.visitorClergy.female += record.visitorClergy.female;
+        accumulator.visitorClergy.total += record.visitorClergy.total;
+        accumulator.visitorTotal.male += record.visitorTotal.male;
+        accumulator.visitorTotal.female += record.visitorTotal.female;
+        accumulator.visitorTotal.total += record.visitorTotal.total;
         return accumulator;
       },
       {
@@ -706,8 +1032,9 @@ const EventReportDetails = () => {
         childrenFemale: 0,
         youthMale: 0,
         youthFemale: 0,
-        visitingPastors: 0,
-        visitors: visitorsForSelectedDate.length,
+        visitors: { male: 0, female: 0, total: 0 },
+        visitorClergy: { male: 0, female: 0, total: 0 },
+        visitorTotal: { male: 0, female: 0, total: 0 },
         totalWithoutVisitors: 0,
         totalAttendance: 0,
       }
@@ -719,13 +1046,13 @@ const EventReportDetails = () => {
       totals.childrenMale +
       totals.childrenFemale +
       totals.youthMale +
-      totals.youthFemale +
-      totals.visitingPastors;
+      totals.youthFemale;
 
-    totals.totalAttendance = totals.totalWithoutVisitors + totals.visitors;
+    totals.totalAttendance =
+      totals.totalWithoutVisitors + totals.visitorTotal.total;
 
     return totals;
-  }, [attendanceForSelectedDate, visitorsForSelectedDate.length]);
+  }, [attendanceForSelectedDate]);
 
   const fallbackDepartmentAttendees = useMemo(() => {
     const attendees = toArray(eventDetails.event_attendance)
@@ -736,187 +1063,389 @@ const EventReportDetails = () => {
   }, [eventDetails.event_attendance]);
 
   const fallbackAttendeesByDepartment = useMemo(() => {
-    return fallbackDepartmentAttendees.reduce<Record<string, DepartmentAttendee[]>>(
-      (accumulator, attendee) => {
-        const key = attendee.departmentId || attendee.departmentName || "UNASSIGNED";
-        if (!accumulator[key]) {
-          accumulator[key] = [];
-        }
+    const grouped = new Map<string, Map<string, DepartmentAttendee>>();
 
-        accumulator[key].push(attendee);
+    fallbackDepartmentAttendees.forEach((attendee) => {
+      const key = attendee.departmentId || attendee.departmentName || "UNASSIGNED";
+      const bucket = grouped.get(key) || new Map<string, DepartmentAttendee>();
+      const attendeeKey = attendee.userId || attendee.id;
+      const existing = bucket.get(attendeeKey);
+      const attendeeArrivalKey = attendee.arrivalAt || attendee.arrivalTime;
+      const existingArrivalKey = existing?.arrivalAt || existing?.arrivalTime || "";
+
+      if (!existing || attendeeArrivalKey < existingArrivalKey) {
+        bucket.set(attendeeKey, attendee);
+      }
+
+      grouped.set(key, bucket);
+    });
+
+    return Array.from(grouped.entries()).reduce<Record<string, DepartmentAttendee[]>>(
+      (accumulator, [key, attendees]) => {
+        accumulator[key] = Array.from(attendees.values());
         return accumulator;
       },
       {}
     );
   }, [fallbackDepartmentAttendees]);
 
-  const backendDepartments = useMemo(() => {
-    const mapped: Record<string, BackendDepartment> = {};
-
-    toArray(
+  const backendDepartmentSections = useMemo<DepartmentSection[]>(() => {
+    return toArray(
       reportDetails.departments ??
         reportDetails.department_overview ??
         reportDetails.departmentOverview
-    ).forEach((item) => {
-      const record = toRecord(item);
-      const departmentRecord = toRecord(record.department);
-      const headRecord = toRecord(
-        record.head ??
-          record.department_head ??
-          record.departmentHead ??
-          record.hod ??
-          record.department_head_info
-      );
+    )
+      .map((item) => {
+        const record = toRecord(item);
+        const departmentRecord = toRecord(record.department);
+        const headRecord = toRecord(
+          record.head ??
+            record.department_head ??
+            record.departmentHead ??
+            record.hod ??
+            record.department_head_info
+        );
 
-      const id = firstNonEmptyString(
-        record.department_id,
-        record.departmentId,
-        record.id,
-        departmentRecord.id
-      );
+        const id = firstNonEmptyString(
+          record.department_id,
+          record.departmentId,
+          record.id,
+          departmentRecord.id
+        );
 
-      const name = firstNonEmptyString(
-        record.department_name,
-        record.departmentName,
-        record.name,
-        departmentRecord.name
-      );
+        const name = firstNonEmptyString(
+          record.department_name,
+          record.departmentName,
+          record.name,
+          departmentRecord.name
+        );
 
-      if (!id && !name) {
-        return;
-      }
+        if (!id && !name) {
+          return null;
+        }
 
-      const normalizedAttendees = toArray(
-        record.attendees ?? record.members ?? record.department_members
-      )
-        .map((attendee) => normalizeAttendeeRecord(attendee))
-        .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
+        const attendees = toArray(
+          record.attendees ?? record.members ?? record.department_members
+        )
+          .map((attendee) => normalizeAttendeeRecord(attendee))
+          .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
+        const totalMembers =
+          toOptionalNumberValue(
+            record.total_members ??
+              record.totalMembers ??
+              record.member_count ??
+              record.memberCount
+          ) ?? attendees.length;
+        const derivedPresentMembers = attendees.filter(
+          (attendee) => attendee.attendanceStatus !== "ABSENT"
+        ).length;
+        const presentMembers =
+          toOptionalNumberValue(record.present_members ?? record.presentMembers) ??
+          derivedPresentMembers;
+        const absentMembers =
+          toOptionalNumberValue(record.absent_members ?? record.absentMembers) ??
+          Math.max(totalMembers - presentMembers, 0);
+        const attendancePercentage =
+          toOptionalNumberValue(
+            record.attendance_percentage ?? record.attendancePercentage
+          ) ?? (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
 
-      const headUserId = firstNonEmptyString(
-        record.head_user_id,
-        record.headUserId,
-        record.department_head,
-        record.hod_user_id,
-        record.hodUserId,
-        headRecord.id
-      );
+        return {
+          id: id || name,
+          name: name || "Unknown Department",
+          headName: firstNonEmptyString(
+            record.head_name,
+            record.headName,
+            record.hod_name,
+            record.hodName,
+            headRecord.name,
+            "No head assigned"
+          ),
+          headUserId: firstNonEmptyString(
+            record.head_user_id,
+            record.headUserId,
+            record.department_head,
+            record.hod_user_id,
+            record.hodUserId,
+            headRecord.id
+          ),
+          attendees,
+          totalMembers,
+          presentMembers,
+          absentMembers,
+          attendancePercentage,
+        } satisfies DepartmentSection;
+      })
+      .filter((department): department is DepartmentSection => Boolean(department));
+  }, [reportDetails]);
 
-      const key = id || name.toLowerCase();
+  const departmentSections = useMemo(() => {
+    if (backendDepartmentSections.length > 0) {
+      return backendDepartmentSections;
+    }
 
-      mapped[key] = {
-        id: id || name,
-        name: name || "Unknown Department",
-        headName: firstNonEmptyString(
-          record.head_name,
-          record.headName,
-          record.hod_name,
-          record.hodName,
-          headRecord.name,
-          "No head assigned"
-        ),
-        headUserId,
-        attendees: normalizedAttendees,
-        approval: buildApprovalState(record.approval ?? record, user.id, headUserId === user.id),
-      };
-    });
-
-    return mapped;
-  }, [reportDetails, user.id]);
-
-  const baseDepartmentSections = useMemo(() => {
     const departments = Array.isArray(departmentsResponse?.data)
       ? departmentsResponse.data
       : [];
-
     const usedFallbackKeys = new Set<string>();
     const sectionList: DepartmentSection[] = departments.map((department) => {
       const departmentId = String(department.id);
       const departmentName = firstNonEmptyString(department.name, "Unnamed Department");
-      const backendDepartment =
-        backendDepartments[departmentId] || backendDepartments[departmentName.toLowerCase()];
-
-      const fallbackAttendees =
+      const attendees =
         fallbackAttendeesByDepartment[departmentId] ||
         fallbackAttendeesByDepartment[departmentName] ||
         [];
 
-      if (fallbackAttendees.length > 0) {
+      if (attendees.length > 0) {
         usedFallbackKeys.add(departmentId);
         usedFallbackKeys.add(departmentName);
       }
 
-      const attendees =
-        backendDepartment && backendDepartment.attendees.length > 0
-          ? backendDepartment.attendees
-          : fallbackAttendees;
-
-      const headUserId =
-        backendDepartment?.headUserId ||
-        firstNonEmptyString(
-          department.department_head,
-          department.department_head_info?.id
-        );
-
-      const fallbackCanApprove = headUserId === user.id;
+      const totalMembers = toNumberValue(department.member_count);
+      const presentMembers = attendees.length;
+      const absentMembers = Math.max(totalMembers - presentMembers, 0);
+      const attendancePercentage =
+        totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0;
 
       return {
         id: departmentId,
-        name: backendDepartment?.name || departmentName,
-        headName:
-          backendDepartment?.headName ||
-          firstNonEmptyString(
-            department.department_head_info?.name,
-            "No head assigned"
-          ),
-        headUserId,
+        name: departmentName,
+        headName: firstNonEmptyString(
+          department.department_head_info?.name,
+          "No head assigned"
+        ),
+        headUserId: firstNonEmptyString(
+          department.department_head,
+          department.department_head_info?.id
+        ),
         attendees,
-        approval:
-          backendDepartment?.approval ||
-          buildApprovalState({}, user.id, fallbackCanApprove),
+        totalMembers,
+        presentMembers,
+        absentMembers,
+        attendancePercentage,
       };
     });
 
     Object.entries(fallbackAttendeesByDepartment).forEach(([key, attendees]) => {
       if (usedFallbackKeys.has(key)) return;
 
+      const presentMembers = attendees.length;
       sectionList.push({
         id: key,
         name: attendees[0]?.departmentName || "Unassigned",
         headName: "No head assigned",
         headUserId: "",
         attendees,
-        approval: buildApprovalState({}, user.id, false),
+        totalMembers: presentMembers,
+        presentMembers,
+        absentMembers: 0,
+        attendancePercentage: presentMembers > 0 ? 100 : 0,
       });
     });
 
-    Object.values(backendDepartments).forEach((department) => {
-      const exists = sectionList.some((section) => section.id === department.id);
-      if (exists) return;
+    return sectionList
+      .filter((department) => department.totalMembers > 0 || department.presentMembers > 0)
+      .sort((first, second) => first.name.localeCompare(second.name));
+  }, [backendDepartmentSections, departmentsResponse?.data, fallbackAttendeesByDepartment]);
 
-      sectionList.push({
-        id: department.id,
-        name: department.name,
-        headName: department.headName,
-        headUserId: department.headUserId,
-        attendees: department.attendees,
-        approval: department.approval,
+  const departmentInsightRows = useMemo<DepartmentInsightRow[]>(() => {
+    const reportDate = effectiveReportDate || eventStartDate;
+
+    return departmentSections
+      .flatMap((department) =>
+        department.attendees.map((attendee) => {
+          const arrivalRaw = attendee.arrivalAt || attendee.arrivalTime;
+          let arrivalDateTime = DateTime.fromISO(arrivalRaw);
+
+          if (!arrivalDateTime.isValid) {
+            const fallbackTime = normalizeTimeOnly(arrivalRaw);
+            const fallbackDateTime =
+              reportDate && fallbackTime
+                ? buildEventStartDateTime(reportDate, fallbackTime)
+                : null;
+
+            if (fallbackDateTime) {
+              arrivalDateTime = fallbackDateTime;
+            }
+          }
+
+          const arrivalSortValue = arrivalDateTime.isValid
+            ? arrivalDateTime.toMillis()
+            : null;
+          const minutesFromStart =
+            eventStartDateTime && arrivalDateTime.isValid
+              ? Math.round(
+                  arrivalDateTime.diff(eventStartDateTime, "minutes").minutes
+                )
+              : null;
+
+          return {
+            id: buildDepartmentAttendeeLookupKey(department.id, attendee),
+            userId: attendee.userId,
+            name: attendee.name,
+            departmentId: department.id,
+            departmentName: department.name,
+            arrivalTime: attendee.reportedTime || attendee.arrivalTime,
+            arrivalAt: arrivalDateTime.isValid
+              ? arrivalDateTime.toISO() || arrivalRaw
+              : arrivalRaw,
+            reportedAtLabel: arrivalDateTime.isValid
+              ? arrivalDateTime.toFormat("dd LLL yyyy, HH:mm")
+              : "",
+            relativeToStartLabel:
+              attendee.relativeToStart ||
+              (attendee.attendanceStatus === "ABSENT"
+                ? "—"
+                : formatRelativeToStart(minutesFromStart)),
+            minutesFromStart,
+            timingStatus:
+              attendee.attendanceStatus ||
+              getTimingStatus(minutesFromStart, attendanceTimingRuleMinutes),
+            arrivalSortValue,
+          } satisfies DepartmentInsightRow;
+        })
+      )
+      .sort((left, right) => {
+        if (left.arrivalSortValue !== null && right.arrivalSortValue !== null) {
+          return left.arrivalSortValue - right.arrivalSortValue;
+        }
+
+        if (left.arrivalSortValue !== null) return -1;
+        if (right.arrivalSortValue !== null) return 1;
+
+        return left.name.localeCompare(right.name);
       });
+  }, [
+    attendanceTimingRuleMinutes,
+    departmentSections,
+    effectiveReportDate,
+    eventStartDate,
+    eventStartDateTime,
+  ]);
+
+  const departmentInsightRowsByAttendeeKey = useMemo(() => {
+    return departmentInsightRows.reduce<Map<string, DepartmentInsightRow>>((map, row) => {
+      map.set(row.id, row);
+      return map;
+    }, new Map<string, DepartmentInsightRow>());
+  }, [departmentInsightRows]);
+
+  const departmentFilterOptions = useMemo(
+    () =>
+      departmentSections
+        .map((department) => ({
+          id: department.id,
+          name: department.name,
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name)),
+    [departmentSections]
+  );
+
+  const insightRelativeHoursValue = useMemo(
+    () => Math.max(toNumberValue(insightRelativeHours), 0),
+    [insightRelativeHours]
+  );
+
+  const filteredDepartmentInsightRows = useMemo(() => {
+    return departmentInsightRows.filter((row) => {
+      if (
+        insightDepartmentFilter !== "ALL" &&
+        row.departmentId !== insightDepartmentFilter
+      ) {
+        return false;
+      }
+
+      if (
+        insightTimingStatusFilter !== "ALL" &&
+        row.timingStatus !== insightTimingStatusFilter
+      ) {
+        return false;
+      }
+
+      if (insightRelativeDirection === "ALL") {
+        return true;
+      }
+
+      if (row.minutesFromStart === null) {
+        return false;
+      }
+
+      const thresholdMinutes = insightRelativeHoursValue * 60;
+
+      if (insightRelativeDirection === "BEFORE") {
+        return row.minutesFromStart <= -thresholdMinutes;
+      }
+
+      return row.minutesFromStart >= thresholdMinutes;
     });
+  }, [
+    departmentInsightRows,
+    insightDepartmentFilter,
+    insightRelativeDirection,
+    insightRelativeHoursValue,
+    insightTimingStatusFilter,
+  ]);
 
-    return sectionList.sort((first, second) => first.name.localeCompare(second.name));
-  }, [backendDepartments, departmentsResponse?.data, fallbackAttendeesByDepartment, user.id]);
+  const departmentInsightSummary = useMemo(
+    () =>
+      filteredDepartmentInsightRows.reduce(
+        (summary, row) => {
+          if (row.timingStatus === "EARLY") summary.early += 1;
+          if (row.timingStatus === "ON_TIME") summary.onTime += 1;
+          if (row.timingStatus === "LATE") summary.late += 1;
+          if (row.timingStatus === "ABSENT") summary.absent += 1;
+          if (row.timingStatus === "UNCLASSIFIED") summary.unclassified += 1;
 
-  const departmentSections = useMemo(() => {
-    return baseDepartmentSections.map((section) => {
-      const override = departmentApprovalOverrides[section.id];
-      if (!override) return section;
+          return summary;
+        },
+        {
+          early: 0,
+          onTime: 0,
+          late: 0,
+          absent: 0,
+          unclassified: 0,
+        }
+      ),
+    [filteredDepartmentInsightRows]
+  );
 
-      return {
-        ...section,
-        approval: override,
-      };
-    });
-  }, [baseDepartmentSections, departmentApprovalOverrides]);
+  const normalizedDataSearchTerm = dataSearchTerm.trim().toLowerCase();
+
+  const dataDepartmentSections = useMemo<DepartmentDataSectionView[]>(() => {
+    return departmentSections
+      .map((department) => {
+        if (!normalizedDataSearchTerm) {
+          return {
+            ...department,
+            visibleAttendees: department.attendees,
+            visibleCount: department.attendees.length,
+          };
+        }
+
+        const departmentMatches = department.name
+          .toLowerCase()
+          .includes(normalizedDataSearchTerm);
+
+        const visibleAttendees = departmentMatches
+          ? department.attendees
+          : department.attendees.filter((attendee) =>
+              attendee.name.toLowerCase().includes(normalizedDataSearchTerm)
+            );
+
+        if (!departmentMatches && visibleAttendees.length === 0) {
+          return null;
+        }
+
+        return {
+          ...department,
+          visibleAttendees,
+          visibleCount: visibleAttendees.length,
+        };
+      })
+      .filter(
+        (department): department is DepartmentDataSectionView => Boolean(department)
+      );
+  }, [departmentSections, normalizedDataSearchTerm]);
 
   useEffect(() => {
     if (!departmentSections.length) return;
@@ -929,6 +1458,18 @@ const EventReportDetails = () => {
     });
   }, [departmentSections]);
 
+  useEffect(() => {
+    if (!normalizedDataSearchTerm || dataDepartmentSections.length === 0) return;
+
+    setOpenDepartments((current) => {
+      const next = { ...current };
+      dataDepartmentSections.forEach((department) => {
+        next[department.id] = true;
+      });
+      return next;
+    });
+  }, [dataDepartmentSections, normalizedDataSearchTerm]);
+
   const backendChurchApproval = useMemo(() => {
     const churchRecord = toRecord(
       reportDetails.church_attendance ??
@@ -938,10 +1479,9 @@ const EventReportDetails = () => {
 
     return buildApprovalState(
       churchRecord.approval ?? churchRecord,
-      user.id,
       toBooleanValue(churchRecord.can_current_user_approve)
     );
-  }, [reportDetails, user.id]);
+  }, [reportDetails]);
 
   const churchApproval = churchApprovalOverride || backendChurchApproval;
 
@@ -977,10 +1517,9 @@ const EventReportDetails = () => {
         financeRecord.countingLeaderApproval ??
         approvalsRecord.counting_leader ??
         approvalsRecord.countingLeader,
-      user.id,
       false
     );
-  }, [financeRecord, user.id]);
+  }, [financeRecord]);
 
   const baseFinanceRepApproval = useMemo(() => {
     const approvalsRecord = toRecord(financeRecord.approvals);
@@ -990,10 +1529,9 @@ const EventReportDetails = () => {
         financeRecord.financeRepApproval ??
         approvalsRecord.finance_rep ??
         approvalsRecord.financeRep,
-      user.id,
       false
     );
-  }, [financeRecord, user.id]);
+  }, [financeRecord]);
 
   const countingLeaderApproval =
     financeApprovalOverrides.countingLeader || baseCountingLeaderApproval;
@@ -1022,57 +1560,59 @@ const EventReportDetails = () => {
 
   const departmentPresenceSeries = useMemo(() => {
     const sortedDepartments = [...departmentSections].sort(
-      (first, second) => second.attendees.length - first.attendees.length
+      (first, second) => second.attendancePercentage - first.attendancePercentage
     );
 
     return {
       labels: sortedDepartments.map((department) => department.name),
-      values: sortedDepartments.map((department) => department.attendees.length),
+      values: sortedDepartments.map((department) =>
+        Number(department.attendancePercentage.toFixed(1))
+      ),
       colors: sortedDepartments.map((department) => {
-        if (department.approval.status === "APPROVED") return "#16A34A";
-        if (department.approval.status === "REJECTED") return "#DC2626";
-        return "#2563EB";
+        if (department.attendancePercentage >= 75) return "#16A34A";
+        if (department.attendancePercentage >= 40) return "#F59E0B";
+        return "#DC2626";
       }),
     };
   }, [departmentSections]);
 
-  const departmentApprovalBreakdown = useMemo(
-    () =>
-      departmentSections.reduce(
-        (accumulator, department) => {
-          if (department.approval.status === "APPROVED") {
-            accumulator.approved += 1;
-          } else if (department.approval.status === "REJECTED") {
-            accumulator.rejected += 1;
-          } else {
-            accumulator.pending += 1;
-          }
+  const departmentCoverageSummary = useMemo(() => {
+    const totalMembers = departmentSections.reduce(
+      (total, department) => total + department.totalMembers,
+      0
+    );
+    const presentMembers = departmentSections.reduce(
+      (total, department) => total + department.presentMembers,
+      0
+    );
+    const absentMembers = Math.max(totalMembers - presentMembers, 0);
 
-          return accumulator;
-        },
-        { approved: 0, pending: 0, rejected: 0 }
-      ),
-    [departmentSections]
-  );
+    return {
+      totalMembers,
+      presentMembers,
+      absentMembers,
+      attendancePercentage:
+        totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0,
+    };
+  }, [departmentSections]);
 
   const churchCompositionSeries = useMemo(
     () => ({
-      labels: ["Adults", "Children", "Youth", "Visiting Pastors", "Visitors"],
+      labels: ["Adults", "Children", "Youth", "Visitors", "Visitor Clergy"],
       male: [
         attendanceTotals.adultMale,
         attendanceTotals.childrenMale,
         attendanceTotals.youthMale,
-        0,
-        0,
+        attendanceTotals.visitors.male,
+        attendanceTotals.visitorClergy.male,
       ],
       female: [
         attendanceTotals.adultFemale,
         attendanceTotals.childrenFemale,
         attendanceTotals.youthFemale,
-        0,
-        0,
+        attendanceTotals.visitors.female,
+        attendanceTotals.visitorClergy.female,
       ],
-      other: [0, 0, 0, attendanceTotals.visitingPastors, attendanceTotals.visitors],
     }),
     [attendanceTotals]
   );
@@ -1088,19 +1628,12 @@ const EventReportDetails = () => {
         record.childrenFemale +
         record.youthMale +
         record.youthFemale +
-        record.visitingPastors;
+        record.visitorTotal.total;
 
       totalsByDate.set(
         record.date,
         (totalsByDate.get(record.date) || 0) + attendanceWithoutVisitors
       );
-    });
-
-    visitorsForEvent.forEach((visitor) => {
-      const visitDate = normalizeDateOnly(visitor.visitDate);
-      if (!visitDate) return;
-
-      totalsByDate.set(visitDate, (totalsByDate.get(visitDate) || 0) + 1);
     });
 
     const trendDates = Array.from(
@@ -1111,7 +1644,7 @@ const EventReportDetails = () => {
       labels: trendDates.map((date) => formatDate(date)),
       values: trendDates.map((date) => totalsByDate.get(date) || 0),
     };
-  }, [availableDates, normalizedAttendanceRecords, visitorsForEvent]);
+  }, [availableDates, normalizedAttendanceRecords]);
 
   const incomeBreakdownSeries = useMemo(
     () =>
@@ -1152,8 +1685,9 @@ const EventReportDetails = () => {
       scales: {
         x: {
           beginAtZero: true,
+          max: 100,
           ticks: {
-            precision: 0,
+            callback: (value: string | number) => `${value}%`,
           },
         },
       },
@@ -1220,26 +1754,12 @@ const EventReportDetails = () => {
     []
   );
 
-  const approvedDepartmentCount = useMemo(
-    () =>
-      departmentSections.filter(
-        (department) => department.approval.status === "APPROVED"
-      ).length,
-    [departmentSections]
-  );
-
-  const allDepartmentsApproved =
-    departmentSections.length === 0 ||
-    approvedDepartmentCount === departmentSections.length;
-
   const financeApprovalsComplete =
     countingLeaderApproval.status === "APPROVED" &&
     financeRepApproval.status === "APPROVED";
 
   const checklistReadyForFinalApproval =
-    allDepartmentsApproved &&
-    churchApproval.status === "APPROVED" &&
-    financeApprovalsComplete;
+    churchApproval.status === "APPROVED" && financeApprovalsComplete;
 
   const baseFinalApproval = useMemo<FinalApprovalState>(() => {
     const finalRecord = toRecord(
@@ -1279,15 +1799,16 @@ const EventReportDetails = () => {
         finalRecord.approvedAt
       ),
       canCurrentUserSubmit:
-        toBooleanValue(finalRecord.can_current_user_submit) ||
-        toBooleanValue(finalRecord.canCurrentUserSubmit) ||
-        user.user_category === "admin",
+        toOptionalBooleanValue(finalRecord.can_current_user_submit) ??
+        toOptionalBooleanValue(finalRecord.canCurrentUserSubmit) ??
+        false,
       canCurrentUserApprove:
-        toBooleanValue(finalRecord.can_current_user_approve) ||
-        toBooleanValue(finalRecord.canCurrentUserApprove),
+        toOptionalBooleanValue(finalRecord.can_current_user_approve) ??
+        toOptionalBooleanValue(finalRecord.canCurrentUserApprove) ??
+        false,
       viewers,
     };
-  }, [reportDetails, user.user_category]);
+  }, [reportDetails]);
 
   const finalApproval = finalApprovalOverride || baseFinalApproval;
 
@@ -1357,41 +1878,6 @@ const EventReportDetails = () => {
     approvedAt: new Date().toISOString(),
     canCurrentUserApprove,
   });
-
-  const handleDepartmentApproval = async (department: DepartmentSection) => {
-    if (!department.approval.canCurrentUserApprove) {
-      showNotification(
-        "Only the assigned head of department can approve this section.",
-        "error"
-      );
-      return;
-    }
-
-    setApprovingDepartmentId(department.id);
-
-    try {
-      await api.post.approveEventReportDepartment({
-        event_id: reportEventId,
-        department_id: department.id,
-        action: "APPROVE",
-        event_date: effectiveReportDate,
-      });
-
-      showNotification("Department approved successfully.", "success");
-      void refetchReportDetails(reportDetailsQuery);
-    } catch {
-      showNotification(
-        "Department approval captured locally. Backend endpoint is pending.",
-        "error"
-      );
-    } finally {
-      setDepartmentApprovalOverrides((current) => ({
-        ...current,
-        [department.id]: buildApprovedState(false),
-      }));
-      setApprovingDepartmentId("");
-    }
-  };
 
   const handleChurchAttendanceApproval = async () => {
     if (!churchApproval.canCurrentUserApprove) {
@@ -1488,7 +1974,7 @@ const EventReportDetails = () => {
   const handleSubmitFinalApproval = async () => {
     if (!checklistReadyForFinalApproval) {
       showNotification(
-        "All section approvals must be completed before final approval submission.",
+        "Church attendance and finance approvals must be completed before final approval submission.",
         "error"
       );
       return;
@@ -1656,7 +2142,7 @@ const EventReportDetails = () => {
 
         <p className="text-xs text-primaryGray">
           {activeReportViewTab === "Data" &&
-            "Detailed records, approvals, and editable report data."}
+            "Detailed records, attendance ratios, and editable report data."}
           {activeReportViewTab === "Insight" &&
             "Visual analytics and trends for quick interpretation."}
         </p>
@@ -1666,7 +2152,9 @@ const EventReportDetails = () => {
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-primary">Department Overview</h2>
           <span className="text-xs text-primaryGray">
-            {approvedDepartmentCount}/{departmentSections.length} approved
+            {countFormatter.format(departmentCoverageSummary.presentMembers)} present out of{" "}
+            {countFormatter.format(departmentCoverageSummary.totalMembers)} members (
+            {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%)
           </span>
         </div>
 
@@ -1677,51 +2165,269 @@ const EventReportDetails = () => {
         ) : (
           <>
             {activeReportViewTab === "Insight" && (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-                  <p className="text-sm font-medium text-primary">
-                    Members Present by Department
-                  </p>
-                  <div className="mt-3 h-72">
-                    <Bar
-                      data={{
-                        labels: departmentPresenceSeries.labels,
-                        datasets: [
-                          {
-                            label: "Members Present",
-                            data: departmentPresenceSeries.values,
-                            backgroundColor: departmentPresenceSeries.colors,
-                            borderRadius: 6,
-                            maxBarThickness: 28,
-                          },
-                        ],
-                      }}
-                      options={horizontalBarOptions}
-                    />
-                  </div>
-                </article>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Department
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightDepartmentFilter}
+                      onChange={(event) =>
+                        setInsightDepartmentFilter(event.target.value)
+                      }
+                    >
+                      <option value="ALL">All departments</option>
+                      {departmentFilterOptions.map((department) => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                <article className="rounded-lg border border-lightGray p-3">
-                  <p className="text-sm font-medium text-primary">
-                    Department Approval Status
-                  </p>
-                  <div className="mt-3 h-72">
-                    <Doughnut
-                      data={{
-                        labels: ["Approved", "Pending", "Rejected"],
-                        datasets: [
-                          {
-                            data: [
-                              departmentApprovalBreakdown.approved,
-                              departmentApprovalBreakdown.pending,
-                              departmentApprovalBreakdown.rejected,
-                            ],
-                            backgroundColor: ["#16A34A", "#F59E0B", "#DC2626"],
-                          },
-                        ],
-                      }}
-                      options={doughnutOptions}
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Timing Status
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightTimingStatusFilter}
+                      onChange={(event) =>
+                        setInsightTimingStatusFilter(
+                          event.target.value as TimingStatusFilter
+                        )
+                      }
+                    >
+                      <option value="ALL">All statuses</option>
+                      <option value="EARLY">Early</option>
+                      <option value="ON_TIME">On Time</option>
+                      <option value="LATE">Late</option>
+                      <option value="ABSENT">Absent</option>
+                    </select>
+                  </label>
+
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Relative Filter
+                    </span>
+                    <select
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightRelativeDirection}
+                      onChange={(event) =>
+                        setInsightRelativeDirection(
+                          event.target.value as RelativeDirectionFilter
+                        )
+                      }
+                    >
+                      <option value="ALL">No time filter</option>
+                      <option value="BEFORE">Before start</option>
+                      <option value="AFTER">After start</option>
+                    </select>
+                  </label>
+
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Hours from Start
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      value={insightRelativeHours}
+                      onChange={(event) => setInsightRelativeHours(event.target.value)}
                     />
+                  </label>
+                </div>
+
+                <div className="rounded-lg border border-lightGray bg-gray-50 px-3 py-2 text-xs text-primaryGray">
+                  {eventStartDateTime ? (
+                    <>
+                      Timing is measured against the event start at{" "}
+                      <span className="font-medium text-primary">
+                        {eventStartDateTime.toFormat("dd LLL yyyy, HH:mm")}
+                      </span>
+                      . Early starts at {formatMinutesDistance(attendanceTimingRuleMinutes.early)} before, on time stays within{" "}
+                      {formatMinutesDistance(attendanceTimingRuleMinutes.onTime)}, and late starts at{" "}
+                      {formatMinutesDistance(attendanceTimingRuleMinutes.late)} after
+                      the event start.
+                    </>
+                  ) : (
+                    "Timing status needs a valid event start date and time."
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Early</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.early)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">On Time</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.onTime)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Late</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(departmentInsightSummary.late)}
+                    </p>
+                  </article>
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-xs text-primaryGray">Matching Members</p>
+                    <p className="text-lg font-semibold text-primary">
+                      {countFormatter.format(filteredDepartmentInsightRows.length)}
+                    </p>
+                  </article>
+                </div>
+
+                {departmentInsightSummary.unclassified > 0 && (
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(departmentInsightSummary.unclassified)}{" "}
+                    records could not be classified because the event start time or
+                    arrival timestamp was incomplete.
+                  </p>
+                )}
+
+                {departmentInsightSummary.absent > 0 && (
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(departmentInsightSummary.absent)} members
+                    were marked absent by the report payload.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                  <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
+                    <p className="text-sm font-medium text-primary">
+                      Department Attendance Rate
+                    </p>
+                    <div className="mt-3 h-72">
+                      <Bar
+                        data={{
+                          labels: departmentPresenceSeries.labels,
+                          datasets: [
+                            {
+                              label: "Attendance %",
+                              data: departmentPresenceSeries.values,
+                              backgroundColor: departmentPresenceSeries.colors,
+                              borderRadius: 6,
+                              maxBarThickness: 28,
+                            },
+                          ],
+                        }}
+                        options={horizontalBarOptions}
+                      />
+                    </div>
+                  </article>
+
+                  <article className="rounded-lg border border-lightGray p-3">
+                    <p className="text-sm font-medium text-primary">
+                      Overall Department Coverage
+                    </p>
+                    <div className="mt-3 h-72">
+                      <Doughnut
+                        data={{
+                          labels: ["Present", "Absent"],
+                          datasets: [
+                            {
+                              data: [
+                                departmentCoverageSummary.presentMembers,
+                                departmentCoverageSummary.absentMembers,
+                              ],
+                              backgroundColor: ["#16A34A", "#E5E7EB"],
+                            },
+                          ],
+                        }}
+                        options={doughnutOptions}
+                      />
+                    </div>
+                  </article>
+                </div>
+
+                <article className="overflow-hidden rounded-lg border border-lightGray">
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-4 py-3">
+                    <div>
+                      <p className="font-medium text-primary">
+                        Department Reporting Detail
+                      </p>
+                      <p className="text-xs text-primaryGray">
+                        Member, department, reported time, and timing status.
+                      </p>
+                    </div>
+                    <span className="text-xs text-primaryGray">
+                      {countFormatter.format(filteredDepartmentInsightRows.length)} records
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-t border-lightGray text-sm">
+                      <thead>
+                        <tr className="bg-white">
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Member
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Department
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Reported Time
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Relative to Start
+                          </th>
+                          <th className="px-4 py-3 text-left font-semibold text-primary">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredDepartmentInsightRows.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-4 py-4 text-primaryGray"
+                            >
+                              No member records matched the current filters.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredDepartmentInsightRows.map((row) => (
+                            <tr
+                              key={row.id}
+                              className="border-t border-lightGray align-top"
+                            >
+                              <td className="px-4 py-3">{row.name}</td>
+                              <td className="px-4 py-3">{row.departmentName}</td>
+                              <td className="px-4 py-3">
+                                <div className="space-y-1">
+                                  <p className="text-primary">{row.arrivalTime}</p>
+                                  {row.reportedAtLabel && (
+                                    <p className="text-xs text-primaryGray">
+                                      {row.reportedAtLabel}
+                                    </p>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">{row.relativeToStartLabel}</td>
+                              <td className="px-4 py-3">
+                                <span
+                                  className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                    row.timingStatus
+                                  )}`}
+                                >
+                                  {timingStatusLabelMap[row.timingStatus]}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </article>
               </div>
@@ -1729,10 +2435,32 @@ const EventReportDetails = () => {
 
             {activeReportViewTab === "Data" && (
               <div className="space-y-3">
-                {departmentSections.map((department) => {
+                <div className="flex flex-col gap-3 rounded-lg border border-lightGray p-3 md:flex-row md:items-end md:justify-between">
+                  <label className="w-full max-w-xl space-y-1 text-sm">
+                    <span className="block text-xs font-medium text-primaryGray">
+                      Search Department or Member
+                    </span>
+                    <input
+                      type="text"
+                      className="h-10 w-full rounded-lg border border-lightGray px-3"
+                      placeholder="Search department name or member name"
+                      value={dataSearchTerm}
+                      onChange={(event) => setDataSearchTerm(event.target.value)}
+                    />
+                  </label>
+                  <p className="text-xs text-primaryGray">
+                    {countFormatter.format(dataDepartmentSections.length)} departments
+                    matched
+                  </p>
+                </div>
+
+                {dataDepartmentSections.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                    No departments or members matched your search.
+                  </p>
+                ) : (
+                  dataDepartmentSections.map((department) => {
                   const isOpen = openDepartments[department.id] ?? false;
-                  const isDepartmentApprovalLoading =
-                    approvingDepartmentId === department.id;
 
                   return (
                     <article
@@ -1752,9 +2480,20 @@ const EventReportDetails = () => {
                         <div>
                           <p className="font-medium text-primary">{department.name}</p>
                           <p className="text-xs text-primaryGray">
-                            {department.attendees.length} member
-                            {department.attendees.length === 1 ? "" : "s"} present
+                            {countFormatter.format(department.presentMembers)} present out of{" "}
+                            {countFormatter.format(department.totalMembers)} members
                           </p>
+                          <p className="text-xs text-primaryGray">
+                            {percentFormatter.format(department.attendancePercentage)}%
+                            attendance rate
+                          </p>
+                          {normalizedDataSearchTerm && (
+                            <p className="text-xs text-primaryGray">
+                              Showing {countFormatter.format(department.visibleCount)} of{" "}
+                              {countFormatter.format(department.attendees.length)} member
+                              records
+                            </p>
+                          )}
                         </div>
                         <span className="text-lg text-primary">{isOpen ? "−" : "+"}</span>
                       </button>
@@ -1768,27 +2507,78 @@ const EventReportDetails = () => {
                                   Name
                                 </th>
                                 <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Arrival Time
+                                  Reported Time
+                                </th>
+                                <th className="px-4 py-3 text-left font-semibold text-primary">
+                                  Relative to Start
+                                </th>
+                                <th className="px-4 py-3 text-left font-semibold text-primary">
+                                  Status
                                 </th>
                               </tr>
                             </thead>
                             <tbody>
-                              {department.attendees.length === 0 ? (
+                              {department.visibleAttendees.length === 0 ? (
                                 <tr>
                                   <td
-                                    colSpan={2}
+                                    colSpan={4}
                                     className="px-4 py-4 text-primaryGray"
                                   >
-                                    No attendance records found for this department.
+                                    No member records matched your search for this
+                                    department.
                                   </td>
                                 </tr>
                               ) : (
-                                department.attendees.map((attendee) => (
-                                  <tr key={attendee.id} className="border-t border-lightGray">
-                                    <td className="px-4 py-3">{attendee.name}</td>
-                                    <td className="px-4 py-3">{attendee.arrivalTime}</td>
-                                  </tr>
-                                ))
+                                department.visibleAttendees.map((attendee) => {
+                                  const insightRow =
+                                    departmentInsightRowsByAttendeeKey.get(
+                                      buildDepartmentAttendeeLookupKey(
+                                        department.id,
+                                        attendee
+                                      )
+                                    );
+
+                                  return (
+                                    <tr
+                                      key={buildDepartmentAttendeeLookupKey(
+                                        department.id,
+                                        attendee
+                                      )}
+                                      className="border-t border-lightGray"
+                                    >
+                                      <td className="px-4 py-3">{attendee.name}</td>
+                                      <td className="px-4 py-3">
+                                        <div className="space-y-1">
+                                          <p className="text-primary">
+                                            {attendee.reportedTime || attendee.arrivalTime}
+                                          </p>
+                                          {insightRow?.reportedAtLabel && (
+                                            <p className="text-xs text-primaryGray">
+                                              {insightRow.reportedAtLabel}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        {insightRow?.relativeToStartLabel ||
+                                          "Event start time unavailable"}
+                                      </td>
+                                      <td className="px-4 py-3">
+                                        <span
+                                          className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                            insightRow?.timingStatus ||
+                                              "UNCLASSIFIED"
+                                          )}`}
+                                        >
+                                          {timingStatusLabelMap[
+                                            insightRow?.timingStatus ||
+                                              "UNCLASSIFIED"
+                                          ]}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
                               )}
                             </tbody>
                           </table>
@@ -1805,40 +2595,22 @@ const EventReportDetails = () => {
                               {department.headName || "Not assigned"}
                             </span>
                           </p>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-                                department.approval.status
-                              )}`}
-                            >
-                              {statusLabelMap[department.approval.status]}
-                            </span>
-                            {department.approval.approvedAt && (
-                              <span className="text-xs text-primaryGray">
-                                {formatDateTime(department.approval.approvedAt)}
-                              </span>
-                            )}
-                            {department.approval.approvedByName && (
-                              <span className="text-xs text-primaryGray">
-                                by {department.approval.approvedByName}
-                              </span>
-                            )}
-                          </div>
+                          <p className="text-xs text-primaryGray">
+                            Present: {countFormatter.format(department.presentMembers)} | Absent:{" "}
+                            {countFormatter.format(department.absentMembers)}
+                          </p>
                         </div>
-
-                        {department.approval.status !== "APPROVED" &&
-                          department.approval.canCurrentUserApprove && (
-                            <Button
-                              value="Approve"
-                              variant="secondary"
-                              onClick={() => handleDepartmentApproval(department)}
-                              loading={isDepartmentApprovalLoading}
-                            />
-                          )}
+                        <div className="rounded-lg bg-lightGray/40 px-3 py-2 text-right">
+                          <p className="text-xs text-primaryGray">Attendance Rate</p>
+                          <p className="font-semibold text-primary">
+                            {percentFormatter.format(department.attendancePercentage)}%
+                          </p>
+                        </div>
                       </footer>
                     </article>
                   );
-                })}
+                  })
+                )}
               </div>
             )}
           </>
@@ -1873,11 +2645,6 @@ const EventReportDetails = () => {
                       label: "Female",
                       data: churchCompositionSeries.female,
                       backgroundColor: "#F97316",
-                    },
-                    {
-                      label: "Other",
-                      data: churchCompositionSeries.other,
-                      backgroundColor: "#0EA5E9",
                     },
                   ],
                 }}
@@ -1955,15 +2722,39 @@ const EventReportDetails = () => {
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visiting Pastors</p>
+            <p className="text-xs text-primaryGray">Visitors (Male)</p>
             <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitingPastors)}
+              {countFormatter.format(attendanceTotals.visitors.male)}
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitors</p>
+            <p className="text-xs text-primaryGray">Visitors (Female)</p>
             <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitors)}
+              {countFormatter.format(attendanceTotals.visitors.female)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitors Total</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitors.total)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy (Male)</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.male)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy (Female)</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.female)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-lightGray p-3">
+            <p className="text-xs text-primaryGray">Visitor Clergy Total</p>
+            <p className="text-base font-semibold text-primary">
+              {countFormatter.format(attendanceTotals.visitorClergy.total)}
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3">
@@ -2363,9 +3154,14 @@ const EventReportDetails = () => {
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-lightGray p-3 text-sm">
-            <p className="text-xs text-primaryGray">Department Approvals</p>
+            <p className="text-xs text-primaryGray">Department Coverage</p>
             <p className="font-semibold text-primary">
-              {approvedDepartmentCount}/{departmentSections.length} approved
+              {countFormatter.format(departmentCoverageSummary.presentMembers)}/
+              {countFormatter.format(departmentCoverageSummary.totalMembers)} present
+            </p>
+            <p className="text-xs text-primaryGray">
+              {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%
+              attendance rate
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3 text-sm">
@@ -2397,7 +3193,8 @@ const EventReportDetails = () => {
 
           {!checklistReadyForFinalApproval && (
             <p className="mt-2 text-xs text-[#996A13]">
-              Complete all section approvals before final approval can proceed.
+              Church attendance and finance approvals must be completed before
+              final approval can proceed.
             </p>
           )}
 

@@ -4,6 +4,7 @@ export const relativePath = {
   changePassword: "/change-password",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  certificateVerification: "/certificate/verify/:certificateNumber",
   home: {
     main: "/home",
     dashboard: "dashboard",

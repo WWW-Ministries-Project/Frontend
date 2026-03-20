@@ -15,8 +15,21 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
     const childTotal =
       (record.childrenMale ?? 0) + (record.childrenFemale ?? 0);
     const youthTotal = (record.youthMale ?? 0) + (record.youthFemale ?? 0);
-    const total = adultTotal + childTotal + youthTotal;
-    return { adultTotal, childTotal, youthTotal, total };
+    const attendanceTotal = adultTotal + childTotal + youthTotal;
+    const visitorsTotal = record.visitorsTotal ?? 0;
+    const visitorClergyTotal = record.visitorClergyTotal ?? 0;
+    const totalAttendance =
+      attendanceTotal + visitorsTotal + visitorClergyTotal;
+
+    return {
+      adultTotal,
+      childTotal,
+      youthTotal,
+      visitorsTotal,
+      visitorClergyTotal,
+      attendanceTotal,
+      totalAttendance,
+    };
   };
 
   return (
@@ -33,45 +46,31 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
       </div>
 
       <div>
-        <span className="px-2 py-1 rounded-full bg-gray-100 text-xs">
-          {record.group === "ADULTS"
-            ? "Adults"
-            : record.group === "CHILDREN"
-            ? "Children"
-            : "Both"}
-        </span>
+        <div className="flex flex-col">
+          <div>
+            M: {record.adultMale ?? 0}
+          </div>
+          <div>
+            F: {record.adultFemale ?? 0}
+          </div>
+          <div className="font-semibold">
+            Total: {getTotals().adultTotal}
+          </div>
+        </div>
       </div>
 
       <div>
-        {record.group !== "CHILDREN"
-          ? <div className="flex flex-col">
-            <div>
-              M: {record.adultMale ?? 0} 
-            </div>
-            <div>
-              F: {record.adultFemale ?? 0}
-            </div>
-            <div className="font-semibold">
-              Total: {getTotals().adultTotal}
-            </div>
+        <div className="flex flex-col">
+          <div>
+            M: {record.childrenMale ?? 0}
           </div>
-          : "—"}
-      </div>
-
-      <div>
-        {record.group !== "ADULTS"
-          ? <div className="flex flex-col">
-            <div>
-              M: {record.childrenMale ?? 0}
-            </div>
-            <div>
-              F: {record.childrenFemale ?? 0}
-            </div>
-            <div>
-              Total: {getTotals().childTotal}
-            </div>
+          <div>
+            F: {record.childrenFemale ?? 0}
           </div>
-          : "—"}
+          <div>
+            Total: {getTotals().childTotal}
+          </div>
+        </div>
       </div>
 
       <div>
@@ -88,9 +87,35 @@ const ChurchAttendanceCard = ({ record, onEdit, onDelete }: Props) => {
         </div>
       </div>
 
-      <div className="font-semibold">{record.visitingPastors ?? 0}</div>
+      <div>
+        <div className="flex flex-col">
+          <div>
+            M: {record.visitorsMale ?? 0}
+          </div>
+          <div>
+            F: {record.visitorsFemale ?? 0}
+          </div>
+          <div className="font-semibold">
+            Total: {getTotals().visitorsTotal}
+          </div>
+        </div>
+      </div>
 
-      <div className="font-semibold">{getTotals().total}</div>
+      <div>
+        <div className="flex flex-col">
+          <div>
+            M: {record.visitorClergyMale ?? 0}
+          </div>
+          <div>
+            F: {record.visitorClergyFemale ?? 0}
+          </div>
+          <div className="font-semibold">
+            Total: {getTotals().visitorClergyTotal}
+          </div>
+        </div>
+      </div>
+
+      <div className="font-semibold">{getTotals().totalAttendance}</div>
 
       <div className="text-xs text-gray-600">
         <p className="font-medium">{record.recordedByName}</p>

@@ -36,6 +36,23 @@ const getResponsibleMemberIds = (visitor: VisitorType): string[] => {
     .filter(Boolean);
 };
 
+const getClergyFields = (visitor: VisitorType) => {
+  const visitorWithClergy = visitor as VisitorType & {
+    is_clergy?: boolean;
+    church_name?: string | null;
+    church_location?: string | null;
+    church_role?: string | null;
+  };
+
+  return {
+    isClergy: visitor.isClergy ?? visitorWithClergy.is_clergy ?? false,
+    churchName: visitor.churchName ?? visitorWithClergy.church_name ?? "",
+    churchLocation:
+      visitor.churchLocation ?? visitorWithClergy.church_location ?? "",
+    churchRole: visitor.churchRole ?? visitorWithClergy.church_role ?? "",
+  };
+};
+
 export const mapVisitorToForm = (
   visitor: VisitorType
 ): IVisitorForm & { id: string } => {
@@ -45,6 +62,7 @@ export const mapVisitorToForm = (
       : visitor.visitDate
       ? new Date(visitor.visitDate).toISOString()
       : undefined;
+  const clergyFields = getClergyFields(visitor);
 
   return {
     id: visitor.id,
@@ -64,6 +82,12 @@ export const mapVisitorToForm = (
       city: visitor.city,
       phone: { country_code: visitor.country_code, number: visitor.phone },
       address: visitor.address,
+    },
+    isClergy: clergyFields.isClergy ? "yes" : "no",
+    clergy_info: {
+      churchName: clergyFields.churchName || "",
+      churchLocation: clergyFields.churchLocation || "",
+      churchRole: clergyFields.churchRole || "",
     },
     visit: {
       date: formatInputDate(visitDate) || "",

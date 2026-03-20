@@ -25,6 +25,7 @@ import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { showNotification } from "../../utils";
+import { AttendanceSettings } from "./Components/AttendanceSettings";
 import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
 import { LogsSettings } from "./Components/LogsSettings";
@@ -293,6 +294,14 @@ function Settings() {
     handleCloseForm();
   }, [handleCloseForm, selectedTab]);
 
+  useEffect(() => {
+    if (selectedTab !== "Attendance") {
+      return;
+    }
+
+    handleCloseForm();
+  }, [handleCloseForm, selectedTab]);
+
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) =>
     handleSearchChange(e.target.value);
 
@@ -438,8 +447,8 @@ function Settings() {
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage position, requisition, log routing, notification, and
-          eligibility rule configuration settings.
+          Manage position, requisition, attendance, log routing,
+          notification, and eligibility rule configuration settings.
         </p>
         <div className="mt-2 mb-6 overflow-x-auto">
           <div className="flex min-w-max gap-2 rounded-lg border border-lightGray p-1">
@@ -525,6 +534,13 @@ function Settings() {
         <>
           <PageHeader className="font-semibold text-xl" title="Notifications" />
           <NotificationSettings />
+        </>
+      )}
+
+      {selectedTab === "Attendance" && (
+        <>
+          <PageHeader className="font-semibold text-xl" title="Attendance" />
+          <AttendanceSettings />
         </>
       )}
 

@@ -55,7 +55,7 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
   const isMemberPortal =
     typeof window !== "undefined" &&
     window.location.pathname.startsWith("/member");
-  const canRegisterForEvent = isMemberPortal && event.requires_registration;
+  const canRegisterForEvent = event.requires_registration;
 
   /* ------------------------------- Date helpers ------------------------------- */
   const getDateOnly = (iso: string) => {
