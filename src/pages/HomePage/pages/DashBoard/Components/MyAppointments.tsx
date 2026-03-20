@@ -86,12 +86,22 @@ export const MyAppointments = () => {
     refetch({ requesterId });
   }, [refetch, requesterId]);
 
+  const isPastAppointment = (date: string) => {
+  if (!date) return false;
+
+  const today = new Date();
+  const appointmentDate = new Date(date);
+  appointmentDate.setHours(23, 59, 59, 999);
+  return appointmentDate < today;
+};
+
   const appointments = useMemo(() => {
     if (!Array.isArray(bookingsResponse?.data)) return [];
 
     return bookingsResponse.data
       .map((item) => normalizeAppointmentRecord(item, membersLookup))
       .filter((item): item is Appointment => item !== null)
+      .filter((appointment) => !isPastAppointment(appointment.date))
       .sort((a, b) => toSortTimestamp(a) - toSortTimestamp(b));
   }, [bookingsResponse, membersLookup]);
 

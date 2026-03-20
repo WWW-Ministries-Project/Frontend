@@ -113,24 +113,41 @@
     };
   };
 
+  const hasVisibleWindowClient = async () => {
+    const windows = await self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
+
+    return windows.some(
+      (client) => client.visibilityState === "visible" || client.focused
+    );
+  };
+
   self.addEventListener("push", (event) => {
     const rawPayload = parsePushPayload(event);
     const notification = normalizePushPayload(rawPayload);
 
     event.waitUntil(
-      self.registration.showNotification(notification.title, {
-        body: notification.body,
-        icon: notification.icon,
-        badge: notification.badge,
-        tag: notification.tag,
-        renotify: true,
-        silent: false,
-        vibrate: [180, 120, 180],
-        data: {
-          url: notification.url,
-          external: notification.external,
-        },
-      })
+      (async () => {
+        if (await hasVisibleWindowClient()) {
+          return;
+        }
+
+        await self.registration.showNotification(notification.title, {
+          body: notification.body,
+          icon: notification.icon,
+          badge: notification.badge,
+          tag: notification.tag,
+          renotify: true,
+          silent: false,
+          vibrate: [180, 120, 180],
+          data: {
+            url: notification.url,
+            external: notification.external,
+          },
+        });
+      })()
     );
   });
 

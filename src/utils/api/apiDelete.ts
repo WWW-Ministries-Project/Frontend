@@ -1,6 +1,7 @@
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { deleteData } from "./apiFunctions";
+import type { NotificationClearAllPayload } from "./notifications/interfaces";
 
 export class ApiDeletionCalls {
   private apiExecution: ApiExecution;
@@ -195,5 +196,9 @@ export class ApiDeletionCalls {
     query: QueryType
   ): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("financials/delete-financial", query);
+  };
+
+  clearAllNotifications = (): Promise<ApiResponse<NotificationClearAllPayload>> => {
+    return this.apiExecution.deleteData("notifications");
   };
 }

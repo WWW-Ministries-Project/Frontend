@@ -33,6 +33,12 @@ export interface NotificationUnreadCountPayload {
   unreadCount: number;
 }
 
+export interface NotificationClearAllPayload {
+  deleted: number;
+  unreadCount?: number;
+  totalCount?: number;
+}
+
 export interface NotificationStreamTokenPayload {
   streamToken: string;
   expiresAt?: string;
@@ -60,8 +66,18 @@ export interface NotificationPushSubscriptionPayload {
   timezone?: string;
 }
 
+export interface NotificationPreferenceChannelAvailability {
+  inApp: boolean;
+  email: boolean;
+  sms: boolean;
+}
+
 export interface NotificationPreference {
   type: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  availableChannels?: NotificationPreferenceChannelAvailability;
   inAppEnabled: boolean;
   emailEnabled: boolean;
   smsEnabled: boolean;

@@ -2,6 +2,7 @@ import React from "react";
 import { formatDatefull } from "@/utils";
 import type { CertificateData } from "@/utils/api/ministrySchool/interfaces";
 import CertificateLogos from "./CertificateLogos";
+import CertificatePrint from "./CertificatePrint";
 
 interface CertificatePreviewProps {
   certificate: CertificateData;
@@ -82,6 +83,7 @@ const CertificatePreview: React.FC<CertificatePreviewProps> = ({
           Close
         </button>
       </div>
+      {/* <CertificatePrint certificate={certificate} /> */}
     </div>
   );
 };

@@ -16,7 +16,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Requisition submitted and routed to first approver.",
     actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "requisition.step_advanced",
@@ -24,7 +24,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Requisition moved to next approval step.",
     actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "requisition.final_approved",
@@ -32,7 +32,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Requisition finally approved.",
     actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
     defaultPriority: "HIGH",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "requisition.final_rejected",
@@ -40,7 +40,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Requisition finally rejected.",
     actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
     defaultPriority: "HIGH",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "requisition.comment_added",
@@ -48,7 +48,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Approval-stage comment added to requisition.",
     actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "appointment.booked",
@@ -56,7 +56,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Appointment booked for assigned staff.",
     actionUrlTemplate: "/home/appointments",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "appointment.status_changed",
@@ -64,7 +64,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Appointment status changed (confirmed/cancelled/pending).",
     actionUrlTemplate: "/member/appointments",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "follow_up.assigned",
@@ -72,7 +72,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Follow-up assigned to a member.",
     actionUrlTemplate: "/home/visitors/visitor/{visitorId}",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "follow_up.due",
@@ -94,15 +94,15 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     type: "event.updated",
     entityType: "event",
     description: "Event details updated for registered users.",
-    actionUrlTemplate: "/home/events",
+    actionUrlTemplate: "/events/register-event?event_id={entityId}",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "event.cancelled",
     entityType: "event",
     description: "Event cancelled.",
-    actionUrlTemplate: "/home/events",
+    actionUrlTemplate: "/events/register-event?event_id={entityId}",
     defaultPriority: "HIGH",
     toastForHighPriorityOnly: true,
   },
@@ -110,7 +110,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     type: "event.registration_success",
     entityType: "event_registration",
     description: "Event registration successful.",
-    actionUrlTemplate: "/home/events",
+    actionUrlTemplate: "/events/register-event?event_id={entityId}",
     defaultPriority: "LOW",
     toastForHighPriorityOnly: true,
   },
@@ -120,7 +120,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Order payment succeeded.",
     actionUrlTemplate: "/member/market/orders",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
   },
   {
     type: "order.payment_failed",
@@ -136,7 +136,31 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Delivery status changed (shipped/delivered/cancelled).",
     actionUrlTemplate: "/member/market/orders",
     defaultPriority: "MEDIUM",
-    toastForHighPriorityOnly: true,
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "event_report.submitted_for_final_approval",
+    entityType: "event_report",
+    description: "Event report submitted for final approval.",
+    actionUrlTemplate: "/home/reports/event-reports",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "event_report.final_approved",
+    entityType: "event_report",
+    description: "Event report finally approved.",
+    actionUrlTemplate: "/home/reports/event-reports",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "event_report.final_rejected",
+    entityType: "event_report",
+    description: "Event report finally rejected.",
+    actionUrlTemplate: "/home/reports/event-reports",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
   },
   {
     type: "system.job_failed",
@@ -219,3 +243,12 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     toastForHighPriorityOnly: true,
   },
 ];
+
+const notificationActionDefinitionMap = new Map(
+  NOTIFICATION_ACTION_REGISTRY.map((definition) => [definition.type, definition]),
+);
+
+export const getNotificationActionDefinition = (
+  type: string
+): NotificationActionDefinition | null =>
+  notificationActionDefinitionMap.get(type) || null;

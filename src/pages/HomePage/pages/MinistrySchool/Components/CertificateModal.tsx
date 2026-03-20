@@ -1,9 +1,8 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { CertificateData } from "@/utils/api/ministrySchool/interfaces";
-import CertificatePreview from "./CertificatePreview";
 import CertificatePrint from "./CertificatePrint";
 
 interface CertificateModalProps {
@@ -22,6 +21,37 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
   open,
 }) => {
   const printCertificateRef = useRef<HTMLDivElement | null>(null);
+  const previewViewportRef = useRef<HTMLDivElement | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  const certificateWidth = 1123;
+  const certificateHeight = 794;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const viewport = previewViewportRef.current;
+    if (!viewport || !certificate) return;
+
+    const updateScale = () => {
+      const availableWidth = viewport.clientWidth;
+      if (!availableWidth) return;
+
+      setPreviewScale(Math.min(1, availableWidth / certificateWidth));
+    };
+
+    updateScale();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const resizeObserver = new ResizeObserver(updateScale);
+      resizeObserver.observe(viewport);
+
+      return () => resizeObserver.disconnect();
+    }
+
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [certificate, certificateWidth, open]);
 
   if (!open) return null;
 
@@ -89,11 +119,74 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
     }
 
     return (
-      <CertificatePreview
-        certificate={certificate}
-        onDownload={handleDownloadPDF}
-        onClose={onClose}
-      />
+      <div className="flex min-h-0 flex-1 flex-col bg-white">
+        <div className="flex items-start justify-between gap-4 border-b border-lightGray bg-white px-5 py-4 tablet:px-6">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary/70">
+              Certificate Preview
+            </p>
+            <h3 className="mt-1 text-lg font-semibold text-primary tablet:text-xl">
+              {certificate.recipientFullName}
+            </h3>
+            <p className="mt-1 text-sm text-primaryGray">
+              {certificate.certificateNumber}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-lg border border-lightGray px-3 py-2 text-sm font-medium text-primaryGray transition hover:bg-lightGray/20"
+          >
+            Close
+          </button>
+        </div>
+
+        <div
+          ref={previewViewportRef}
+          className="app-scrollbar flex-1 overflow-auto bg-gradient-to-br from-lightest/70 via-white to-lightGray/10 p-4 tablet:p-6"
+        >
+          <div
+            className="mx-auto"
+            style={{
+              width: `${certificateWidth * previewScale}px`,
+              height: `${certificateHeight * previewScale}px`,
+            }}
+          >
+            <div
+              style={{
+                width: `${certificateWidth}px`,
+                height: `${certificateHeight}px`,
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top left",
+              }}
+            >
+              <CertificatePrint
+                id="certificate-a4-preview"
+                certificate={certificate}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-lightGray bg-white px-5 py-4 tablet:px-6">
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
+          >
+            Download Certificate
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-lightGray px-4 py-2 text-sm font-medium text-primaryGray transition hover:bg-lightGray/20"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     );
   };
 

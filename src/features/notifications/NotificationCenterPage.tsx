@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
+import {
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils/helperFunctions";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
 import type { InAppNotification } from "@/utils/api/notifications/interfaces";
 import {
@@ -18,16 +21,30 @@ import {
 } from "./utils";
 import {
   enableDeviceNotifications,
-  getDeviceNotificationPermissionState,
+  getDevicePushSetupState,
   isPushSubscriptionSupported,
 } from "./deviceNotifications";
 
 type NotificationTab = "unread" | "all";
-type DeviceNotificationState = NotificationPermission | "unsupported";
+type DeviceNotificationState =
+  | "unsupported"
+  | "permission_default"
+  | "permission_denied"
+  | "permission_granted_unsubscribed"
+  | "enabled";
 
-const resolveDeviceNotificationState = (): DeviceNotificationState => {
+const resolveInitialDeviceNotificationState = (): DeviceNotificationState => {
   if (!isPushSubscriptionSupported()) return "unsupported";
-  return getDeviceNotificationPermissionState();
+
+  if (Notification.permission === "denied") {
+    return "permission_denied";
+  }
+
+  if (Notification.permission === "granted") {
+    return "permission_granted_unsubscribed";
+  }
+
+  return "permission_default";
 };
 
 const getPriorityChipClasses = (priority: string) => {
@@ -69,7 +86,7 @@ export const NotificationCenterPage = () => {
 
   const [activeTab, setActiveTab] = useState<NotificationTab>("unread");
   const [deviceNotificationState, setDeviceNotificationState] =
-    useState<DeviceNotificationState>(() => resolveDeviceNotificationState());
+    useState<DeviceNotificationState>(() => resolveInitialDeviceNotificationState());
   const [enablingDeviceNotifications, setEnablingDeviceNotifications] =
     useState(false);
 
@@ -94,6 +111,12 @@ export const NotificationCenterPage = () => {
   const markAsRead = useInAppNotificationStore((state) => state.markAsRead);
   const markAsUnread = useInAppNotificationStore((state) => state.markAsUnread);
   const markAllAsRead = useInAppNotificationStore((state) => state.markAllAsRead);
+  const clearAll = useInAppNotificationStore((state) => state.clearAll);
+
+  const refreshDeviceNotificationState = async () => {
+    const nextState = await getDevicePushSetupState();
+    setDeviceNotificationState(nextState);
+  };
 
   useEffect(() => {
     const tabQuery = activeTab === "unread" ? { unreadOnly: "true" } : {};
@@ -110,17 +133,31 @@ export const NotificationCenterPage = () => {
   }, [fetchTotalCount, fetchUnreadCount]);
 
   useEffect(() => {
-    const refreshState = () => {
-      setDeviceNotificationState(resolveDeviceNotificationState());
+    let isCancelled = false;
+
+    const refreshState = async () => {
+      const nextState = await getDevicePushSetupState();
+      if (isCancelled) return;
+      setDeviceNotificationState(nextState);
     };
 
-    refreshState();
-    window.addEventListener("focus", refreshState);
-    document.addEventListener("visibilitychange", refreshState);
+    const onFocus = () => {
+      void refreshState();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      void refreshState();
+    };
+
+    void refreshState();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      window.removeEventListener("focus", refreshState);
-      document.removeEventListener("visibilitychange", refreshState);
+      isCancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
@@ -133,6 +170,7 @@ export const NotificationCenterPage = () => {
   const allCount = activeTab === "all" && totalCount <= 0
     ? notifications.length
     : totalCount;
+  const canClearAll = allCount > 0 || notifications.length > 0;
 
   const handleOpenNotification = async (notification: InAppNotification) => {
     if (!notification.isRead) {
@@ -191,7 +229,7 @@ export const NotificationCenterPage = () => {
         );
       }
     } finally {
-      setDeviceNotificationState(resolveDeviceNotificationState());
+      void refreshDeviceNotificationState();
       setEnablingDeviceNotifications(false);
     }
   };
@@ -201,24 +239,49 @@ export const NotificationCenterPage = () => {
       return "Device alerts unavailable";
     }
 
-    if (deviceNotificationState === "granted") {
+    if (deviceNotificationState === "enabled") {
       return "Device alerts enabled";
     }
 
-    if (deviceNotificationState === "denied") {
+    if (deviceNotificationState === "permission_denied") {
       return "Device alerts blocked";
+    }
+
+    if (deviceNotificationState === "permission_granted_unsubscribed") {
+      return "Device alerts need sync";
     }
 
     return "Device alerts off";
   }, [deviceNotificationState]);
 
   const deviceButtonLabel = useMemo(() => {
-    if (deviceNotificationState === "granted") {
+    if (deviceNotificationState === "enabled") {
       return "Re-sync device notifications";
+    }
+
+    if (deviceNotificationState === "permission_granted_unsubscribed") {
+      return "Finish device setup";
     }
 
     return "Enable device notifications";
   }, [deviceNotificationState]);
+
+  const handleClearAll = () => {
+    showDeleteDialog(
+      {
+        id: "all-notifications",
+        name: "all notifications",
+      },
+      async () => {
+        const cleared = await clearAll();
+        if (!cleared) return;
+
+        showNotification("All notifications cleared.", "success", {
+          title: "Notifications",
+        });
+      }
+    );
+  };
 
   return (
     <div className="app-page-padding">
@@ -289,6 +352,15 @@ export const NotificationCenterPage = () => {
             >
               <CheckIcon className="h-3.5 w-3.5" />
               Mark all read
+            </button>
+
+            <button
+              type="button"
+              onClick={handleClearAll}
+              disabled={!canClearAll}
+              className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Clear all
             </button>
           </div>
         </header>
