@@ -50,6 +50,7 @@ import {
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
 import type {
+  AiChatbotConfig,
   AiCredentialRecord,
   AiUsageHistoryResponse,
   AiUsageSummary,
@@ -687,6 +688,10 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<AiCredentialRecord[]>> => {
     return this.fetchFromApi("ai/credentials", query);
+  };
+
+  fetchAiChatbotConfig = (): Promise<ApiResponse<AiChatbotConfig>> => {
+    return this.fetchFromApi("ai/chatbot/config");
   };
 
   // AI usage and quota tracking
