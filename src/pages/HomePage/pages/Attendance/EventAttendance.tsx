@@ -12,29 +12,46 @@ import {
   api,
   BiometricAttendanceImportJob,
   BiometricAttendanceImportResponse,
+  BiometricAttendanceImportStartResponse,
   BiometricEventAttendanceListResponse,
   BiometricEventAttendanceRecord,
-  formatInputDate,
+  EventResponseType,
+  formatDate,
   relativePath,
 } from "@/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type GroupBy = "event" | "date";
-
-type AttendanceEventOption = {
-  value: string | number;
-  label: string;
-  date?: string;
-};
 
 type EventAttendanceImportModalProps = {
   open: boolean;
   onClose: () => void;
   onImported: () => void;
-  initialEventId?: string;
-  initialDate?: string;
   canManageAttendance: boolean;
-  eventsOptions: AttendanceEventOption[];
+};
+
+const MONTH_OPTIONS = [
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
+] as const;
+
+const getCurrentMonthYear = () => {
+  const now = new Date();
+
+  return {
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+  };
 };
 
 const formatDateTime = (value: string | null | undefined) => {
@@ -80,18 +97,100 @@ const formatDepartmentPosition = (departmentPosition: {
   );
 };
 
+const isImportJobActive = (
+  status: BiometricAttendanceImportJob["status"]
+) => status === "QUEUED" || status === "RUNNING";
+
+const normalizeImportJobs = (
+  payload?: BiometricAttendanceImportStartResponse | null
+) => {
+  if (!payload) return [];
+  return Array.isArray(payload) ? payload : [payload];
+};
+
+const buildProgressSummary = (job: BiometricAttendanceImportJob) => {
+  if (!job.progress) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Devices",
+      value: `${job.progress.processed_devices}/${job.progress.total_devices}`,
+    },
+    {
+      label: "Raw punches",
+      value: job.progress.raw_punches_fetched,
+    },
+    {
+      label: "Unique punches",
+      value: job.progress.unique_punches,
+    },
+    {
+      label: "Duplicates removed",
+      value: job.progress.duplicate_punches_skipped,
+    },
+  ];
+};
+
+const buildResultSummary = (result: BiometricAttendanceImportResponse) => [
+  {
+    label: "Punches fetched",
+    value: result.totals.punches_fetched,
+  },
+  {
+    label: "Unique punches",
+    value: result.totals.unique_punches,
+  },
+  {
+    label: "Duplicates removed",
+    value: result.totals.duplicate_punches_skipped,
+  },
+  {
+    label: "Matched to members",
+    value: result.totals.punches_matched_to_users,
+  },
+  result.dry_run
+    ? {
+        label: "Attendance candidates",
+        value: result.totals.attendance_candidates,
+      }
+    : {
+        label: "Attendance created",
+        value: result.totals.attendance_rows_created,
+      },
+];
+
 const EventAttendanceImportModal = ({
   open,
   onClose,
   onImported,
-  initialEventId,
-  initialDate,
   canManageAttendance,
-  eventsOptions,
 }: EventAttendanceImportModalProps) => {
-  const [eventId, setEventId] = useState(initialEventId || "");
-  const [date, setDate] = useState(initialDate || "");
-  const [job, setJob] = useState<BiometricAttendanceImportJob | null>(null);
+  const currentPeriod = useMemo(() => getCurrentMonthYear(), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentPeriod.month);
+  const [selectedYear, setSelectedYear] = useState(currentPeriod.year);
+  const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
+  const [jobs, setJobs] = useState<BiometricAttendanceImportJob[]>([]);
+  const jobStatusRef = useRef<
+    Record<number, BiometricAttendanceImportJob["status"]>
+  >({});
+  const hasRefetchedImportResults = useRef(false);
+
+  const eventQuery = useMemo(
+    () => ({
+      month: selectedMonth,
+      year: selectedYear,
+      take: 500,
+    }),
+    [selectedMonth, selectedYear]
+  );
+
+  const {
+    data: eventsResponse,
+    loading: eventsLoading,
+    error: eventsError,
+  } = useFetch(api.fetch.fetchEvents, eventQuery, !open);
 
   const {
     postData: startImportJob,
@@ -103,32 +202,50 @@ const EventAttendanceImportModal = ({
   useEffect(() => {
     if (!open) return;
 
-    setEventId(initialEventId || "");
-    setDate(initialDate || "");
-    setJob(null);
-  }, [initialDate, initialEventId, open]);
+    const nextPeriod = getCurrentMonthYear();
+    setSelectedMonth(nextPeriod.month);
+    setSelectedYear(nextPeriod.year);
+    setSelectedEventIds([]);
+    setJobs([]);
+    jobStatusRef.current = {};
+    hasRefetchedImportResults.current = false;
+  }, [open]);
+
+  const filteredEvents = useMemo(() => {
+    return (eventsResponse?.data || []) as EventResponseType[];
+  }, [eventsResponse]);
+
+  const yearOptions = useMemo(() => {
+    return Array.from({ length: 11 }, (_, index) => currentPeriod.year - 5 + index);
+  }, [currentPeriod.year]);
+
+  const jobSummary = useMemo(() => {
+    return {
+      total: jobs.length,
+      queued: jobs.filter((job) => job.status === "QUEUED").length,
+      running: jobs.filter((job) => job.status === "RUNNING").length,
+      completed: jobs.filter((job) => job.status === "COMPLETED").length,
+      failed: jobs.filter((job) => job.status === "FAILED").length,
+    };
+  }, [jobs]);
 
   useEffect(() => {
-    if (!eventId) return;
-    if (date) return;
+    const nextJobs = normalizeImportJobs(startedJobResponse?.data);
+    if (!nextJobs.length) return;
 
-    const selectedEvent = eventsOptions.find(
-      (event) => String(event.value) === String(eventId)
+    jobStatusRef.current = Object.fromEntries(
+      nextJobs.map((job) => [job.id, job.status])
     );
-
-    if (selectedEvent?.date) {
-      setDate(formatInputDate(selectedEvent.date));
-    }
-  }, [date, eventId, eventsOptions]);
-
-  useEffect(() => {
-    if (!startedJobResponse?.data) return;
-
-    setJob(startedJobResponse.data);
+    hasRefetchedImportResults.current = false;
+    setJobs(nextJobs);
     showNotification(
-      startedJobResponse.data.dry_run
-        ? "Bulk biometric preview started."
-        : "Bulk biometric import started.",
+      nextJobs[0]?.dry_run
+        ? `Bulk biometric preview started for ${nextJobs.length} event${
+            nextJobs.length === 1 ? "" : "s"
+          }.`
+        : `Bulk biometric import started for ${nextJobs.length} event${
+            nextJobs.length === 1 ? "" : "s"
+          }.`,
       "success",
       "Event Attendance"
     );
@@ -140,50 +257,65 @@ const EventAttendanceImportModal = ({
     showNotification(startJobError.message, "error", "Event Attendance");
   }, [startJobError]);
 
+  const activeJobIds = useMemo(() => {
+    return jobs.filter((job) => isImportJobActive(job.status)).map((job) => job.id);
+  }, [jobs]);
+
   useEffect(() => {
-    if (!job?.id) return;
-    if (job.status !== "QUEUED" && job.status !== "RUNNING") return;
+    if (!activeJobIds.length) return;
 
     let isCancelled = false;
     let timer: number | undefined;
 
-    const pollJob = async () => {
+    const pollJobs = async () => {
       try {
-        const response = await api.fetch.fetchBiometricAttendanceImportJob({
-          id: job.id,
-        });
-
+        const responses = await Promise.all(
+          activeJobIds.map((id) =>
+            api.fetch.fetchBiometricAttendanceImportJob({
+              id,
+            })
+          )
+        );
         if (isCancelled) return;
 
-        const nextJob = response.data;
-        setJob(nextJob);
+        const nextJobsById = new Map(
+          responses.map((response) => [response.data.id, response.data])
+        );
+        const nextJobs = jobs.map((job) => nextJobsById.get(job.id) || job);
 
-        if (nextJob.status === "COMPLETED") {
-          showNotification(
-            nextJob.dry_run
-              ? "Bulk biometric preview completed."
-              : "Bulk biometric import completed.",
-            "success",
-            "Event Attendance"
-          );
-
-          if (!nextJob.dry_run) {
-            onImported();
+        nextJobs.forEach((job) => {
+          const previousStatus = jobStatusRef.current[job.id];
+          if (previousStatus === job.status) {
+            return;
           }
 
-          return;
-        }
+          jobStatusRef.current[job.id] = job.status;
 
-        if (nextJob.status === "FAILED") {
-          showNotification(
-            nextJob.error_message || "Bulk biometric import failed.",
-            "error",
-            "Event Attendance"
-          );
-          return;
-        }
+          if (job.status === "COMPLETED") {
+            showNotification(
+              job.dry_run
+                ? `Preview completed for ${job.event_name || "selected event"}.`
+                : `Import completed for ${job.event_name || "selected event"}.`,
+              "success",
+              "Event Attendance"
+            );
+          }
 
-        timer = window.setTimeout(pollJob, 1000);
+          if (job.status === "FAILED") {
+            showNotification(
+              job.error_message ||
+                `Import failed for ${job.event_name || "selected event"}.`,
+              "error",
+              "Event Attendance"
+            );
+          }
+        });
+
+        setJobs(nextJobs);
+
+        if (nextJobs.some((job) => isImportJobActive(job.status))) {
+          timer = window.setTimeout(pollJobs, 1000);
+        }
       } catch (error: unknown) {
         if (isCancelled) return;
 
@@ -192,10 +324,12 @@ const EventAttendanceImportModal = ({
             ? error.message
             : "Unable to refresh biometric import progress.";
         showNotification(message, "error", "Event Attendance");
+
+        timer = window.setTimeout(pollJobs, 2000);
       }
     };
 
-    timer = window.setTimeout(pollJob, 1000);
+    timer = window.setTimeout(pollJobs, 1000);
 
     return () => {
       isCancelled = true;
@@ -203,83 +337,68 @@ const EventAttendanceImportModal = ({
         window.clearTimeout(timer);
       }
     };
-  }, [job?.id, job?.status, onImported]);
+  }, [activeJobIds, jobs]);
 
-  const canSubmit = Boolean(eventId && date && canManageAttendance);
-  const isJobActive = job?.status === "QUEUED" || job?.status === "RUNNING";
-  const result: BiometricAttendanceImportResponse | null = job?.result || null;
+  const isJobActive = jobs.some((job) => isImportJobActive(job.status));
+  const canSubmit = Boolean(selectedEventIds.length && canManageAttendance);
+
+  useEffect(() => {
+    if (!jobs.length || isJobActive || hasRefetchedImportResults.current) return;
+    if (!jobs.some((job) => !job.dry_run && job.status === "COMPLETED")) return;
+
+    hasRefetchedImportResults.current = true;
+    onImported();
+  }, [isJobActive, jobs, onImported]);
+
+  const resetJobs = () => {
+    setJobs([]);
+    jobStatusRef.current = {};
+    hasRefetchedImportResults.current = false;
+  };
+
+  const handleMonthChange = (value: number) => {
+    setSelectedMonth(value);
+    setSelectedEventIds([]);
+    resetJobs();
+  };
+
+  const handleYearChange = (value: number) => {
+    setSelectedYear(value);
+    setSelectedEventIds([]);
+    resetJobs();
+  };
+
+  const toggleEventSelection = (eventId: string) => {
+    setSelectedEventIds((current) => {
+      if (current.includes(eventId)) {
+        return current.filter((id) => id !== eventId);
+      }
+
+      return [...current, eventId];
+    });
+    resetJobs();
+  };
 
   const handleStartJob = (dryRun: boolean) => {
     if (!canSubmit || isJobActive) return;
 
+    hasRefetchedImportResults.current = false;
     startImportJob({
-      eventId,
-      date,
+      eventIds: selectedEventIds,
       dryRun,
     });
   };
 
-  const progressSummary = job?.progress
-    ? [
-        {
-          label: "Devices",
-          value: `${job.progress.processed_devices}/${job.progress.total_devices}`,
-        },
-        {
-          label: "Raw punches",
-          value: job.progress.raw_punches_fetched,
-        },
-        {
-          label: "Unique punches",
-          value: job.progress.unique_punches,
-        },
-        {
-          label: "Duplicates removed",
-          value: job.progress.duplicate_punches_skipped,
-        },
-      ]
-    : [];
-
-  const resultSummary = result
-    ? [
-        {
-          label: "Punches fetched",
-          value: result.totals.punches_fetched,
-        },
-        {
-          label: "Unique punches",
-          value: result.totals.unique_punches,
-        },
-        {
-          label: "Duplicates removed",
-          value: result.totals.duplicate_punches_skipped,
-        },
-        {
-          label: "Matched to members",
-          value: result.totals.punches_matched_to_users,
-        },
-        result.dry_run
-          ? {
-              label: "Attendance candidates",
-              value: result.totals.attendance_candidates,
-            }
-          : {
-              label: "Attendance created",
-              value: result.totals.attendance_rows_created,
-            },
-      ]
-    : [];
-
   return (
-    <Modal open={open} onClose={() => (!isJobActive ? onClose() : null)} className="max-w-4xl">
+    <Modal open={open} onClose={() => (!isJobActive ? onClose() : null)} className="max-w-5xl">
       <div className="flex flex-col">
         <div className="border-b border-lightGray px-6 py-5">
           <h2 className="text-lg font-semibold text-primary">
             Bulk Event Attendance Import
           </h2>
           <p className="mt-1 text-sm text-primaryGray">
-            Run biometric attendance as a bulk job, watch the percentage
-            progress, and only commit unique attendance data.
+            Select a month and year, choose one or more scheduled events, and
+            run biometric attendance imports in parallel background jobs.
           </p>
         </div>
 
@@ -293,50 +412,129 @@ const EventAttendanceImportModal = ({
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-primary">Event</label>
+              <label className="text-sm font-medium text-primary">Month</label>
               <select
-                value={eventId}
-                onChange={(event) => {
-                  const nextEventId = event.target.value;
-                  setEventId(nextEventId);
-
-                  const selectedEvent = eventsOptions.find(
-                    (option) => String(option.value) === String(nextEventId)
-                  );
-                  setDate(
-                    selectedEvent?.date
-                      ? formatInputDate(selectedEvent.date)
-                      : ""
-                  );
-                  setJob(null);
-                }}
+                value={selectedMonth}
+                onChange={(event) => handleMonthChange(Number(event.target.value))}
                 className="h-11 w-full rounded-lg border border-lightGray px-3 text-sm"
                 disabled={isJobActive}
               >
-                <option value="">Select event</option>
-                {eventsOptions.map((event) => (
-                  <option key={String(event.value)} value={String(event.value)}>
-                    {event.label}
+                {MONTH_OPTIONS.map((month) => (
+                  <option key={month.value} value={month.value}>
+                    {month.label}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-primary">
-                Attendance Date
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(event) => {
-                  setDate(event.target.value);
-                  setJob(null);
-                }}
+              <label className="text-sm font-medium text-primary">Year</label>
+              <select
+                value={selectedYear}
+                onChange={(event) => handleYearChange(Number(event.target.value))}
                 className="h-11 w-full rounded-lg border border-lightGray px-3 text-sm"
                 disabled={isJobActive}
-              />
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
+
+          <div className="space-y-3 rounded-xl border border-lightGray bg-white p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-primary">
+                  Events in {MONTH_OPTIONS[selectedMonth - 1]?.label} {selectedYear}
+                </p>
+                <p className="text-xs text-primaryGray">
+                  Each selected event uses its own scheduled date when the bulk
+                  import job runs.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-primary/30 px-3 py-2 text-sm text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => {
+                    setSelectedEventIds(filteredEvents.map((event) => String(event.id)));
+                    resetJobs();
+                  }}
+                  disabled={!filteredEvents.length || isJobActive}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-primary/30 px-3 py-2 text-sm text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => {
+                    setSelectedEventIds([]);
+                    resetJobs();
+                  }}
+                  disabled={!selectedEventIds.length || isJobActive}
+                >
+                  Clear selection
+                </button>
+              </div>
+            </div>
+
+            {eventsLoading ? (
+              <div className="rounded-lg border border-dashed border-lightGray px-4 py-4 text-sm text-primaryGray">
+                Loading events for the selected month and year...
+              </div>
+            ) : eventsError ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {eventsError.message || "Unable to load events for import."}
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-lightGray px-4 py-4 text-sm text-primaryGray">
+                No events were found for the selected month and year.
+              </div>
+            ) : (
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {filteredEvents.map((event) => {
+                  const eventId = String(event.id);
+                  const isSelected = selectedEventIds.includes(eventId);
+
+                  return (
+                    <label
+                      key={eventId}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-lightGray bg-white"
+                      } ${isJobActive ? "cursor-not-allowed opacity-70" : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleEventSelection(eventId)}
+                        disabled={isJobActive}
+                        className="mt-1 h-4 w-4 rounded border-lightGray text-primary"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-primary">
+                          {event.name || "Unnamed event"}
+                        </p>
+                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-primaryGray">
+                          <span>{formatDate(event.start_date, "short")}</span>
+                          <span>{event.event_type || "Unknown type"}</span>
+                          {event.location ? <span>{event.location}</span> : null}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <p className="text-xs text-primaryGray">
+              {selectedEventIds.length} event{selectedEventIds.length === 1 ? "" : "s"} selected.
+            </p>
           </div>
 
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -346,22 +544,22 @@ const EventAttendanceImportModal = ({
                   Bulk Processing
                 </p>
                 <p className="text-xs text-primaryGray">
-                  The import runs in the background, reports percentage
-                  progress, and removes duplicate punches before attendance is
-                  staged.
+                  Each selected event runs as a separate background job,
+                  reports progress independently, and removes duplicate punches
+                  before attendance is staged.
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <Button
-                  value="Preview Bulk Import"
+                  value="Preview Selected Events"
                   variant="secondary"
                   disabled={!canSubmit || isJobActive}
                   loading={startJobLoading}
                   onClick={() => handleStartJob(true)}
                 />
                 <Button
-                  value="Import Bulk Attendance"
+                  value="Import Selected Events"
                   variant="primary"
                   disabled={!canSubmit || isJobActive}
                   loading={startJobLoading}
@@ -370,41 +568,24 @@ const EventAttendanceImportModal = ({
               </div>
             </div>
 
-            {!job ? (
+            {!jobs.length ? (
               <p className="mt-4 rounded-lg border border-dashed border-primary/30 bg-white px-3 py-3 text-xs text-primaryGray">
-                Select the event and date, then start a preview or import job.
-                Progress will be shown as a percentage while the bulk job runs.
+                Select a month and year, choose one or more events, then start
+                a preview or import. Each job will show its own progress below.
               </p>
             ) : (
-              <div className="mt-4 space-y-4 rounded-lg border border-lightGray bg-white p-4">
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-primaryGray">
-                  <span>Job #{job.id}</span>
-                  <span>Status: {job.status}</span>
-                  <span>
-                    Mode: {job.dry_run ? "Preview only" : "Import attendance"}
-                  </span>
-                  <span>Date: {job.occurrence_date}</span>
-                  <span>Started: {formatDateTime(job.started_at || job.created_at)}</span>
-                </div>
-
-                <div className="rounded-lg border border-lightGray px-4 py-4">
-                  <div className="mb-2 flex items-center justify-between text-sm font-medium text-primary">
-                    <span>{job.current_step || "Preparing job"}</span>
-                    <span>{job.progress_percentage}%</span>
-                  </div>
-                  <div className="h-3 w-full overflow-hidden rounded-full bg-lightGray/50">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all duration-500"
-                      style={{ width: `${job.progress_percentage}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {progressSummary.map((item) => (
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                  {[
+                    { label: "Jobs", value: jobSummary.total },
+                    { label: "Queued", value: jobSummary.queued },
+                    { label: "Running", value: jobSummary.running },
+                    { label: "Completed", value: jobSummary.completed },
+                    { label: "Failed", value: jobSummary.failed },
+                  ].map((item) => (
                     <div
                       key={item.label}
-                      className="rounded-lg border border-lightGray bg-lightGray/20 px-3 py-3"
+                      className="rounded-lg border border-lightGray bg-white px-3 py-3"
                     >
                       <p className="text-xs text-primaryGray">{item.label}</p>
                       <p className="text-lg font-semibold text-primary">
@@ -414,77 +595,132 @@ const EventAttendanceImportModal = ({
                   ))}
                 </div>
 
-                {job.error_message && job.status === "FAILED" && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
-                    {job.error_message}
-                  </div>
-                )}
+                {jobs.map((job) => {
+                  const result = job.result;
+                  const progressSummary = buildProgressSummary(job);
+                  const resultSummary = result ? buildResultSummary(result) : [];
 
-                {result && (
-                  <div className="space-y-4 rounded-lg border border-lightGray px-3 py-3">
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-primaryGray">
-                      <span>
-                        Result: {result.dry_run ? "Preview completed" : "Import completed"}
-                      </span>
-                      <span>Event: {result.event.event_name || "Selected event"}</span>
-                      <span>Date: {result.occurrence_date}</span>
-                      <span>
-                        Window: {formatTimeOnly(result.attendance_window.start)} to{" "}
-                        {formatTimeOnly(result.attendance_window.end)}
-                      </span>
-                    </div>
+                  return (
+                    <div
+                      key={job.id}
+                      className="space-y-4 rounded-lg border border-lightGray bg-white p-4"
+                    >
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-primaryGray">
+                        <span>Job #{job.id}</span>
+                        <span>Event: {job.event_name || "Selected event"}</span>
+                        <span>Status: {job.status}</span>
+                        <span>
+                          Mode: {job.dry_run ? "Preview only" : "Import attendance"}
+                        </span>
+                        <span>Date: {job.occurrence_date}</span>
+                        <span>
+                          Started: {formatDateTime(job.started_at || job.created_at)}
+                        </span>
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-                      {resultSummary.map((item) => (
-                        <div
-                          key={item.label}
-                          className="rounded-lg border border-lightGray bg-lightGray/20 px-3 py-3"
-                        >
-                          <p className="text-xs text-primaryGray">{item.label}</p>
-                          <p className="text-lg font-semibold text-primary">
-                            {item.value}
-                          </p>
+                      <div className="rounded-lg border border-lightGray px-4 py-4">
+                        <div className="mb-2 flex items-center justify-between text-sm font-medium text-primary">
+                          <span>{job.current_step || "Preparing job"}</span>
+                          <span>{job.progress_percentage}%</span>
                         </div>
-                      ))}
-                    </div>
+                        <div className="h-3 w-full overflow-hidden rounded-full bg-lightGray/50">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all duration-500"
+                            style={{ width: `${job.progress_percentage}%` }}
+                          />
+                        </div>
+                      </div>
 
-                    <div className="rounded-lg border border-lightGray px-3 py-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
-                        Unmatched device users
-                      </p>
-                      {result.unmatched_device_users.length === 0 ? (
-                        <p className="mt-2 text-sm text-green-700">
-                          All unique punches in this job matched to existing members.
-                        </p>
-                      ) : (
-                        <div className="mt-2 space-y-2">
-                          {result.unmatched_device_users.slice(0, 5).map((user) => (
-                            <div
-                              key={`${user.device_user_id}-${user.device_user_name ?? ""}`}
-                              className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900"
-                            >
-                              <p className="font-medium">
-                                {user.device_user_name || "Unknown device user"} (
-                                {user.device_user_id})
-                              </p>
-                              <p className="text-xs text-amber-800">
-                                {user.punch_count} punch
-                                {user.punch_count === 1 ? "" : "es"} on{" "}
-                                {user.device_ips.join(", ")}
-                              </p>
-                            </div>
-                          ))}
-                          {result.unmatched_device_users.length > 5 && (
-                            <p className="text-xs text-primaryGray">
-                              {result.unmatched_device_users.length - 5} more
-                              unmatched device users are hidden from this result.
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {progressSummary.map((item) => (
+                          <div
+                            key={`${job.id}-${item.label}`}
+                            className="rounded-lg border border-lightGray bg-lightGray/20 px-3 py-3"
+                          >
+                            <p className="text-xs text-primaryGray">{item.label}</p>
+                            <p className="text-lg font-semibold text-primary">
+                              {item.value}
                             </p>
-                          )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {job.error_message && job.status === "FAILED" && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
+                          {job.error_message}
+                        </div>
+                      )}
+
+                      {result && (
+                        <div className="space-y-4 rounded-lg border border-lightGray px-3 py-3">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-primaryGray">
+                            <span>
+                              Result: {result.dry_run ? "Preview completed" : "Import completed"}
+                            </span>
+                            <span>Event: {result.event.event_name || "Selected event"}</span>
+                            <span>Date: {result.occurrence_date}</span>
+                            <span>
+                              Window: {formatTimeOnly(result.attendance_window.start)} to{" "}
+                              {formatTimeOnly(result.attendance_window.end)}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                            {resultSummary.map((item) => (
+                              <div
+                                key={`${job.id}-${item.label}`}
+                                className="rounded-lg border border-lightGray bg-lightGray/20 px-3 py-3"
+                              >
+                                <p className="text-xs text-primaryGray">{item.label}</p>
+                                <p className="text-lg font-semibold text-primary">
+                                  {item.value}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="rounded-lg border border-lightGray px-3 py-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                              Unmatched device users
+                            </p>
+                            {result.unmatched_device_users.length === 0 ? (
+                              <p className="mt-2 text-sm text-green-700">
+                                All unique punches in this job matched to existing members.
+                              </p>
+                            ) : (
+                              <div className="mt-2 space-y-2">
+                                {result.unmatched_device_users
+                                  .slice(0, 5)
+                                  .map((user) => (
+                                    <div
+                                      key={`${job.id}-${user.device_user_id}-${user.device_user_name ?? ""}`}
+                                      className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900"
+                                    >
+                                      <p className="font-medium">
+                                        {user.device_user_name || "Unknown device user"} (
+                                        {user.device_user_id})
+                                      </p>
+                                      <p className="text-xs text-amber-800">
+                                        {user.punch_count} punch
+                                        {user.punch_count === 1 ? "" : "es"} on{" "}
+                                        {user.device_ips.join(", ")}
+                                      </p>
+                                    </div>
+                                  ))}
+                                {result.unmatched_device_users.length > 5 && (
+                                  <p className="text-xs text-primaryGray">
+                                    {result.unmatched_device_users.length - 5} more
+                                    unmatched device users are hidden from this result.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -835,10 +1071,7 @@ export default function EventAttendance() {
         onImported={() => {
           void refetch();
         }}
-        initialEventId={filters.eventId}
-        initialDate={filters.date}
         canManageAttendance={canManageAttendance}
-        eventsOptions={eventsOptions || []}
       />
     </PageOutline>
   );

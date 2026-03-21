@@ -1,7 +1,5 @@
 import CardWrapper from "@/Wrappers/CardWrapper";
 import ellipse from "@/assets/ellipse.svg";
-import email from "@/assets/email.svg";
-import phone from "@/assets/phone.svg";
 import { Button, ProfilePicture } from "@/components";
 import Action from "@/components/Action";
 import { encodeQuery } from "@/pages/HomePage/utils";
@@ -39,10 +37,12 @@ export const MemberCard = (props: IProps) => {
         ? "Online"
         : member?.membership_type || "Membership pending";
   const memberRoleLabel = member?.is_user ? "Ministry worker" : "Church member";
+  const memberRoleTagClassName = member?.is_user
+    ? "rounded-full border border-primary/15 bg-primary/10 px-2.5 py-1 font-medium text-primary"
+    : "rounded-full border border-lightGray bg-inputBackground/80 px-2.5 py-1 font-medium text-primary";
   const statusLabel = member?.status
     ? member.status.replace(/_/g, " ")
     : "Profile pending";
-  const departmentLabel = member?.department_name || "No department assigned";
   const memberIdLabel = member?.member_id || "Member ID pending";
   const phoneLabel =
     `${member?.country_code ? `${member.country_code} ` : ""}${member?.primary_number || ""}`.trim() ||
@@ -168,7 +168,7 @@ export const MemberCard = (props: IProps) => {
             <span className="rounded-full border border-[#B7E4C1] bg-[#EEF9F1] px-2.5 py-1  font-medium tracking-wide text-[#1E7A3A]">
               {membershipLabel}
             </span>
-            <span className="rounded-full border border-[#D7DDEE] bg-[#F7F8FC] px-2.5 py-1  font-medium text-primary">
+            <span className={memberRoleTagClassName}>
               {memberRoleLabel}
             </span>
             <span className="rounded-full border border-[#F4D19B] bg-[#FFF5E8] px-2.5 py-1  font-medium  text-[#9A5B09] capitalize">

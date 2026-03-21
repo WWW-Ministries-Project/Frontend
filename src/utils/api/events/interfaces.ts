@@ -78,7 +78,8 @@ export type ValidatedEventMember = {
 };
 
 export type BiometricAttendanceImportPayload = {
-  eventId: string | number;
+  eventId?: string | number;
+  eventIds?: Array<string | number>;
   date?: string;
   deviceIds?: Array<string | number>;
   leadTimeMinutes?: number;
@@ -167,6 +168,10 @@ export type BiometricAttendanceImportJob = {
   completed_at: string | null;
   failed_at: string | null;
 };
+
+export type BiometricAttendanceImportStartResponse =
+  | BiometricAttendanceImportJob
+  | BiometricAttendanceImportJob[];
 
 export type BiometricDepartmentPosition = {
   department_id: number;

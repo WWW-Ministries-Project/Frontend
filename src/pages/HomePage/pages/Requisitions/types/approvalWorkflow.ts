@@ -12,6 +12,12 @@ export type ApprovalStep = {
   user_id?: number;
 };
 
+export type SingleApproverConfig = {
+  type: ApproverType;
+  position_id?: number;
+  user_id?: number;
+};
+
 type ApprovalConfigPayloadBase = {
   approvers: ApprovalStep[];
   notification_user_ids?: number[];
@@ -27,6 +33,7 @@ export type RequisitionApprovalConfigPayload = ApprovalConfigPayloadBase & {
 export type EventReportApprovalConfigPayload = ApprovalConfigPayloadBase & {
   module?: "EVENT_REPORT";
   requester_user_ids?: number[];
+  finance_approver?: SingleApproverConfig | null;
 };
 
 export type ApprovalConfigPayload =
@@ -46,6 +53,7 @@ export type RequisitionApprovalConfig = ApprovalConfigBase & {
 
 export type EventReportApprovalConfig = ApprovalConfigBase & {
   module: "EVENT_REPORT";
+  finance_approver?: SingleApproverConfig | null;
 };
 
 export type ApprovalConfig = RequisitionApprovalConfig | EventReportApprovalConfig;
