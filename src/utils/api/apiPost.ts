@@ -66,6 +66,7 @@ import axios from "@/axiosInstance";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import type {
   AiChatRequest,
+  AiChatbotRequest,
   AiChatResponse,
   AiCredentialRecord,
   AiInsightResponse,
@@ -492,6 +493,18 @@ export class ApiCreationCalls {
       : undefined;
 
     return this.postToApiWithOptions("ai/chat", payload, { headers });
+  };
+
+  sendAiChatbotMessage = (
+    payload: AiChatbotRequest,
+    options?: { idempotencyKey?: string }
+  ): Promise<ApiResponse<AiChatResponse>> => {
+    const idempotencyKey = options?.idempotencyKey?.trim();
+    const headers = idempotencyKey
+      ? { "Idempotency-Key": idempotencyKey }
+      : undefined;
+
+    return this.postToApiWithOptions("ai/chatbot", payload, { headers });
   };
 
   createAiInsights = (
