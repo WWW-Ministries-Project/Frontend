@@ -1,8 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 interface TabSelectionProps<T extends string = string> {
   tabs: T[];
@@ -17,11 +14,16 @@ const TabSelection = <T extends string = string>({
   onTabSelect,
   tabIcons,
 }: TabSelectionProps<T>) => {
+  const getTabDomId = (tab: T) =>
+    String(tab)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const listRef = useRef<HTMLDivElement | null>(null);
   const [isOverflowing, setIsOverflowing] = React.useState(false);
   const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" && window.innerWidth < 768
+    typeof window !== "undefined" && window.innerWidth < 768,
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -98,7 +100,7 @@ const TabSelection = <T extends string = string>({
         role="tablist"
         aria-label="Tabs"
         onKeyDown={onKeyDown}
-          className={`
+        className={`
           w-full
           border border-lightGray rounded-lg p-1 bg-lightGray/30
           flex ${useVerticalLayout ? "flex-col" : "flex-row"}
@@ -109,13 +111,15 @@ const TabSelection = <T extends string = string>({
       >
         {tabs.map((tab) => {
           const active = selectedTab === tab;
+          const tabDomId = getTabDomId(tab);
+
           return (
             <button
               ref={(el) => (tabRefs.current[tab] = el)}
               key={tab}
-              id={`tab-${tab}`}
+              id={`tab-${tabDomId}`}
               role="tab"
-              aria-controls={`panel-${tab}`}
+              aria-controls={`panel-${tabDomId}`}
               aria-selected={active}
               tabIndex={active ? 0 : -1}
               onClick={() => onTabSelect(tab)}
@@ -136,9 +140,7 @@ const TabSelection = <T extends string = string>({
                 {tabIcons?.[tab] && (
                   <span className="text-primary/70">{tabIcons[tab]}</span>
                 )}
-                <span className="capitalize">
-                  {tab.toLowerCase()}
-                </span>
+                <span className="capitalize">{tab.toLowerCase()}</span>
               </span>
             </button>
           );

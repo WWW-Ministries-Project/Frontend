@@ -33,8 +33,8 @@ import type {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import {
-  BiometricAttendanceImportJob,
   BiometricAttendanceImportPayload,
+  BiometricAttendanceImportStartResponse,
   EventType,
   PublicEventRegistrationPayload,
   ValidateEventMemberPayload,
@@ -412,7 +412,7 @@ export class ApiCreationCalls {
 
   importBiometricAttendance = (
     payload: BiometricAttendanceImportPayload
-  ): Promise<ApiResponse<BiometricAttendanceImportJob>> => {
+  ): Promise<ApiResponse<BiometricAttendanceImportStartResponse>> => {
     return this.postToApi("event/import-biometric-attendance", payload);
   };
 

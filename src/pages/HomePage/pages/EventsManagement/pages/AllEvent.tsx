@@ -23,6 +23,26 @@ interface BadgeColors {
     [key: string]: string;
 }
 
+const compareEventsAlphabetically = (a: EventType, b: EventType) => {
+  const nameComparison = String(a.event_name || "").localeCompare(
+    String(b.event_name || "")
+  );
+
+  if (nameComparison !== 0) {
+    return nameComparison;
+  }
+
+  const typeComparison = String(a.event_type || "").localeCompare(
+    String(b.event_type || "")
+  );
+
+  if (typeComparison !== 0) {
+    return typeComparison;
+  }
+
+  return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+};
+
 
 
 const AllEvent = () => {
@@ -63,7 +83,7 @@ const AllEvent = () => {
 
   // Filter events based on selected tab and search query
   const filteredEvents = useMemo(() => {
-    let filtered = allEvents; // Use allEvents instead of lcData?.data
+    let filtered = [...allEvents];
 
     // Filter by tab
     if (selectedTab !== "All") {
@@ -83,7 +103,7 @@ const AllEvent = () => {
       );
     }
 
-    return filtered;
+    return filtered.sort(compareEventsAlphabetically);
   }, [allEvents, selectedTab, searchQuery]); // Added allEvents as dependency
 
   const handleDelete = (id: string) => {
