@@ -13,6 +13,7 @@ import {
   ApprovalModule,
   ApproverType,
   RequisitionApprovalConfigPayload,
+  SingleApproverConfig,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -33,6 +34,13 @@ const approvalModuleByTab: Record<ApprovalSubTab, ApprovalModule> = {
 type ApproverRule = {
   id: string;
   type: ApproverType;
+  targetValue: string;
+};
+
+type ConfigurableApproverType = ApproverType | "";
+
+type FinanceApproverRule = {
+  type: ConfigurableApproverType;
   targetValue: string;
 };
 
@@ -63,6 +71,26 @@ const parseApproverType = (value: string | number): ApproverType => {
 
   return "HEAD_OF_DEPARTMENT";
 };
+
+const parseOptionalApproverType = (
+  value: string | number
+): ConfigurableApproverType => {
+  const normalized = String(value);
+  if (
+    normalized === "HEAD_OF_DEPARTMENT" ||
+    normalized === "POSITION" ||
+    normalized === "SPECIFIC_PERSON"
+  ) {
+    return normalized;
+  }
+
+  return "";
+};
+
+const createFinanceApproverRule = (): FinanceApproverRule => ({
+  type: "",
+  targetValue: "",
+});
 
 const requiresTargetSelection = (type: ApproverType) =>
   type === "POSITION" || type === "SPECIFIC_PERSON";
@@ -111,6 +139,43 @@ const normalizeConfig = (
   return config as ApprovalConfig;
 };
 
+const validateSingleApproverConfig = (
+  approver: SingleApproverConfig,
+  label: string
+): string | null => {
+  if (approver.type === "HEAD_OF_DEPARTMENT") {
+    if (approver.position_id !== undefined || approver.user_id !== undefined) {
+      return `${label} Head of Department option must not include a position or user.`;
+    }
+
+    return null;
+  }
+
+  if (approver.type === "POSITION") {
+    if (
+      !isPositiveInteger(Number(approver.position_id)) ||
+      approver.user_id !== undefined
+    ) {
+      return `${label} Position option must include only a valid position.`;
+    }
+
+    return null;
+  }
+
+  if (approver.type === "SPECIFIC_PERSON") {
+    if (
+      !isPositiveInteger(Number(approver.user_id)) ||
+      approver.position_id !== undefined
+    ) {
+      return `${label} Specific Person option must include only a valid user.`;
+    }
+
+    return null;
+  }
+
+  return `${label} approver type is invalid.`;
+};
+
 const validateConfigPayload = (
   payload: ApprovalConfigPayload,
   module: ApprovalModule
@@ -125,6 +190,23 @@ const validateConfigPayload = (
 
   if (module === "EVENT_REPORT" && requesterIds.length > 0) {
     return "Event report configuration does not support requester users.";
+  }
+
+  if (module === "EVENT_REPORT") {
+    const financeApprover = (
+      payload as EventReportApprovalConfigPayload
+    ).finance_approver ?? null;
+    if (!financeApprover) {
+      return "Select who can approve the financial report.";
+    }
+
+    const financeApproverError = validateSingleApproverConfig(
+      financeApprover,
+      "Financial report approver"
+    );
+    if (financeApproverError) {
+      return financeApproverError;
+    }
   }
 
   const uniqueRequesterIds = new Set(requesterIds);
@@ -214,6 +296,8 @@ const ApprovalSettings = () => {
   const [approverRules, setApproverRules] = useState<ApproverRule[]>([
     createApproverRule(),
   ]);
+  const [financeApproverRule, setFinanceApproverRule] =
+    useState<FinanceApproverRule>(createFinanceApproverRule());
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [similarItemLookbackDays, setSimilarItemLookbackDays] = useState<
@@ -287,6 +371,24 @@ const ApprovalSettings = () => {
     [approverRules]
   );
 
+  const isFinanceApproverTargetMissing = useMemo(
+    () =>
+      !isRequisitionTab &&
+      financeApproverRule.type !== "" &&
+      requiresTargetSelection(financeApproverRule.type) &&
+      !String(financeApproverRule.targetValue || "").trim(),
+    [financeApproverRule, isRequisitionTab]
+  );
+
+  const hasInvalidFinanceApproverSelection = useMemo(
+    () =>
+      !isRequisitionTab &&
+      financeApproverRule.type !== "" &&
+      requiresTargetSelection(financeApproverRule.type) &&
+      !isPositiveInteger(Number(financeApproverRule.targetValue)),
+    [financeApproverRule, isRequisitionTab]
+  );
+
   const hasInvalidNotificationSelection = useMemo(
     () =>
       selectedNotificationUsers.some(
@@ -299,16 +401,22 @@ const ApprovalSettings = () => {
     () =>
       isSaving ||
       (isRequisitionTab && selectedRequesters.length === 0) ||
+      (!isRequisitionTab && !financeApproverRule.type) ||
       isApproverTargetMissing ||
+      isFinanceApproverTargetMissing ||
       (isRequisitionTab && hasInvalidRequesterSelection) ||
       hasInvalidApproverSelection ||
+      hasInvalidFinanceApproverSelection ||
       hasInvalidNotificationSelection,
     [
+      financeApproverRule.type,
       hasInvalidApproverSelection,
+      hasInvalidFinanceApproverSelection,
       hasInvalidNotificationSelection,
       hasInvalidRequesterSelection,
       isRequisitionTab,
       isApproverTargetMissing,
+      isFinanceApproverTargetMissing,
       isSaving,
       selectedRequesters.length,
     ]
@@ -321,6 +429,7 @@ const ApprovalSettings = () => {
       setSelectedRequesters([]);
       setSelectedNotificationUsers([]);
       setApproverRules([createApproverRule()]);
+      setFinanceApproverRule(createFinanceApproverRule());
       setIsActive(true);
       setSimilarItemLookbackDays(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS);
       return;
@@ -335,6 +444,8 @@ const ApprovalSettings = () => {
     const configuredApprovers = Array.isArray(config.approvers)
       ? [...config.approvers].sort((a, b) => a.order - b.order)
       : [];
+    const financeApprover =
+      config.module === "EVENT_REPORT" ? config.finance_approver ?? null : null;
 
     setSelectedRequesters(requesterIds.map((id) => String(id)));
     setSelectedNotificationUsers(notificationUserIds.map((id) => String(id)));
@@ -357,6 +468,19 @@ const ApprovalSettings = () => {
             };
           })
         : [createApproverRule()]
+    );
+    setFinanceApproverRule(
+      financeApprover
+        ? {
+            type: parseOptionalApproverType(financeApprover.type),
+            targetValue:
+              financeApprover.type === "POSITION"
+                ? String(financeApprover.position_id ?? "")
+                : financeApprover.type === "SPECIFIC_PERSON"
+                  ? String(financeApprover.user_id ?? "")
+                  : "",
+          }
+        : createFinanceApproverRule()
     );
     setIsActive(Boolean(config.is_active ?? true));
     setSimilarItemLookbackDays(
@@ -393,6 +517,21 @@ const ApprovalSettings = () => {
           : approver
       )
     );
+  };
+
+  const handleFinanceApproverTypeChange = (value: string | number) => {
+    const nextType = parseOptionalApproverType(value);
+    setFinanceApproverRule({
+      type: nextType,
+      targetValue: "",
+    });
+  };
+
+  const handleFinanceApproverTargetChange = (value: string | number) => {
+    setFinanceApproverRule((current) => ({
+      ...current,
+      targetValue: String(value),
+    }));
   };
 
   const handleAddApprover = () => {
@@ -446,9 +585,23 @@ const ApprovalSettings = () => {
       return requisitionPayload;
     }
 
+    const financeApproverPayload: SingleApproverConfig | null =
+      financeApproverRule.type === ""
+        ? null
+        : {
+            type: financeApproverRule.type,
+            ...(financeApproverRule.type === "POSITION"
+              ? { position_id: Number(financeApproverRule.targetValue) }
+              : {}),
+            ...(financeApproverRule.type === "SPECIFIC_PERSON"
+              ? { user_id: Number(financeApproverRule.targetValue) }
+              : {}),
+          };
+
     const eventReportPayload: EventReportApprovalConfigPayload = {
       notification_user_ids: selectedNotificationUsers.map((id) => Number(id)),
       approvers,
+      finance_approver: financeApproverPayload,
       is_active: isActive,
       similar_item_lookback_days: normalizedLookbackDays,
     };
@@ -456,6 +609,7 @@ const ApprovalSettings = () => {
     return eventReportPayload;
   }, [
     approverRules,
+    financeApproverRule,
     isActive,
     isRequisitionTab,
     selectedNotificationUsers,
@@ -533,6 +687,14 @@ const ApprovalSettings = () => {
       );
     }
 
+    if (!isRequisitionTab && !financeApproverRule.type) {
+      return (
+        <p className="text-xs text-error">
+          Select who can approve the financial report.
+        </p>
+      );
+    }
+
     if (isApproverTargetMissing) {
       return (
         <p className="text-xs text-error">
@@ -541,10 +703,26 @@ const ApprovalSettings = () => {
       );
     }
 
+    if (isFinanceApproverTargetMissing) {
+      return (
+        <p className="text-xs text-error">
+          Complete the financial report approver selection before saving.
+        </p>
+      );
+    }
+
     if (hasInvalidApproverSelection) {
       return (
         <p className="text-xs text-error">
           Approver selections must be valid numeric IDs.
+        </p>
+      );
+    }
+
+    if (hasInvalidFinanceApproverSelection) {
+      return (
+        <p className="text-xs text-error">
+          Financial report approver selection must use a valid numeric ID.
         </p>
       );
     }
@@ -562,7 +740,7 @@ const ApprovalSettings = () => {
 
   const sectionDescription = isRequisitionTab
     ? "Configure who can create requests and who can approve each step."
-    : "Configure report final approvers and post-approval notifications.";
+    : "Configure the financial report approver, final approvers, and post-approval notifications.";
   const approverTitle = isRequisitionTab
     ? "Who can approve these requests?"
     : "Who can give final approval?";
@@ -575,6 +753,7 @@ const ApprovalSettings = () => {
   const headOfDepartmentTarget = isRequisitionTab
     ? "Requester's Head of Department"
     : "Head of Department";
+  const financeHeadOfDepartmentTarget = "Report owner's Head of Department";
 
   return (
     <PageOutline>
@@ -612,6 +791,82 @@ const ApprovalSettings = () => {
               />
             </div>
             {renderValidationHints()}
+          </div>
+        )}
+
+        {!isRequisitionTab && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold text-primary">
+                Who can approve the Financial report?
+              </h4>
+              <p className="text-sm text-primaryGray">
+                Select the single approver used for the finance section in
+                event report details.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-lightGray p-4">
+              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+                <SelectField
+                  id="finance-approver-type"
+                  label="Approver Type"
+                  value={financeApproverRule.type}
+                  options={approverTypeOptions}
+                  placeholder="Select approver type"
+                  onChange={(_, value) => handleFinanceApproverTypeChange(value)}
+                />
+
+                {financeApproverRule.type === "POSITION" && (
+                  <SelectField
+                    id="finance-approver-target"
+                    label="Select Position"
+                    value={financeApproverRule.targetValue}
+                    options={positionOptions}
+                    placeholder="Select position"
+                    helperText={
+                      positionOptions.length === 0
+                        ? "No positions available."
+                        : undefined
+                    }
+                    searchable
+                    onChange={(_, value) =>
+                      handleFinanceApproverTargetChange(value)
+                    }
+                  />
+                )}
+
+                {financeApproverRule.type === "SPECIFIC_PERSON" && (
+                  <SelectField
+                    id="finance-approver-target"
+                    label="Select User"
+                    value={financeApproverRule.targetValue}
+                    options={userOptions}
+                    placeholder="Select user"
+                    helperText={
+                      userOptions.length === 0
+                        ? "No users available in the pool."
+                        : undefined
+                    }
+                    searchable
+                    onChange={(_, value) =>
+                      handleFinanceApproverTargetChange(value)
+                    }
+                  />
+                )}
+
+                {financeApproverRule.type === "HEAD_OF_DEPARTMENT" && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-primary">
+                      Approver Target
+                    </span>
+                    <div className="app-input text-primaryGray">
+                      {financeHeadOfDepartmentTarget}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

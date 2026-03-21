@@ -121,18 +121,6 @@ type FinalApprovalState = {
   viewers: string[];
 };
 
-type BackendDepartment = {
-  id: string;
-  name: string;
-  headName: string;
-  headUserId: string;
-  attendees: DepartmentAttendee[];
-  totalMembers: number;
-  presentMembers: number;
-  absentMembers: number;
-  attendancePercentage: number;
-};
-
 type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "ABSENT" | "UNCLASSIFIED";
 type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE" | "ABSENT";
 type RelativeDirectionFilter = "ALL" | "BEFORE" | "AFTER";
@@ -165,6 +153,13 @@ type AttendanceTimingRuleMinutes = {
 
 const reportViewTabs = ["Data", "Insight"] as const;
 type ReportViewTab = (typeof reportViewTabs)[number];
+
+const reportSectionTabs = [
+  "Department Overview",
+  "Church Attendance",
+  "Finance",
+] as const;
+type ReportSectionTab = (typeof reportSectionTabs)[number];
 
 const amountFormatter = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -210,7 +205,8 @@ const toRecord = (value: unknown): UnknownRecord =>
     ? (value as UnknownRecord)
     : {};
 
-const toArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+const toArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value : [];
 
 const toStringValue = (value: unknown): string => {
   if (typeof value === "string") {
@@ -280,6 +276,11 @@ const firstNonEmptyString = (...values: unknown[]): string => {
 const normalizeDateOnly = (value: unknown): string => {
   const raw = toStringValue(value);
   if (!raw) return "";
+
+  const datePrefixMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (datePrefixMatch) {
+    return datePrefixMatch[1];
+  }
 
   const fromIso = DateTime.fromISO(raw);
   if (fromIso.isValid) {
@@ -362,7 +363,7 @@ const normalizeTimeOnly = (value: unknown): string => {
 
 const buildEventStartDateTime = (
   dateValue: unknown,
-  timeValue: unknown
+  timeValue: unknown,
 ): DateTime | null => {
   const date = normalizeDateOnly(dateValue);
   const time = normalizeTimeOnly(timeValue);
@@ -391,7 +392,7 @@ const formatMinutesDistance = (minutes: number): string => {
 
 const normalizeTimingRuleMinutes = (
   value: unknown,
-  fallback = DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES
+  fallback = DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
 ) => {
   const parsed = Number(value);
 
@@ -404,7 +405,7 @@ const normalizeTimingRuleMinutes = (
 
 const getTimingStatus = (
   minutesFromStart: number | null,
-  rules: AttendanceTimingRuleMinutes
+  rules: AttendanceTimingRuleMinutes,
 ): TimingStatus => {
   if (minutesFromStart === null) return "UNCLASSIFIED";
   if (minutesFromStart <= -rules.early) return "EARLY";
@@ -428,7 +429,7 @@ const formatRelativeToStart = (minutesFromStart: number | null): string => {
 
 const buildDepartmentAttendeeLookupKey = (
   departmentId: string,
-  attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">
+  attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">,
 ) => `${departmentId}::${attendee.userId || attendee.id || attendee.name}`;
 
 const normalizeTimingStatusValue = (value: unknown): TimingStatus | null => {
@@ -465,7 +466,7 @@ const normalizeFinalApprovalStatus = (value: unknown): FinalApprovalStatus => {
 
 const buildApprovalState = (
   value: unknown,
-  fallbackCanApprove = false
+  fallbackCanApprove = false,
 ): ApprovalState => {
   const record = toRecord(value);
   const approvedByUserId = firstNonEmptyString(
@@ -474,12 +475,12 @@ const buildApprovalState = (
     record.acted_by_user_id,
     record.actedByUserId,
     toRecord(record.approved_by).id,
-    toRecord(record.approvedBy).id
+    toRecord(record.approvedBy).id,
   );
 
   const approvalState = {
     status: normalizeApprovalStatus(
-      record.status ?? record.approval_status ?? record.approvalStatus
+      record.status ?? record.approval_status ?? record.approvalStatus,
     ),
     approvedByName: firstNonEmptyString(
       record.approved_by_name,
@@ -487,14 +488,14 @@ const buildApprovalState = (
       record.acted_by_name,
       record.actedByName,
       toRecord(record.approved_by).name,
-      toRecord(record.approvedBy).name
+      toRecord(record.approvedBy).name,
     ),
     approvedByUserId,
     approvedAt: firstNonEmptyString(
       record.approved_at,
       record.approvedAt,
       record.acted_at,
-      record.actedAt
+      record.actedAt,
     ),
     canCurrentUserApprove:
       toOptionalBooleanValue(record.can_current_user_approve) ??
@@ -512,7 +513,9 @@ const buildApprovalState = (
   return approvalState;
 };
 
-const getApprovalBadgeClasses = (status: ApprovalStatus | FinalApprovalStatus) => {
+const getApprovalBadgeClasses = (
+  status: ApprovalStatus | FinalApprovalStatus,
+) => {
   if (status === "APPROVED") {
     return "bg-[#D2F4EA] text-[#039855]";
   }
@@ -570,7 +573,8 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
   const nestedUser = toRecord(userInfo.user);
   const scopedDepartmentRecord = toRecord(userRecord.department);
   const scopedDepartmentInfo = toRecord(
-    scopedDepartmentRecord.department_info ?? scopedDepartmentRecord.departmentInfo
+    scopedDepartmentRecord.department_info ??
+      scopedDepartmentRecord.departmentInfo,
   );
   const departmentPosition = toRecord(
     toArray(
@@ -581,19 +585,19 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
         nestedUser.department_positions ??
         nestedUser.departmentPositions ??
         userInfo.department_positions ??
-        userInfo.departmentPositions
-    )[0]
+        userInfo.departmentPositions,
+    )[0],
   );
   const departmentPositionRecord = toRecord(
     departmentPosition.department ??
       departmentPosition.department_info ??
-      departmentPosition.departmentInfo
+      departmentPosition.departmentInfo,
   );
   const departmentRecord = toRecord(
     record.department ??
       nestedUser.department ??
       userInfo.department ??
-      scopedDepartmentInfo
+      scopedDepartmentInfo,
   );
 
   const attendeeName = firstNonEmptyString(
@@ -604,7 +608,7 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     record.user_name,
     userInfo.name,
     nestedUser.name,
-    toRecord(record.user).name
+    toRecord(record.user).name,
   );
 
   if (!attendeeName) {
@@ -619,7 +623,7 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     departmentPosition.department_id,
     nestedUser.department_id,
     userInfo.department_id,
-    departmentRecord.id
+    departmentRecord.id,
   );
 
   const departmentName = firstNonEmptyString(
@@ -631,7 +635,7 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     nestedUser.department_name,
     userInfo.department_name,
     departmentRecord.name,
-    "Unassigned"
+    "Unassigned",
   );
 
   const userId = firstNonEmptyString(
@@ -639,7 +643,7 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     record.userId,
     nestedUser.id,
     userInfo.id,
-    userRecord.id
+    userRecord.id,
   );
 
   const arrivalRaw = firstNonEmptyString(
@@ -648,15 +652,15 @@ const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
     record.checked_in_at,
     record.checkedInAt,
     record.created_at,
-    record.createdAt
+    record.createdAt,
   );
   const reportedTime = firstNonEmptyString(
     record.reported_time,
-    record.reportedTime
+    record.reportedTime,
   );
   const relativeToStart = firstNonEmptyString(
     record.relative_to_start,
-    record.relativeToStart
+    record.relativeToStart,
   );
   const attendanceStatus = normalizeTimingStatusValue(record.status);
 
@@ -693,14 +697,12 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
     total: toNumberValue(record.visitorsTotal ?? record.visitors_total),
   };
   const visitorClergy = {
-    male: toNumberValue(
-      record.visitorClergyMale ?? record.visitor_clergy_male
-    ),
+    male: toNumberValue(record.visitorClergyMale ?? record.visitor_clergy_male),
     female: toNumberValue(
-      record.visitorClergyFemale ?? record.visitor_clergy_female
+      record.visitorClergyFemale ?? record.visitor_clergy_female,
     ),
     total: toNumberValue(
-      record.visitorClergyTotal ?? record.visitor_clergy_total
+      record.visitorClergyTotal ?? record.visitor_clergy_total,
     ),
   };
   const visitorTotal = {
@@ -711,19 +713,26 @@ const normalizeAttendanceRecord = (value: unknown): AttendanceRecord | null => {
       toNumberValue(record.visitorTotalFemale ?? record.visitor_total_female) ||
       visitors.female + visitorClergy.female,
     total:
-      toNumberValue(record.visitorTotal ?? record.visitor_total ?? record.visitors) ||
-      visitors.total + visitorClergy.total,
+      toNumberValue(
+        record.visitorTotal ?? record.visitor_total ?? record.visitors,
+      ) || visitors.total + visitorClergy.total,
   };
 
   return {
-    id: firstNonEmptyString(record.id, record.attendance_id, `${eventId}-${date}`),
+    id: firstNonEmptyString(
+      record.id,
+      record.attendance_id,
+      `${eventId}-${date}`,
+    ),
     eventId,
     eventName: firstNonEmptyString(record.event_name, record.eventName),
     date,
     adultMale: toNumberValue(record.adultMale ?? record.adult_male),
     adultFemale: toNumberValue(record.adultFemale ?? record.adult_female),
     childrenMale: toNumberValue(record.childrenMale ?? record.children_male),
-    childrenFemale: toNumberValue(record.childrenFemale ?? record.children_female),
+    childrenFemale: toNumberValue(
+      record.childrenFemale ?? record.children_female,
+    ),
     youthMale: toNumberValue(record.youthMale ?? record.youth_male),
     youthFemale: toNumberValue(record.youthFemale ?? record.youth_female),
     visitors,
@@ -747,7 +756,9 @@ const normalizeFinanceLineItems = (value: unknown, fallbackPrefix: string) => {
     })
     .filter((item) => item.name || item.amount > 0);
 
-  return items.length > 0 ? items : [{ id: `${fallbackPrefix}-1`, name: "", amount: 0 }];
+  return items.length > 0
+    ? items
+    : [{ id: `${fallbackPrefix}-1`, name: "", amount: 0 }];
 };
 
 const createFinanceLineItem = (prefix: string): FinanceLineItem => ({
@@ -764,15 +775,15 @@ const EventReportDetails = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [activeReportViewTab, setActiveReportViewTab] =
     useState<ReportViewTab>("Data");
-  const [openDepartments, setOpenDepartments] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [activeReportSectionTab, setActiveReportSectionTab] =
+    useState<ReportSectionTab>("Department Overview");
+  const [openDepartments, setOpenDepartments] = useState<
+    Record<string, boolean>
+  >({});
   const [churchApprovalOverride, setChurchApprovalOverride] =
     useState<ApprovalState | null>(null);
-  const [financeApprovalOverrides, setFinanceApprovalOverrides] = useState<{
-    countingLeader?: ApprovalState;
-    financeRep?: ApprovalState;
-  }>({});
+  const [financeApprovalOverride, setFinanceApprovalOverride] =
+    useState<ApprovalState | null>(null);
   const [finalApprovalOverride, setFinalApprovalOverride] =
     useState<FinalApprovalState | null>(null);
   const [incomeItems, setIncomeItems] = useState<FinanceLineItem[]>([
@@ -783,9 +794,7 @@ const EventReportDetails = () => {
   ]);
 
   const [isApprovingChurch, setIsApprovingChurch] = useState(false);
-  const [financeActionLoadingRole, setFinanceActionLoadingRole] = useState<
-    "COUNTING_LEADER" | "FINANCE_REP" | ""
-  >("");
+  const [isApprovingFinance, setIsApprovingFinance] = useState(false);
   const [isSavingFinance, setIsSavingFinance] = useState(false);
   const [finalActionLoading, setFinalActionLoading] = useState<
     "SUBMIT" | "APPROVE" | "REJECT" | ""
@@ -802,7 +811,7 @@ const EventReportDetails = () => {
 
   const searchParams = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search]
+    [location.search],
   );
 
   const eventNameFromQuery = searchParams.get("eventName") || "";
@@ -828,10 +837,10 @@ const EventReportDetails = () => {
     refetch: refetchReportDetails,
   } = useFetch<ApiResponse<unknown>>(
     api.fetch.fetchEventReportDetails as (
-      query?: Record<string, string | number>
+      query?: Record<string, string | number>,
     ) => Promise<ApiResponse<unknown>>,
     reportDetailsQuery,
-    !reportEventId
+    !reportEventId,
   );
 
   const {
@@ -840,22 +849,22 @@ const EventReportDetails = () => {
     error: eventDetailsError,
   } = useFetch<ApiResponse<Record<string, unknown>>>(
     api.fetch.fetchEventById as (
-      query?: Record<string, string | number>
+      query?: Record<string, string | number>,
     ) => Promise<ApiResponse<Record<string, unknown>>>,
     { id: reportEventId },
-    !reportEventId
+    !reportEventId,
   );
 
   const { data: departmentsResponse } = useFetch<ApiResponse<DepartmentType[]>>(
     api.fetch.fetchDepartments as (
-      query?: Record<string, string | number>
-    ) => Promise<ApiResponse<DepartmentType[]>>
+      query?: Record<string, string | number>,
+    ) => Promise<ApiResponse<DepartmentType[]>>,
   );
 
   const { data: attendanceResponse } = useFetch<ApiResponse<unknown>>(
     api.fetch.fetchChurchAttendance as (
-      query?: Record<string, string | number>
-    ) => Promise<ApiResponse<unknown>>
+      query?: Record<string, string | number>,
+    ) => Promise<ApiResponse<unknown>>,
   );
 
   const { data: attendanceTimingConfigResponse } = useFetch<
@@ -863,17 +872,17 @@ const EventReportDetails = () => {
   >(
     api.fetch.fetchAttendanceTimingConfig as () => Promise<
       ApiResponse<AttendanceTimingSettingsConfig>
-    >
+    >,
   );
 
   const reportDetails = useMemo(
     () => toRecord(reportDetailsResponse?.data),
-    [reportDetailsResponse]
+    [reportDetailsResponse],
   );
 
   const eventDetails = useMemo(
     () => toRecord(eventDetailsResponse?.data),
-    [eventDetailsResponse]
+    [eventDetailsResponse],
   );
 
   const eventName = useMemo(
@@ -884,9 +893,9 @@ const EventReportDetails = () => {
         reportDetails.eventName,
         eventDetails.event_name,
         eventDetails.name,
-        `Event ${reportEventId}`
+        `Event ${reportEventId}`,
       ),
-    [eventDetails, eventNameFromQuery, reportDetails, reportEventId]
+    [eventDetails, eventNameFromQuery, reportDetails, reportEventId],
   );
 
   const eventStartDate = useMemo(
@@ -896,10 +905,15 @@ const EventReportDetails = () => {
           eventDateFromQuery,
           reportDetails.event_date,
           reportDetails.eventDate,
-          eventDetails.start_date
-        )
+          eventDetails.start_date,
+        ),
       ),
-    [eventDateFromQuery, eventDetails.start_date, reportDetails.eventDate, reportDetails.event_date]
+    [
+      eventDateFromQuery,
+      eventDetails.start_date,
+      reportDetails.eventDate,
+      reportDetails.event_date,
+    ],
   );
 
   const effectiveReportDate =
@@ -911,33 +925,40 @@ const EventReportDetails = () => {
         reportDetails.start_time,
         reportDetails.startTime,
         eventDetails.start_time,
-        eventDetails.startTime
+        eventDetails.startTime,
       ),
     [
       eventDetails.startTime,
       eventDetails.start_time,
       reportDetails.startTime,
       reportDetails.start_time,
-    ]
+    ],
   );
 
   const eventStartDateTime = useMemo(
-    () => buildEventStartDateTime(effectiveReportDate || eventStartDate, eventStartTime),
-    [effectiveReportDate, eventStartDate, eventStartTime]
+    () =>
+      buildEventStartDateTime(
+        effectiveReportDate || eventStartDate,
+        eventStartTime,
+      ),
+    [effectiveReportDate, eventStartDate, eventStartTime],
   );
 
   const attendanceTimingConfig = useMemo(
-    () => attendanceTimingConfigResponse?.data || DEFAULT_ATTENDANCE_TIMING_CONFIG,
-    [attendanceTimingConfigResponse]
+    () =>
+      attendanceTimingConfigResponse?.data || DEFAULT_ATTENDANCE_TIMING_CONFIG,
+    [attendanceTimingConfigResponse],
   );
 
   const attendanceTimingRuleMinutes = useMemo<AttendanceTimingRuleMinutes>(
     () => ({
       early: normalizeTimingRuleMinutes(attendanceTimingConfig.early?.minutes),
-      onTime: normalizeTimingRuleMinutes(attendanceTimingConfig.on_time?.minutes),
+      onTime: normalizeTimingRuleMinutes(
+        attendanceTimingConfig.on_time?.minutes,
+      ),
       late: normalizeTimingRuleMinutes(attendanceTimingConfig.late?.minutes),
     }),
-    [attendanceTimingConfig]
+    [attendanceTimingConfig],
   );
 
   const eventIdTokens = useMemo(() => {
@@ -963,7 +984,10 @@ const EventReportDetails = () => {
 
     return records.filter((record) => {
       if (record.eventId && eventIdTokens.has(record.eventId)) return true;
-      if (record.eventName && record.eventName.toLowerCase() === eventName.toLowerCase()) {
+      if (
+        record.eventName &&
+        record.eventName.toLowerCase() === eventName.toLowerCase()
+      ) {
         return true;
       }
       return false;
@@ -1000,9 +1024,9 @@ const EventReportDetails = () => {
   const attendanceForSelectedDate = useMemo(
     () =>
       normalizedAttendanceRecords.filter((record) =>
-        selectedDate ? record.date === selectedDate : true
+        selectedDate ? record.date === selectedDate : true,
       ),
-    [normalizedAttendanceRecords, selectedDate]
+    [normalizedAttendanceRecords, selectedDate],
   );
 
   const attendanceTotals = useMemo<AttendanceTotals>(() => {
@@ -1037,7 +1061,7 @@ const EventReportDetails = () => {
         visitorTotal: { male: 0, female: 0, total: 0 },
         totalWithoutVisitors: 0,
         totalAttendance: 0,
-      }
+      },
     );
 
     totals.totalWithoutVisitors =
@@ -1066,12 +1090,14 @@ const EventReportDetails = () => {
     const grouped = new Map<string, Map<string, DepartmentAttendee>>();
 
     fallbackDepartmentAttendees.forEach((attendee) => {
-      const key = attendee.departmentId || attendee.departmentName || "UNASSIGNED";
+      const key =
+        attendee.departmentId || attendee.departmentName || "UNASSIGNED";
       const bucket = grouped.get(key) || new Map<string, DepartmentAttendee>();
       const attendeeKey = attendee.userId || attendee.id;
       const existing = bucket.get(attendeeKey);
       const attendeeArrivalKey = attendee.arrivalAt || attendee.arrivalTime;
-      const existingArrivalKey = existing?.arrivalAt || existing?.arrivalTime || "";
+      const existingArrivalKey =
+        existing?.arrivalAt || existing?.arrivalTime || "";
 
       if (!existing || attendeeArrivalKey < existingArrivalKey) {
         bucket.set(attendeeKey, attendee);
@@ -1080,20 +1106,19 @@ const EventReportDetails = () => {
       grouped.set(key, bucket);
     });
 
-    return Array.from(grouped.entries()).reduce<Record<string, DepartmentAttendee[]>>(
-      (accumulator, [key, attendees]) => {
-        accumulator[key] = Array.from(attendees.values());
-        return accumulator;
-      },
-      {}
-    );
+    return Array.from(grouped.entries()).reduce<
+      Record<string, DepartmentAttendee[]>
+    >((accumulator, [key, attendees]) => {
+      accumulator[key] = Array.from(attendees.values());
+      return accumulator;
+    }, {});
   }, [fallbackDepartmentAttendees]);
 
   const backendDepartmentSections = useMemo<DepartmentSection[]>(() => {
     return toArray(
       reportDetails.departments ??
         reportDetails.department_overview ??
-        reportDetails.departmentOverview
+        reportDetails.departmentOverview,
     )
       .map((item) => {
         const record = toRecord(item);
@@ -1103,21 +1128,21 @@ const EventReportDetails = () => {
             record.department_head ??
             record.departmentHead ??
             record.hod ??
-            record.department_head_info
+            record.department_head_info,
         );
 
         const id = firstNonEmptyString(
           record.department_id,
           record.departmentId,
           record.id,
-          departmentRecord.id
+          departmentRecord.id,
         );
 
         const name = firstNonEmptyString(
           record.department_name,
           record.departmentName,
           record.name,
-          departmentRecord.name
+          departmentRecord.name,
         );
 
         if (!id && !name) {
@@ -1125,29 +1150,33 @@ const EventReportDetails = () => {
         }
 
         const attendees = toArray(
-          record.attendees ?? record.members ?? record.department_members
+          record.attendees ?? record.members ?? record.department_members,
         )
           .map((attendee) => normalizeAttendeeRecord(attendee))
-          .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
+          .filter((attendee): attendee is DepartmentAttendee =>
+            Boolean(attendee),
+          );
         const totalMembers =
           toOptionalNumberValue(
             record.total_members ??
               record.totalMembers ??
               record.member_count ??
-              record.memberCount
+              record.memberCount,
           ) ?? attendees.length;
         const derivedPresentMembers = attendees.filter(
-          (attendee) => attendee.attendanceStatus !== "ABSENT"
+          (attendee) => attendee.attendanceStatus !== "ABSENT",
         ).length;
         const presentMembers =
-          toOptionalNumberValue(record.present_members ?? record.presentMembers) ??
-          derivedPresentMembers;
+          toOptionalNumberValue(
+            record.present_members ?? record.presentMembers,
+          ) ?? derivedPresentMembers;
         const absentMembers =
-          toOptionalNumberValue(record.absent_members ?? record.absentMembers) ??
-          Math.max(totalMembers - presentMembers, 0);
+          toOptionalNumberValue(
+            record.absent_members ?? record.absentMembers,
+          ) ?? Math.max(totalMembers - presentMembers, 0);
         const attendancePercentage =
           toOptionalNumberValue(
-            record.attendance_percentage ?? record.attendancePercentage
+            record.attendance_percentage ?? record.attendancePercentage,
           ) ?? (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
 
         return {
@@ -1159,7 +1188,7 @@ const EventReportDetails = () => {
             record.hod_name,
             record.hodName,
             headRecord.name,
-            "No head assigned"
+            "No head assigned",
           ),
           headUserId: firstNonEmptyString(
             record.head_user_id,
@@ -1167,7 +1196,7 @@ const EventReportDetails = () => {
             record.department_head,
             record.hod_user_id,
             record.hodUserId,
-            headRecord.id
+            headRecord.id,
           ),
           attendees,
           totalMembers,
@@ -1176,7 +1205,9 @@ const EventReportDetails = () => {
           attendancePercentage,
         } satisfies DepartmentSection;
       })
-      .filter((department): department is DepartmentSection => Boolean(department));
+      .filter((department): department is DepartmentSection =>
+        Boolean(department),
+      );
   }, [reportDetails]);
 
   const departmentSections = useMemo(() => {
@@ -1190,7 +1221,10 @@ const EventReportDetails = () => {
     const usedFallbackKeys = new Set<string>();
     const sectionList: DepartmentSection[] = departments.map((department) => {
       const departmentId = String(department.id);
-      const departmentName = firstNonEmptyString(department.name, "Unnamed Department");
+      const departmentName = firstNonEmptyString(
+        department.name,
+        "Unnamed Department",
+      );
       const attendees =
         fallbackAttendeesByDepartment[departmentId] ||
         fallbackAttendeesByDepartment[departmentName] ||
@@ -1212,11 +1246,11 @@ const EventReportDetails = () => {
         name: departmentName,
         headName: firstNonEmptyString(
           department.department_head_info?.name,
-          "No head assigned"
+          "No head assigned",
         ),
         headUserId: firstNonEmptyString(
           department.department_head,
-          department.department_head_info?.id
+          department.department_head_info?.id,
         ),
         attendees,
         totalMembers,
@@ -1226,27 +1260,36 @@ const EventReportDetails = () => {
       };
     });
 
-    Object.entries(fallbackAttendeesByDepartment).forEach(([key, attendees]) => {
-      if (usedFallbackKeys.has(key)) return;
+    Object.entries(fallbackAttendeesByDepartment).forEach(
+      ([key, attendees]) => {
+        if (usedFallbackKeys.has(key)) return;
 
-      const presentMembers = attendees.length;
-      sectionList.push({
-        id: key,
-        name: attendees[0]?.departmentName || "Unassigned",
-        headName: "No head assigned",
-        headUserId: "",
-        attendees,
-        totalMembers: presentMembers,
-        presentMembers,
-        absentMembers: 0,
-        attendancePercentage: presentMembers > 0 ? 100 : 0,
-      });
-    });
+        const presentMembers = attendees.length;
+        sectionList.push({
+          id: key,
+          name: attendees[0]?.departmentName || "Unassigned",
+          headName: "No head assigned",
+          headUserId: "",
+          attendees,
+          totalMembers: presentMembers,
+          presentMembers,
+          absentMembers: 0,
+          attendancePercentage: presentMembers > 0 ? 100 : 0,
+        });
+      },
+    );
 
     return sectionList
-      .filter((department) => department.totalMembers > 0 || department.presentMembers > 0)
+      .filter(
+        (department) =>
+          department.totalMembers > 0 || department.presentMembers > 0,
+      )
       .sort((first, second) => first.name.localeCompare(second.name));
-  }, [backendDepartmentSections, departmentsResponse?.data, fallbackAttendeesByDepartment]);
+  }, [
+    backendDepartmentSections,
+    departmentsResponse?.data,
+    fallbackAttendeesByDepartment,
+  ]);
 
   const departmentInsightRows = useMemo<DepartmentInsightRow[]>(() => {
     const reportDate = effectiveReportDate || eventStartDate;
@@ -1275,7 +1318,7 @@ const EventReportDetails = () => {
           const minutesFromStart =
             eventStartDateTime && arrivalDateTime.isValid
               ? Math.round(
-                  arrivalDateTime.diff(eventStartDateTime, "minutes").minutes
+                  arrivalDateTime.diff(eventStartDateTime, "minutes").minutes,
                 )
               : null;
 
@@ -1303,7 +1346,7 @@ const EventReportDetails = () => {
               getTimingStatus(minutesFromStart, attendanceTimingRuleMinutes),
             arrivalSortValue,
           } satisfies DepartmentInsightRow;
-        })
+        }),
       )
       .sort((left, right) => {
         if (left.arrivalSortValue !== null && right.arrivalSortValue !== null) {
@@ -1324,10 +1367,13 @@ const EventReportDetails = () => {
   ]);
 
   const departmentInsightRowsByAttendeeKey = useMemo(() => {
-    return departmentInsightRows.reduce<Map<string, DepartmentInsightRow>>((map, row) => {
-      map.set(row.id, row);
-      return map;
-    }, new Map<string, DepartmentInsightRow>());
+    return departmentInsightRows.reduce<Map<string, DepartmentInsightRow>>(
+      (map, row) => {
+        map.set(row.id, row);
+        return map;
+      },
+      new Map<string, DepartmentInsightRow>(),
+    );
   }, [departmentInsightRows]);
 
   const departmentFilterOptions = useMemo(
@@ -1338,12 +1384,12 @@ const EventReportDetails = () => {
           name: department.name,
         }))
         .sort((left, right) => left.name.localeCompare(right.name)),
-    [departmentSections]
+    [departmentSections],
   );
 
   const insightRelativeHoursValue = useMemo(
     () => Math.max(toNumberValue(insightRelativeHours), 0),
-    [insightRelativeHours]
+    [insightRelativeHours],
   );
 
   const filteredDepartmentInsightRows = useMemo(() => {
@@ -1404,9 +1450,9 @@ const EventReportDetails = () => {
           late: 0,
           absent: 0,
           unclassified: 0,
-        }
+        },
       ),
-    [filteredDepartmentInsightRows]
+    [filteredDepartmentInsightRows],
   );
 
   const normalizedDataSearchTerm = dataSearchTerm.trim().toLowerCase();
@@ -1429,7 +1475,7 @@ const EventReportDetails = () => {
         const visibleAttendees = departmentMatches
           ? department.attendees
           : department.attendees.filter((attendee) =>
-              attendee.name.toLowerCase().includes(normalizedDataSearchTerm)
+              attendee.name.toLowerCase().includes(normalizedDataSearchTerm),
             );
 
         if (!departmentMatches && visibleAttendees.length === 0) {
@@ -1442,8 +1488,8 @@ const EventReportDetails = () => {
           visibleCount: visibleAttendees.length,
         };
       })
-      .filter(
-        (department): department is DepartmentDataSectionView => Boolean(department)
+      .filter((department): department is DepartmentDataSectionView =>
+        Boolean(department),
       );
   }, [departmentSections, normalizedDataSearchTerm]);
 
@@ -1459,7 +1505,8 @@ const EventReportDetails = () => {
   }, [departmentSections]);
 
   useEffect(() => {
-    if (!normalizedDataSearchTerm || dataDepartmentSections.length === 0) return;
+    if (!normalizedDataSearchTerm || dataDepartmentSections.length === 0)
+      return;
 
     setOpenDepartments((current) => {
       const next = { ...current };
@@ -1474,12 +1521,12 @@ const EventReportDetails = () => {
     const churchRecord = toRecord(
       reportDetails.church_attendance ??
         reportDetails.churchAttendance ??
-        reportDetails.attendance
+        reportDetails.attendance,
     );
 
     return buildApprovalState(
       churchRecord.approval ?? churchRecord,
-      toBooleanValue(churchRecord.can_current_user_approve)
+      toBooleanValue(churchRecord.can_current_user_approve),
     );
   }, [reportDetails]);
 
@@ -1490,83 +1537,75 @@ const EventReportDetails = () => {
       toRecord(
         reportDetails.finance ??
           reportDetails.financial_summary ??
-          reportDetails.financialSummary
+          reportDetails.financialSummary,
       ),
-    [reportDetails]
+    [reportDetails],
   );
 
   useEffect(() => {
     const normalizedIncome = normalizeFinanceLineItems(
       financeRecord.income ?? financeRecord.incomes,
-      "income"
+      "income",
     );
     const normalizedExpense = normalizeFinanceLineItems(
       financeRecord.expense ?? financeRecord.expenses,
-      "expense"
+      "expense",
     );
 
     setIncomeItems(normalizedIncome);
     setExpenseItems(normalizedExpense);
   }, [financeRecord]);
 
-  const baseCountingLeaderApproval = useMemo(() => {
+  const baseFinanceApproval = useMemo(() => {
     const approvalsRecord = toRecord(financeRecord.approvals);
 
     return buildApprovalState(
-      financeRecord.counting_leader_approval ??
+      financeRecord.approval ??
+        financeRecord.financeApproval ??
+        financeRecord.counting_leader_approval ??
         financeRecord.countingLeaderApproval ??
-        approvalsRecord.counting_leader ??
-        approvalsRecord.countingLeader,
-      false
-    );
-  }, [financeRecord]);
-
-  const baseFinanceRepApproval = useMemo(() => {
-    const approvalsRecord = toRecord(financeRecord.approvals);
-
-    return buildApprovalState(
-      financeRecord.finance_rep_approval ??
+        financeRecord.finance_rep_approval ??
         financeRecord.financeRepApproval ??
+        approvalsRecord.counting_leader ??
+        approvalsRecord.countingLeader ??
         approvalsRecord.finance_rep ??
         approvalsRecord.financeRep,
-      false
+      false,
     );
   }, [financeRecord]);
 
-  const countingLeaderApproval =
-    financeApprovalOverrides.countingLeader || baseCountingLeaderApproval;
-  const financeRepApproval = financeApprovalOverrides.financeRep || baseFinanceRepApproval;
+  const financeApproval = financeApprovalOverride || baseFinanceApproval;
 
-  const countingLeaderName = firstNonEmptyString(
+  const financeApproverName = firstNonEmptyString(
+    financeRecord.approver_name,
+    financeRecord.approverName,
     financeRecord.counting_leader_name,
     financeRecord.countingLeaderName,
-    "Counting Leader"
-  );
-  const financeRepName = firstNonEmptyString(
     financeRecord.finance_rep_name,
     financeRecord.financeRepName,
-    "Finance Rep"
+    "Financial Report Approver",
   );
 
   const totalIncome = useMemo(
     () => incomeItems.reduce((sum, item) => sum + item.amount, 0),
-    [incomeItems]
+    [incomeItems],
   );
   const totalExpense = useMemo(
     () => expenseItems.reduce((sum, item) => sum + item.amount, 0),
-    [expenseItems]
+    [expenseItems],
   );
   const incomeSurplus = totalIncome - totalExpense;
 
   const departmentPresenceSeries = useMemo(() => {
     const sortedDepartments = [...departmentSections].sort(
-      (first, second) => second.attendancePercentage - first.attendancePercentage
+      (first, second) =>
+        second.attendancePercentage - first.attendancePercentage,
     );
 
     return {
       labels: sortedDepartments.map((department) => department.name),
       values: sortedDepartments.map((department) =>
-        Number(department.attendancePercentage.toFixed(1))
+        Number(department.attendancePercentage.toFixed(1)),
       ),
       colors: sortedDepartments.map((department) => {
         if (department.attendancePercentage >= 75) return "#16A34A";
@@ -1579,11 +1618,11 @@ const EventReportDetails = () => {
   const departmentCoverageSummary = useMemo(() => {
     const totalMembers = departmentSections.reduce(
       (total, department) => total + department.totalMembers,
-      0
+      0,
     );
     const presentMembers = departmentSections.reduce(
       (total, department) => total + department.presentMembers,
-      0
+      0,
     );
     const absentMembers = Math.max(totalMembers - presentMembers, 0);
 
@@ -1614,7 +1653,7 @@ const EventReportDetails = () => {
         attendanceTotals.visitorClergy.female,
       ],
     }),
-    [attendanceTotals]
+    [attendanceTotals],
   );
 
   const attendanceTrendSeries = useMemo(() => {
@@ -1632,12 +1671,12 @@ const EventReportDetails = () => {
 
       totalsByDate.set(
         record.date,
-        (totalsByDate.get(record.date) || 0) + attendanceWithoutVisitors
+        (totalsByDate.get(record.date) || 0) + attendanceWithoutVisitors,
       );
     });
 
     const trendDates = Array.from(
-      new Set([...availableDates, ...Array.from(totalsByDate.keys())])
+      new Set([...availableDates, ...Array.from(totalsByDate.keys())]),
     ).sort((first, second) => first.localeCompare(second));
 
     return {
@@ -1656,7 +1695,7 @@ const EventReportDetails = () => {
         .filter((item) => item.value > 0)
         .sort((first, second) => second.value - first.value)
         .slice(0, 8),
-    [incomeItems]
+    [incomeItems],
   );
 
   const expenseBreakdownSeries = useMemo(
@@ -1669,7 +1708,7 @@ const EventReportDetails = () => {
         .filter((item) => item.value > 0)
         .sort((first, second) => second.value - first.value)
         .slice(0, 8),
-    [expenseItems]
+    [expenseItems],
   );
 
   const horizontalBarOptions = useMemo(
@@ -1692,7 +1731,7 @@ const EventReportDetails = () => {
         },
       },
     }),
-    []
+    [],
   );
 
   const stackedBarOptions = useMemo(
@@ -1717,7 +1756,7 @@ const EventReportDetails = () => {
         },
       },
     }),
-    []
+    [],
   );
 
   const lineChartOptions = useMemo(
@@ -1738,7 +1777,7 @@ const EventReportDetails = () => {
         },
       },
     }),
-    []
+    [],
   );
 
   const doughnutOptions = useMemo(
@@ -1751,23 +1790,21 @@ const EventReportDetails = () => {
         },
       },
     }),
-    []
+    [],
   );
 
-  const financeApprovalsComplete =
-    countingLeaderApproval.status === "APPROVED" &&
-    financeRepApproval.status === "APPROVED";
+  const financeApprovalComplete = financeApproval.status === "APPROVED";
 
   const checklistReadyForFinalApproval =
-    churchApproval.status === "APPROVED" && financeApprovalsComplete;
+    churchApproval.status === "APPROVED" && financeApprovalComplete;
 
   const baseFinalApproval = useMemo<FinalApprovalState>(() => {
     const finalRecord = toRecord(
-      reportDetails.final_approval ?? reportDetails.finalApproval
+      reportDetails.final_approval ?? reportDetails.finalApproval,
     );
 
     const viewers = toArray(
-      reportDetails.final_viewers ?? reportDetails.finalViewers
+      reportDetails.final_viewers ?? reportDetails.finalViewers,
     )
       .map((viewer) => {
         const record = toRecord(viewer);
@@ -1777,26 +1814,28 @@ const EventReportDetails = () => {
 
     return {
       status: normalizeFinalApprovalStatus(
-        finalRecord.status ?? finalRecord.approval_status ?? finalRecord.approvalStatus
+        finalRecord.status ??
+          finalRecord.approval_status ??
+          finalRecord.approvalStatus,
       ),
       approverName: firstNonEmptyString(
         finalRecord.approver_name,
         finalRecord.approverName,
         reportDetails.executive_pastor_name,
         reportDetails.executivePastorName,
-        "Executive Pastor"
+        "Executive Pastor",
       ),
       actedByName: firstNonEmptyString(
         finalRecord.acted_by_name,
         finalRecord.actedByName,
         finalRecord.approved_by_name,
-        finalRecord.approvedByName
+        finalRecord.approvedByName,
       ),
       actedAt: firstNonEmptyString(
         finalRecord.acted_at,
         finalRecord.actedAt,
         finalRecord.approved_at,
-        finalRecord.approvedAt
+        finalRecord.approvedAt,
       ),
       canCurrentUserSubmit:
         toOptionalBooleanValue(finalRecord.can_current_user_submit) ??
@@ -1813,10 +1852,7 @@ const EventReportDetails = () => {
   const finalApproval = finalApprovalOverride || baseFinalApproval;
 
   const finalApprovalStatus = useMemo<FinalApprovalStatus>(() => {
-    if (
-      finalApproval.status === "WAITING" &&
-      !checklistReadyForFinalApproval
-    ) {
+    if (finalApproval.status === "WAITING" && !checklistReadyForFinalApproval) {
       return "WAITING";
     }
 
@@ -1827,7 +1863,7 @@ const EventReportDetails = () => {
     type: "income" | "expense",
     idToUpdate: string,
     field: "name" | "amount",
-    value: string
+    value: string,
   ) => {
     const applyUpdate = (items: FinanceLineItem[]) =>
       items.map((item) => {
@@ -1854,7 +1890,10 @@ const EventReportDetails = () => {
     setExpenseItems((current) => applyUpdate(current));
   };
 
-  const removeFinanceLineItem = (type: "income" | "expense", idToRemove: string) => {
+  const removeFinanceLineItem = (
+    type: "income" | "expense",
+    idToRemove: string,
+  ) => {
     const applyRemove = (items: FinanceLineItem[]) => {
       const next = items.filter((item) => item.id !== idToRemove);
       if (next.length === 0) {
@@ -1871,7 +1910,9 @@ const EventReportDetails = () => {
     setExpenseItems((current) => applyRemove(current));
   };
 
-  const buildApprovedState = (canCurrentUserApprove = false): ApprovalState => ({
+  const buildApprovedState = (
+    canCurrentUserApprove = false,
+  ): ApprovalState => ({
     status: "APPROVED",
     approvedByName: user.name || "Current User",
     approvedByUserId: user.id,
@@ -1883,7 +1924,7 @@ const EventReportDetails = () => {
     if (!churchApproval.canCurrentUserApprove) {
       showNotification(
         "You do not have access to approve church attendance for this report.",
-        "error"
+        "error",
       );
       return;
     }
@@ -1902,7 +1943,7 @@ const EventReportDetails = () => {
     } catch {
       showNotification(
         "Church attendance approval captured locally. Backend endpoint is pending.",
-        "error"
+        "error",
       );
     } finally {
       setChurchApprovalOverride(buildApprovedState(false));
@@ -1910,21 +1951,20 @@ const EventReportDetails = () => {
     }
   };
 
-  const handleFinanceApproval = async (role: "COUNTING_LEADER" | "FINANCE_REP") => {
-    const targetApproval =
-      role === "COUNTING_LEADER" ? countingLeaderApproval : financeRepApproval;
-
-    if (!targetApproval.canCurrentUserApprove) {
-      showNotification("You do not have access to approve this finance role.", "error");
+  const handleFinanceApproval = async () => {
+    if (!financeApproval.canCurrentUserApprove) {
+      showNotification(
+        "You do not have access to approve the finance section for this report.",
+        "error",
+      );
       return;
     }
 
-    setFinanceActionLoadingRole(role);
+    setIsApprovingFinance(true);
 
     try {
       await api.post.approveEventReportFinance({
         event_id: reportEventId,
-        role,
         action: "APPROVE",
         event_date: effectiveReportDate,
       });
@@ -1933,18 +1973,12 @@ const EventReportDetails = () => {
       void refetchReportDetails(reportDetailsQuery);
     } catch {
       showNotification(
-        "Finance approval captured locally. Backend endpoint is pending.",
-        "error"
+        "Finance approval could not be saved right now.",
+        "error",
       );
     } finally {
-      setFinanceApprovalOverrides((current) => ({
-        ...current,
-        ...(role === "COUNTING_LEADER"
-          ? { countingLeader: buildApprovedState(false) }
-          : { financeRep: buildApprovedState(false) }),
-      }));
-
-      setFinanceActionLoadingRole("");
+      setFinanceApprovalOverride(buildApprovedState(false));
+      setIsApprovingFinance(false);
     }
   };
 
@@ -1964,7 +1998,7 @@ const EventReportDetails = () => {
     } catch {
       showNotification(
         "Financial summary saved locally. Backend endpoint is pending.",
-        "error"
+        "error",
       );
     } finally {
       setIsSavingFinance(false);
@@ -1974,8 +2008,8 @@ const EventReportDetails = () => {
   const handleSubmitFinalApproval = async () => {
     if (!checklistReadyForFinalApproval) {
       showNotification(
-        "Church attendance and finance approvals must be completed before final approval submission.",
-        "error"
+        "Church attendance and finance approval must be completed before final approval submission.",
+        "error",
       );
       return;
     }
@@ -1983,7 +2017,7 @@ const EventReportDetails = () => {
     if (!finalApproval.canCurrentUserSubmit) {
       showNotification(
         "You do not have access to submit this report for final approval.",
-        "error"
+        "error",
       );
       return;
     }
@@ -1997,14 +2031,14 @@ const EventReportDetails = () => {
       });
 
       showNotification(
-        "Report submitted to the Executive Pastor for final approval.",
-        "success"
+        "Report submitted for final approval.",
+        "success",
       );
       void refetchReportDetails(reportDetailsQuery);
     } catch {
       showNotification(
         "Final approval submission captured locally. Backend endpoint is pending.",
-        "error"
+        "error",
       );
     } finally {
       setFinalApprovalOverride({
@@ -2018,7 +2052,10 @@ const EventReportDetails = () => {
 
   const handleFinalDecision = async (decision: "APPROVE" | "REJECT") => {
     if (!finalApproval.canCurrentUserApprove) {
-      showNotification("You do not have access to make the final decision.", "error");
+      showNotification(
+        "You do not have access to make the final decision.",
+        "error",
+      );
       return;
     }
 
@@ -2033,13 +2070,13 @@ const EventReportDetails = () => {
 
       showNotification(
         `Report ${decision === "APPROVE" ? "approved" : "rejected"} successfully.`,
-        "success"
+        "success",
       );
       void refetchReportDetails(reportDetailsQuery);
     } catch {
       showNotification(
         "Final decision captured locally. Backend endpoint is pending.",
-        "error"
+        "error",
       );
     } finally {
       setFinalApprovalOverride({
@@ -2123,7 +2160,8 @@ const EventReportDetails = () => {
 
         {reportDetailsError && (
           <p className="rounded-lg bg-[#FFF7E6] px-3 py-2 text-sm text-[#996A13]">
-            Event report backend payload is unavailable. Approvals and finance changes are currently local until backend endpoints are connected.
+            Event report backend payload is unavailable. Approvals and finance
+            changes are currently local until backend endpoints are connected.
           </p>
         )}
       </section>
@@ -2131,7 +2169,9 @@ const EventReportDetails = () => {
       <section className="mt-6 space-y-3 rounded-xl border border-lightGray bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-semibold text-primary">Report View</h2>
-          <span className="text-xs text-primaryGray">{activeReportViewTab}</span>
+          <span className="text-xs text-primaryGray">
+            {activeReportViewTab}
+          </span>
         </div>
 
         <TabSelection
@@ -2148,1004 +2188,1110 @@ const EventReportDetails = () => {
         </p>
       </section>
 
-      <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-primary">Department Overview</h2>
+      <section className="mt-6 space-y-3 rounded-xl border border-lightGray bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-semibold text-primary">
+            Report Sections
+          </h2>
           <span className="text-xs text-primaryGray">
-            {countFormatter.format(departmentCoverageSummary.presentMembers)} present out of{" "}
-            {countFormatter.format(departmentCoverageSummary.totalMembers)} members (
-            {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%)
+            {activeReportSectionTab}
           </span>
         </div>
 
-        {departmentSections.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-            No departmental data found for this event.
-          </p>
-        ) : (
-          <>
-            {activeReportViewTab === "Insight" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <label className="space-y-1 text-sm">
-                    <span className="block text-xs font-medium text-primaryGray">
-                      Department
-                    </span>
-                    <select
-                      className="h-10 w-full rounded-lg border border-lightGray px-3"
-                      value={insightDepartmentFilter}
-                      onChange={(event) =>
-                        setInsightDepartmentFilter(event.target.value)
-                      }
-                    >
-                      <option value="ALL">All departments</option>
-                      {departmentFilterOptions.map((department) => (
-                        <option key={department.id} value={department.id}>
-                          {department.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+        <TabSelection
+          tabs={[...reportSectionTabs]}
+          selectedTab={activeReportSectionTab}
+          onTabSelect={setActiveReportSectionTab}
+        />
 
-                  <label className="space-y-1 text-sm">
-                    <span className="block text-xs font-medium text-primaryGray">
-                      Timing Status
-                    </span>
-                    <select
-                      className="h-10 w-full rounded-lg border border-lightGray px-3"
-                      value={insightTimingStatusFilter}
-                      onChange={(event) =>
-                        setInsightTimingStatusFilter(
-                          event.target.value as TimingStatusFilter
-                        )
-                      }
-                    >
-                      <option value="ALL">All statuses</option>
-                      <option value="EARLY">Early</option>
-                      <option value="ON_TIME">On Time</option>
-                      <option value="LATE">Late</option>
-                      <option value="ABSENT">Absent</option>
-                    </select>
-                  </label>
+        <p className="text-xs text-primaryGray">
+          {activeReportSectionTab === "Department Overview" &&
+            "Department coverage, member attendance records, and timing insights."}
+          {activeReportSectionTab === "Church Attendance" &&
+            "Church-wide attendance totals, composition, and approval status."}
+          {activeReportSectionTab === "Finance" &&
+            "Income, expenses, approvals, and financial performance insights."}
+        </p>
+      </section>
 
-                  <label className="space-y-1 text-sm">
-                    <span className="block text-xs font-medium text-primaryGray">
-                      Relative Filter
-                    </span>
-                    <select
-                      className="h-10 w-full rounded-lg border border-lightGray px-3"
-                      value={insightRelativeDirection}
-                      onChange={(event) =>
-                        setInsightRelativeDirection(
-                          event.target.value as RelativeDirectionFilter
-                        )
-                      }
-                    >
-                      <option value="ALL">No time filter</option>
-                      <option value="BEFORE">Before start</option>
-                      <option value="AFTER">After start</option>
-                    </select>
-                  </label>
+      {activeReportSectionTab === "Department Overview" && (
+        <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-primary">
+              Department Overview
+            </h2>
+            <span className="text-xs text-primaryGray">
+              {countFormatter.format(departmentCoverageSummary.presentMembers)}{" "}
+              present out of{" "}
+              {countFormatter.format(departmentCoverageSummary.totalMembers)}{" "}
+              members (
+              {percentFormatter.format(
+                departmentCoverageSummary.attendancePercentage,
+              )}
+              %)
+            </span>
+          </div>
 
-                  <label className="space-y-1 text-sm">
-                    <span className="block text-xs font-medium text-primaryGray">
-                      Hours from Start
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      className="h-10 w-full rounded-lg border border-lightGray px-3"
-                      value={insightRelativeHours}
-                      onChange={(event) => setInsightRelativeHours(event.target.value)}
-                    />
-                  </label>
-                </div>
-
-                <div className="rounded-lg border border-lightGray bg-gray-50 px-3 py-2 text-xs text-primaryGray">
-                  {eventStartDateTime ? (
-                    <>
-                      Timing is measured against the event start at{" "}
-                      <span className="font-medium text-primary">
-                        {eventStartDateTime.toFormat("dd LLL yyyy, HH:mm")}
+          {departmentSections.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+              No departmental data found for this event.
+            </p>
+          ) : (
+            <>
+              {activeReportViewTab === "Insight" && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-xs font-medium text-primaryGray">
+                        Department
                       </span>
-                      . Early starts at {formatMinutesDistance(attendanceTimingRuleMinutes.early)} before, on time stays within{" "}
-                      {formatMinutesDistance(attendanceTimingRuleMinutes.onTime)}, and late starts at{" "}
-                      {formatMinutesDistance(attendanceTimingRuleMinutes.late)} after
-                      the event start.
-                    </>
-                  ) : (
-                    "Timing status needs a valid event start date and time."
-                  )}
-                </div>
+                      <select
+                        className="h-10 w-full rounded-lg border border-lightGray px-3"
+                        value={insightDepartmentFilter}
+                        onChange={(event) =>
+                          setInsightDepartmentFilter(event.target.value)
+                        }
+                      >
+                        <option value="ALL">All departments</option>
+                        {departmentFilterOptions.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <article className="rounded-lg border border-lightGray p-3">
-                    <p className="text-xs text-primaryGray">Early</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {countFormatter.format(departmentInsightSummary.early)}
-                    </p>
-                  </article>
-                  <article className="rounded-lg border border-lightGray p-3">
-                    <p className="text-xs text-primaryGray">On Time</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {countFormatter.format(departmentInsightSummary.onTime)}
-                    </p>
-                  </article>
-                  <article className="rounded-lg border border-lightGray p-3">
-                    <p className="text-xs text-primaryGray">Late</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {countFormatter.format(departmentInsightSummary.late)}
-                    </p>
-                  </article>
-                  <article className="rounded-lg border border-lightGray p-3">
-                    <p className="text-xs text-primaryGray">Matching Members</p>
-                    <p className="text-lg font-semibold text-primary">
-                      {countFormatter.format(filteredDepartmentInsightRows.length)}
-                    </p>
-                  </article>
-                </div>
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-xs font-medium text-primaryGray">
+                        Timing Status
+                      </span>
+                      <select
+                        className="h-10 w-full rounded-lg border border-lightGray px-3"
+                        value={insightTimingStatusFilter}
+                        onChange={(event) =>
+                          setInsightTimingStatusFilter(
+                            event.target.value as TimingStatusFilter,
+                          )
+                        }
+                      >
+                        <option value="ALL">All statuses</option>
+                        <option value="EARLY">Early</option>
+                        <option value="ON_TIME">On Time</option>
+                        <option value="LATE">Late</option>
+                        <option value="ABSENT">Absent</option>
+                      </select>
+                    </label>
 
-                {departmentInsightSummary.unclassified > 0 && (
-                  <p className="text-xs text-primaryGray">
-                    {countFormatter.format(departmentInsightSummary.unclassified)}{" "}
-                    records could not be classified because the event start time or
-                    arrival timestamp was incomplete.
-                  </p>
-                )}
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-xs font-medium text-primaryGray">
+                        Relative Filter
+                      </span>
+                      <select
+                        className="h-10 w-full rounded-lg border border-lightGray px-3"
+                        value={insightRelativeDirection}
+                        onChange={(event) =>
+                          setInsightRelativeDirection(
+                            event.target.value as RelativeDirectionFilter,
+                          )
+                        }
+                      >
+                        <option value="ALL">No time filter</option>
+                        <option value="BEFORE">Before start</option>
+                        <option value="AFTER">After start</option>
+                      </select>
+                    </label>
 
-                {departmentInsightSummary.absent > 0 && (
-                  <p className="text-xs text-primaryGray">
-                    {countFormatter.format(departmentInsightSummary.absent)} members
-                    were marked absent by the report payload.
-                  </p>
-                )}
-
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-                    <p className="text-sm font-medium text-primary">
-                      Department Attendance Rate
-                    </p>
-                    <div className="mt-3 h-72">
-                      <Bar
-                        data={{
-                          labels: departmentPresenceSeries.labels,
-                          datasets: [
-                            {
-                              label: "Attendance %",
-                              data: departmentPresenceSeries.values,
-                              backgroundColor: departmentPresenceSeries.colors,
-                              borderRadius: 6,
-                              maxBarThickness: 28,
-                            },
-                          ],
-                        }}
-                        options={horizontalBarOptions}
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-xs font-medium text-primaryGray">
+                        Hours from Start
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        className="h-10 w-full rounded-lg border border-lightGray px-3"
+                        value={insightRelativeHours}
+                        onChange={(event) =>
+                          setInsightRelativeHours(event.target.value)
+                        }
                       />
-                    </div>
-                  </article>
-
-                  <article className="rounded-lg border border-lightGray p-3">
-                    <p className="text-sm font-medium text-primary">
-                      Overall Department Coverage
-                    </p>
-                    <div className="mt-3 h-72">
-                      <Doughnut
-                        data={{
-                          labels: ["Present", "Absent"],
-                          datasets: [
-                            {
-                              data: [
-                                departmentCoverageSummary.presentMembers,
-                                departmentCoverageSummary.absentMembers,
-                              ],
-                              backgroundColor: ["#16A34A", "#E5E7EB"],
-                            },
-                          ],
-                        }}
-                        options={doughnutOptions}
-                      />
-                    </div>
-                  </article>
-                </div>
-
-                <article className="overflow-hidden rounded-lg border border-lightGray">
-                  <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-4 py-3">
-                    <div>
-                      <p className="font-medium text-primary">
-                        Department Reporting Detail
-                      </p>
-                      <p className="text-xs text-primaryGray">
-                        Member, department, reported time, and timing status.
-                      </p>
-                    </div>
-                    <span className="text-xs text-primaryGray">
-                      {countFormatter.format(filteredDepartmentInsightRows.length)} records
-                    </span>
+                    </label>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full border-t border-lightGray text-sm">
-                      <thead>
-                        <tr className="bg-white">
-                          <th className="px-4 py-3 text-left font-semibold text-primary">
-                            Member
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold text-primary">
-                            Department
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold text-primary">
-                            Reported Time
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold text-primary">
-                            Relative to Start
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold text-primary">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredDepartmentInsightRows.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="px-4 py-4 text-primaryGray"
-                            >
-                              No member records matched the current filters.
-                            </td>
+                  <div className="rounded-lg border border-lightGray bg-gray-50 px-3 py-2 text-xs text-primaryGray">
+                    {eventStartDateTime ? (
+                      <>
+                        Timing is measured against the event start at{" "}
+                        <span className="font-medium text-primary">
+                          {eventStartDateTime.toFormat("dd LLL yyyy, HH:mm")}
+                        </span>
+                        . Early starts at{" "}
+                        {formatMinutesDistance(
+                          attendanceTimingRuleMinutes.early,
+                        )}{" "}
+                        before, on time stays within{" "}
+                        {formatMinutesDistance(
+                          attendanceTimingRuleMinutes.onTime,
+                        )}
+                        , and late starts at{" "}
+                        {formatMinutesDistance(
+                          attendanceTimingRuleMinutes.late,
+                        )}{" "}
+                        after the event start.
+                      </>
+                    ) : (
+                      "Timing status needs a valid event start date and time."
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <article className="rounded-lg border border-lightGray p-3">
+                      <p className="text-xs text-primaryGray">Early</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {countFormatter.format(departmentInsightSummary.early)}
+                      </p>
+                    </article>
+                    <article className="rounded-lg border border-lightGray p-3">
+                      <p className="text-xs text-primaryGray">On Time</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {countFormatter.format(departmentInsightSummary.onTime)}
+                      </p>
+                    </article>
+                    <article className="rounded-lg border border-lightGray p-3">
+                      <p className="text-xs text-primaryGray">Late</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {countFormatter.format(departmentInsightSummary.late)}
+                      </p>
+                    </article>
+                    <article className="rounded-lg border border-lightGray p-3">
+                      <p className="text-xs text-primaryGray">
+                        Matching Members
+                      </p>
+                      <p className="text-lg font-semibold text-primary">
+                        {countFormatter.format(
+                          filteredDepartmentInsightRows.length,
+                        )}
+                      </p>
+                    </article>
+                  </div>
+
+                  {departmentInsightSummary.unclassified > 0 && (
+                    <p className="text-xs text-primaryGray">
+                      {countFormatter.format(
+                        departmentInsightSummary.unclassified,
+                      )}{" "}
+                      records could not be classified because the event start
+                      time or arrival timestamp was incomplete.
+                    </p>
+                  )}
+
+                  {departmentInsightSummary.absent > 0 && (
+                    <p className="text-xs text-primaryGray">
+                      {countFormatter.format(departmentInsightSummary.absent)}{" "}
+                      members were marked absent by the report payload.
+                    </p>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
+                      <p className="text-sm font-medium text-primary">
+                        Department Attendance Rate
+                      </p>
+                      <div className="mt-3 h-72">
+                        <Bar
+                          data={{
+                            labels: departmentPresenceSeries.labels,
+                            datasets: [
+                              {
+                                label: "Attendance %",
+                                data: departmentPresenceSeries.values,
+                                backgroundColor:
+                                  departmentPresenceSeries.colors,
+                                borderRadius: 6,
+                                maxBarThickness: 28,
+                              },
+                            ],
+                          }}
+                          options={horizontalBarOptions}
+                        />
+                      </div>
+                    </article>
+
+                    <article className="rounded-lg border border-lightGray p-3">
+                      <p className="text-sm font-medium text-primary">
+                        Overall Department Coverage
+                      </p>
+                      <div className="mt-3 h-72">
+                        <Doughnut
+                          data={{
+                            labels: ["Present", "Absent"],
+                            datasets: [
+                              {
+                                data: [
+                                  departmentCoverageSummary.presentMembers,
+                                  departmentCoverageSummary.absentMembers,
+                                ],
+                                backgroundColor: ["#16A34A", "#E5E7EB"],
+                              },
+                            ],
+                          }}
+                          options={doughnutOptions}
+                        />
+                      </div>
+                    </article>
+                  </div>
+
+                  <article className="overflow-hidden rounded-lg border border-lightGray">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-4 py-3">
+                      <div>
+                        <p className="font-medium text-primary">
+                          Department Reporting Detail
+                        </p>
+                        <p className="text-xs text-primaryGray">
+                          Member, department, reported time, and timing status.
+                        </p>
+                      </div>
+                      <span className="text-xs text-primaryGray">
+                        {countFormatter.format(
+                          filteredDepartmentInsightRows.length,
+                        )}{" "}
+                        records
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border-t border-lightGray text-sm">
+                        <thead>
+                          <tr className="bg-white">
+                            <th className="px-4 py-3 text-left font-semibold text-primary">
+                              Member
+                            </th>
+                            <th className="px-4 py-3 text-left font-semibold text-primary">
+                              Department
+                            </th>
+                            <th className="px-4 py-3 text-left font-semibold text-primary">
+                              Reported Time
+                            </th>
+                            <th className="px-4 py-3 text-left font-semibold text-primary">
+                              Relative to Start
+                            </th>
+                            <th className="px-4 py-3 text-left font-semibold text-primary">
+                              Status
+                            </th>
                           </tr>
-                        ) : (
-                          filteredDepartmentInsightRows.map((row) => (
-                            <tr
-                              key={row.id}
-                              className="border-t border-lightGray align-top"
-                            >
-                              <td className="px-4 py-3">{row.name}</td>
-                              <td className="px-4 py-3">{row.departmentName}</td>
-                              <td className="px-4 py-3">
-                                <div className="space-y-1">
-                                  <p className="text-primary">{row.arrivalTime}</p>
-                                  {row.reportedAtLabel && (
-                                    <p className="text-xs text-primaryGray">
-                                      {row.reportedAtLabel}
-                                    </p>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">{row.relativeToStartLabel}</td>
-                              <td className="px-4 py-3">
-                                <span
-                                  className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
-                                    row.timingStatus
-                                  )}`}
-                                >
-                                  {timingStatusLabelMap[row.timingStatus]}
-                                </span>
+                        </thead>
+                        <tbody>
+                          {filteredDepartmentInsightRows.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={5}
+                                className="px-4 py-4 text-primaryGray"
+                              >
+                                No member records matched the current filters.
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </article>
-              </div>
-            )}
-
-            {activeReportViewTab === "Data" && (
-              <div className="space-y-3">
-                <div className="flex flex-col gap-3 rounded-lg border border-lightGray p-3 md:flex-row md:items-end md:justify-between">
-                  <label className="w-full max-w-xl space-y-1 text-sm">
-                    <span className="block text-xs font-medium text-primaryGray">
-                      Search Department or Member
-                    </span>
-                    <input
-                      type="text"
-                      className="h-10 w-full rounded-lg border border-lightGray px-3"
-                      placeholder="Search department name or member name"
-                      value={dataSearchTerm}
-                      onChange={(event) => setDataSearchTerm(event.target.value)}
-                    />
-                  </label>
-                  <p className="text-xs text-primaryGray">
-                    {countFormatter.format(dataDepartmentSections.length)} departments
-                    matched
-                  </p>
-                </div>
-
-                {dataDepartmentSections.length === 0 ? (
-                  <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-                    No departments or members matched your search.
-                  </p>
-                ) : (
-                  dataDepartmentSections.map((department) => {
-                  const isOpen = openDepartments[department.id] ?? false;
-
-                  return (
-                    <article
-                      key={department.id}
-                      className="overflow-hidden rounded-lg border border-lightGray"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenDepartments((current) => ({
-                            ...current,
-                            [department.id]: !current[department.id],
-                          }))
-                        }
-                        className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-left"
-                      >
-                        <div>
-                          <p className="font-medium text-primary">{department.name}</p>
-                          <p className="text-xs text-primaryGray">
-                            {countFormatter.format(department.presentMembers)} present out of{" "}
-                            {countFormatter.format(department.totalMembers)} members
-                          </p>
-                          <p className="text-xs text-primaryGray">
-                            {percentFormatter.format(department.attendancePercentage)}%
-                            attendance rate
-                          </p>
-                          {normalizedDataSearchTerm && (
-                            <p className="text-xs text-primaryGray">
-                              Showing {countFormatter.format(department.visibleCount)} of{" "}
-                              {countFormatter.format(department.attendees.length)} member
-                              records
-                            </p>
-                          )}
-                        </div>
-                        <span className="text-lg text-primary">{isOpen ? "−" : "+"}</span>
-                      </button>
-
-                      {isOpen && (
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full border-t border-lightGray text-sm">
-                            <thead>
-                              <tr className="bg-white">
-                                <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Name
-                                </th>
-                                <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Reported Time
-                                </th>
-                                <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Relative to Start
-                                </th>
-                                <th className="px-4 py-3 text-left font-semibold text-primary">
-                                  Status
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {department.visibleAttendees.length === 0 ? (
-                                <tr>
-                                  <td
-                                    colSpan={4}
-                                    className="px-4 py-4 text-primaryGray"
+                          ) : (
+                            filteredDepartmentInsightRows.map((row) => (
+                              <tr
+                                key={row.id}
+                                className="border-t border-lightGray align-top"
+                              >
+                                <td className="px-4 py-3">{row.name}</td>
+                                <td className="px-4 py-3">
+                                  {row.departmentName}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="space-y-1">
+                                    <p className="text-primary">
+                                      {row.arrivalTime}
+                                    </p>
+                                    {row.reportedAtLabel && (
+                                      <p className="text-xs text-primaryGray">
+                                        {row.reportedAtLabel}
+                                      </p>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {row.relativeToStartLabel}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span
+                                    className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                      row.timingStatus,
+                                    )}`}
                                   >
-                                    No member records matched your search for this
-                                    department.
-                                  </td>
-                                </tr>
-                              ) : (
-                                department.visibleAttendees.map((attendee) => {
-                                  const insightRow =
-                                    departmentInsightRowsByAttendeeKey.get(
-                                      buildDepartmentAttendeeLookupKey(
-                                        department.id,
-                                        attendee
-                                      )
-                                    );
+                                    {timingStatusLabelMap[row.timingStatus]}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                </div>
+              )}
 
-                                  return (
-                                    <tr
-                                      key={buildDepartmentAttendeeLookupKey(
-                                        department.id,
-                                        attendee
-                                      )}
-                                      className="border-t border-lightGray"
-                                    >
-                                      <td className="px-4 py-3">{attendee.name}</td>
-                                      <td className="px-4 py-3">
-                                        <div className="space-y-1">
-                                          <p className="text-primary">
-                                            {attendee.reportedTime || attendee.arrivalTime}
-                                          </p>
-                                          {insightRow?.reportedAtLabel && (
-                                            <p className="text-xs text-primaryGray">
-                                              {insightRow.reportedAtLabel}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        {insightRow?.relativeToStartLabel ||
-                                          "Event start time unavailable"}
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        <span
-                                          className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
-                                            insightRow?.timingStatus ||
-                                              "UNCLASSIFIED"
-                                          )}`}
-                                        >
-                                          {timingStatusLabelMap[
-                                            insightRow?.timingStatus ||
-                                              "UNCLASSIFIED"
-                                          ]}
-                                        </span>
+              {activeReportViewTab === "Data" && (
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-3 rounded-lg border border-lightGray p-3 md:flex-row md:items-end md:justify-between">
+                    <label className="w-full max-w-xl space-y-1 text-sm">
+                      <span className="block text-xs font-medium text-primaryGray">
+                        Search Department or Member
+                      </span>
+                      <input
+                        type="text"
+                        className="h-10 w-full rounded-lg border border-lightGray px-3"
+                        placeholder="Search department name or member name"
+                        value={dataSearchTerm}
+                        onChange={(event) =>
+                          setDataSearchTerm(event.target.value)
+                        }
+                      />
+                    </label>
+                    <p className="text-xs text-primaryGray">
+                      {countFormatter.format(dataDepartmentSections.length)}{" "}
+                      departments matched
+                    </p>
+                  </div>
+
+                  {dataDepartmentSections.length === 0 ? (
+                    <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                      No departments or members matched your search.
+                    </p>
+                  ) : (
+                    dataDepartmentSections.map((department) => {
+                      const isOpen = openDepartments[department.id] ?? false;
+
+                      return (
+                        <article
+                          key={department.id}
+                          className="overflow-hidden rounded-lg border border-lightGray"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenDepartments((current) => ({
+                                ...current,
+                                [department.id]: !current[department.id],
+                              }))
+                            }
+                            className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-left"
+                          >
+                            <div>
+                              <p className="font-medium text-primary">
+                                {department.name}
+                              </p>
+                              <p className="text-xs text-primaryGray">
+                                {countFormatter.format(
+                                  department.presentMembers,
+                                )}{" "}
+                                present out of{" "}
+                                {countFormatter.format(department.totalMembers)}{" "}
+                                members
+                              </p>
+                              <p className="text-xs text-primaryGray">
+                                {percentFormatter.format(
+                                  department.attendancePercentage,
+                                )}
+                                % attendance rate
+                              </p>
+                              {normalizedDataSearchTerm && (
+                                <p className="text-xs text-primaryGray">
+                                  Showing{" "}
+                                  {countFormatter.format(
+                                    department.visibleCount,
+                                  )}{" "}
+                                  of{" "}
+                                  {countFormatter.format(
+                                    department.attendees.length,
+                                  )}{" "}
+                                  member records
+                                </p>
+                              )}
+                            </div>
+                            <span className="text-lg text-primary">
+                              {isOpen ? "−" : "+"}
+                            </span>
+                          </button>
+
+                          {isOpen && (
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full border-t border-lightGray text-sm">
+                                <thead>
+                                  <tr className="bg-white">
+                                    <th className="px-4 py-3 text-left font-semibold text-primary">
+                                      Name
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-primary">
+                                      Reported Time
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-primary">
+                                      Relative to Start
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-semibold text-primary">
+                                      Status
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {department.visibleAttendees.length === 0 ? (
+                                    <tr>
+                                      <td
+                                        colSpan={4}
+                                        className="px-4 py-4 text-primaryGray"
+                                      >
+                                        No member records matched your search
+                                        for this department.
                                       </td>
                                     </tr>
-                                  );
-                                })
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                                  ) : (
+                                    department.visibleAttendees.map(
+                                      (attendee) => {
+                                        const insightRow =
+                                          departmentInsightRowsByAttendeeKey.get(
+                                            buildDepartmentAttendeeLookupKey(
+                                              department.id,
+                                              attendee,
+                                            ),
+                                          );
 
-                      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-lightGray bg-white px-4 py-3 text-sm">
-                        <div className="space-y-1">
-                          <p>
-                            <span className="font-medium text-primary">
-                              Head of Department:
-                            </span>{" "}
-                            <span className="text-primaryGray">
-                              {department.headName || "Not assigned"}
-                            </span>
-                          </p>
-                          <p className="text-xs text-primaryGray">
-                            Present: {countFormatter.format(department.presentMembers)} | Absent:{" "}
-                            {countFormatter.format(department.absentMembers)}
-                          </p>
-                        </div>
-                        <div className="rounded-lg bg-lightGray/40 px-3 py-2 text-right">
-                          <p className="text-xs text-primaryGray">Attendance Rate</p>
-                          <p className="font-semibold text-primary">
-                            {percentFormatter.format(department.attendancePercentage)}%
-                          </p>
-                        </div>
-                      </footer>
-                    </article>
-                  );
-                  })
+                                        return (
+                                          <tr
+                                            key={buildDepartmentAttendeeLookupKey(
+                                              department.id,
+                                              attendee,
+                                            )}
+                                            className="border-t border-lightGray"
+                                          >
+                                            <td className="px-4 py-3">
+                                              {attendee.name}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <div className="space-y-1">
+                                                <p className="text-primary">
+                                                  {attendee.reportedTime ||
+                                                    attendee.arrivalTime}
+                                                </p>
+                                                {insightRow?.reportedAtLabel && (
+                                                  <p className="text-xs text-primaryGray">
+                                                    {insightRow.reportedAtLabel}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              {insightRow?.relativeToStartLabel ||
+                                                "Event start time unavailable"}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                              <span
+                                                className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
+                                                  insightRow?.timingStatus ||
+                                                    "UNCLASSIFIED",
+                                                )}`}
+                                              >
+                                                {
+                                                  timingStatusLabelMap[
+                                                    insightRow?.timingStatus ||
+                                                      "UNCLASSIFIED"
+                                                  ]
+                                                }
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        );
+                                      },
+                                    )
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-lightGray bg-white px-4 py-3 text-sm">
+                            <div className="space-y-1">
+                              <p>
+                                <span className="font-medium text-primary">
+                                  Head of Department:
+                                </span>{" "}
+                                <span className="text-primaryGray">
+                                  {department.headName || "Not assigned"}
+                                </span>
+                              </p>
+                              <p className="text-xs text-primaryGray">
+                                Present:{" "}
+                                {countFormatter.format(
+                                  department.presentMembers,
+                                )}{" "}
+                                | Absent:{" "}
+                                {countFormatter.format(
+                                  department.absentMembers,
+                                )}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-lightGray/40 px-3 py-2 text-right">
+                              <p className="text-xs text-primaryGray">
+                                Attendance Rate
+                              </p>
+                              <p className="font-semibold text-primary">
+                                {percentFormatter.format(
+                                  department.attendancePercentage,
+                                )}
+                                %
+                              </p>
+                            </div>
+                          </footer>
+                        </article>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
+      {activeReportSectionTab === "Church Attendance" && (
+        <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
+          <header className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-primary">
+              Church Attendance
+            </h2>
+            <span className="text-sm font-medium text-primary">
+              Total Attendance:{" "}
+              {countFormatter.format(attendanceTotals.totalAttendance)}
+            </span>
+          </header>
+
+          {activeReportViewTab === "Insight" && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
+                <p className="text-sm font-medium text-primary">
+                  Attendance Composition by Group
+                </p>
+                <div className="mt-3 h-72">
+                  <Bar
+                    data={{
+                      labels: churchCompositionSeries.labels,
+                      datasets: [
+                        {
+                          label: "Male",
+                          data: churchCompositionSeries.male,
+                          backgroundColor: "#2563EB",
+                        },
+                        {
+                          label: "Female",
+                          data: churchCompositionSeries.female,
+                          backgroundColor: "#F97316",
+                        },
+                      ],
+                    }}
+                    options={stackedBarOptions}
+                  />
+                </div>
+              </article>
+
+              <article className="rounded-lg border border-lightGray p-3">
+                <p className="text-sm font-medium text-primary">
+                  Attendance Trend by Date
+                </p>
+                <div className="mt-3 h-72">
+                  {attendanceTrendSeries.labels.length > 1 ? (
+                    <Line
+                      data={{
+                        labels: attendanceTrendSeries.labels,
+                        datasets: [
+                          {
+                            label: "Total Attendance",
+                            data: attendanceTrendSeries.values,
+                            borderColor: "#2563EB",
+                            backgroundColor: "rgba(37, 99, 235, 0.2)",
+                            tension: 0.25,
+                            fill: true,
+                          },
+                        ],
+                      }}
+                      options={lineChartOptions}
+                    />
+                  ) : (
+                    <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                      Attendance trend will appear when this event has more than
+                      one report date.
+                    </p>
+                  )}
+                </div>
+              </article>
+            </div>
+          )}
+
+          {activeReportViewTab === "Data" && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Adult Male</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.adultMale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Adult Female</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.adultFemale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Male Children</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.childrenMale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Female Children</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.childrenFemale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Male Youth</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.youthMale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Female Youth</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.youthFemale)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Visitors (Male)</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitors.male)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Visitors (Female)</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitors.female)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Visitors Total</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitors.total)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">
+                  Visitor Clergy (Male)
+                </p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitorClergy.male)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">
+                  Visitor Clergy (Female)
+                </p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitorClergy.female)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">Visitor Clergy Total</p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.visitorClergy.total)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-lightGray p-3">
+                <p className="text-xs text-primaryGray">
+                  Attendance (Without Visitors)
+                </p>
+                <p className="text-base font-semibold text-primary">
+                  {countFormatter.format(attendanceTotals.totalWithoutVisitors)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-lightGray pt-3 text-sm">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
+                    churchApproval.status,
+                  )}`}
+                >
+                  {statusLabelMap[churchApproval.status]}
+                </span>
+                {churchApproval.approvedAt && (
+                  <span className="text-xs text-primaryGray">
+                    {formatDateTime(churchApproval.approvedAt)}
+                  </span>
+                )}
+                {churchApproval.approvedByName && (
+                  <span className="text-xs text-primaryGray">
+                    by {churchApproval.approvedByName}
+                  </span>
                 )}
               </div>
-            )}
-          </>
-        )}
-      </section>
-
-      <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
-        <header className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-primary">Church Attendance</h2>
-          <span className="text-sm font-medium text-primary">
-            Total Attendance: {countFormatter.format(attendanceTotals.totalAttendance)}
-          </span>
-        </header>
-
-        {activeReportViewTab === "Insight" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-            <p className="text-sm font-medium text-primary">
-              Attendance Composition by Group
-            </p>
-            <div className="mt-3 h-72">
-              <Bar
-                data={{
-                  labels: churchCompositionSeries.labels,
-                  datasets: [
-                    {
-                      label: "Male",
-                      data: churchCompositionSeries.male,
-                      backgroundColor: "#2563EB",
-                    },
-                    {
-                      label: "Female",
-                      data: churchCompositionSeries.female,
-                      backgroundColor: "#F97316",
-                    },
-                  ],
-                }}
-                options={stackedBarOptions}
-              />
             </div>
-          </article>
 
-          <article className="rounded-lg border border-lightGray p-3">
-            <p className="text-sm font-medium text-primary">Attendance Trend by Date</p>
-            <div className="mt-3 h-72">
-              {attendanceTrendSeries.labels.length > 1 ? (
-                <Line
-                  data={{
-                    labels: attendanceTrendSeries.labels,
-                    datasets: [
-                      {
-                        label: "Total Attendance",
-                        data: attendanceTrendSeries.values,
-                        borderColor: "#2563EB",
-                        backgroundColor: "rgba(37, 99, 235, 0.2)",
-                        tension: 0.25,
-                        fill: true,
-                      },
-                    ],
-                  }}
-                  options={lineChartOptions}
+            {churchApproval.status !== "APPROVED" &&
+              churchApproval.canCurrentUserApprove && (
+                <Button
+                  value="Approve"
+                  variant="secondary"
+                  onClick={handleChurchAttendanceApproval}
+                  loading={isApprovingChurch}
                 />
-              ) : (
-                <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-                  Attendance trend will appear when this event has more than one report date.
-                </p>
               )}
-            </div>
-          </article>
-          </div>
-        )}
+          </footer>
+        </section>
+      )}
 
-        {activeReportViewTab === "Data" && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Adult Male</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.adultMale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Adult Female</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.adultFemale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Male Children</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.childrenMale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Female Children</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.childrenFemale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Male Youth</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.youthMale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Female Youth</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.youthFemale)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitors (Male)</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitors.male)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitors (Female)</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitors.female)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitors Total</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitors.total)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitor Clergy (Male)</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitorClergy.male)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitor Clergy (Female)</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitorClergy.female)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Visitor Clergy Total</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.visitorClergy.total)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-lightGray p-3">
-            <p className="text-xs text-primaryGray">Attendance (Without Visitors)</p>
-            <p className="text-base font-semibold text-primary">
-              {countFormatter.format(attendanceTotals.totalWithoutVisitors)}
-            </p>
-          </div>
-          </div>
-        )}
-
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-lightGray pt-3 text-sm">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-                  churchApproval.status
-                )}`}
-              >
-                {statusLabelMap[churchApproval.status]}
-              </span>
-              {churchApproval.approvedAt && (
-                <span className="text-xs text-primaryGray">
-                  {formatDateTime(churchApproval.approvedAt)}
-                </span>
-              )}
-              {churchApproval.approvedByName && (
-                <span className="text-xs text-primaryGray">
-                  by {churchApproval.approvedByName}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {churchApproval.status !== "APPROVED" &&
-            churchApproval.canCurrentUserApprove && (
+      {activeReportSectionTab === "Finance" && (
+        <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
+          <header className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-primary">
+              Financial Summary
+            </h2>
+            {activeReportViewTab === "Data" && (
               <Button
-                value="Approve"
+                value="Save Finance"
                 variant="secondary"
-                onClick={handleChurchAttendanceApproval}
-                loading={isApprovingChurch}
+                onClick={handleSaveFinance}
+                loading={isSavingFinance}
               />
             )}
-        </footer>
-      </section>
+          </header>
 
-      <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
-        <header className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-primary">Financial Summary</h2>
-          {activeReportViewTab === "Data" && (
-            <Button
-              value="Save Finance"
-              variant="secondary"
-              onClick={handleSaveFinance}
-              loading={isSavingFinance}
-            />
-          )}
-        </header>
-
-        {activeReportViewTab === "Insight" && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <article className="rounded-lg border border-lightGray p-3">
-            <p className="text-sm font-medium text-primary">Top Income Sources</p>
-            <div className="mt-3 h-64">
-              {incomeBreakdownSeries.length > 0 ? (
-                <Bar
-                  data={{
-                    labels: incomeBreakdownSeries.map((item) => item.label),
-                    datasets: [
-                      {
-                        label: "Amount",
-                        data: incomeBreakdownSeries.map((item) => item.value),
-                        backgroundColor: "#16A34A",
-                        borderRadius: 6,
-                        maxBarThickness: 26,
-                      },
-                    ],
-                  }}
-                  options={horizontalBarOptions}
-                />
-              ) : (
-                <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-                  Add income values to populate this chart.
+          {activeReportViewTab === "Insight" && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <article className="rounded-lg border border-lightGray p-3">
+                <p className="text-sm font-medium text-primary">
+                  Top Income Sources
                 </p>
-              )}
-            </div>
-          </article>
+                <div className="mt-3 h-64">
+                  {incomeBreakdownSeries.length > 0 ? (
+                    <Bar
+                      data={{
+                        labels: incomeBreakdownSeries.map((item) => item.label),
+                        datasets: [
+                          {
+                            label: "Amount",
+                            data: incomeBreakdownSeries.map(
+                              (item) => item.value,
+                            ),
+                            backgroundColor: "#16A34A",
+                            borderRadius: 6,
+                            maxBarThickness: 26,
+                          },
+                        ],
+                      }}
+                      options={horizontalBarOptions}
+                    />
+                  ) : (
+                    <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                      Add income values to populate this chart.
+                    </p>
+                  )}
+                </div>
+              </article>
 
-          <article className="rounded-lg border border-lightGray p-3">
-            <p className="text-sm font-medium text-primary">Top Expense Items</p>
-            <div className="mt-3 h-64">
-              {expenseBreakdownSeries.length > 0 ? (
-                <Bar
-                  data={{
-                    labels: expenseBreakdownSeries.map((item) => item.label),
-                    datasets: [
-                      {
-                        label: "Amount",
-                        data: expenseBreakdownSeries.map((item) => item.value),
-                        backgroundColor: "#DC2626",
-                        borderRadius: 6,
-                        maxBarThickness: 26,
-                      },
-                    ],
-                  }}
-                  options={horizontalBarOptions}
-                />
-              ) : (
-                <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-                  Add expense values to populate this chart.
+              <article className="rounded-lg border border-lightGray p-3">
+                <p className="text-sm font-medium text-primary">
+                  Top Expense Items
                 </p>
-              )}
-            </div>
-          </article>
+                <div className="mt-3 h-64">
+                  {expenseBreakdownSeries.length > 0 ? (
+                    <Bar
+                      data={{
+                        labels: expenseBreakdownSeries.map(
+                          (item) => item.label,
+                        ),
+                        datasets: [
+                          {
+                            label: "Amount",
+                            data: expenseBreakdownSeries.map(
+                              (item) => item.value,
+                            ),
+                            backgroundColor: "#DC2626",
+                            borderRadius: 6,
+                            maxBarThickness: 26,
+                          },
+                        ],
+                      }}
+                      options={horizontalBarOptions}
+                    />
+                  ) : (
+                    <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
+                      Add expense values to populate this chart.
+                    </p>
+                  )}
+                </div>
+              </article>
 
-          <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-            <p className="text-sm font-medium text-primary">
-              Income vs Expense vs Net Position
-            </p>
-            <div className="mt-3 h-64">
-              <Bar
-                data={{
-                  labels: ["Total Income", "Total Expense", "Net"],
-                  datasets: [
-                    {
-                      label: "Amount",
-                      data: [totalIncome, totalExpense, incomeSurplus],
-                      backgroundColor: [
-                        "#16A34A",
-                        "#DC2626",
-                        incomeSurplus < 0 ? "#DC2626" : "#2563EB",
+              <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
+                <p className="text-sm font-medium text-primary">
+                  Income vs Expense vs Net Position
+                </p>
+                <div className="mt-3 h-64">
+                  <Bar
+                    data={{
+                      labels: ["Total Income", "Total Expense", "Net"],
+                      datasets: [
+                        {
+                          label: "Amount",
+                          data: [totalIncome, totalExpense, incomeSurplus],
+                          backgroundColor: [
+                            "#16A34A",
+                            "#DC2626",
+                            incomeSurplus < 0 ? "#DC2626" : "#2563EB",
+                          ],
+                          borderRadius: 8,
+                          maxBarThickness: 56,
+                        },
                       ],
-                      borderRadius: 8,
-                      maxBarThickness: 56,
-                    },
-                  ],
-                }}
-                options={lineChartOptions}
-              />
-            </div>
-          </article>
-          </div>
-        )}
-
-        {activeReportViewTab === "Data" && (
-          <>
-            <div className="space-y-3 rounded-lg border border-lightGray p-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-primary">Income</h3>
-            <Button
-              value="+ Add Income"
-              variant="ghost"
-              onClick={() =>
-                setIncomeItems((current) => [...current, createFinanceLineItem("income")])
-              }
-            />
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="px-2 py-2 text-left">Name</th>
-                  <th className="px-2 py-2 text-left">Amount</th>
-                  <th className="px-2 py-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {incomeItems.map((item) => (
-                  <tr key={item.id} className="border-t border-lightGray">
-                    <td className="px-2 py-2">
-                      <input
-                        type="text"
-                        className="h-9 w-full rounded-lg border border-lightGray px-3"
-                        value={item.name}
-                        onChange={(event) =>
-                          updateFinanceLineItem(
-                            "income",
-                            item.id,
-                            "name",
-                            event.target.value
-                          )
-                        }
-                        placeholder="e.g. Tithe"
-                      />
-                    </td>
-                    <td className="px-2 py-2">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="h-9 w-full rounded-lg border border-lightGray px-3"
-                        value={item.amount}
-                        onChange={(event) =>
-                          updateFinanceLineItem(
-                            "income",
-                            item.id,
-                            "amount",
-                            event.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </td>
-                    <td className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="text-sm text-red-600"
-                        onClick={() => removeFinanceLineItem("income", item.id)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="space-y-3 rounded-lg border border-lightGray p-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-primary">Expense</h3>
-            <Button
-              value="+ Add Expense"
-              variant="ghost"
-              onClick={() =>
-                setExpenseItems((current) => [
-                  ...current,
-                  createFinanceLineItem("expense"),
-                ])
-              }
-            />
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr>
-                  <th className="px-2 py-2 text-left">Name</th>
-                  <th className="px-2 py-2 text-left">Amount</th>
-                  <th className="px-2 py-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenseItems.map((item) => (
-                  <tr key={item.id} className="border-t border-lightGray">
-                    <td className="px-2 py-2">
-                      <input
-                        type="text"
-                        className="h-9 w-full rounded-lg border border-lightGray px-3"
-                        value={item.name}
-                        onChange={(event) =>
-                          updateFinanceLineItem(
-                            "expense",
-                            item.id,
-                            "name",
-                            event.target.value
-                          )
-                        }
-                        placeholder="e.g. Logistics"
-                      />
-                    </td>
-                    <td className="px-2 py-2">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="h-9 w-full rounded-lg border border-lightGray px-3"
-                        value={item.amount}
-                        onChange={(event) =>
-                          updateFinanceLineItem(
-                            "expense",
-                            item.id,
-                            "amount",
-                            event.target.value
-                          )
-                        }
-                        placeholder="0.00"
-                      />
-                    </td>
-                    <td className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="text-sm text-red-600"
-                        onClick={() => removeFinanceLineItem("expense", item.id)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 rounded-lg border border-lightGray p-3 sm:grid-cols-3">
-          <div>
-            <p className="text-xs text-primaryGray">Total Income</p>
-            <p className="text-base font-semibold text-primary">
-              {amountFormatter.format(totalIncome)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-primaryGray">Total Expense</p>
-            <p className="text-base font-semibold text-primary">
-              {amountFormatter.format(totalExpense)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-primaryGray">Excess (Income - Expense)</p>
-            <p
-              className={`text-base font-semibold ${
-                incomeSurplus < 0 ? "text-red-600" : "text-primary"
-              }`}
-            >
-              {amountFormatter.format(incomeSurplus)}
-            </p>
-          </div>
-            </div>
-
-            <footer className="grid grid-cols-1 gap-3 border-t border-lightGray pt-3 md:grid-cols-2">
-          <article className="rounded-lg border border-lightGray p-3 text-sm">
-            <p className="font-medium text-primary">{countingLeaderName}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-                  countingLeaderApproval.status
-                )}`}
-              >
-                {statusLabelMap[countingLeaderApproval.status]}
-              </span>
-              {countingLeaderApproval.approvedAt && (
-                <span className="text-xs text-primaryGray">
-                  {formatDateTime(countingLeaderApproval.approvedAt)}
-                </span>
-              )}
-            </div>
-            {countingLeaderApproval.status !== "APPROVED" &&
-              countingLeaderApproval.canCurrentUserApprove && (
-                <div className="mt-3">
-                  <Button
-                    value="Approve"
-                    variant="secondary"
-                    onClick={() => handleFinanceApproval("COUNTING_LEADER")}
-                    loading={financeActionLoadingRole === "COUNTING_LEADER"}
+                    }}
+                    options={lineChartOptions}
                   />
                 </div>
-              )}
-          </article>
-
-          <article className="rounded-lg border border-lightGray p-3 text-sm">
-            <p className="font-medium text-primary">{financeRepName}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-                  financeRepApproval.status
-                )}`}
-              >
-                {statusLabelMap[financeRepApproval.status]}
-              </span>
-              {financeRepApproval.approvedAt && (
-                <span className="text-xs text-primaryGray">
-                  {formatDateTime(financeRepApproval.approvedAt)}
-                </span>
-              )}
+              </article>
             </div>
-            {financeRepApproval.status !== "APPROVED" &&
-              financeRepApproval.canCurrentUserApprove && (
-                <div className="mt-3">
+          )}
+
+          {activeReportViewTab === "Data" && (
+            <>
+              <div className="space-y-3 rounded-lg border border-lightGray p-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-primary">Income</h3>
                   <Button
-                    value="Approve"
-                    variant="secondary"
-                    onClick={() => handleFinanceApproval("FINANCE_REP")}
-                    loading={financeActionLoadingRole === "FINANCE_REP"}
+                    value="+ Add Income"
+                    variant="ghost"
+                    onClick={() =>
+                      setIncomeItems((current) => [
+                        ...current,
+                        createFinanceLineItem("income"),
+                      ])
+                    }
                   />
                 </div>
-              )}
-          </article>
-            </footer>
-          </>
-        )}
-      </section>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-2 text-left">Name</th>
+                        <th className="px-2 py-2 text-left">Amount</th>
+                        <th className="px-2 py-2 text-left">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {incomeItems.map((item) => (
+                        <tr key={item.id} className="border-t border-lightGray">
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              className="h-9 w-full rounded-lg border border-lightGray px-3"
+                              value={item.name}
+                              onChange={(event) =>
+                                updateFinanceLineItem(
+                                  "income",
+                                  item.id,
+                                  "name",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="e.g. Tithe"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="h-9 w-full rounded-lg border border-lightGray px-3"
+                              value={item.amount}
+                              onChange={(event) =>
+                                updateFinanceLineItem(
+                                  "income",
+                                  item.id,
+                                  "amount",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <button
+                              type="button"
+                              className="text-sm text-red-600"
+                              onClick={() =>
+                                removeFinanceLineItem("income", item.id)
+                              }
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-lg border border-lightGray p-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-primary">Expense</h3>
+                  <Button
+                    value="+ Add Expense"
+                    variant="ghost"
+                    onClick={() =>
+                      setExpenseItems((current) => [
+                        ...current,
+                        createFinanceLineItem("expense"),
+                      ])
+                    }
+                  />
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-2 text-left">Name</th>
+                        <th className="px-2 py-2 text-left">Amount</th>
+                        <th className="px-2 py-2 text-left">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenseItems.map((item) => (
+                        <tr key={item.id} className="border-t border-lightGray">
+                          <td className="px-2 py-2">
+                            <input
+                              type="text"
+                              className="h-9 w-full rounded-lg border border-lightGray px-3"
+                              value={item.name}
+                              onChange={(event) =>
+                                updateFinanceLineItem(
+                                  "expense",
+                                  item.id,
+                                  "name",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="e.g. Logistics"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="h-9 w-full rounded-lg border border-lightGray px-3"
+                              value={item.amount}
+                              onChange={(event) =>
+                                updateFinanceLineItem(
+                                  "expense",
+                                  item.id,
+                                  "amount",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <button
+                              type="button"
+                              className="text-sm text-red-600"
+                              onClick={() =>
+                                removeFinanceLineItem("expense", item.id)
+                              }
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 rounded-lg border border-lightGray p-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-primaryGray">Total Income</p>
+                  <p className="text-base font-semibold text-primary">
+                    {amountFormatter.format(totalIncome)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-primaryGray">Total Expense</p>
+                  <p className="text-base font-semibold text-primary">
+                    {amountFormatter.format(totalExpense)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-primaryGray">
+                    Excess (Income - Expense)
+                  </p>
+                  <p
+                    className={`text-base font-semibold ${
+                      incomeSurplus < 0 ? "text-red-600" : "text-primary"
+                    }`}
+                  >
+                    {amountFormatter.format(incomeSurplus)}
+                  </p>
+                </div>
+              </div>
+
+              <footer className="grid grid-cols-1 gap-3 border-t border-lightGray pt-3">
+                <article className="rounded-lg border border-lightGray p-3 text-sm">
+                  <p className="font-medium text-primary">{financeApproverName}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
+                        financeApproval.status,
+                      )}`}
+                    >
+                      {statusLabelMap[financeApproval.status]}
+                    </span>
+                    {financeApproval.approvedAt && (
+                      <span className="text-xs text-primaryGray">
+                        {formatDateTime(financeApproval.approvedAt)}
+                      </span>
+                    )}
+                  </div>
+                  {financeApproval.status !== "APPROVED" &&
+                    financeApproval.canCurrentUserApprove && (
+                      <div className="mt-3">
+                        <Button
+                          value="Approve"
+                          variant="secondary"
+                          onClick={handleFinanceApproval}
+                          loading={isApprovingFinance}
+                        />
+                      </div>
+                    )}
+                </article>
+              </footer>
+            </>
+          )}
+        </section>
+      )}
 
       <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
         <header className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-primary">Approval</h2>
           <span
             className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getApprovalBadgeClasses(
-              finalApprovalStatus
+              finalApprovalStatus,
             )}`}
           >
             {statusLabelMap[finalApprovalStatus]}
@@ -3157,11 +3303,14 @@ const EventReportDetails = () => {
             <p className="text-xs text-primaryGray">Department Coverage</p>
             <p className="font-semibold text-primary">
               {countFormatter.format(departmentCoverageSummary.presentMembers)}/
-              {countFormatter.format(departmentCoverageSummary.totalMembers)} present
+              {countFormatter.format(departmentCoverageSummary.totalMembers)}{" "}
+              present
             </p>
             <p className="text-xs text-primaryGray">
-              {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}%
-              attendance rate
+              {percentFormatter.format(
+                departmentCoverageSummary.attendancePercentage,
+              )}
+              % attendance rate
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3 text-sm">
@@ -3171,9 +3320,9 @@ const EventReportDetails = () => {
             </p>
           </div>
           <div className="rounded-lg border border-lightGray p-3 text-sm">
-            <p className="text-xs text-primaryGray">Finance Approvals</p>
+            <p className="text-xs text-primaryGray">Finance Approval</p>
             <p className="font-semibold text-primary">
-              {financeApprovalsComplete ? "Completed" : "Pending"}
+              {financeApprovalComplete ? "Completed" : "Pending"}
             </p>
           </div>
         </div>
@@ -3181,19 +3330,25 @@ const EventReportDetails = () => {
         <div className="rounded-lg border border-lightGray bg-gray-50 p-3 text-sm">
           <p>
             <span className="font-medium text-primary">Final Approver:</span>{" "}
-            <span className="text-primaryGray">{finalApproval.approverName}</span>
+            <span className="text-primaryGray">
+              {finalApproval.approverName}
+            </span>
           </p>
 
           {finalApproval.actedByName && (
-            <p className="mt-1 text-primaryGray">Acted by {finalApproval.actedByName}</p>
+            <p className="mt-1 text-primaryGray">
+              Acted by {finalApproval.actedByName}
+            </p>
           )}
           {finalApproval.actedAt && (
-            <p className="text-primaryGray">{formatDateTime(finalApproval.actedAt)}</p>
+            <p className="text-primaryGray">
+              {formatDateTime(finalApproval.actedAt)}
+            </p>
           )}
 
           {!checklistReadyForFinalApproval && (
             <p className="mt-2 text-xs text-[#996A13]">
-              Church attendance and finance approvals must be completed before
+              Church attendance and finance approval must be completed before
               final approval can proceed.
             </p>
           )}
@@ -3203,37 +3358,41 @@ const EventReportDetails = () => {
               checklistReadyForFinalApproval &&
               finalApproval.canCurrentUserSubmit && (
                 <Button
-                  value="Send to Executive Pastor"
+                  value="Send for Final Approval"
                   variant="secondary"
                   onClick={handleSubmitFinalApproval}
                   loading={finalActionLoading === "SUBMIT"}
                 />
               )}
 
-            {finalApprovalStatus === "PENDING" && finalApproval.canCurrentUserApprove && (
-              <>
-                <Button
-                  value="Approve Final Report"
-                  variant="secondary"
-                  onClick={() => handleFinalDecision("APPROVE")}
-                  loading={finalActionLoading === "APPROVE"}
-                />
-                <Button
-                  value="Reject Final Report"
-                  variant="secondary"
-                  onClick={() => handleFinalDecision("REJECT")}
-                  loading={finalActionLoading === "REJECT"}
-                />
-              </>
-            )}
+            {finalApprovalStatus === "PENDING" &&
+              finalApproval.canCurrentUserApprove && (
+                <>
+                  <Button
+                    value="Approve Final Report"
+                    variant="secondary"
+                    onClick={() => handleFinalDecision("APPROVE")}
+                    loading={finalActionLoading === "APPROVE"}
+                  />
+                  <Button
+                    value="Reject Final Report"
+                    variant="secondary"
+                    onClick={() => handleFinalDecision("REJECT")}
+                    loading={finalActionLoading === "REJECT"}
+                  />
+                </>
+              )}
           </div>
         </div>
 
         <div className="rounded-lg border border-lightGray p-3 text-sm">
-          <p className="font-medium text-primary">Final Viewers / Notification Recipients</p>
+          <p className="font-medium text-primary">
+            Final Viewers / Notification Recipients
+          </p>
           {finalApproval.viewers.length === 0 ? (
             <p className="mt-1 text-primaryGray">
-              No viewers configured yet. Configure this in approval settings for reports.
+              No viewers configured yet. Configure this in approval settings for
+              reports.
             </p>
           ) : (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-primaryGray">

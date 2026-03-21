@@ -2,16 +2,42 @@ export type AiRole = "user" | "assistant" | "system";
 export type AiProvider = "openai" | "gemini" | "claude";
 export type AiUsageInterval = "day" | "week" | "month";
 
+export interface AiChatContext {
+  module?: string;
+  scope?: string;
+  reference_id?: string;
+  [key: string]: unknown;
+}
+
 export interface AiChatRequest {
   message: string;
   model: string;
   conversation_id?: string;
-  context?: {
-    module?: string;
-    scope?: string;
-    reference_id?: string;
-    [key: string]: unknown;
-  };
+  context?: AiChatContext;
+}
+
+export interface AiChatbotRequest {
+  message: string;
+  model?: string;
+  conversation_id?: string;
+  context?: AiChatContext;
+}
+
+export interface AiChatbotModelOption {
+  provider: AiProvider;
+  model: string;
+  label: string;
+}
+
+export interface AiChatbotConfig {
+  enabled: boolean;
+  default_model?: string | null;
+  provider?: AiProvider | null;
+  available_models?: AiChatbotModelOption[];
+  default_context?: AiChatContext;
+  welcome_message?: string;
+  suggested_prompts?: string[];
+  unavailable_reason?: string | null;
 }
 
 export interface AiCredentialRecord {
@@ -49,11 +75,53 @@ export interface AiUsageSnapshot {
   token_remaining?: number;
 }
 
+export interface AiDisplayTable {
+  columns: string[];
+  rows: string[][];
+}
+
+export type AiDisplayBlock =
+  | {
+      type: "paragraph";
+      text: string;
+    }
+  | {
+      type: "list";
+      items: string[];
+    }
+  | {
+      type: "table";
+      columns: string[];
+      rows: string[][];
+    };
+
+export interface AiDisplaySection {
+  heading: string;
+  blocks: AiDisplayBlock[];
+  paragraphs: string[];
+  items: string[];
+  tables: AiDisplayTable[];
+}
+
+export interface AiDisplay {
+  format?: "structured_markdown_v1" | string;
+  title?: string | null;
+  summary?: string | null;
+  sections: AiDisplaySection[];
+  markdown?: string;
+  plain_text?: string;
+}
+
+export interface AiResponsePerformance {
+  latency_ms?: number;
+}
+
 export interface AiChatResponse {
   conversation_id: string;
   message_id?: string;
   role?: AiRole;
   reply: string;
+  display?: AiDisplay;
   provider?: AiProvider;
   model?: string;
   fallback_used?: boolean;
@@ -65,6 +133,7 @@ export interface AiChatResponse {
     total_tokens?: number;
   };
   usage_snapshot?: AiUsageSnapshot;
+  performance?: AiResponsePerformance;
 }
 
 export interface AiUsageSummary extends AiUsageSnapshot {
@@ -93,7 +162,7 @@ export interface AiUsageHistoryResponse {
 export interface AiInsightsRequest {
   model: string;
   message?: string;
-  context?: AiChatRequest["context"];
+  context?: AiChatContext;
 }
 
 export interface AiInsightResponse extends AiChatResponse {

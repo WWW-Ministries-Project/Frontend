@@ -1,11 +1,13 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AiStructuredMessage } from "./components/AiStructuredMessage";
 import { api } from "@/utils/api/apiCalls";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import type {
   AiChatRequest,
   AiChatResponse,
   AiCredentialRecord,
+  AiDisplay,
   AiInsightsRequest,
   AiProvider,
   AiRole,
@@ -21,11 +23,14 @@ interface ChatEntry {
   role: AiRole;
   content: string;
   createdAt: string;
+  display?: AiDisplay;
   provider?: AiProvider;
   model?: string;
   fallbackUsed?: boolean;
   fallbackReason?: string;
   totalTokens?: number;
+  latencyMs?: number;
+  label?: string;
 }
 
 interface FailedAiRequest {
@@ -117,11 +122,14 @@ const createEntry = (
   role,
   content,
   createdAt: options.createdAt || new Date().toISOString(),
+  display: options.display,
   provider: options.provider,
   model: options.model,
   fallbackUsed: options.fallbackUsed,
   fallbackReason: options.fallbackReason,
   totalTokens: options.totalTokens,
+  latencyMs: options.latencyMs,
+  label: options.label,
 });
 
 const createIdempotencyKey = () => {
@@ -147,6 +155,18 @@ const formatDateTime = (value?: string) => {
   const asDate = new Date(value);
   if (Number.isNaN(asDate.getTime())) return "Not available";
   return asDate.toLocaleString();
+};
+
+const formatLatency = (value?: number) => {
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return null;
+  }
+
+  if (value < 1000) {
+    return `${Math.round(value)} ms`;
+  }
+
+  return `${(value / 1000).toFixed(1)} s`;
 };
 
 const shortId = (value: string) =>
@@ -185,11 +205,13 @@ const mapAssistantResponse = (response: AiChatResponse): ChatEntry =>
   createEntry("assistant", response.reply || "No response from AI service.", {
     id: response.message_id,
     createdAt: response.created_at,
+    display: response.display,
     provider: response.provider,
     model: response.model,
     fallbackUsed: response.fallback_used,
     fallbackReason: response.fallback_reason,
     totalTokens: response.usage?.total_tokens,
+    latencyMs: response.performance?.latency_ms,
   });
 
 const isSessionExpiredMessage = (message: string) => {
@@ -660,15 +682,18 @@ export const AIConsole = () => {
         ...previousValue,
         createEntry(
           "assistant",
-          `[Insight:${insightModule}] ${responseData.reply || "No insight returned."}`,
+          responseData.reply || "No insight returned.",
           {
             id: responseData.message_id,
             createdAt: responseData.created_at,
+            display: responseData.display,
             provider: responseData.provider,
             model: responseData.model,
             fallbackUsed: responseData.fallback_used,
             fallbackReason: responseData.fallback_reason,
             totalTokens: responseData.usage?.total_tokens,
+            latencyMs: responseData.performance?.latency_ms,
+            label: `Insight • ${insightModule}`,
           }
         ),
       ]);
@@ -871,13 +896,20 @@ export const AIConsole = () => {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`max-w-[92%] rounded-lg px-3 py-2 text-sm ${
+                    className={`rounded-xl text-sm ${
                       message.role === "user"
-                        ? "ml-auto bg-primary text-white"
-                        : "bg-gray-100 text-gray-800"
+                        ? "ml-auto max-w-[82%] bg-primary px-4 py-3 text-white"
+                        : "max-w-full border border-gray-200 bg-slate-50/90 p-3 text-gray-800 shadow-sm"
                     }`}
                   >
-                    {message.content}
+                    {message.role === "assistant" ? (
+                      <AiStructuredMessage
+                        display={message.display}
+                        fallbackText={message.content}
+                      />
+                    ) : (
+                      <p className="whitespace-pre-wrap leading-6">{message.content}</p>
+                    )}
                     <div
                       className={`mt-2 text-[10px] ${
                         message.role === "user"
@@ -885,9 +917,12 @@ export const AIConsole = () => {
                           : "text-gray-500"
                       }`}
                     >
-                      {message.role === "assistant" && message.provider ? (
+                      {message.role === "assistant" && (message.label || message.provider) ? (
                         <span>
-                          {getProviderLabel(message.provider)}
+                          {message.label || getProviderLabel(message.provider)}
+                          {message.label && message.provider
+                            ? ` • ${getProviderLabel(message.provider)}`
+                            : ""}
                           {message.model ? ` • ${message.model}` : ""}
                         </span>
                       ) : (
@@ -896,6 +931,9 @@ export const AIConsole = () => {
                       <span>{` • ${formatDateTime(message.createdAt)}`}</span>
                       {typeof message.totalTokens === "number" ? (
                         <span>{` • ${formatCount(message.totalTokens)} tokens`}</span>
+                      ) : null}
+                      {formatLatency(message.latencyMs) ? (
+                        <span>{` • ${formatLatency(message.latencyMs)}`}</span>
                       ) : null}
                       {message.fallbackUsed ? <span> • fallback used</span> : null}
                     </div>

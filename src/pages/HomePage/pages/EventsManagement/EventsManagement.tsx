@@ -23,6 +23,63 @@ import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
 
 const SHOW_UPCOMING_STORAGE_KEY = "eventsShowUpcoming_v2";
 
+type MonthYearFilter = { month: number; year: number };
+type GroupMode = "date" | "type";
+
+const getCurrentMonthSelection = () => {
+  const now = new Date();
+  return {
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+    date: new Date(now.getFullYear(), now.getMonth(), 1),
+  };
+};
+
+const getEventSortTimestamp = (event: Pick<eventType, "start_date" | "start_time">) => {
+  if (!event.start_date) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const dateTime = event.start_time
+    ? new Date(`${event.start_date}T${event.start_time}`)
+    : new Date(event.start_date);
+  const timestamp = dateTime.getTime();
+
+  return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
+};
+
+const compareEventsBySchedule = (a: eventType, b: eventType) => {
+  const aTimestamp = getEventSortTimestamp(a);
+  const bTimestamp = getEventSortTimestamp(b);
+
+  if (aTimestamp !== bTimestamp) {
+    if (!Number.isFinite(aTimestamp)) return 1;
+    if (!Number.isFinite(bTimestamp)) return -1;
+    return aTimestamp - bTimestamp;
+  }
+
+  const nameComparison = String(a.event_name || "").localeCompare(
+    String(b.event_name || "")
+  );
+
+  if (nameComparison !== 0) {
+    return nameComparison;
+  }
+
+  return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+};
+
+const compareEventsByReportPageOrder = (a: eventType, b: eventType) => {
+  const aDate = new Date(a.start_date || "").getTime();
+  const bDate = new Date(b.start_date || "").getTime();
+
+  if (Number.isNaN(aDate) && Number.isNaN(bDate)) return 0;
+  if (Number.isNaN(aDate)) return 1;
+  if (Number.isNaN(bDate)) return -1;
+
+  return aDate - bDate;
+};
+
 const EventsManagement = () => {
   const navigate = useNavigate();
   const DEFAULT_EVENTS_PAGE_SIZE = 99;
@@ -42,8 +99,12 @@ const EventsManagement = () => {
   }));
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [filterDate, setFilterDate] = useState<Date | null>(null);
+  const [filterDate, setFilterDate] = useState<Date | null>(
+    () => getCurrentMonthSelection().date
+  );
   const [filterEvents, setFilterEvents] = useState<string>("");
+  const [selectedEventId, setSelectedEventId] = useState("");
+  const [availableEvents, setAvailableEvents] = useState<eventType[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
   const [tableView, setTableView] = useState<boolean>(() => {
@@ -75,12 +136,13 @@ const EventsManagement = () => {
     );
   }, [showUpcoming]);
 
-  type GroupMode = "date" | "type";
-  type MonthYearFilter = { month: number; year: number };
-
   const [groupMode, setGroupMode] = useState<GroupMode>("date");
-  const [activeDateFilter, setActiveDateFilter] =
-    useState<MonthYearFilter | null>(null);
+  const [activeDateFilter, setActiveDateFilter] = useState<MonthYearFilter>(
+    () => {
+      const { month, year } = getCurrentMonthSelection();
+      return { month, year };
+    }
+  );
 
   const [openAccordions, setOpenAccordions] = useState<
     Record<string, boolean>
@@ -101,17 +163,19 @@ const EventsManagement = () => {
     async (
       pageNumber: number,
       pageSize: number,
-      monthYearFilter: MonthYearFilter | null
+      monthYearFilter: MonthYearFilter,
+      eventId: string
     ) => {
       const query: QueryType = {
         page: pageNumber,
         page_size: pageSize,
         take: pageSize,
+        month: monthYearFilter.month,
+        year: monthYearFilter.year,
       };
 
-      if (monthYearFilter) {
-        query.month = monthYearFilter.month;
-        query.year = monthYearFilter.year;
+      if (eventId) {
+        query.event_id = eventId;
       }
 
       const response = await refetch(query);
@@ -127,8 +191,42 @@ const EventsManagement = () => {
   );
 
   useEffect(() => {
-    fetchEventsPage(page, take, activeDateFilter);
-  }, [activeDateFilter, fetchEventsPage, page, take]);
+    void fetchEventsPage(page, take, activeDateFilter, selectedEventId);
+  }, [activeDateFilter, fetchEventsPage, page, selectedEventId, take]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadAvailableEvents = async () => {
+      try {
+        const response = await api.fetch.fetchEvents({
+          page: 1,
+          page_size: 500,
+          take: 500,
+          month: activeDateFilter.month,
+          year: activeDateFilter.year,
+        });
+        const result = response?.data ?? [];
+        const normalized = Array.isArray(result) ? normalizeEvents(result) : [];
+
+        if (!isActive) {
+          return;
+        }
+
+        setAvailableEvents(normalized);
+      } catch {
+        if (isActive) {
+          setAvailableEvents([]);
+        }
+      }
+    };
+
+    void loadAvailableEvents();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activeDateFilter, normalizeEvents]);
 
   // Deleted the effect that synced data → events to avoid overwriting filtered results
 
@@ -154,7 +252,16 @@ const EventsManagement = () => {
   const handleFilter = useCallback(
     (val: { year: number; month: number; date: Date }) => {
       setFilterDate(val.date);
+      setSelectedEventId("");
       setActiveDateFilter({ month: val.month, year: val.year });
+      setPage(1);
+    },
+    [setPage]
+  );
+
+  const handleEventFilterChange = useCallback(
+    (value: string) => {
+      setSelectedEventId(value);
       setPage(1);
     },
     [setPage]
@@ -166,20 +273,24 @@ const EventsManagement = () => {
   }, []);
 
   const handleResetFilters = useCallback(() => {
+    const currentMonth = getCurrentMonthSelection();
+
     // reset UI state
     setFilterEvents("");
-    setFilterDate(null);
+    setFilterDate(currentMonth.date);
+    setSelectedEventId("");
     setGroupMode("date");
     setOpenAccordions({});
     setShowUpcoming(true);
-    setActiveDateFilter(null);
+    setActiveDateFilter({
+      month: currentMonth.month,
+      year: currentMonth.year,
+    });
 
     // clear persisted filters
     localStorage.removeItem(SHOW_UPCOMING_STORAGE_KEY);
     setPage(1);
-  }, [
-    setPage,
-  ]);
+  }, [setPage]);
 
   // Toggle view handler
   const handleToggleView = useCallback((view: boolean) => {
@@ -198,7 +309,7 @@ const EventsManagement = () => {
       await executeDelete({ id: String(id) })
         .then(() => {
           showNotification("Event deleted successfully");
-          return fetchEventsPage(page, take, activeDateFilter);
+          return fetchEventsPage(page, take, activeDateFilter, selectedEventId);
         })
         .then((currentPageItemCount) => {
           if (currentPageItemCount === 0 && page > 1) {
@@ -210,7 +321,7 @@ const EventsManagement = () => {
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeDateFilter, executeDelete, fetchEventsPage, page, setPage, take]
+    [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
   );
 
   // Delete modal handler
@@ -248,34 +359,7 @@ const EventsManagement = () => {
 
   // Filtered events based on search and year filter
   const filteredEvents = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayMs = today.getTime();
-
-    const getEventDayMs = (event: eventType) => {
-      if (!event.start_date) return Number.POSITIVE_INFINITY;
-      const eventDay = new Date(event.start_date);
-      if (isNaN(eventDay.getTime())) return Number.POSITIVE_INFINITY;
-      eventDay.setHours(0, 0, 0, 0);
-      return eventDay.getTime();
-    };
-
-    const getEventDateTimeMs = (event: eventType) => {
-      if (!event.start_date) return Number.POSITIVE_INFINITY;
-      const dateTime = event.start_time
-        ? new Date(`${event.start_date}T${event.start_time}`)
-        : new Date(event.start_date);
-      return isNaN(dateTime.getTime())
-        ? Number.POSITIVE_INFINITY
-        : dateTime.getTime();
-    };
-
-    const getSortBucket = (eventDayMs: number) => {
-      if (!Number.isFinite(eventDayMs)) return 2;
-      return eventDayMs >= todayMs ? 0 : 1;
-    };
-
-    return events
+    return [...events]
       .filter((event) => {
         if (showUpcoming) {
           return isPresentOrUpcomingEvent(event);
@@ -285,22 +369,7 @@ const EventsManagement = () => {
       .filter((event) =>
         event?.event_name?.toLowerCase().includes(filterEvents.toLowerCase())
       )
-      .sort((a, b) => {
-        const aDayMs = getEventDayMs(a);
-        const bDayMs = getEventDayMs(b);
-        const aBucket = getSortBucket(aDayMs);
-        const bBucket = getSortBucket(bDayMs);
-
-        if (aBucket !== bBucket) return aBucket - bBucket;
-
-        const aDateTimeMs = getEventDateTimeMs(a);
-        const bDateTimeMs = getEventDateTimeMs(b);
-        if (aDateTimeMs !== bDateTimeMs) return aDateTimeMs - bDateTimeMs;
-
-        return String(a.event_name || "").localeCompare(
-          String(b.event_name || "")
-        );
-      });
+      .sort(compareEventsByReportPageOrder);
   }, [events, filterEvents, showUpcoming]);
 
   const groupedEvents = useMemo(() => {
@@ -354,6 +423,36 @@ const EventsManagement = () => {
       [key]: !prev[key],
     }));
   };
+
+  const eventOptions = useMemo(() => {
+    return [...availableEvents]
+      .sort(compareEventsBySchedule)
+      .map((event) => {
+        const startDate = new Date(event.start_date || "");
+        const hasValidDate = !Number.isNaN(startDate.getTime());
+        const formattedDate = hasValidDate
+          ? startDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "";
+
+        return {
+          value: String(event.id),
+          label: formattedDate
+            ? `${event.event_name || "Event"} (${formattedDate})`
+            : String(event.event_name || "Event"),
+        };
+      });
+  }, [availableEvents]);
+
+  const calendarEvents = useMemo<CalendarEvent[]>(() => {
+    return filteredEvents.map((event) => ({
+      ...event,
+      qr_code: event.qr_code ?? undefined,
+    }));
+  }, [filteredEvents]);
 
   return (
     <PageOutline>
@@ -409,9 +508,12 @@ const EventsManagement = () => {
         <EventsManagerHeader
           onNavigate={handleNavigation}
           onFilter={handleFilter}
+          onEventChange={handleEventFilterChange}
           viewfilter={!tableView}
           filterEvents={filterEvents}
           filterDate={filterDate}
+          selectedEventId={selectedEventId}
+          eventOptions={eventOptions}
           onSearch={handleSearchChange}
           showSearch={showSearch}
           showFilter={showFilter}
@@ -475,7 +577,7 @@ const EventsManagement = () => {
         )
       ) : (
         <Calendar
-          events={filteredEvents}
+          events={calendarEvents}
           onDelete={handleDeleteModal}
           onShowOptions={handleShowOptions}
           showOptions={showOptions}
@@ -487,7 +589,7 @@ const EventsManagement = () => {
         <PaginationComponent
           total={totalEvents}
           take={take}
-          onPageChange={() => {}}
+          onPageChange={(newPage) => setPage(newPage)}
         />
       )}
     </PageOutline>
