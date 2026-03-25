@@ -11,9 +11,11 @@ import { INameInfo, NameInfo } from "./NameInfo";
 const PersonalDetailsComponent = ({
   disabled = false,
   prefix,
+  requireMaritalStatus = true,
 }: {
   disabled?: boolean;
   prefix: string;
+  requireMaritalStatus?: boolean;
 }) => {
   const { values: entire } = useFormikContext<IPersonalDetails>();
   const values: IPersonalDetails = useMemo(
@@ -46,7 +48,7 @@ const PersonalDetailsComponent = ({
       />
       <Field
         component={FormikSelectField}
-        label="Marital Status *"
+        label={`Marital Status${requireMaritalStatus ? " *" : ""}`}
         options={maritalOptions}
         disabled={disabled}
         id={`${prefix}.marital_status`}
@@ -83,14 +85,29 @@ const initialValues: IPersonalDetails = {
   marital_status: "",
   nationality: "",
 };
-const validationSchema = {
+
+const createValidationSchema = ({
+  requireMaritalStatus = true,
+}: {
+  requireMaritalStatus?: boolean;
+} = {}) => ({
   ...NameInfo.validationSchema,
   date_of_birth: date().max(new Date()).required("required"),
   gender: string().required("Gender is required"),
-  marital_status: string().required("Marital status is required"),
+  marital_status: requireMaritalStatus
+    ? string().required("Marital status is required")
+    : string(),
   nationality: string().required("Nationality is required"),
-};
+});
+
+const validationSchema = createValidationSchema();
+const familyValidationSchema = createValidationSchema({
+  requireMaritalStatus: false,
+});
+
 export const PersonalDetails = Object.assign(PersonalDetailsComponent, {
   initialValues,
   validationSchema,
+  familyValidationSchema,
+  createValidationSchema,
 });

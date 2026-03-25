@@ -12,14 +12,15 @@ interface SelectFieldProps {
   placeholder?: string;
   className?: string;
   id: string;
-  value?: string | number;
-  onChange: (name: string, value: string | number) => void;
+  value?: string | number | null;
+  onChange: (name: string, value: string | number | null) => void;
   options: Option[];
   disabled?: boolean;
   error?: string;
   helperText?: string;
   searchable?: boolean;
   searchPlaceholder?: string;
+  clearable?: boolean;
 }
 
 interface FormikSelectFieldProps
@@ -40,11 +41,11 @@ function fieldToSelectField({
     ...field,
     ...props,
     id: props.id,
-    value: props.value || field.value,
+    value: props.value ?? field.value,
     onChange:
       props.onChange ??
-      ((name: string, value: string | number) =>
-        fieldOnChange({ target: { name, value } })),
+      ((name: string, value: string | number | null) =>
+        fieldOnChange({ target: { name, value: value ?? "" } })),
     disabled: props.disabled,
     className: props.className,
     options: props.options,
@@ -53,6 +54,7 @@ function fieldToSelectField({
     type: props.type,
     error: showError,
     helperText: props.helperText,
+    clearable: props.clearable,
   };
 }
 

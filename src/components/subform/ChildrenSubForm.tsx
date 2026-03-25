@@ -105,13 +105,15 @@ const ChildrenSubFormComponent = ({
                     className="w-full"
                     component={FormikSelectField}
                     options={availableMembers}
-                    onChange={async (_: string, selectedOption: string | null) => {
+                    onChange={async (_: string, selectedOption: string | number | null) => {
                       if (!selectedOption) {
-                        setFieldValue(`family.${index}.user_id`, "");
+                        handleResetMember(index);
                         return;
                       }
 
-                      const result = await fetchAMember({ user_id: selectedOption });
+                      const result = await fetchAMember({
+                        user_id: String(selectedOption),
+                      });
                       const member = result?.data;
 
                       if (!member) return;
@@ -173,6 +175,7 @@ const ChildrenSubFormComponent = ({
                     key={index}
                     disabled={!!family[index]?.user_id}
                     prefix={`family.${index}`}
+                    requireMaritalStatus={false}
                   />
 
                   
@@ -203,7 +206,7 @@ const initialValues = {
 };
 
 const familyMemberValidationSchema = object().shape({
-  ...PersonalDetails.validationSchema,
+  ...PersonalDetails.familyValidationSchema,
   relation: string()
     .transform((_value, originalValue) => normalizeFamilyRelation(originalValue))
     .oneOf([...FAMILY_RELATION_VALUES], "Unsupported relation")
