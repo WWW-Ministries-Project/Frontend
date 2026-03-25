@@ -6,6 +6,12 @@ import { string } from "yup";
 import { FormHeader } from "../ui";
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
+const employmentStatusesRequiringWorkDetails = ["employed", "self_employed"];
+const employmentStatusesShowingWorkDetails = [
+  ...employmentStatusesRequiringWorkDetails,
+  "retired",
+];
+
 const WorkInfoSubFormComponent = ({
   disabled = false,
   prefix,
@@ -17,6 +23,9 @@ const WorkInfoSubFormComponent = ({
   const employmentStatus = useMemo(
     () => getIn(entire, `${prefix}.employment_status`) || "employed",
     [entire, prefix]
+  );
+  const requiresWorkDetails = employmentStatusesRequiringWorkDetails.includes(
+    employmentStatus
   );
   return (
     <>
@@ -30,11 +39,11 @@ const WorkInfoSubFormComponent = ({
         options={employmentOptions}
         disabled={disabled}
       />
-      {["employed", "self_employed", "retired"].includes(employmentStatus) && (
+      {employmentStatusesShowingWorkDetails.includes(employmentStatus) && (
         <>
           <Field
             component={FormikInputDiv}
-            label="Name of Institution *"
+            label={`Name of Institution${requiresWorkDetails ? " *" : ""}`}
             placeholder="Enter name of institution"
             id={`${prefix}.work_name`}
             name={`${prefix}.work_name`}
@@ -42,7 +51,7 @@ const WorkInfoSubFormComponent = ({
           />
           <Field
             component={FormikInputDiv}
-            label="Industry *"
+            label={`Industry${requiresWorkDetails ? " *" : ""}`}
             placeholder="Enter industry"
             id={`${prefix}.work_industry`}
             name={`${prefix}.work_industry`}
@@ -50,7 +59,7 @@ const WorkInfoSubFormComponent = ({
           />
           <Field
             component={FormikInputDiv}
-            label="Position"
+            label={`Position${requiresWorkDetails ? " *" : ""}`}
             placeholder="Enter position"
             id={`${prefix}.work_position`}
             name={`${prefix}.work_position`}
@@ -61,7 +70,7 @@ const WorkInfoSubFormComponent = ({
       {employmentStatus === "student" && (
         <Field
           component={FormikInputDiv}
-          label="Name of Institution *"
+          label="Name of Institution"
           placeholder="Enter name of institution"
           id={`${prefix}.school_name`}
           name={`${prefix}.school_name`}
@@ -98,15 +107,21 @@ const initialValues: IWorkInfoSubForm = {
 const validationSchema = {
   employment_status: string().oneOf(["student", "employed", "self_employed", "unemployed", "retired"]),
   work_name: string().when("employment_status", {
-    is: (val: string) => ["employed", "self_employed", "retired"].includes(val),
+    is: (val: string) => employmentStatusesRequiringWorkDetails.includes(val),
     then: () => string().required("Required"),
+    otherwise: () => string(),
   }),
-  work_industry: string(),
-  work_position: string(),
-  school_name: string().when("employment_status", {
-    is: "student",
+  work_industry: string().when("employment_status", {
+    is: (val: string) => employmentStatusesRequiringWorkDetails.includes(val),
     then: () => string().required("Required"),
+    otherwise: () => string(),
   }),
+  work_position: string().when("employment_status", {
+    is: (val: string) => employmentStatusesRequiringWorkDetails.includes(val),
+    then: () => string().required("Required"),
+    otherwise: () => string(),
+  }),
+  school_name: string(),
 };
 export const WorkInfoSubForm = Object.assign(WorkInfoSubFormComponent, {
   initialValues,

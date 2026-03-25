@@ -21,6 +21,7 @@ const NameInfoComponent = ({
         id={prefix ? `${prefix}.title` : "title"}
         name={prefix ? `${prefix}.title` : "title"}
         options={titleOptions}
+        clearable
       />
       <Field
         component={FormikInputDiv}

@@ -17,15 +17,16 @@ interface SelectFieldProps {
   id: string;
   label?: string;
   placeholder?: string;
-  value?: string | number;
+  value?: string | number | null;
   options: Option[];
-  onChange: (name: string, value: string | number) => void;
+  onChange: (name: string, value: string | number | null) => void;
 
   disabled?: boolean;
   error?: string;
   helperText?: string;
   searchable?: boolean;
   searchPlaceholder?: string;
+  clearable?: boolean;
 
   className?: string;
   inputClassName?: string;
@@ -42,6 +43,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   error,
   searchable,
   searchPlaceholder = "Search...",
+  clearable = false,
   className,
   inputClassName,
   helperText
@@ -99,6 +101,18 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     onChange(id, option.value);
     setIsOpen(false);
     setSearchTerm("");
+  };
+
+  const clearSelection = () => {
+    onChange(id, null);
+    setIsOpen(false);
+    setSearchTerm("");
+  };
+
+  const handleClear = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    clearSelection();
   };
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -189,27 +203,52 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             stateStyles,
             inputClassName
           )}
-        >
+          >
           <span className={selectedOption ? "text-gray-900" : "text-gray-500"}>
             {selectedOption ? getOptionLabel(selectedOption) : placeholder}
           </span>
 
-          <svg
-            className={clsx(
-              "h-4 w-4 transition-transform",
-              isOpen && "rotate-180"
-            )}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+          <span className="ml-3 flex items-center gap-2">
+            {clearable && selectedOption ? (
+              <span
+                aria-hidden="true"
+                onMouseDown={handleClear}
+                onClick={handleClear}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 6l12 12M18 6L6 18"
+                  />
+                </svg>
+              </span>
+            ) : null}
+
+            <svg
+              className={clsx(
+                "h-4 w-4 transition-transform",
+                isOpen && "rotate-180"
+              )}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </span>
         </button>
 
         {/* Dropdown */}

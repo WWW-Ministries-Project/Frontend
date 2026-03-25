@@ -38,6 +38,7 @@ export const CountryField = ({
       name={name || `${prefix}.nationality`}
       options={countryOptions || []}
       disabled={disabled}
+      clearable
     />
   );
 };

@@ -1,5 +1,14 @@
 import { ArrowPathIcon, PaperAirplaneIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthWrapper";
@@ -32,6 +41,19 @@ type ChatEntry = {
 type ParsedAiError = {
   statusCode?: number;
   message: string;
+};
+
+type PanelOffset = {
+  x: number;
+  y: number;
+};
+
+type DragState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
 };
 
 const CHAT_MODULE_OPTIONS = [
@@ -152,12 +174,16 @@ const buildIntroMessages = (config: AiChatbotConfig | null): ChatEntry[] => {
   ];
 };
 
+const DEFAULT_PANEL_OFFSET: PanelOffset = { x: 0, y: 0 };
+
 export const AiChatbotWidget = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
   const introHydratedRef = useRef(false);
+  const dragStateRef = useRef<DragState | null>(null);
   const isAdmin = normalizeCategory(user.user_category) === "admin";
   const shouldHideOnPage = location.pathname.startsWith(
     `${relativePath.home.main}/${relativePath.home.ai}`
@@ -173,6 +199,95 @@ export const AiChatbotWidget = () => {
   const [messages, setMessages] = useState<ChatEntry[]>(buildIntroMessages(null));
   const [isSending, setIsSending] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [panelOffset, setPanelOffset] = useState<PanelOffset>(
+    DEFAULT_PANEL_OFFSET
+  );
+
+  const clampPanelOffset = useCallback((nextOffset: PanelOffset) => {
+    if (typeof window === "undefined") {
+      return nextOffset;
+    }
+
+    const panelWidth = panelRef.current?.offsetWidth ?? 0;
+    const panelHeight = panelRef.current?.offsetHeight ?? 0;
+    const horizontalLimit = Math.max(window.innerWidth - panelWidth - 32, 0);
+    const verticalLimit = Math.max(window.innerHeight - panelHeight - 32, 0);
+
+    return {
+      x: Math.min(0, Math.max(-horizontalLimit, nextOffset.x)),
+      y: Math.min(0, Math.max(-verticalLimit, nextOffset.y)),
+    };
+  }, []);
+
+  const endDrag = useCallback(
+    (currentTarget?: HTMLDivElement | null, pointerId?: number) => {
+      if (
+        currentTarget &&
+        typeof pointerId === "number" &&
+        currentTarget.hasPointerCapture(pointerId)
+      ) {
+        currentTarget.releasePointerCapture(pointerId);
+      }
+
+      dragStateRef.current = null;
+    },
+    []
+  );
+
+  const handleDragStart = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("button, select, input, textarea, a, [role='button']")
+      ) {
+        return;
+      }
+
+      dragStateRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: panelOffset.x,
+        originY: panelOffset.y,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [panelOffset.x, panelOffset.y]
+  );
+
+  const handleDragMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      setPanelOffset(
+        clampPanelOffset({
+          x: dragState.originX + (event.clientX - dragState.startX),
+          y: dragState.originY + (event.clientY - dragState.startY),
+        })
+      );
+    },
+    [clampPanelOffset]
+  );
+
+  const handleDragEnd = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (dragStateRef.current?.pointerId !== event.pointerId) {
+        return;
+      }
+
+      endDrag(event.currentTarget, event.pointerId);
+    },
+    [endDrag]
+  );
 
   const starterPrompts = useMemo(
     () => config?.suggested_prompts?.filter((item) => item.trim()) ?? [],
@@ -266,6 +381,15 @@ export const AiChatbotWidget = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      setPanelOffset(DEFAULT_PANEL_OFFSET);
+      return;
+    }
+
+    dragStateRef.current = null;
+  }, [isOpen]);
+
   const sendPrompt = useCallback(
     async (messageText: string) => {
       const trimmedPrompt = messageText.trim();
@@ -346,8 +470,20 @@ export const AiChatbotWidget = () => {
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[130] flex justify-end p-4 md:p-6">
       <div className="pointer-events-auto flex w-full max-w-[26rem] flex-col items-end gap-3">
         {isOpen ? (
-          <section className="flex w-full max-h-[calc(100dvh-var(--app-header-height,64px)-1rem)] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.18)] md:max-h-[calc(100dvh-var(--app-header-height,64px)-2rem)]">
-            <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_100%)] px-4 py-4 text-white">
+          <section
+            ref={panelRef}
+            style={{
+              transform: `translate(${panelOffset.x}px, ${panelOffset.y}px)`,
+            }}
+            className="flex w-full max-h-[calc(100dvh-var(--app-header-height,64px)-1rem)] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.18)] md:max-h-[calc(100dvh-var(--app-header-height,64px)-2rem)]"
+          >
+            <div
+              onPointerDown={handleDragStart}
+              onPointerMove={handleDragMove}
+              onPointerUp={handleDragEnd}
+              onPointerCancel={handleDragEnd}
+              className="cursor-grab touch-none border-b border-slate-200 bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_100%)] px-4 py-4 text-white active:cursor-grabbing"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-100">
