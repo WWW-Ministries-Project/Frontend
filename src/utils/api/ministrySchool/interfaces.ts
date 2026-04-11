@@ -323,7 +323,20 @@ export type AssignmentEssayLearningUnit = {
   type: "assignment-essay";
   data: {
     question: string;
+    maxAttempt?: number;
+    maxAttempts?: number;
+    passMark?: number;
   };
+};
+
+export type TopicSubmission = {
+  id: number;
+  attempt: number;
+  status: string;
+  submittedAt: string;
+  fileUrl?: string | null;
+  score?: number | null;
+  feedback?: string | null;
 };
 
 export type TopicOrderItem = {
@@ -363,6 +376,7 @@ export type Topic = {
     dueDate?: string | null;
     closedAt?: string | null;
   };
+  submission?: TopicSubmission | null;
   notes?: string | null;
 };
 

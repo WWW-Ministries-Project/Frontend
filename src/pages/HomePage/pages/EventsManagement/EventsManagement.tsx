@@ -5,6 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SeriesScopeModal, { type SeriesScope } from "./Components/SeriesScopeModal";
 import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
@@ -107,6 +108,12 @@ const EventsManagement = () => {
   const [availableEvents, setAvailableEvents] = useState<eventType[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [showOptions, setShowOptions] = useState<string | number | null>(null);
+
+  // ── Series scope modal state ──────────────────────────────────────────────
+  type SeriesModalState =
+    | { open: false }
+    | { open: true; action: "edit" | "delete"; event: CalendarEvent };
+  const [seriesModal, setSeriesModal] = useState<SeriesModalState>({ open: false });
   const [tableView, setTableView] = useState<boolean>(() => {
     try {
       return JSON.parse(localStorage.getItem("tableView") || "false");
@@ -303,7 +310,7 @@ const EventsManagement = () => {
     setShowOptions((prevId) => (prevId === eventId ? null : eventId));
   }, []);
 
-  // Delete handler
+  // ── Core single-event delete (unchanged) ─────────────────────────────────
   const handleDelete = useCallback(
     async (id: string | number) => {
       await executeDelete({ id: String(id) })
@@ -324,18 +331,81 @@ const EventsManagement = () => {
     [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
   );
 
-  // Delete modal handler
+  // ── Series-scope delete: called after user picks a scope in the modal ─────
+  const handleSeriesDelete = useCallback(
+    async (event: CalendarEvent, scope: SeriesScope) => {
+      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      const fromDate = event.start_date;
+
+      try {
+        if (scope === "this" || !seriesId) {
+          await executeDelete({ id: String(event.id) });
+        } else if (scope === "following") {
+          await api.delete.deleteEventSeriesFrom({ series_id: seriesId, from_date: fromDate });
+        } else {
+          await api.delete.deleteEventSeries({ series_id: seriesId });
+        }
+
+        showNotification("Event deleted successfully");
+        const count = await fetchEventsPage(page, take, activeDateFilter, selectedEventId);
+        if (count === 0 && page > 1) setPage(page - 1);
+      } catch {
+        showNotification("Event could not be deleted", "error");
+      }
+    },
+    [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
+  );
+
+  // ── Delete entry-point: show scope modal if recurring, else normal dialog ─
   const handleDeleteModal = useCallback(
     (event: CalendarEvent) => {
-      showDeleteDialog(
-        {
-          id: event.id,
-          name: event.name ?? event.event_name ?? "Event",
-        },
-        handleDelete
-      );
+      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      if (seriesId) {
+        setSeriesModal({ open: true, action: "delete", event });
+      } else {
+        showDeleteDialog(
+          { id: event.id, name: event.name ?? event.event_name ?? "Event" },
+          handleDelete
+        );
+      }
     },
     [handleDelete]
+  );
+
+  // ── Edit entry-point: show scope modal if recurring, else navigate directly ─
+  const handleEditEvent = useCallback(
+    (event: CalendarEvent) => {
+      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      if (seriesId) {
+        setSeriesModal({ open: true, action: "edit", event });
+      } else {
+        navigate(`/home/manage-event?event_id=${event.id}`);
+      }
+    },
+    [navigate]
+  );
+
+  // ── Handles the user's choice in the scope modal ──────────────────────────
+  const handleSeriesModalConfirm = useCallback(
+    async (scope: SeriesScope) => {
+      if (!seriesModal.open) return;
+      const { action, event } = seriesModal;
+      setSeriesModal({ open: false });
+
+      if (action === "delete") {
+        await handleSeriesDelete(event, scope);
+      } else {
+        // Edit: navigate to the edit form with scope encoded in the URL
+        const params = new URLSearchParams({ event_id: String(event.id) });
+        if (scope !== "this") {
+          params.set("edit_scope", scope);
+          params.set("series_id", (event as any).recurrence_series_id ?? "");
+          params.set("series_from_date", event.start_date);
+        }
+        navigate(`/home/manage-event?${params.toString()}`);
+      }
+    },
+    [handleSeriesDelete, navigate, seriesModal]
   );
 
   const handleOpenEventDetails = useCallback(
@@ -456,6 +526,15 @@ const EventsManagement = () => {
 
   return (
     <PageOutline>
+      {/* Series scope modal — renders above everything else */}
+      {seriesModal.open && (
+        <SeriesScopeModal
+          action={seriesModal.action}
+          eventName={seriesModal.event.event_name ?? seriesModal.event.name}
+          onConfirm={handleSeriesModalConfirm}
+          onCancel={() => setSeriesModal({ open: false })}
+        />
+      )}
       <HeaderControls
         title={`Events (${totalEvents || filteredEvents.length})`}
         tableView={tableView}
@@ -554,6 +633,7 @@ const EventsManagement = () => {
                             key={row.original.id}
                             onNavigate={handleNavigation}
                             onDelete={handleDeleteModal}
+                            onEdit={handleEditEvent}
                             showOptions={showOptions === row.original.id}
                             onShowOptions={() => handleShowOptions(row.original.id)}
                             onSelect={handleOpenEventDetails}
@@ -579,6 +659,7 @@ const EventsManagement = () => {
         <Calendar
           events={calendarEvents}
           onDelete={handleDeleteModal}
+          onEdit={handleEditEvent}
           onShowOptions={handleShowOptions}
           showOptions={showOptions}
           onViewEvent={handleOpenEventDetails}

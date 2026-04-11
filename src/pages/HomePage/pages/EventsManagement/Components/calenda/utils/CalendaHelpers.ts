@@ -109,6 +109,8 @@ export interface CalendarEvent {
   qr_code?: string;
   event_type?: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other" | "OTHER";
   event_name_id?: number | string;
+  /** UUID linking all occurrences of a recurring series. Null for one-off events. */
+  recurrence_series_id?: string | null;
 }
 
 export interface OverlapGroup {

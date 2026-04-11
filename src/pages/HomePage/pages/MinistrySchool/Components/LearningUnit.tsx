@@ -1,9 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
-import { api, LearningUnit, LearningUnitType } from "@/utils";
+import { api, LearningUnit, LearningUnitType, TopicSubmission } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { usePut } from "@/CustomHooks/usePut";
+import {
+  ASSIGNMENT_DOCUMENT_ACCEPT,
+  ASSIGNMENT_DOCUMENT_MIME_TYPES,
+  validateUploadFile,
+} from "@/utils/uploadValidation";
 
 interface Props {
   topicId?: string | number;
@@ -20,6 +26,7 @@ interface Props {
     dueDate?: string | null;
     closedAt?: string | null;
   };
+  submission?: TopicSubmission | null;
 
   userId?: string | number;
   programId?: string | number;
@@ -165,6 +172,7 @@ export const LearningUnits: React.FC<Props> = ({
   topicScore,
   topicCompletedAt,
   activation,
+  submission,
   refetch,
   hasNextTopic,
   nextTopicName,
@@ -172,6 +180,7 @@ export const LearningUnits: React.FC<Props> = ({
   onTopicCompleted,
 }) => {
   const { updateData: markTopicAsCompleted } = usePut(api.put.markTopicAsCompleted);
+  const essayFileInputRef = useRef<HTMLInputElement | null>(null);
   const youtubePlayerRef = useRef<{ destroy?: () => void } | null>(null);
   const completionTransitionRef = useRef<{
     topicKey: string;
@@ -182,10 +191,25 @@ export const LearningUnits: React.FC<Props> = ({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [attemptsUsed, setAttemptsUsed] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [essayFile, setEssayFile] = useState<File | null>(null);
+  const [isSubmittingEssay, setIsSubmittingEssay] = useState(false);
   const [hasWatchedVideo, setHasWatchedVideo] = useState(Boolean(topicCompleted));
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
-  const isAssignment = unit?.type === "assignment";
+  const isMcqAssignment = unit?.type === "assignment";
+  const isEssayAssignment = unit?.type === "assignment-essay";
+  const isAssignment = isMcqAssignment || isEssayAssignment;
+  const assignmentUnitData = isAssignment
+    ? ((unit?.data ?? {}) as {
+        maxAttempt?: number;
+        maxAttempts?: number;
+      })
+    : undefined;
+  const essayUnitData = isEssayAssignment
+    ? ((unit?.data ?? {}) as {
+        question?: string;
+      })
+    : undefined;
   const isVideo = unit?.type === "video";
   const rawVideoValue = useMemo(() => {
     if (!isVideo) return "";
@@ -232,18 +256,22 @@ export const LearningUnits: React.FC<Props> = ({
   }, [videoProgressStorageKey]);
 
   const maxAttempt = useMemo(() => {
-    if (unit?.type !== "assignment") return 2;
+    if (!isAssignment) return 2;
     const fromMaxAttempt =
-      typeof unit.data.maxAttempt === "number" ? unit.data.maxAttempt : 0;
+      typeof assignmentUnitData?.maxAttempt === "number"
+        ? assignmentUnitData.maxAttempt
+        : 0;
     const fromMaxAttempts =
-      typeof unit.data.maxAttempts === "number" ? unit.data.maxAttempts : 0;
+      typeof assignmentUnitData?.maxAttempts === "number"
+        ? assignmentUnitData.maxAttempts
+        : 0;
     return Math.max(fromMaxAttempt, fromMaxAttempts, 2);
-  }, [unit]);
+  }, [assignmentUnitData, isAssignment]);
 
   const retryStorageKey = useMemo(() => {
-    if (!isAssignment || !topicId || !programId || !userId) return null;
+    if (!isMcqAssignment || !topicId || !programId || !userId) return null;
     return `assignment_attempts_${String(userId)}_${String(programId)}_${String(topicId)}`;
-  }, [isAssignment, topicId, programId, userId]);
+  }, [isMcqAssignment, topicId, programId, userId]);
 
   const dueDateValue = activation?.dueDate ? new Date(activation.dueDate) : null;
   const dueDateTimestamp = dueDateValue?.getTime();
@@ -262,6 +290,7 @@ export const LearningUnits: React.FC<Props> = ({
   const hasSubmittedAtLeastOnce =
     isAssignment &&
     (attemptsUsed > 0 ||
+      Boolean(submission?.id) ||
       topicCompleted === true ||
       topicStatus === "PASS" ||
       topicStatus === "FAIL");
@@ -272,6 +301,20 @@ export const LearningUnits: React.FC<Props> = ({
       localStorage.setItem(retryStorageKey, String(nextCount));
     }
   };
+
+  const clearEssayFileSelection = useCallback(() => {
+    setEssayFile(null);
+    if (essayFileInputRef.current) {
+      essayFileInputRef.current.value = "";
+    }
+  }, []);
+
+  useEffect(() => {
+    setAnswers({});
+    setAttemptsUsed(0);
+    setIsRetrying(false);
+    clearEssayFileSelection();
+  }, [clearEssayFileSelection, topicId, unit?.type]);
 
   useEffect(() => {
     if (!retryStorageKey) return;
@@ -285,7 +328,19 @@ export const LearningUnits: React.FC<Props> = ({
   }, [retryStorageKey]);
 
   useEffect(() => {
-    if (!isAssignment) return;
+    const backendAttemptCount = Number(submission?.attempt ?? 0);
+    if (!Number.isFinite(backendAttemptCount) || backendAttemptCount <= 0) {
+      return;
+    }
+
+    setAttemptsUsed((current) => Math.max(current, backendAttemptCount));
+    if (retryStorageKey) {
+      localStorage.setItem(retryStorageKey, String(backendAttemptCount));
+    }
+  }, [retryStorageKey, submission?.attempt]);
+
+  useEffect(() => {
+    if (!isMcqAssignment) return;
 
     const hasBackendSubmissionState =
       topicCompleted === true || topicStatus === "PASS" || topicStatus === "FAIL";
@@ -296,7 +351,7 @@ export const LearningUnits: React.FC<Props> = ({
     if (retryStorageKey) {
       localStorage.setItem(retryStorageKey, "1");
     }
-  }, [isAssignment, topicCompleted, topicStatus, attemptsUsed, retryStorageKey]);
+  }, [isMcqAssignment, topicCompleted, topicStatus, attemptsUsed, retryStorageKey]);
 
   useEffect(() => {
     if (!isVideo) {
@@ -427,6 +482,113 @@ export const LearningUnits: React.FC<Props> = ({
   const statusBadgeClassName = isInactive
     ? "bg-amber-100 text-amber-700"
     : "bg-green-100 text-green-700";
+  const essaySubmissionStatus = String(submission?.status || "").toUpperCase();
+  const essaySubmissionStatusLabel =
+    essaySubmissionStatus === "GRADED"
+      ? "Graded"
+      : essaySubmissionStatus === "SUBMITTED"
+        ? "Submitted"
+        : "Awaiting Submission";
+  const essaySubmissionBadgeClassName =
+    essaySubmissionStatus === "GRADED"
+      ? "bg-green-100 text-green-700"
+      : essaySubmissionStatus === "SUBMITTED"
+        ? "bg-amber-100 text-amber-700"
+        : "bg-lightGray/40 text-primaryGray";
+
+  const handleEssayFileSelection = useCallback(
+    (file: File | null) => {
+      if (!file) {
+        clearEssayFileSelection();
+        return;
+      }
+
+      const validation = validateUploadFile(file, {
+        allowedMimeTypes: ASSIGNMENT_DOCUMENT_MIME_TYPES,
+        invalidTypeMessage:
+          "Unsupported file type. Allowed types are PDF, DOC, and DOCX.",
+      });
+
+      if (!validation.valid) {
+        clearEssayFileSelection();
+        showNotification(validation.message || "Invalid file selected.", "error");
+        return;
+      }
+
+      setEssayFile(file);
+      showNotification(`Selected file: ${file.name}`, "success");
+    },
+    [clearEssayFileSelection],
+  );
+
+  const handleEssayAssignmentSubmit = useCallback(async () => {
+    if (isInactive) {
+      showNotification("Assignment is not activated by facilitator.", "error");
+      return;
+    }
+
+    if (isLockedByDueDate) {
+      showNotification(
+        "This assignment is locked because the due date has passed.",
+        "error",
+      );
+      return;
+    }
+
+    if (!hasRetriesLeft) {
+      showNotification("Retry limit reached. You cannot submit again.", "error");
+      return;
+    }
+
+    if (!essayFile) {
+      showNotification("Choose a PDF or Word document to continue.", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", essayFile);
+
+    try {
+      setIsSubmittingEssay(true);
+
+      const uploadResponse = await axiosPic.post("/upload", formData);
+      const uploadedFileUrl = String(uploadResponse?.data?.result?.link || "").trim();
+
+      if (!uploadedFileUrl) {
+        throw new Error("File upload failed");
+      }
+
+      await api.post.submitEssayAssignment({
+        userId,
+        programId,
+        topicId,
+        fileUrl: uploadedFileUrl,
+      });
+
+      clearEssayFileSelection();
+      showNotification("Assignment submitted successfully.", "success");
+      await refetch();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      showNotification(
+        err.response?.data?.message ||
+          (error instanceof Error ? error.message : "Could not submit assignment. Please try again."),
+        "error",
+      );
+    } finally {
+      setIsSubmittingEssay(false);
+    }
+  }, [
+    clearEssayFileSelection,
+    essayFile,
+    hasRetriesLeft,
+    isInactive,
+    isLockedByDueDate,
+    programId,
+    refetch,
+    topicId,
+    userId,
+  ]);
 
   const formatAssignmentDate = (value?: string | null) => {
     if (!value) return "No due date set";
@@ -794,26 +956,113 @@ export const LearningUnits: React.FC<Props> = ({
       )}
 
       {/* Assignment (Essay) */}
-      {unit?.type === "assignment-essay" && (
+      {isEssayAssignment && (
         <div className="space-y-4">
+          <div className="grid gap-3 rounded-xl border border-lightGray bg-gradient-to-r from-primary/5 via-accent/5 to-secondary/5 p-4 sm:grid-cols-3">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Submission Status
+              </p>
+              <Badge className={essaySubmissionBadgeClassName}>
+                {essaySubmissionStatusLabel}
+              </Badge>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Due Date
+              </p>
+              <p className="text-sm font-medium text-primaryGray">
+                {formatAssignmentDate(activation?.dueDate)}
+              </p>
+              {isLockedByDueDate && (
+                <p className="text-xs text-red-600">Submission window has closed.</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Attempts
+              </p>
+              <p className="text-sm font-medium text-primaryGray">
+                {attemptsUsed}/{maxAttempt}
+              </p>
+              <p className="text-xs text-primaryGray">{retriesRemaining} remaining</p>
+            </div>
+          </div>
+
           <div
             className="prose max-w-none text-primaryGray"
-            dangerouslySetInnerHTML={{ __html: unit.data.question }}
+            dangerouslySetInnerHTML={{ __html: String(essayUnitData?.question ?? "") }}
           />
 
-          <input
-            type="file"
-            className="block text-sm"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                showNotification(`Selected file: ${file.name}`, "success");
-              }
-            }}
-          />
+          {assignmentLockMessage && (
+            <div
+              className={`rounded-md border px-4 py-3 text-sm ${
+                isLockedByDueDate || isRetryLimitReached
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            >
+              {assignmentLockMessage}
+            </div>
+          )}
+
+          {submission?.fileUrl && (
+            <div className="rounded-xl border border-lightGray bg-lightGray/10 p-4 text-sm text-primaryGray">
+              <p className="font-semibold text-foreground">Latest submission</p>
+              <p className="mt-1">
+                Submitted{" "}
+                {submission.submittedAt
+                  ? new Date(submission.submittedAt).toLocaleString()
+                  : "recently"}
+              </p>
+              <a
+                href={submission.fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex text-primary underline-offset-4 hover:underline"
+              >
+                Open submitted document
+              </a>
+            </div>
+          )}
+
+          <div className={`space-y-3 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
+            <input
+              ref={essayFileInputRef}
+              type="file"
+              accept={ASSIGNMENT_DOCUMENT_ACCEPT}
+              className="block text-sm"
+              onChange={(e) => {
+                handleEssayFileSelection(e.target.files?.[0] ?? null);
+              }}
+            />
+
+            {essayFile && (
+              <p className="text-sm text-primaryGray">
+                Ready to upload: <span className="font-medium">{essayFile.name}</span>
+              </p>
+            )}
+
+            <button
+              type="button"
+              disabled={isSubmissionLocked || !essayFile || isSubmittingEssay}
+              className="mt-2 rounded-md bg-primary px-4 py-2 text-sm text-white disabled:opacity-50"
+              onClick={() => {
+                void handleEssayAssignmentSubmit();
+              }}
+            >
+              {isSubmittingEssay
+                ? "Submitting..."
+                : submission?.id
+                  ? "Resubmit Assignment"
+                  : "Submit Assignment"}
+            </button>
+          </div>
 
           <p className="text-xs text-primaryGray">
-            Upload your answer as a document (PDF or Word).
+            Upload your answer as a document (PDF, DOC, or DOCX).
           </p>
         </div>
       )}

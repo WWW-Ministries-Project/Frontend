@@ -55,6 +55,20 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("event/update-event", payload, query);
   };
 
+  /** Update every occurrence in a recurring series. Body must include series_id. */
+  updateEventSeries = (
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("event/update-series", payload);
+  };
+
+  /** Update this occurrence and all following ones. Body must include series_id + from_date. */
+  updateEventSeriesFrom = (
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("event/update-series-from", payload);
+  };
+
   updateUniqueEvent = (
     payload: EventType,
     query?: QueryType
