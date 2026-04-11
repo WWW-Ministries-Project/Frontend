@@ -29,6 +29,10 @@ const CreateEvent = () => {
   const params = new URLSearchParams(query);
   const id = params.get("event_id") ?? params.get("id");
   const isUpdating = Boolean(id);
+  /** "following" | "all" | null — only set when editing a series */
+  const editScope = params.get("edit_scope") as "following" | "all" | null;
+  const seriesId = params.get("series_id");
+  const seriesFromDate = params.get("series_from_date");
 
   useEffect(() => {
     if (id) {
@@ -75,7 +79,27 @@ const CreateEvent = () => {
           created_by: user?.id,
         };
         await postData(eventData);
+      } else if (editScope === "all" && seriesId) {
+        // Update every occurrence in the series
+        const eventData = {
+          ...val,
+          ...(posterLink ? { poster: posterLink } : {}),
+          updated_by: user?.id,
+          series_id: seriesId,
+        };
+        await api.put.updateEventSeries(eventData as Record<string, unknown>);
+      } else if (editScope === "following" && seriesId && seriesFromDate) {
+        // Update this occurrence and all future ones
+        const eventData = {
+          ...val,
+          ...(posterLink ? { poster: posterLink } : {}),
+          updated_by: user?.id,
+          series_id: seriesId,
+          from_date: seriesFromDate,
+        };
+        await api.put.updateEventSeriesFrom(eventData as Record<string, unknown>);
       } else {
+        // Normal single-event update
         const eventData = {
           ...val,
           ...(posterLink ? { poster: posterLink } : {}),
@@ -98,15 +122,25 @@ const CreateEvent = () => {
     <div className="p-4 md:p-6">
       <section className="mx-auto w-full max-w-5xl rounded-xl border border-lightGray bg-white p-4 shadow-sm md:p-8">
         <h1 className="H700 text-primary">
-          {isUpdating ? "Update Event Schedule" : "Schedule Event"}
+          {!isUpdating
+            ? "Schedule Event"
+            : editScope === "all"
+            ? "Edit All Events in Series"
+            : editScope === "following"
+            ? "Edit This and Following Events"
+            : "Update Event Schedule"}
         </h1>
         <p className="py-2 text-sma text-primaryGray">
-          {isUpdating
-            ? "Update event scheduling information and recurrence settings."
-            : "Fill in the form below with event details and scheduling settings."}
+          {!isUpdating
+            ? "Fill in the form below with event details and scheduling settings."
+            : editScope === "all"
+            ? "Changes will apply to every occurrence in this recurring series."
+            : editScope === "following"
+            ? "Changes will apply to this occurrence and all future ones in the series."
+            : "Update event scheduling information and recurrence settings."}
         </p>
         <div className="hideScrollbar overflow-y-auto pt-2">
-          <ImageUpload onFileChange={(file: File) => setFile(file)} src={""} />
+          <ImageUpload onFileChange={(file: File) => setFile(file)} src={(inputValue as any)?.poster || ""} />
           <EventsScheduleForm
             inputValue={inputValue}
             onSubmit={handleSubmit}

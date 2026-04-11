@@ -1,12 +1,15 @@
 import { Button } from "@/components";
+import AutocompleteTextField from "@/components/AutocompleteTextField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
+import Multiselect from "@/components/MultiSelect";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
+import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { api, EventType } from "@/utils";
 import clsx from "clsx";
 import { Field, Form, Formik, getIn } from "formik";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   formatInputDate,
   getChangedValues,
@@ -15,6 +18,48 @@ import {
   eventFormValidator,
   eventUpdateFormValidator,
 } from "../utils/eventHelpers";
+import {
+  REMINDER_OFFSET_OPTIONS,
+  type ReminderOffsetMinutes,
+} from "../utils/eventInterfaces";
+
+// ─── Timezone helpers ────────────────────────────────────────────────────────
+const COMMON_TIMEZONES = [
+  "UTC",
+  "Africa/Accra",
+  "Africa/Lagos",
+  "Africa/Nairobi",
+  "Africa/Johannesburg",
+  "Africa/Cairo",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
+
+/** Full IANA list when the browser supports it, otherwise fall back to common ones */
+const ALL_TIMEZONES: string[] = (() => {
+  try {
+    const supported = (Intl as any).supportedValuesOf?.("timeZone") as
+      | string[]
+      | undefined;
+    return supported?.length ? supported : COMMON_TIMEZONES;
+  } catch {
+    return COMMON_TIMEZONES;
+  }
+})();
+
+const TIMEZONE_OPTIONS = ALL_TIMEZONES.map((tz) => ({ label: tz, value: tz }));
 
 interface EventsFormValues {
   event_name_id?: string | number;
@@ -34,12 +79,17 @@ interface EventsFormValues {
   repetitive?: string;
   end_date?: string;
   recurrence_end_date?: string;
+  timezone?: string;
+  reminders?: ReminderOffsetMinutes[];
   location?: string;
   requires_registration?: boolean;
   registration_end_date?: string;
   registration_capacity?: number | string;
   registration_audience?: "MEMBERS_ONLY" | "MEMBERS_AND_NON_MEMBERS";
   public_registration_url?: string | null;
+  audience_type?: "all" | "department" | "position";
+  target_departments?: string[];
+  target_positions?: string[];
   [key: string]: unknown;
 }
 
@@ -122,6 +172,15 @@ const inferDayEvent = (startDate?: string, endDate?: string) => {
   return parsedEndDate > parsedStartDate ? "multi" : "one";
 };
 
+/** Returns true when end_time is earlier than start_time (event crosses midnight). */
+const crossesMidnight = (startTime?: string, endTime?: string): boolean => {
+  if (!startTime || !endTime) return false;
+  const [sh, sm] = startTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
+  if ([sh, sm, eh, em].some(Number.isNaN)) return false;
+  return eh * 60 + em < sh * 60 + sm;
+};
+
 const RegistrationDefaultsSync = ({
   form,
 }: {
@@ -130,16 +189,46 @@ const RegistrationDefaultsSync = ({
 }) => {
   const { setFieldValue, values } = form;
 
+  // ── Auto-detect midnight crossing ───────────────────────────────────────────
+  // When end_time < start_time the event spans midnight, so automatically
+  // switch to multi-day and push end_date to the next day.
+  useEffect(() => {
+    if (values.repetitive === "yes") return; // don't interfere with recurring setup
+    if (!values.start_time || !values.end_time) return;
+
+    if (crossesMidnight(values.start_time, values.end_time)) {
+      if (values.day_event !== "multi") {
+        setFieldValue("day_event", "multi", false);
+      }
+      if (values.start_date) {
+        const nextDay = addDaysToDateInput(String(values.start_date), 1);
+        if (!values.end_date || values.end_date === values.start_date) {
+          setFieldValue("end_date", nextDay, false);
+        }
+      }
+    }
+  }, [
+    setFieldValue,
+    values.start_time,
+    values.end_time,
+    values.start_date,
+    values.day_event,
+    values.end_date,
+    values.repetitive,
+  ]);
+
+  // ── Sync end_date with day_event ─────────────────────────────────────────────
   useEffect(() => {
     const startDate = String(values.start_date || "");
     if (!startDate) return;
 
     if (values.day_event === "multi") {
-      const nextDay = addDaysToDateInput(startDate, 1);
+      // Only auto-push end_date if it isn't already past start_date
       if (
         !values.end_date ||
         new Date(String(values.end_date)) <= new Date(startDate)
       ) {
+        const nextDay = addDaysToDateInput(startDate, 1);
         setFieldValue("end_date", nextDay, false);
       }
       return;
@@ -218,7 +307,13 @@ const RegistrationDefaultsSync = ({
 };
 
 const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
-  const { data: eventsData } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const { data: eventsData, refetch: refetchEvents } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const [isCreatingEventName, setIsCreatingEventName] = useState(false);
+  const { departments, positions } = useSettingsStore((state) => ({
+    departments: state.departments,
+    positions: state.positions,
+  }));
+
   const eventOptions = useMemo(
     () =>
       eventsData?.data?.map((event: EventType) => ({
@@ -228,6 +323,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         eventType: event.event_type,
       })) || [],
     [eventsData?.data]
+  );
+
+  // Suggestion labels (strings) for the autocomplete component
+  const eventNameSuggestions = useMemo(
+    () => eventOptions.map((o) => o.label),
+    [eventOptions]
   );
 
   const resolvedEventNameId = useMemo(() => {
@@ -263,6 +364,16 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     () => ({
       ...props.inputValue,
       event_name_id: resolvedEventNameId,
+      // Resolved display name for the autocomplete text field
+      event_name: (() => {
+        const idMatch = eventOptions.find(
+          (o) => String(o.value) === String(resolvedEventNameId)
+        );
+        return (
+          idMatch?.label ||
+          String(props.inputValue.event_name || props.inputValue.name || "")
+        );
+      })(),
       start_date: props.inputValue.start_date
         ? formatInputDate(String(props.inputValue.start_date)) ?? ""
         : "",
@@ -274,6 +385,13 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         : "",
       start_time: String(props.inputValue.start_time || "").slice(0, 5),
       end_time: String(props.inputValue.end_time || "").slice(0, 5),
+      timezone:
+        String(props.inputValue.timezone || "").trim() ||
+        Intl.DateTimeFormat().resolvedOptions().timeZone ||
+        "UTC",
+      reminders: Array.isArray(props.inputValue.reminders)
+        ? (props.inputValue.reminders as ReminderOffsetMinutes[])
+        : [],
       day_event: String(
         props.inputValue.day_event ||
           inferDayEvent(
@@ -303,6 +421,13 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           .toUpperCase() === "MEMBERS_ONLY"
           ? "MEMBERS_ONLY"
           : "MEMBERS_AND_NON_MEMBERS",
+      audience_type: (props.inputValue.audience_type as "all" | "department" | "position") || "all",
+      target_departments: Array.isArray(props.inputValue.target_departments)
+        ? (props.inputValue.target_departments as string[])
+        : [],
+      target_positions: Array.isArray(props.inputValue.target_positions)
+        ? (props.inputValue.target_positions as string[])
+        : [],
       recurring: {
         interval:
           props.inputValue.recurring?.interval !== undefined &&
@@ -333,6 +458,8 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           ...val,
           end_date: normalizedEndDate,
           recurrence_end_date: isRecurring ? val.recurrence_end_date : "",
+          timezone: val.timezone || "UTC",
+          reminders: Array.isArray(val.reminders) ? val.reminders : [],
           recurring: isRecurring
             ? {
                 interval:
@@ -359,6 +486,15 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           registration_audience: val.requires_registration
             ? val.registration_audience
             : "MEMBERS_AND_NON_MEMBERS",
+          audience_type: val.audience_type || "all",
+          target_departments:
+            val.audience_type === "department"
+              ? (val.target_departments || [])
+              : [],
+          target_positions:
+            val.audience_type === "position"
+              ? (val.target_positions || [])
+              : [],
         };
 
         const changedValues = props.updating
@@ -379,26 +515,87 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
             <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Event Information</h2>
               <p className="text-sma text-primaryGray">
-                Pick the event and review details before scheduling.
+                Search for an existing event name or type a new one to create
+                it on the spot.
               </p>
             </div>
+
             <div className="grid gap-4 md:grid-cols-2">
-              <Field
-                component={FormikSelectField}
-                options={eventOptions}
-                label="Event Name"
-                id="event_name_id"
-                name="event_name_id"
-                onChange={(name: string, value: string | number) => {
-                  form.setFieldValue(name, value);
-                  const selectedEvent = eventOptions.find(
-                    (event) => String(event.value) === String(value)
-                  );
-                  form.setFieldValue("description", selectedEvent?.description || "");
-                  form.setFieldValue("event_type", selectedEvent?.eventType || "");
-                }}
-                value={form.values.event_name_id}
-              />
+              {/* ── Search-or-create event name ── */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="event_name_autocomplete"
+                  className="text-sm font-medium text-primary"
+                >
+                  Event Name
+                </label>
+                <AutocompleteTextField
+                  id="event_name_autocomplete"
+                  name="event_name_autocomplete"
+                  suggestions={eventNameSuggestions}
+                  value={String(form.values.event_name || "")}
+                  placeholder="Search or create event name…"
+                  allowCreate
+                  createOptionLabelPrefix="Create event"
+                  createOptionDescription="This event name will be saved and reused for future events."
+                  disabled={isCreatingEventName}
+                  error={
+                    (getIn(form.touched, "event_name_id") || form.submitCount > 0)
+                      ? (getIn(form.errors, "event_name_id") as string | undefined)
+                      : undefined
+                  }
+                  onSelect={(selectedName: string) => {
+                    // Existing event name selected — populate all related fields
+                    const matched = eventOptions.find(
+                      (o) => o.label.trim().toLowerCase() === selectedName.trim().toLowerCase()
+                    );
+                    if (matched) {
+                      form.setFieldValue("event_name_id", matched.value);
+                      form.setFieldValue("event_name", matched.label);
+                      form.setFieldValue("description", matched.description || "");
+                      form.setFieldValue("event_type", matched.eventType || "");
+                    }
+                  }}
+                  onChange={(typedValue: string) => {
+                    // While the user is typing, keep the display name in sync but
+                    // clear event_name_id until a real selection is confirmed.
+                    form.setFieldValue("event_name", typedValue);
+                    const matched = eventOptions.find(
+                      (o) => o.label.trim().toLowerCase() === typedValue.trim().toLowerCase()
+                    );
+                    form.setFieldValue("event_name_id", matched?.value ?? "");
+                  }}
+                  onCreate={async (newName: string) => {
+                    // Brand-new event name — create it on the backend inline
+                    setIsCreatingEventName(true);
+                    try {
+                      const res = await api.post.createUniqueEvent({
+                        event_name: newName,
+                        event_type: "OTHER",
+                        event_description: "",
+                      } as any);
+                      const created = res?.data;
+                      if (created?.id) {
+                        await refetchEvents?.();
+                        form.setFieldValue("event_name_id", created.id);
+                        form.setFieldValue("event_name", created.event_name ?? newName);
+                        form.setFieldValue("event_type", created.event_type || "OTHER");
+                      }
+                    } catch {
+                      // If creation fails, just clear the id so validation catches it
+                      form.setFieldValue("event_name_id", "");
+                    } finally {
+                      setIsCreatingEventName(false);
+                    }
+                  }}
+                />
+                {isCreatingEventName && (
+                  <p className="text-xs text-primaryGray animate-pulse">
+                    Creating event name…
+                  </p>
+                )}
+              </div>
+
               <Field
                 component={FormikInputDiv}
                 label="Event Type"
@@ -409,6 +606,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 value={form.values.event_type}
               />
             </div>
+
             <div className="mt-4">
               <Field
                 component={FormikInputDiv}
@@ -579,17 +777,49 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
               )}
 
               {form.values.day_event === "multi" && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field
-                    component={FormikInputDiv}
-                    label="Event End Date"
-                    type="date"
-                    id="end_date"
-                    name="end_date"
-                    min={form.values.start_date || maxMinValueForDate().minDate}
-                    max={maxMinValueForDate().maxDate}
-                    value={form.values.end_date}
-                  />
+                <div className="space-y-3">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Field
+                      component={FormikInputDiv}
+                      label="Event End Date"
+                      type="date"
+                      id="end_date"
+                      name="end_date"
+                      min={form.values.start_date || maxMinValueForDate().minDate}
+                      max={maxMinValueForDate().maxDate}
+                      value={form.values.end_date}
+                    />
+                  </div>
+                  {/* Warn when start and end date are the same day */}
+                  {form.values.start_date &&
+                    form.values.end_date &&
+                    form.values.start_date === form.values.end_date && (
+                      <p className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                        <span>⚠️</span>
+                        <span>
+                          Start and end date are the same day. Either pick a
+                          later end date or switch back to{" "}
+                          <button
+                            type="button"
+                            className="underline font-medium"
+                            onClick={() => form.setFieldValue("day_event", "one")}
+                          >
+                            One-day Event
+                          </button>
+                          .
+                        </span>
+                      </p>
+                    )}
+                  {/* Midnight-crossing notice */}
+                  {crossesMidnight(form.values.start_time, form.values.end_time) && (
+                    <p className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                      <span>🌙</span>
+                      <span>
+                        End time is before start time — this event spans
+                        midnight and has been set to multi-day automatically.
+                      </span>
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -613,6 +843,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                         { label: "Day(s)", value: "daily" },
                         { label: "Week(s)", value: "weekly" },
                         { label: "Month(s)", value: "monthly" },
+                        { label: "Year(s)", value: "yearly" },
                       ]}
                     />
                   </div>
@@ -815,7 +1046,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
             <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Other Information</h2>
               <p className="text-sma text-primaryGray">
-                Add optional location details for this event.
+                Add optional location and timezone details for this event.
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -827,7 +1058,248 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 name="location"
                 value={form.values.location}
               />
+              <Field
+                component={FormikSelectField}
+                label="Timezone"
+                id="timezone"
+                name="timezone"
+                options={TIMEZONE_OPTIONS}
+                value={form.values.timezone}
+              />
             </div>
+          </section>
+
+          <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
+            <div className="mb-4 space-y-1">
+              <h2 className="H400 text-primary">Reminders</h2>
+              <p className="text-sma text-primaryGray">
+                Send attendees a notification before this event starts. Select
+                one or more reminder times.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {REMINDER_OFFSET_OPTIONS.map((option) => {
+                const currentReminders: ReminderOffsetMinutes[] = Array.isArray(
+                  form.values.reminders
+                )
+                  ? (form.values.reminders as ReminderOffsetMinutes[])
+                  : [];
+                const isSelected = currentReminders.includes(option.value);
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isSelected}
+                    title={option.label}
+                    onClick={() => {
+                      const updated: ReminderOffsetMinutes[] = isSelected
+                        ? currentReminders.filter((v) => v !== option.value)
+                        : [...currentReminders, option.value].sort(
+                            (a, b) => a - b
+                          ) as ReminderOffsetMinutes[];
+                      form.setFieldValue("reminders", updated);
+                    }}
+                    className={clsx(
+                      "rounded-lg border px-3 py-2 text-xs font-medium transition-colors text-left",
+                      isSelected
+                        ? "border-primary bg-primary text-white"
+                        : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            {Array.isArray(form.values.reminders) &&
+              (form.values.reminders as ReminderOffsetMinutes[]).length > 0 && (
+                <p className="mt-3 text-xs text-primaryGray">
+                  {(form.values.reminders as ReminderOffsetMinutes[]).length}{" "}
+                  reminder
+                  {(form.values.reminders as ReminderOffsetMinutes[]).length > 1
+                    ? "s"
+                    : ""}{" "}
+                  selected
+                </p>
+              )}
+          </section>
+
+          {/* ── Expected Attendees ──────────────────────────────────── */}
+          <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
+            <div className="mb-4 space-y-1">
+              <h2 className="H400 text-primary">Expected Attendees</h2>
+              <p className="text-sma text-primaryGray">
+                Specify which members this event is intended for.
+              </p>
+            </div>
+
+            {/* Audience type toggle */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              {(
+                [
+                  {
+                    value: "all",
+                    label: "All Members",
+                    description: "This event is open to every member.",
+                  },
+                  {
+                    value: "department",
+                    label: "By Department",
+                    description: "Target one or more specific departments.",
+                  },
+                  {
+                    value: "position",
+                    label: "By Position",
+                    description: "Target members holding specific positions.",
+                  },
+                ] as const
+              ).map((option) => {
+                const isActive = form.values.audience_type === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      form.setFieldValue("audience_type", option.value);
+                      // Clear selections from the other group
+                      if (option.value !== "department") {
+                        form.setFieldValue("target_departments", []);
+                      }
+                      if (option.value !== "position") {
+                        form.setFieldValue("target_positions", []);
+                      }
+                    }}
+                    className={clsx(
+                      "rounded-lg border px-4 py-3 text-left transition-colors",
+                      isActive
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-lightGray text-primaryGray hover:border-primary/40 hover:bg-primary/5"
+                    )}
+                  >
+                    <p className="text-sm font-semibold">{option.label}</p>
+                    <p className="mt-1 text-xs">{option.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Department multi-select */}
+            {form.values.audience_type === "department" && (
+              <div className="mt-5 space-y-2 rounded-lg border border-lightGray/90 bg-gray-50 p-4">
+                <p className="text-sm font-medium text-primary">
+                  Select Departments
+                </p>
+                <p className="text-xs text-primaryGray">
+                  Click to toggle. Selected departments are highlighted.
+                </p>
+                {departments.length === 0 ? (
+                  <p className="text-xs text-primaryGray italic">
+                    No departments available. Add departments in Settings.
+                  </p>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {departments.map((dept) => {
+                      const selected: string[] = Array.isArray(
+                        form.values.target_departments
+                      )
+                        ? (form.values.target_departments as string[])
+                        : [];
+                      const isSelected = selected.includes(String(dept.id));
+                      return (
+                        <button
+                          key={dept.id}
+                          type="button"
+                          onClick={() => {
+                            const updated = isSelected
+                              ? selected.filter((id) => id !== String(dept.id))
+                              : [...selected, String(dept.id)];
+                            form.setFieldValue("target_departments", updated);
+                          }}
+                          className={clsx(
+                            "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                            isSelected
+                              ? "border-primary bg-primary text-white"
+                              : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+                          )}
+                        >
+                          {dept.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {Array.isArray(form.values.target_departments) &&
+                  (form.values.target_departments as string[]).length > 0 && (
+                    <p className="mt-2 text-xs text-primaryGray">
+                      {(form.values.target_departments as string[]).length}{" "}
+                      department
+                      {(form.values.target_departments as string[]).length > 1
+                        ? "s"
+                        : ""}{" "}
+                      selected
+                    </p>
+                  )}
+              </div>
+            )}
+
+            {/* Position multi-select */}
+            {form.values.audience_type === "position" && (
+              <div className="mt-5 space-y-2 rounded-lg border border-lightGray/90 bg-gray-50 p-4">
+                <p className="text-sm font-medium text-primary">
+                  Select Positions
+                </p>
+                <p className="text-xs text-primaryGray">
+                  Click to toggle. Selected positions are highlighted.
+                </p>
+                {positions.length === 0 ? (
+                  <p className="text-xs text-primaryGray italic">
+                    No positions available. Add positions in Settings.
+                  </p>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {positions.map((pos) => {
+                      const selected: string[] = Array.isArray(
+                        form.values.target_positions
+                      )
+                        ? (form.values.target_positions as string[])
+                        : [];
+                      const isSelected = selected.includes(String(pos.id));
+                      return (
+                        <button
+                          key={pos.id}
+                          type="button"
+                          onClick={() => {
+                            const updated = isSelected
+                              ? selected.filter((id) => id !== String(pos.id))
+                              : [...selected, String(pos.id)];
+                            form.setFieldValue("target_positions", updated);
+                          }}
+                          className={clsx(
+                            "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                            isSelected
+                              ? "border-primary bg-primary text-white"
+                              : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
+                          )}
+                        >
+                          {pos.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {Array.isArray(form.values.target_positions) &&
+                  (form.values.target_positions as string[]).length > 0 && (
+                    <p className="mt-2 text-xs text-primaryGray">
+                      {(form.values.target_positions as string[]).length}{" "}
+                      position
+                      {(form.values.target_positions as string[]).length > 1
+                        ? "s"
+                        : ""}{" "}
+                      selected
+                    </p>
+                  )}
+              </div>
+            )}
           </section>
 
           <div className="sticky bottom-0 z-10 border-t border-lightGray bg-white/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80">

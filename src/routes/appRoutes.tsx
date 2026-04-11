@@ -31,6 +31,7 @@ import { NoAccess } from "@/components/NoAccess";
 import { NotificationCenterPage } from "@/features/notifications/NotificationCenterPage";
 import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
+import EventSchedulesByEvent from "@/pages/HomePage/pages/EventsManagement/pages/EventSchedulesByEvent";
 import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
 import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
@@ -363,6 +364,14 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
+            path: "events",
+            name: "Scheduled Events",
+            element: <EventsManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_events",
+            sideTab: true,
+          },
+          {
             path: "",
             name: "Events",
             element: <AllEvent />,
@@ -386,12 +395,11 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_events",
           },
           {
-            path: "events",
-            name: "Events Schedule",
-            element: <EventsManagement />,
+            path: "event-schedules",
+            name: "Event Schedules",
+            element: <EventSchedulesByEvent />,
             isPrivate: true,
             permissionNeeded: "view_events",
-            sideTab: true,
           },
         ],
       },

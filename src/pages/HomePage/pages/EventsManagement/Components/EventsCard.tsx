@@ -17,6 +17,8 @@ interface IProps {
   onShowOptions: (id: string | number) => void;
   readOnly?: boolean;
   onSelect?: (event: CalendarEvent) => void;
+  /** If provided, called instead of the default navigate-to-edit-page behaviour */
+  onEdit?: (event: CalendarEvent) => void;
 }
 
 export const EventsCard = (props: IProps) => {
@@ -71,16 +73,15 @@ export const EventsCard = (props: IProps) => {
             {props.showOptions && (
               <Action
                 onDelete={() => props.onDelete(props.event)}
-                // onView={() =>
-                //   props.onNavigate(
-                //     `${relativePath.home.events.view}?event_id=${props.event.id}`
-                //   )
-                // }
-                onEdit={() =>
-                  props.onNavigate(
-                    `/home/manage-event?event_id=${props.event.id}`
-                  )
-                }
+                onEdit={() => {
+                  if (props.onEdit) {
+                    props.onEdit(props.event);
+                  } else {
+                    props.onNavigate(
+                      `/home/manage-event?event_id=${props.event.id}`
+                    );
+                  }
+                }}
               />
             )}
           </div>

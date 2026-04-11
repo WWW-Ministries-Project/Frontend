@@ -132,6 +132,11 @@ export const eventInput = {
   day_event: "one",
   end_date: "",
   recurrence_end_date: "",
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  reminders: [],
+  audience_type: "all",
+  target_departments: [],
+  target_positions: [],
   requires_registration: false,
   registration_end_date: "",
   registration_capacity: "",
@@ -294,6 +299,35 @@ export const eventFormValidator = eventUpdateFormValidator.shape({
           message: "Event end date is required",
         });
       }
+      return true;
+    }
+  )
+  .test(
+    "multi-day-same-date",
+    "Multi-day event must end on a different date",
+    function validateMultiDaySameDate(value) {
+      if (!value || value.day_event !== "multi") return true;
+      if (!value.start_date || !value.end_date) return true;
+
+      const startDate = new Date(value.start_date);
+      const endDate = new Date(value.end_date);
+
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        return true;
+      }
+
+      // Strip time component for date-only comparison
+      const startDay = startDate.toISOString().slice(0, 10);
+      const endDay = endDate.toISOString().slice(0, 10);
+
+      if (startDay === endDay) {
+        return this.createError({
+          path: "end_date",
+          message:
+            "Start and end date are the same day — use 'One-day Event' or pick a later end date.",
+        });
+      }
+
       return true;
     }
   )
