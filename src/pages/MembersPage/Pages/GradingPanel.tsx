@@ -16,6 +16,7 @@ interface Submission {
   studentId: string;    // USER id (who the grade is for)
   studentName: string;
   submittedAt: string;
+  fileUrl?: string | null;
   status: "pending" | "graded";
   grade: number | null;
   gradeLabel?: string | null;
@@ -111,7 +112,7 @@ const resolveStatus = (rawItem: SafeRecord, submission: SafeRecord): Submission[
   ).toUpperCase();
 
   if (!rawStatus) return "pending";
-  if (rawStatus === "PENDING") return "pending";
+  if (rawStatus === "PENDING" || rawStatus === "SUBMITTED") return "pending";
   return "graded";
 };
 
@@ -120,6 +121,12 @@ const resolveSubmittedAt = (rawItem: SafeRecord, submission: SafeRecord): string
   toSafeString(submission.submitted_at) ||
   toSafeString(rawItem.submittedAt) ||
   toSafeString(rawItem.submitted_at);
+
+const resolveFileUrl = (rawItem: SafeRecord, submission: SafeRecord): string =>
+  toSafeString(submission.fileUrl) ||
+  toSafeString(submission.file_url) ||
+  toSafeString(rawItem.fileUrl) ||
+  toSafeString(rawItem.file_url);
 
 const resolveStudent = (rawItem: SafeRecord) => {
   const student = asRecord(rawItem.student);
@@ -187,6 +194,7 @@ const mapBackendResultsToAssignment = (
             studentId: student.id,
             studentName: student.fullName,
             submittedAt: resolveSubmittedAt(rawItem, submission),
+            fileUrl: resolveFileUrl(rawItem, submission) || null,
             grade: grade.value,
             gradeLabel: grade.label,
             status: resolveStatus(rawItem, submission),
@@ -282,6 +290,23 @@ const GradingPanel = () => {
         const date = new Date(row.original.submittedAt);
         return isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
       },
+    },
+    {
+      accessorKey: "fileUrl",
+      header: "File",
+      cell: ({ row }) =>
+        row.original.fileUrl ? (
+          <a
+            href={row.original.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Open file
+          </a>
+        ) : (
+          "—"
+        ),
     },
     {
       accessorKey: "status",

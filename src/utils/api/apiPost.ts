@@ -274,8 +274,9 @@ export class ApiCreationCalls {
     return this.postToApi<T>("program/submit-mcq-assignment", payload);
   };
 
-  // Submit Assignments
-  
+  submitEssayAssignment = <T>(payload: unknown): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("program/submit-essay-assignment", payload);
+  };
 
   // Unenroll User
   unenrollUser = <T>(
