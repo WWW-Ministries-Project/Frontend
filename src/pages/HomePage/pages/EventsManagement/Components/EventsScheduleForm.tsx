@@ -8,7 +8,7 @@ import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { api, EventType } from "@/utils";
 import clsx from "clsx";
-import { Field, Form, Formik, getIn } from "formik";
+import { Field, Form, Formik, FormikProps, getIn } from "formik";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   formatInputDate,
@@ -50,9 +50,10 @@ const COMMON_TIMEZONES = [
 /** Full IANA list when the browser supports it, otherwise fall back to common ones */
 const ALL_TIMEZONES: string[] = (() => {
   try {
-    const supported = (Intl as any).supportedValuesOf?.("timeZone") as
-      | string[]
-      | undefined;
+    const intlWithSupportedValues = Intl as typeof Intl & {
+      supportedValuesOf?: (key: "timeZone") => string[];
+    };
+    const supported = intlWithSupportedValues.supportedValuesOf?.("timeZone");
     return supported?.length ? supported : COMMON_TIMEZONES;
   } catch {
     return COMMON_TIMEZONES;
@@ -184,7 +185,7 @@ const crossesMidnight = (startTime?: string, endTime?: string): boolean => {
 const RegistrationDefaultsSync = ({
   form,
 }: {
-  form: any;
+  form: FormikProps<EventsFormValues>;
   updating?: boolean;
 }) => {
   const { setFieldValue, values } = form;
@@ -331,6 +332,24 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
     [eventOptions]
   );
 
+  const departmentOptions = useMemo(
+    () =>
+      departments.map((department) => ({
+        label: department.name,
+        value: String(department.id),
+      })),
+    [departments]
+  );
+
+  const positionOptions = useMemo(
+    () =>
+      positions.map((position) => ({
+        label: position.name,
+        value: String(position.id),
+      })),
+    [positions]
+  );
+
   const resolvedEventNameId = useMemo(() => {
     if (
       props.inputValue.event_name_id !== undefined &&
@@ -441,7 +460,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         ),
       },
     }),
-    [props.inputValue, resolvedEventNameId]
+    [eventOptions, props.inputValue, resolvedEventNameId]
   );
 
   return (
@@ -573,7 +592,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                         event_name: newName,
                         event_type: "OTHER",
                         event_description: "",
-                      } as any);
+                      });
                       const created = res?.data;
                       if (created?.id) {
                         await refetchEvents?.();
@@ -1190,55 +1209,26 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                   Select Departments
                 </p>
                 <p className="text-xs text-primaryGray">
-                  Click to toggle. Selected departments are highlighted.
+                  Use the dropdown to choose one or more departments.
                 </p>
-                {departments.length === 0 ? (
-                  <p className="text-xs text-primaryGray italic">
-                    No departments available. Add departments in Settings.
-                  </p>
-                ) : (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {departments.map((dept) => {
-                      const selected: string[] = Array.isArray(
-                        form.values.target_departments
-                      )
-                        ? (form.values.target_departments as string[])
-                        : [];
-                      const isSelected = selected.includes(String(dept.id));
-                      return (
-                        <button
-                          key={dept.id}
-                          type="button"
-                          onClick={() => {
-                            const updated = isSelected
-                              ? selected.filter((id) => id !== String(dept.id))
-                              : [...selected, String(dept.id)];
-                            form.setFieldValue("target_departments", updated);
-                          }}
-                          className={clsx(
-                            "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                            isSelected
-                              ? "border-primary bg-primary text-white"
-                              : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
-                          )}
-                        >
-                          {dept.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {Array.isArray(form.values.target_departments) &&
-                  (form.values.target_departments as string[]).length > 0 && (
-                    <p className="mt-2 text-xs text-primaryGray">
-                      {(form.values.target_departments as string[]).length}{" "}
-                      department
-                      {(form.values.target_departments as string[]).length > 1
-                        ? "s"
-                        : ""}{" "}
-                      selected
-                    </p>
-                  )}
+                <Multiselect
+                  options={departmentOptions}
+                  selectedValues={
+                    Array.isArray(form.values.target_departments)
+                      ? (form.values.target_departments as string[])
+                      : []
+                  }
+                  onChange={(values) =>
+                    form.setFieldValue("target_departments", values)
+                  }
+                  placeholder="Select department(s)"
+                  emptyMsg={
+                    departmentOptions.length === 0
+                      ? "No departments available. Add departments in Settings."
+                      : "No departments selected"
+                  }
+                  disabled={departmentOptions.length === 0}
+                />
               </div>
             )}
 
@@ -1249,55 +1239,26 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                   Select Positions
                 </p>
                 <p className="text-xs text-primaryGray">
-                  Click to toggle. Selected positions are highlighted.
+                  Use the dropdown to choose one or more positions.
                 </p>
-                {positions.length === 0 ? (
-                  <p className="text-xs text-primaryGray italic">
-                    No positions available. Add positions in Settings.
-                  </p>
-                ) : (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {positions.map((pos) => {
-                      const selected: string[] = Array.isArray(
-                        form.values.target_positions
-                      )
-                        ? (form.values.target_positions as string[])
-                        : [];
-                      const isSelected = selected.includes(String(pos.id));
-                      return (
-                        <button
-                          key={pos.id}
-                          type="button"
-                          onClick={() => {
-                            const updated = isSelected
-                              ? selected.filter((id) => id !== String(pos.id))
-                              : [...selected, String(pos.id)];
-                            form.setFieldValue("target_positions", updated);
-                          }}
-                          className={clsx(
-                            "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                            isSelected
-                              ? "border-primary bg-primary text-white"
-                              : "border-lightGray bg-white text-primary hover:border-primary/40 hover:bg-primary/5"
-                          )}
-                        >
-                          {pos.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                {Array.isArray(form.values.target_positions) &&
-                  (form.values.target_positions as string[]).length > 0 && (
-                    <p className="mt-2 text-xs text-primaryGray">
-                      {(form.values.target_positions as string[]).length}{" "}
-                      position
-                      {(form.values.target_positions as string[]).length > 1
-                        ? "s"
-                        : ""}{" "}
-                      selected
-                    </p>
-                  )}
+                <Multiselect
+                  options={positionOptions}
+                  selectedValues={
+                    Array.isArray(form.values.target_positions)
+                      ? (form.values.target_positions as string[])
+                      : []
+                  }
+                  onChange={(values) =>
+                    form.setFieldValue("target_positions", values)
+                  }
+                  placeholder="Select position(s)"
+                  emptyMsg={
+                    positionOptions.length === 0
+                      ? "No positions available. Add positions in Settings."
+                      : "No positions selected"
+                  }
+                  disabled={positionOptions.length === 0}
+                />
               </div>
             )}
           </section>
