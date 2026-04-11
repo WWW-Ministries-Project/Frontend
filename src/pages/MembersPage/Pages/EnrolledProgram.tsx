@@ -350,6 +350,7 @@ const EnrolledProgram: React.FC = () => {
                     topicScore={selectedTopic.score ?? undefined}
                     topicCompletedAt={selectedTopic.completedAt}
                     activation={selectedTopic.activation}
+                    submission={selectedTopic.submission}
 
                     hasNextTopic={Boolean(nextTopic)}
                     nextTopicName={nextTopic?.name}

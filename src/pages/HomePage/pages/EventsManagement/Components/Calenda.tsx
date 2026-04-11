@@ -38,6 +38,8 @@ interface CalendarProps {
   onShowOptions: (eventId: string | number) => void;
   showOptions: string | number | null;
   onViewEvent?: (event: CalendarEvent) => void;
+  /** If provided, called instead of the default navigate-to-edit-page behaviour */
+  onEdit?: (event: CalendarEvent) => void;
 }
 
 interface CalendarData {
@@ -90,6 +92,7 @@ const Calendar: React.FC<CalendarProps> = ({
   onShowOptions,
   showOptions,
   onViewEvent,
+  onEdit,
   ...props
 }) => {
   const navigate = useNavigate();
@@ -538,11 +541,12 @@ const Calendar: React.FC<CalendarProps> = ({
           //   showOptions={showOptions}
           // />
           <EventsCard
-          event={selectedEvent}
-          key={selectedEvent.id}
-          onNavigate={handleNavigation}
-          onDelete={onDelete}
-          onShowOptions={onShowOptions}
+            event={selectedEvent}
+            key={selectedEvent.id}
+            onNavigate={handleNavigation}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onShowOptions={onShowOptions}
             showOptions={showOptions === selectedEvent.id}
           />
 

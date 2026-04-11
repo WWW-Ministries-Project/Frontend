@@ -27,6 +27,16 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("event/delete-event", query);
   };
 
+  /** Delete every occurrence in a recurring series. Query: { series_id } */
+  deleteEventSeries = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/delete-series", query);
+  };
+
+  /** Delete this occurrence and all following ones. Query: { series_id, from_date } */
+  deleteEventSeriesFrom = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/delete-series-from", query);
+  };
+
   deleteUniqueEvent = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("event/delete-event-type", query);
   };

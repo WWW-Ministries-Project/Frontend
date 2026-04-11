@@ -9,12 +9,14 @@ interface IProps {
   item: EventType;
   handleEdit: (item: EventType) => void;
   deleteUniqueEvent: (id: string, name: string) => void;
+  onView?: (item: EventType) => void;
 }
 
 export const AllEventCard = ({
   item,
   handleEdit,
   deleteUniqueEvent,
+  onView,
 }: IProps) => {
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
@@ -28,13 +30,16 @@ export const AllEventCard = ({
   //   navigate(`life-center/${encodeQuery(String(item?.id))}`);
 
   return (
-    <div 
+    <div
       className="w-full max-w-[591px] rounded-2xl border border-lightGray bg-white p-4 text-primary shadow-sm transition-shadow hover:shadow-md relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between  items-center">
-        <h2 className="text-xl font-medium text-primary">{item.event_name}</h2>
+        <h2
+          className={`text-xl font-medium text-primary ${onView ? "cursor-pointer hover:text-primary/70" : ""}`}
+          onClick={onView ? (e) => { e.stopPropagation(); onView(item); } : undefined}
+        >{item.event_name}</h2>
         
         {/* Badge - hidden on hover */}
         <div className={`flex-shrink-0 transition-opacity duration-200 ${isHovered ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -68,6 +73,19 @@ export const AllEventCard = ({
       <div className="text-sm leading-relaxed text-primaryGray">
         {item.event_description}
       </div>
+
+      {onView && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onView(item); }}
+          className="mt-3 flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/70 transition-colors"
+        >
+          View schedules
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

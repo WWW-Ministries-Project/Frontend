@@ -4,6 +4,7 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers";
+import SeriesScopeModal from "../Components/SeriesScopeModal";
 import defaultImage1 from "/src/assets/image.svg";
 import axios from "/src/axiosInstance";
 import { Button } from "/src/components";
@@ -47,10 +48,30 @@ const ViewEvents = () => {
   const [eventdetails, setEventdetails] = useState(null);
   const [queryLoading, setQueryLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("Details");
+  const [seriesModal, setSeriesModal] = useState(false);
   const query = location.search;
   const params = new URLSearchParams(query);
   const navigate = useNavigate();
   const id = params.get("event_id");
+
+  const handleEditClick = () => {
+    if (eventdetails?.recurrence_series_id) {
+      setSeriesModal(true);
+    } else {
+      navigate(`/home/manage-event?event_id=${id}`);
+    }
+  };
+
+  const handleSeriesEditConfirm = (scope) => {
+    setSeriesModal(false);
+    const urlParams = new URLSearchParams({ event_id: String(id) });
+    if (scope !== "this") {
+      urlParams.set("edit_scope", scope);
+      urlParams.set("series_id", eventdetails.recurrence_series_id);
+      urlParams.set("series_from_date", eventdetails.start_date);
+    }
+    navigate(`/home/manage-event?${urlParams.toString()}`);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -95,6 +116,14 @@ const ViewEvents = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
+      {seriesModal && (
+        <SeriesScopeModal
+          action="edit"
+          eventName={eventdetails?.event_name}
+          onConfirm={handleSeriesEditConfirm}
+          onCancel={() => setSeriesModal(false)}
+        />
+      )}
       <section className="overflow-hidden rounded-3xl border border-lightGray bg-white shadow-sm">
         <div className="relative min-h-[280px] overflow-hidden bg-primary text-white">
           <div
@@ -155,7 +184,7 @@ const ViewEvents = () => {
                 <Button
                   value="Edit Event"
                   className="border border-white/20 bg-white/10 px-6 py-2 text-white"
-                  onClick={() => navigate(`/home/manage-event?event_id=${id}`)}
+                  onClick={handleEditClick}
                 />
                 {eventdetails?.requires_registration &&
                   eventdetails?.public_registration_url && (

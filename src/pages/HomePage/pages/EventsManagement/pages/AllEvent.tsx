@@ -15,6 +15,7 @@ import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { getBadgeColor } from "../utils/eventHelpers";
 import { AllEventCard } from "../Components/AllEventCard";
 import { TAB_TO_EVENT_TYPE } from "../utils/eventInterfaces";
+import { useNavigate } from "react-router-dom";
 
 // Tab to event type mapping
 
@@ -50,6 +51,13 @@ const AllEvent = () => {
   const [currentData, setCurrentData] = useState<EventType | null>(null);
   const [selectedTab, setSelectedTab] = useState<keyof typeof TAB_TO_EVENT_TYPE>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleViewSchedules = useCallback((event: EventType) => {
+    navigate(
+      `/home/events/event-schedules?event_name_id=${event.id}&event_name=${encodeURIComponent(event.event_name)}`
+    );
+  }, [navigate]);
 
   // Single source of truth for events
   const [allEvents, setAllEvents] = useState<EventType[]>([]);
@@ -212,11 +220,12 @@ const AllEvent = () => {
         {(filteredEvents?.length ?? 0) > 0 ? (
           (filteredEvents ?? []).map((event) => (
             <AllEventCard
-            key={event.id}
-                item={event}
-                handleEdit={handleEdit}
-                deleteUniqueEvent={deleteUniqueEvent}
-              />
+              key={event.id}
+              item={event}
+              handleEdit={handleEdit}
+              deleteUniqueEvent={deleteUniqueEvent}
+              onView={handleViewSchedules}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-12">
