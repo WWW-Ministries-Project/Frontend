@@ -27,6 +27,7 @@ interface SelectFieldProps {
   searchable?: boolean;
   searchPlaceholder?: string;
   clearable?: boolean;
+  sortOptions?: boolean;
 
   className?: string;
   inputClassName?: string;
@@ -44,6 +45,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   searchable,
   searchPlaceholder = "Search...",
   clearable = false,
+  sortOptions = true,
   className,
   inputClassName,
   helperText
@@ -63,18 +65,32 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   }, []);
 
   const sortedOptions = useMemo(
-    () =>
-      [...options].sort((a, b) =>
+    () => {
+      if (!sortOptions) {
+        return options;
+      }
+
+      return [...options].sort((a, b) =>
         getOptionLabel(a).localeCompare(getOptionLabel(b), undefined, {
           sensitivity: "base",
           numeric: true,
         })
-      ),
-    [options, getOptionLabel]
+      );
+    },
+    [options, getOptionLabel, sortOptions]
   );
 
-  const shouldSearch = searchable || sortedOptions.length > 5;
-  const selectedOption = sortedOptions.find((o) => o.value === value);
+  const areOptionValuesEqual = useCallback(
+    (left: string | number | null | undefined, right: string | number | null | undefined) =>
+      String(left ?? "") === String(right ?? ""),
+    []
+  );
+
+  const shouldSearch =
+    searchable === undefined ? sortedOptions.length > 5 : searchable;
+  const selectedOption = sortedOptions.find((option) =>
+    areOptionValuesEqual(option.value, value)
+  );
 
   /* ---------------------------- styles ---------------------------- */
 
@@ -280,7 +296,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
                     onClick={() => handleSelect(option)}
                     className={clsx(
                       "w-full px-3 py-2 text-sm text-left hover:bg-gray-100",
-                      option.value === value && "bg-gray-50 text-primary"
+                      areOptionValuesEqual(option.value, value) &&
+                        "bg-gray-50 text-primary"
                     )}
                   >
                     {getOptionLabel(option)}

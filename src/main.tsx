@@ -11,12 +11,11 @@ import { ThemeProvider } from "./context/ThemeContext";
 import "./index.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
 
-registerSW({
-  immediate: true,
-});
-
-
-
+if (import.meta.env.PROD) {
+  registerSW({
+    immediate: true,
+  });
+}
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <ThemeProvider>

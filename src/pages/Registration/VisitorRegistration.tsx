@@ -1,13 +1,9 @@
-// TODO remove THE next time you see this
-import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import {
   IVisitorForm,
   VisitorForm,
 } from "@/pages/HomePage/pages/VisitorManagement/Components/VisitorForm";
 import { showNotification } from "@/pages/HomePage/utils";
-import { useStore } from "@/store/useStore";
-import { decodeToken } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { useEffect, useState } from "react";
@@ -29,9 +25,6 @@ export const VisitorRegistration = () => {
     data: registrationResponse,
     error,
   } = usePost(api.post.createVisitor);
-  const { data, refetch } = useFetch(api.fetch.fetchEvents, {}, true);
-  const store = useStore();
-  const user = decodeToken();
 
   useEffect(() => {
     if (registrationSuccess) {
@@ -67,18 +60,6 @@ export const VisitorRegistration = () => {
   async function handleSubmit(values: IVisitorForm) {
     await postData(normalizeOptionalOtherNames(values));
   }
-
-  useEffect(() => {
-    if (!user?.id) {
-      refetch();
-    }
-  }, [user?.id, refetch]);
-
-  useEffect(() => {
-    if (data) {
-      store.setEvents(data.data);
-    }
-  }, [data, store]);
 
   if (registrationSuccess) {
     return (
