@@ -146,6 +146,12 @@ export class ApiCalls {
     return this.fetchFromApi("event/list-events", query);
   };
 
+  fetchEventOptions = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventResponseType[]>> => {
+    return this.fetchFromApi("event/list-events-light", query);
+  };
+
   fetchUpcomingEvents = (
     query?: QueryType
   ): Promise<ApiResponse<EventResponseType[]>> => {

@@ -54,6 +54,8 @@ function fieldToSelectField({
     type: props.type,
     error: showError,
     helperText: props.helperText,
+    searchable: props.searchable,
+    searchPlaceholder: props.searchPlaceholder,
     clearable: props.clearable,
   };
 }

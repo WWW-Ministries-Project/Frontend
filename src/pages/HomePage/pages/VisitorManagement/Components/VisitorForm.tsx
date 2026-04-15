@@ -1,6 +1,7 @@
 import { Button } from "@/components/Button";
 import { CountryField } from "@/components/fields/CountryField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
+import { useFetch } from "@/CustomHooks/useFetch";
 import MultiSelect from "@/components/MultiSelect";
 import FormikSelectField from "@/components/FormikSelect";
 import {
@@ -10,7 +11,9 @@ import {
   NameInfo,
 } from "@/components/subform";
 import { FormHeader, FormLayout } from "@/components/ui";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { useStore } from "@/store/useStore";
+import { api, EventResponseType, formatDate } from "@/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { date, object, string } from "yup";
 import React from "react";
@@ -28,6 +31,12 @@ type SyncClergyFieldsFormValues = {
     churchLocation?: string;
     churchRole?: string;
   };
+};
+
+type VisitorEventOption = {
+  value: string;
+  label: string;
+  date?: string;
 };
 
 const genderOptions = [
@@ -48,6 +57,45 @@ const clergyOptions = [
   { label: "No", value: "no" },
 ];
 
+const monthOptions = Array.from({ length: 12 }, (_, index) => ({
+  label: new Date(2000, index, 1).toLocaleString("default", {
+    month: "long",
+  }),
+  value: String(index + 1),
+}));
+
+const getCurrentMonthYear = () => {
+  const today = new Date();
+
+  return {
+    month: String(today.getMonth() + 1),
+    year: String(today.getFullYear()),
+  };
+};
+
+const createYearOptions = (activeYear: string) => {
+  const currentYear = new Date().getFullYear();
+  const years = new Set<string>([activeYear]);
+
+  for (let year = currentYear + 2; year >= currentYear - 20; year -= 1) {
+    years.add(String(year));
+  }
+
+  return Array.from(years)
+    .sort((left, right) => Number(right) - Number(left))
+    .map((year) => ({
+      label: year,
+      value: year,
+    }));
+};
+
+const mapEventOptions = (events: EventResponseType[]): VisitorEventOption[] =>
+  events.map((event) => ({
+    value: String(event.id),
+    label: `${event.name || "Untitled event"} - ${formatDate(event.start_date)}`,
+    date: event.start_date,
+  }));
+
 const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | number; date?: string }[] }) => {
   const { values, setFieldValue } = useFormikContext<SyncEventDateFormValues>();
 
@@ -66,6 +114,137 @@ const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | num
   }, [values?.visit?.eventId, eventsOptions, setFieldValue]);
 
   return null;
+};
+
+const EventSelectionFields = () => {
+  const { values } = useFormikContext<SyncEventDateFormValues>();
+  const { month: currentMonth, year: currentYear } = React.useMemo(
+    () => getCurrentMonthYear(),
+    []
+  );
+  const [eventFilterMonth, setEventFilterMonth] = React.useState(currentMonth);
+  const [eventFilterYear, setEventFilterYear] = React.useState(currentYear);
+
+  const currentEventId = values?.visit?.eventId
+    ? String(values.visit.eventId)
+    : "";
+  const includedEventIdRef = React.useRef(currentEventId);
+  const eventQuery = React.useMemo(() => {
+    const query: Record<string, string> = {
+      month: eventFilterMonth,
+      year: eventFilterYear,
+    };
+
+    if (includedEventIdRef.current) {
+      query.includeEventId = includedEventIdRef.current;
+    }
+
+    return query;
+  }, [eventFilterMonth, eventFilterYear]);
+  const { data: eventOptionsResponse, loading: eventOptionsLoading } = useFetch(
+    api.fetch.fetchEventOptions,
+    eventQuery
+  );
+
+  const eventRecords = React.useMemo(
+    () =>
+      Array.isArray(eventOptionsResponse?.data) ? eventOptionsResponse.data : [],
+    [eventOptionsResponse?.data]
+  );
+  const eventOptions = React.useMemo(
+    () => mapEventOptions(eventRecords),
+    [eventRecords]
+  );
+  const yearOptions = React.useMemo(
+    () => createYearOptions(eventFilterYear),
+    [eventFilterYear]
+  );
+  const selectedEvent = React.useMemo(
+    () =>
+      includedEventIdRef.current
+        ? eventRecords.find(
+            (event) => String(event.id) === includedEventIdRef.current
+          )
+        : undefined,
+    [eventRecords]
+  );
+  const selectedEventOutsideFilter = React.useMemo(() => {
+    if (!selectedEvent?.start_date) {
+      return false;
+    }
+
+    const selectedDate = new Date(selectedEvent.start_date);
+    if (Number.isNaN(selectedDate.getTime())) {
+      return false;
+    }
+
+    return (
+      selectedDate.getMonth() + 1 !== Number(eventFilterMonth) ||
+      selectedDate.getFullYear() !== Number(eventFilterYear)
+    );
+  }, [eventFilterMonth, eventFilterYear, selectedEvent?.start_date]);
+  const activeMonthLabel =
+    monthOptions.find((option) => option.value === eventFilterMonth)?.label ||
+    "Selected month";
+
+  const eventHelperText = eventOptionsLoading
+    ? "Loading events..."
+    : selectedEventOutsideFilter
+      ? `Showing ${activeMonthLabel} ${eventFilterYear} events plus the visitor's current event.`
+      : eventOptions.length > 0
+        ? `Showing events for ${activeMonthLabel} ${eventFilterYear}.`
+        : `No events found for ${activeMonthLabel} ${eventFilterYear}.`;
+
+  return (
+    <>
+      <SyncEventDate eventsOptions={eventOptions} />
+      <div className="md:col-span-2 rounded-lg border border-lightGray/70 bg-lightGray/20 p-4">
+        <div className="mb-4">
+          <p className="text-sm font-semibold text-primary">Visit Event</p>
+          <p className="text-xs text-primaryGray">
+            Filter events by month and year before selecting the visit event.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <SelectField
+            id="visitor-event-filter-month"
+            label="Month"
+            value={eventFilterMonth}
+            options={monthOptions}
+            searchable={false}
+            sortOptions={false}
+            onChange={(_, value) =>
+              setEventFilterMonth(String(value || currentMonth))
+            }
+          />
+          <SelectField
+            id="visitor-event-filter-year"
+            label="Year"
+            value={eventFilterYear}
+            options={yearOptions}
+            searchable={false}
+            sortOptions={false}
+            onChange={(_, value) =>
+              setEventFilterYear(String(value || currentYear))
+            }
+          />
+          <Field
+            component={FormikSelectField}
+            options={eventOptions}
+            label="Event"
+            placeholder={
+              eventOptionsLoading ? "Loading events..." : "Select event"
+            }
+            name="visit.eventId"
+            id="visit.eventId"
+            searchable={false}
+            disabled={eventOptionsLoading}
+            helperText={eventHelperText}
+          />
+        </div>
+      </div>
+    </>
+  );
 };
 
 const SyncClergyFields = () => {
@@ -111,7 +290,7 @@ const VisitorFormComponent = ({
   loading,
   showHeader = true,
 }: IProps) => {
-  const { eventsOptions, membersOptions } = useStore();
+  const { membersOptions } = useStore();
   const responsibleMemberOptions = React.useMemo(
     () =>
       membersOptions.map((member) => ({
@@ -131,7 +310,6 @@ const VisitorFormComponent = ({
       >
         {({ setFieldValue, values }) => (
           <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
-            <SyncEventDate eventsOptions={eventsOptions} />
             <SyncClergyFields />
             {showHeader && (
               <div className="sticky top-0 z-10">
@@ -222,14 +400,7 @@ const VisitorFormComponent = ({
                     ) : null}
                   </div>
                 </div>
-                <Field
-                  component={FormikSelectField}
-                  options={eventsOptions}
-                  label="Event"
-                  placeholder="Select event"
-                  name="visit.eventId"
-                  id="visit.eventId"
-                />
+                <EventSelectionFields />
                 <Field
                   component={FormikInputDiv}
                   label="Visit Date *"

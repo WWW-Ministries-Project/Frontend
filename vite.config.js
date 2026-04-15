@@ -19,6 +19,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         injectRegister: null,
+        devOptions: {
+          enabled: false,
+        },
         includeAssets: [
           "logo/main-logo.svg",
           "pwa/icon-192.png",
