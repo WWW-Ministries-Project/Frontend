@@ -1,4 +1,5 @@
 import { AppRoute } from "@/routes/appRoutes";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { ReactNode, useMemo } from "react";
 import { matchPath, NavLink, useLocation } from "react-router-dom";
 
@@ -64,6 +65,7 @@ export const SideBarSubMenu = ({
   onParentActivate,
 }: IProps) => {
   const location = useLocation();
+  const { hasPermission } = useAccessControl();
 
   const parentRoutePath = useMemo(
     () => resolveHomePath(item.path),
@@ -73,10 +75,12 @@ export const SideBarSubMenu = ({
   // Compute active state for parent using normalized absolute paths.
   const isActive = routeMatches(location.pathname, parentRoutePath, false);
 
-  // Keep all child modules visible. Route-level guards handle access denial.
   const filteredChildren = useMemo(
-    () => item.children.filter((child) => child.sideTab),
-    [item.children]
+    () =>
+      item.children.filter(
+        (child) => child.sideTab && hasPermission(child.permissionNeeded)
+      ),
+    [hasPermission, item.children]
   );
 
   // Build child route path

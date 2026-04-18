@@ -1,4 +1,5 @@
 import { sideTabs } from "@/routes/appRoutes";
+import { filterRoutesByAccess } from "@/routes/routeAccess";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthWrapper";
@@ -39,7 +40,7 @@ const isPathActive = (pathname: string, path: string) => {
 export const SideBar = ({ className }: IProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [showTopFade, setShowTopFade] = useState(false);
@@ -47,8 +48,15 @@ export const SideBar = ({ className }: IProps) => {
   const hoverTimerRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Keep all modules visible. Route-level guards handle access denial on navigation.
-  const filteredTabs = useMemo(() => sideTabs, []);
+  const filteredTabs = useMemo(
+    () =>
+      filterRoutesByAccess(
+        sideTabs,
+        user.access_permissions,
+        user.permissions
+      ),
+    [user.access_permissions, user.permissions]
+  );
 
   // Handle sidebar expand/collapse on hover
   const handleMouseEnter = () => {

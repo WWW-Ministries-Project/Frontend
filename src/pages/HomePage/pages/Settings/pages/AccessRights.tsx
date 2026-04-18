@@ -34,8 +34,9 @@ const isPermissionValue = (value: unknown): value is PermissionValue =>
   value === "Super_Admin";
 
 export function AccessRights() {
-  const { canManage } = useAccessControl();
+  const { canAdmin, canManage } = useAccessControl();
   const canManageAccessRights = canManage("Access_rights");
+  const canDeleteAccessRights = canAdmin("Access_rights");
   const { data, refetch } = useFetch(api.fetch.fetchAccessLevels);
   const { executeDelete: deleteAccess, success: deleteSuccess } = useDelete(
     api.delete.deleteAccess
@@ -151,14 +152,20 @@ export function AccessRights() {
               value="Delete"
               variant="ghost"
               onClick={() => handleDelete(row.original)}
-              disabled={!canManageAccessRights}
+              disabled={!canDeleteAccessRights}
               className="!min-h-8 !px-3 !py-1 text-xs text-error hover:bg-error/10"
             />
           </div>
         ),
       },
     ],
-    [canManageAccessRights, handleDelete, openEdit, openViewModal]
+    [
+      canDeleteAccessRights,
+      canManageAccessRights,
+      handleDelete,
+      openEdit,
+      openViewModal,
+    ]
   );
 
   useEffect(() => {

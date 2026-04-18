@@ -56,6 +56,7 @@ import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
+import type { PermissionRequirement } from "@/utils/accessControl";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
 import Market from "@/pages/MembersPage/Pages/Market.js";
 import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
@@ -100,7 +101,6 @@ import CertificateVerificationPage from "@/pages/CertificateVerification/Certifi
 import { Navigate } from "react-router-dom";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
-import { AdminOnlyRoute } from "./AdminOnlyRoute";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -111,7 +111,7 @@ export interface AppRoute {
   name: string;
   alias?: string;
   isPrivate?: boolean;
-  permissionNeeded?: string;
+  permissionNeeded?: PermissionRequirement;
   sideTab?: boolean;
   children?: AppRoute[];
 }
@@ -184,12 +184,9 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.ai,
         name: "AI Console",
-        element: (
-          <AdminOnlyRoute>
-            <AIConsole />
-          </AdminOnlyRoute>
-        ),
+        element: <AIConsole />,
         isPrivate: true,
+        permissionNeeded: { domain: "AI", action: "view" },
       },
       {
         path: relativePath.home.members.main,
@@ -559,7 +556,6 @@ export const routes: AppRoute[] = [
         path: "requests",
         name: "Requisition",
         isPrivate: true,
-        permissionNeeded: "view_events",
         sideTab: true,
         children: [
           {
@@ -592,6 +588,7 @@ export const routes: AppRoute[] = [
             name: "Requisitions",
             element: <Requisitions />,
             isPrivate: true,
+            permissionNeeded: "manage_requisition",
             sideTab: true,
           },
         ],
