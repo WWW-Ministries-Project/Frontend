@@ -163,6 +163,22 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     toastForHighPriorityOnly: false,
   },
   {
+    type: "financial.approval_requested",
+    entityType: "financial",
+    description: "Financial record submitted for approver review.",
+    actionUrlTemplate: "/home/finance/{entityId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "financial.approved",
+    entityType: "financial",
+    description: "Financial record finally approved.",
+    actionUrlTemplate: "/home/finance/{entityId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
     type: "system.job_failed",
     entityType: "system_job",
     description: "Critical system/reconciliation/notification job failed.",

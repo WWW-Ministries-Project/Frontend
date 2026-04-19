@@ -3,7 +3,7 @@ export type ApproverType =
   | "POSITION"
   | "SPECIFIC_PERSON";
 
-export type ApprovalModule = "REQUISITION" | "EVENT_REPORT";
+export type ApprovalModule = "REQUISITION" | "EVENT_REPORT" | "FINANCE";
 
 export type ApprovalStep = {
   order: number;
@@ -36,6 +36,12 @@ export type EventReportApprovalConfigPayload = ApprovalConfigPayloadBase & {
   finance_approver?: SingleApproverConfig | null;
 };
 
+export type FinanceApprovalConfigPayload = {
+  finance_approver_user_id: number | null;
+  notification_user_ids?: number[];
+  is_active?: boolean;
+};
+
 export type ApprovalConfigPayload =
   | RequisitionApprovalConfigPayload
   | EventReportApprovalConfigPayload;
@@ -56,7 +62,17 @@ export type EventReportApprovalConfig = ApprovalConfigBase & {
   finance_approver?: SingleApproverConfig | null;
 };
 
-export type ApprovalConfig = RequisitionApprovalConfig | EventReportApprovalConfig;
+export type FinanceApprovalConfig = {
+  module: "FINANCE";
+  finance_approver_user_id: number | null;
+  notification_user_ids: number[];
+  is_active: boolean;
+};
+
+export type ApprovalConfig =
+  | RequisitionApprovalConfig
+  | EventReportApprovalConfig
+  | FinanceApprovalConfig;
 
 export type ApprovalInstanceStatus =
   | "WAITING"

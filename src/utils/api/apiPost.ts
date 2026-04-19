@@ -54,7 +54,12 @@ import {
   CreateStaffAvailabilityPayload,
   StaffAvailability,
 } from "./appointment/interfaces";
-import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  FinanceApprovalConfig,
+  FinanceData,
+  FinanceMutationRequest,
+  FinancialRecord,
+} from "./finance/interface";
 import type {
   ApprovalConfig,
   EventReportApprovalConfigPayload,
@@ -520,9 +525,15 @@ export class ApiCreationCalls {
 
   // create financial
   createFinancial = (
-    payload: FinanceData
+    payload: FinanceMutationRequest
   ): Promise<ApiResponse<FinancialRecord>> => {
     return this.postToApi("financials/create-financial", payload);
+  };
+
+  upsertFinanceApprovalConfig = (
+    payload: FinanceApprovalConfig
+  ): Promise<ApiResponse<FinanceApprovalConfig>> => {
+    return this.postToApi("financials/upsert-approval-config", payload);
   };
 
   createAiCredential = (

@@ -8,7 +8,16 @@ import FormikSelectField from "@/components/FormikSelect";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { Button } from "@/components";
-import { FinanceData } from "@/utils/api/finance/interface";
+import { Modal } from "@/components/Modal";
+import { showNotification } from "@/pages/HomePage/utils";
+import { useStore } from "@/store/useStore";
+import {
+  FinanceApprovalConfig,
+  FinanceData,
+  FinanceSaveAction,
+  FinancialRecord,
+} from "@/utils/api/finance/interface";
+import { ApiResponse } from "@/utils/interfaces";
 
 type WeekRange = {
   label: string;
@@ -380,15 +389,22 @@ const FinanceBuilder = ({
   onModeChange,
   onSubmitFinancial,
 }: {
-  financeData?: FinanceData;
+  financeData?: FinanceData & Partial<FinancialRecord>;
   mode: "create" | "edit" | "view";
   onModeChange?: (mode: "create" | "edit" | "view") => void;
-  onSubmitFinancial?: (values: FinanceData) => Promise<boolean>;
+  onSubmitFinancial?: (
+    values: FinanceData,
+    action: FinanceSaveAction
+  ) => Promise<boolean>;
 }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [receiptToAdd, setReceiptToAdd] = React.useState("");
   const [paymentToAdd, setPaymentToAdd] = React.useState("");
+  const [confirmApprovalOpen, setConfirmApprovalOpen] = React.useState(false);
+  const submitActionRef = React.useRef<FinanceSaveAction>("SAVE_DRAFT");
+  const membersOptions = useStore((state) => state.membersOptions);
+  const currentUserId = Number(user?.id || 0);
 
   const loadConfig = mode !== "view";
 
@@ -412,6 +428,9 @@ const FinanceBuilder = ({
     loading: bankConfigLoading,
     error: bankConfigError,
   } = useFetch(api.fetch.fetchBankAccountConfig, undefined, !loadConfig);
+  const { data: financeApprovalConfigResponse } = useFetch<
+    ApiResponse<FinanceApprovalConfig>
+  >(api.fetch.fetchFinanceApprovalConfig);
 
   const receiptConfig = React.useMemo(
     () => normalizeConfigList(receiptConfigResponse),
@@ -444,6 +463,28 @@ const FinanceBuilder = ({
     () => (mode === "create" ? createValues : normalizeExistingValues(financeData)),
     [mode, createValues, financeData]
   );
+  const financeApprovalConfig = financeApprovalConfigResponse?.data ?? null;
+  const financeApproverUserId = Number(
+    financeApprovalConfig?.finance_approver_user_id || 0
+  );
+  const isCurrentUserFinanceApprover =
+    financeApproverUserId > 0 && financeApproverUserId === currentUserId;
+  const notificationRecipientNames = React.useMemo(() => {
+    const byId = new Map(
+      membersOptions.map((option) => [String(option.value), option.label])
+    );
+
+    return (financeApprovalConfig?.notification_user_ids || [])
+      .map((id) => byId.get(String(id)) || `User ${id}`)
+      .filter(Boolean);
+  }, [financeApprovalConfig?.notification_user_ids, membersOptions]);
+  const financeApproverName = React.useMemo(() => {
+    return (
+      membersOptions.find(
+        (option) => String(option.value) === String(financeApproverUserId)
+      )?.label || null
+    );
+  }, [financeApproverUserId, membersOptions]);
 
   if (
     mode === "create" &&
@@ -460,6 +501,7 @@ const FinanceBuilder = ({
       initialValues={initialValues}
       enableReinitialize
       onSubmit={async (values) => {
+        const action = submitActionRef.current;
         const now = new Date().toISOString();
         const payload: FinanceData = {
           ...values,
@@ -503,7 +545,7 @@ const FinanceBuilder = ({
         };
 
         const success = onSubmitFinancial
-          ? await onSubmitFinancial(payload)
+          ? await onSubmitFinancial(payload, action)
           : true;
 
         if (success && onModeChange) onModeChange("view");
@@ -1012,12 +1054,32 @@ const FinanceBuilder = ({
               <div className="sticky bottom-0 z-10 mt-6 border-t bg-white px-6 py-4">
                 <div className="flex justify-end gap-3">
                   <Button
-                    value={isSubmitting ? "Saving..." : "Save"}
-                    variant="primary"
+                    value={isSubmitting ? "Saving..." : "Save as Draft"}
+                    variant="secondary"
                     type="button"
-                    onClick={handleSubmit}
+                    onClick={() => {
+                      submitActionRef.current = "SAVE_DRAFT";
+                      void handleSubmit();
+                    }}
                     loading={isSubmitting}
                     disabled={isSubmitting}
+                  />
+                  <Button
+                    value="Save and Approve"
+                    variant="primary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      if (!financeApproverUserId) {
+                        showNotification(
+                          "Finance approval configuration is required before approval can be submitted.",
+                          "error"
+                        );
+                        return;
+                      }
+
+                      setConfirmApprovalOpen(true);
+                    }}
                   />
                   <Button
                     value="Cancel"
@@ -1033,6 +1095,86 @@ const FinanceBuilder = ({
                 </div>
               </div>
             )}
+
+            <Modal
+              open={confirmApprovalOpen}
+              onClose={() => {
+                if (!isSubmitting) {
+                  setConfirmApprovalOpen(false);
+                }
+              }}
+              className="max-w-xl"
+            >
+              <div className="space-y-5 p-6">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary">
+                    Confirm Save and Approve
+                  </h3>
+                  {isCurrentUserFinanceApprover ? (
+                    <p className="text-sm text-primaryGray">
+                      This record will be approved immediately. The selected
+                      members below will be notified by email and in-app, and
+                      only the configured finance approver can continue editing
+                      it afterwards.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-primaryGray">
+                      This record will be submitted to the finance approver for
+                      review. Final notify recipients are contacted only after
+                      the finance approver confirms approval.
+                    </p>
+                  )}
+                </div>
+
+                {isCurrentUserFinanceApprover ? (
+                  <div className="space-y-2 rounded-xl border border-lightGray bg-lightGray/20 p-4">
+                    <p className="text-sm font-medium text-primary">
+                      Members to notify after approval
+                    </p>
+                    {notificationRecipientNames.length > 0 ? (
+                      <p className="text-sm text-primaryGray">
+                        {notificationRecipientNames.join(", ")}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-primaryGray">
+                        No post-approval recipients have been configured.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2 rounded-xl border border-lightGray bg-lightGray/20 p-4">
+                    <p className="text-sm font-medium text-primary">
+                      Finance approver
+                    </p>
+                    <p className="text-sm text-primaryGray">
+                      {financeApproverName || "Configured finance approver"}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3">
+                  <Button
+                    value="Cancel"
+                    variant="secondary"
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setConfirmApprovalOpen(false)}
+                  />
+                  <Button
+                    value={isCurrentUserFinanceApprover ? "Approve" : "Submit for Approval"}
+                    variant="primary"
+                    type="button"
+                    loading={isSubmitting}
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      submitActionRef.current = "SAVE_AND_APPROVE";
+                      setConfirmApprovalOpen(false);
+                      void handleSubmit();
+                    }}
+                  />
+                </div>
+              </div>
+            </Modal>
           </Form>
         );
       }}

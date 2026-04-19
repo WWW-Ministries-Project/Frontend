@@ -9,6 +9,7 @@ import {
   ApprovalConfig,
   ApprovalConfigPayload,
   EventReportApprovalConfigPayload,
+  FinanceApprovalConfigPayload,
   ApprovalStep,
   ApprovalModule,
   ApproverType,
@@ -19,16 +20,18 @@ import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStor
 import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
+import type { FinanceApprovalConfig } from "@/utils/api/finance/interface";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { ApiResponse } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const approvalSubTabs = ["Requisition", "Report"] as const;
+const approvalSubTabs = ["Requisition", "Report", "Finance"] as const;
 type ApprovalSubTab = (typeof approvalSubTabs)[number];
 
 const approvalModuleByTab: Record<ApprovalSubTab, ApprovalModule> = {
   Requisition: "REQUISITION",
   Report: "EVENT_REPORT",
+  Finance: "FINANCE",
 };
 
 type ApproverRule = {
@@ -123,6 +126,29 @@ const normalizeConfig = (
   payload: unknown,
   module: ApprovalModule
 ): ApprovalConfig | null => {
+  if (module === "FINANCE") {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return null;
+    }
+
+    return {
+      module: "FINANCE",
+      finance_approver_user_id: Number(
+        (payload as { finance_approver_user_id?: number | null })
+          .finance_approver_user_id ?? 0
+      ) || null,
+      notification_user_ids: Array.isArray(
+        (payload as { notification_user_ids?: number[] }).notification_user_ids
+      )
+        ? (payload as { notification_user_ids: number[] }).notification_user_ids
+        : [],
+      is_active:
+        (payload as { is_active?: boolean }).is_active === undefined
+          ? true
+          : Boolean((payload as { is_active?: boolean }).is_active),
+    } as ApprovalConfig;
+  }
+
   const rawConfigs = Array.isArray(payload) ? payload : [payload];
 
   const config = rawConfigs.find(
@@ -298,6 +324,7 @@ const ApprovalSettings = () => {
   ]);
   const [financeApproverRule, setFinanceApproverRule] =
     useState<FinanceApproverRule>(createFinanceApproverRule());
+  const [financeApproverUserId, setFinanceApproverUserId] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [similarItemLookbackDays, setSimilarItemLookbackDays] = useState<
@@ -305,11 +332,14 @@ const ApprovalSettings = () => {
   >(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS);
   const selectedModule = approvalModuleByTab[selectedSubTab];
   const isRequisitionTab = selectedModule === "REQUISITION";
+  const isFinanceTab = selectedModule === "FINANCE";
   const fetchApprovalConfig = useMemo(
     () =>
       selectedModule === "REQUISITION"
         ? api.fetch.fetchRequisitionApprovalConfig
-        : api.fetch.fetchEventReportApprovalConfig,
+        : selectedModule === "EVENT_REPORT"
+          ? api.fetch.fetchEventReportApprovalConfig
+          : api.fetch.fetchFinanceApprovalConfig,
     [selectedModule]
   );
 
@@ -318,12 +348,28 @@ const ApprovalSettings = () => {
     loading: isLoadingConfig,
     error: approvalConfigError,
     refetch: refetchApprovalConfig,
-  } = useFetch<ApiResponse<ApprovalConfig | ApprovalConfig[] | null>>(
+  } = useFetch<
+    ApiResponse<
+      ApprovalConfig | ApprovalConfig[] | FinanceApprovalConfig | null
+    >
+  >(
     fetchApprovalConfig
   );
 
   const membersOptions = useStore((state) => state.membersOptions);
   const positions = useSettingsStore((state) => state.positions);
+  const { data: financeMembersData } = useFetch<
+    ApiResponse<
+      Array<{
+        id: number;
+        name: string;
+        email?: string | null;
+      }>
+    >
+  >(api.fetch.fetchMembersForOptions, {
+    permission_domain: "Financials",
+    minimum_access: "view",
+  });
 
   const userOptions = useMemo(
     () =>
@@ -332,6 +378,16 @@ const ApprovalSettings = () => {
         value: String(member.value),
       })),
     [membersOptions]
+  );
+  const financeUserOptions = useMemo(
+    () =>
+      Array.isArray(financeMembersData?.data)
+        ? financeMembersData.data.map((member) => ({
+            label: member.name,
+            value: String(member.id),
+          }))
+        : [],
+    [financeMembersData]
   );
 
   const positionOptions = useMemo(
@@ -396,24 +452,43 @@ const ApprovalSettings = () => {
       ),
     [selectedNotificationUsers]
   );
+  const isFinanceApproverSelectionMissing = useMemo(
+    () => isFinanceTab && !String(financeApproverUserId || "").trim(),
+    [financeApproverUserId, isFinanceTab]
+  );
+  const hasInvalidFinanceApproverUserSelection = useMemo(
+    () =>
+      isFinanceTab &&
+      !isPositiveInteger(Number(financeApproverUserId)),
+    [financeApproverUserId, isFinanceTab]
+  );
 
   const isSaveDisabled = useMemo(
     () =>
-      isSaving ||
-      (isRequisitionTab && selectedRequesters.length === 0) ||
-      (!isRequisitionTab && !financeApproverRule.type) ||
-      isApproverTargetMissing ||
-      isFinanceApproverTargetMissing ||
-      (isRequisitionTab && hasInvalidRequesterSelection) ||
-      hasInvalidApproverSelection ||
-      hasInvalidFinanceApproverSelection ||
-      hasInvalidNotificationSelection,
+      isFinanceTab
+        ? isSaving ||
+          isFinanceApproverSelectionMissing ||
+          hasInvalidFinanceApproverUserSelection ||
+          hasInvalidNotificationSelection
+        : isSaving ||
+          (isRequisitionTab && selectedRequesters.length === 0) ||
+          (!isRequisitionTab && !financeApproverRule.type) ||
+          isApproverTargetMissing ||
+          isFinanceApproverTargetMissing ||
+          (isRequisitionTab && hasInvalidRequesterSelection) ||
+          hasInvalidApproverSelection ||
+          hasInvalidFinanceApproverSelection ||
+          hasInvalidNotificationSelection,
     [
+      financeApproverUserId,
       financeApproverRule.type,
+      hasInvalidFinanceApproverUserSelection,
       hasInvalidApproverSelection,
       hasInvalidFinanceApproverSelection,
       hasInvalidNotificationSelection,
       hasInvalidRequesterSelection,
+      isFinanceApproverSelectionMissing,
+      isFinanceTab,
       isRequisitionTab,
       isApproverTargetMissing,
       isFinanceApproverTargetMissing,
@@ -430,7 +505,26 @@ const ApprovalSettings = () => {
       setSelectedNotificationUsers([]);
       setApproverRules([createApproverRule()]);
       setFinanceApproverRule(createFinanceApproverRule());
+      setFinanceApproverUserId("");
       setIsActive(true);
+      setSimilarItemLookbackDays(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS);
+      return;
+    }
+
+    if (selectedModule === "FINANCE") {
+      const financeConfig = config as Extract<ApprovalConfig, { module: "FINANCE" }>;
+      setSelectedRequesters([]);
+      setSelectedNotificationUsers(
+        financeConfig.notification_user_ids.map((id) => String(id))
+      );
+      setApproverRules([createApproverRule()]);
+      setFinanceApproverRule(createFinanceApproverRule());
+      setFinanceApproverUserId(
+        financeConfig.finance_approver_user_id
+          ? String(financeConfig.finance_approver_user_id)
+          : ""
+      );
+      setIsActive(Boolean(financeConfig.is_active ?? true));
       setSimilarItemLookbackDays(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS);
       return;
     }
@@ -482,6 +576,7 @@ const ApprovalSettings = () => {
           }
         : createFinanceApproverRule()
     );
+    setFinanceApproverUserId("");
     setIsActive(Boolean(config.is_active ?? true));
     setSimilarItemLookbackDays(
       Number.isInteger(config.similar_item_lookback_days) &&
@@ -548,7 +643,16 @@ const ApprovalSettings = () => {
     });
   };
 
-  const buildPayload = useCallback((): ApprovalConfigPayload => {
+  const buildPayload = useCallback(
+    (): ApprovalConfigPayload | FinanceApprovalConfigPayload => {
+    if (isFinanceTab) {
+      return {
+        finance_approver_user_id: Number(financeApproverUserId),
+        notification_user_ids: selectedNotificationUsers.map((id) => Number(id)),
+        is_active: isActive,
+      } as FinanceApprovalConfigPayload;
+    }
+
     const approvers: ApprovalStep[] = approverRules.map((approver, index) => {
       const normalizedStep: ApprovalStep = {
         order: index + 1,
@@ -607,19 +711,29 @@ const ApprovalSettings = () => {
     };
 
     return eventReportPayload;
-  }, [
-    approverRules,
-    financeApproverRule,
-    isActive,
-    isRequisitionTab,
-    selectedNotificationUsers,
-    selectedRequesters,
-    similarItemLookbackDays,
-  ]);
+    },
+    [
+      approverRules,
+      financeApproverRule,
+      financeApproverUserId,
+      isActive,
+      isFinanceTab,
+      isRequisitionTab,
+      selectedNotificationUsers,
+      selectedRequesters,
+      similarItemLookbackDays,
+    ]
+  );
 
   const handleSaveChanges = async () => {
     const payload = buildPayload();
-    const validationError = validateConfigPayload(payload, selectedModule);
+    const validationError = isFinanceTab
+      ? !isPositiveInteger(Number(financeApproverUserId))
+        ? "Select a valid finance approver."
+        : hasInvalidNotificationSelection
+          ? "Notification selections must be valid numeric IDs."
+          : null
+      : validateConfigPayload(payload, selectedModule);
 
     if (validationError) {
       showNotification(validationError, "error");
@@ -629,13 +743,15 @@ const ApprovalSettings = () => {
     setIsSaving(true);
 
     try {
-      const response = isRequisitionTab
-        ? await api.post.upsertRequisitionApprovalConfig(
-            payload as RequisitionApprovalConfigPayload
-          )
-        : await api.post.upsertEventReportApprovalConfig(
-            payload as EventReportApprovalConfigPayload
-          );
+      const response = isFinanceTab
+        ? await api.post.upsertFinanceApprovalConfig(payload as FinanceApprovalConfig)
+        : isRequisitionTab
+          ? await api.post.upsertRequisitionApprovalConfig(
+              payload as RequisitionApprovalConfigPayload
+            )
+          : await api.post.upsertEventReportApprovalConfig(
+              payload as EventReportApprovalConfigPayload
+            );
 
       showNotification(
         getResponseMessage(
@@ -687,7 +803,7 @@ const ApprovalSettings = () => {
       );
     }
 
-    if (!isRequisitionTab && !financeApproverRule.type) {
+    if (!isRequisitionTab && !isFinanceTab && !financeApproverRule.type) {
       return (
         <p className="text-xs text-error">
           Select who can approve the financial report.
@@ -703,7 +819,7 @@ const ApprovalSettings = () => {
       );
     }
 
-    if (isFinanceApproverTargetMissing) {
+    if (!isFinanceTab && isFinanceApproverTargetMissing) {
       return (
         <p className="text-xs text-error">
           Complete the financial report approver selection before saving.
@@ -719,7 +835,7 @@ const ApprovalSettings = () => {
       );
     }
 
-    if (hasInvalidFinanceApproverSelection) {
+    if (!isFinanceTab && hasInvalidFinanceApproverSelection) {
       return (
         <p className="text-xs text-error">
           Financial report approver selection must use a valid numeric ID.
@@ -735,12 +851,30 @@ const ApprovalSettings = () => {
       );
     }
 
+    if (isFinanceTab && isFinanceApproverSelectionMissing) {
+      return (
+        <p className="text-xs text-error">
+          Select who can approve finance records.
+        </p>
+      );
+    }
+
+    if (isFinanceTab && hasInvalidFinanceApproverUserSelection) {
+      return (
+        <p className="text-xs text-error">
+          Finance approver selection must use a valid numeric ID.
+        </p>
+      );
+    }
+
     return null;
   };
 
   const sectionDescription = isRequisitionTab
     ? "Configure who can create requests and who can approve each step."
-    : "Configure the financial report approver, final approvers, and post-approval notifications.";
+    : isFinanceTab
+      ? "Configure who approves finance records and who should be notified after final approval."
+      : "Configure the financial report approver, final approvers, and post-approval notifications.";
   const approverTitle = isRequisitionTab
     ? "Who can approve these requests?"
     : "Who can give final approval?";
@@ -749,7 +883,9 @@ const ApprovalSettings = () => {
     : "Add approvers in the order an event report should be approved.";
   const notificationDescription = isRequisitionTab
     ? "Selected users are notified when the final approver approves or disapproves a requisition."
-    : "Selected users are notified after the final event report decision.";
+    : isFinanceTab
+      ? "Selected users are notified after the finance approver gives final approval."
+      : "Selected users are notified after the final event report decision.";
   const headOfDepartmentTarget = isRequisitionTab
     ? "Requester's Head of Department"
     : "Head of Department";
@@ -794,7 +930,7 @@ const ApprovalSettings = () => {
           </div>
         )}
 
-        {!isRequisitionTab && (
+        {!isRequisitionTab && !isFinanceTab && (
           <div className="space-y-4">
             <div className="space-y-1">
               <h4 className="text-base font-semibold text-primary">
@@ -870,7 +1006,40 @@ const ApprovalSettings = () => {
           </div>
         )}
 
-        <div className="space-y-4">
+        {isFinanceTab && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h4 className="text-base font-semibold text-primary">
+                Who can approve finance records?
+              </h4>
+              <p className="text-sm text-primaryGray">
+                Select the finance approver used when a finance manager submits a
+                record for approval.
+              </p>
+            </div>
+
+            <div className="max-w-xl">
+              <SelectField
+                id="finance-config-approver"
+                label="Finance Approver"
+                value={financeApproverUserId}
+                options={financeUserOptions}
+                placeholder="Select finance approver"
+                helperText={
+                  financeUserOptions.length === 0
+                    ? "No finance-eligible members available."
+                    : undefined
+                }
+                searchable
+                onChange={(_, value) => setFinanceApproverUserId(String(value))}
+              />
+            </div>
+            {renderValidationHints()}
+          </div>
+        )}
+
+        {!isFinanceTab && (
+          <div className="space-y-4">
           <div className="space-y-1">
             <h4 className="text-base font-semibold text-primary">
               {approverTitle}
@@ -974,7 +1143,8 @@ const ApprovalSettings = () => {
             variant="ghost"
             onClick={handleAddApprover}
           />
-        </div>
+          </div>
+        )}
 
         <div className="space-y-3">
           <h4 className="text-base font-semibold text-primary">
@@ -983,7 +1153,7 @@ const ApprovalSettings = () => {
           <p className="text-sm text-primaryGray">{notificationDescription}</p>
           <div className="max-w-xl">
             <MultiSelect
-              options={userOptions}
+              options={isFinanceTab ? financeUserOptions : userOptions}
               selectedValues={selectedNotificationUsers}
               onChange={setSelectedNotificationUsers}
               placeholder="Select users to notify"
@@ -992,7 +1162,7 @@ const ApprovalSettings = () => {
           </div>
         </div>
 
-        {!isRequisitionTab && renderValidationHints()}
+        {!isRequisitionTab && !isFinanceTab && renderValidationHints()}
 
         <div className="space-y-2">
           <h4 className="text-base font-semibold text-primary">

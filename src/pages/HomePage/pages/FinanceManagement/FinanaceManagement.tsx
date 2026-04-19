@@ -7,7 +7,11 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { FinanceData, FinancialRecord } from "@/utils/api/finance/interface";
+import {
+  FinanceApprovalStatus,
+  FinanceData,
+  FinancialRecord,
+} from "@/utils/api/finance/interface";
 
 type FinanceCardData = {
   id: string;
@@ -19,6 +23,8 @@ type FinanceCardData = {
   updatedBy: string;
   updatedDate: string;
   groupDate: string;
+  status?: FinanceApprovalStatus;
+  isEditable?: boolean;
 };
 
 const formatDate = (value?: string) => {
@@ -79,6 +85,8 @@ const mapFinancialToCard = (record: FinancialRecord): FinanceCardData => {
     updatedBy: metaData.updatedBy || "—",
     updatedDate: formatDate(updatedDateRaw),
     groupDate: createdDateRaw || from,
+    status: record.status || "DRAFT",
+    isEditable: record.isEditable !== false,
   };
 };
 
