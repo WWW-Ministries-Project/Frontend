@@ -15,6 +15,7 @@ interface IAction {
   className?: string;
   isEditable?: boolean;
   requireManageAccess?: boolean;
+  requireAdminAccess?: boolean;
 }
 
 const Action = ({
@@ -25,12 +26,14 @@ const Action = ({
   hideDelete,
   isEditable = true,
   requireManageAccess = true,
+  requireAdminAccess = true,
 }: IAction) => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
   const canRunManageActions = !requireManageAccess || canManageCurrentRoute;
+  const canRunAdminActions = !requireAdminAccess || canAdminCurrentRoute;
   const canShowEdit = Boolean(canRunManageActions && onEdit && isEditable);
   const canShowDelete = Boolean(
-    canRunManageActions && onDelete && !hideDelete && isEditable
+    canRunAdminActions && onDelete && !hideDelete && isEditable
   );
   const hasVisibleAction = Boolean(
     onView || canShowEdit || canShowDelete

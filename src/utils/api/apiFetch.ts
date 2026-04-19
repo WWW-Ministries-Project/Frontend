@@ -68,6 +68,11 @@ import type {
   NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
+import type {
+  EventReportDetail,
+  EventReportEligibleEvent,
+  EventReportOverviewItem,
+} from "./eventReports/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -170,9 +175,21 @@ export class ApiCalls {
     return this.fetchFromApi("event/public-event", query);
   };
 
+  fetchEligibleEventReports = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventReportEligibleEvent[]>> => {
+    return this.fetchFromApi("event-reports/eligible-events", query);
+  };
+
+  fetchEventReportsOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventReportOverviewItem[]>> => {
+    return this.fetchFromApi("event-reports/overview", query);
+  };
+
   fetchEventReportDetails = (
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<EventReportDetail | null>> => {
     return this.fetchFromApi("event-reports/get-report", query);
   };
 

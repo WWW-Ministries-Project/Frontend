@@ -6,6 +6,7 @@ import { ProfilePicture } from "@/components";
 import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
@@ -91,6 +92,7 @@ export const Header = ({ handleShowNav }: IProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { canView } = useAccessControl();
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
@@ -113,15 +115,10 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMinistryWorker = token?.ministry_worker;
   const isLifeCenterLeader = token?.life_center_leader;
   const isInstructor = token?.instructor;
-  const userCategory = (user.user_category ?? token?.user_category ?? "")
-    .trim()
-    .toLowerCase();
-  const isAdminUser = userCategory === "admin";
-
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
   const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
-  const showAdminAiEntry = !isMemberRoute && isAdminUser;
+  const showAdminAiEntry = !isMemberRoute && canView("AI");
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 

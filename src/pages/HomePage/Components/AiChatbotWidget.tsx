@@ -12,6 +12,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { AiStructuredMessage } from "@/pages/HomePage/pages/AI/components/AiStructuredMessage";
 import { api, relativePath } from "@/utils";
 import type {
@@ -67,11 +68,6 @@ const CHAT_MODULE_OPTIONS = [
   { label: "Marketplace", value: "marketplace" },
   { label: "Finance", value: "finance" },
 ];
-
-const normalizeCategory = (category?: string) =>
-  String(category || "")
-    .trim()
-    .toLowerCase();
 
 const createIdempotencyKey = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -178,13 +174,15 @@ const DEFAULT_PANEL_OFFSET: PanelOffset = { x: 0, y: 0 };
 
 export const AiChatbotWidget = () => {
   const { user } = useAuth();
+  const { canManage, canView } = useAccessControl();
   const navigate = useNavigate();
   const location = useLocation();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
   const introHydratedRef = useRef(false);
   const dragStateRef = useRef<DragState | null>(null);
-  const isAdmin = normalizeCategory(user.user_category) === "admin";
+  const canViewAi = canView("AI");
+  const canManageAi = canManage("AI");
   const shouldHideOnPage = location.pathname.startsWith(
     `${relativePath.home.main}/${relativePath.home.ai}`
   );
@@ -311,7 +309,7 @@ export const AiChatbotWidget = () => {
   );
 
   useEffect(() => {
-    if (!isAdmin || shouldHideOnPage) {
+    if (!canViewAi || shouldHideOnPage) {
       return;
     }
 
@@ -375,7 +373,7 @@ export const AiChatbotWidget = () => {
     return () => {
       isActive = false;
     };
-  }, [isAdmin, shouldHideOnPage]);
+  }, [canViewAi, shouldHideOnPage]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -393,7 +391,7 @@ export const AiChatbotWidget = () => {
   const sendPrompt = useCallback(
     async (messageText: string) => {
       const trimmedPrompt = messageText.trim();
-      if (!trimmedPrompt || isSending) {
+      if (!trimmedPrompt || isSending || !canManageAi) {
         return;
       }
 
@@ -441,7 +439,13 @@ export const AiChatbotWidget = () => {
         setIsSending(false);
       }
     },
-    [config?.default_context, conversationId, isSending, selectedModule]
+    [
+      canManageAi,
+      config?.default_context,
+      conversationId,
+      isSending,
+      selectedModule,
+    ]
   );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -460,11 +464,11 @@ export const AiChatbotWidget = () => {
     }
   };
 
-  if (!isAdmin || shouldHideOnPage) {
+  if (!canViewAi || shouldHideOnPage) {
     return null;
   }
 
-  const isChatEnabled = Boolean(config?.enabled);
+  const isChatEnabled = Boolean(config?.enabled) && canManageAi;
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[130] flex justify-end p-4 md:p-6">
@@ -495,9 +499,11 @@ export const AiChatbotWidget = () => {
                   <p className="mt-1 text-xs text-blue-100">
                     {isLoadingConfig
                       ? "Loading assistant"
-                      : isChatEnabled
+                      : canManageAi && isChatEnabled
                         ? defaultModelLabel
-                        : "Setup required"}
+                        : canManageAi
+                          ? "Setup required"
+                          : "View only"}
                   </p>
                 </div>
 
@@ -610,7 +616,17 @@ export const AiChatbotWidget = () => {
                   </div>
                 ) : null}
 
-                {!isChatEnabled && messages.length <= 1 ? (
+                {!canManageAi && messages.length <= 1 ? (
+                  <div className="rounded-[1.25rem] border border-slate-200 bg-slate-100 p-3 text-sm text-slate-700">
+                    <p className="font-semibold">AI access is view-only</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
+                      This access level can open the AI console, but sending
+                      chatbot requests requires AI manage access.
+                    </p>
+                  </div>
+                ) : null}
+
+                {canManageAi && !isChatEnabled && messages.length <= 1 ? (
                   <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
                     <p className="font-semibold">AI setup required</p>
                     <p className="mt-1 text-xs leading-5 text-amber-800">
@@ -652,17 +668,19 @@ export const AiChatbotWidget = () => {
 
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-2">
-                  <textarea
-                    value={prompt}
-                    onChange={(event) => setPrompt(event.target.value)}
-                    onKeyDown={handlePromptKeyDown}
-                    rows={3}
-                    placeholder={
-                      isChatEnabled
+                <textarea
+                  value={prompt}
+                  onChange={(event) => setPrompt(event.target.value)}
+                  onKeyDown={handlePromptKeyDown}
+                  rows={3}
+                  placeholder={
+                      canManageAi && isChatEnabled
                         ? "Ask about records, approvals, trends, attendance, visitors, finance, or operational risks."
-                        : "Enable an active AI credential in AI Console to start chatting."
+                        : canManageAi
+                          ? "Enable an active AI credential in AI Console to start chatting."
+                          : "AI manage access is required to send chatbot requests."
                     }
-                    disabled={!isChatEnabled || isSending}
+                    disabled={!canManageAi || !isChatEnabled || isSending}
                     className="w-full resize-none border-0 bg-transparent px-2 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
                   />
                   <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-2 pt-2">
@@ -672,7 +690,9 @@ export const AiChatbotWidget = () => {
 
                     <button
                       type="submit"
-                      disabled={!isChatEnabled || isSending || !prompt.trim()}
+                      disabled={
+                        !canManageAi || !isChatEnabled || isSending || !prompt.trim()
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
                       <PaperAirplaneIcon className="h-4 w-4" />
@@ -700,9 +720,11 @@ export const AiChatbotWidget = () => {
               <span className="text-xs text-slate-500">
                 {isLoadingConfig
                   ? "Preparing chatbot"
-                  : isChatEnabled
+                  : canManageAi && isChatEnabled
                     ? "Ask without leaving this page"
-                    : "Setup required"}
+                    : canManageAi
+                      ? "Setup required"
+                      : "View only"}
               </span>
             </span>
           </button>

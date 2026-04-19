@@ -9,15 +9,19 @@ interface ActionButtonProps {
   onEdit?: () => void;
   hideDelete?: boolean;
   requireManageAccess?: boolean;
+  requireAdminAccess?: boolean;
 }
 
 const ActionButton = (props: ActionButtonProps) => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
   const requireManageAccess = props.requireManageAccess ?? true;
+  const requireAdminAccess = props.requireAdminAccess ?? true;
   const canRunManageActions = !requireManageAccess || canManageCurrentRoute;
+  const canRunAdminActions = !requireAdminAccess || canAdminCurrentRoute;
   const hasVisibleOptions = Boolean(
     props.onView ||
-      (canRunManageActions && (props.onEdit || (props.onDelete && !props.hideDelete)))
+      (canRunManageActions && props.onEdit) ||
+      (canRunAdminActions && props.onDelete && !props.hideDelete)
   );
 
   if (!hasVisibleOptions) return null;
@@ -35,6 +39,7 @@ const ActionButton = (props: ActionButtonProps) => {
           onEdit={props.onEdit}
           hideDelete={props.hideDelete}
           requireManageAccess={requireManageAccess}
+          requireAdminAccess={requireAdminAccess}
         />
       )}
     </>

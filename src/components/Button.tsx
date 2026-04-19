@@ -16,6 +16,7 @@ interface IProps {
   disabled?: boolean;
   loading?: boolean;
   requireManageAccess?: boolean;
+  requireAdminAccess?: boolean;
 }
 
 export const Button = ({
@@ -28,13 +29,19 @@ export const Button = ({
   loading = false,
   style,
   requireManageAccess,
+  requireAdminAccess,
 }: IProps) => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
 
+  const shouldRequireAdminAccess =
+    requireAdminAccess ?? /\bdelete\b/i.test(value);
   const shouldRequireManageAccess =
-    requireManageAccess ?? /\b(edit|delete)\b/i.test(value);
+    !shouldRequireAdminAccess &&
+    (requireManageAccess ?? /\bedit\b/i.test(value));
   const isDisabled =
-    disabled || (shouldRequireManageAccess && !canManageCurrentRoute);
+    disabled ||
+    (shouldRequireManageAccess && !canManageCurrentRoute) ||
+    (shouldRequireAdminAccess && !canAdminCurrentRoute);
 
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (type !== "submit" && type !== "reset") {

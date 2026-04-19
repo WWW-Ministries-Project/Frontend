@@ -147,8 +147,11 @@ const DepartmentFormModal = ({
 
 export const DepartmentsAndMinistries = () => {
   const navigate = useNavigate();
-  const { canManage } = useAccessControl();
+  const { canAdmin, canManage, getScope } = useAccessControl();
   const canManageDepartments = canManage("Departments");
+  const canDeleteDepartments = canAdmin("Departments");
+  const isHodScopedAccess =
+    getScope("Departments") === "assigned_departments";
   const { refetchDepartments } =
     useOutletContext<MembershipOutletContext>();
   const userId = useUserStore((state) => state.id);
@@ -365,9 +368,15 @@ export const DepartmentsAndMinistries = () => {
                   Move department management closer to membership operations, then
                   open any department to see the people serving in it.
                 </p>
+                {isHodScopedAccess && (
+                  <p className="text-xs text-white/75">
+                    HOD access is enabled. Only departments assigned to you are
+                    visible here.
+                  </p>
+                )}
               </div>
 
-              {canManageDepartments && (
+              {canManageDepartments && !isHodScopedAccess && (
                 <Button
                   value="New Department"
                   onClick={handleOpenCreateModal}
@@ -499,14 +508,16 @@ export const DepartmentsAndMinistries = () => {
                         >
                           Edit
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(department)}
-                          disabled={deleteDepartmentLoading}
-                          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-error/25 px-4 py-2 text-sm font-medium text-error transition hover:bg-error/5 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Delete
-                        </button>
+                        {canDeleteDepartments && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(department)}
+                            disabled={deleteDepartmentLoading}
+                            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-error/25 px-4 py-2 text-sm font-medium text-error transition hover:bg-error/5 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </>
                     )}
                   </div>

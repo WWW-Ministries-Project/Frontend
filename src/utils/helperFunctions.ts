@@ -217,3 +217,37 @@ export function formatTime(timeString: string): string {
   const displayHour = hour % 12 || 12;
   return `${displayHour}:${minutes} ${ampm}`;
 }
+
+const sanitizeDownloadFileName = (value: string) =>
+  value.replace(/[\\/:*?"<>|]+/g, "_").trim();
+
+export const extractFileNameFromDisposition = (
+  contentDisposition?: string | null
+) => {
+  if (!contentDisposition) return null;
+
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  const basicMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+  const rawValue = utf8Match?.[1] || basicMatch?.[1];
+
+  if (!rawValue) return null;
+
+  try {
+    return sanitizeDownloadFileName(decodeURIComponent(rawValue));
+  } catch {
+    return sanitizeDownloadFileName(rawValue);
+  }
+};
+
+export const downloadBlobFile = (blob: Blob, fileName: string) => {
+  const safeFileName = sanitizeDownloadFileName(fileName) || "download";
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = objectUrl;
+  anchor.download = safeFileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(objectUrl);
+};

@@ -8,6 +8,7 @@ import {
   PermissionDomain,
   PermissionMap,
   PermissionValue,
+  ScopesMap,
 } from "@/utils/accessControl";
 import { useMemo } from "react";
 
@@ -49,6 +50,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
 
   const modules = useMemo(() => {
     const exclusions = (normalized.Exclusions || {}) as ExclusionsMap;
+    const scopes = (normalized.Scopes || {}) as ScopesMap;
 
     const knownModules = ACCESS_LEVEL_DOMAINS.map((domain) => {
       const value = normalized[domain.key] as PermissionValue | undefined;
@@ -57,6 +59,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
         label: domain.label,
         description: domain.description,
         value,
+        scope: scopes[domain.key] || null,
         excludedUsers: supportsExclusions(domain.key)
           ? exclusions[domain.key] || []
           : [],
@@ -83,6 +86,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
         label: getDomainLabel(key),
         description: "Additional configured domain",
         value: value as PermissionValue,
+        scope: scopes[key] || null,
         excludedUsers: supportsExclusions(key) ? exclusions[key] || [] : [],
       }));
 
@@ -137,6 +141,12 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
                 {module.excludedUsers.length > 0 && (
                   <div className="mt-3 rounded-lg bg-error/10 p-2 text-xs text-error">
                     Excluded user IDs: {module.excludedUsers.join(", ")}
+                  </div>
+                )}
+
+                {module.scope === "assigned_departments" && (
+                  <div className="mt-3 rounded-lg bg-primary/10 p-2 text-xs text-primary">
+                    Scope: Assigned departments only (HOD access)
                   </div>
                 )}
               </article>
