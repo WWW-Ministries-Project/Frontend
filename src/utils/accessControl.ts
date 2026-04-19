@@ -7,6 +7,8 @@ export type AccessAction = "view" | "manage" | "admin";
 export type PermissionMap = Record<string, unknown>;
 export type LegacyPermissionMap = Record<string, boolean>;
 export type ExclusionsMap = Record<string, number[]>;
+export type ScopeMode = "assigned_departments";
+export type ScopesMap = Record<string, ScopeMode>;
 
 export const CANONICAL_PERMISSION_DOMAINS = [
   "Members",
@@ -26,6 +28,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Marketplace",
   "School_of_ministry",
   "Settings",
+  "AI",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -50,7 +53,14 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Members: ["Members", "Member", "users", "user"],
   Visitors: ["Visitors", "Visitor"],
   Appointments: ["Appointments", "Appointment"],
-  Departments: ["Departments", "Department"],
+  Departments: [
+    "Departments",
+    "Department",
+    "Departments and Ministries",
+    "Department and Ministry",
+    "Ministries",
+    "Ministry",
+  ],
   Positions: ["Positions", "Position"],
   Access_rights: ["Access_rights", "Access rights", "Access Rights"],
   Events: ["Events", "Event"],
@@ -66,6 +76,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   ],
   Financials: ["Financials", "Finance", "Finances"],
   Settings: ["Settings", "Setting"],
+  AI: ["AI", "Ai", "Artificial Intelligence"],
   Marketplace: ["Marketplace", "Market Place", "Market"],
   "Life Center": ["Life Center", "Life_Center", "Life center", "LifeCenter"],
 };
@@ -114,8 +125,8 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
   },
   {
     key: "Departments",
-    label: "Departments",
-    description: "Team structures and departmental setup",
+    label: "Departments and Ministries",
+    description: "Department and ministry structures, heads, and setup",
     group: "People",
     required: true,
   },
@@ -210,6 +221,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     group: "Administration",
     required: false,
   },
+  {
+    key: "AI",
+    label: "AI",
+    description: "Assistant workflows, AI credentials, and usage monitoring",
+    group: "Administration",
+    required: false,
+  },
 ];
 
 const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObject> = {
@@ -247,8 +265,10 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_school_of_ministry: { domain: "School_of_ministry", action: "manage" },
   view_settings: { domain: "Settings", action: "view" },
   manage_settings: { domain: "Settings", action: "manage" },
-  view_users: { domain: "Settings", action: "view" },
-  manage_users: { domain: "Settings", action: "manage" },
+  view_users: { domain: "Members", action: "view" },
+  manage_users: { domain: "Members", action: "manage" },
+  view_ai: { domain: "AI", action: "view" },
+  manage_ai: { domain: "AI", action: "manage" },
 };
 
 const VIEW_ACCESS = new Set<PermissionValue>([
@@ -264,6 +284,7 @@ const VALID_ACCESS_VALUES = new Set<PermissionValue>([
   "Can_Manage",
   "Super_Admin",
 ]);
+const VALID_SCOPE_VALUES = new Set<ScopeMode>(["assigned_departments"]);
 
 const normalizeLookupToken = (value: string) =>
   value.trim().toLowerCase().replace(/[\s_-]+/g, "");
@@ -345,6 +366,29 @@ const normalizeExclusions = (value: unknown): ExclusionsMap => {
   return normalized;
 };
 
+const normalizeScopes = (value: unknown): ScopesMap => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value as Record<string, unknown>).reduce<ScopesMap>(
+    (normalized, [rawDomain, rawScope]) => {
+      if (typeof rawScope !== "string") {
+        return normalized;
+      }
+
+      const scope = rawScope.trim() as ScopeMode;
+      if (!VALID_SCOPE_VALUES.has(scope)) {
+        return normalized;
+      }
+
+      normalized[String(resolveDomain(rawDomain))] = scope;
+      return normalized;
+    },
+    {}
+  );
+};
+
 export const normalizePermissionPayload = (
   permissions: PermissionMap | null | undefined
 ): PermissionMap => {
@@ -356,6 +400,14 @@ export const normalizePermissionPayload = (
       const exclusions = normalizeExclusions(rawValue);
       if (Object.keys(exclusions).length > 0) {
         normalized.Exclusions = exclusions;
+      }
+      continue;
+    }
+
+    if (rawKey === "Scopes") {
+      const scopes = normalizeScopes(rawValue);
+      if (Object.keys(scopes).length > 0) {
+        normalized.Scopes = scopes;
       }
       continue;
     }
@@ -435,6 +487,19 @@ export const isExcluded = (
   return Array.isArray(domainExclusions) && domainExclusions.includes(targetUserId);
 };
 
+export const resolveScope = (
+  permissions: PermissionMap | null | undefined,
+  domain: string
+): ScopeMode | null => {
+  const normalized = normalizePermissionPayload(permissions);
+  const scopes = normalized.Scopes as ScopesMap | undefined;
+  if (!scopes) return null;
+
+  const resolvedDomain = String(resolveDomain(domain));
+  const scope = scopes[resolvedDomain];
+  return scope && VALID_SCOPE_VALUES.has(scope) ? scope : null;
+};
+
 const parseLegacyRequirement = (
   requirement: string
 ): PermissionRequirementObject | null => {
@@ -512,16 +577,18 @@ export const hasRequiredAccess = (
   );
 };
 
-export const toManageRequirement = (
-  requirement: PermissionRequirement
+const toActionRequirement = (
+  requirement: PermissionRequirement,
+  targetAction: "manage" | "admin"
 ): PermissionRequirement => {
   if (!requirement) return requirement;
 
   if (typeof requirement === "object") {
     if (requirement.action === "admin") return requirement;
+    if (requirement.action === targetAction) return requirement;
     return {
       ...requirement,
-      action: "manage",
+      action: targetAction,
     };
   }
 
@@ -531,10 +598,14 @@ export const toManageRequirement = (
     const action = actionToken.toLowerCase() as AccessAction;
 
     if (action === "view") {
-      return `manage_${suffix}`;
+      return `${targetAction}_${suffix}`;
     }
 
-    return requirement;
+    if (action === targetAction) {
+      return requirement;
+    }
+
+    return `admin_${suffix}`;
   }
 
   const parsedRequirement = parseLegacyRequirement(requirement);
@@ -544,7 +615,19 @@ export const toManageRequirement = (
     return requirement;
   }
 
-  return `manage_${slugifyDomain(String(parsedRequirement.domain))}`;
+  return `${targetAction}_${slugifyDomain(String(parsedRequirement.domain))}`;
+};
+
+export const toManageRequirement = (
+  requirement: PermissionRequirement
+): PermissionRequirement => {
+  return toActionRequirement(requirement, "manage");
+};
+
+export const toAdminRequirement = (
+  requirement: PermissionRequirement
+): PermissionRequirement => {
+  return toActionRequirement(requirement, "admin");
 };
 
 export const createDefaultPermissionMatrix = (

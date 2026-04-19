@@ -5,6 +5,7 @@ import {
   hasRequiredAccess,
   isExcluded,
   PermissionRequirement,
+  resolveScope,
   resolvePermission,
 } from "@/utils/accessControl";
 import { useCallback } from "react";
@@ -44,6 +45,11 @@ export const useAccessControl = () => {
     [access_permissions]
   );
 
+  const getScope = useCallback(
+    (domain: string) => resolveScope(access_permissions, domain),
+    [access_permissions]
+  );
+
   return {
     permissions,
     accessPermissions: access_permissions,
@@ -53,7 +59,7 @@ export const useAccessControl = () => {
     canAdmin,
     hasPermission,
     getAccessLevel,
+    getScope,
     isExcluded: checkExcluded,
   };
 };
-

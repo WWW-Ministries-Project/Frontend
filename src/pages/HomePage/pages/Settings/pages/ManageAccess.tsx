@@ -22,6 +22,9 @@ import {
   PermissionDomain,
   PermissionMap,
   PermissionValue,
+  resolveScope,
+  ScopeMode,
+  ScopesMap,
 } from "@/utils/accessControl";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -82,11 +85,20 @@ const createManagerPreset = () => {
 
 const createAdminPreset = () => createDefaultPermissionMatrix("Super_Admin");
 
+const createHodPreset = () => {
+  const preset = createDefaultPermissionMatrix("No_Access");
+  preset.Members = "Can_View";
+  preset.Departments = "Can_Manage";
+  preset.Positions = "Can_View";
+  return preset;
+};
+
 const PRESETS: Array<{
   key: string;
   title: string;
   subtitle: string;
   factory: () => Record<PermissionDomain, PermissionValue>;
+  scopes?: Partial<Record<PermissionDomain, ScopeMode>>;
 }> = [
   {
     key: "observer",
@@ -106,6 +118,15 @@ const PRESETS: Array<{
     subtitle: "Complete system control across all modules",
     factory: createAdminPreset,
   },
+  {
+    key: "hod",
+    title: "HOD Access",
+    subtitle: "Departments and ministries access limited to the user's assigned departments",
+    factory: createHodPreset,
+    scopes: {
+      Departments: "assigned_departments",
+    },
+  },
 ];
 
 export function ManageAccess() {
@@ -124,6 +145,9 @@ export function ManageAccess() {
     Members: [],
     Appointments: [],
   } as Record<PermissionDomain, string[]>);
+  const [scopeSelections, setScopeSelections] = useState<
+    Partial<Record<PermissionDomain, ScopeMode>>
+  >({});
 
   const membersOptions = useStore((state) => state.membersOptions);
   const setMemberOptions = useStore((state) => state.setMemberOptions);
@@ -220,6 +244,15 @@ export function ManageAccess() {
     });
 
     const exclusions = (normalizedPermissions.Exclusions || {}) as ExclusionsMap;
+    const nextScopes = ACCESS_LEVEL_DOMAINS.reduce<
+      Partial<Record<PermissionDomain, ScopeMode>>
+    >((acc, module) => {
+      const scope = resolveScope(normalizedPermissions, module.key);
+      if (scope) {
+        acc[module.key] = scope;
+      }
+      return acc;
+    }, {});
     const nextExclusions = {
       Members: (exclusions.Members || []).map(String),
       Appointments: (exclusions.Appointments || []).map(String),
@@ -227,6 +260,7 @@ export function ManageAccess() {
 
     setPermissions(nextPermissions);
     setName(accessLevel.data.name || "");
+    setScopeSelections(nextScopes);
     setExclusionSelections((prev) => ({
       ...prev,
       ...nextExclusions,
@@ -256,9 +290,11 @@ export function ManageAccess() {
   }, [error, updateError]);
 
   const applyPreset = (
-    factory: () => Record<PermissionDomain, PermissionValue>
+    factory: () => Record<PermissionDomain, PermissionValue>,
+    scopes?: Partial<Record<PermissionDomain, ScopeMode>>
   ) => {
     setPermissions(factory());
+    setScopeSelections(scopes ?? {});
   };
 
   const handlePermissionChange = (
@@ -276,6 +312,21 @@ export function ManageAccess() {
       ...prev,
       [domain]: selectedUserIds,
     }));
+  };
+
+  const handleScopeToggle = (
+    domain: PermissionDomain,
+    enabled: boolean
+  ) => {
+    setScopeSelections((prev) => {
+      const nextValue = { ...prev };
+      if (enabled) {
+        nextValue[domain] = "assigned_departments";
+      } else {
+        delete nextValue[domain];
+      }
+      return nextValue;
+    });
   };
 
   const handleSubmit = () => {
@@ -301,10 +352,20 @@ export function ManageAccess() {
       },
       {}
     );
+    const scopes = Object.entries(scopeSelections).reduce<ScopesMap>(
+      (acc, [domain, scope]) => {
+        if (scope) {
+          acc[domain] = scope;
+        }
+        return acc;
+      },
+      {}
+    );
 
     const payloadPermissions: Record<string, unknown> = {
       ...ensuredPermissions,
       Exclusions: exclusions,
+      Scopes: scopes,
     };
 
     const payload = {
@@ -364,12 +425,12 @@ export function ManageAccess() {
 
           <div className="space-y-3">
             <p className="text-sm font-medium text-primary">Quick Presets</p>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {PRESETS.map((preset) => (
                 <button
                   key={preset.key}
                   type="button"
-                  onClick={() => applyPreset(preset.factory)}
+                  onClick={() => applyPreset(preset.factory, preset.scopes)}
                   className="rounded-xl border border-lightGray bg-white p-4 text-left transition hover:border-primary/40 hover:shadow-sm"
                 >
                   <p className="font-semibold text-primary">{preset.title}</p>
@@ -458,6 +519,40 @@ export function ManageAccess() {
                           />
                         </div>
                       )}
+
+                      {module.key === "Departments" &&
+                        permissions[module.key] !== "No_Access" && (
+                          <div className="mt-4 rounded-lg border border-dashed border-lightGray bg-gray-50 p-3">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-primary">
+                                  HOD Access
+                                </p>
+                                <p className="mt-1 text-xs text-primaryGray">
+                                  Limit department and ministry access to only
+                                  the departments assigned to the user.
+                                </p>
+                              </div>
+
+                              <label className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    scopeSelections[module.key] ===
+                                    "assigned_departments"
+                                  }
+                                  onChange={(event) =>
+                                    handleScopeToggle(
+                                      module.key,
+                                      event.target.checked
+                                    )
+                                  }
+                                />
+                                Assigned departments only
+                              </label>
+                            </div>
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>

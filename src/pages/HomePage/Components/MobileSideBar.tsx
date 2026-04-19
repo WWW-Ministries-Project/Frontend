@@ -1,5 +1,7 @@
 import type { AppRoute } from "@/routes/appRoutes";
 import { sideTabs } from "@/routes/appRoutes";
+import { filterRoutesByAccess } from "@/routes/routeAccess";
+import { useAuth } from "@/context/AuthWrapper";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SidebarNavList } from "./SidebarNavList";
@@ -34,10 +36,18 @@ const isPathActive = (pathname: string, path: string) => {
 
 export const MobileSideBar = ({ show, onClick }: IProps) => {
   const location = useLocation();
+  const { user } = useAuth();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  // Keep all modules visible. Route-level guards handle access denial on navigation.
-  const items: AppRoute[] = useMemo(() => sideTabs, []);
+  const items: AppRoute[] = useMemo(
+    () =>
+      filterRoutesByAccess(
+        sideTabs,
+        user.access_permissions,
+        user.permissions
+      ),
+    [user.access_permissions, user.permissions]
+  );
   const activeTabNames = useMemo(() => {
     const names: Record<string, boolean> = {};
 
