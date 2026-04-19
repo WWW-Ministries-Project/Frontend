@@ -1,7 +1,7 @@
 import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
-import type { ApiResponse } from "../interfaces";
+import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
@@ -74,10 +74,34 @@ import type {
   CreateAiCredentialPayload,
 } from "./ai/interfaces";
 import type { NotificationPushSubscriptionPayload } from "./notifications/interfaces";
+import type {
+  DownloadedFile,
+  EventReportGeneratePayload,
+  EventReportGenerateResponse,
+  EventReportServiceSummaryFormat,
+} from "./eventReports/interfaces";
+import { extractFileNameFromDisposition } from "../helperFunctions";
 
 interface PostRequestOptions {
   headers?: Record<string, string>;
 }
+
+const serializeQuery = (query?: QueryType): string => {
+  if (!query) return "";
+
+  const normalizedQuery = Object.entries(query).reduce<Record<string, string>>(
+    (accumulator, [key, value]) => {
+      accumulator[key] = String(value);
+      return accumulator;
+    },
+    {}
+  );
+
+  return `?${new URLSearchParams(normalizedQuery).toString()}`;
+};
+
+const toStringValue = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value.trim() : "";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
@@ -108,6 +132,37 @@ export class ApiCreationCalls {
       status: response.status,
       error: "",
       success: true,
+    };
+  }
+
+  private async postToApiWithRawResponse<T>(
+    path: string,
+    payload: unknown
+  ): Promise<
+    ApiResponse<T | null> & {
+      message?: string;
+    }
+  > {
+    const url = `${baseUrl}${path}`;
+    const response = await axios.post(url, payload);
+    const payloadRecord =
+      response.data && typeof response.data === "object"
+        ? (response.data as Record<string, unknown>)
+        : {};
+    const dataRecord =
+      payloadRecord.data && typeof payloadRecord.data === "object"
+        ? (payloadRecord.data as Record<string, unknown>)
+        : null;
+
+    return {
+      data: (payloadRecord.data as T) ?? null,
+      status: response.status,
+      error: "",
+      success: true,
+      message:
+        toStringValue(payloadRecord.message) ||
+        toStringValue(dataRecord?.message) ||
+        undefined,
     };
   }
 
@@ -169,6 +224,37 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<ApprovalConfig>> => {
     return this.postToApi("event-reports/upsert-approval-config", payload);
   };
+
+  generateEventReport = (
+    payload: EventReportGeneratePayload
+  ): Promise<EventReportGenerateResponse> => {
+    return this.postToApiWithRawResponse("event-reports/generate", payload);
+  };
+
+  downloadEventReportServiceSummary = async (
+    payload: EventReportGeneratePayload,
+    format: EventReportServiceSummaryFormat
+  ): Promise<DownloadedFile> => {
+    const queryString = serializeQuery({ format });
+    const url = `${baseUrl}event-reports/generate-service-summary${queryString}`;
+    const response = await axios.post(url, payload, {
+      responseType: "blob",
+    });
+    const contentDisposition =
+      response.headers["content-disposition"] ??
+      response.headers["Content-Disposition"];
+    const fileName =
+      extractFileNameFromDisposition(contentDisposition) ||
+      `service-summary-${payload.event_id}-${payload.event_date}.${format}`;
+
+    return {
+      blob: response.data,
+      fileName,
+      contentType:
+        response.headers["content-type"] ?? response.headers["Content-Type"],
+    };
+  };
+
   submitRequisition = (
     payload: SubmitRequisitionPayload
   ): Promise<ApiResponse<unknown>> => {
@@ -178,45 +264,6 @@ export class ApiCreationCalls {
     payload: RequisitionApprovalActionPayload
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("requisitions/approval-action", payload);
-  };
-
-  upsertEventReportFinance = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("event-reports/upsert-finance", payload);
-  };
-
-  approveEventReportDepartment = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("event-reports/department-approval-action", payload);
-  };
-
-  approveEventReportChurchAttendance = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi(
-      "event-reports/church-attendance-approval-action",
-      payload
-    );
-  };
-
-  approveEventReportFinance = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("event-reports/finance-approval-action", payload);
-  };
-
-  submitEventReportForFinalApproval = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("event-reports/submit-final-approval", payload);
-  };
-
-  eventReportFinalApprovalAction = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("event-reports/final-approval-action", payload);
   };
 
   subscribeToNotificationPush = (
