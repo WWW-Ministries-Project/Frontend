@@ -1,6 +1,8 @@
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useNavigate } from "react-router-dom";
+import { FinanceApprovalStatus } from "@/utils/api/finance/interface";
+import { FinanceStatusBadge } from "./FinanceStatusBadge";
 
 interface Finance {
   id?: number | string;
@@ -11,6 +13,8 @@ interface Finance {
   to?: string;
   updatedBy?: string;
   updatedDate?: string;
+  status?: FinanceApprovalStatus;
+  isEditable?: boolean;
 }
 
 interface FinanceCardProps {
@@ -25,7 +29,7 @@ const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
   return (
     <div className="app-card relative space-y-3">
       <div className="absolute right-4 top-4 flex gap-2">
-        {onEdit && canManageCurrentRoute && (
+        {onEdit && canManageCurrentRoute && finance.isEditable !== false && (
           <button
             onClick={onEdit}
             className="app-icon-btn"
@@ -53,6 +57,11 @@ const FinanceCard = ({ finance, onEdit, onDelete }: FinanceCardProps) => {
         }}
       >
         <div className="pr-20 text-base font-semibold text-gray-900">{finance.title}</div>
+
+        <div className="text-sm text-gray-600">
+          <span className="font-medium text-gray-700">Status:</span>{" "}
+          <FinanceStatusBadge status={finance.status} />
+        </div>
 
         <div className="text-sm text-gray-600">
           <span className="font-medium text-gray-700">Created by:</span>{" "}

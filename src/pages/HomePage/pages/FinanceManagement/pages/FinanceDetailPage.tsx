@@ -3,14 +3,19 @@ import { useParams } from "react-router-dom";
 import { Banner } from "../../Members/Components/Banner";
 import FinanceBuilder from "../Components/FinanceBuilder";
 import { Button } from "@/components";
+import { FinanceStatusBadge } from "../Components/FinanceStatusBadge";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
-import { FinanceData, FinancialRecord } from "@/utils/api/finance/interface";
+import {
+  FinanceData,
+  FinanceSaveAction,
+  FinancialRecord,
+} from "@/utils/api/finance/interface";
 
 const unwrapFinancialPayload = (
   responseData: FinancialRecord | FinancialRecord[] | FinanceData | undefined
-): FinanceData | null => {
+): (FinanceData & Partial<FinancialRecord>) | null => {
   if (!responseData) return null;
 
   const record = Array.isArray(responseData)
@@ -24,6 +29,14 @@ const unwrapFinancialPayload = (
   return {
     ...payload,
     id: (record as FinancialRecord)?.id ?? payload?.id,
+    status: (record as FinancialRecord)?.status,
+    financeApproverUserId: (record as FinancialRecord)?.financeApproverUserId,
+    submittedByUserId: (record as FinancialRecord)?.submittedByUserId,
+    submittedAt: (record as FinancialRecord)?.submittedAt,
+    approvedByUserId: (record as FinancialRecord)?.approvedByUserId,
+    approvedAt: (record as FinancialRecord)?.approvedAt,
+    isEditable: (record as FinancialRecord)?.isEditable,
+    notificationUserIds: (record as FinancialRecord)?.notificationUserIds,
   };
 };
 
@@ -50,12 +63,28 @@ const FinanceDetailPage = () => {
       }`
     : "Financial record";
 
-  const handleUpdateFinancial = async (values: FinanceData) => {
+  const handleUpdateFinancial = async (
+    values: FinanceData,
+    action: FinanceSaveAction
+  ) => {
     if (!id) return false;
 
     try {
-      await api.put.updateFinancial(values, { id });
-      showNotification("Financial record updated successfully", "success");
+      const response = await api.put.updateFinancial(
+        {
+          ...values,
+          action,
+        },
+        { id }
+      );
+      const nextStatus = response.data.status || "DRAFT";
+      const successMessage =
+        nextStatus === "APPROVED"
+          ? "Financial record approved successfully"
+          : nextStatus === "PENDING_APPROVAL"
+            ? "Financial record submitted for approval successfully"
+            : "Financial record saved as draft successfully";
+      showNotification(successMessage, "success");
       await Promise.resolve(refetch({ id }));
       return true;
     } catch (error: unknown) {
@@ -99,13 +128,17 @@ const FinanceDetailPage = () => {
           <div className="w-full">
             <h1 className="text-2xl font-semibold">{headerTitle}</h1>
             <p className="mt-2">{headerSubtitle}</p>
+            <div className="mt-3">
+              <FinanceStatusBadge status={financialData.status} />
+            </div>
           </div>
 
           <div>
-            {formMode === "view" && (
+            {formMode === "view" && financialData.isEditable !== false && (
               <Button
                 value="Edit Financials"
                 variant="secondary"
+                requireManageAccess={false}
                 onClick={() => setFormMode("edit")}
               />
             )}

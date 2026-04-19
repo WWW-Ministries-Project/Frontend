@@ -534,6 +534,14 @@ const buildFallbackActionUrl = (
     return appointments;
   }
 
+  if (entityType.includes("financial") || typeToken.includes("financial")) {
+    if (notification.entityId) {
+      return `${relativePath.home.main}/finance/${notification.entityId}`;
+    }
+
+    return `${relativePath.home.main}/finance`;
+  }
+
   if (
     entityType.includes("order") ||
     entityType.includes("payment") ||

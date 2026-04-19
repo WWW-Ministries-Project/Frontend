@@ -55,7 +55,11 @@ import type {
   AiUsageHistoryResponse,
   AiUsageSummary,
 } from "./ai/interfaces";
-import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  FinanceApprovalConfig,
+  FinanceData,
+  FinancialRecord,
+} from "./finance/interface";
 import type {
   ApprovalConfig,
   RequisitionSimilarItemsResponse,
@@ -705,6 +709,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
     return this.fetchFromApi("financials/get-financial", query);
+  };
+
+  fetchFinanceApprovalConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinanceApprovalConfig>> => {
+    return this.fetchFromApi("financials/get-approval-config", query);
   };
 
   fetchAiCredentials = (

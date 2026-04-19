@@ -1,16 +1,29 @@
 import { useNavigate } from "react-router-dom";
 import FinanceBuilder from "../Components/FinanceBuilder";
-import { FinanceData } from "@/utils/api/finance/interface";
+import { FinanceData, FinanceSaveAction } from "@/utils/api/finance/interface";
 import { api } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
 
 const FinancialsForm = () => {
   const navigate = useNavigate();
 
-  const handleCreateFinancial = async (values: FinanceData) => {
+  const handleCreateFinancial = async (
+    values: FinanceData,
+    action: FinanceSaveAction
+  ) => {
     try {
-      await api.post.createFinancial(values);
-      showNotification("Financial record created successfully", "success");
+      const response = await api.post.createFinancial({
+        ...values,
+        action,
+      });
+      const nextStatus = response.data.status || "DRAFT";
+      const successMessage =
+        nextStatus === "APPROVED"
+          ? "Financial record approved successfully"
+          : nextStatus === "PENDING_APPROVAL"
+            ? "Financial record submitted for approval successfully"
+            : "Financial record saved as draft successfully";
+      showNotification(successMessage, "success");
       navigate("/home/finance");
       return true;
     } catch (error: unknown) {

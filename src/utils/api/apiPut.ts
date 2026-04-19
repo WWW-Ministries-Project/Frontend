@@ -34,7 +34,10 @@ import type {
   AiCredentialRecord,
   UpdateAiCredentialPayload,
 } from "./ai/interfaces";
-import type { FinanceData, FinancialRecord } from "./finance/interface";
+import type {
+  FinanceMutationRequest,
+  FinancialRecord,
+} from "./finance/interface";
 import type { UpdateNotificationPreferencePayload } from "./notifications/interfaces";
 
 export class ApiUpdateCalls {
@@ -490,7 +493,7 @@ export class ApiUpdateCalls {
 
   // update financial
   updateFinancial = (
-    payload: FinanceData,
+    payload: FinanceMutationRequest,
     query?: QueryType
   ): Promise<ApiResponse<FinancialRecord>> => {
     return this.apiExecution.updateData(
