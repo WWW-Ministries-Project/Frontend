@@ -10,21 +10,7 @@ import { validateUploadFile } from "@/utils/uploadValidation";
 import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  RequisitionStatusType,
-} from "../types/requestInterface";
-
-export interface IRequest {
-  requester_name: string;
-  department_id: number | string;
-  event_id: number | string | "";
-  request_date: string;
-  comment: string;
-  currency: string;
-  approval_status: RequisitionStatusType;
-  attachmentLists: { URL: string }[];
-  user_sign: string | null;
-}
+import type { RequisitionFormValues } from "../types/requisitionForm";
 
 type SubmitOptions = {
   submitForApproval?: boolean;
@@ -276,7 +262,7 @@ export const useAddRequisition = () => {
   }, []);
 
   const handleSubmit = useCallback(
-    async (val: IRequest, options?: SubmitOptions) => {
+    async (val: RequisitionFormValues, options?: SubmitOptions) => {
       const products = rows.map((item) => ({
         name: item.name,
         quantity: item.quantity,

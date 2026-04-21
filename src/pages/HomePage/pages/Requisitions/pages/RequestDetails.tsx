@@ -5,25 +5,48 @@ import { ProfilePicture } from "@/components/ProfilePicture";
 import Textarea from "@/pages/HomePage/Components/reusable/TextArea";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { useStore } from "@/store/useStore";
 import { relativePath } from "@/utils";
+import { Formik } from "formik";
 import { DateTime } from "luxon";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RequisitionApprovalTimeline from "../components/RequisitionApprovalTimeline";
-import EditableTable from "../components/EditableTable";
-import RequestAttachments from "../components/RequestAttachments";
 import RequisitionComments from "../components/RequisitionComments";
+import RequisitionEditorFields from "../components/RequisitionEditorFields";
 import RequisitionSummary from "../components/RequisitionSummary";
+import RequestAttachments from "../components/RequestAttachments";
+import EditableTable from "../components/EditableTable";
 import { useRequisitionDetail } from "../hooks/useRequisitionDetail";
+import { useRequisitionFormOptions } from "../hooks/useRequisitionFormOptions";
 import { SimilarRequisitionItem } from "../types/approvalWorkflow";
+import {
+  buildRequisitionInitialValues,
+  mapRequisitionAttachmentsToImages,
+  mapRequisitionProductsToTableRows,
+  type RequisitionFormValues,
+} from "../types/requisitionForm";
 import { getApproverDisplayName, getEditMeta } from "../utils/requestMetadata";
+import { addRequisitionSchema } from "../utils/requisitionSchema";
 
 const RequestDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { rows } = useStore((state) => ({
+    rows: state.rows,
+  }));
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editorImages, setEditorImages] = useState(
+    mapRequisitionAttachmentsToImages(null),
+  );
+  const [openJustificationModal, setOpenJustificationModal] = useState(false);
+  const [editJustification, setEditJustification] = useState("");
+  const [pendingEditValues, setPendingEditValues] =
+    useState<RequisitionFormValues | null>(null);
+
   const searchParams = useMemo(
     () => new URLSearchParams(location.search),
-    [location.search]
+    [location.search],
   );
   const requisitionSource = searchParams.get("source");
   const isFromStaffRequisitions = requisitionSource === "staff";
@@ -64,6 +87,8 @@ const RequestDetails = () => {
     isDraft,
     products,
     isApprovedOrRejected,
+    requesterCanEdit,
+    currentPendingApproverCanEdit,
     requisitionId,
     openSubmitRequestSignature,
     openSubmitRequestModal,
@@ -75,15 +100,25 @@ const RequestDetails = () => {
     approvalInstances,
     currentApprovalStep,
     canCurrentUserApprove,
+    handleItemImageUpload,
+    saveRequisitionEdits,
     displayStatus,
     submitButtonDisabled,
   } = useRequisitionDetail();
+
+  const {
+    departmentOptions,
+    eventOptions,
+    currencies,
+    departmentsLoading,
+    eventsLoading,
+  } = useRequisitionFormOptions(requestData);
 
   const requester = requestData?.requester;
   const currentApproverName = useMemo(
     () =>
       currentApprovalStep ? getApproverDisplayName(currentApprovalStep) : null,
-    [currentApprovalStep]
+    [currentApprovalStep],
   );
   const isRequisitionAccessDenied = useMemo(() => {
     const message =
@@ -117,6 +152,38 @@ const RequestDetails = () => {
     { label: "Requisition Details", link: "" },
   ];
 
+  const initialEditValues = useMemo(
+    () =>
+      buildRequisitionInitialValues({
+        requestData,
+        requesterName: requester?.name,
+      }),
+    [requestData, requester?.name],
+  );
+  const editTableData = useMemo(
+    () => mapRequisitionProductsToTableRows(requestData),
+    [requestData],
+  );
+  const initialEditorImages = useMemo(
+    () => mapRequisitionAttachmentsToImages(requestData),
+    [requestData],
+  );
+
+  useEffect(() => {
+    if (isEditMode) {
+      setEditorImages(initialEditorImages);
+    }
+  }, [initialEditorImages, isEditMode]);
+
+  useEffect(() => {
+    if (!currentPendingApproverCanEdit && isEditMode) {
+      setIsEditMode(false);
+      setOpenJustificationModal(false);
+      setEditJustification("");
+      setPendingEditValues(null);
+    }
+  }, [currentPendingApproverCanEdit, isEditMode]);
+
   const formatSimilarItemDate = (value?: string | null) => {
     if (!value) {
       return "Unknown date";
@@ -128,7 +195,7 @@ const RequestDetails = () => {
 
   const renderSimilarItemCard = (
     item: SimilarRequisitionItem,
-    label: "Requested item" | "Match"
+    label: "Requested item" | "Match",
   ) => (
     <div className="rounded-xl border border-lightGray p-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primaryGray">
@@ -164,6 +231,60 @@ const RequestDetails = () => {
       </div>
     </div>
   );
+
+  const closeJustificationModal = () => {
+    if (isUpdating) return;
+
+    setOpenJustificationModal(false);
+    setEditJustification("");
+    setPendingEditValues(null);
+  };
+
+  const resolveAttachmentLists = async () => {
+    const uploadedAttachments: { URL: string; id?: number }[] = [];
+
+    for (const attachment of editorImages) {
+      if (attachment.file) {
+        const uploadedUrl = await handleItemImageUpload(attachment.file);
+        if (uploadedUrl) {
+          uploadedAttachments.push({ URL: uploadedUrl });
+        }
+      } else {
+        uploadedAttachments.push({ URL: attachment.image, id: attachment.id });
+      }
+    }
+
+    return uploadedAttachments;
+  };
+
+  const handleApproverEditSubmit = async () => {
+    if (!pendingEditValues || !editJustification.trim()) {
+      return;
+    }
+
+    const attachmentLists = await resolveAttachmentLists();
+    const payload = {
+      ...pendingEditValues,
+      attachmentLists,
+      products: rows.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.amount,
+        image_url: item.image_url || undefined,
+        image: item.image_url || undefined,
+        id: item.id,
+      })),
+    };
+
+    const saved = await saveRequisitionEdits(payload, editJustification);
+
+    if (saved) {
+      setIsEditMode(false);
+      setOpenJustificationModal(false);
+      setEditJustification("");
+      setPendingEditValues(null);
+    }
+  };
 
   return (
     <PageOutline crumbs={crumbs}>
@@ -292,6 +413,36 @@ const RequestDetails = () => {
           </div>
         </div>
       </Modal>
+      <Modal
+        open={openJustificationModal}
+        onClose={closeJustificationModal}
+      >
+        <div className="space-y-6 p-6 md:p-8">
+          <p className="text-center text-xl font-semibold text-primary">
+            Justify requisition update
+          </p>
+          <Textarea
+            label="Justification"
+            value={editJustification}
+            onChange={setEditJustification}
+            placeholder="Explain why you are updating this requisition..."
+          />
+          <p className="text-sm text-primaryGray">
+            This justification will be saved as a comment and included in the
+            notification sent to the requester and prior approvers.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button value="Cancel" variant="ghost" onClick={closeJustificationModal} />
+            <Button
+              value="Save changes"
+              variant="primary"
+              onClick={handleApproverEditSubmit}
+              disabled={!editJustification.trim()}
+              loading={isUpdating}
+            />
+          </div>
+        </div>
+      </Modal>
       <Modal open={openSubmitRequestSignature} onClose={closeSubmitRequestModal}>
         <AddSignature
           cancel={closeSubmitRequestModal}
@@ -307,14 +458,14 @@ const RequestDetails = () => {
       <div className="space-y-5">
         <PageHeader title="Requisition Details">
           <div className="flex flex-wrap gap-2">
-            {isEditable && encodedRequestId && (
+            {!isEditMode && requesterCanEdit && encodedRequestId && (
               <Button
                 value="Edit"
                 variant="ghost"
                 onClick={() => navigate(`/home/requests/request/${encodedRequestId}`)}
               />
             )}
-            {!loading && requestData && isDraft && (
+            {!loading && requestData && isDraft && requesterCanEdit && (
               <Button
                 value="Send requisition"
                 variant="primary"
@@ -323,7 +474,14 @@ const RequestDetails = () => {
                 disabled={isSubmittingRequest || isUpdating}
               />
             )}
-            {!isApprovedOrRejected && canCurrentUserApprove && (
+            {!isEditMode && currentPendingApproverCanEdit && (
+              <Button
+                value="Edit requisition"
+                variant="secondary"
+                onClick={() => setIsEditMode(true)}
+              />
+            )}
+            {!isEditMode && !isApprovedOrRejected && canCurrentUserApprove && (
               <>
                 <Button
                   value="Reject"
@@ -376,7 +534,76 @@ const RequestDetails = () => {
           </div>
         )}
 
-        {!loading && !detailsError && requestData && (
+        {!loading && !detailsError && requestData && isEditMode && (
+          <Formik
+            initialValues={initialEditValues}
+            onSubmit={(values) => {
+              setPendingEditValues(values);
+              setOpenJustificationModal(true);
+            }}
+            validationSchema={addRequisitionSchema}
+            enableReinitialize
+          >
+            {({ submitForm, validateForm, setTouched }) => (
+              <section className="app-card space-y-4 p-4 md:p-5">
+                <div className="rounded-lg border border-lightGray bg-inputBackground/60 p-4 text-sm text-primaryGray">
+                  Saving changes here keeps the requisition on the current approval
+                  step. A justification is required before the update is submitted.
+                </div>
+
+                <RequisitionEditorFields
+                  departmentOptions={departmentOptions}
+                  eventOptions={eventOptions}
+                  currencies={currencies}
+                  departmentsLoading={departmentsLoading}
+                  eventsLoading={eventsLoading}
+                  initialImages={editorImages}
+                  imageChange={setEditorImages}
+                  onItemImageUpload={handleItemImageUpload}
+                  imageUploadLoading={isUpdating}
+                  tableData={editTableData}
+                  attachmentFiles={attachments}
+                />
+
+                <div className="flex justify-end gap-3">
+                  <Button
+                    value="Cancel edit"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditMode(false);
+                      setEditorImages(initialEditorImages);
+                    }}
+                  />
+                  <Button
+                    value="Save changes"
+                    variant="primary"
+                    onClick={async () => {
+                      const errors = await validateForm();
+
+                      if (Object.keys(errors).length) {
+                        setTouched(
+                          Object.keys(errors).reduce(
+                            (acc, field) => ({
+                              ...acc,
+                              [field]: true,
+                            }),
+                            {} as Record<string, boolean>,
+                          ),
+                        );
+                        return;
+                      }
+
+                      await submitForm();
+                    }}
+                    loading={isUpdating}
+                  />
+                </div>
+              </section>
+            )}
+          </Formik>
+        )}
+
+        {!loading && !detailsError && requestData && !isEditMode && (
           <section className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <section className="app-card space-y-5 p-4 md:p-5">
               <h3 className="text-base font-semibold text-primary">Requester information</h3>
@@ -439,7 +666,7 @@ const RequestDetails = () => {
                 status={displayStatus}
               />
               <RequisitionComments
-                isEditable={isEditable}
+                isEditable={isEditable || currentPendingApproverCanEdit}
                 openCommentModal={openCommentModal}
                 comments={requestData?.request_comments ?? []}
               />
