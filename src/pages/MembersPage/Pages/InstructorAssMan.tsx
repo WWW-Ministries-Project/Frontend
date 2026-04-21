@@ -11,13 +11,8 @@ interface AssignmentRow {
   topicId: string;
   isActive: boolean;
   dueDate?: string;
-  submissions: {
-    id: string;
-    studentName: string;
-    submittedAt: string;
-    grade: number | null;
-    status: "pending" | "graded";
-  }[];
+  submissionsCount: number;
+  pendingCount: number;
 }
 
 interface AssignmentGroup {
@@ -50,7 +45,8 @@ const InstructorAssMan: FC = () => {
         topicId,
         isActive: item.activation.isActive,
         dueDate: item.activation.dueDate ?? undefined,
-        submissions: [],
+        submissionsCount: Number(item.activation.submissions ?? 0),
+        pendingCount: Number(item.activation.pending ?? 0),
       });
 
       return acc;

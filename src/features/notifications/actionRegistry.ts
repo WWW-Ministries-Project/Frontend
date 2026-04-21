@@ -11,6 +11,24 @@ export interface NotificationActionDefinition {
 
 export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
   {
+    type: "assignment.submitted",
+    entityType: "assignment_submission",
+    description: "Student submitted an assignment for instructor review.",
+    actionUrlTemplate:
+      "/member/school-of-ministries/programs/instructor-portal/{programId}/cohort/{cohortId}/grades/{topicId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "assignment.graded",
+    entityType: "assignment_submission",
+    description: "Instructor graded a submitted assignment.",
+    actionUrlTemplate:
+      "/member/school-of-ministries/programs/my-enrolled-programs/{programId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
     type: "requisition.submitted",
     entityType: "requisition",
     description: "Requisition submitted and routed to first approver.",
