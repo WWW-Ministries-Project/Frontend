@@ -21,7 +21,9 @@ interface AssignmentTopic {
       topicId?: string;
       isActive: boolean;
       dueDate?: string;
-      submissions: Submission[];
+      submissions?: Submission[];
+      submissionsCount?: number;
+      pendingCount?: number;
 }
 
 const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setSelectedAssignment, refetch }: { 
@@ -74,6 +76,16 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
     };
 
     const navigate = useNavigate()
+
+    const getSubmissionCount = (assignment: AssignmentTopic) =>
+      typeof assignment.submissionsCount === "number"
+        ? assignment.submissionsCount
+        : assignment.submissions?.length ?? 0;
+
+    const getPendingCount = (assignment: AssignmentTopic) =>
+      typeof assignment.pendingCount === "number"
+        ? assignment.pendingCount
+        : assignment.submissions?.filter((submission) => submission.status === "pending").length ?? 0;
     
     return ( 
         <div className="flex flex-col gap-4 lg:flex-1">
@@ -102,8 +114,8 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                         <div>
                                           Due: {topic?.dueDate ? formatDatefull(topic.dueDate) : "N/A"}
                                         </div>
-                                        <div>Submissions: {topic.submissions.length}</div>
-                                        <div>Pending: {topic.submissions.filter(s => s.status === 'pending').length}</div>
+                                        <div>Submissions: {getSubmissionCount(topic)}</div>
+                                        <div>Pending: {getPendingCount(topic)}</div>
                                       </div>
                                     </div>
                   

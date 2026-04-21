@@ -389,7 +389,7 @@ export type BackendTopic = {
 
 export type CohortAssignment = {
   learningUnitId: number;
-  type: "assignment";
+  type: "assignment" | "assignment-essay";
   version: number;
   topic: BackendTopic;
   activation: {
@@ -397,6 +397,8 @@ export type CohortAssignment = {
     activatedAt: string | null;
     dueDate: string | null;
     closedAt: string | null;
+    submissions?: number;
+    pending?: number;
   };
 };
 

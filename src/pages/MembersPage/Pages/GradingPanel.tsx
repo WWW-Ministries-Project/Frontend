@@ -9,6 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { ApiResponse } from "@/utils/interfaces";
+import { showNotification } from "@/pages/HomePage/utils";
 
 
 interface Submission {
@@ -32,28 +33,6 @@ interface BackendAssignmentResult {
 }
 
 const QUICK_GRADES = [100, 90, 80, 70, 60, 50];
-
-/**
- * Submit a single grade to backend
- */
-const submitGradeToBackend = (payload: {
-  submissionId: string;
-  studentId: string;
-  grade: number;
-}) => {
-  void payload;
-};
-
-/**
- * Submit multiple grades (bulk grading) to backend
- */
-const submitBulkGradesToBackend = (payload: {
-  submissionIds: string[];
-  studentIds: string[];
-  grade: number;
-}) => {
-  void payload;
-};
 
 type SafeRecord = Record<string, unknown>;
 
@@ -247,8 +226,78 @@ const GradingPanel = () => {
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "graded">("all");
   const [_editingId, _setEditingId] = useState<string | null>(null);
   const [_editingGrade, _setEditingGrade] = useState("");
+  const [gradingSubmissionIds, setGradingSubmissionIds] = useState<string[]>([]);
+  const [isBulkGrading, setIsBulkGrading] = useState(false);
 
-  const handleInlineGrade = useCallback((submissionId: string) => {
+  const setSubmissionGradingState = useCallback((submissionId: string, isGrading: boolean) => {
+    setGradingSubmissionIds((current) => {
+      if (isGrading) {
+        return current.includes(submissionId) ? current : [...current, submissionId];
+      }
+
+      return current.filter((id) => id !== submissionId);
+    });
+  }, []);
+
+  const gradeSubmission = useCallback(
+    async (submission: Submission, grade: number) => {
+      setSubmissionGradingState(submission.id, true);
+
+      try {
+        await api.put.gradeAssignmentSubmission({
+          submissionId: submission.id,
+          grade,
+        });
+
+        onGrade(submission.id, grade);
+        showNotification(`Grade saved for ${submission.studentName}.`, "success");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        showNotification(
+          err.response?.data?.message || "Could not save grade. Please try again.",
+          "error",
+        );
+      } finally {
+        setSubmissionGradingState(submission.id, false);
+      }
+    },
+    [onGrade, setSubmissionGradingState],
+  );
+
+  const gradeSubmissionsBulk = useCallback(
+    async (submissions: Submission[], grade: number) => {
+      if (!submissions.length) return;
+
+      setIsBulkGrading(true);
+      setGradingSubmissionIds((current) => [
+        ...new Set([...current, ...submissions.map((submission) => submission.id)]),
+      ]);
+
+      try {
+        await api.put.gradeAssignmentSubmissions({
+          submissionIds: submissions.map((submission) => submission.id),
+          grade,
+        });
+
+        submissions.forEach((submission) => onGrade(submission.id, grade));
+        showNotification(`Saved ${submissions.length} grade${submissions.length === 1 ? "" : "s"}.`, "success");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        showNotification(
+          err.response?.data?.message || "Could not save selected grades. Please try again.",
+          "error",
+        );
+      } finally {
+        setIsBulkGrading(false);
+        setGradingSubmissionIds((current) =>
+          current.filter((id) => !submissions.some((submission) => submission.id === id)),
+        );
+      }
+    },
+    [onGrade],
+  );
+
+  const handleInlineGrade = useCallback(async (submissionId: string) => {
     if (_editingGrade) {
       const numGrade = Number(_editingGrade);
       if (Number.isNaN(numGrade)) return;
@@ -257,18 +306,11 @@ const GradingPanel = () => {
       const submission = assignment?.submissions.find(s => s.id === submissionId);
       if (!submission) return;
 
-      submitGradeToBackend({
-        submissionId,
-        studentId: submission.studentId,
-        grade: safeGrade,
-      });
-
-      // Note: onGrade is expected to mark the status as "graded" in parent state
-      onGrade(submissionId, safeGrade);
+      await gradeSubmission(submission, safeGrade);
     }
     _setEditingId(null);
     _setEditingGrade("");
-  }, [_editingGrade, assignment, onGrade]);
+  }, [_editingGrade, assignment, gradeSubmission]);
 
   const startEditing = (submission: Submission) => {
     _setEditingId(submission.id);
@@ -327,6 +369,7 @@ const GradingPanel = () => {
       header: "Grade",
       cell: ({ row }) => {
         const submission = row.original;
+        const isSaving = gradingSubmissionIds.includes(submission.id);
 
         if (_editingId === submission.id) {
           return (
@@ -335,16 +378,23 @@ const GradingPanel = () => {
                 type="number"
                 className="w-24 rounded-md border border-lightGray px-2 py-1"
                 value={_editingGrade}
+                disabled={isSaving}
                 onChange={(e) => _setEditingGrade(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleInlineGrade(submission.id);
+                  if (e.key === "Enter") void handleInlineGrade(submission.id);
                   if (e.key === "Escape") {
                     _setEditingId(null);
                     _setEditingGrade("");
                   }
                 }}
               />
-              <Button onClick={() => handleInlineGrade(submission.id)} value="✓" />
+              <Button
+                onClick={() => {
+                  void handleInlineGrade(submission.id);
+                }}
+                value={isSaving ? "..." : "✓"}
+                disabled={isSaving}
+              />
             </div>
           );
         }
@@ -357,6 +407,7 @@ const GradingPanel = () => {
                 variant="ghost"
                 onClick={() => startEditing(submission)}
                 value="Edit"
+                disabled={isSaving}
               />
             </div>
           );
@@ -370,28 +421,23 @@ const GradingPanel = () => {
                 variant="secondary"
                 className="h-7 px-2 text-xs"
                 onClick={() => {
-                  submitGradeToBackend({
-                    submissionId: submission.id,
-                    studentId: submission.studentId,
-                    grade,
-                  });
-
-                  // Note: onGrade is expected to mark the status as "graded" in parent state
-                  onGrade(submission.id, grade);
+                  void gradeSubmission(submission, grade);
                 }}
                 value={String(grade)}
+                disabled={isSaving}
               />
             ))}
             <Button
               variant="ghost"
               onClick={() => startEditing(submission)}
               value="Custom"
+              disabled={isSaving}
             />
           </div>
         );
       },
     },
-  ], [_editingId, _editingGrade, handleInlineGrade, onGrade]);
+  ], [_editingId, _editingGrade, gradingSubmissionIds, gradeSubmission, handleInlineGrade]);
 
   const filteredSubmissions = useMemo(() => {
     if (!assignment) return [];
@@ -510,7 +556,7 @@ const GradingPanel = () => {
           <TableComponent
             data={filteredSubmissions}
             columns={columns}
-            enableSelection={_editingId === null}
+            enableSelection={_editingId === null && !isBulkGrading}
             bulkActions={_editingId === null ? QUICK_GRADES.map((g) => ({
               label: `${g}%`,
               value: String(g),
@@ -518,16 +564,7 @@ const GradingPanel = () => {
             onBulkAction={(rows, action) => {
               const grade = Number(action);
               if (Number.isNaN(grade)) return;
-              const submissionIds = rows.map((row) => row.id);
-
-              submitBulkGradesToBackend({
-                submissionIds,
-                studentIds: rows.map((row) => row.studentId),
-                grade,
-              });
-
-              // Note: onGrade is expected to mark the status as "graded" in parent state
-              rows.forEach((row) => onGrade(row.id, grade));
+              void gradeSubmissionsBulk(rows, grade);
             }}
           />
         </div>

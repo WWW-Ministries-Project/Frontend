@@ -49,7 +49,7 @@ const EnrolledProgram: React.FC = () => {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [viewCertificate, setViewCertificate] = useState(true);
+  const [viewCertificate, setViewCertificate] = useState(false);
   const [supportsCertificateModal, setSupportsCertificateModal] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(min-width: 640px)").matches

@@ -16,6 +16,7 @@ import {
   RequisitionApprovalConfigPayload,
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
+import { PositionType } from "@/utils/api/settings/positionInterfaces";
 import { RoleEligibilityConfig } from "@/utils/api/settings/eligibilityInterfaces";
 import { useUserStore } from "@/store/userStore";
 import { ApiError } from "@/utils/api/errors/ApiError";
@@ -150,6 +151,16 @@ function Settings() {
     undefined,
     true
   );
+  const {
+    data: positionsResponse,
+    loading: positionsLoading,
+    error: positionsError,
+    refetch: refetchEligibilityPositions,
+  } = useFetch<ApiResponse<PositionType[]>>(
+    api.fetch.fetchPositions as () => Promise<ApiResponse<PositionType[]>>,
+    undefined,
+    true
+  );
 
   const {
     postData: postPosition,
@@ -274,9 +285,18 @@ function Settings() {
     }
 
     handleCloseForm();
+    refetchEligibilityPositions();
+    refetchPositions();
     refetchPrograms();
     refetchEligibilityConfig();
-  }, [handleCloseForm, refetchEligibilityConfig, refetchPrograms, selectedTab]);
+  }, [
+    handleCloseForm,
+    refetchEligibilityConfig,
+    refetchEligibilityPositions,
+    refetchPositions,
+    refetchPrograms,
+    selectedTab,
+  ]);
 
   useEffect(() => {
     if (selectedTab !== "Notifications") {
@@ -384,6 +404,14 @@ function Settings() {
       })),
     [programsResponse]
   );
+  const positionOptions = useMemo(
+    () =>
+      (positionsResponse?.data ?? []).map((position) => ({
+        label: position.name,
+        value: String(position.id),
+      })),
+    [positionsResponse]
+  );
 
   const eligibilityRules = useMemo(
     () =>
@@ -404,8 +432,12 @@ function Settings() {
       return programsError.message || "Unable to load programs.";
     }
 
+    if (positionsError) {
+      return positionsError.message || "Unable to load positions.";
+    }
+
     return null;
-  }, [eligibilityConfigError, programsError]);
+  }, [eligibilityConfigError, positionsError, programsError]);
 
   const handleSaveEligibilityRules = async (
     rules: ReturnType<typeof createEmptyEligibilityRules>
@@ -560,10 +592,15 @@ function Settings() {
           <EligibilityRules
             initialRules={eligibilityRules}
             programOptions={programOptions}
-            loading={programsLoading || eligibilityConfigLoading}
+            positionOptions={positionOptions}
+            loading={
+              programsLoading || positionsLoading || eligibilityConfigLoading
+            }
             saving={isSavingEligibilityRules}
             error={displayEligibilityRulesError}
             onRetry={() => {
+              refetchEligibilityPositions();
+              refetchPositions();
               refetchPrograms();
               refetchEligibilityConfig();
             }}

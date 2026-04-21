@@ -237,6 +237,26 @@ export class ApiUpdateCalls {
     );
   };
 
+  gradeAssignmentSubmission = (
+    payload: {
+      submissionId: string | number;
+      grade: number;
+      feedback?: string | null;
+    },
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/grade-assignment", payload);
+  };
+
+  gradeAssignmentSubmissions = (
+    payload: {
+      submissionIds: Array<string | number>;
+      grade: number;
+      feedback?: string | null;
+    },
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/grade-assignments", payload);
+  };
+
   /* Visitor Management */
 
   updateVisitor = (
