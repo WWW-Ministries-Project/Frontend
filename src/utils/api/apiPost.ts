@@ -15,6 +15,7 @@ import type {
   BulkUpdateMemberStatusResponse,
 } from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
+import type { Branch, BranchPayload } from "./settings/branchInterfaces";
 import type {
   AttendanceTimingSettingsConfig,
   AttendanceTimingSettingsPayload,
@@ -69,6 +70,7 @@ import type {
 } from "@/pages/HomePage/pages/Requisitions/types/approvalWorkflow";
 import axios from "@/axiosInstance";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import { applyActiveBranchPayload } from "./branchScope";
 import type {
   AiChatRequest,
   AiChatbotRequest,
@@ -128,9 +130,13 @@ export class ApiCreationCalls {
     options?: PostRequestOptions
   ): Promise<ApiResponse<T>> {
     const url = `${baseUrl}${path}`;
-    const response = await axios.post<{ data: T }>(url, payload, {
+    const response = await axios.post<{ data: T }>(
+      url,
+      applyActiveBranchPayload(path, payload),
+      {
       headers: options?.headers,
-    });
+      }
+    );
 
     return {
       data: response.data.data,
@@ -149,7 +155,7 @@ export class ApiCreationCalls {
     }
   > {
     const url = `${baseUrl}${path}`;
-    const response = await axios.post(url, payload);
+    const response = await axios.post(url, applyActiveBranchPayload(path, payload));
     const payloadRecord =
       response.data && typeof response.data === "object"
         ? (response.data as Record<string, unknown>)
@@ -290,6 +296,9 @@ export class ApiCreationCalls {
     payload: unknown
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.postToApi("department/create-department", payload);
+  };
+  createBranch = (payload: BranchPayload): Promise<ApiResponse<Branch>> => {
+    return this.postToApi("branch/create-branch", payload);
   };
   createPosition = (payload: unknown): Promise<ApiResponse<PositionType[]>> => {
     return this.postToApi("position/create-position", payload);

@@ -6,6 +6,7 @@ import {
   QueryExecutorType,
   QueryType,
 } from "../interfaces";
+import { applyActiveBranchPayload, applyActiveBranchQuery } from "./branchScope";
 export class ApiExecution {
   baseUrl: string;
   fetchExecutor?: QueryExecutorType;
@@ -32,7 +33,7 @@ export class ApiExecution {
 
   fetchData<T>(path: string, query?: QueryType): Promise<ApiResponse<T>> {
     if (!this.fetchExecutor) throw new Error("Fetch executor not defined");
-    return this.fetchExecutor(this.baseUrl, path, query);
+    return this.fetchExecutor(this.baseUrl, path, applyActiveBranchQuery(path, query));
   }
 
   deleteData<T>(
@@ -40,12 +41,12 @@ export class ApiExecution {
     query?: QueryType
   ): Promise<ApiResponse<T>> {
     if (!this.deleteExecutor) throw new Error("Delete executor not defined");
-    return this.deleteExecutor(this.baseUrl, path, query);
+    return this.deleteExecutor(this.baseUrl, path, applyActiveBranchQuery(path, query));
   }
 
   postData<T>(path: string, payload: unknown): Promise<ApiResponse<T>> {
     if (!this.postExecutor) throw new Error("Post executor not defined");
-    return this.postExecutor(this.baseUrl, path, payload);
+    return this.postExecutor(this.baseUrl, path, applyActiveBranchPayload(path, payload));
   }
 
   updateData<T, K>(
@@ -54,7 +55,12 @@ export class ApiExecution {
     query?: QueryType
   ): Promise<ApiResponse<T>> {
     if (!this.updateExecutor) throw new Error("Update executor not defined");
-    return this.updateExecutor(this.baseUrl, path, payload, query);
+    return this.updateExecutor(
+      this.baseUrl,
+      path,
+      applyActiveBranchPayload(path, payload),
+      applyActiveBranchQuery(path, query)
+    );
   }
 
   patchData<T, K>(
@@ -63,6 +69,11 @@ export class ApiExecution {
     query?: QueryType
   ): Promise<ApiResponse<T>> {
     if (!this.patchExecutor) throw new Error("Patch executor not defined");
-    return this.patchExecutor(this.baseUrl, path, payload, query);
+    return this.patchExecutor(
+      this.baseUrl,
+      path,
+      applyActiveBranchPayload(path, payload),
+      applyActiveBranchQuery(path, query)
+    );
   }
 }

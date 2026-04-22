@@ -11,6 +11,7 @@ import {
   activateMemberPayloadType,
   activateMemberType,
 } from "./members/interfaces";
+import type { Branch, BranchPayload } from "./settings/branchInterfaces";
 import {
   CohortPayloadType,
   ReorderProgramTopicsPayload,
@@ -119,6 +120,17 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<T>> => {
     return this.apiExecution.updateData(
       "department/update-department",
+      payload,
+      query
+    );
+  };
+
+  updateBranch = (
+    payload: BranchPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<Branch>> => {
+    return this.apiExecution.updateData(
+      "branch/update-branch",
       payload,
       query
     );

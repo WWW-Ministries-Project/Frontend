@@ -69,6 +69,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
     const knownKeys = new Set([
       ...ACCESS_LEVEL_DOMAINS.map((domain) => domain.key),
       "Exclusions",
+      "Scopes",
     ]);
 
     const customModules = Object.entries(normalized)
@@ -146,7 +147,10 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
 
                 {module.scope === "assigned_departments" && (
                   <div className="mt-3 rounded-lg bg-primary/10 p-2 text-xs text-primary">
-                    Scope: Assigned departments only (HOD access)
+                    Scope:{" "}
+                    {module.key === "Church_Attendance"
+                      ? "Department members only"
+                      : "Assigned departments only (HOD access)"}
                   </div>
                 )}
               </article>

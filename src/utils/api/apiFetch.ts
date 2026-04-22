@@ -35,6 +35,7 @@ import {
   Programs,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
+import { Branch } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import type {
@@ -118,8 +119,8 @@ export class ApiCalls {
     return this.fetchFromApi("user/get-user-family", query);
   };
 
-  fetchUserStats = (): Promise<ApiResponse<UserStatsType>> => {
-    return this.fetchFromApi("user/stats-users");
+  fetchUserStats = (query?: QueryType): Promise<ApiResponse<UserStatsType>> => {
+    return this.fetchFromApi("user/stats-users", query);
   };
 
   // Visit Management
@@ -209,6 +210,10 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.fetchFromApi("department/list-departments", query);
+  };
+
+  fetchBranches = (query?: QueryType): Promise<ApiResponse<Branch[]>> => {
+    return this.fetchFromApi("branch/list-branches", query);
   };
 
   fetchDepartmentDetails = (

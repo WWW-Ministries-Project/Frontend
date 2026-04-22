@@ -5,7 +5,7 @@ import { SelectField } from "../../../Components/reusable/SelectField";
 import TextField from "../../../Components/reusable/TextField";
 
 interface IProps {
-  onChange: (name: string, value: string | number) => void;
+  onChange: (name: string, value: string | number | undefined) => void;
   onSubmit: () => void;
   editMode?: boolean;
   CloseForm: () => void;
@@ -25,10 +25,18 @@ interface IProps {
 }
 
 export const FormsComponent = (props: IProps) => {
-  function handleChange(name: string, value: string | number) {
+  const entityLabel = props.inputLabel === "Branches" ? "Branch" : props.inputLabel;
+  const isBranchForm = props.inputLabel === "Branches";
+
+  function handleChange(name: string, value: string | number | null) {
+    if (value === null) {
+      props.onChange(name, undefined);
+      return;
+    }
+
     if (name === "department_head") {
       props.onChange(name, Number(value));
-    } else if (name === "department_id") {
+    } else if (name === "department_id" || name === "pastor_in_charge_id") {
       props.onChange(name, +value);
     } else {
       props.onChange(name, value);
@@ -42,7 +50,7 @@ export const FormsComponent = (props: IProps) => {
   return (
     <div className=" ">
       <FormHeader>
-          {props.editMode ? "Edit " : "Create "} {props.inputLabel}
+          {props.editMode ? "Edit " : "Create "} {entityLabel}
         </FormHeader>
         <form className="mt-5 px-5 pb-5">
       <FormLayout $columns={1}>
@@ -51,21 +59,33 @@ export const FormsComponent = (props: IProps) => {
           onChange={handleChange}
           type="text"
           id={"name"}
-          label={props.inputLabel}
+          label={entityLabel}
           value={props.inputValue.name}
-          placeholder={`Enter ${props.inputLabel} name`}
+          placeholder={`Enter ${entityLabel.toLowerCase()} name`}
           className="w-full"
         />
-        <SelectField
-          onChange={handleChange}
-          label={props.selectLabel}
-          id={props.selectId}
-          options={props.selectOptions}
-          placeholder={`Select ${props.selectLabel}`}
-          value={
-            props.inputValue.department_head || props.inputValue.department_id
-          }
-        />
+        {isBranchForm && (
+          <InputDiv
+            onChange={handleChange}
+            type="text"
+            id={"location"}
+            label="Location"
+            value={props.inputValue.location || ""}
+            placeholder="Enter branch location"
+            className="w-full"
+          />
+        )}
+        {props.selectId && props.selectLabel && (
+          <SelectField
+            onChange={handleChange}
+            label={props.selectLabel}
+            id={props.selectId}
+            options={props.selectOptions}
+            placeholder={`Select ${props.selectLabel}`}
+            value={props.inputValue[props.selectId]}
+            clearable={isBranchForm}
+          />
+        )}
         <TextField
           onChange={handleChange}
           value={props.inputValue.description || ""}

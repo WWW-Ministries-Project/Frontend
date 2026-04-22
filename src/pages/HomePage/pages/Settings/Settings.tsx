@@ -93,13 +93,14 @@ function Settings() {
     setFilter,
     handleSearchChange,
     refetchPositions,
+    refetchBranches,
   }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
   any = useOutletContext();
 
   const userId = useUserStore((state) => state.id);
 
   const [displayForm, setDisplayForm] = useState(false);
-  const [inputValue, setInputValue] = useState({
+  const [inputValue, setInputValue] = useState<Record<string, string | number | undefined>>({
     created_by: userId,
     name: "",
     description: "",
@@ -161,6 +162,10 @@ function Settings() {
     undefined,
     true
   );
+  const { data: branchPastorMembersResponse } = useFetch(
+    api.fetch.fetchMembersForOptions,
+    { branch_id: "" }
+  );
 
   const {
     postData: postPosition,
@@ -179,6 +184,23 @@ function Settings() {
     success: positionDelete,
     error: positionDeleteError,
   } = useDelete(api.delete.deletePosition);
+  const {
+    postData: postBranch,
+    data: branchCreateResponse,
+    error: branchCreateError,
+    loading: branchCreateLoading,
+  } = usePost(api.post.createBranch);
+  const {
+    updateData: updateBranch,
+    data: branchUpdateResponse,
+    error: branchUpdateError,
+    loading: branchUpdateLoading,
+  } = usePut(api.put.updateBranch);
+  const {
+    executeDelete: deleteBranch,
+    success: branchDeleteSuccess,
+    error: branchDeleteError,
+  } = useDelete(api.delete.deleteBranch);
 
   const handleCloseForm = useCallback(() => {
     setDisplayForm(false);
@@ -186,10 +208,20 @@ function Settings() {
   }, []);
 
   const handleDelete = useCallback(
-    (itemToDelete: { id: number }) => {
+    (itemToDelete: { id: number; is_default?: boolean }) => {
+      if ("is_default" in itemToDelete) {
+        if (itemToDelete.is_default) {
+          showNotification("The default branch cannot be deleted.", "error");
+          return;
+        }
+
+        deleteBranch({ id: String(itemToDelete.id) });
+        return;
+      }
+
       deletePosition({ id: itemToDelete.id + "" });
     },
-    [deletePosition]
+    [deleteBranch, deletePosition]
   );
 
   const {
@@ -208,6 +240,11 @@ function Settings() {
     //@ts-expect-error will figure it out later
     setInputValue,
     handleDelete,
+    branchPastorOptions:
+      branchPastorMembersResponse?.data?.map((member) => ({
+        label: member.name,
+        value: String(member.id),
+      })) ?? [],
   });
 
   const requisitionConfig = useMemo(
@@ -259,6 +296,38 @@ function Settings() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionDelete, positionDeleteError]);
+
+  useEffect(() => {
+    if (branchCreateResponse) {
+      showNotification("Branch created successfully", "success");
+      refetchBranches?.();
+      handleCloseForm();
+    }
+    if (branchCreateError) {
+      showNotification(branchCreateError.message || "Unable to create branch", "error");
+    }
+  }, [branchCreateError, branchCreateResponse, handleCloseForm, refetchBranches]);
+
+  useEffect(() => {
+    if (branchUpdateResponse) {
+      showNotification("Branch updated successfully", "success");
+      refetchBranches?.();
+      handleCloseForm();
+    }
+    if (branchUpdateError) {
+      showNotification(branchUpdateError.message || "Unable to update branch", "error");
+    }
+  }, [branchUpdateError, branchUpdateResponse, handleCloseForm, refetchBranches]);
+
+  useEffect(() => {
+    if (branchDeleteSuccess) {
+      showNotification("Branch deleted successfully", "success");
+      refetchBranches?.();
+    }
+    if (branchDeleteError) {
+      showNotification(branchDeleteError.message || "Unable to delete branch", "error");
+    }
+  }, [branchDeleteError, branchDeleteSuccess, refetchBranches]);
 
   useEffect(() => {
     const configuredLookbackDays = toPositiveInteger(
@@ -326,6 +395,21 @@ function Settings() {
     handleSearchChange(e.target.value);
 
   const handleFormSubmit = () => {
+    if (selectedTab === "Branches") {
+      const payload = {
+        ...(editMode && { id: Number(inputValue.id) }),
+        name: String(inputValue.name || ""),
+        description: inputValue.description
+          ? String(inputValue.description)
+          : undefined,
+        location: inputValue.location ? String(inputValue.location) : undefined,
+        pastor_in_charge_id: inputValue.pastor_in_charge_id
+          ? Number(inputValue.pastor_in_charge_id)
+          : null,
+      };
+      editMode ? updateBranch(payload) : postBranch(payload);
+    }
+
     if (selectedTab === "Position") {
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       editMode ? updatePosition(inputValue) : postPosition(inputValue);
@@ -499,7 +583,7 @@ function Settings() {
         </div>
       </div>
 
-      {selectedTab === "Position" && (
+      {(selectedTab === "Position" || selectedTab === "Branches") && (
         <>
           <PageHeader
             className="font-semibold text-xl"
@@ -507,7 +591,13 @@ function Settings() {
             buttonValue={"Create " + selectedTab}
             onClick={() => {
               setDisplayForm(!displayForm);
-              setInputValue({ created_by: userId, name: "", description: "" });
+              setInputValue({
+                created_by: userId,
+                name: "",
+                description: "",
+                location: "",
+                pastor_in_charge_id: undefined,
+              });
             }}
           />
 
@@ -553,7 +643,9 @@ function Settings() {
               onSubmit={handleFormSubmit}
               loading={
                 positionUpdateLoading ||
-                positionLoading
+                positionLoading ||
+                branchCreateLoading ||
+                branchUpdateLoading
               }
               selectLabel={selectLabel}
               editMode={editMode}

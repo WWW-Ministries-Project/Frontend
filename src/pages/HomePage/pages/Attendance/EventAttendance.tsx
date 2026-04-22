@@ -18,6 +18,7 @@ import {
   EventResponseType,
   formatDate,
   relativePath,
+  resolveScope,
 } from "@/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -756,6 +757,9 @@ export default function EventAttendance() {
   const canManageAttendance = Boolean(
     user.permissions?.manage_church_attendance
   );
+  const hasDepartmentScopedAttendance =
+    resolveScope(user.access_permissions, "Church_Attendance") ===
+    "assigned_departments";
 
   const query = useMemo(() => {
     const nextQuery: Record<string, string> = {};
@@ -868,6 +872,14 @@ export default function EventAttendance() {
             />
           }
         />
+
+        {hasDepartmentScopedAttendance && (
+          <div className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
+            Department-specific access is active. This page only shows
+            attendance records for members in your assigned or headed
+            departments.
+          </div>
+        )}
 
         {showFilter && (
           <div className="flex flex-wrap gap-4 rounded-xl border border-lightGray bg-white p-4">
