@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Dialog } from "@/components/Dialog";
 import { useStore } from "@/store/useStore";
+import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
 import useWindowSize from "../../CustomHooks/useWindowSize";
 import { changeAuth } from "../../axiosInstance.js";
@@ -21,17 +22,30 @@ export function HomePage() {
   //custom navigation
   const navigate = useNavigate();
   navigateRef.current = navigate;
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const setBranches = useBranchStore((state) => state.setBranches);
+  const branchQuery = useMemo(
+    () => buildBranchQuery(activeBranchId),
+    [activeBranchId]
+  );
+
+  const { data: branchesData, refetch: refetchBranches } = useFetch(
+    api.fetch.fetchBranches
+  );
 
   const { data: membersData, refetch: refetchMembersOptions } = useFetch(
-    api.fetch.fetchMembersForOptions
+    api.fetch.fetchMembersForOptions,
+    branchQuery
   );
-  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats);
-  const { data: eventsData } = useFetch(api.fetch.fetchEvents);
+  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats, branchQuery);
+  const { data: eventsData } = useFetch(api.fetch.fetchEvents, branchQuery);
   const { data: positionsData, refetch: refetchPositions } = useFetch(
-    api.fetch.fetchPositions
+    api.fetch.fetchPositions,
+    branchQuery
   );
   const { data: departmentsData, refetch: refetchDepartments } = useFetch(
-    api.fetch.fetchDepartments
+    api.fetch.fetchDepartments,
+    branchQuery
   );
   const settingsStore = useSettingsStore();
   const store = useStore();
@@ -59,6 +73,10 @@ export function HomePage() {
     if (membersData) {
       store.setMemberOptions(membersData.data);
       // store.setMembers(membersData.data, membersData.meta?.total ?? 0);
+    }
+
+    if (branchesData) {
+      setBranches(branchesData.data);
     }
 
     if (userStatsData) {
@@ -89,6 +107,8 @@ export function HomePage() {
     eventsData,
     membersData,
     departmentsData,
+    branchesData,
+    setBranches,
   ]);
 
   // useEffect(() => {
@@ -134,6 +154,7 @@ export function HomePage() {
                     userStats,
                     refetchPositions,
                     refetchDepartments,
+                    refetchBranches,
                   }}
                 />
               </div>

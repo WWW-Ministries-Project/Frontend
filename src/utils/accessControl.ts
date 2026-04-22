@@ -38,6 +38,11 @@ export const EXCLUSION_SUPPORTED_DOMAINS: PermissionDomain[] = [
   "Appointments",
 ];
 
+export const SCOPE_SUPPORTED_DOMAINS: PermissionDomain[] = [
+  "Departments",
+  "Church_Attendance",
+];
+
 type PermissionRequirementObject = {
   domain: PermissionDomain | string;
   action: AccessAction;

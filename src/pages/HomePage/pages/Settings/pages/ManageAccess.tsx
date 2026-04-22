@@ -23,6 +23,7 @@ import {
   PermissionMap,
   PermissionValue,
   resolveScope,
+  SCOPE_SUPPORTED_DOMAINS,
   ScopeMode,
   ScopesMap,
 } from "@/utils/accessControl";
@@ -59,6 +60,9 @@ const ACCESS_OPTIONS: Array<{
 const isExclusionEnabled = (domain: PermissionDomain) =>
   EXCLUSION_SUPPORTED_DOMAINS.includes(domain);
 
+const isScopeEnabled = (domain: PermissionDomain) =>
+  SCOPE_SUPPORTED_DOMAINS.includes(domain);
+
 const createManagerPreset = () => {
   const preset = createDefaultPermissionMatrix("Can_View");
 
@@ -90,6 +94,7 @@ const createHodPreset = () => {
   preset.Members = "Can_View";
   preset.Departments = "Can_Manage";
   preset.Positions = "Can_View";
+  preset.Church_Attendance = "Can_View";
   return preset;
 };
 
@@ -125,6 +130,7 @@ const PRESETS: Array<{
     factory: createHodPreset,
     scopes: {
       Departments: "assigned_departments",
+      Church_Attendance: "assigned_departments",
     },
   },
 ];
@@ -302,6 +308,13 @@ export function ManageAccess() {
     value: PermissionValue
   ) => {
     setPermissions((prev) => ({ ...prev, [domain]: value }));
+    if (value === "No_Access") {
+      setScopeSelections((prev) => {
+        const nextValue = { ...prev };
+        delete nextValue[domain];
+        return nextValue;
+      });
+    }
   };
 
   const handleExclusionChange = (
@@ -520,17 +533,20 @@ export function ManageAccess() {
                         </div>
                       )}
 
-                      {module.key === "Departments" &&
+                      {isScopeEnabled(module.key) &&
                         permissions[module.key] !== "No_Access" && (
                           <div className="mt-4 rounded-lg border border-dashed border-lightGray bg-gray-50 p-3">
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                               <div>
                                 <p className="text-sm font-medium text-primary">
-                                  HOD Access
+                                  {module.key === "Departments"
+                                    ? "HOD Access"
+                                    : "Department Specific Access"}
                                 </p>
                                 <p className="mt-1 text-xs text-primaryGray">
-                                  Limit department and ministry access to only
-                                  the departments assigned to the user.
+                                  {module.key === "Departments"
+                                    ? "Limit department and ministry access to only the departments assigned to the user."
+                                    : "Limit event attendance records to members in the user's assigned or headed departments."}
                                 </p>
                               </div>
 
@@ -548,7 +564,9 @@ export function ManageAccess() {
                                     )
                                   }
                                 />
-                                Assigned departments only
+                                {module.key === "Departments"
+                                  ? "Assigned departments only"
+                                  : "Department members only"}
                               </label>
                             </div>
                           </div>

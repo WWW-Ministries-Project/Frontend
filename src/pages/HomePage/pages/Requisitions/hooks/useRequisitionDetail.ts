@@ -236,7 +236,7 @@ export const useRequisitionDetail = () => {
   >(null);
   const [isLoadingSimilarItems, setIsLoadingSimilarItems] = useState(false);
 
-  const { addingImage } = useImageUpload();
+  const { addingImage, handleUpload } = useImageUpload();
 
   useEffect(() => {
     setAttachments(data?.data?.attachmentLists ?? []);
@@ -540,6 +540,11 @@ export const useRequisitionDetail = () => {
     [currentApprovalStep, loggedInUserId]
   );
 
+  const hasAnyApprovedStep = useMemo(
+    () => approvalInstances.some((step) => step.status === "APPROVED"),
+    [approvalInstances]
+  );
+
   const displayStatus = useMemo(() => {
     return (
       requestData?.request_approval_status ??
@@ -549,11 +554,6 @@ export const useRequisitionDetail = () => {
       "Draft"
     );
   }, [requestData]);
-
-  const isEditable = useMemo(
-    () => displayStatus === "Awaiting_HOD_Approval" || displayStatus === "Draft",
-    [displayStatus]
-  );
 
   const products = useMemo(
     () =>
@@ -573,6 +573,80 @@ export const useRequisitionDetail = () => {
   }, [displayStatus]);
 
   const isDraft = useMemo(() => displayStatus === "Draft", [displayStatus]);
+
+  const requesterCanEdit = useMemo(
+    () => !hasAnyApprovedStep && !isApprovedOrRejected,
+    [hasAnyApprovedStep, isApprovedOrRejected]
+  );
+
+  const currentPendingApproverCanEdit = useMemo(
+    () => canCurrentUserApprove && !isApprovedOrRejected,
+    [canCurrentUserApprove, isApprovedOrRejected]
+  );
+
+  const handleItemImageUpload = useCallback(
+    async (file: File): Promise<string | null> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploaded = await handleUpload(formData);
+      return uploaded?.URL ?? null;
+    },
+    [handleUpload]
+  );
+
+  const saveRequisitionEdits = useCallback(
+    async (
+      payload: Record<string, unknown>,
+      justificationComment: string
+    ): Promise<boolean> => {
+      const id = Number(requisitionId);
+
+      if (!Number.isInteger(id) || id <= 0) {
+        handleOpenNotification(
+          "Invalid requisition identifier.",
+          "error",
+          "Update Requisition"
+        );
+        return false;
+      }
+
+      setIsUpdating(true);
+
+      try {
+        const response = await api.put.updateRequisition<{
+          data?: IRequisitionDetails;
+          message?: string;
+        }>({
+          ...payload,
+          id,
+          edit_justification_comment: justificationComment.trim(),
+        });
+
+        handleOpenNotification(
+          getResponseMessage(response.data, "Requisition updated successfully."),
+          "success",
+          "Update Requisition"
+        );
+
+        await refreshDetails();
+        return true;
+      } catch (error) {
+        if (!(error instanceof ApiError)) {
+          handleOpenNotification(
+            error instanceof Error
+              ? error.message
+              : "Unable to update requisition.",
+            "error",
+            "Update Requisition"
+          );
+        }
+        return false;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [refreshDetails, requisitionId]
+  );
 
   const openSubmitRequestModal = useCallback(() => {
     const signatureFromRequest =
@@ -694,11 +768,14 @@ export const useRequisitionDetail = () => {
     handleAddAttachment,
     handleRemoveAttachment,
     attachmentId,
-    isEditable,
+    isEditable: requesterCanEdit,
     isDraft,
     products,
     isApprovedOrRejected,
     addingImage,
+    requesterCanEdit,
+    currentPendingApproverCanEdit,
+    hasAnyApprovedStep,
     requisitionId,
     openSubmitRequestSignature,
     openSubmitRequestModal,
@@ -710,6 +787,8 @@ export const useRequisitionDetail = () => {
     approvalInstances,
     currentApprovalStep,
     canCurrentUserApprove,
+    handleItemImageUpload,
+    saveRequisitionEdits,
     displayStatus,
     submitButtonDisabled,
   };

@@ -46,6 +46,7 @@
  */
 
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
+import { useBranchStore } from "@/store/useBranchStore";
 import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 export const useFetch = <T,>(
@@ -56,8 +57,11 @@ export const useFetch = <T,>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const querySignature = useMemo(() => JSON.stringify(query ?? {}), [query]);
+  const branchSignature = String(activeBranchId);
   const queryRef = useRef<QueryType | undefined>(query);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     queryRef.current = query;
@@ -72,6 +76,7 @@ export const useFetch = <T,>(
       try {
         const response = await fetchFunction(overrideQuery || queryRef.current);
         setData(response);
+        hasFetchedRef.current = true;
         return response;
       } catch (err) {
         if (!navigator.onLine) {
@@ -90,8 +95,8 @@ export const useFetch = <T,>(
   );
 
   useEffect(() => {
-    if (!lazy) fetchData();
-  }, [fetchData, lazy, querySignature]);
+    if (!lazy || hasFetchedRef.current) fetchData();
+  }, [fetchData, lazy, querySignature, branchSignature]);
 
   return { data, loading, error, refetch: fetchData };
 };

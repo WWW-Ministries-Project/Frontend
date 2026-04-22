@@ -36,6 +36,13 @@ const getStatusBadge = (status: PaymentStatus) => {
 };
 
 const isMobileScreen = () => typeof globalThis !== "undefined" && window.innerWidth <= 1024;
+const orderSummaryFormatter = new Intl.NumberFormat("en-US");
+
+const getOrderQuantity = (order: IOrders) => {
+  const quantity = Number(order.quantity);
+  return Number.isFinite(quantity) ? quantity : 0;
+};
+
 const getOrderDateValue = (order: IOrders) => {
   const timestamp = order.created_at || order.order_created_at || order.ordered_at;
   if (!timestamp) return "";
@@ -190,6 +197,11 @@ export const Orders = ({
       });
     });
   }, [filterOrders, orders]);
+
+  const totalOrderQuantity = useMemo(
+    () => allOrders.reduce((total, order) => total + getOrderQuantity(order), 0),
+    [allOrders]
+  );
   
 
   const handleExport = useCallback(() => {
@@ -227,7 +239,8 @@ export const Orders = ({
   return (
     <>
       <HeaderControls
-        title={`Orders (${allOrders?.length})`}
+        title={`Orders (${orderSummaryFormatter.format(allOrders.length)})`}
+        subtitle={`Total quantity: ${orderSummaryFormatter.format(totalOrderQuantity)}`}
         btnName={showExport && allOrders?.length > 0 ? "Export to Excel" : ""}
         screenWidth={typeof window !== "undefined" ? window.innerWidth : 1024}
         handleClick={handleExport}

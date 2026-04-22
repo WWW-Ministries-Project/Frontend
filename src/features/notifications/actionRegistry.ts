@@ -69,6 +69,14 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     toastForHighPriorityOnly: false,
   },
   {
+    type: "requisition.updated_by_approver",
+    entityType: "requisition",
+    description: "Current approver updated requisition details with justification.",
+    actionUrlTemplate: "/home/requests/{encodedRequisitionId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
     type: "appointment.booked",
     entityType: "appointment",
     description: "Appointment booked for assigned staff.",

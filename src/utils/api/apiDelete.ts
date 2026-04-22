@@ -61,6 +61,10 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("department/delete-department", query);
   };
 
+  deleteBranch = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("branch/delete-branch", query);
+  };
+
   // New Delete Methods
 
   deleteProgram = (query: QueryType): Promise<ApiResponse<void>> => {
