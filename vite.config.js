@@ -34,8 +34,8 @@ export default defineConfig(({ mode }) => {
         ],
         manifest: {
           id: "/",
-          name: "WWM Portal",
-          short_name: "WWM Portal",
+          name: "Worldwide Word Ministries",
+          short_name: "Worldwide Word Ministries",
           description: "WWM church management portal.",
           start_url: "/",
           scope: "/",
