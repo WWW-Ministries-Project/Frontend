@@ -2,6 +2,9 @@ import { useUserStore } from "@/store/userStore";
 
 export const WelcomeHeader = ({ showFull = false, theme }: { showFull?: boolean, theme?: any }) => {
   const name = useUserStore((state) => state.name);
+  const themeImage = theme?.imageUrl || theme?.image;
+  const defaultBanner =
+    "https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg";
 
   return (
     <div
@@ -12,9 +15,10 @@ export const WelcomeHeader = ({ showFull = false, theme }: { showFull?: boolean,
       }`}
     >
       <div
-        className={` bg-[url('https://res.cloudinary.com/akwaah/image/upload/v1740860331/background_oswjfy.jpg')] bg-no-repeat bg-right bg-cover py-6   text-white relative overflow-hidden ${
+        className={`bg-no-repeat bg-center bg-cover py-6 text-white relative overflow-hidden ${
           showFull ? "app-layout-container py-4" : "rounded-xl px-6"
         }`}
+        style={{ backgroundImage: `url(${themeImage || defaultBanner})` }}
       >
         <div className="absolute inset-0 bg-black opacity-70 backdrop-blur-sm rounded-xl"></div>
 
