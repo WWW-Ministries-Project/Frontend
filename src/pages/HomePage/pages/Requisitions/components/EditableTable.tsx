@@ -71,8 +71,8 @@ const TableInput = ({
 
 interface TableRow {
   name: string;
-  quantity: number;
-  amount: number;
+  quantity: number | "";
+  amount: number | "";
   total: number;
   id: string | number;
   image_url?: string;
@@ -133,7 +133,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
     }
   };
 
-  const formatAmount = (value: number) => {
+  const formatAmount = (value: number | "") => {
     const parsed = Number(value);
     return amountFormatter.format(Number.isFinite(parsed) ? parsed : 0);
   };

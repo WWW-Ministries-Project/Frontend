@@ -19,8 +19,8 @@ const createEditableTableSlice = (
         ...state.rows,
         {
           name: "",
-          quantity: 0,
-          amount: 0,
+          quantity: "",
+          amount: "",
           total: 0,
           id: `${Date.now()}-${state.rows.length + 1}`,
           image_url: "",
@@ -36,7 +36,9 @@ const createEditableTableSlice = (
       const updatedRows = [...state.rows];
       const parsedValue =
         field === "quantity" || field === "amount"
-          ? parseFloat(value) || 0
+          ? value === ""
+            ? ""
+            : parseFloat(value) || 0
           : value;
 
       if (typeof parsedValue === "string") {
@@ -44,7 +46,8 @@ const createEditableTableSlice = (
       } else {
         updatedRows[index][field] = parsedValue as never;
         updatedRows[index].total =
-          updatedRows[index].quantity * updatedRows[index].amount;
+          Number(updatedRows[index].quantity || 0) *
+          Number(updatedRows[index].amount || 0);
       }
 
       return { rows: updatedRows };

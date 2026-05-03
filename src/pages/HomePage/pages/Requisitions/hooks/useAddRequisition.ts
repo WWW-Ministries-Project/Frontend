@@ -19,6 +19,8 @@ type SubmitOptions = {
 
 type RequisitionMutationResponse = ApiResponse<Record<string, unknown>>;
 const REQUESTS_BASE_PATH = "/home/requests";
+const APPROVER_REQUESTER_CONFLICT_MARKER =
+  "you are assigned as an approver for this requisition";
 
 const isPositiveInteger = (value: unknown): value is number => {
   const normalized = Number(value);
@@ -136,6 +138,8 @@ export const useAddRequisition = () => {
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<RequisitionMutationResponse | null>(null);
   const [signature, setSignature] = useState<string>("");
+  const [approverConflictMessage, setApproverConflictMessage] =
+    useState<string>("");
 
   const navigate = useNavigate();
   const currencies = useMemo(
@@ -186,6 +190,10 @@ export const useAddRequisition = () => {
   const closeModal = () => {
     setOpenSignature(false);
   };
+
+  const closeApproverConflictModal = useCallback(() => {
+    setApproverConflictMessage("");
+  }, []);
 
   const imageChange = useCallback((nextImages: image[]) => {
     setImages((previousImages) =>
@@ -265,8 +273,8 @@ export const useAddRequisition = () => {
     async (val: RequisitionFormValues, options?: SubmitOptions) => {
       const products = rows.map((item) => ({
         name: item.name,
-        quantity: item.quantity,
-        unitPrice: item.amount,
+        quantity: Number(item.quantity || 0),
+        unitPrice: Number(item.amount || 0),
         image_url: item.image_url || undefined,
         image: item.image_url || undefined,
         id: item?.id,
@@ -356,6 +364,15 @@ export const useAddRequisition = () => {
           error instanceof Error ? error : new Error("Unknown error");
         setError(normalizedError);
 
+        if (
+          error instanceof ApiError &&
+          normalizedError.message
+            .toLowerCase()
+            .includes(APPROVER_REQUESTER_CONFLICT_MARKER)
+        ) {
+          setApproverConflictMessage(normalizedError.message);
+        }
+
         if (!(error instanceof ApiError)) {
           handleOpenNotification(normalizedError.message, "error");
         }
@@ -374,6 +391,8 @@ export const useAddRequisition = () => {
     data,
     handleAddSignature,
     closeModal,
+    approverConflictMessage,
+    closeApproverConflictModal,
     openSignature,
     handleUploadImage,
     imageChange,
