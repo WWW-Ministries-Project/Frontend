@@ -1,13 +1,15 @@
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components";
-import ImageUpload from "@/components/ImageUpload";
 import { FormHeader} from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { api } from "@/utils/api/apiCalls";
 import { usePut } from "@/CustomHooks/usePut";
 import { usePost } from "@/CustomHooks/usePost";
+import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
+import { showNotification } from "@/pages/HomePage/utils";
+import ThemeImageCropper, { type CroppedThemeImage } from "./ThemeImageCropper";
 
 export interface IAnnualThemeForm {
   id?: string | number;
@@ -16,6 +18,7 @@ export interface IAnnualThemeForm {
   verseReference: string;
   verse: string;
   message: string;
+  imageUrl?: string;
   image?: string;
   isActive: boolean;
 }
@@ -26,7 +29,7 @@ const initialValues: IAnnualThemeForm = {
   verseReference: "",
   verse: "",
   message: "",
-  image: "",
+  imageUrl: "",
   isActive: false,
 };
 
@@ -48,43 +51,65 @@ const AnnualThemeFormComponent = ({
   loading,
   refetch
 }: AnnualThemeFormProps) => {
-  const [file, setFile] = useState<File | null>(null);
+  const [croppedThemeImage, setCroppedThemeImage] =
+    useState<CroppedThemeImage | null>(null);
   
   const {
         postData,
         loading: postLoading,
-        data: postSuccess,
       } = usePost(api.post.createAnnualTheme);
       const {
         updateData,
         loading: putLoading,
-        data: putSuccess,
       } = usePut(api.put.updateAnnualTheme);
+      const { handleUpload, loading: uploadLoading } = usePictureUpload();
+
+  const handleCroppedImageChange = useCallback(
+    (image: CroppedThemeImage | null) => {
+      setCroppedThemeImage(image);
+    },
+    []
+  );
 
   const handleSubmitForm = async (values: IAnnualThemeForm) => {
     try {
+      let imageUrl = values.imageUrl || values.image || "";
+
+      if (croppedThemeImage) {
+        const formData = new FormData();
+        formData.append("file", croppedThemeImage.file);
+        const uploadedImageUrl = await handleUpload(formData);
+
+        if (!uploadedImageUrl) {
+          showNotification(
+            "Theme image could not be uploaded. Please try again.",
+            "error",
+            "Theme image"
+          );
+          return;
+        }
+
+        imageUrl = uploadedImageUrl;
+      }
+
       if (providedValues && values.id) {
         const { id, ...rest } = values;
 
         const payload = {
           ...rest,
+          imageUrl: imageUrl || undefined,
         };
-
-        console.log("Updating annual theme", payload);
+        delete payload.image;
 
         await updateData(payload, { id: String(id) });
-
-        console.log("Update response", putSuccess);
       } else {
         const payload = {
           ...values,
+          imageUrl: imageUrl || undefined,
         };
-
-        console.log("Creating annual theme", payload);
+        delete payload.image;
 
         await postData(payload);
-
-        console.log("Create response", postSuccess);
       }
 
       if (refetch) {
@@ -96,6 +121,11 @@ const AnnualThemeFormComponent = ({
       }
     } catch (error) {
       console.error("Annual theme submit failed", error);
+      showNotification(
+        "Annual theme could not be saved. Please try again.",
+        "error",
+        "Theme"
+      );
     }
   };
   
@@ -173,9 +203,9 @@ const AnnualThemeFormComponent = ({
               <label className="block text-sm font-medium mb-2">
                 Theme Image (Optional)
               </label>
-              <ImageUpload
-                onFileChange={(file: File) => setFile(file)}
-                src={""}
+              <ThemeImageCropper
+                initialImageUrl={providedValues?.imageUrl || providedValues?.image}
+                onCroppedImageChange={handleCroppedImageChange}
               />
             </div>
 
@@ -202,7 +232,7 @@ const AnnualThemeFormComponent = ({
             )}
 
             <Button
-              loading={loading || postLoading || putLoading}
+              loading={loading || postLoading || putLoading || uploadLoading}
               value={providedValues ? "Save Changes" : "Create Theme"}
               onClick={handleSubmit}
             />

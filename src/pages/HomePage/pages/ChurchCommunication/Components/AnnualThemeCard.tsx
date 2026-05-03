@@ -13,6 +13,8 @@ interface AnnualTheme {
   verseReference: string;
   verse: string;
   message: string;
+  imageUrl?: string | null;
+  image?: string | null;
   isActive?: boolean;
 }
 
@@ -24,10 +26,11 @@ interface AnnualThemeCardProps {
 
 const AnnualThemeCard = ({ theme, onEdit, onDelete }: AnnualThemeCardProps) => {
   const { canManageCurrentRoute } = useRouteAccess();
+  const themeImage = theme.imageUrl || theme.image;
+
   return (
-    <div className="app-card relative rounded-xl p-6">
-      {/* Action buttons */}
-      <div className="absolute top-4 right-4 flex gap-2">
+    <div className="app-card relative overflow-hidden rounded-xl">
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
         {onEdit && canManageCurrentRoute && (
           <button
             onClick={onEdit}
@@ -48,45 +51,50 @@ const AnnualThemeCard = ({ theme, onEdit, onDelete }: AnnualThemeCardProps) => {
         )}
       </div>
 
-      {/* Title row */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex gap-2">
-            <h2 className="text-xl font-bold text-gray-900">
-          {theme.title}
-        </h2>
-        {theme.isActive && (
-          <Badge>
-            Current theme
-          </Badge>
-        )}
+      {themeImage && (
+        <img
+          src={themeImage}
+          alt={`${theme.title} theme`}
+          className="h-44 w-full object-cover"
+        />
+      )}
+
+      <div className="p-5">
+        <div className="mb-2 flex items-start justify-between gap-3 pr-20">
+          <h2 className="text-lg font-bold text-gray-900">
+            {theme.title}
+          </h2>
+          {theme.isActive && <Badge>Current theme</Badge>}
         </div>
-        
-      </div>
 
-      {/* Year */}
-      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-        <CalendarIcon className="w-4 h-4" />
-        <span>{theme.year}</span>
-      </div>
+        <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+          <span className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            {theme.year}
+          </span>
+          {theme.verseReference && (
+            <span className="flex items-center gap-2 font-semibold text-gray-800">
+              <BookOpenIcon className="h-4 w-4" />
+              {theme.verseReference}
+            </span>
+          )}
+        </div>
 
-      {/* Scripture */}
-      <div className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
-        <BookOpenIcon className="w-4 h-4" />
-        <span>{theme.verseReference}</span>
-      </div>
+        {theme.verse && (
+          <div className="mb-4 flex gap-3">
+            <div className="w-1 shrink-0 rounded-full bg-primary" />
+            <p className="line-clamp-3 italic leading-relaxed text-gray-600">
+              “{theme.verse}”
+            </p>
+          </div>
+        )}
 
-      {/* Verse */}
-      <div className="flex gap-3 mb-4">
-        <div className="w-1 bg-primary rounded-full" />
-        <p className="italic text-gray-600 leading-relaxed">
-          “{theme.verse}”
-        </p>
+        {theme.message && (
+          <p className="line-clamp-3 leading-relaxed text-gray-700">
+            {theme.message}
+          </p>
+        )}
       </div>
-
-      {/* Description */}
-      <p className="text-gray-700 leading-relaxed">
-        {theme.message}
-      </p>
     </div>
   );
 };
