@@ -12,6 +12,10 @@ import {
   FinanceSaveAction,
   FinancialRecord,
 } from "@/utils/api/finance/interface";
+import {
+  downloadFinanceDetails,
+  FinanceExportFormat,
+} from "../utils/exportFinanceDetails";
 
 const unwrapFinancialPayload = (
   responseData: FinancialRecord | FinancialRecord[] | FinanceData | undefined
@@ -45,6 +49,11 @@ const FinanceDetailPage = () => {
   const [formMode, setFormMode] = React.useState<"create" | "view" | "edit">(
     "view"
   );
+  const [downloadOpen, setDownloadOpen] = React.useState(false);
+  const [downloadingFormat, setDownloadingFormat] = React.useState<
+    FinanceExportFormat | ""
+  >("");
+  const downloadMenuRef = React.useRef<HTMLDivElement | null>(null);
 
   const { data, refetch, loading, error } = useFetch(
     api.fetch.fetchFinancial,
@@ -62,6 +71,22 @@ const FinanceDetailPage = () => {
         financialData.metaData.week || ""
       }`
     : "Financial record";
+
+  React.useEffect(() => {
+    if (!downloadOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        downloadMenuRef.current &&
+        !downloadMenuRef.current.contains(event.target as Node)
+      ) {
+        setDownloadOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [downloadOpen]);
 
   const handleUpdateFinancial = async (
     values: FinanceData,
@@ -94,6 +119,25 @@ const FinanceDetailPage = () => {
           : "Failed to update financial record";
       showNotification(message, "error");
       return false;
+    }
+  };
+
+  const handleDownload = async (format: FinanceExportFormat) => {
+    if (!financialData) return;
+
+    setDownloadingFormat(format);
+    setDownloadOpen(false);
+
+    try {
+      await downloadFinanceDetails(financialData, format);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to download financial details.";
+      showNotification(message, "error");
+    } finally {
+      setDownloadingFormat("");
     }
   };
 
@@ -133,11 +177,53 @@ const FinanceDetailPage = () => {
             </div>
           </div>
 
-          <div>
+          <div className="flex  justify-end gap-3">
+            {formMode === "view" && (
+              <div className="relative" ref={downloadMenuRef}>
+                <Button
+                  value={downloadingFormat ? "Downloading..." : "Download"}
+                  variant="secondary"
+                  requireManageAccess={false}
+                  disabled={Boolean(downloadingFormat)}
+                  loading={Boolean(downloadingFormat)}
+                  onClick={() => setDownloadOpen((open) => !open)}
+                />
+
+                {downloadOpen && (
+                  <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg">
+                    <button
+                      type="button"
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={Boolean(downloadingFormat)}
+                      onClick={() => void handleDownload("docx")}
+                    >
+                      Download as DOCX
+                    </button>
+                    <button
+                      type="button"
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={Boolean(downloadingFormat)}
+                      onClick={() => void handleDownload("xlsx")}
+                    >
+                      Download as Spreadsheet
+                    </button>
+                    <button
+                      type="button"
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={Boolean(downloadingFormat)}
+                      onClick={() => void handleDownload("pdf")}
+                    >
+                      Download as PDF
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {formMode === "view" && financialData.isEditable !== false && (
               <Button
                 value="Edit Financials"
-                variant="secondary"
+                variant="primary"
                 requireManageAccess={false}
                 onClick={() => setFormMode("edit")}
               />

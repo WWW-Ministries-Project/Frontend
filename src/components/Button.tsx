@@ -57,7 +57,7 @@ export const Button = ({
   const variantClass = {
     primary: "bg-primary text-white hover:bg-primary/90 hover:text-white",
     secondary:
-      "border border-primary/30 bg-white text-primary hover:border-primary/60 hover:bg-primary/5 ",
+      "border border-primary/30 bg-white text-primary hover:border-white hover:bg-primary/50 hover:text-white ",
     ghost: "bg-transparent text-primary hover:bg-primary/5 ",
     default: "bg-primary text-white hover:bg-primary/90 hover:text-white",
   }[variant];
