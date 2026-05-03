@@ -114,8 +114,8 @@ export interface IRequisitionDetails {
 
 export interface TableRow {
   name: string;
-  quantity: number;
-  amount: number;
+  quantity: number | "";
+  amount: number | "";
   total: number;
   id: string | number;
   image_url?: string;

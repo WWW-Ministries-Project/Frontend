@@ -44,7 +44,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   error,
   searchable,
   searchPlaceholder = "Search...",
-  clearable = false,
+  clearable = true,
   sortOptions = true,
   className,
   inputClassName,
@@ -91,6 +91,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const selectedOption = sortedOptions.find((option) =>
     areOptionValuesEqual(option.value, value)
   );
+  const hasValue = value !== null && value !== undefined && String(value) !== "";
+  const clearLabel = `Clear ${label ?? placeholder ?? id}`;
 
   /* ---------------------------- styles ---------------------------- */
 
@@ -131,6 +133,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
     clearSelection();
   };
 
+  const handleNativeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextValue = event.target.value;
+    onChange(id, clearable && nextValue === "" ? null : nextValue);
+  };
+
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
       setIsOpen(false);
@@ -160,29 +167,60 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           </label>
         )}
 
-        <select
-          id={id}
-          name={id}
-          value={value ?? ""}
-          disabled={disabled}
-          onChange={(e) => onChange(id, e.target.value)}
-          className={clsx(
-            baseControl,
-            stateStyles,
-            inputClassName
-          )}
-        >
-          <option value="" className="text-gray-400">
-            {placeholder}
-          </option>
-
-          {sortedOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {getOptionLabel(option)}
+        <div className="relative">
+          <select
+            id={id}
+            name={id}
+            value={value ?? ""}
+            disabled={disabled}
+            onChange={handleNativeChange}
+            className={clsx(
+              baseControl,
+              stateStyles,
+              inputClassName
+            )}
+            style={
+              clearable && hasValue ? { paddingRight: "3.25rem" } : undefined
+            }
+          >
+            <option value="" className="text-gray-400">
+              {placeholder}
             </option>
-          ))}
-        </select>
-          {(!error&&helperText) && <span className="text-xs text-gray-600">{helperText}</span>}
+
+            {sortedOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {getOptionLabel(option)}
+              </option>
+            ))}
+          </select>
+
+          {clearable && hasValue && !disabled ? (
+            <button
+              type="button"
+              aria-label={clearLabel}
+              title={clearLabel}
+              onMouseDown={handleClear}
+              onClick={handleClear}
+              className="absolute right-8 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 6l12 12M18 6L6 18"
+                />
+              </svg>
+            </button>
+          ) : null}
+        </div>
+        {(!error&&helperText) && <span className="text-xs text-gray-600">{helperText}</span>}
         {error && <span className="text-xs text-error">{error}</span>}
       </div>
     );
@@ -219,35 +257,15 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             stateStyles,
             inputClassName
           )}
-          >
+          style={
+            clearable && hasValue ? { paddingRight: "4rem" } : undefined
+          }
+        >
           <span className={selectedOption ? "text-gray-900" : "text-gray-500"}>
             {selectedOption ? getOptionLabel(selectedOption) : placeholder}
           </span>
 
           <span className="ml-3 flex items-center gap-2">
-            {clearable && selectedOption ? (
-              <span
-                aria-hidden="true"
-                onMouseDown={handleClear}
-                onClick={handleClear}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-              >
-                <svg
-                  className="h-3.5 w-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 6l12 12M18 6L6 18"
-                  />
-                </svg>
-              </span>
-            ) : null}
-
             <svg
               className={clsx(
                 "h-4 w-4 transition-transform",
@@ -266,6 +284,32 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             </svg>
           </span>
         </button>
+
+        {clearable && hasValue && !disabled ? (
+          <button
+            type="button"
+            aria-label={clearLabel}
+            title={clearLabel}
+            onMouseDown={handleClear}
+            onClick={handleClear}
+            className="absolute right-8 top-5 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <svg
+              aria-hidden="true"
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 6l12 12M18 6L6 18"
+              />
+            </svg>
+          </button>
+        ) : null}
 
         {/* Dropdown */}
         {isOpen && (

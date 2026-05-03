@@ -59,6 +59,9 @@ const notificationMessages: Record<
   },
 };
 
+const APPROVER_REQUESTER_CONFLICT_MARKER =
+  "you are assigned as an approver for this requisition";
+
 const getResponseMessage = (payload: unknown, fallback: string): string => {
   if (!payload || typeof payload !== "object") {
     return fallback;
@@ -227,6 +230,8 @@ export const useRequisitionDetail = () => {
   const [openSubmitRequestSignature, setOpenSubmitRequestSignature] =
     useState(false);
   const [requestSignature, setRequestSignature] = useState("");
+  const [approverConflictMessage, setApproverConflictMessage] =
+    useState<string>("");
   const [openSimilarItemsModal, setOpenSimilarItemsModal] = useState(false);
   const [similarItemGroups, setSimilarItemGroups] = useState<
     SimilarItemComparisonGroup[]
@@ -663,6 +668,10 @@ export const useRequisitionDetail = () => {
     setOpenSubmitRequestSignature(false);
   }, []);
 
+  const closeApproverConflictModal = useCallback(() => {
+    setApproverConflictMessage("");
+  }, []);
+
   const handleRequestSignature = useCallback((signature: string) => {
     setRequestSignature(signature.trim());
   }, []);
@@ -710,6 +719,13 @@ export const useRequisitionDetail = () => {
       closeSubmitRequestModal();
       await refreshDetails();
     } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.message.toLowerCase().includes(APPROVER_REQUESTER_CONFLICT_MARKER)
+      ) {
+        setApproverConflictMessage(error.message);
+      }
+
       if (!(error instanceof ApiError)) {
         handleOpenNotification(
           error instanceof Error
@@ -780,6 +796,8 @@ export const useRequisitionDetail = () => {
     openSubmitRequestSignature,
     openSubmitRequestModal,
     closeSubmitRequestModal,
+    approverConflictMessage,
+    closeApproverConflictModal,
     requestSignature,
     handleRequestSignature,
     handleSubmitRequest,
