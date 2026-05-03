@@ -59,6 +59,8 @@ const Request = () => {
     loading,
     handleAddSignature,
     closeModal,
+    approverConflictMessage,
+    closeApproverConflictModal,
     openSignature,
     imageChange,
     addingImage,
@@ -201,6 +203,34 @@ const Request = () => {
                           await submitForm();
                         }}
                       />
+                    </Modal>
+
+                    <Modal
+                      open={Boolean(approverConflictMessage)}
+                      onClose={closeApproverConflictModal}
+                      persist={false}
+                      className="max-w-lg"
+                    >
+                      <div className="space-y-4 p-6">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                            Requisition cannot be submitted
+                          </p>
+                          <h3 className="mt-2 text-xl font-semibold text-primary">
+                            Approver and requester conflict
+                          </h3>
+                        </div>
+                        <p className="text-sm leading-6 text-primaryGray">
+                          {approverConflictMessage}
+                        </p>
+                        <div className="flex justify-end">
+                          <Button
+                            value="Got it"
+                            variant="default"
+                            onClick={closeApproverConflictModal}
+                          />
+                        </div>
+                      </div>
                     </Modal>
 
                     <RequisitionEditorFields

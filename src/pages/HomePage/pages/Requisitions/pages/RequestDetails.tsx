@@ -93,6 +93,8 @@ const RequestDetails = () => {
     openSubmitRequestSignature,
     openSubmitRequestModal,
     closeSubmitRequestModal,
+    approverConflictMessage,
+    closeApproverConflictModal,
     requestSignature,
     handleRequestSignature,
     handleSubmitRequest,
@@ -268,8 +270,8 @@ const RequestDetails = () => {
       attachmentLists,
       products: rows.map((item) => ({
         name: item.name,
-        quantity: item.quantity,
-        unitPrice: item.amount,
+        quantity: Number(item.quantity || 0),
+        unitPrice: Number(item.amount || 0),
         image_url: item.image_url || undefined,
         image: item.image_url || undefined,
         id: item.id,
@@ -453,6 +455,33 @@ const RequestDetails = () => {
           loading={isSubmittingRequest}
           defaultSignature={requestSignature}
         />
+      </Modal>
+      <Modal
+        open={Boolean(approverConflictMessage)}
+        onClose={closeApproverConflictModal}
+        persist={false}
+        className="max-w-lg"
+      >
+        <div className="space-y-4 p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+              Requisition cannot be submitted
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-primary">
+              Approver and requester conflict
+            </h3>
+          </div>
+          <p className="text-sm leading-6 text-primaryGray">
+            {approverConflictMessage}
+          </p>
+          <div className="flex justify-end">
+            <Button
+              value="Got it"
+              variant="default"
+              onClick={closeApproverConflictModal}
+            />
+          </div>
+        </div>
       </Modal>
 
       <div className="space-y-5">
