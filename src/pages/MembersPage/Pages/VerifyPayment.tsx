@@ -14,6 +14,7 @@ export default function VerifyPayment() {
 
   const reference = searchParams.get("order_reference") ?? "";
   const hasReference = Boolean(reference.trim());
+  const isMobileReturn = type === "mobile";
 
   const {
     data: verificationResult,
@@ -47,8 +48,15 @@ export default function VerifyPayment() {
 
   useEffect(() => {
     if (!isPaymentVerified || countdown > 0) return;
+    if (isMobileReturn) {
+      const encodedReference = encodeURIComponent(reference);
+      window.location.replace(
+        `wwm-mobile://payment/verify?reference=${encodedReference}&order_reference=${encodedReference}`
+      );
+      return;
+    }
     navigate(redirectPath, { replace: true });
-  }, [countdown, isPaymentVerified, navigate, redirectPath]);
+  }, [countdown, isMobileReturn, isPaymentVerified, navigate, redirectPath, reference]);
 
   return (
     <div className="flex items-center justify-center w-full h-[80vh] px-4">
@@ -102,9 +110,18 @@ export default function VerifyPayment() {
             </p>
 
             <p className="text-gray-500 text-sm mt-2">
-              You will be redirected in{" "}
+              {isMobileReturn ? "You will be returned to the mobile app in " : "You will be redirected in "}
               <span className="font-semibold">{countdown}</span> seconds...
             </p>
+            {isMobileReturn ? (
+              <Button
+                value="Open mobile app"
+                onClick={() => {
+                  const encodedReference = encodeURIComponent(reference);
+                  window.location.href = `wwm-mobile://payment/verify?reference=${encodedReference}&order_reference=${encodedReference}`;
+                }}
+              />
+            ) : null}
           </div>
         )}
       </div>
