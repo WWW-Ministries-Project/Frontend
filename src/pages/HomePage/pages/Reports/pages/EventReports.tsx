@@ -488,6 +488,10 @@ const EventReports = () => {
     setGenerateErrorMessage("");
   }, []);
 
+  const isMissingAttendanceDataMessage = (message: string) =>
+    typeof message === "string" &&
+    message.toLowerCase().includes("no attendance data yet");
+
   const handleGenerateReport = useCallback(async () => {
     if (!selectedEligibleEvent) {
       setGenerateErrorMessage("Select an eligible event to continue.");
@@ -506,7 +510,7 @@ const EventReports = () => {
       const backendMessage =
         response.message || response.data?.message || "";
 
-      if (backendMessage === "No event or church attendance data") {
+      if (isMissingAttendanceDataMessage(backendMessage)) {
         setGenerateInfoMessage(backendMessage);
         return;
       }
@@ -522,7 +526,7 @@ const EventReports = () => {
         (error as any)?.response?.data?.error ||
         "";
 
-      if (backendMessage === "No event or church attendance data") {
+      if (isMissingAttendanceDataMessage(backendMessage)) {
         setGenerateInfoMessage(backendMessage);
         return;
       }

@@ -837,13 +837,13 @@ export const LearningUnits: React.FC<Props> = ({
           {!hasSubmittedAtLeastOnce || isRetrying ? (
             <div className={`space-y-4 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
               {(unit.data.questions || []).map((q, idx) => (
-                <div key={q.id} className="space-y-2 border rounded-md p-3">
+                <div key={q.id ?? `question-${idx}`} className="space-y-2 border rounded-md p-3">
                   <p className="font-medium text-sm">
                     {idx + 1}. {q.question}
                   </p>
 
-                  {q.options.map((opt) => (
-                    <label key={opt.id} className="flex items-center gap-2 text-sm">
+                  {q.options.map((opt, optIdx) => (
+                    <label key={opt.id ?? `question-${idx}-option-${optIdx}`} className="flex items-center gap-2 text-sm">
                       <input
                         type="radio"
                         name={q.id}

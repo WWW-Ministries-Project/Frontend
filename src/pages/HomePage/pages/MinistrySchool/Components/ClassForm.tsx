@@ -2,9 +2,11 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
+import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
+import { api } from "@/utils/api/apiCalls";
 import { Field, Form, Formik } from "formik";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { number, object, string } from "yup";
 
 interface IProps {
@@ -21,6 +23,19 @@ export const ClassForm = ({
   loading = false,
 }: IProps) => {
   const membersOptions = useStore((state) => state.membersOptions);
+  const setMemberOptions = useStore((state) => state.setMemberOptions);
+
+  const { data: membersOptionsData } = useFetch(
+    api.fetch.fetchMembersForOptions,
+    undefined,
+    membersOptions.length > 0
+  );
+
+  useEffect(() => {
+    if (membersOptionsData?.data?.length) {
+      setMemberOptions(membersOptionsData.data);
+    }
+  }, [membersOptionsData, setMemberOptions]);
 
   const initial = useMemo(() => {
     return {
