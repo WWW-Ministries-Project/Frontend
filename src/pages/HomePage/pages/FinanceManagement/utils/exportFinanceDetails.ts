@@ -1,6 +1,7 @@
 import {
   AlignmentType,
   Document,
+  ImageRun,
   Packer,
   Paragraph,
   Table,
@@ -371,11 +372,49 @@ const createDocxTable = (section: ExportSection) => {
   });
 };
 
+async function fetchLogoPngBase64(): Promise<string | null> {
+  try {
+    const resp = await fetch('/logo/main-logo.svg');
+    const svgText = await resp.text();
+    const match = svgText.match(/href="(data:image\/[^;]+;base64,[^"]+)"/);
+    if (!match) return null;
+    return match[1];
+  } catch {
+    return null;
+  }
+}
+
+async function fetchLogoPngBuffer(): Promise<Uint8Array | null> {
+  const dataUri = await fetchLogoPngBase64();
+  if (!dataUri) return null;
+  const b64 = dataUri.split(',')[1];
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
 const buildDocxBlob = async (
   financeData: FinanceData,
-  sections: ExportSection[]
+  sections: ExportSection[],
+  logoBuffer?: Uint8Array | null
 ): Promise<Blob> => {
   const children = [
+    ...(logoBuffer
+      ? [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 120 },
+            children: [
+              new ImageRun({
+                data: logoBuffer,
+                type: 'png',
+                transformation: { width: 60, height: 41 },
+              }),
+            ],
+          }),
+        ]
+      : []),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
@@ -539,10 +578,18 @@ const drawPdfSectionHeader = (
 
 const buildPdfBlob = (
   financeData: FinanceData,
-  sections: ExportSection[]
+  sections: ExportSection[],
+  logoDataUri?: string | null
 ): Blob => {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const cursor = { y: 16 };
+  let startY = 16;
+
+  if (logoDataUri) {
+    doc.addImage(logoDataUri, 'PNG', 14, 8, 24, 16);
+    startY = 30;
+  }
+
+  const cursor = { y: startY };
   const pageHeight = doc.internal.pageSize.getHeight();
   const bottomMargin = 14;
 
@@ -587,12 +634,18 @@ export const downloadFinanceDetails = async (
 ) => {
   const sections = createExportSections(financeData);
   const fileName = `${getFileBaseName(financeData) || "finance-details"}.${format}`;
+
+  const [logoPngBuffer, logoPngDataUri] = await Promise.all([
+    fetchLogoPngBuffer(),
+    fetchLogoPngBase64(),
+  ]);
+
   const blob =
     format === "docx"
-      ? await buildDocxBlob(financeData, sections)
+      ? await buildDocxBlob(financeData, sections, logoPngBuffer)
       : format === "xlsx"
       ? await buildXlsxBlob(financeData, sections)
-      : buildPdfBlob(financeData, sections);
+      : buildPdfBlob(financeData, sections, logoPngDataUri);
 
   downloadBlobFile(
     blob.type ? blob : new Blob([blob], { type: MIME_TYPES[format] }),
