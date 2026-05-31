@@ -409,7 +409,7 @@ const buildDocxBlob = async (
               new ImageRun({
                 data: logoBuffer,
                 type: 'png',
-                transformation: { width: 60, height: 41 },
+                transformation: { width: 110, height: 75 },
               }),
             ],
           }),
@@ -585,8 +585,8 @@ const buildPdfBlob = (
   let startY = 16;
 
   if (logoDataUri) {
-    doc.addImage(logoDataUri, 'PNG', 14, 8, 24, 16);
-    startY = 30;
+    doc.addImage(logoDataUri, 'PNG', 14, 6, 38, 26);
+    startY = 36;
   }
 
   const cursor = { y: startY };
