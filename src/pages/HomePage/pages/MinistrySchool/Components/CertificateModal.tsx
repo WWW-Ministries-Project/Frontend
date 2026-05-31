@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import axios from "@/axiosInstance";
+import { baseUrl } from "@/pages/Authentication/utils/helpers";
 import type { CertificateData } from "@/utils/api/ministrySchool/interfaces";
 import CertificatePrint from "./CertificatePrint";
 
@@ -20,9 +19,10 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
   onClose,
   open,
 }) => {
-  const printCertificateRef = useRef<HTMLDivElement | null>(null);
   const previewViewportRef = useRef<HTMLDivElement | null>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const certificateWidth = 1123;
   const certificateHeight = 794;
@@ -56,30 +56,26 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
   if (!open) return null;
 
   const handleDownloadPDF = async () => {
-    const certificateElement = printCertificateRef.current;
-    if (!certificateElement || !certificate) return;
+    if (!certificate) return;
 
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
+    setIsDownloading(true);
+    setDownloadError(null);
+
+    try {
+      const url = `${baseUrl}program/certificate/pdf?certificateNumber=${encodeURIComponent(certificate.certificateNumber)}`;
+      const response = await axios.get(url, { responseType: "blob" });
+
+      const objectUrl = URL.createObjectURL(response.data);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `${certificate.certificateNumber}.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      setDownloadError("Failed to download certificate. Please try again.");
+    } finally {
+      setIsDownloading(false);
     }
-
-    const canvas = await html2canvas(certificateElement, {
-      scale: Math.min(window.devicePixelRatio || 1, 2),
-      useCORS: true,
-      backgroundColor: "white",
-      windowWidth: certificateElement.scrollWidth,
-      windowHeight: certificateElement.scrollHeight,
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    });
-
-    pdf.addImage(imgData, "PNG", 0, 0, 297, 210);
-    pdf.save(`${certificate.certificateNumber}.pdf`);
   };
 
   const renderBody = () => {
@@ -170,12 +166,16 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-lightGray bg-white px-5 py-4 tablet:px-6">
+          {downloadError && (
+            <p className="text-sm text-red-500">{downloadError}</p>
+          )}
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
+            disabled={isDownloading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Download Certificate
+            {isDownloading ? "Downloading..." : "Download Certificate"}
           </button>
 
           <button
@@ -190,33 +190,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
     );
   };
 
-  return (
-    <>
-      {renderBody()}
-
-      {certificate &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            aria-hidden="true"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: "-10000px",
-              opacity: 0,
-              pointerEvents: "none",
-            }}
-          >
-            <CertificatePrint
-              id="certificate-a4-print"
-              containerRef={printCertificateRef}
-              certificate={certificate}
-            />
-          </div>,
-          document.body
-        )}
-    </>
-  );
+  return <>{renderBody()}</>;
 };
 
 export default CertificateModal;
