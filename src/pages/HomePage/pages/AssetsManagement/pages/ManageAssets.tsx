@@ -102,7 +102,6 @@ export const ManageAsset = () => {
         updateData(dataToSend);
       } else postData(dataToSend);
     } catch (error) {
-      console.log(error);
     }
   };
 

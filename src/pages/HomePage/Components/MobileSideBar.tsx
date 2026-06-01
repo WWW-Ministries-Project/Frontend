@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthWrapper";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SidebarNavList } from "./SidebarNavList";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 interface IProps {
   show: boolean;
@@ -37,6 +38,9 @@ const isPathActive = (pathname: string, path: string) => {
 export const MobileSideBar = ({ show, onClick }: IProps) => {
   const location = useLocation();
   const { user } = useAuth();
+  const branches = useBranchStore((state) => state.branches);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement | null>(null);
   const items: AppRoute[] = useMemo(
@@ -107,6 +111,33 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
       }`}
     >
       <div className="flex h-full min-h-0 flex-col p-4">
+        {/* branch selector */}
+        {branches.length > 1 && (
+          <div className="mb-3 shrink-0">
+            <select
+              className="w-full rounded-md border border-lightGray bg-white px-3 py-2 text-sm font-semibold text-primary outline-none focus:border-primary"
+              value={
+                activeBranchId === ALL_BRANCHES
+                  ? ALL_BRANCHES
+                  : String(activeBranchId)
+              }
+              onChange={(event) => {
+                const value = event.target.value;
+                setActiveBranchId(
+                  value === ALL_BRANCHES ? ALL_BRANCHES : Number(value)
+                );
+              }}
+              aria-label="Filter by branch"
+            >
+              <option value={ALL_BRANCHES}>All branches</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         {/* navigation links */}
         <div className="sidebar-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden touch-pan-y">
           <SidebarNavList

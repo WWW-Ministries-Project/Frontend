@@ -162,9 +162,9 @@ function Settings() {
     undefined,
     true
   );
+  // No branch filter — fetch all members across branches for the pastor-in-charge dropdown
   const { data: branchPastorMembersResponse } = useFetch(
-    api.fetch.fetchMembersForOptions,
-    { branch_id: "" }
+    api.fetch.fetchMembersForOptions
   );
 
   const {
@@ -563,7 +563,7 @@ function Settings() {
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage position, requisition, attendance, log routing,
+          Manage branches, position, requisition, attendance, log routing,
           notification, and eligibility rule configuration settings.
         </p>
         <div className="mt-2 mb-6 overflow-x-auto">
