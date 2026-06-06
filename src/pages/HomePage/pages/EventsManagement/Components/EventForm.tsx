@@ -1,11 +1,13 @@
 import { Button } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { EventType } from "@/utils";
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
-import { object, string, array } from "yup";
+import { mixed, object, string } from "yup";
 
 interface IProps {
   closeModal: () => void;
@@ -26,18 +28,30 @@ const initialValues: EventType = {
   event_type: "",
   event_description: "",
   id: "",
+  branch_id: "",
 };
 
-const validationSchema = object().shape({
-  event_name: string()
-    .required("Event name is required")
-    .min(3, "Name must be at least 3 characters"),
-  event_type: string().required("Event type is required"),
-  event_description: string().required("Event description is required"),
-});
+const buildValidationSchema = (activeBranchId: string | number) =>
+  object().shape({
+    event_name: string()
+      .required("Event name is required")
+      .min(3, "Name must be at least 3 characters"),
+    event_type: string().required("Event type is required"),
+    event_description: string().required("Event description is required"),
+    branch_id:
+      activeBranchId === ALL_BRANCHES
+        ? mixed()
+            .required("Branch is required")
+            .test("branch-selected", "Branch is required", (v) => v !== "" && v !== undefined && v !== null)
+        : mixed().nullable(),
+  });
 
 const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
-  const initial: EventType = useMemo(() => editData || initialValues, [editData]);
+  const { activeBranchId } = useBranchStore();
+  const initial: EventType = useMemo(
+    () => editData ? { ...editData, branch_id: editData.branch_id ?? "" } : initialValues,
+    [editData]
+  );
   const formTitle = editData?.id ? "Update Event" : "Create Event";
   const formSubtitle = editData?.id
     ? "Review and update this event record."
@@ -55,13 +69,13 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
       <div className="p-4 px-6 overflow-auto">
         <Formik
           initialValues={initial}
-          validationSchema={validationSchema}
+          validationSchema={buildValidationSchema(activeBranchId)}
           onSubmit={async (values) => {
             await handleMutate(values);
           }}
           enableReinitialize
         >
-          {() => (
+          {(form) => (
             <Form className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
                 <Field
@@ -80,6 +94,17 @@ const EventForm = ({ closeModal, handleMutate, loading, editData }: IProps) => {
                   id="event_type"
                   name="event_type"
                   placeholder="Select event type"
+                />
+
+                <BranchSelectField
+                  value={form.values.branch_id ?? ""}
+                  onChange={(v) => form.setFieldValue("branch_id", v)}
+                  required
+                  error={
+                    form.touched.branch_id || form.submitCount > 0
+                      ? (form.errors.branch_id as string | undefined)
+                      : undefined
+                  }
                 />
               </div>
 

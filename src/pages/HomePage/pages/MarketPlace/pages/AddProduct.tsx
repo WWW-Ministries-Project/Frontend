@@ -76,14 +76,16 @@ export function AddProduct() {
   };
 
   const handleSubmit = async (product: IProduct) => {
-    const { id, ...rest } = product;
+    const { id, branch_id, ...rest } = product;
 
     const productGallery = await transformGallery(
       product.product_colours,
       product.stock_managed === "yes"
     );
+    const branchPayload = branch_id !== "" && branch_id !== undefined ? { branch_id: Number(branch_id) } : {};
     const dataToSend = {
       ...rest,
+      ...branchPayload,
       market_id: decoded_market_id,
       product_type_id: Number(rest.product_type_id),
       product_category_id: Number(rest.product_category_id),

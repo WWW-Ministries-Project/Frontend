@@ -3,6 +3,7 @@ import { Button } from "../../../../../components";
 import { InputDiv } from "../../../Components/reusable/InputDiv";
 import { SelectField } from "../../../Components/reusable/SelectField";
 import TextField from "../../../Components/reusable/TextField";
+import { BranchSelectField } from "@/components/BranchSelectField";
 
 interface IProps {
   onChange: (name: string, value: string | number | undefined) => void;
@@ -27,6 +28,7 @@ interface IProps {
 export const FormsComponent = (props: IProps) => {
   const entityLabel = props.inputLabel === "Branches" ? "Branch" : props.inputLabel;
   const isBranchForm = props.inputLabel === "Branches";
+  const isPositionForm = props.inputLabel === "Position";
 
   function handleChange(name: string, value: string | number | null) {
     if (value === null) {
@@ -54,7 +56,13 @@ export const FormsComponent = (props: IProps) => {
         </FormHeader>
         <form className="mt-5 px-5 pb-5">
       <FormLayout $columns={1}>
-        
+        {isPositionForm && (
+          <BranchSelectField
+            value={(props.inputValue.branch_id as number | "") ?? ""}
+            onChange={(v) => props.onChange("branch_id", v === "" ? undefined : v)}
+            required
+          />
+        )}
         <InputDiv
           onChange={handleChange}
           type="text"

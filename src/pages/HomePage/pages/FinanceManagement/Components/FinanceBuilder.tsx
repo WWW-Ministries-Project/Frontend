@@ -18,6 +18,8 @@ import {
   FinancialRecord,
 } from "@/utils/api/finance/interface";
 import { ApiResponse } from "@/utils/interfaces";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 type WeekRange = {
   label: string;
@@ -143,6 +145,7 @@ const buildCreateValues = (
   titheConfig: FinanceConfigItem[],
   bankAccountConfig: FinanceConfigItem[]
 ): FinanceData => ({
+  branch_id: "",
   metaData: {
     periodDate: "",
     month: "",
@@ -214,6 +217,7 @@ const normalizeExistingValues = (financeData?: any): FinanceData => {
     : [];
 
   return {
+    branch_id: financeData?.branch_id ?? "",
     metaData: {
       periodDate: financeData?.metaData?.periodDate || "",
       month: financeData?.metaData?.month || "",
@@ -304,7 +308,7 @@ const normalizeExistingValues = (financeData?: any): FinanceData => {
 };
 
 const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
-  const { values, setFieldValue } = useFormikContext<any>();
+  const { values, setFieldValue, errors, submitCount } = useFormikContext<any>();
 
   React.useEffect(() => {
     if (!values.metaData?.periodDate) return;
@@ -345,6 +349,13 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
   return (
     <section className="app-card space-y-6">
       <h2 className="font-semibold">Metadata</h2>
+
+      <BranchSelectField
+        value={values.branch_id ?? ""}
+        onChange={(v) => setFieldValue("branch_id", v)}
+        required
+        error={submitCount > 0 ? errors.branch_id as string | undefined : undefined}
+      />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Field
@@ -404,6 +415,7 @@ const FinanceBuilder = ({
   const [confirmApprovalOpen, setConfirmApprovalOpen] = React.useState(false);
   const submitActionRef = React.useRef<FinanceSaveAction>("SAVE_DRAFT");
   const membersOptions = useStore((state) => state.membersOptions);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const currentUserId = Number(user?.id || 0);
 
   const loadConfig = mode !== "view";
@@ -501,10 +513,15 @@ const FinanceBuilder = ({
       initialValues={initialValues}
       enableReinitialize
       onSubmit={async (values) => {
+        if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+          showNotification("Please select a branch before saving.", "error");
+          return;
+        }
         const action = submitActionRef.current;
         const now = new Date().toISOString();
         const payload: FinanceData = {
           ...values,
+          branch_id: values.branch_id !== "" ? values.branch_id : undefined,
           metaData: {
             periodDate: values.metaData?.periodDate || "",
             month: values.metaData?.month || "",

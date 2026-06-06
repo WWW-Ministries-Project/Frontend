@@ -1,4 +1,5 @@
 import { ProfilePicture } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth, ProgressStepper } from "@/components/ui";
@@ -17,12 +18,13 @@ import {
 } from "@components/subform";
 import { Field, useFormikContext } from "formik";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { array, boolean, date, object, string } from "yup";
+import { array, boolean, date, mixed, object, string } from "yup";
 import {
   DepartmentPositionSubForm,
   IDepartmentPositionSubForm,
 } from "./DepartmentPosition";
 import { RadioInput } from "./RadioInput";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 type StepKey = "basic" | "contact" | "church" | "work" | "family";
 
@@ -93,6 +95,7 @@ interface IProps {
 
 const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) => {
   const { values, errors, setFieldValue } = useFormikContext<IMembersForm>();
+  const { activeBranchId } = useBranchStore();
   const has_children = values.personal_info?.has_children ?? false;
 
   const steps = useMemo(() => getSteps(has_children), [has_children]);
@@ -122,7 +125,10 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
       switch (step) {
         case "basic":
-          return hasNestedError(errorsRecord.personal_info);
+          return (
+            hasNestedError(errorsRecord.personal_info) ||
+            hasNestedError(errorsRecord.branch_id)
+          );
         case "contact":
           return (
             hasNestedError(errorsRecord.contact_info) ||
@@ -239,6 +245,16 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
       {currentStep === "basic" && (
         <>
           <FormHeader className="text-primary font-bold">Personal Information</FormHeader>
+          {activeBranchId === ALL_BRANCHES && (
+            <FullWidth>
+              <BranchSelectField
+                value={values.branch_id}
+                onChange={(v) => setFieldValue("branch_id", v)}
+                required
+                error={errors.branch_id as string | undefined}
+              />
+            </FullWidth>
+          )}
           <FullWidth>
             <div className="flex flex-col  w-full">
               <ProfilePicture
@@ -338,6 +354,7 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
 
 export type membersType = "ONLINE" | "IN_HOUSE";
 export interface IMembersForm extends IChildrenSubForm {
+  branch_id: number | "";
   personal_info: IUserSubForm;
   picture: {
     src: string;
@@ -355,6 +372,7 @@ export interface IMembersForm extends IChildrenSubForm {
 }
 
 const initialValues: IMembersForm = {
+  branch_id: "",
   personal_info: UserSubForm.initialValues,
   picture: {
     src: "",
@@ -373,6 +391,11 @@ const initialValues: IMembersForm = {
 };
 
 const validationSchema = {
+  branch_id: mixed().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
   personal_info: object(UserSubForm.validationSchema),
   contact_info: object(ContactsSubForm.validationSchema),
   work_info: object(WorkInfoSubForm.validationSchema),

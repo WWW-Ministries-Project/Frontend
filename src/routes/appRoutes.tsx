@@ -1,8 +1,9 @@
-import CreateEvent from "@/pages/HomePage/pages//EventsManagement/pages/CreateEvent";
-import EventRegister from "@/pages/HomePage/pages//EventsManagement/pages/EventRegister.jsx";
+import CreateEvent from "@/pages/HomePage/pages/EventsManagement/pages/CreateEvent";
+import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister.jsx";
 import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
+import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
@@ -51,6 +52,7 @@ import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySc
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
 import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
+import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
 import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
@@ -311,13 +313,13 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_members",
           },
-          // {
-          //   path: "fam-info",
-          //   name: "fam-info",
-          //   element: <FamilyInformation />,
-          //   isPrivate: true,
-          //   permissionNeeded: "view_members",
-          // },
+          {
+            path: "fam-info",
+            name: "fam-info",
+            element: <FamilyInformation familyData={[]} />,
+            isPrivate: true,
+            permissionNeeded: "view_members",
+          },
         ],
       },
       {
@@ -857,12 +859,11 @@ export const routes: AppRoute[] = [
             ],
           },
         ],
-
-        // {
-        //   path: "ministry-school/programs/cohort/class/student/certificate",
-        //   name: "View Certificate",
-        //   element: <ViewCertificate />,
-        // },
+      },
+      {
+        path: "ministry-school/programs/cohort/class/student/certificate",
+        name: "View Certificate",
+        element: <ViewCertificate />,
       },
       {
         path: "settings",
@@ -925,30 +926,23 @@ export const routes: AppRoute[] = [
       },
     ],
   },
-  //TODO: figure this out before pushing
   {
     path: "/out",
     element: <LandingPage />,
     name: "out",
     children: [
-      // {
-      //   path: "programs",
-      //   name: "Programs",
-      //   element: <ProgramApply />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name",
-      //   name: "Programs",
-      //   element: <ProgramDetails />,
-      //   isPrivate: false,
-      // },
-      // {
-      //   path: "programs/:name/apply",
-      //   name: "Programs",
-      //   element: <ProgramInformation />,
-      //   isPrivate: false,
-      // },
+      {
+        path: "programs/:name",
+        name: "Programs",
+        element: <ProgramDetails />,
+        isPrivate: false,
+      },
+      {
+        path: "programs/:name/apply",
+        name: "Programs",
+        element: <ProgramInformation />,
+        isPrivate: false,
+      },
       {
         path: "register-member",
         element: <Registration />,

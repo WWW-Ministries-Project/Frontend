@@ -7,6 +7,7 @@ export interface IMarket {
   end_date: string;
   id: string;
   event_name?: string;
+  branch_id?: number | "";
 }
 
 export type MarketStatusType =
@@ -43,6 +44,7 @@ export interface IProduct {
   stock_managed: "yes" | "no";
   id?: number | string;
   product_colours: ProductColour[];
+  branch_id?: number | "";
 }
 
 export interface IProductTypeResponse extends IProduct {

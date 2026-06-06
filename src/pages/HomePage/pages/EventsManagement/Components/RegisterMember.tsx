@@ -100,7 +100,6 @@ const RegisterMember: React.FC<RegisterMemberProps> = ({
                 variant="primary"
                 loading={loading}
                 onClick={() => {
-                  console.log("clicked");
                   handleSubmit();
                 }}
               />

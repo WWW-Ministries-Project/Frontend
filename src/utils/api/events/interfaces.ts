@@ -46,6 +46,7 @@ export type EventType = {
   event_name: string;
   event_type: string;
   event_description: string;
+  branch_id?: number | "";
 };
 
 export type PublicEventRegistrationPayload = {

@@ -66,6 +66,7 @@ export const mapVisitorToForm = (
 
   return {
     id: visitor.id,
+    branch_id: "",
     personal_info: {
       title: visitor.title,
       first_name: visitor.firstName,

@@ -11,6 +11,7 @@ import { FormikErrors, FormikTouched, FormikValues } from "formik";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { RequisitionFormValues } from "../types/requisitionForm";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 type SubmitOptions = {
   submitForApproval?: boolean;
@@ -131,6 +132,7 @@ export const useAddRequisition = () => {
     user: { id },
   } = useAuth();
   const { rows } = useStore();
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const [openSignature, setOpenSignature] = useState(false);
   const [images, setImages] = useState<image[]>([]);
   const [addingImage, setAddingImage] = useState(false);
@@ -271,6 +273,11 @@ export const useAddRequisition = () => {
 
   const handleSubmit = useCallback(
     async (val: RequisitionFormValues, options?: SubmitOptions) => {
+      if (activeBranchId === ALL_BRANCHES && !val.branch_id) {
+        handleOpenNotification("Please select a branch before submitting.", "error");
+        return;
+      }
+
       const products = rows.map((item) => ({
         name: item.name,
         quantity: Number(item.quantity || 0),
@@ -284,6 +291,7 @@ export const useAddRequisition = () => {
         ...val,
         event_id: normalizeOptionalId(val.event_id),
         department_id: Number(val.department_id),
+        ...(val.branch_id !== "" && val.branch_id !== undefined && { branch_id: val.branch_id }),
         products,
       };
 
@@ -380,7 +388,7 @@ export const useAddRequisition = () => {
         setLoading(false);
       }
     },
-    [rows, id, requisitionId, handleOpenNotification, navigate]
+    [rows, id, requisitionId, handleOpenNotification, navigate, activeBranchId]
   );
 
   return {
