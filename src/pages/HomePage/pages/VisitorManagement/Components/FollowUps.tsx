@@ -86,6 +86,7 @@ export const FollowUps = ({
     const payload = {
       ...data,
       visitorId: visitorId,
+      ...(data.branch_id !== "" ? { branch_id: data.branch_id } : {}),
     };
 
     if (selectedFollowUp) {
@@ -218,6 +219,7 @@ export const FollowUps = ({
             initialData={
               selectedFollowUp
                 ? {
+                    branch_id: "" as const,
                     ...selectedFollowUp,
                     assignedTo: normalizeAssignedToValue(
                       selectedFollowUp.assignedTo,

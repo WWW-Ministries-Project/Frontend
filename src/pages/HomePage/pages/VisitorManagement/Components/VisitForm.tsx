@@ -1,4 +1,5 @@
 import { Button } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
@@ -6,7 +7,8 @@ import { useStore } from "@/store/useStore";
 import { formatInputDate } from "@/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
-import { date, object, string } from "yup";
+import { date, mixed, object, string } from "yup";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 const AutoPopulateVisitDate = ({ eventsOptions }: { eventsOptions: any[] }) => {
   const { values, setFieldValue } = useFormikContext<IVisitForm>();
@@ -44,16 +46,17 @@ const VisitFormComponent = ({
     [initialData]
   );
   const { eventsOptions } = useStore();
+  const { activeBranchId } = useBranchStore();
 
   return (
     <div className="bg-white  rounded-2xl shadow-xl ">
-  
+
   <Formik
     initialValues={initial}
     validationSchema={validationSchema}
     onSubmit={(values) => onSubmit(values)}
   >
-    {({ handleSubmit, values }) => (
+    {({ handleSubmit, values, errors, setFieldValue }) => (
       <>
         <AutoPopulateVisitDate eventsOptions={eventsOptions} />
         <Form className="flex flex-col">
@@ -64,10 +67,18 @@ const VisitFormComponent = ({
                   Provide the details of the visits.
                 </p>
               </FormHeader>
-              
+
             </div>
 
            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {activeBranchId === ALL_BRANCHES && (
+            <BranchSelectField
+              value={values.branch_id}
+              onChange={(v) => setFieldValue("branch_id", v)}
+              required
+              error={errors.branch_id as string | undefined}
+            />
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field
             component={FormikSelectField}
@@ -126,18 +137,25 @@ const VisitFormComponent = ({
 };
 
 export interface IVisitForm {
+  branch_id: number | "";
   date: string;
   eventId: string;
   notes: string;
 }
 
 const initialValues: IVisitForm = {
+  branch_id: "",
   date: "",
   eventId: "",
   notes: "",
 };
 
 const validationSchema = object({
+  branch_id: mixed().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
   date: date()
     .required("Visit date is required")
     .typeError("Invalid date format"),

@@ -75,17 +75,19 @@ export const ViewCohort = () => {
   }, [success, refetch, updatedData, postedData]);
   const handleSubmit = (values: IClassForm) => {
     if (!cohortId || isNaN(parseInt(cohortId, 10))) return;
+    const branchPayload = values.branch_id !== "" ? { branch_id: values.branch_id } : {};
     if (selectedClass?.id) {
       updateClass(
         {
           ...values,
+          ...branchPayload,
           id: Number(selectedClass.id),
           // cohortId: Number(cohortId),
         },
         { id: String(selectedClass.id) }
       );
     } else {
-      postClass({ ...values, cohortId: Number(cohortId) });
+      postClass({ ...values, ...branchPayload, cohortId: Number(cohortId) });
     }
   };
   const handleEdit = (course: ClassItemType): void => {
@@ -98,6 +100,7 @@ export const ViewCohort = () => {
       location: course.location,
       meetingLink: course.meetingLink,
       instructorId: course.instructor.id || undefined,
+      branch_id: "",
     };
     setSelectedClass(initialData);
     setIsModalOpen(true);

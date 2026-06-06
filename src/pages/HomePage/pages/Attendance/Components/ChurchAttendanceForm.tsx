@@ -11,6 +11,8 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
 import { useEffect, useMemo } from "react";
 import { number, object, string } from "yup";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 export interface AttendanceVisitorBucket {
   male: number;
@@ -49,6 +51,7 @@ export interface IChurchAttendanceForm {
   id?: string | number;
   event_name?: string;
   recordedByName?: string;
+  branch_id: number | "";
 }
 
 interface AttendanceEventOption {
@@ -99,6 +102,7 @@ const ChurchAttendanceFormComponent = ({
 
   const { eventsOptions } = useStore();
   const { user } = useAuth();
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
 
   const {
     postData,
@@ -135,6 +139,11 @@ const ChurchAttendanceFormComponent = ({
   }, [postError, putError]);
 
   const onSubmit = (values: IChurchAttendanceForm) => {
+    if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+      showNotification("Please select a branch before saving.", "error", "Attendance");
+      return;
+    }
+
     const payload = {
       eventId: values.eventId,
       date: values.date,
@@ -146,6 +155,7 @@ const ChurchAttendanceFormComponent = ({
       youthFemale: values.youthFemale ?? 0,
       recordedBy: user.id,
       recordedByName: user.name,
+      ...(values.branch_id !== "" && values.branch_id !== undefined && { branch_id: values.branch_id }),
     };
 
     if (initialData && initialData.id) {
@@ -163,7 +173,7 @@ const ChurchAttendanceFormComponent = ({
         enableReinitialize
         onSubmit={onSubmit}
       >
-        {({ values, handleSubmit }) => (
+        {({ values, handleSubmit, setFieldValue, submitCount }) => (
           <>
             <AutoPopulateAttendanceDate eventsOptions={eventsOptions} />
             <Form className="flex h-[80vh] flex-col overflow-hidden">
@@ -179,6 +189,12 @@ const ChurchAttendanceFormComponent = ({
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                <BranchSelectField
+                  value={values.branch_id}
+                  onChange={(v) => setFieldValue("branch_id", v)}
+                  required
+                  error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Branch is required" : undefined}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Field
                     component={FormikSelectField}
@@ -297,6 +313,7 @@ const defaultValues: IChurchAttendanceForm = {
   youthFemale: 0,
   recordedBy: "Current User",
   lastUpdatedBy: "Current User",
+  branch_id: "",
 };
 
 const attendanceCountSchema = number()

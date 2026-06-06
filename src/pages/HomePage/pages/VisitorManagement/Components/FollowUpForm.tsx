@@ -1,10 +1,12 @@
 import { Button } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout } from "@/components/ui";
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
-import { date, object, string } from "yup";
+import { date, mixed, object, string } from "yup";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 interface IProps {
   onClose: () => void;
@@ -26,16 +28,17 @@ const FollowUpFormComponent = ({
     [initialData]
   );
   const hasResponsibleMembers = assignedToOptions.length > 0;
+  const { activeBranchId } = useBranchStore();
 
   return (
     <div className="bg-white rounded-lg w-full  mx-auto z-40">
-      
+
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
         onSubmit={(values) => onSubmit(values)}
       >
-        {({ handleSubmit }) => (
+        {({ handleSubmit, errors, setFieldValue, values }) => (
           <Form className="flex flex-col  bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="sticky top-0 z-40">
                 <FormHeader>
@@ -44,11 +47,19 @@ const FollowUpFormComponent = ({
                     Provide the details of the new soul you&apos;ve connected with.
                   </p>
                 </FormHeader>
-                
+
               </div>
            <div className="flex-1 overflow-y-auto px-6 py-4">
           <FormLayout $columns={1}>
-             
+            {activeBranchId === ALL_BRANCHES && (
+              <BranchSelectField
+                value={values.branch_id}
+                onChange={(v) => setFieldValue("branch_id", v)}
+                required
+                error={errors.branch_id as string | undefined}
+              />
+            )}
+
             <Field
               component={FormikInputDiv}
               type="date"
@@ -128,18 +139,25 @@ const typeOptions = [
 ];
 
 export interface IFollowUpForm {
+  branch_id: number | "";
   date: string;
   type: string;
   assignedTo: string;
   notes: string;
 }
 const initialValues: IFollowUpForm = {
+  branch_id: "",
   date: new Date().toISOString().split("T")[0],
   type: "phone",
   assignedTo: "",
   notes: "",
 };
 const validationSchema = object({
+  branch_id: mixed().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
   date: date().required("Date is required").typeError("Invalid date format"),
   type: string().required("Type is required"),
   assignedTo: string().required("Assigned To is required"),

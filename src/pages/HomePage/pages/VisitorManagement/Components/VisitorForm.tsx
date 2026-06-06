@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { CountryField } from "@/components/fields/CountryField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -15,8 +16,9 @@ import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { useStore } from "@/store/useStore";
 import { api, EventResponseType, formatDate } from "@/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
-import { date, object, string } from "yup";
+import { date, mixed, object, string } from "yup";
 import React from "react";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 type SyncEventDateFormValues = {
   visit?: {
@@ -291,6 +293,7 @@ const VisitorFormComponent = ({
   showHeader = true,
 }: IProps) => {
   const { membersOptions } = useStore();
+  const { activeBranchId } = useBranchStore();
   const responsibleMemberOptions = React.useMemo(
     () =>
       membersOptions.map((member) => ({
@@ -305,10 +308,11 @@ const VisitorFormComponent = ({
       <Formik
         initialValues={selectedVisitor || initialValues}
         validate={validateVisitorForm}
+        validationSchema={validationSchema}
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
-        {({ setFieldValue, values }) => (
+        {({ setFieldValue, values, errors }) => (
           <Form className="flex h-[80vh] w-full flex-col overflow-hidden rounded-lg bg-white shadow-sm">
             <SyncClergyFields />
             {showHeader && (
@@ -324,6 +328,15 @@ const VisitorFormComponent = ({
             )}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <FormLayout>
+                {activeBranchId === ALL_BRANCHES && (
+                  <BranchSelectField
+                    value={values.branch_id}
+                    onChange={(v) => setFieldValue("branch_id", v)}
+                    required
+                    error={errors.branch_id as string | undefined}
+                    className="md:col-span-2"
+                  />
+                )}
                 <NameInfo prefix="personal_info" />
                 <Field
                   component={FormikSelectField}
@@ -487,6 +500,7 @@ const howHeardOptions = [
 ];
 
 export interface IVisitorForm {
+  branch_id: number | "";
   personal_info: INameInfo & {
     gender?: string;
     marital_status?: string;
@@ -510,6 +524,7 @@ export interface IVisitorForm {
 }
 
 const initialValues: IVisitorForm = {
+  branch_id: "",
   personal_info: {
     ...NameInfo.initialValues,
     gender: "",
@@ -534,6 +549,11 @@ const initialValues: IVisitorForm = {
 };
 
 const validationSchema = object({
+  branch_id: mixed().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
   personal_info: object().shape({
     ...NameInfo.validationSchema,
     gender: string(),
@@ -552,11 +572,16 @@ const validationSchema = object({
 
 const validateVisitorForm = (values: IVisitorForm) => {
   const errors: {
+    branch_id?: string;
     clergy_info?: {
       churchName?: string;
       churchLocation?: string;
     };
   } = {};
+
+  if (useBranchStore.getState().activeBranchId === ALL_BRANCHES && values.branch_id === "") {
+    errors.branch_id = "Branch is required";
+  }
 
   if (values.isClergy !== "yes") {
     return errors;

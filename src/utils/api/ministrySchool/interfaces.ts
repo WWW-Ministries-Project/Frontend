@@ -8,6 +8,7 @@ export type ProgramsPayloadType = {
   member_required: boolean;
   leader_required: boolean;
   ministry_required: boolean;
+  branch_id?: number;
 };
 
 export const COHORT_STATUS = {

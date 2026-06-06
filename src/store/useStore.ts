@@ -3,8 +3,6 @@ import createEventSlice from "@/pages/HomePage/pages/EventsManagement/utils/even
 import { createMemberSlice } from "@/pages/HomePage/pages/Members/store/membersSlice";
 import type { MemberSlice } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { create } from "zustand";
-// import createAssetSlice from '@/pages/HomePage/pages/AssetsManagement/utils/AssetsSlice';
-// import { AssetSlice } from '@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface';
 import createEditableTableSlice from "@/pages/HomePage/pages/Requisitions/requisitionStore/editableTableSlice";
 import createRequisitionSlice from "@/pages/HomePage/pages/Requisitions/requisitionStore/useRequisitionStore";
 import {
@@ -23,7 +21,6 @@ type StoreState = MemberSlice &
 export const useStore = create<StoreState>((set, get, store) => ({
   ...createMemberSlice(set, get, store),
   ...createEventSlice(set, get),
-  // ...createAssetSlice(set,get),
   ...createEditableTableSlice(set),
   ...createRequisitionSlice(set),
   ...createProductSlice(set),

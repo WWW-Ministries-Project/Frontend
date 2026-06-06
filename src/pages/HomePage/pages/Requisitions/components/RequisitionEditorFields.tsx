@@ -9,6 +9,8 @@ import EditableTable from "./EditableTable";
 import RequestAttachments from "./RequestAttachments";
 import type { DropdownOption, RequisitionFormValues } from "../types/requisitionForm";
 import type { TableRow } from "../types/requestInterface";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 type RequisitionEditorFieldsProps = {
   readOnly?: boolean;
@@ -41,7 +43,8 @@ const RequisitionEditorFields = ({
   tableData,
   attachmentFiles = [],
 }: RequisitionEditorFieldsProps) => {
-  const { values } = useFormikContext<RequisitionFormValues>();
+  const { values, setFieldValue, submitCount } = useFormikContext<RequisitionFormValues>();
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
 
   return (
     <>
@@ -56,6 +59,12 @@ const RequisitionEditorFields = ({
             label="Requester"
             id="requester_name"
             disabled
+          />
+          <BranchSelectField
+            value={values.branch_id}
+            onChange={(v) => setFieldValue("branch_id", v)}
+            required
+            error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Branch is required" : undefined}
           />
           <Field
             component={FormikSelectField}

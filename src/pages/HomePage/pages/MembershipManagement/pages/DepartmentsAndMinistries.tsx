@@ -1,6 +1,7 @@
 import { FormHeader, FormLayout } from "@/components/ui";
 import { Button, ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import EmptyState from "@/components/EmptyState";
 import { Modal } from "@/components/Modal";
 import { SearchBar } from "@/components/SearchBar";
@@ -17,6 +18,7 @@ import {
   showNotification,
 } from "@/pages/HomePage/utils";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { useStore } from "@/store/useStore";
 import { useUserStore } from "@/store/userStore";
 import { api, DepartmentType, relativePath } from "@/utils";
@@ -33,12 +35,14 @@ type DepartmentFormState = {
   name: string;
   description: string;
   department_head?: number;
+  branch_id: number | "";
 };
 
 const EMPTY_FORM_STATE: DepartmentFormState = {
   name: "",
   description: "",
   department_head: undefined,
+  branch_id: "",
 };
 
 const resolveDepartmentFormState = (
@@ -53,6 +57,7 @@ const resolveDepartmentFormState = (
     name: department.name,
     description: department.description ?? "",
     department_head: department.department_head_info?.id ?? department.department_head,
+    branch_id: (department as DepartmentType & { branch_id?: number | "" }).branch_id ?? "",
   };
 };
 
@@ -66,6 +71,8 @@ const DepartmentFormModal = ({
   memberOptions,
   loading,
   onChange,
+  onBranchChange,
+  branchError,
   onClose,
   onSubmit,
 }: {
@@ -75,6 +82,8 @@ const DepartmentFormModal = ({
   memberOptions: { label: string; value: string }[];
   loading: boolean;
   onChange: (name: keyof DepartmentFormState, value: string | number) => void;
+  onBranchChange: (v: number | "") => void;
+  branchError?: string;
   onClose: () => void;
   onSubmit: () => void;
 }) => {
@@ -129,6 +138,13 @@ const DepartmentFormModal = ({
               onChange(name as keyof DepartmentFormState, value)
             }
           />
+
+          <BranchSelectField
+            value={formState.branch_id}
+            onChange={onBranchChange}
+            required
+            error={branchError}
+          />
         </FormLayout>
 
         <div className="flex flex-wrap justify-end gap-3 border-t border-lightGray pt-4">
@@ -159,12 +175,14 @@ export const DepartmentsAndMinistries = () => {
   const departmentTotal = useSettingsStore((state) => state.departmentTotal);
   const membersOptions = useStore((state) => state.membersOptions);
 
+  const { activeBranchId } = useBranchStore();
   const [searchValue, setSearchValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [formState, setFormState] = useState<DepartmentFormState>(
     EMPTY_FORM_STATE
   );
+  const [branchError, setBranchError] = useState<string | undefined>();
 
   const {
     postData: createDepartment,
@@ -206,6 +224,7 @@ export const DepartmentsAndMinistries = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
     setFormState(EMPTY_FORM_STATE);
+    setBranchError(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createdDepartment, updatedDepartment, refetchDepartments]);
 
@@ -301,15 +320,22 @@ export const DepartmentsAndMinistries = () => {
     []
   );
 
+  const handleBranchChange = useCallback((v: number | "") => {
+    setFormState((prev) => ({ ...prev, branch_id: v }));
+    if (v) setBranchError(undefined);
+  }, []);
+
   const handleOpenCreateModal = () => {
     setIsEditMode(false);
     setFormState(EMPTY_FORM_STATE);
+    setBranchError(undefined);
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (department: DepartmentType) => {
     setIsEditMode(true);
     setFormState(resolveDepartmentFormState(department));
+    setBranchError(undefined);
     setIsModalOpen(true);
   };
 
@@ -317,9 +343,15 @@ export const DepartmentsAndMinistries = () => {
     setIsModalOpen(false);
     setIsEditMode(false);
     setFormState(EMPTY_FORM_STATE);
+    setBranchError(undefined);
   };
 
   const handleSubmit = () => {
+    if (activeBranchId === ALL_BRANCHES && !formState.branch_id) {
+      setBranchError("Branch is required");
+      return;
+    }
+
     const payload = {
       ...formState,
       created_by: userId,
@@ -545,6 +577,8 @@ export const DepartmentsAndMinistries = () => {
         memberOptions={membersOptions}
         loading={createDepartmentLoading || updateDepartmentLoading}
         onChange={handleFormChange}
+        onBranchChange={handleBranchChange}
+        branchError={branchError}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
       />

@@ -47,6 +47,7 @@ export const ManageAsset = () => {
       price: existing.price ?? "",
       supplier: existing.supplier ?? "",
       asset_id: existing.assets_id ?? "",
+      branch_id: (existing as assetType & { branch_id?: number | "" }).branch_id ?? "",
     };
   }, [asset]);
 
@@ -102,7 +103,6 @@ export const ManageAsset = () => {
         updateData(dataToSend);
       } else postData(dataToSend);
     } catch (error) {
-      console.log(error);
     }
   };
 

@@ -22,6 +22,7 @@ import TabSelection from "../../Components/reusable/TabSelection";
 import { MarketCard } from "./components/cards/MarketCard";
 import { AddMarketForm } from "./components/forms/AddMarketForm";
 import { useStore } from "@/store/useStore";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
@@ -45,7 +46,8 @@ export function MarketPlace() {
     loading: isUpdating,
   } = usePut(api.put.updateMarket);
   const { executeDelete, success } = useDelete(api.delete.deleteMarket);
-  const { events } = useStore()
+  const { events } = useStore();
+  const { activeBranchId } = useBranchStore();
 
   const handleOpenModal = () => {
     setEditData(null);
@@ -54,12 +56,19 @@ export function MarketPlace() {
   const handleCloseModal = () => setOpenModal(false);
 
   const handleAddMarket = async (market: IMarket) => {
-    const { id, event_id, event_name, ...rest } = market;
+    const { id, event_id, event_name, branch_id, ...rest } = market;
+
+    if (activeBranchId === ALL_BRANCHES && !branch_id) {
+      showNotification("Please select a branch", "error");
+      return;
+    }
+
+    const branchPayload = branch_id !== "" && branch_id !== undefined ? { branch_id: Number(branch_id) } : {};
 
     if (id) {
-      await updateMarket({ ...rest, id, event_id: +event_id }, { id });
+      await updateMarket({ ...rest, ...branchPayload, id, event_id: +event_id }, { id });
     } else {
-      await postData({ ...rest, event_id: +event_id });
+      await postData({ ...rest, ...branchPayload, event_id: +event_id });
     }
   };
 

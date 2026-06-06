@@ -1,11 +1,13 @@
 import { Button } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { formatInputDate } from "@/utils";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { Field, Formik } from "formik";
 import { useMemo } from "react";
-import { object, string } from "yup";
+import { object, string, mixed } from "yup";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 
 interface IProps {
@@ -24,6 +26,7 @@ const AssetFormComponent = ({
   const departmentsOptions = useSettingsStore(
     (state) => state.departmentsOptions
   );
+  const { activeBranchId } = useBranchStore();
   const initial = useMemo(() => assetData || initialValues, [assetData]);
   return (
     <Formik
@@ -32,6 +35,13 @@ const AssetFormComponent = ({
       }}
       initialValues={initial}
       validationSchema={validationSchema}
+      validate={(values) => {
+        const errors: Record<string, string> = {};
+        if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+          errors.branch_id = "Branch is required";
+        }
+        return errors;
+      }}
       enableReinitialize
     >
       {(form) => (
@@ -122,6 +132,14 @@ const AssetFormComponent = ({
             disabled={disabled}
           />
           {!disabled && (
+            <BranchSelectField
+              value={form.values.branch_id}
+              onChange={(v) => form.setFieldValue("branch_id", v)}
+              required
+              error={form.touched.branch_id && form.errors.branch_id ? String(form.errors.branch_id) : undefined}
+            />
+          )}
+          {!disabled && (
             <FullWidth $justify={"right"}>
               <div className="flex gap-x-4 mt-4">
                 <Button
@@ -157,6 +175,7 @@ export interface IAssetForm {
   price: string;
   supplier: string;
   asset_id: string;
+  branch_id: number | "";
 }
 
 const initialValues: IAssetForm = {
@@ -169,6 +188,7 @@ const initialValues: IAssetForm = {
   price: "",
   supplier: "",
   asset_id: "",
+  branch_id: "",
 };
 
 const validationSchema = object({
@@ -181,6 +201,7 @@ const validationSchema = object({
     }
     return schema.nullable();
   }),
+  branch_id: mixed().optional(),
 });
 
 export const AssetForm = Object.assign(AssetFormComponent, {
