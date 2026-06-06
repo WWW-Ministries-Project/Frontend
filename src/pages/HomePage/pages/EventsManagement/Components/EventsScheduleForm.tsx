@@ -1,11 +1,13 @@
 import { Button } from "@/components";
 import AutocompleteTextField from "@/components/AutocompleteTextField";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import Multiselect from "@/components/MultiSelect";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { maxMinValueForDate } from "@/pages/HomePage/utils";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { api, EventType } from "@/utils";
 import clsx from "clsx";
 import { Field, Form, Formik, FormikProps, getIn } from "formik";
@@ -91,6 +93,7 @@ interface EventsFormValues {
   audience_type?: "all" | "department" | "position";
   target_departments?: string[];
   target_positions?: string[];
+  branch_id?: number | "";
   [key: string]: unknown;
 }
 
@@ -308,6 +311,7 @@ const RegistrationDefaultsSync = ({
 };
 
 const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
+  const { activeBranchId } = useBranchStore();
   const { data: eventsData, refetch: refetchEvents } = useFetch(api.fetch.fetchAllUniqueEvents);
   const [isCreatingEventName, setIsCreatingEventName] = useState(false);
   const { departments, positions } = useSettingsStore((state) => ({
@@ -447,6 +451,10 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
       target_positions: Array.isArray(props.inputValue.target_positions)
         ? (props.inputValue.target_positions as string[])
         : [],
+      branch_id:
+        props.inputValue.branch_id !== undefined && props.inputValue.branch_id !== null
+          ? (props.inputValue.branch_id as number | "")
+          : "",
       recurring: {
         interval:
           props.inputValue.recurring?.interval !== undefined &&
@@ -479,6 +487,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           recurrence_end_date: isRecurring ? val.recurrence_end_date : "",
           timezone: val.timezone || "UTC",
           reminders: Array.isArray(val.reminders) ? val.reminders : [],
+          branch_id: val.branch_id,
           recurring: isRecurring
             ? {
                 interval:
@@ -523,6 +532,13 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
       }}
       initialValues={normalizedInitialValues}
       enableReinitialize
+      validate={(values) => {
+        const errors: Record<string, string> = {};
+        if (activeBranchId === ALL_BRANCHES && (values.branch_id === "" || values.branch_id === undefined || values.branch_id === null)) {
+          errors.branch_id = "Branch is required";
+        }
+        return errors;
+      }}
       validationSchema={
         props.updating ? eventUpdateFormValidator : eventFormValidator
       }
@@ -623,6 +639,19 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 type="text"
                 disabled
                 value={form.values.event_type}
+              />
+            </div>
+
+            <div className="mt-4">
+              <BranchSelectField
+                value={form.values.branch_id ?? ""}
+                onChange={(v) => form.setFieldValue("branch_id", v)}
+                required
+                error={
+                  (getIn(form.touched, "branch_id") || form.submitCount > 0)
+                    ? (getIn(form.errors, "branch_id") as string | undefined)
+                    : undefined
+                }
               />
             </div>
 

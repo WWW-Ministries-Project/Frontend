@@ -70,6 +70,7 @@ export const ViewProgram = () => {
       startDate: cohort.startDate,
       applicationDeadline: cohort.applicationDeadline,
       status: normalizeCohortStatus(cohort.status) ?? COHORT_STATUS.UPCOMING,
+      branch_id: "",
     };
     setSelectedCohort(formattedCohort);
     setIsModalOpen(true);

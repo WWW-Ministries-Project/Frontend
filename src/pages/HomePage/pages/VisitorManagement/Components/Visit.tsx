@@ -51,6 +51,7 @@ export const Visits = ({ visitorId, visits, onRefetch }: IProps) => {
     const payload = {
       ...data,
       visitorId: visitorId,
+      ...(data.branch_id !== "" ? { branch_id: data.branch_id } : {}),
     };
 
     if (selectedVisit) {
@@ -86,6 +87,7 @@ export const Visits = ({ visitorId, visits, onRefetch }: IProps) => {
             onEdit={() => {
               setSelectedVisit({
                 id: row.original.id,
+                branch_id: "",
                 date: row.original.date,
                 eventId: row.original.eventId || "1",
                 notes: row.original.notes || "",

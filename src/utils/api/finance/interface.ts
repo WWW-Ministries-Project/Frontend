@@ -1,5 +1,6 @@
 export interface FinanceData {
   id?: string | number;
+  branch_id?: number | "";
   metaData?: {
     periodDate?: string;
     month: string;

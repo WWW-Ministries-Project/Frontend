@@ -88,6 +88,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
     : [];
 
   return {
+    branch_id: "",
     personal_info: {
       title: input.title || "",
       first_name: input.first_name,

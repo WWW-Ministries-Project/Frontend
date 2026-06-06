@@ -2,7 +2,9 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field, Formik, Form } from "formik";
 import MultiSelect from "@/components/MultiSelect";
 import { Button } from "@/components";
+import { BranchSelectField } from "@/components/BranchSelectField";
 import { LifeCenterType } from "@/utils";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { useMemo } from "react";
 import { object, string, array } from "yup";
 import { FormHeader } from "@/components/ui";
@@ -19,22 +21,30 @@ export function LifeCenterForm({
   loading,
   editData,
 }: IProps) {
+  const { activeBranchId } = useBranchStore();
   const initial: LifeCenterType = useMemo(
     () => editData || initialValues,
     [editData]
   );
   return (
     <div className=" ">
-      
+
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
+        validate={(values) => {
+          const errors: Record<string, string> = {};
+          if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+            errors.branch_id = "Branch is required";
+          }
+          return errors;
+        }}
         onSubmit={async (values) => {
           await handleMutate(values);
         }}
         enableReinitialize
       >
-        {({ setFieldValue, values, handleSubmit, errors }) => (
+        {({ setFieldValue, values, handleSubmit, errors, touched }) => (
           <Form className="space-y-4">
 
             <FormHeader>
@@ -91,6 +101,13 @@ export function LifeCenterForm({
                   <p className="text-xs text-error">{errors.meeting_dates}</p>
                 )}
               </div>
+              <BranchSelectField
+                value={values.branch_id ?? ""}
+                onChange={(v) => setFieldValue("branch_id", v)}
+                required
+                error={touched.branch_id && errors.branch_id ? String(errors.branch_id) : undefined}
+                className="mt-4"
+              />
               </div>
             {/* </div> */}
             <div className="sticky bottom-0 z-10 bg-white border-t border-gray-100 px-6 py-4">
@@ -131,6 +148,7 @@ const initialValues: LifeCenterType = {
   totalMembers: 0,
   totalSoulsWon: 0,
   id: "",
+  branch_id: "",
 };
 
 const validationSchema = object().shape({

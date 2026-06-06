@@ -16,6 +16,7 @@ import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { showNotification } from "@/pages/HomePage/utils";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 type ManageMemberLocationState = {
   afterSubmitPath?: string;
@@ -135,6 +136,12 @@ export function ManageMember() {
   };
 
   async function handleSubmit(values: IMembersForm) {
+    const { activeBranchId } = useBranchStore.getState();
+    if (activeBranchId === ALL_BRANCHES && values.branch_id === "") {
+      showNotification("Please select a branch before submitting.", "error");
+      return;
+    }
+
     const familyValidationError = validateFamilyPayload(values.family, {
       currentUserId: isEditMode ? member?.data?.id ?? id : undefined,
     });
@@ -179,10 +186,14 @@ export function ManageMember() {
         if (!memberId) {
           throw new Error("Member id is missing");
         }
-        await updateData(dataToSend, { user_id: String(memberId) });
+        await updateData(
+          { ...dataToSend, ...(dataToSend.branch_id !== "" ? { branch_id: dataToSend.branch_id } : {}) },
+          { user_id: String(memberId) }
+        );
       } else {
         await postData({
           ...dataToSend,
+          ...(dataToSend.branch_id !== "" ? { branch_id: dataToSend.branch_id } : {}),
           ...(sourceSoulWonId ? { source_soul_won_id: sourceSoulWonId } : {}),
           ...(sourceVisitorId
             ? { source_visitor_id: String(sourceVisitorId) }

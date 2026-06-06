@@ -2,6 +2,8 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
@@ -52,9 +54,9 @@ export const ClassForm = ({
       <Formik
         initialValues={initial}
         validationSchema={validationSchema}
-        onSubmit={(values) => onSubmit(validationSchema.cast(values))}
+        onSubmit={(values) => onSubmit({ ...values, capacity: Number(values.capacity) })}
       >
-        {({ errors, touched, values, handleSubmit }) => (
+        {({ errors, touched, values, handleSubmit, setFieldValue }) => (
           <Form>
             <div className="sticky top-0 z-10">
                 <FormHeader>
@@ -99,6 +101,15 @@ export const ClassForm = ({
               label="Schedule *"
               placeholder="e.g., Mondays 7-9 PM"
             />
+
+            <FullWidth>
+              <BranchSelectField
+                value={values.branch_id}
+                onChange={(v) => setFieldValue("branch_id", v)}
+                required
+                error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
+              />
+            </FullWidth>
 
             {/* Class Format */}
             <FullWidth>
@@ -185,6 +196,7 @@ export interface IClassForm {
   classFormat: string;
   location?: string;
   meetingLink?: string;
+  branch_id: number | "";
 }
 const initialValues: IClassForm = {
   name: "",
@@ -192,6 +204,7 @@ const initialValues: IClassForm = {
   capacity: 0,
   schedule: "",
   classFormat: "",
+  branch_id: "",
 };
 const validationSchema = object({
   name: string().required("required"),
@@ -213,5 +226,10 @@ const validationSchema = object({
     is: (value: string) => value === "Online" || value === "Hybrid",
     then: (schema) =>
       schema.required("Meeting link is required for online or hybrid classes").url("Invalid URL"),
+  }),
+  branch_id: number().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("required"),
+    otherwise: (schema) => schema.optional(),
   }),
 });

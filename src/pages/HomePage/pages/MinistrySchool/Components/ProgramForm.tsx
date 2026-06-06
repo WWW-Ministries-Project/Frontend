@@ -2,9 +2,11 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import MultiSelect from "@/components/MultiSelect";
 import { FormHeader, ProgressStepper } from "@/components/ui";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
 import { Field, FieldArray, Form, Formik } from "formik";
-import { array, boolean, object, string } from "yup";
+import { array, boolean, number, object, string } from "yup";
 import { ChangeEvent, useMemo, useState } from "react";
 import { isLmsFeatureEnabled } from "../utils/lmsGuardrails";
 
@@ -65,6 +67,7 @@ const ProgramFormComponent = ({
               String(prerequisite.id)
             ),
             isPrerequisitesChecked: program.prerequisitePrograms.length > 0,
+            branch_id: "",
           }
         : initialValues,
     [program]
@@ -105,7 +108,7 @@ const ProgramFormComponent = ({
     values: IProgramForm
   ) => {
     if (step === "basics") {
-      return Boolean(errors.title || errors.description);
+      return Boolean(errors.title || errors.description || errors.branch_id);
     }
 
     if (step === "curriculum") {
@@ -216,6 +219,13 @@ const ProgramFormComponent = ({
                     label="Program Overview *"
                     name="description"
                     id="description"
+                  />
+
+                  <BranchSelectField
+                    value={values.branch_id}
+                    onChange={(v) => setFieldValue("branch_id", v)}
+                    required
+                    error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
                   />
 
                   <div className="space-y-2 text-sm">
@@ -422,6 +432,7 @@ export interface IProgramForm {
   topics: string[];
   prerequisites: string[];
   isPrerequisitesChecked: boolean;
+  branch_id: number | "";
 }
 
 const initialValues: IProgramForm = {
@@ -433,6 +444,7 @@ const initialValues: IProgramForm = {
   topics: [""],
   prerequisites: [],
   isPrerequisitesChecked: false,
+  branch_id: "",
 };
 
 const validationSchema = object().shape({
@@ -446,6 +458,11 @@ const validationSchema = object().shape({
     is: true,
     then: (schema) => schema.min(1, "At least one prerequisite is required"),
     otherwise: (schema) => schema.max(0),
+  }),
+  branch_id: number().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
   }),
 });
 

@@ -7,6 +7,8 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import type { IProduct } from "@/utils/api/marketPlace/interface";
 import { ProductGalleryWithForm } from "./ProductGallery";
 
@@ -39,7 +41,7 @@ export function ProductForm({
         onSubmit(values);
       }}
     >
-      {({ handleSubmit }) => {
+      {({ handleSubmit, values, setFieldValue, errors }) => {
         return (
           <Form className="py-5 space-y-6">
             <FormLayout>
@@ -99,6 +101,15 @@ export function ProductForm({
                 id="status"
                 placeholder="Select status"
               />
+
+              <div className="col-span-2">
+                <BranchSelectField
+                  value={values.branch_id ?? ""}
+                  onChange={(v) => setFieldValue("branch_id", v)}
+                  required
+                  error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
+                />
+              </div>
             </FormLayout>
 
             {/* Submit Button */}
@@ -124,6 +135,7 @@ const initialValues: IProduct = {
   price_amount: 0,
   price_currency: "GHC",
   id: "",
+  branch_id: "",
   ...ProductGalleryWithForm.initialValues,
 };
 
@@ -149,6 +161,11 @@ const validationSchema = object({
     .moreThan(0, "Price must be greater than 0")
     .required("Required"),
   status: string().required("Required"),
+  branch_id: number().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Required"),
+    otherwise: (schema) => schema.optional(),
+  }),
 }).concat(ProductGalleryWithForm.validationSchema);
 
 const productStatus = [

@@ -2,10 +2,12 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import { COHORT_STATUS, COHORT_STATUS_VALUES, CohortStatus, formatInputDate } from "@/utils";
 import { Field, Formik } from "formik";
 import { useEffect, useMemo } from "react";
-import { date, object, ref, string } from "yup";
+import { date, number, object, ref, string } from "yup";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils";
@@ -18,6 +20,7 @@ interface IProps {
 }
 
 export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) => {
+  const { activeBranchId } = useBranchStore();
   const initial = useMemo(
     () => ({
       ...initialValues,
@@ -40,17 +43,20 @@ export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) =>
   
   const handleSubmit = (values: ICohortForm) => {
     if (!programId || Number.isNaN(programId)) return;
+    if (activeBranchId === ALL_BRANCHES && !values.branch_id) return;
+    const branchPayload = values.branch_id !== "" ? { branch_id: values.branch_id } : {};
     if (cohort?.id) {
       updateCohort(
         {
           ...values,
+          ...branchPayload,
           id: cohort.id,
           programId,
         },
         { id: String(cohort.id) }
       );
     } else {
-      postCohort({ ...values, programId });
+      postCohort({ ...values, ...branchPayload, programId });
     }
   };
   
@@ -71,7 +77,7 @@ export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) =>
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, submitForm }) => (
+        {({ values, submitForm, setFieldValue, errors }) => (
           <div>
             <div className="sticky top-0 z-10">
                 <FormHeader>
@@ -106,6 +112,14 @@ export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) =>
                 name="description"
                 className="flex-1"
                 placeholder="Enter cohort description"
+              />
+            </FullWidth>
+            <FullWidth>
+              <BranchSelectField
+                value={values.branch_id}
+                onChange={(v) => setFieldValue("branch_id", v)}
+                required
+                error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
               />
             </FullWidth>
             <Field
@@ -167,6 +181,7 @@ export interface ICohortForm {
   startDate: string;
   applicationDeadline: string;
   status: CohortStatus;
+  branch_id: number | "";
 }
 const initialValues: ICohortForm = {
   name: "",
@@ -175,6 +190,7 @@ const initialValues: ICohortForm = {
   startDate: "",
   applicationDeadline: "",
   status: COHORT_STATUS.UPCOMING,
+  branch_id: "",
 };
 const validationSchema = object({
   name: string().required("Cohort name is required"),
@@ -188,4 +204,9 @@ const validationSchema = object({
       "Application deadline must be before the cohort start date"
     ),
   status: string().required("Status is required"),
+  branch_id: number().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Branch is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
 });

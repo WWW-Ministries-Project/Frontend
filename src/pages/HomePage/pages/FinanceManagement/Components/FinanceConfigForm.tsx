@@ -6,12 +6,15 @@ import { usePut } from "@/CustomHooks/usePut";
 import { api } from "@/utils/api/apiCalls";
 import { Field, Formik, Form } from "formik";
 import { QueryType } from "@/utils/interfaces";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 export interface FinanceConfigValues {
   id?: string | number;
   name: string;
   description: string;
   percentage?: number;
+  branch_id?: number | "";
 }
 
 interface FinanceConfigFormProps {
@@ -29,6 +32,7 @@ const FinanceConfigForm = ({
   onSubmit,
   refetch
 }: FinanceConfigFormProps) => {
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
 
   const {
       postData,
@@ -40,10 +44,14 @@ const FinanceConfigForm = ({
     } = usePut(type === "receipt" ? api.put.updateReceiptConfig : type === "payment" ? api.put.updatePaymentConfig : type==="tithe"? api.put.updateTitheBreakdownConfig : api.put.updateBankAccountConfig);
 
     const handleSubmit = async (values: FinanceConfigValues) => {
+      if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+        return;
+      }
       try {
         const payload = {
           name: values.name,
           description: values.description,
+          ...(values.branch_id !== "" && values.branch_id !== undefined && { branch_id: values.branch_id }),
           ...((type === "bankAccount" || type === "tithe") && {
             percentage:
               values.percentage !== undefined
@@ -76,13 +84,20 @@ const FinanceConfigForm = ({
                   name: initialData?.name || "",
                   description: initialData?.description || "",
                   percentage: initialData?.percentage ?? 1,
+                  branch_id: initialData?.branch_id ?? ("" as number | ""),
                 }}
                 enableReinitialize
                 onSubmit={handleSubmit}
               >
-              {() => (
+              {({ values, setFieldValue, submitCount }) => (
               <Form className="space-y-6 px-5 pb-5 pt-5">
                 <FormLayout $columns={1}>
+                  <BranchSelectField
+                    value={values.branch_id ?? ""}
+                    onChange={(v) => setFieldValue("branch_id", v)}
+                    required
+                    error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Branch is required" : undefined}
+                  />
                   <Field
                       component={FormikInputDiv}
                       label="Name *"

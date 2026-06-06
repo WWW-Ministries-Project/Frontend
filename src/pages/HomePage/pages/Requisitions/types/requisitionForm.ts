@@ -17,6 +17,7 @@ export type RequisitionFormValues = {
   attachmentLists: { URL: string }[];
   user_sign: string | null;
   edit_justification_comment?: string;
+  branch_id: number | "";
 };
 
 export type DropdownOption = {
@@ -63,5 +64,6 @@ export const buildRequisitionInitialValues = (args: {
     user_sign: requestData?.requester?.user_sign ?? "",
     attachmentLists: requestData?.attachmentLists ?? [],
     edit_justification_comment: "",
+    branch_id: (requestData as any)?.branch_id ?? ("" as number | ""),
   };
 };

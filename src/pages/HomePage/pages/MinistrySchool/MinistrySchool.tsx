@@ -14,6 +14,7 @@ import {
   ProgramResponse,
   ProgramsPayloadType,
 } from "@/utils/api/ministrySchool/interfaces";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import { useMemo, useState } from "react";
 import SkeletonLoader from "../../Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "../../utils";
@@ -23,6 +24,7 @@ import { createLmsActionTracker } from "./utils/lmsGuardrails";
 
 export const MinistrySchool = () => {
   //api
+  const { activeBranchId } = useBranchStore();
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllPrograms);
   const { postData: postProgram, loading: postLoading } = usePost(
     api.post.createProgram
@@ -88,6 +90,11 @@ export const MinistrySchool = () => {
   };
 
   const handleSubmit = (value: IProgramForm): void => {
+    if (activeBranchId === ALL_BRANCHES && !value.branch_id) {
+      showNotification("Please select a branch", "error");
+      return;
+    }
+
     const payload: ProgramsPayloadType = {
       title: value.title,
       description: value.description,
@@ -96,6 +103,7 @@ export const MinistrySchool = () => {
       member_required: value.member_required,
       leader_required: value.leader_required,
       ministry_required: value.ministry_required,
+      ...(value.branch_id !== "" ? { branch_id: value.branch_id } : {}),
     };
 
     if (selectedProgram) {

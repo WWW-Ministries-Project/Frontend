@@ -141,6 +141,7 @@ export const eventInput = {
   registration_end_date: "",
   registration_capacity: "",
   registration_audience: "MEMBERS_AND_NON_MEMBERS",
+  branch_id: "",
   recurring: {
     frequency: "weekly",
     interval: 1,

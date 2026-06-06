@@ -1,11 +1,13 @@
 import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
-import { date, mixed, object, ref, string } from "yup";
+import { date, mixed, number, object, ref, string } from "yup";
 
 import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormLayout } from "@/components/ui";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import type { IMarket } from "@/utils/api/marketPlace/interface";
 import type { eventType } from "../../../EventsManagement/utils/eventInterfaces";
 
@@ -44,7 +46,7 @@ export function AddMarketForm({
       onSubmit={onSubmit}
       enableReinitialize
     >
-      {({ handleSubmit }) => (
+      {({ handleSubmit, values, setFieldValue, errors }) => (
         <Form className="space-y-6 ">
           <div className="bg-primary h-28 w-full -mt-3 text-white p-6">
             <p className="font-bold text-2xl">
@@ -101,6 +103,15 @@ export function AddMarketForm({
                 id="end_date"
                 placeholder="Select date"
               />
+
+              <div className="col-span-2">
+                <BranchSelectField
+                  value={values.branch_id ?? ""}
+                  onChange={(v) => setFieldValue("branch_id", v)}
+                  required
+                  error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
+                />
+              </div>
             </FormLayout>
 
             <div className="flex items-center justify-end gap-3 py-6">
@@ -134,6 +145,7 @@ const initialValues: IMarket = {
   end_date: "",
   id: "",
   event_id: "",
+  branch_id: "",
 };
 
 const validationSchema = object().shape({
@@ -150,4 +162,9 @@ const validationSchema = object().shape({
   end_date: date()
     .required("Required")
     .min(ref("start_date"), "End date can't be before start date"),
+  branch_id: number().when([], {
+    is: () => useBranchStore.getState().activeBranchId === ALL_BRANCHES,
+    then: (schema) => schema.required("Required"),
+    otherwise: (schema) => schema.optional(),
+  }),
 });

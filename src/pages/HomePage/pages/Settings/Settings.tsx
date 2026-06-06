@@ -3,6 +3,7 @@ import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import { api } from "@/utils/api/apiCalls";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 // import useState from "react-usestateref";
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
@@ -98,6 +99,7 @@ function Settings() {
   any = useOutletContext();
 
   const userId = useUserStore((state) => state.id);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
 
   const [displayForm, setDisplayForm] = useState(false);
   const [inputValue, setInputValue] = useState<Record<string, string | number | undefined>>({
@@ -411,8 +413,16 @@ function Settings() {
     }
 
     if (selectedTab === "Position") {
+      if (activeBranchId === ALL_BRANCHES && !inputValue.branch_id) {
+        showNotification("Please select a branch before saving.", "error");
+        return;
+      }
+      const positionPayload = {
+        ...inputValue,
+        ...(inputValue.branch_id ? { branch_id: Number(inputValue.branch_id) } : {}),
+      };
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      editMode ? updatePosition(inputValue) : postPosition(inputValue);
+      editMode ? updatePosition(positionPayload) : postPosition(positionPayload);
     }
   };
   const handlePageChange = useCallback(

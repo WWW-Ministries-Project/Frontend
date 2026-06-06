@@ -8,6 +8,7 @@ export type LifeCenterType = {
   totalMembers: number;
   totalSoulsWon: number;
   id: string;
+  branch_id?: number | "";
 };
 
 export type SoulsWonType = {

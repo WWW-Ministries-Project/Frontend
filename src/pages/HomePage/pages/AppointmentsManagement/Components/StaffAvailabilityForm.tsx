@@ -15,6 +15,8 @@ import {
   DayOfWeek,
   TimeSlot,
 } from "@/utils/api/appointment/interfaces";
+import { BranchSelectField } from "@/components/BranchSelectField";
+import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 
 export interface IStaffAvailabilityForm {
   id?: string;
@@ -23,6 +25,7 @@ export interface IStaffAvailabilityForm {
   timeSlots: TimeSlot[];
   currentSlot: TimeSlot;
   timeSlotsError?: string;
+  branch_id: number | "";
 }
 
 const initialValues: IStaffAvailabilityForm = {
@@ -37,6 +40,7 @@ const initialValues: IStaffAvailabilityForm = {
     sessions: [],
   },
   timeSlotsError: undefined,
+  branch_id: "",
 };
 
 const validationSchema = Yup.object({
@@ -166,6 +170,7 @@ const StaffAvailabilityFormComponent = ({
   loading,
 }: StaffAvailabilityFormProps) => {
   const membersOptions = useStore((state) => state.membersOptions);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
 
   const {
     data: postResponse,
@@ -207,6 +212,11 @@ const StaffAvailabilityFormComponent = ({
   }, [putError]);
 
   const handleSubmitForm = (values: IStaffAvailabilityForm) => {
+    if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
+      showNotification("Please select a branch before saving.", "error");
+      return;
+    }
+
     const normalizedTimeSlots = values.timeSlots
       .map((slot) => {
         const startTime = normalizeClockTime(slot.startTime);
@@ -246,10 +256,11 @@ const StaffAvailabilityFormComponent = ({
       })
       .filter((slot): slot is TimeSlot => slot !== null);
 
-    const payload: CreateStaffAvailabilityPayload = {
+    const payload: CreateStaffAvailabilityPayload & { branch_id?: number } = {
       userId: values.staffId,
       maxBookingsPerSlot: Number(values.maxBookingsPerSlot),
       timeSlots: normalizedTimeSlots,
+      ...(values.branch_id !== "" && values.branch_id !== undefined && { branch_id: values.branch_id }),
     };
 
     if (values.id) {
@@ -390,6 +401,12 @@ const StaffAvailabilityFormComponent = ({
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-4 px-6 py-4">
+            <BranchSelectField
+              value={values.branch_id}
+              onChange={(v) => setFieldValue("branch_id", v)}
+              required
+              error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Branch is required" : undefined}
+            />
             <Field
               component={FormikSelectField}
               label="Attendee *"
