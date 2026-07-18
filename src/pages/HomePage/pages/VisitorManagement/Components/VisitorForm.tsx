@@ -283,6 +283,8 @@ interface IProps {
   onSubmit: (value: IVisitorForm & { id?: string }) => void;
   loading: boolean;
   showHeader?: boolean; // TODO: RRemove after tomorrow's event
+  // Public visitor registration: only first name is required.
+  minimalValidation?: boolean;
 }
 
 const VisitorFormComponent = ({
@@ -291,6 +293,7 @@ const VisitorFormComponent = ({
   onSubmit,
   loading,
   showHeader = true,
+  minimalValidation = false,
 }: IProps) => {
   const { membersOptions } = useStore();
   const { activeBranchId } = useBranchStore();
@@ -307,8 +310,10 @@ const VisitorFormComponent = ({
     <div className="bg-white  rounded-lg w-full  mx-auto">
       <Formik
         initialValues={selectedVisitor || initialValues}
-        validate={validateVisitorForm}
-        validationSchema={validationSchema}
+        validate={minimalValidation ? undefined : validateVisitorForm}
+        validationSchema={
+          minimalValidation ? registrationValidationSchema : validationSchema
+        }
         enableReinitialize={true}
         onSubmit={onSubmit}
       >
@@ -337,7 +342,10 @@ const VisitorFormComponent = ({
                     className="md:col-span-2"
                   />
                 )}
-                <NameInfo prefix="personal_info" />
+                <NameInfo
+                  prefix="personal_info"
+                  showRequiredMarkers={!minimalValidation}
+                />
                 <Field
                   component={FormikSelectField}
                   label="Gender"
@@ -359,10 +367,13 @@ const VisitorFormComponent = ({
                   label="Nationality"
                   placeholder="Select nationality"
                 />
-                <ContactsSubForm prefix="contact_info" />
+                <ContactsSubForm
+                  prefix="contact_info"
+                  showRequiredMarkers={!minimalValidation}
+                />
                 <Field
                   component={FormikInputDiv}
-                  label="Adress *"
+                  label={`Adress${minimalValidation ? "" : " *"}`}
                   placeholder="123 Main St"
                   name={`contact_info.address`}
                   id={`contact_info.address`}
@@ -389,14 +400,14 @@ const VisitorFormComponent = ({
                       <>
                         <Field
                           component={FormikInputDiv}
-                          label="Church *"
+                          label={`Church${minimalValidation ? "" : " *"}`}
                           placeholder="Enter church name"
                           name="clergy_info.churchName"
                           id="clergy_info.churchName"
                         />
                         <Field
                           component={FormikInputDiv}
-                          label="Church Location *"
+                          label={`Church Location${minimalValidation ? "" : " *"}`}
                           placeholder="Enter church location"
                           name="clergy_info.churchLocation"
                           id="clergy_info.churchLocation"
@@ -416,7 +427,7 @@ const VisitorFormComponent = ({
                 <EventSelectionFields />
                 <Field
                   component={FormikInputDiv}
-                  label="Visit Date *"
+                  label={`Visit Date${minimalValidation ? "" : " *"}`}
                   placeholder="Enter visit date"
                   name={`visit.date`}
                   id={`visit.date`}
@@ -425,7 +436,7 @@ const VisitorFormComponent = ({
                 <Field
                   component={FormikSelectField}
                   options={howHeardOptions}
-                  label="How did you hear about us *"
+                  label={`How did you hear about us${minimalValidation ? "" : " *"}`}
                   placeholder="Enter visit date"
                   name={`visit.howHeard`}
                   id={`visit.howHeard`}
@@ -567,6 +578,13 @@ const validationSchema = object({
   visit: object().shape({
     date: date().required("Visit date is required"),
     howHeard: string().required("How did you hear about us?"),
+  }),
+});
+
+// Public registration portal: only first name is required.
+const registrationValidationSchema = object({
+  personal_info: object().shape({
+    first_name: string().required("First name is required"),
   }),
 });
 

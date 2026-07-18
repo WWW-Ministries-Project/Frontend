@@ -222,18 +222,33 @@ export function MemberInformation() {
                   label="Ministry/Department - Position"
                   value={
                     user?.department_positions?.length
-                      ? user.department_positions.map((departmentPosition, index) => (
-                          <div
-                            key={getDepartmentPositionKey(departmentPosition, index)}
-                            className="py-1"
-                          >
-                            <div>
-                              <span className="font-medium">
-                                {formatDepartmentPosition(departmentPosition)}
-                              </span>
+                      ? user.department_positions.map((departmentPosition, index) => {
+                          const dateRange = isDepartmentPosition(
+                            departmentPosition
+                          )
+                            ? formatDepartmentDateRange(departmentPosition)
+                            : "";
+                          return (
+                            <div
+                              key={getDepartmentPositionKey(
+                                departmentPosition,
+                                index
+                              )}
+                              className="py-1"
+                            >
+                              <div>
+                                <span className="font-medium">
+                                  {formatDepartmentPosition(departmentPosition)}
+                                </span>
+                              </div>
+                              {dateRange && (
+                                <div className="text-sm text-mainGray">
+                                  {dateRange}
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       : "-"
                   }
                 />
@@ -427,7 +442,23 @@ interface IDepartmentPosition {
   department_name?: string | null;
   position_id?: number | string | null;
   position_name?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
 }
+
+const formatDepartmentDateRange = (
+  departmentPosition: IDepartmentPosition
+): string => {
+  const format = (date?: string | null) =>
+    date ? new Date(date).toLocaleDateString() : "";
+  const start = format(departmentPosition.start_date);
+  const end = format(departmentPosition.end_date);
+
+  if (start && end) return `${start} - ${end}`;
+  if (start) return `Since ${start}`;
+  if (end) return `Until ${end}`;
+  return "";
+};
 
 const isDepartmentPosition = (value: unknown): value is IDepartmentPosition =>
   typeof value === "object" && value !== null;
