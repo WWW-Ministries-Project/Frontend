@@ -17,7 +17,12 @@ type DepartmentPositionInput = {
   department?: { id?: number | string | null };
   position_id?: number | string | null;
   position?: { id?: number | string | null };
+  start_date?: string | null;
+  end_date?: string | null;
 };
+
+const toDateInput = (date?: string | null) =>
+  date ? date.split("T")[0] : "";
 
 const isDepartmentPositionInput = (
   value: unknown
@@ -41,13 +46,19 @@ const mapDepartmentPositions = (
           return {
             department_id: String(departmentId),
             position_id: String(positionId),
+            start_date: toDateInput(item.start_date),
+            end_date: toDateInput(item.end_date),
           };
         })
         .filter(
           (
             item
-          ): item is { department_id: string; position_id: string } =>
-            item !== null
+          ): item is {
+            department_id: string;
+            position_id: string;
+            start_date: string;
+            end_date: string;
+          } => item !== null
         )
     : [];
 

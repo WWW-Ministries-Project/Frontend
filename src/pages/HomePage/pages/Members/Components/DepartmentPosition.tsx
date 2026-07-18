@@ -1,4 +1,5 @@
 import { Button } from "@/components";
+import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { FullWidth } from "@/components/ui";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
@@ -81,6 +82,22 @@ const DepartmentPositionSubFormComponent = ({
                       </p>
                     )}
                   </div>
+                  <Field
+                    component={FormikInputDiv}
+                    label="Start Date (Optional)"
+                    type="date"
+                    id={`department_positions.${index}.start_date`}
+                    name={`department_positions.${index}.start_date`}
+                    disabled={disabled}
+                  />
+                  <Field
+                    component={FormikInputDiv}
+                    label="End Date (Optional)"
+                    type="date"
+                    id={`department_positions.${index}.end_date`}
+                    name={`department_positions.${index}.end_date`}
+                    disabled={disabled}
+                  />
                   {index !== values.length - 1 && <HorizontalLine />}
                 </>
               </Fragment>
@@ -92,7 +109,12 @@ const DepartmentPositionSubFormComponent = ({
               variant="ghost"
               type="button"
               onClick={() => {
-                push({ department_id: "", position_id: "" });
+                push({
+                  department_id: "",
+                  position_id: "",
+                  start_date: "",
+                  end_date: "",
+                });
               }}
               disabled={disabled}
               value=" Add Another Ministry/Department & Position"
@@ -107,11 +129,15 @@ const DepartmentPositionSubFormComponent = ({
 export interface IDepartmentPositionSubForm {
   department_id: string;
   position_id: string;
+  start_date?: string;
+  end_date?: string;
 }
 const initialValues: IDepartmentPositionSubForm[] = [
   {
     department_id: "",
     position_id: "",
+    start_date: "",
+    end_date: "",
   },
 ];
 
@@ -120,6 +146,18 @@ const validationSchema = array()
     object().shape({
       department_id: string().required("Department is required"),
       position_id: string().required("Position is required"),
+      start_date: string().nullable(),
+      end_date: string()
+        .nullable()
+        .test(
+          "end-after-start",
+          "End date cannot be before start date",
+          function (value) {
+            const startDate = this.parent?.start_date;
+            if (!value || !startDate) return true;
+            return new Date(value) >= new Date(startDate);
+          }
+        ),
     })
   )
   .min(1);
