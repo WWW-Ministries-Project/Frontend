@@ -62,8 +62,10 @@ Zustand stores in `src/store/`:
 ### Notifications
 `src/features/notifications/` contains `NotificationDeviceConnector` (device registration) and `NotificationRealtimeConnector` (realtime subscription). Both mount at the app root in `main.tsx`. See `docs/DEVICE_NOTIFICATION_BACKEND_CONTRACT.md` and `docs/NOTIFICATION_ACTION_URLS_AND_TRIGGERS.md` for backend contracts.
 
-### Backend contracts
-`docs/*_BACKEND_CONTRACT.md` describes API shapes agreed with the backend team (department membership, event reports, module analytics, requisition notifications). Consult these before shipping API changes.
+### Backend
+- **Repo:** https://github.com/WWW-Ministries-Project/Backend — sibling to this Frontend in the `WWW-Ministries-Project` org.
+- API base URLs (`REACT_APP_API_URL` in `.env`): local `http://localhost:8080/`, dev `https://dev.worldwidewordministries.org/`, prod `https://dashboard.worldwidewordministries.org/`.
+- `docs/*_BACKEND_CONTRACT.md` describes API shapes agreed with the backend team (department membership, event reports, module analytics, requisition notifications). Consult these before shipping API changes.
 
 ## Conventions
 

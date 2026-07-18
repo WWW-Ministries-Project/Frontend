@@ -7,9 +7,11 @@ import FormikSelectField from "../FormikSelect";
 const NameInfoComponent = ({
   disabled = false,
   prefix,
+  showRequiredMarkers = true,
 }: {
   disabled?: boolean;
   prefix?: string;
+  showRequiredMarkers?: boolean;
 }) => {
   return (
     <>
@@ -41,7 +43,7 @@ const NameInfoComponent = ({
       />
       <Field
         component={FormikInputDiv}
-        label="Last Name *"
+        label={`Last Name${showRequiredMarkers ? " *" : ""}`}
         placeholder="Enter last name"
         disabled={disabled}
         id={prefix ? `${prefix}.last_name` : "last_name"}

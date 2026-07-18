@@ -115,6 +115,7 @@ export const VisitorRegistration = () => {
           onSubmit={handleSubmit}
           loading={loading}
           showHeader={false}
+          minimalValidation
         />
       </div>
     </main>
