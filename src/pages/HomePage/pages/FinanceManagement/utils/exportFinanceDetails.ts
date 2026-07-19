@@ -372,26 +372,23 @@ const createDocxTable = (section: ExportSection) => {
   });
 };
 
-async function fetchLogoPngBase64(): Promise<string | null> {
+async function fetchLogoPngBuffer(): Promise<Uint8Array | null> {
   try {
-    const resp = await fetch('/logo/main-logo.svg');
-    const svgText = await resp.text();
-    const match = svgText.match(/href="(data:image\/[^;]+;base64,[^"]+)"/);
-    if (!match) return null;
-    return match[1];
+    const resp = await fetch('/logo/main-logo.png');
+    if (!resp.ok) return null;
+    const arrayBuffer = await resp.arrayBuffer();
+    return new Uint8Array(arrayBuffer);
   } catch {
     return null;
   }
 }
 
-async function fetchLogoPngBuffer(): Promise<Uint8Array | null> {
-  const dataUri = await fetchLogoPngBase64();
-  if (!dataUri) return null;
-  const b64 = dataUri.split(',')[1];
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
+async function fetchLogoPngBase64(): Promise<string | null> {
+  const bytes = await fetchLogoPngBuffer();
+  if (!bytes) return null;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return `data:image/png;base64,${btoa(binary)}`;
 }
 
 const buildDocxBlob = async (
@@ -409,7 +406,7 @@ const buildDocxBlob = async (
               new ImageRun({
                 data: logoBuffer,
                 type: 'png',
-                transformation: { width: 110, height: 75 },
+                transformation: { width: 120, height: 98 },
               }),
             ],
           }),
@@ -585,8 +582,8 @@ const buildPdfBlob = (
   let startY = 16;
 
   if (logoDataUri) {
-    doc.addImage(logoDataUri, 'PNG', 14, 6, 38, 26);
-    startY = 36;
+    doc.addImage(logoDataUri, 'PNG', 14, 6, 44, 36);
+    startY = 46;
   }
 
   const cursor = { y: startY };
