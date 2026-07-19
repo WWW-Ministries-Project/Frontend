@@ -22,7 +22,7 @@ const PledgeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_pledges");
+  const canManage = hasPermission("manage_financials");
   const { data, refetch } = useFetch(
     api.fetch.fetchPledge,
     id ? { id: Number(id) } : undefined,

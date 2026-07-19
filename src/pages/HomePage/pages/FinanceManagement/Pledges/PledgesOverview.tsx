@@ -112,7 +112,7 @@ const PledgesOverview = () => {
         title="Pledges"
         subtitle="Pledge campaigns, redemptions and progress"
         screenWidth={screenWidth}
-        btnName={hasPermission("manage_pledges") ? "Create Pledge" : undefined}
+        btnName={hasPermission("manage_financials") ? "Create Pledge" : undefined}
         handleClick={() => navigate("/home/finance/pledges/create")}
       />
 
