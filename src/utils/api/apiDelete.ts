@@ -212,6 +212,18 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("financials/delete-financial", query);
   };
 
+  deletePledge = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("pledges/delete-pledge", query);
+  };
+
+  deletePledger = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("pledges/delete-pledger", query);
+  };
+
+  deleteRedemption = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("pledges/delete-redemption", query);
+  };
+
   clearAllNotifications = (): Promise<ApiResponse<NotificationClearAllPayload>> => {
     return this.apiExecution.deleteData("notifications");
   };

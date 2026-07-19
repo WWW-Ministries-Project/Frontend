@@ -5,6 +5,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import type { PledgeMutationPayload, PledgerInput } from "./pledges/interface";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
@@ -537,6 +538,28 @@ export class ApiCreationCalls {
     payload: FinanceMutationRequest
   ): Promise<ApiResponse<FinancialRecord>> => {
     return this.postToApi("financials/create-financial", payload);
+  };
+
+  createPledge = <T>(payload: PledgeMutationPayload): Promise<ApiResponse<T>> => {
+    return this.postToApi("pledges/create-pledge", payload);
+  };
+
+  addPledgers = <T>(payload: {
+    group_id: number;
+    pledgers: PledgerInput[];
+  }): Promise<ApiResponse<T>> => {
+    return this.postToApi("pledges/add-pledgers", payload);
+  };
+
+  createRedemption = <T>(payload: {
+    pledger_id: number;
+    amount: number;
+    date: string;
+    method: string;
+    note?: string;
+    image_url?: string | null;
+  }): Promise<ApiResponse<T>> => {
+    return this.postToApi("pledges/create-redemption", payload);
   };
 
   upsertFinanceApprovalConfig = (

@@ -6,6 +6,7 @@ import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
+import type { PledgeMutationPayload } from "./pledges/interface";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
   activateMemberPayloadType,
@@ -533,6 +534,13 @@ export class ApiUpdateCalls {
       payload,
       query
     );
+  };
+
+  updatePledge = <T>(
+    payload: PledgeMutationPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<T>> => {
+    return this.apiExecution.updateData("pledges/update-pledge", payload, query);
   };
 
   updateAiCredential = (
