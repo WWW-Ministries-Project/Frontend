@@ -513,10 +513,10 @@ const getPdfRowHeight = (
 ): number => {
   const maxLines = row.reduce((count, cell, index) => {
     const lines = doc.splitTextToSize(safeText(cell), columnWidths[index] - 4);
-    return Math.max(count, lines.length);
+    return Math.max(Number(count), lines.length);
   }, 1);
 
-  return Math.max(8, maxLines * 5 + 4);
+  return Math.max(8, Number(maxLines) * 5 + 4);
 };
 
 const drawPdfTableRow = (

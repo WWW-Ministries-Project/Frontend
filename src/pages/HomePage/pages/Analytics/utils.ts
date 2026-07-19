@@ -102,7 +102,7 @@ export const buildSeries = <T,>(
 };
 
 export const sumNumbers = (values: Array<number | string | null | undefined>): number =>
-  values.reduce((acc, current) => {
+  values.reduce<number>((acc, current) => {
     const parsed = Number(current ?? 0);
     if (!Number.isFinite(parsed)) return acc;
     return acc + parsed;

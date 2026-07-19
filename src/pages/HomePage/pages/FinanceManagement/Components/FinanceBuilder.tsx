@@ -248,7 +248,9 @@ const normalizeExistingValues = (financeData?: any): FinanceData => {
         percentage: toNumber(financeData?.tithe?.totalTithe?.percentage),
         label: financeData?.tithe?.totalTithe?.label || "Tithe",
       },
-      breakdown: titheBreakdown.filter((item) => item.item.length > 0),
+      breakdown: titheBreakdown.filter(
+        (item: TitheBreakdownItem) => item.item.length > 0
+      ),
     },
     payments: Array.isArray(financeData?.payments)
       ? financeData.payments.map((payment: any) => ({

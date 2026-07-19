@@ -228,7 +228,7 @@ export const NotificationRealtimeConnector = () => {
     let isLeader = false;
     let reconnectAttempts = 0;
     let lastResyncAt = 0;
-    let syncInFlight: Promise<void> | null = null;
+    let syncInFlight: Promise<unknown> | null = null;
     let lastEventId = "";
 
     const clearTimer = (timer: number | null) => {
@@ -583,7 +583,7 @@ export const NotificationRealtimeConnector = () => {
         if (
           isDisposed ||
           !isLeader ||
-          document.visibilityState === "hidden" ||
+          (document.visibilityState as DocumentVisibilityState) === "hidden" ||
           !navigator.onLine
         ) {
           return;

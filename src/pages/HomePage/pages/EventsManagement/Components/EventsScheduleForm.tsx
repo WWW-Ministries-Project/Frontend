@@ -64,7 +64,31 @@ const ALL_TIMEZONES: string[] = (() => {
 
 const TIMEZONE_OPTIONS = ALL_TIMEZONES.map((tz) => ({ label: tz, value: tz }));
 
-interface EventsFormValues {
+// `AutocompleteTextField` is authored in JS without prop types, so give it a
+// typed surface for the props this form uses.
+interface AutocompleteTextFieldProps {
+  id?: string;
+  name?: string;
+  suggestions?: string[];
+  value?: string;
+  placeholder?: string;
+  allowCreate?: boolean;
+  createOptionLabelPrefix?: string;
+  createOptionDescription?: string;
+  disabled?: boolean;
+  className?: string;
+  inputClassName?: string;
+  error?: string;
+  noSuggestionsText?: string;
+  onSelect?: (value: string) => void;
+  onChange?: (value: string) => void;
+  onCreate?: (value: string) => void | Promise<void>;
+}
+
+const TypedAutocompleteTextField =
+  AutocompleteTextField as React.FC<AutocompleteTextFieldProps>;
+
+export interface EventsFormValues {
   event_name_id?: string | number;
   event_type?: string;
   event_name?: string;
@@ -114,7 +138,7 @@ const WEEKDAY_OPTIONS = [
   { label: "Sunday", short: "Sun", value: 0 },
 ] as const;
 
-const WEEKDAY_ORDER = WEEKDAY_OPTIONS.map((day) => day.value);
+const WEEKDAY_ORDER: number[] = WEEKDAY_OPTIONS.map((day) => day.value);
 
 const isValidWeekDay = (day: number) =>
   Number.isInteger(day) && day >= 0 && day <= 6;
@@ -439,11 +463,13 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         String(props.inputValue.registration_capacity).trim() !== ""
           ? Number(props.inputValue.registration_capacity)
           : "",
-      registration_audience:
-        String(props.inputValue.registration_audience || "MEMBERS_AND_NON_MEMBERS")
-          .toUpperCase() === "MEMBERS_ONLY"
-          ? "MEMBERS_ONLY"
-          : "MEMBERS_AND_NON_MEMBERS",
+      registration_audience: (String(
+        props.inputValue.registration_audience || "MEMBERS_AND_NON_MEMBERS"
+      ).toUpperCase() === "MEMBERS_ONLY"
+        ? "MEMBERS_ONLY"
+        : "MEMBERS_AND_NON_MEMBERS") as
+        | "MEMBERS_ONLY"
+        | "MEMBERS_AND_NON_MEMBERS",
       audience_type: (props.inputValue.audience_type as "all" | "department" | "position") || "all",
       target_departments: Array.isArray(props.inputValue.target_departments)
         ? (props.inputValue.target_departments as string[])
@@ -564,7 +590,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 >
                   Event Name
                 </label>
-                <AutocompleteTextField
+                <TypedAutocompleteTextField
                   id="event_name_autocomplete"
                   name="event_name_autocomplete"
                   suggestions={eventNameSuggestions}
@@ -608,7 +634,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                         event_name: newName,
                         event_type: "OTHER",
                         event_description: "",
-                      });
+                      } as EventType);
                       const created = res?.data;
                       if (created?.id) {
                         await refetchEvents?.();

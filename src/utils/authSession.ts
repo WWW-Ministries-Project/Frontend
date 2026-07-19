@@ -47,7 +47,6 @@ export const resetProtectedAppState = (): void => {
   useSettingsStore.setState({
     departments: [],
     positions: [],
-    total: 0,
     departmentsOptions: [],
     positionOptions: {},
   });

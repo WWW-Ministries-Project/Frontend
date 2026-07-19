@@ -12,6 +12,7 @@ export type ScopesMap = Record<string, ScopeMode>;
 
 export const CANONICAL_PERMISSION_DOMAINS = [
   "Members",
+  "Membership_Management",
   "Departments",
   "Positions",
   "Access_rights",
@@ -57,6 +58,11 @@ export type PermissionRequirement =
 
 const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Members: ["Members", "Member", "users", "user"],
+  Membership_Management: [
+    "Membership_Management",
+    "Membership Management",
+    "MembershipManagement",
+  ],
   Visitors: ["Visitors", "Visitor"],
   Appointments: ["Appointments", "Appointment"],
   Departments: [
@@ -115,6 +121,14 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     description: "Church family profile and member management",
     group: "People",
     required: true,
+  },
+  {
+    key: "Membership_Management",
+    label: "Membership Management",
+    description:
+      "Membership pipelines, conversions and department join-request approvals",
+    group: "People",
+    required: false,
   },
   {
     key: "Visitors",
@@ -247,6 +261,14 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
 const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObject> = {
   view_members: { domain: "Members", action: "view" },
   manage_members: { domain: "Members", action: "manage" },
+  view_membership_management: {
+    domain: "Membership_Management",
+    action: "view",
+  },
+  manage_membership_management: {
+    domain: "Membership_Management",
+    action: "manage",
+  },
   view_visitors: { domain: "Visitors", action: "view" },
   manage_visitors: { domain: "Visitors", action: "manage" },
   view_appointments: { domain: "Appointments", action: "view" },

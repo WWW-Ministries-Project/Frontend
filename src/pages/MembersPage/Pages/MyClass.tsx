@@ -77,7 +77,7 @@ const MyClass = () => {
 
             <TopicAssessment
               topics={topics}
-              enrollmentId={enrollment.id}
+              enrollmentId={enrollment?.id ?? 0}
               editMode={false}
               loading={false}
               onCancel={() => {}}

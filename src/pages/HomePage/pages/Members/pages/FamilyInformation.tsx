@@ -2,7 +2,7 @@ import EmptyState from "@/components/EmptyState";
 import { formatDate, formatPhoneNumber } from "@/utils";
 import { FamilyRelation, normalizeFamilyRelation } from "@/utils/familyRelations";
 
-type FamilyMemberView = {
+export type FamilyMemberView = {
   relation?: string;
   first_name?: string;
   last_name?: string;
@@ -85,7 +85,7 @@ export const FamilyInformation = ({ familyData }: { familyData: FamilyMemberView
               />
               <InfoField
                 label="Contact"
-                value={formatPhoneNumber(person.country_code, person.primary_number) || "-"}
+                value={formatPhoneNumber(person.country_code ?? "", person.primary_number ?? "") || "-"}
               />
             </div>
 

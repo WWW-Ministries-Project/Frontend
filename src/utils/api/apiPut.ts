@@ -41,6 +41,10 @@ import type {
   FinancialRecord,
 } from "./finance/interface";
 import type { UpdateNotificationPreferencePayload } from "./notifications/interfaces";
+import type {
+  ApproveJoinRequestPayload,
+  DeclineJoinRequestPayload,
+} from "./departmentJoinRequests/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -548,6 +552,24 @@ export class ApiUpdateCalls {
     payload: UpdateAiCredentialPayload
   ): Promise<ApiResponse<AiCredentialRecord>> => {
     return this.apiExecution.updateData(`ai/credentials/${id}`, payload);
+  };
+
+  approveJoinRequest = (
+    payload: ApproveJoinRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData(
+      "department-join-request/approve",
+      payload
+    );
+  };
+
+  declineJoinRequest = (
+    payload: DeclineJoinRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData(
+      "department-join-request/decline",
+      payload
+    );
   };
 
   markNotificationRead = (

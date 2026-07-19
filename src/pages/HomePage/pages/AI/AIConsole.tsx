@@ -621,7 +621,7 @@ export const AIConsole = () => {
 
     const credentialCheck = await ensureActiveCredentialForModel(selectedModel);
     if (!credentialCheck.ok) {
-      setChatError(credentialCheck.message);
+      setChatError(credentialCheck.message ?? null);
       return;
     }
 
@@ -673,7 +673,7 @@ export const AIConsole = () => {
 
     const credentialCheck = await ensureActiveCredentialForModel(selectedModel);
     if (!credentialCheck.ok) {
-      setInsightError(credentialCheck.message);
+      setInsightError(credentialCheck.message ?? null);
       setIsGeneratingInsight(false);
       return;
     }

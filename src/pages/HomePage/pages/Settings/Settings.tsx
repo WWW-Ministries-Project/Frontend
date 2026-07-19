@@ -239,7 +239,6 @@ function Settings() {
   } = useSettingsTabs({
     setDisplayForm,
     setEditMode,
-    //@ts-expect-error will figure it out later
     setInputValue,
     handleDelete,
     branchPastorOptions:
@@ -644,7 +643,12 @@ function Settings() {
             <FormsComponent
               selectOptions={selectOptions}
               selectId={selectedId}
-              inputValue={inputValue}
+              inputValue={
+                inputValue as {
+                  name: string;
+                  [key: string]: string | number | undefined;
+                }
+              }
               inputLabel={selectedTab}
               onChange={(name, value) =>
                 setInputValue((prev) => ({ ...prev, [name]: value }))

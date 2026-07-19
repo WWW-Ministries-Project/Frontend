@@ -446,7 +446,12 @@ export const LifeCenterAnalytics = () => {
 
       <AnalyticsTopCentersChart chartData={chartData} />
 
-      <AnalyticsTable columns={columns} data={processedData.centers} />
+      <AnalyticsTable
+        columns={
+          columns as unknown as ColumnDef<Record<string, unknown>, unknown>[]
+        }
+        data={processedData.centers}
+      />
     </PageOutline>
   );
 };

@@ -2,7 +2,9 @@ import { cn } from "@/utils/cn";
 import { CSSProperties, MouseEvent } from "react";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 
-type ButtonClickHandler = (e?: MouseEvent<HTMLButtonElement>) => void;
+// Accepts button mouse handlers as well as form submit handlers passed through.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ButtonClickHandler = (e?: any) => void;
 
 interface IProps {
   link?: string;

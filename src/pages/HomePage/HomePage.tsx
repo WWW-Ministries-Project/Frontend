@@ -16,6 +16,7 @@ import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
+import type { UserType } from "./pages/Members/utils/membersInterfaces";
 import { navigateRef } from "./navigationRef";
 
 export function HomePage() {
@@ -71,7 +72,7 @@ export function HomePage() {
     changeAuth(token);
 
     if (membersData) {
-      store.setMemberOptions(membersData.data);
+      store.setMemberOptions(membersData.data as unknown as UserType[]);
       // store.setMembers(membersData.data, membersData.meta?.total ?? 0);
     }
 

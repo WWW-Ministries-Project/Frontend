@@ -21,6 +21,10 @@ import type {
   BulkUpdateMemberStatusResponse,
 } from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
+import type {
+  BulkJoinRequestPayload,
+  CreateJoinRequestPayload,
+} from "./departmentJoinRequests/interfaces";
 import type { Branch, BranchPayload } from "./settings/branchInterfaces";
 import type {
   AttendanceTimingSettingsConfig,
@@ -90,6 +94,7 @@ import type {
   DownloadedFile,
   EventReportGeneratePayload,
   EventReportGenerateResponse,
+  EventReportGenerateResult,
   EventReportServiceSummaryFormat,
 } from "./eventReports/interfaces";
 import { extractFileNameFromDisposition } from "../helperFunctions";
@@ -244,7 +249,10 @@ export class ApiCreationCalls {
   generateEventReport = (
     payload: EventReportGeneratePayload
   ): Promise<EventReportGenerateResponse> => {
-    return this.postToApiWithRawResponse("event-reports/generate", payload);
+    return this.postToApiWithRawResponse<EventReportGenerateResult>(
+      "event-reports/generate",
+      payload
+    ) as Promise<EventReportGenerateResponse>;
   };
 
   downloadEventReportServiceSummary = async (
@@ -266,8 +274,8 @@ export class ApiCreationCalls {
     return {
       blob: response.data,
       fileName,
-      contentType:
-        response.headers["content-type"] ?? response.headers["Content-Type"],
+      contentType: (response.headers["content-type"] ??
+        response.headers["Content-Type"]) as string | null | undefined,
     };
   };
 
@@ -302,6 +310,18 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.postToApi("department/create-department", payload);
   };
+  createJoinRequest = (
+    payload: CreateJoinRequestPayload
+  ): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi("department-join-request/create", payload);
+  };
+
+  bulkJoinRequestAction = (
+    payload: BulkJoinRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("department-join-request/bulk", payload);
+  };
+
   createBranch = (payload: BranchPayload): Promise<ApiResponse<Branch>> => {
     return this.postToApi("branch/create-branch", payload);
   };

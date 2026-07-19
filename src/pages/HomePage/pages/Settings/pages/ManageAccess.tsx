@@ -10,6 +10,7 @@ import {
   decodeQuery,
   showNotification,
 } from "@/pages/HomePage/utils/helperFunctions";
+import { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import {
@@ -150,7 +151,7 @@ export function ManageAccess() {
   >({
     Members: [],
     Appointments: [],
-  } as Record<PermissionDomain, string[]>);
+  } as unknown as Record<PermissionDomain, string[]>);
   const [scopeSelections, setScopeSelections] = useState<
     Partial<Record<PermissionDomain, ScopeMode>>
   >({});
@@ -220,7 +221,7 @@ export function ManageAccess() {
 
   useEffect(() => {
     if (membersOptionsData?.data?.length) {
-      setMemberOptions(membersOptionsData.data);
+      setMemberOptions(membersOptionsData.data as unknown as UserType[]);
     }
   }, [membersOptionsData, setMemberOptions]);
 

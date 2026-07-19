@@ -85,7 +85,7 @@ function RequestAttachments({
                       className="app-icon-btn"
                       aria-label="Download attachment"
                     >
-                      <DownloadIcon />
+                      <DownloadIcon onClick={() => {}} />
                     </button>
 
                     {isEditable && (
@@ -97,7 +97,7 @@ function RequestAttachments({
                         className="app-icon-btn app-icon-btn-danger"
                         aria-label="Delete attachment"
                       >
-                        <DeleteIcon fill="#D92D20" />
+                        <DeleteIcon fill="#D92D20" onClick={() => {}} />
                       </button>
                     )}
 

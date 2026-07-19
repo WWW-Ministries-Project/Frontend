@@ -9,6 +9,7 @@ export interface Department {
   department_head_info?: { id: number; name: string };
   member_count?: number;
   position?: Position[];
+  status?: "OPEN" | "CLOSED";
 }
 
 export interface DepartmentSlice {

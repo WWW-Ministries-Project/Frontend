@@ -30,6 +30,7 @@ export const relativePath = {
         memberConfirmation: "member-confirmation",
         visitorToMembership: "visitor-to-membership",
         soulwonToMembership: "soulwon-to-membership",
+        joinRequests: "join-requests",
       },
     },
     visitors: {

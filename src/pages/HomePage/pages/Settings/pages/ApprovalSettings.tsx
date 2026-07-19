@@ -529,14 +529,19 @@ const ApprovalSettings = () => {
       return;
     }
 
-    const requesterIds = Array.isArray(config.requester_user_ids)
-      ? config.requester_user_ids
+    const workflowConfig = config as Exclude<
+      ApprovalConfig,
+      { module: "FINANCE" }
+    >;
+
+    const requesterIds = Array.isArray(workflowConfig.requester_user_ids)
+      ? workflowConfig.requester_user_ids
       : [];
-    const notificationUserIds = Array.isArray(config.notification_user_ids)
-      ? config.notification_user_ids
+    const notificationUserIds = Array.isArray(workflowConfig.notification_user_ids)
+      ? workflowConfig.notification_user_ids
       : [];
-    const configuredApprovers = Array.isArray(config.approvers)
-      ? [...config.approvers].sort((a, b) => a.order - b.order)
+    const configuredApprovers = Array.isArray(workflowConfig.approvers)
+      ? [...workflowConfig.approvers].sort((a, b) => a.order - b.order)
       : [];
     const financeApprover =
       config.module === "EVENT_REPORT" ? config.finance_approver ?? null : null;
@@ -579,9 +584,9 @@ const ApprovalSettings = () => {
     setFinanceApproverUserId("");
     setIsActive(Boolean(config.is_active ?? true));
     setSimilarItemLookbackDays(
-      Number.isInteger(config.similar_item_lookback_days) &&
-        Number(config.similar_item_lookback_days) > 0
-        ? Number(config.similar_item_lookback_days)
+      Number.isInteger(workflowConfig.similar_item_lookback_days) &&
+        Number(workflowConfig.similar_item_lookback_days) > 0
+        ? Number(workflowConfig.similar_item_lookback_days)
         : DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS
     );
   }, [approvalConfigData, selectedModule]);
@@ -733,7 +738,7 @@ const ApprovalSettings = () => {
         : hasInvalidNotificationSelection
           ? "Notification selections must be valid numeric IDs."
           : null
-      : validateConfigPayload(payload, selectedModule);
+      : validateConfigPayload(payload as ApprovalConfigPayload, selectedModule);
 
     if (validationError) {
       showNotification(validationError, "error");
@@ -950,7 +955,9 @@ const ApprovalSettings = () => {
                   value={financeApproverRule.type}
                   options={approverTypeOptions}
                   placeholder="Select approver type"
-                  onChange={(_, value) => handleFinanceApproverTypeChange(value)}
+                  onChange={(_, value) =>
+                    handleFinanceApproverTypeChange(value ?? "")
+                  }
                 />
 
                 {financeApproverRule.type === "POSITION" && (
@@ -967,7 +974,7 @@ const ApprovalSettings = () => {
                     }
                     searchable
                     onChange={(_, value) =>
-                      handleFinanceApproverTargetChange(value)
+                      handleFinanceApproverTargetChange(value ?? "")
                     }
                   />
                 )}
@@ -986,7 +993,7 @@ const ApprovalSettings = () => {
                     }
                     searchable
                     onChange={(_, value) =>
-                      handleFinanceApproverTargetChange(value)
+                      handleFinanceApproverTargetChange(value ?? "")
                     }
                   />
                 )}
@@ -1071,7 +1078,7 @@ const ApprovalSettings = () => {
                     value={approver.type}
                     options={approverTypeOptions}
                     onChange={(_, value) =>
-                      handleApproverTypeChange(approver.id, value)
+                      handleApproverTypeChange(approver.id, value ?? "")
                     }
                   />
 
@@ -1089,7 +1096,7 @@ const ApprovalSettings = () => {
                       }
                       searchable
                       onChange={(_, value) =>
-                        handleApproverTargetChange(approver.id, value)
+                        handleApproverTargetChange(approver.id, value ?? "")
                       }
                     />
                   )}
@@ -1108,7 +1115,7 @@ const ApprovalSettings = () => {
                       }
                       searchable
                       onChange={(_, value) =>
-                        handleApproverTargetChange(approver.id, value)
+                        handleApproverTargetChange(approver.id, value ?? "")
                       }
                     />
                   )}

@@ -119,7 +119,8 @@ export const NotificationCenterPage = () => {
   };
 
   useEffect(() => {
-    const tabQuery = activeTab === "unread" ? { unreadOnly: "true" } : {};
+    const tabQuery: Record<string, string> =
+      activeTab === "unread" ? { unreadOnly: "true" } : {};
     void fetchNotifications({
       page: 1,
       limit: 20,
@@ -327,7 +328,8 @@ export const NotificationCenterPage = () => {
             <button
               type="button"
               onClick={() => {
-                const tabQuery = activeTab === "unread" ? { unreadOnly: "true" } : {};
+                const tabQuery: Record<string, string> =
+                  activeTab === "unread" ? { unreadOnly: "true" } : {};
                 void fetchNotifications({
                   page: 1,
                   limit: 20,

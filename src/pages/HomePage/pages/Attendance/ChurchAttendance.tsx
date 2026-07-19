@@ -82,6 +82,12 @@ const normalizeAttendanceRecord = (
   recordedByName: toOptionalStringValue(
     record.recordedByName ?? record.recorded_by_name
   ),
+  branch_id:
+    typeof record.branch_id === "number"
+      ? record.branch_id
+      : typeof record.branch_id === "string" && record.branch_id.trim() !== ""
+      ? Number(record.branch_id)
+      : "",
 });
 
 export default function ChurchAttendance() {

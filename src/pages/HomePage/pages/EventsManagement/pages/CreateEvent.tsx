@@ -7,12 +7,16 @@ import { api } from "@/utils/api/apiCalls";
 import { validateUploadFile } from "@/utils/uploadValidation";
 import { useEffect, useRef, useState } from "react";
 import { eventInput } from "../utils/eventHelpers";
-import EventsScheduleForm from "../Components/EventsScheduleForm";
+import EventsScheduleForm, {
+  type EventsFormValues,
+} from "../Components/EventsScheduleForm";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const CreateEvent = () => {
   const { user } = useAuth();
-  const [inputValue, setInputValue] = useState(eventInput);
+  const [inputValue, setInputValue] = useState<EventsFormValues>(
+    eventInput as EventsFormValues
+  );
   // const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

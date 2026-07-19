@@ -46,6 +46,7 @@ import { DepartmentsAndMinistries } from "@/pages/HomePage/pages/MembershipManag
 import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/pages/MemberConfirmation";
 import { SoulwonToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/SoulwonToMembership";
 import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
+import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagement/pages/JoinDepartmentRequests";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
@@ -240,7 +241,7 @@ export const routes: AppRoute[] = [
             name: "Membership manager",
             element: <MembershipManagement />,
             isPrivate: true,
-            permissionNeeded: "manage_members",
+            permissionNeeded: "manage_membership_management",
             sideTab: true,
             children: [
               {
@@ -253,28 +254,35 @@ export const routes: AppRoute[] = [
                   />
                 ),
                 isPrivate: true,
-                permissionNeeded: "manage_members",
+                permissionNeeded: "manage_membership_management",
               },
               {
                 path: relativePath.home.membership.management.memberConfirmation,
                 name: "Member Confirmation",
                 element: <MemberConfirmation />,
                 isPrivate: true,
-                permissionNeeded: "manage_members",
+                permissionNeeded: "manage_membership_management",
               },
               {
                 path: relativePath.home.membership.management.visitorToMembership,
                 name: "Visitor-to-Membership",
                 element: <VisitorToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_members",
+                permissionNeeded: "manage_membership_management",
               },
               {
                 path: relativePath.home.membership.management.soulwonToMembership,
                 name: "Soulwon-to-Membership",
                 element: <SoulwonToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_members",
+                permissionNeeded: "manage_membership_management",
+              },
+              {
+                path: relativePath.home.membership.management.joinRequests,
+                name: "Join Department Requests",
+                element: <JoinDepartmentRequests />,
+                isPrivate: true,
+                permissionNeeded: "manage_membership_management",
               },
             ],
           },

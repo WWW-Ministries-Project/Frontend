@@ -162,7 +162,11 @@ const normalizeOverviewItem = (
     end_time: firstNonEmptyString(record.end_time, record.endTime),
     location: firstNonEmptyString(record.location, record.venue),
     description: firstNonEmptyString(record.description, record.summary),
-    event_type: firstNonEmptyString(record.event_type, record.eventType, "OTHER"),
+    event_type: firstNonEmptyString(
+      record.event_type,
+      record.eventType,
+      "OTHER"
+    ) as ReportOverviewCard["event_type"],
     poster: firstNonEmptyString(record.poster, record.image) || undefined,
     event_date: eventDate,
     generated_at: firstNonEmptyString(record.generated_at, record.generatedAt),
@@ -210,7 +214,7 @@ const matchesMonthYear = (value: string, filter: MonthYearFilter) => {
 const buildReportRoute = (event: ReportOverviewCard) => {
   const params = new URLSearchParams();
   params.set("eventDate", event.event_date);
-  params.set("eventName", event.event_name);
+  params.set("eventName", event.event_name ?? "");
 
   return `${relativePath.home.main}/${relativePath.home.reports.eventReports}/${event.event_id}?${params.toString()}`;
 };
@@ -408,7 +412,7 @@ const EventReports = () => {
           return left.event_date.localeCompare(right.event_date);
         }
 
-        return left.event_name.localeCompare(right.event_name);
+        return (left.event_name ?? "").localeCompare(right.event_name ?? "");
       });
   }, [filterEvents, reports, selectedEventId]);
 
@@ -458,7 +462,7 @@ const EventReports = () => {
           return left.event_date.localeCompare(right.event_date);
         }
 
-        return left.event_name.localeCompare(right.event_name);
+        return (left.event_name ?? "").localeCompare(right.event_name ?? "");
       })
       .map((event) => ({
         value: event.event_id,
@@ -666,7 +670,11 @@ const EventReports = () => {
                           onShowOptions={() => {}}
                           showOptions={false}
                           readOnly
-                          onSelect={handleOpenEventReport}
+                          onSelect={(event) =>
+                            handleOpenEventReport(
+                              event as unknown as ReportOverviewCard
+                            )
+                          }
                         />
                       )}
                       filter={filterEvents}

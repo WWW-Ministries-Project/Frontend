@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { useOutletContext } from "react-router-dom";
-import { FamilyInformation } from "./FamilyInformation";
+import { FamilyInformation, FamilyMemberView } from "./FamilyInformation";
 import EmptyState from "@/components/EmptyState";
 
 //TODO: TAKE A SECOND LOOK AT INFOFIELD AND SECTION
@@ -356,7 +356,7 @@ export function MemberInformation() {
 
       {selectedTab=="Family Information" && (
         // <Section title="">
-          <FamilyInformation familyData={user?.family} />
+          <FamilyInformation familyData={(user?.family ?? []) as FamilyMemberView[]} />
         // </Section>
       )}
     </div>

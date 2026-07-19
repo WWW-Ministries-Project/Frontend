@@ -9,10 +9,10 @@ interface DateFilterProps {
 
 const DateFilter: React.FC<DateFilterProps> = (props) => {
   const renderMonthContent = (
-    month: string,
+    month: number,
     shortMonth: string,
     longMonth: string,
-    day: number
+    day: Date
   ) => {
     const fullYear = new Date(day).getFullYear();
     const tooltipText = `Tooltip for month: ${longMonth} ${fullYear}`;

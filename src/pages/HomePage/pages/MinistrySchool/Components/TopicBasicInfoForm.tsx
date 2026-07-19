@@ -323,6 +323,8 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
       return;
     }
 
+    if (!learningUnit) return;
+
     const payload: Topic = {
       id: topicToEdit ? topicToEdit.id : 0,
       name: topicForm.topicName.trim(),

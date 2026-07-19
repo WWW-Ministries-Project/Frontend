@@ -36,6 +36,7 @@ type DepartmentFormState = {
   description: string;
   department_head?: number;
   branch_id: number | "";
+  status: "OPEN" | "CLOSED";
 };
 
 const EMPTY_FORM_STATE: DepartmentFormState = {
@@ -43,7 +44,13 @@ const EMPTY_FORM_STATE: DepartmentFormState = {
   description: "",
   department_head: undefined,
   branch_id: "",
+  status: "OPEN",
 };
+
+const STATUS_OPTIONS = [
+  { label: "Open", value: "OPEN" },
+  { label: "Closed", value: "CLOSED" },
+];
 
 const resolveDepartmentFormState = (
   department?: DepartmentType
@@ -58,6 +65,7 @@ const resolveDepartmentFormState = (
     description: department.description ?? "",
     department_head: department.department_head_info?.id ?? department.department_head,
     branch_id: (department as DepartmentType & { branch_id?: number | "" }).branch_id ?? "",
+    status: department.status ?? "OPEN",
   };
 };
 
@@ -144,6 +152,21 @@ const DepartmentFormModal = ({
             onChange={onBranchChange}
             required
             error={branchError}
+          />
+
+          <SelectField
+            id="status"
+            label="Status"
+            value={formState.status}
+            options={STATUS_OPTIONS}
+            clearable={false}
+            onChange={(name, value) =>
+              onChange(
+                name as keyof DepartmentFormState,
+                (value as string) || "OPEN"
+              )
+            }
+            helperText="Closed departments are marked inactive but stay visible."
           />
         </FormLayout>
 
@@ -478,17 +501,31 @@ export const DepartmentsAndMinistries = () => {
                         </h3>
                       </div>
 
-                      <Badge
-                        className={`px-3 py-1 text-xs ${
-                          department.department_head_info?.name
-                            ? "border-success/20 bg-success/10 text-success"
-                            : "border-warning/20 bg-warning/10 text-warning"
-                        }`}
-                      >
-                        {department.department_head_info?.name
-                          ? "Head assigned"
-                          : "Needs head"}
-                      </Badge>
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <Badge
+                          className={`px-3 py-1 text-xs ${
+                            (department.status ?? "OPEN") === "OPEN"
+                              ? "border-primary/20 bg-primary/10 text-primary"
+                              : "border-lightGray bg-lightGray/40 text-primaryGray"
+                          }`}
+                        >
+                          {(department.status ?? "OPEN") === "OPEN"
+                            ? "Open"
+                            : "Closed"}
+                        </Badge>
+
+                        <Badge
+                          className={`px-3 py-1 text-xs ${
+                            department.department_head_info?.name
+                              ? "border-success/20 bg-success/10 text-success"
+                              : "border-warning/20 bg-warning/10 text-warning"
+                          }`}
+                        >
+                          {department.department_head_info?.name
+                            ? "Head assigned"
+                            : "Needs head"}
+                        </Badge>
+                      </div>
                     </div>
 
                     <p className="min-h-[72px] text-sm leading-6 text-primaryGray">

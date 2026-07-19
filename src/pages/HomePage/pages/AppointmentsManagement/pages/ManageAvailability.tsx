@@ -328,6 +328,7 @@ const mapAvailabilityToForm = (
 ): IStaffAvailabilityForm => ({
   id: availability.id,
   staffId: availability.staffId,
+  branch_id: "",
   maxBookingsPerSlot: availability.maxBookingsPerSlot,
   timeSlots: availability.timeSlots,
   currentSlot:

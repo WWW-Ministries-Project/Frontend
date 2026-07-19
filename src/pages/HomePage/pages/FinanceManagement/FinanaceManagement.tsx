@@ -64,7 +64,8 @@ const getCurrentMonthYear = () => {
 
 const mapFinancialToCard = (record: FinancialRecord): FinanceCardData => {
   const payload = record?.payload || ({} as FinanceData);
-  const metaData = payload?.metaData || {};
+  const metaData =
+    payload?.metaData || ({} as NonNullable<FinanceData["metaData"]>);
   const month = metaData.month || "";
   const year = metaData.year || "";
   const week = metaData.week || "";
@@ -76,7 +77,12 @@ const mapFinancialToCard = (record: FinancialRecord): FinanceCardData => {
   const to = metaData.to || "—";
 
   return {
-    id: String(record?.id ?? record?._id ?? record?.financialId ?? ""),
+    id: String(
+      record?.id ??
+        (record as { _id?: string; financialId?: string })?._id ??
+        (record as { _id?: string; financialId?: string })?.financialId ??
+        ""
+    ),
     title: titleParts.length > 0 ? titleParts.join(", ") : "Financial Record",
     createdBy: metaData.createdBy || "—",
     createdDate: formatDate(createdDateRaw),

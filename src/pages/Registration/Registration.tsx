@@ -15,7 +15,7 @@ import {
   IUserSubForm,
   UserSubForm,
 } from "@components/subform";
-import { Field, Formik, FormikProps, useFormikContext } from "formik";
+import { Field, Formik, FormikProps, FormikTouched, useFormikContext } from "formik";
 import { useEffect, useState } from "react";
 import { object, ObjectSchema } from "yup";
 import {
@@ -196,7 +196,9 @@ export const Registration = () => {
             const handleNext = async () => {
               const errors: object = await formik.validateForm();
               if (Object.keys(errors).length > 0) {
-                formik.setTouched(mapErrorsToTouched(errors));
+                formik.setTouched(
+                  mapErrorsToTouched(errors) as FormikTouched<IRegistration>
+                );
                 return;
               }
               setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));

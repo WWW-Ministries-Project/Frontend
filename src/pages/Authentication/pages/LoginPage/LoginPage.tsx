@@ -182,7 +182,7 @@ const extractUserProfileFromSources = (
         if (mergedProfile[field] !== undefined) return;
         const value = record[field];
         if (value !== undefined) {
-          mergedProfile[field] = value as userTypeWithToken[typeof field];
+          (mergedProfile as Record<string, unknown>)[field] = value;
         }
       });
     });

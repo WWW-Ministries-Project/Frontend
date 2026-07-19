@@ -149,7 +149,7 @@ export const DepartmentDetails = () => {
   }
 
   const showMissingDepartmentState =
-    Boolean(departmentResponse) && !departmentResponse.data;
+    Boolean(departmentResponse) && !departmentResponse?.data;
 
   return (
     <PageOutline crumbs={crumbs}>

@@ -331,7 +331,7 @@ const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
                       ? null
                       : (((TopicToEdit.learningUnit ?? TopicToEdit.LearningUnit) as unknown) as {
                           type: "video" | "live" | "in-person" | "ppt" | "pdf" | "lesson-note" | "assignment" | "assignment-essay";
-                          data: unknown;
+                          data: Record<string, unknown>;
                         }) || null,
                   type: TopicToEdit.type as
                     | "video"

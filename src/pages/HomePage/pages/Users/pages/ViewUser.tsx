@@ -66,7 +66,11 @@ export const ViewUser = ({ id, onClose }: IProps) => {
   /* Toggle status */
   const toggleAccountStatus = () => {
     if (!user) return;
-    activateUser({ id: +id!, status: user.status, is_active: !isActive });
+    activateUser({
+      id: +id!,
+      status: user.status ?? "UNCONFIRMED",
+      is_active: !isActive,
+    });
   };
 
   /* Reset password notifications */
@@ -247,7 +251,7 @@ export const ViewUser = ({ id, onClose }: IProps) => {
                 label={""}
                 disabled={loadingRoles || accessLoading}
                 options={rolesOptions}
-                onChange={(_, value) => changeAccess(value)}
+                onChange={(_, value) => changeAccess(value ?? "")}
                 id={"role"}
                 value={user?.access_level_id?.toString() || ""}
               />

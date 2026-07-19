@@ -140,6 +140,7 @@ const getAudioContextCtor = (): typeof AudioContext | null => {
   if (typeof window === "undefined") return null;
 
   const extendedWindow = window as Window & {
+    AudioContext?: typeof AudioContext;
     webkitAudioContext?: typeof AudioContext;
   };
 
@@ -306,7 +307,7 @@ export const ensureDevicePushSubscription =
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          appServerKey: urlBase64ToUint8Array(publicKey),
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
         });
       }
 
@@ -461,7 +462,7 @@ export const showForegroundDeviceNotification = (
       url: target.url,
       external: target.external,
     },
-  });
+  } as NotificationOptions & { renotify?: boolean });
 
   browserNotification.onclick = () => {
     browserNotification.close();

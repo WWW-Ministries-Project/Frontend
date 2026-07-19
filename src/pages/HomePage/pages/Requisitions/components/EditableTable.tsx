@@ -27,7 +27,7 @@ const TableData = ({
   className = "",
   colSpan,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   colSpan?: number;
 }) => (

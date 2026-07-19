@@ -8,6 +8,7 @@ export * from "./api/events/interfaces";
 export * from "./api/members/interfaces";
 export * from "./api/ministrySchool/interfaces";
 export * from "./api/settings/departmentInterfaces";
+export * from "./api/departmentJoinRequests/interfaces";
 export * from "./api/settings/branchInterfaces";
 export * from "./api/settings/attendanceTimingInterfaces";
 export * from "./api/settings/positionInterfaces";

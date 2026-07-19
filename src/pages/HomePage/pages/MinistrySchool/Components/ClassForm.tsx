@@ -6,6 +6,7 @@ import { BranchSelectField } from "@/components/BranchSelectField";
 import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
+import type { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { api } from "@/utils/api/apiCalls";
 import { Field, Form, Formik } from "formik";
 import { useEffect, useMemo } from "react";
@@ -35,7 +36,7 @@ export const ClassForm = ({
 
   useEffect(() => {
     if (membersOptionsData?.data?.length) {
-      setMemberOptions(membersOptionsData.data);
+      setMemberOptions(membersOptionsData.data as unknown as UserType[]);
     }
   }, [membersOptionsData, setMemberOptions]);
 

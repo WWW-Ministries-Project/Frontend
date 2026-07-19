@@ -5,6 +5,7 @@ const tabs = [
   { label: "Member Confirmation", path: "member-confirmation" },
   { label: "Visitor-to-Membership", path: "visitor-to-membership" },
   { label: "Soulwon-to-Membership", path: "soulwon-to-membership" },
+  { label: "Join Department Requests", path: "join-requests" },
 ] as const;
 
 export const MembershipManagement = () => {

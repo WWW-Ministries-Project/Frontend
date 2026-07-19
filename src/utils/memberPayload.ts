@@ -7,7 +7,7 @@ type PersonWithOtherName = {
 type PayloadWithOptionalOtherNames = {
   personal_info?: PersonWithOtherName | null;
   family?: Array<
-    ((PersonWithOtherName & { relation?: unknown }) & Record<string, unknown>) | null
+    (PersonWithOtherName & { relation?: unknown }) | null
   > | null;
 };
 

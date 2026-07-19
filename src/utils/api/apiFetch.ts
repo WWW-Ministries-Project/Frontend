@@ -36,6 +36,10 @@ import {
   Programs,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
+import type {
+  JoinRequestRow,
+  OpenDepartmentToJoin,
+} from "./departmentJoinRequests/interfaces";
 import { Branch } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
@@ -221,6 +225,22 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<DepartmentDetailsType | null>> => {
     return this.fetchFromApi("department/get-department", query);
+  };
+
+  // Department join requests
+  fetchOpenDepartmentsToJoin = (
+    query?: QueryType
+  ): Promise<ApiResponse<OpenDepartmentToJoin[]>> => {
+    return this.fetchFromApi(
+      "department-join-request/open-departments",
+      query
+    );
+  };
+
+  fetchJoinRequests = (
+    query?: QueryType
+  ): Promise<ApiResponse<JoinRequestRow[]>> => {
+    return this.fetchFromApi("department-join-request/list", query);
   };
 
   // Asset Management

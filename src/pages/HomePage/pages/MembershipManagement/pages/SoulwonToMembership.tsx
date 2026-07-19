@@ -75,7 +75,9 @@ const buildPrefillForm = (record: SoulwonRecord): IMembersForm => ({
   emergency_contact: {
     ...MembersForm.initialValues.emergency_contact,
     phone: {
-      ...MembersForm.initialValues.emergency_contact.phone,
+      country_code:
+        MembersForm.initialValues.emergency_contact.phone?.country_code ?? "",
+      number: MembersForm.initialValues.emergency_contact.phone?.number ?? "",
     },
   },
   church_info: {
