@@ -9,6 +9,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
+import FinanceConfigForm from "./FinanceConfigForm";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import {
@@ -57,6 +58,8 @@ const toRatio = (value: unknown): number => {
 };
 
 const toDisplayPercent = (value: unknown): number => toRatio(value) * 100;
+
+const ADD_NEW_CONFIG_VALUE = "__add_new_config__";
 
 const formatPercent = (value: unknown): string => {
   const percent = toDisplayPercent(value);
@@ -412,6 +415,9 @@ const FinanceBuilder = ({
   const navigate = useNavigate();
   const [receiptToAdd, setReceiptToAdd] = React.useState("");
   const [paymentToAdd, setPaymentToAdd] = React.useState("");
+  const [configModalType, setConfigModalType] = React.useState<
+    null | "receipt" | "payment"
+  >(null);
   const [confirmApprovalOpen, setConfirmApprovalOpen] = React.useState(false);
   const submitActionRef = React.useRef<FinanceSaveAction>("SAVE_DRAFT");
   const membersOptions = useStore((state) => state.membersOptions);
@@ -424,11 +430,13 @@ const FinanceBuilder = ({
     data: receiptConfigResponse,
     loading: receiptConfigLoading,
     error: receiptConfigError,
+    refetch: refetchReceiptConfig,
   } = useFetch(api.fetch.fetchReceiptConfig, undefined, !loadConfig);
   const {
     data: paymentConfigResponse,
     loading: paymentConfigLoading,
     error: paymentConfigError,
+    refetch: refetchPaymentConfig,
   } = useFetch(api.fetch.fetchPaymentConfig, undefined, !loadConfig);
   const {
     data: titheConfigResponse,
@@ -592,6 +600,36 @@ const FinanceBuilder = ({
           (item) => !selectedPaymentKeys.has(getConfigKey(item.id, item.name))
         );
 
+        // After creating a new config from the dropdown, reload the config list
+        // and auto-append the newly created item to the current financial.
+        const addCreatedConfig = async (
+          type: "receipt" | "payment",
+          name: string
+        ) => {
+          const response = await (type === "receipt"
+            ? refetchReceiptConfig
+            : refetchPaymentConfig)();
+          const list = normalizeConfigList(response);
+          const created = [...list].reverse().find((item) => item.name === name);
+          if (!created) return;
+
+          const key = getConfigKey(created.id, created.name);
+          const field = type === "receipt" ? "receipts" : "payments";
+          const current =
+            type === "receipt" ? values.receipts : values.payments;
+          if (
+            current.some(
+              (item) => getConfigKey(item.configId, item.item) === key
+            )
+          ) {
+            return;
+          }
+          setFieldValue(field, [
+            ...current,
+            { item: created.name, amount: null, configId: created.id },
+          ]);
+        };
+
         const totalAllocationPercent =
           values.fundAllocation.reduce(
             (total, allocation) => total + toRatio(allocation.portionPercent),
@@ -630,9 +668,19 @@ const FinanceBuilder = ({
                     <select
                       className="app-input w-full md:w-auto md:min-w-[18rem]"
                       value={receiptToAdd}
-                      onChange={(event) => setReceiptToAdd(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (value === ADD_NEW_CONFIG_VALUE) {
+                          setConfigModalType("receipt");
+                          return;
+                        }
+                        setReceiptToAdd(value);
+                      }}
                     >
                       <option value="">Select receipt to add</option>
+                      <option value={ADD_NEW_CONFIG_VALUE}>
+                        + Add new receipt
+                      </option>
                       {availableReceiptOptions.map((item) => {
                         const key = getConfigKey(item.id, item.name);
                         return (
@@ -793,9 +841,19 @@ const FinanceBuilder = ({
                     <select
                       className="app-input w-full md:w-auto md:min-w-[18rem]"
                       value={paymentToAdd}
-                      onChange={(event) => setPaymentToAdd(event.target.value)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        if (value === ADD_NEW_CONFIG_VALUE) {
+                          setConfigModalType("payment");
+                          return;
+                        }
+                        setPaymentToAdd(value);
+                      }}
                     >
                       <option value="">Select payment to add</option>
+                      <option value={ADD_NEW_CONFIG_VALUE}>
+                        + Add new payment
+                      </option>
                       {availablePaymentOptions.map((item) => {
                         const key = getConfigKey(item.id, item.name);
                         return (
@@ -1191,6 +1249,27 @@ const FinanceBuilder = ({
                   />
                 </div>
               </div>
+            </Modal>
+
+            <Modal
+              open={!!configModalType}
+              onClose={() => setConfigModalType(null)}
+              className="max-w-2xl"
+            >
+              {configModalType && (
+                <FinanceConfigForm
+                  type={configModalType}
+                  onClose={() => setConfigModalType(null)}
+                  refetch={
+                    configModalType === "receipt"
+                      ? refetchReceiptConfig
+                      : refetchPaymentConfig
+                  }
+                  onSubmit={(vals) =>
+                    void addCreatedConfig(configModalType, vals.name)
+                  }
+                />
+              )}
             </Modal>
           </Form>
         );
