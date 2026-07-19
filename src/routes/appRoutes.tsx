@@ -93,6 +93,9 @@ import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceMan
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
 import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
 import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
+import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
+import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
+import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
 import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
 import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
 import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
@@ -663,6 +666,35 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "manage_financials",
             sideTab: true,
+          },
+          {
+            path: "pledges",
+            name: "Pledges",
+            element: <PledgesOverview />,
+            isPrivate: true,
+            permissionNeeded: "view_pledges",
+            sideTab: true,
+          },
+          {
+            path: "pledges/create",
+            name: "Create Pledge",
+            element: <PledgeForm mode="create" />,
+            isPrivate: true,
+            permissionNeeded: "manage_pledges",
+          },
+          {
+            path: "pledges/:id",
+            name: "Pledge Detail",
+            element: <PledgeDetail />,
+            isPrivate: true,
+            permissionNeeded: "view_pledges",
+          },
+          {
+            path: "pledges/:id/edit",
+            name: "Edit Pledge",
+            element: <PledgeForm mode="edit" />,
+            isPrivate: true,
+            permissionNeeded: "manage_pledges",
           },
         ],
       },

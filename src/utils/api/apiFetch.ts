@@ -4,6 +4,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
+import type { PledgeDetail, PledgeListRow } from "./pledges/interface";
 import {
   BiometricAttendanceImportJob,
   BiometricEventAttendanceListResponse,
@@ -714,6 +715,20 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<FinancialRecord | FinancialRecord[] | FinanceData>> => {
     return this.fetchFromApi("financials/get-financial", query);
+  };
+
+  // fetch pledges
+  fetchPledges = (
+    query?: QueryType
+  ): Promise<ApiResponse<PledgeListRow[]>> => {
+    return this.fetchFromApi("pledges/get-pledges", query);
+  };
+
+  // fetch single pledge
+  fetchPledge = (
+    query?: QueryType
+  ): Promise<ApiResponse<PledgeDetail>> => {
+    return this.fetchFromApi("pledges/get-pledge", query);
   };
 
   fetchFinanceApprovalConfig = (
