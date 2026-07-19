@@ -5,7 +5,12 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
-import type { PledgeMutationPayload, PledgerInput } from "./pledges/interface";
+import type {
+  PledgeDetail,
+  PledgeMutationPayload,
+  PledgerInput,
+  Redemption,
+} from "./pledges/interface";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
@@ -58,7 +63,6 @@ import {
 } from "./appointment/interfaces";
 import type {
   FinanceApprovalConfig,
-  FinanceData,
   FinanceMutationRequest,
   FinancialRecord,
 } from "./finance/interface";
@@ -540,25 +544,27 @@ export class ApiCreationCalls {
     return this.postToApi("financials/create-financial", payload);
   };
 
-  createPledge = <T>(payload: PledgeMutationPayload): Promise<ApiResponse<T>> => {
+  createPledge = (
+    payload: PledgeMutationPayload
+  ): Promise<ApiResponse<PledgeDetail>> => {
     return this.postToApi("pledges/create-pledge", payload);
   };
 
-  addPledgers = <T>(payload: {
+  addPledgers = (payload: {
     group_id: number;
     pledgers: PledgerInput[];
-  }): Promise<ApiResponse<T>> => {
+  }): Promise<ApiResponse<unknown>> => {
     return this.postToApi("pledges/add-pledgers", payload);
   };
 
-  createRedemption = <T>(payload: {
+  createRedemption = (payload: {
     pledger_id: number;
     amount: number;
     date: string;
     method: string;
     note?: string;
     image_url?: string | null;
-  }): Promise<ApiResponse<T>> => {
+  }): Promise<ApiResponse<Redemption>> => {
     return this.postToApi("pledges/create-redemption", payload);
   };
 
