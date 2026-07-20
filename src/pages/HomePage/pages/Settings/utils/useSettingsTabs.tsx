@@ -83,6 +83,7 @@ export function useSettingsTabs({
                   name: row.original?.name,
                   description: row.original?.description,
                   department_id: row.original?.department?.id,
+                  branch_id: row.original?.branch_id ?? undefined,
                 });
                 setEditMode(true);
                 setDisplayForm(true);
