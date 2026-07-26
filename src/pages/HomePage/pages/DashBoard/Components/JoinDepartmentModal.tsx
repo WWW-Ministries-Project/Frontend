@@ -31,6 +31,9 @@ export const JoinDepartmentModal = ({
 
   const [submittingId, setSubmittingId] = useState<number | null>(null);
   const [joinedIds, setJoinedIds] = useState<number[]>([]);
+  const [missingPrograms, setMissingPrograms] = useState<
+    { id: number | string; title: string }[]
+  >([]);
 
   const departments = data?.data ?? [];
 
@@ -46,10 +49,24 @@ export const JoinDepartmentModal = ({
         "success"
       );
       setJoinedIds((prev) => [...prev, department.id]);
+      setMissingPrograms([]);
     } catch (error) {
+      const data = (
+        error as {
+          response?: {
+            data?: {
+              message?: string;
+              data?: {
+                missing_programs?: { id: number | string; title: string }[];
+              };
+            };
+          };
+        }
+      )?.response?.data;
       const message =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message || "Unable to submit your request. Please try again.";
+        data?.message || "Unable to submit your request. Please try again.";
+      const missing = data?.data?.missing_programs ?? [];
+      setMissingPrograms(missing);
       showNotification(message, "error");
     } finally {
       setSubmittingId(null);
@@ -74,6 +91,18 @@ export const JoinDepartmentModal = ({
       </FormHeader>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6">
+        {missingPrograms.length > 0 && (
+          <div className="rounded-xl border border-red-300 bg-red-50 p-4">
+            <p className="text-sm font-semibold text-red-700">
+              Complete these programs before joining a department
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+              {missingPrograms.map((program) => (
+                <li key={program.id}>{program.title}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {loading ? (
           <p className="py-10 text-center text-sm text-primaryGray">
             Loading open departments…
