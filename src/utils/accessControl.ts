@@ -98,6 +98,13 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Sermons: ["Sermons", "Sermon"],
 };
 
+// Domains added after access levels were already saved fall back to a broader
+// domain when their key is missing from the payload. Keys here must be canonical
+// domains, not aliases — aliases feed DOMAIN_LOOKUP and would remap incoming keys.
+const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = {
+  Membership_Management: ["Members"],
+};
+
 const REQUIRED_KEYS_ON_MUTATION = new Set<PermissionDomain>([
   "Members",
   "Departments",
@@ -516,9 +523,22 @@ export const resolvePermission = (
   domain: string
 ): PermissionValue | null => {
   const normalized = normalizePermissionPayload(permissions);
-  const resolvedDomain = String(resolveDomain(domain));
-  const parsed = parsePermissionValue(normalized[resolvedDomain]);
-  return parsed || null;
+  const resolvedDomain = resolveDomain(domain);
+  const parsed = parsePermissionValue(normalized[String(resolvedDomain)]);
+  if (parsed) return parsed;
+
+  // Access levels saved before a domain existed have no key for it. The backend
+  // falls back to a broader domain in that case (see PERMISSION_KEY_ALIASES in
+  // Backend/src/utils/permissionResolver.ts) — mirror that here so the UI does
+  // not hide actions the API allows. An explicit No_Access still wins.
+  const fallbacks =
+    DOMAIN_FALLBACKS[resolvedDomain as PermissionDomain] || [];
+  for (const fallback of fallbacks) {
+    const fallbackValue = parsePermissionValue(normalized[fallback]);
+    if (fallbackValue) return fallbackValue;
+  }
+
+  return null;
 };
 
 export const canAccess = (
