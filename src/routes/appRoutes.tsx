@@ -84,6 +84,7 @@ import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import AnnouncementManager from "@/pages/HomePage/pages/ChurchCommunication/AnnouncementManager.js";
+import MemberAnnouncementsPage from "@/pages/HomePage/pages/Announcements/MemberAnnouncementsPage.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
@@ -1203,6 +1204,12 @@ export const routes: AppRoute[] = [
         path: relativePath.member.notifications,
         name: "member_notifications",
         element: <NotificationCenterPage />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.announcements,
+        name: "member_announcements",
+        element: <MemberAnnouncementsPage />,
         isPrivate: false,
       }
       // {
