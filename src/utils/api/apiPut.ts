@@ -5,6 +5,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
+import type { SermonSeries, UpdateSermonSeriesDto } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
@@ -489,6 +490,14 @@ export class ApiUpdateCalls {
     payload: UpdateAnnouncementDto
   ): Promise<ApiResponse<Announcement>> => {
     return this.apiExecution.updateData(`announcements/${id}`, payload);
+  }
+
+  // update sermon series
+  updateSermonSeries = (
+    id: number,
+    payload: UpdateSermonSeriesDto
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.apiExecution.updateData(`sermons/${id}`, payload);
   }
 
 // update receipt config

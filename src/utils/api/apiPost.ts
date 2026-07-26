@@ -5,6 +5,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
+import type { SermonSeries, CreateSermonSeriesDto } from "./sermons/interfaces";
 import { AssetPayloadType } from "./assets/interfaces";
 import type {
   PledgeDetail,
@@ -541,6 +542,25 @@ export class ApiCreationCalls {
     id: number
   ): Promise<ApiResponse<Announcement>> => {
     return this.postToApi(`announcements/${id}/publish`, {});
+  };
+
+  // Sermons
+  createSermonSeries = (
+    payload: CreateSermonSeriesDto
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.postToApi("sermons", payload);
+  };
+
+  publishSermonSeries = (
+    id: number
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.postToApi(`sermons/${id}/publish`, {});
+  };
+
+  unpublishSermonSeries = (
+    id: number
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.postToApi(`sermons/${id}/unpublish`, {});
   };
 
   // create receipt config 

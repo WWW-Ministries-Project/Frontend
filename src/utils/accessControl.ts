@@ -32,6 +32,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Settings",
   "AI",
   "Announcements",
+  "Sermons",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -94,6 +95,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Marketplace: ["Marketplace", "Market Place", "Market"],
   "Life Center": ["Life Center", "Life_Center", "Life center", "LifeCenter"],
   Announcements: ["Announcements", "Announcement"],
+  Sermons: ["Sermons", "Sermon"],
 };
 
 const REQUIRED_KEYS_ON_MUTATION = new Set<PermissionDomain>([
@@ -217,6 +219,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     required: false,
   },
   {
+    key: "Sermons",
+    label: "Sermons",
+    description: "Sermon series and video links for members",
+    group: "Engagement",
+    required: false,
+  },
+  {
     key: "Life Center",
     label: "Life Center",
     description: "Life center administration and soul winning data",
@@ -319,6 +328,8 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_ai: { domain: "AI", action: "manage" },
   view_announcements: { domain: "Announcements", action: "view" },
   manage_announcements: { domain: "Announcements", action: "manage" },
+  view_sermons: { domain: "Sermons", action: "view" },
+  manage_sermons: { domain: "Sermons", action: "manage" },
 };
 
 const VIEW_ACCESS = new Set<PermissionValue>([

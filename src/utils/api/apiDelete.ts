@@ -184,6 +184,13 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`announcements/${id}`, {});
   }
 
+  // Delete Sermon Series
+  deleteSermonSeries = (
+    id: number
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`sermons/${id}`, {});
+  }
+
   // delete receipt confiq
   deleteReceiptConfig = (
     query: QueryType

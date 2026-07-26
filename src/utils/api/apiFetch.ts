@@ -5,6 +5,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
+import type { SermonSeries } from "./sermons/interfaces";
 import type { PledgeDetail, PledgeListRow } from "./pledges/interface";
 import {
   BiometricAttendanceImportJob,
@@ -707,6 +708,19 @@ export class ApiCalls {
     id: number
   ): Promise<ApiResponse<Announcement>> => {
     return this.fetchFromApi(`announcements/${id}`);
+  };
+
+  // Sermons
+  fetchSermonSeries = (
+    query?: QueryType
+  ): Promise<ApiResponse<SermonSeries[]>> => {
+    return this.fetchFromApi("sermons", query);
+  };
+
+  fetchOneSermonSeries = (
+    id: number
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.fetchFromApi(`sermons/${id}`);
   };
 
   fetchMyAnnouncements = (

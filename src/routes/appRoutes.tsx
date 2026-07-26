@@ -84,6 +84,7 @@ import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import AnnouncementManager from "@/pages/HomePage/pages/ChurchCommunication/AnnouncementManager.js";
+import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
 import MemberAnnouncementsPage from "@/pages/HomePage/pages/Announcements/MemberAnnouncementsPage.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
@@ -528,6 +529,14 @@ export const routes: AppRoute[] = [
             element: <AnnouncementManager />,
             isPrivate: true,
             permissionNeeded: "view_announcements",
+            sideTab: true,
+          },
+          {
+            path: "sermons",
+            name: "Sermons",
+            element: <SermonManager />,
+            isPrivate: true,
+            permissionNeeded: "view_sermons",
             sideTab: true,
           },
         ],
