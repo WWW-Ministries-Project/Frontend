@@ -83,6 +83,7 @@ import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
+import AnnouncementManager from "@/pages/HomePage/pages/ChurchCommunication/AnnouncementManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
@@ -518,6 +519,14 @@ export const routes: AppRoute[] = [
             element: <AnnualThemeManager />,
             isPrivate: true,
             permissionNeeded: "view_theme",
+            sideTab: true,
+          },
+          {
+            path: "announcements",
+            name: "Announcement",
+            element: <AnnouncementManager />,
+            isPrivate: true,
+            permissionNeeded: "view_announcements",
             sideTab: true,
           },
         ],
