@@ -3,6 +3,7 @@ import clsx from "clsx";
 
 export interface InputDivProps {
   id: string;
+  name?: string;
   label?: string;
   type?:
     | "text"
@@ -51,6 +52,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
   (
     {
       id,
+      name,
       label,
       type = "text",
       value,
@@ -80,6 +82,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
   ) => {
     const isTextarea = type === "textarea";
     const normalizedValue = value ?? "";
+    const fieldName = name ?? id;
 
     const baseInputStyles = "app-input";
 
@@ -126,7 +129,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
         {isTextarea ? (
           <textarea
             id={id}
-            name={id}
+            name={fieldName}
             value={normalizedValue}
             placeholder={placeholder}
             disabled={disabled}
@@ -146,7 +149,7 @@ export const InputDiv = forwardRef<HTMLDivElement, InputDivProps>(
         ) : (
           <input
             id={id}
-            name={id}
+            name={fieldName}
             type={type}
             value={normalizedValue}
             placeholder={placeholder}
