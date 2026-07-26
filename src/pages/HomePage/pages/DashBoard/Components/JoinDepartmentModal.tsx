@@ -7,6 +7,7 @@ import { showNotification } from "@/pages/HomePage/utils";
 import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils";
 import type { OpenDepartmentToJoin } from "@/utils";
+import { ApiError } from "@/utils/api/errors/ApiError";
 import { useMemo, useState } from "react";
 
 const getHeadName = (department: OpenDepartmentToJoin) =>
@@ -51,23 +52,20 @@ export const JoinDepartmentModal = ({
       setJoinedIds((prev) => [...prev, department.id]);
       setMissingPrograms([]);
     } catch (error) {
-      const data = (
-        error as {
-          response?: {
-            data?: {
-              message?: string;
-              data?: {
-                missing_programs?: { id: number | string; title: string }[];
-              };
-            };
-          };
-        }
-      )?.response?.data;
-      const message =
-        data?.message || "Unable to submit your request. Please try again.";
-      const missing = data?.data?.missing_programs ?? [];
-      setMissingPrograms(missing);
-      showNotification(message, "error");
+      const details =
+        error instanceof ApiError
+          ? (error.details as
+              | {
+                  data?: {
+                    missing_programs?: {
+                      id: number | string;
+                      title: string;
+                    }[];
+                  };
+                }
+              | undefined)
+          : undefined;
+      setMissingPrograms(details?.data?.missing_programs ?? []);
     } finally {
       setSubmittingId(null);
     }
@@ -92,7 +90,7 @@ export const JoinDepartmentModal = ({
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6">
         {missingPrograms.length > 0 && (
-          <div className="rounded-xl border border-red-300 bg-red-50 p-4">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <p className="text-sm font-semibold text-red-700">
               Complete these programs before joining a department
             </p>
