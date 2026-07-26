@@ -4,6 +4,7 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
+import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
@@ -481,6 +482,14 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
+
+  // update announcement
+  updateAnnouncement = (
+    id: number,
+    payload: UpdateAnnouncementDto
+  ): Promise<ApiResponse<Announcement>> => {
+    return this.apiExecution.updateData(`announcements/${id}`, payload);
+  }
 
 // update receipt config
   updateReceiptConfig = (

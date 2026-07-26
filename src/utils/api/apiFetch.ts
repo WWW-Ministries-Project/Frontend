@@ -4,6 +4,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
+import type { Announcement } from "./announcements/interfaces";
 import type { PledgeDetail, PledgeListRow } from "./pledges/interface";
 import {
   BiometricAttendanceImportJob,
@@ -694,6 +695,25 @@ export class ApiCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("theme/get-active-theme", query);
   }
+
+  // Announcements
+  fetchAnnouncements = (
+    query?: QueryType
+  ): Promise<ApiResponse<Announcement[]>> => {
+    return this.fetchFromApi("announcements", query);
+  };
+
+  fetchAnnouncement = (
+    id: number
+  ): Promise<ApiResponse<Announcement>> => {
+    return this.fetchFromApi(`announcements/${id}`);
+  };
+
+  fetchMyAnnouncements = (
+    query?: QueryType
+  ): Promise<ApiResponse<Announcement[]>> => {
+    return this.fetchFromApi("announcements/mine", query);
+  };
 
   // fetch receipt config
   fetchReceiptConfig = (

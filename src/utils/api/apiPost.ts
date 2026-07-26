@@ -4,6 +4,7 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
+import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
 import { AssetPayloadType } from "./assets/interfaces";
 import type {
   PledgeDetail,
@@ -528,6 +529,19 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("theme/create-theme", payload);
   }
+
+  // Announcements
+  createAnnouncement = (
+    payload: CreateAnnouncementDto
+  ): Promise<ApiResponse<Announcement>> => {
+    return this.postToApi("announcements", payload);
+  };
+
+  publishAnnouncement = (
+    id: number
+  ): Promise<ApiResponse<Announcement>> => {
+    return this.postToApi(`announcements/${id}/publish`, {});
+  };
 
   // create receipt config 
   createReceiptConfig = (
