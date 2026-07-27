@@ -3,7 +3,15 @@ import { useEffect } from "react";
 import { useAuth } from "@/context/AuthWrapper";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
 import { api } from "@/utils/api/apiCalls";
+import { AUTH_SESSION_CLEARED_EVENT } from "@/utils/authSession";
 import { getToken } from "@/utils/helperFunctions";
+import {
+  NOTIFICATION_CHANNEL_NAME,
+  NOTIFICATION_EVENT_KEY,
+  NOTIFICATION_LAST_EVENT_ID_KEY,
+  NOTIFICATION_LEADER_KEY,
+  NOTIFICATION_SNAPSHOT_KEY,
+} from "./realtimeStorageKeys";
 import {
   parseNotificationStreamToken,
   resolveNotificationSseUrl,
@@ -18,13 +26,6 @@ const SSE_EVENTS = {
   notificationsCleared: "notifications_cleared",
   unreadCount: "unread_count",
 } as const;
-
-const NOTIFICATION_LEADER_KEY = "churchproject.notifications.realtime.leader";
-const NOTIFICATION_EVENT_KEY = "churchproject.notifications.realtime.event";
-const NOTIFICATION_CHANNEL_NAME = "churchproject.notifications.realtime";
-const NOTIFICATION_SNAPSHOT_KEY = "churchproject.notifications.realtime.snapshot";
-const NOTIFICATION_LAST_EVENT_ID_KEY =
-  "churchproject.notifications.realtime.last_event_id";
 
 const LEADER_HEARTBEAT_MS = 4_000;
 const LEADER_STALE_MS = 12_000;
@@ -165,6 +166,8 @@ const parseSsePayload = (value: string): unknown => {
     return null;
   }
 };
+
+const hasActiveSession = (): boolean => Boolean(getToken());
 
 const parseLastEventId = (value: unknown): string | null => {
   if (typeof value !== "string") return null;
@@ -404,6 +407,11 @@ export const NotificationRealtimeConnector = () => {
     const syncFromApi = async (force = false) => {
       if (isDisposed) return;
 
+      if (!hasActiveSession()) {
+        teardownForSignedOutSession();
+        return;
+      }
+
       const now = Date.now();
       if (!force && now - lastResyncAt < RESYNC_THROTTLE_MS) {
         return;
@@ -448,6 +456,10 @@ export const NotificationRealtimeConnector = () => {
       }
 
       fallbackPollTimer = window.setInterval(() => {
+        if (!hasActiveSession()) {
+          teardownForSignedOutSession();
+          return;
+        }
         if (!isLeader || document.visibilityState === "hidden") return;
         void syncFromApi(false);
       }, FALLBACK_POLL_MS);
@@ -457,6 +469,26 @@ export const NotificationRealtimeConnector = () => {
       if (!eventSource) return;
       eventSource.close();
       eventSource = null;
+    };
+
+    /**
+     * Permanently stops this effect instance once the session is gone. Without
+     * it, the reconnect/fallback timers keep firing after logout (or after the
+     * token cookie expires) and every call answers 401. A fresh effect runs
+     * when the user signs in again because `userId` changes.
+     */
+    const teardownForSignedOutSession = () => {
+      if (isDisposed) return;
+
+      isDisposed = true;
+      isLeader = false;
+      clearReconnectTimer();
+      clearFallbackPoll();
+      clearFollowerCheck();
+      clearLeaderHeartbeat();
+      disconnect();
+      removeLeaderLease();
+      setConnected(false);
     };
 
     const rememberLastEventId = (event: MessageEvent<string>) => {
@@ -554,6 +586,11 @@ export const NotificationRealtimeConnector = () => {
     const scheduleReconnect = () => {
       if (isDisposed || !isLeader || document.visibilityState === "hidden") return;
 
+      if (!hasActiveSession()) {
+        teardownForSignedOutSession();
+        return;
+      }
+
       const jitterMs = Math.floor(Math.random() * 1_000);
       const waitMs =
         Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** reconnectAttempts) +
@@ -576,6 +613,11 @@ export const NotificationRealtimeConnector = () => {
         return;
       }
 
+      if (!hasActiveSession()) {
+        teardownForSignedOutSession();
+        return;
+      }
+
       disconnect();
 
       try {
@@ -586,6 +628,11 @@ export const NotificationRealtimeConnector = () => {
           (document.visibilityState as DocumentVisibilityState) === "hidden" ||
           !navigator.onLine
         ) {
+          return;
+        }
+
+        if (!hasActiveSession()) {
+          teardownForSignedOutSession();
           return;
         }
 
@@ -671,6 +718,11 @@ export const NotificationRealtimeConnector = () => {
 
     const tryAcquireLeadership = () => {
       if (isDisposed || document.visibilityState === "hidden") return;
+
+      if (!hasActiveSession()) {
+        teardownForSignedOutSession();
+        return;
+      }
 
       if (!storageAvailable) {
         becomeLeader();
@@ -827,11 +879,17 @@ export const NotificationRealtimeConnector = () => {
       };
     }
 
+    const onSessionCleared = () => {
+      teardownForSignedOutSession();
+    };
+
     if (storageAvailable) {
       window.addEventListener("storage", onStorage);
     }
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
+    window.addEventListener(AUTH_SESSION_CLEARED_EVENT, onSessionCleared);
+    window.addEventListener("app:session-expired", onSessionCleared);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     // Hydrate quickly from a recent leader snapshot to avoid per-tab bootstrap API bursts.
@@ -857,6 +915,8 @@ export const NotificationRealtimeConnector = () => {
       }
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
+      window.removeEventListener(AUTH_SESSION_CLEARED_EVENT, onSessionCleared);
+      window.removeEventListener("app:session-expired", onSessionCleared);
       document.removeEventListener("visibilitychange", onVisibilityChange);
 
       if (broadcastChannel) {

@@ -1,5 +1,9 @@
 import { useUserStore } from "@/store/userStore";
-import { clearAuthSession, resetProtectedAppState } from "@/utils/authSession";
+import {
+  AUTH_LOGOUT_BROADCAST_KEY,
+  clearAuthSession,
+  resetProtectedAppState,
+} from "@/utils/authSession";
 import { getToken } from "@/utils/helperFunctions";
 import { userType, userTypeWithToken } from "@/utils/interfaces";
 import PropTypes from "prop-types";
@@ -73,12 +77,28 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
       navigate("/home/access-denied", { replace: true });
     };
 
+    // The auth cookie is shared by every tab, so a logout in one tab leaves the
+    // others holding an unusable session. Mirror the logout locally instead of
+    // letting them keep polling the API with no token.
+    const handleCrossTabLogout = (event: StorageEvent) => {
+      if (event.key !== AUTH_LOGOUT_BROADCAST_KEY || !event.newValue) return;
+      if (getToken()) return;
+
+      // Clear locally without re-broadcasting, otherwise tabs would bounce the
+      // logout signal back and forth.
+      useUserStore.getState().clearUser();
+      resetProtectedAppState();
+      navigate("/login", { replace: true });
+    };
+
     window.addEventListener("app:session-expired", handleSessionExpired);
     window.addEventListener("app:access-denied", handleAccessDenied);
+    window.addEventListener("storage", handleCrossTabLogout);
 
     return () => {
       window.removeEventListener("app:session-expired", handleSessionExpired);
       window.removeEventListener("app:access-denied", handleAccessDenied);
+      window.removeEventListener("storage", handleCrossTabLogout);
     };
   }, [logout, navigate]);
 

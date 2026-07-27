@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { useAuth } from "@/context/AuthWrapper";
+import { AUTH_SESSION_CLEARED_EVENT } from "@/utils/authSession";
 import { getToken } from "@/utils/helperFunctions";
 import {
   getDeviceNotificationPermissionState,
@@ -51,8 +52,24 @@ export const NotificationDeviceConnector = () => {
       retryTimer = null;
     };
 
+    const stopForSignedOutSession = () => {
+      if (isDisposed) return;
+
+      isDisposed = true;
+      clearRetryTimer();
+      // Drop the local subscription only; the backend call would 401 anyway.
+      void removeDevicePushSubscription({ skipBackendUnsubscribe: true });
+    };
+
     const syncDeviceSubscription = async () => {
       if (isDisposed || syncInFlight) {
+        return;
+      }
+
+      // Re-check on every run: the cookie can disappear (logout in this or
+      // another tab, JWT expiry) long after this effect started.
+      if (!getToken()) {
+        stopForSignedOutSession();
         return;
       }
 
@@ -106,11 +123,17 @@ export const NotificationDeviceConnector = () => {
       void syncDeviceSubscription();
     };
 
+    const onSessionCleared = () => {
+      stopForSignedOutSession();
+    };
+
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", onServiceWorkerMessage);
     }
     window.addEventListener("focus", onWindowFocus);
     window.addEventListener("online", onWindowOnline);
+    window.addEventListener(AUTH_SESSION_CLEARED_EVENT, onSessionCleared);
+    window.addEventListener("app:session-expired", onSessionCleared);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     void syncDeviceSubscription();
@@ -127,6 +150,8 @@ export const NotificationDeviceConnector = () => {
       }
       window.removeEventListener("focus", onWindowFocus);
       window.removeEventListener("online", onWindowOnline);
+      window.removeEventListener(AUTH_SESSION_CLEARED_EVENT, onSessionCleared);
+      window.removeEventListener("app:session-expired", onSessionCleared);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [userId]);

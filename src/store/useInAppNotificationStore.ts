@@ -15,11 +15,18 @@ import { getNotificationActionDefinition } from "@/features/notifications/action
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import type { InAppNotification } from "@/utils/api/notifications/interfaces";
+import { getToken } from "@/utils/helperFunctions";
 import type { QueryType } from "@/utils/interfaces";
 import { create } from "zustand";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_TOAST_KEYS = 120;
+
+/**
+ * Notification endpoints are all authenticated. Guard every call so a
+ * signed-out tab never fires a request that can only come back 401.
+ */
+const hasActiveSession = (): boolean => Boolean(getToken());
 
 type NotificationIngestSource = "sse" | "broadcast" | "fetch" | "manual";
 
@@ -195,6 +202,11 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     ...createInitialState(),
 
     fetchNotifications: async (options = {}) => {
+      if (!hasActiveSession()) {
+        set({ loading: false, loadingMore: false });
+        return;
+      }
+
       const state = get();
       const {
         page = 1,
@@ -272,6 +284,8 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     fetchUnreadCount: async () => {
+      if (!hasActiveSession()) return;
+
       try {
         const response = await api.fetch.fetchNotificationsUnreadCount();
         const unreadCount = parseUnreadCount(response.data);
@@ -289,6 +303,8 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     fetchTotalCount: async () => {
+      if (!hasActiveSession()) return;
+
       try {
         const response = await api.fetch.fetchNotifications({
           page: 1,
@@ -427,7 +443,7 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     markAsRead: async (notificationId) => {
-      if (!notificationId) return false;
+      if (!notificationId || !hasActiveSession()) return false;
 
       const state = get();
       const target = state.notifications.find(
@@ -468,7 +484,7 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     markAsUnread: async (notificationId) => {
-      if (!notificationId) return false;
+      if (!notificationId || !hasActiveSession()) return false;
 
       const state = get();
       const target = state.notifications.find(
@@ -509,6 +525,8 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     markAllAsRead: async () => {
+      if (!hasActiveSession()) return false;
+
       const state = get();
       if (state.unreadCount <= 0) return true;
 
@@ -545,6 +563,8 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
     },
 
     clearAll: async () => {
+      if (!hasActiveSession()) return false;
+
       const state = get();
       if (state.totalCount <= 0 && state.notifications.length === 0) {
         return true;
