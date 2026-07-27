@@ -71,6 +71,8 @@ import type {
   FinanceApprovalConfig,
   FinanceMutationRequest,
   FinancialRecord,
+  GivingOption,
+  GivingOptionPayload,
 } from "./finance/interface";
 import type {
   ApprovalConfig,
@@ -582,6 +584,13 @@ export class ApiCreationCalls {
     payload: unknown
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("bankaccountconfig/create-bank-account-config", payload);
+  };
+
+  // create giving option (also creates its Paystack subaccount)
+  createGivingOption = (
+    payload: GivingOptionPayload
+  ): Promise<ApiResponse<GivingOption>> => {
+    return this.postToApi("givingoption/create-giving-option", payload);
   };
 
   // create tithe breakdown config

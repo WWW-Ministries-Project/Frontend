@@ -41,6 +41,8 @@ import type {
 import type {
   FinanceMutationRequest,
   FinancialRecord,
+  GivingOption,
+  GivingOptionPayload,
 } from "./finance/interface";
 import type { UpdateNotificationPreferencePayload } from "./notifications/interfaces";
 import type {
@@ -529,6 +531,30 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(
       "bankaccountconfig/update-bank-account-config",
+      payload,
+      query
+    );
+  };
+
+  // update giving option (syncs the Paystack subaccount)
+  updateGivingOption = (
+    payload: GivingOptionPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<GivingOption>> => {
+    return this.apiExecution.updateData(
+      "givingoption/update-giving-option",
+      payload,
+      query
+    );
+  };
+
+  // restore an archived giving option
+  restoreGivingOption = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<GivingOption>> => {
+    return this.apiExecution.updateData(
+      "givingoption/restore-giving-option",
       payload,
       query
     );

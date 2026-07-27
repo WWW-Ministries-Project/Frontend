@@ -26,6 +26,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Church_Attendance",
   "Theme",
   "Financials",
+  "Giving",
   "Pledges",
   "Marketplace",
   "School_of_ministry",
@@ -89,6 +90,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
     "School of Ministry",
   ],
   Financials: ["Financials", "Finance", "Finances"],
+  Giving: ["Giving", "Giving_Options", "Giving Options"],
   Pledges: ["Pledges", "Pledge"],
   Settings: ["Settings", "Setting"],
   AI: ["AI", "Ai", "Artificial Intelligence"],
@@ -103,6 +105,9 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
 // domains, not aliases — aliases feed DOMAIN_LOOKUP and would remap incoming keys.
 const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = {
   Membership_Management: ["Members"],
+  // Giving shipped after access levels were saved, so anyone who already
+  // administers Financials keeps working until Giving is set explicitly.
+  Giving: ["Financials"],
 };
 
 const REQUIRED_KEYS_ON_MUTATION = new Set<PermissionDomain>([
@@ -254,6 +259,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     required: false,
   },
   {
+    key: "Giving",
+    label: "Giving Options",
+    description: "Giving options and the accounts their payments are routed to",
+    group: "Administration",
+    required: false,
+  },
+  {
     key: "Pledges",
     label: "Pledges",
     description: "Pledge campaigns, pledgers and redemptions",
@@ -320,6 +332,9 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_theme: { domain: "Theme", action: "manage" },
   view_financials: { domain: "Financials", action: "view" },
   manage_financials: { domain: "Financials", action: "manage" },
+  view_giving: { domain: "Giving", action: "view" },
+  manage_giving: { domain: "Giving", action: "manage" },
+  delete_giving: { domain: "Giving", action: "admin" },
   view_pledges: { domain: "Pledges", action: "view" },
   manage_pledges: { domain: "Pledges", action: "manage" },
   delete_pledges: { domain: "Pledges", action: "admin" },

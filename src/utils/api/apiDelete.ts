@@ -212,6 +212,13 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("bankaccountconfig/delete-bank-account-config", query);
   };
 
+  // archive giving option (soft delete; deactivates the Paystack subaccount)
+  archiveGivingOption = (
+    query: QueryType
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("givingoption/delete-giving-option", query);
+  };
+
   // delete tithe breakdown config
   deleteTitheBreakdownConfig = (
     query: QueryType

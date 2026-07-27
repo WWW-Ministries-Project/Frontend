@@ -67,6 +67,9 @@ import type {
   FinanceApprovalConfig,
   FinanceData,
   FinancialRecord,
+  GivingOption,
+  PaystackBank,
+  ResolvedBankAccount,
 } from "./finance/interface";
 import type {
   ApprovalConfig,
@@ -748,6 +751,34 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.fetchFromApi("bankaccountconfig/get-bank-account-configs", query);
+  };
+
+  // fetch giving options
+  fetchGivingOptions = (
+    query?: QueryType
+  ): Promise<ApiResponse<GivingOption[]>> => {
+    return this.fetchFromApi("givingoption/get-giving-options", query);
+  };
+
+  // fetch a single giving option
+  fetchGivingOption = (
+    query?: QueryType
+  ): Promise<ApiResponse<GivingOption>> => {
+    return this.fetchFromApi(`givingoption/${query?.id ?? ""}`);
+  };
+
+  // fetch Paystack banks and mobile money providers (proxied server-side)
+  fetchPaystackBanks = (
+    query?: QueryType
+  ): Promise<ApiResponse<PaystackBank[]>> => {
+    return this.fetchFromApi("givingoption/banks", query);
+  };
+
+  // best-effort account name lookup; data is null when Paystack cannot resolve it
+  resolveBankAccount = (
+    query?: QueryType
+  ): Promise<ApiResponse<ResolvedBankAccount | null>> => {
+    return this.fetchFromApi("givingoption/resolve-account", query);
   };
 
   // fetch tithe breakdown config
