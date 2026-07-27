@@ -97,6 +97,7 @@ import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceMan
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
 import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
 import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
+import GivingOptionsOverview from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionsOverview";
 import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
 import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
 import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
@@ -692,6 +693,14 @@ export const routes: AppRoute[] = [
             element: <FinanceConfiguration />,
             isPrivate: true,
             permissionNeeded: "manage_financials",
+            sideTab: true,
+          },
+          {
+            path: "giving-options",
+            name: "Manage Giving Options",
+            element: <GivingOptionsOverview />,
+            isPrivate: true,
+            permissionNeeded: "view_giving",
             sideTab: true,
           },
           {

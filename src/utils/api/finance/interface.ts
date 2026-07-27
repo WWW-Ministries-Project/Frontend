@@ -69,3 +69,56 @@ export interface FinancialListPayload {
 export type FinanceMutationRequest = FinanceData & {
   action: FinanceSaveAction;
 };
+
+export type GivingAccountType = "ghipss" | "mobile_money";
+
+export interface GivingOption {
+  id: string;
+  name: string;
+  description: string | null;
+  currency: string;
+  account_type: GivingAccountType;
+  /** Paystack bank or mobile money provider code */
+  settlement_bank: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  masked_account_number: string;
+  subaccount_code: string | null;
+  /** Always 100 — payments are routed to this account, never split */
+  percentage_charge: number;
+  bearer: string;
+  is_active: boolean;
+  archived_at: string | null;
+  paystack_synced_at: string | null;
+  /** False when local state and Paystack are known to have drifted */
+  is_synced: boolean;
+  branch_id: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GivingOptionPayload {
+  name: string;
+  description?: string;
+  account_type: GivingAccountType;
+  settlement_bank: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  currency?: string;
+  branch_id?: number;
+}
+
+export interface PaystackBank {
+  name: string;
+  code: string;
+  type: string;
+  currency: string;
+  active: boolean;
+}
+
+export interface ResolvedBankAccount {
+  account_number: string;
+  account_name: string;
+}

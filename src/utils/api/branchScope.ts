@@ -46,6 +46,7 @@ const BRANCH_SCOPED_ENDPOINTS = [
   "receiptconfig/",
   "paymentconfig/",
   "bankaccountconfig/",
+  "givingoption/",
   "tithebreakdownconfig/",
   "financials/",
 ] as const;
