@@ -2,6 +2,7 @@ import { Modal } from "@/components/Modal";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import type { GivingOption } from "@/utils/api/finance/interface";
@@ -72,7 +73,7 @@ const GivingOptionsOverview = () => {
   }, [success]);
 
   return (
-    <div className="space-y-4">
+    <PageOutline>
       <PageHeader
         title="Manage Giving Options"
         buttonValue="Create giving option"
@@ -82,7 +83,7 @@ const GivingOptionsOverview = () => {
         }}
       />
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 my-4">
         {(["active", "archived"] as StatusFilter[]).map((filter) => (
           <button
             key={filter}
@@ -139,7 +140,7 @@ const GivingOptionsOverview = () => {
           initialData={selectedOption ?? undefined}
         />
       </Modal>
-    </div>
+    </PageOutline>
   );
 };
 
