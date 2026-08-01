@@ -1,6 +1,10 @@
 # Giving Options Phase 2 — Donor Checkout, Webhook, Contributions
 
-Status: approved, not yet implemented.
+Status: implemented. This document is now an amended record of what shipped,
+not a forward-looking plan; where an earlier draft described an approach that
+changed during review, the section has been updated to match the code rather
+than left as history. See `docs/GIVING_OPTIONS_BACKEND_CONTRACT.md` for the
+settled contract.
 Date: 2026-08-01.
 Phase 1 (giving options + Paystack subaccounts) shipped in `Frontend@47193e2` and
 `Backend@f6f8a66`. See `docs/GIVING_OPTIONS_BACKEND_CONTRACT.md` for phase 1.
@@ -17,9 +21,23 @@ staff can see every contribution in the web dashboard.
 The Backend owns everything that touches money. Mobile is the only donor surface.
 The web dashboard is read-only reporting over contributions.
 
-No new service and no queue. The Paystack webhook and an on-demand verify
-endpoint both converge on a single idempotent settle function, so a payment
-settles exactly once regardless of which path observes it first.
+No new service and no queue. The Paystack webhook, an on-demand verify endpoint,
+and a reconciliation cron all converge on a single idempotent settle function,
+so a payment settles exactly once regardless of which path observes it first.
+
+The reconciliation cron (`Backend/src/cron-jobs/givingPaymentReconciliationCron.ts`)
+exists to close a gap the other two paths can't: a webhook that never arrives —
+dropped by a network blip, a misconfigured URL, or an outage during delivery —
+leaves a contribution stuck at `pending` even though Paystack already moved the
+money into the church's subaccount, and no donor is going to call
+`/verify/:reference` again for a payment they believe already completed. Every
+30 minutes it re-checks contributions that have been `pending` for more than 15
+minutes (in batches of 100, oldest first), calling the same `verifyTransaction` +
+`settleContribution` pair the on-demand verify uses. It runs sequentially, not in
+parallel, to respect Paystack's per-integration rate limit, and one row's failure
+does not abort the rest of the batch. It is gated by `RUN_BACKGROUND_JOBS` like
+every other cron job in this codebase, and by `PAYSTACK_SECRET_KEY` being set at
+all.
 
 Deliberately unchanged from phase 1: every giving option still routes 100% of its
 payments to its own settlement account (`percentage_charge = 100`,
@@ -39,19 +57,20 @@ New table `givingContribution`.
 | `user_id` | `INT?` | donor, **no foreign key** |
 | `donor_name` | `VARCHAR(191)` | snapshot |
 | `donor_email` | `VARCHAR(191)` | snapshot, receipt target |
-| `amount` | `INT` | **minor units (pesewas)** |
+| `amount` | `INT` | **minor units (pesewas)**. What was quoted — the value sent to `/initialize` |
+| `amount_paid` | `INT?` | minor units. What Paystack **reported collecting** at settlement, not what was quoted. Null until settled |
 | `currency` | `VARCHAR(191)` | defaults `GHS` |
 | `status` | `VARCHAR(191)` | `pending` \| `success` \| `failed` \| `abandoned` |
 | `channel` | `VARCHAR(191)?` | `card` / `mobile_money`, reported by Paystack |
 | `paid_at` | `DATETIME?` | set at settlement |
-| `paystack_response` | `LONGTEXT?` | raw verified payload |
+| `paystack_response` | `LONGTEXT?` | a **whitelisted subset** of the verify payload, not the raw response (see below) |
 | `receipt_sent_at` | `DATETIME?` | non-null ⇒ receipt already emailed |
 | `branch_id` | `INT?` | FK → `branch`, `ON DELETE SET NULL` |
-| `created_at` | `DATETIME` | |
-| `updated_at` | `DATETIME` | |
+| `createdAt` | `DATETIME` | |
+| `updatedAt` | `DATETIME` | |
 
-Indexes: `reference`, `giving_option_id`, `user_id`, `status`, `branch_id`,
-`created_at`.
+Indexes: `reference` (implicit, via its `@unique`), `giving_option_id`, `user_id`,
+`status`, `branch_id`, `createdAt`.
 
 ### Why these choices
 
@@ -69,8 +88,21 @@ snapshots.** Renaming a giving option or a member changing their email must not
 retroactively rewrite what a past receipt said. `ON DELETE RESTRICT` on
 `giving_option_id` is belt-and-braces: options are soft-archived, never deleted.
 
-**`paystack_response` is retained.** Chargeback and reconciliation disputes are
-resolved against what the processor actually said, not against our summary of it.
+**`paystack_response` stores a whitelisted subset, not the full verify payload.**
+Only `id`, `status`, `reference`, `amount`, `currency`, `channel`, `paid_at`, and
+`gateway_response` are kept (`toStorablePayload` in `contributionService.ts`) —
+enough for a chargeback or reconciliation dispute. The full Paystack response is
+deliberately *not* stored: it also carries customer PII, the church's own
+settlement bank details, and `authorization.authorization_code`, a reusable
+charge token. None of that has dispute value, so none of it is persisted.
+
+**`amount_paid` can be `NULL` on a `success` row.** If Paystack's reported
+collected amount cannot be parsed as an integer, settlement writes
+`amount_paid = NULL` rather than blocking the write — the payment did happen and
+must not be lost, so the row is still marked `success` and the parse failure is
+logged instead. The consequence: a reconciliation query of `amount_paid <> amount`
+never matches `NULL` in MySQL, so it silently misses exactly these rows. The
+correct query is `amount_paid IS NULL OR amount_paid <> amount`.
 
 ## Endpoints
 
@@ -92,12 +124,14 @@ on configuration, as in phase 1. Because `Giving` falls back to `Financials`
 view contributions until an admin sets `Giving` explicitly.
 
 **Route ordering hazard.** Phase 1 registers `GET /:id` last, at
-`Backend/src/modules/finance/GivingOption/route.ts:275`. Express matches in
-registration order, so `/available`, `/contributions`, `/my-contributions` and
-`/verify/:reference` must all be registered **above** it. Registered below, they
+`Backend/src/modules/finance/GivingOption/route.ts:471`. Express matches by
+method and path, so this only constrains the other `GET` routes: `/available`,
+`/contributions`, `/my-contributions` and `/verify/:reference` must all be
+registered **above** it — which they currently are. Registered below, they
 would be swallowed by `/:id` and return "giving option not found" for a literal id
 of `"available"` — a confusing failure that looks like a data problem rather than
-a routing one.
+a routing one. (`POST /initialize` and `POST /paystack-webhook` are unaffected by
+the ordering either way, since `GET /:id` never matches a `POST`.)
 
 ### `GET /available`
 
@@ -130,20 +164,41 @@ Public by necessity. Authenticated by HMAC signature, not by a token.
 
 ## Settlement
 
-The webhook and `/verify/:reference` both call one function,
-`settleContribution(reference, paystackData)`:
+The webhook, `/verify/:reference`, and the reconciliation cron all call one
+function, `settleContribution(transaction)`:
 
-1. Load by `reference`. Unknown reference → ack `200` and log. Returning an error
-   makes Paystack retry indefinitely for a payment we will never recognise.
-2. Already `success` → return immediately. No writes, no second receipt.
-3. Compare Paystack's reported `data.amount` against the stored pending amount.
-   On mismatch, record the amount Paystack actually collected and flag the row for
-   review rather than accepting the client-supplied figure.
-4. Mark `success`; set `paid_at`, `channel`, and `paystack_response`.
-5. Send the receipt, after the database commit, inside a `try`/`catch`.
+1. Load by `reference`. Unknown reference → ack and log; return without writing.
+   Returning an error makes Paystack retry indefinitely for a payment we will
+   never recognise.
+2. Cheap pre-check: already `success` → return immediately. This is an
+   optimisation only — it does **not** close the race between a webhook and a
+   verify call landing at the same moment, since both can read this before
+   either has written.
+3. Non-`success`, non-terminal Paystack status (`ongoing`, `pending`,
+   `processing`, `queued`, …) → leave the row alone for a later call to resolve.
+4. Terminal failure (`failed`, `abandoned`, `reversed`) → a conditional
+   `updateMany({ where: { reference, status: { not: "success" } }, data: {...} })`
+   writes `failed` or `abandoned`.
+5. `success` → compare Paystack's reported amount against the stored quoted
+   `amount`, logging a mismatch rather than silently accepting the client-quoted
+   figure. Then the **same conditional `updateMany`** pattern — not a
+   read-check-write — sets `status: "success"`, `amount_paid`, `channel`, and
+   `paid_at`. MySQL row-locks for the duration of that single `UPDATE`, so
+   exactly one of a racing webhook/verify/cron call can flip the row away from
+   non-success; the loser's `updateMany` matches zero rows and returns without
+   writing anything or sending a second receipt. This conditional update, not
+   the step-2 pre-check, is what actually makes settlement idempotent.
+6. On a successful claim (the `updateMany` actually matched a row), send the
+   receipt — **deliberately not awaited**. Settlement runs inside the webhook's
+   acknowledgement path, and Paystack retries if the 200 response is slow; a
+   slow SMTP send here would manufacture the very race this function just
+   resolved (a retried webhook re-entering settlement before the first send
+   even returns). The receipt function owns its own errors and only stamps
+   `receipt_sent_at` on confirmed delivery, so nothing here needs to observe how
+   it finishes.
 
-Step 5 must never fail settlement. An email outage leaves `receipt_sent_at` null
-and logs; the money is still recorded as received.
+An email outage (or a slow one) leaves `receipt_sent_at` null and logs the
+failure once it resolves; the money is still recorded as received either way.
 
 ## Webhook signature verification
 
@@ -151,11 +206,12 @@ Compute HMAC SHA512 over the **raw request body** using the Paystack secret key,
 and compare against the `x-paystack-signature` header in constant time. Reject with
 `401` before parsing anything.
 
-`express.json()` is mounted globally at `Backend/index.ts:46`, so the raw body is
-already discarded by the time the route handler runs. Fix by adding a `verify`
-callback to that existing `express.json()` call which stashes the buffer on
-`req.rawBody`. This is preferred over mounting `express.raw` on the webhook path
-because it does not depend on router mount order, which is easy to break later.
+`express.json()` is mounted globally at `Backend/index.ts:49`. Rather than
+mounting `express.raw` on just the webhook path (which would depend on router
+mount order, easy to break later), that same `express.json()` call carries a
+`verify` callback that stashes the raw buffer on `req.rawBody` — but only for
+requests whose URL starts with `PAYSTACK_WEBHOOK_PATH`, so the buffer isn't
+retained for every request across the API.
 
 The secret key is read only through `resolvePaystackCredentials`, per phase 1.
 Nothing else reads `PAYSTACK_SECRET_KEY` directly, and it is never returned to any
@@ -214,9 +270,17 @@ Route `finance/giving-contributions` in `src/routes/appRoutes.tsx`, with
 | Donor cancels in the browser | Row stays `pending`. **Not** auto-failed — the payment may still complete and the webhook will settle it |
 | Bad webhook signature | `401`, nothing parsed, nothing written |
 | Webhook for unknown reference | `200` ack plus a log, so Paystack stops retrying |
-| Duplicate webhook delivery | No-op via the already-`success` guard |
-| Concurrent webhook and verify | Unique constraint on `reference` plus the status guard means one settles, the other no-ops |
+| Duplicate webhook delivery (including a signature replayed after the fact — Paystack signatures don't expire) | No-op via the already-`success` guard, then the conditional `updateMany` matching zero rows |
+| Concurrent webhook and verify (or the reconciliation cron) | The conditional `updateMany({ where: { status: { not: "success" } } })` row-locks, so exactly one caller's write lands; the rest match zero rows and no-op |
+| Webhook never arrives at all | Row stays `pending` indefinitely on the webhook/verify paths alone; the reconciliation cron (every 30 minutes, rows stale ≥15 minutes) closes this by re-verifying and settling through the same function |
 | Receipt email fails | Settlement stands; `receipt_sent_at` stays null; logged |
+
+`receipt_sent_at` being `null` in an API response is not, by itself, evidence of
+a failed receipt. The send is deliberately not awaited (see Settlement above),
+so a client that reads the contribution back immediately after settlement will
+almost always see `receipt_sent_at: null` even when the email is about to go out
+successfully a moment later. Only the `[giving] receipt email failed for …` log
+line is authoritative about a genuine failure.
 
 ## Verification
 
