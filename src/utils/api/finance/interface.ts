@@ -136,7 +136,6 @@ export interface GivingContribution {
   giving_option_id: string;
   /** Snapshot taken when the payment started, not a live join */
   giving_option_name: string;
-  subaccount_code: string | null;
   user_id: number | null;
   donor_name: string;
   donor_email: string;
