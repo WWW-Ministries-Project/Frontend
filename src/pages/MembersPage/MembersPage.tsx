@@ -5,6 +5,7 @@ import { api } from "@/utils";
 import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { LoaderComponent } from "../HomePage/Components/reusable/LoaderComponent";
+import { Dialog } from "@/components/Dialog";
 import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer";
 
 /**
@@ -54,8 +55,12 @@ const MembersPage = () => {
                 </div>
             </main>
 
-            {/* Global UI Components */}
+            {/* Global UI Components. Dialog is mounted here, not only in the
+                admin shell: member pages call showDeleteDialog too (giving and
+                pledge payments, appointments) and without a mounted Dialog the
+                confirmation never renders, so the action silently does nothing. */}
             <CartDrawer />
+            <Dialog />
             <LoaderComponent />
         </div>
     );

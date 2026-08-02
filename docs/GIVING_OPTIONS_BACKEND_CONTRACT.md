@@ -243,8 +243,47 @@ Base `/givingoption`. All require a bearer token except the webhook.
 | POST | `/initialize` | auth only | Starts a payment, returns `{ checkoutUrl, reference, contribution }`. Body: `{ giving_option_id, amount, client? }` — see "Choosing the landing page" below |
 | GET | `/verify/:reference` | auth only | On-demand settle; 404 if unknown or belongs to another user |
 | GET | `/my-contributions` | auth only | Caller's own history, paginated |
+| DELETE | `/my-contributions?reference=<ref>` | auth only | Removes one of the caller's own unsuccessful attempts. See "Retrying and removing a failed attempt" |
+| POST | `/retry-payment` | auth only | Starts a fresh attempt at one of the caller's failed attempts. Body: `{ reference, client? }`. Returns the same shape as `/initialize`, with a **new** reference |
 | GET | `/contributions` | `Giving:view` | All contributions for finance staff, paginated, filterable by `branch_id`, `giving_option_id`, `status`, `from`, `to` |
 | POST | `/paystack-webhook` | public, signature-verified | Only `charge.success` events move money; everything else is acknowledged and ignored |
+
+### Retrying and removing a failed attempt
+
+Both actions are member-facing (`protect` only) and act **exclusively on the
+caller's own rows** — a reference belonging to anyone else answers the same 404 as
+one that does not exist, so neither endpoint can be used to probe which references
+exist.
+
+Both accept only a row whose charge is resolved and collected nothing, i.e.
+status `failed` or `abandoned`:
+
+- `success` → **409**. A collected gift is never retried (it would take a second
+  payment) and never deleted.
+- `pending` → verified against Paystack first, through the same idempotent
+  settlement path as the webhook, and then re-read. Whatever that settles the row
+  to is what the action is judged on. If the verify call itself fails, the row is
+  treated as still pending and the action is refused with 409 — the safe direction
+  when we cannot tell whether money moved. This matters most for mobile money: a
+  charge sits `pending` while the customer completes a USSD prompt, and deleting
+  that row would leave a later webhook settling against a reference no longer in
+  the database.
+
+`/retry-payment` mints a **new** reference rather than reusing the old one —
+Paystack requires references to be unique per initialization — and reads the
+giving option and the amount off the original row, so a retry cannot become a
+different gift to a different fund. The failed attempt is left in place, which is
+what `DELETE /my-contributions` is for. Clients must therefore verify the
+reference the retry **returned**, not the one they sent.
+
+The option's availability is re-checked on retry exactly as on `/initialize`, so
+retrying against an option that has since been archived or has drifted out of sync
+with Paystack answers 404 rather than taking a payment that cannot be routed.
+
+The delete is a hard delete, guarded by a conditional `deleteMany` on
+`status != "success"`: if a webhook settles the row between the status check and
+the delete, zero rows match and the caller is told the payment completed rather
+than the gift being silently erased.
 
 ### Route-ordering hazard
 
@@ -431,8 +470,8 @@ the reconciliation cron is the reason it matters for this feature.
 
 ### Choosing the landing page: `client`
 
-`POST /initialize` accepts an optional `client` of `"web"` or `"mobile"`,
-defaulting to `"mobile"`. It is an **enum, not a URL** — the two destinations are
+`POST /initialize` and `POST /retry-payment` both accept an optional `client` of
+`"web"` or `"mobile"`, defaulting to `"mobile"`. It is an **enum, not a URL** — the two destinations are
 both known to the server, so this stays a closed set and never becomes an open
 redirect:
 
@@ -446,3 +485,21 @@ the reference against `/verify/:reference` and reports the outcome inline, which
 is what the member portal's Giving screen sends donors to. An unrecognised value
 falls back to `"mobile"` rather than erroring, so a client that predates this
 field — or one from a future build — can still take a payment.
+
+### Clients
+
+- **Web dashboard** — `GivingOptionsOverview.tsx` lists the options as cards;
+  clicking one opens `GivingOptionDetail.tsx` at
+  `/home/finance/giving-options/:id`, which shows the settlement account, the sync
+  state, and every transaction routed to that option (`/contributions` filtered by
+  `giving_option_id`). `GivingContributions.tsx` is the same table unfiltered.
+  Both render `components/ContributionsTable.tsx`, so the mismatch and fee-drift
+  badges cannot end up on one page and not the other. The per-page totals are
+  computed from the rows on screen and labelled as such — `/contributions` is
+  paginated, so a figure called "total" would quietly mean "total of page 1".
+- **Member portal (web)** — `/member/giving` (`MemberGiving.tsx`), returning to
+  `/member/giving/complete`. History rows with status `failed` / `abandoned` offer
+  **Try again** and **Delete**.
+- **Mobile** — `GiveScreen`, with `GivingHistoryScreen` for history, where
+  `failed` / `abandoned` rows offer the same two actions. A retry opens the new
+  checkout URL and verifies the **new** reference the retry returned.

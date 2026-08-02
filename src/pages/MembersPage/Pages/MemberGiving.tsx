@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { showNotification } from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import type {
   AvailableGivingOption,
+  GivingContribution,
   GivingFeePreview,
 } from "@/utils/api/finance/interface";
 import BannerWrapper from "../layouts/BannerWrapper";
@@ -21,6 +22,16 @@ const formatMinorUnits = (minorUnits: number, currency = "GHS"): string =>
 
 const formatDate = (value?: string | null): string =>
   value ? new Date(value).toLocaleDateString() : "--";
+
+/**
+ * Rows a donor may retry or remove. "pending" is excluded on purpose: a mobile
+ * money charge sits pending while the customer finishes a USSD prompt, and
+ * offering "delete" there invites removing a payment that is about to land. The
+ * server enforces the same rule (it verifies a pending row against Paystack
+ * first) — this only keeps the UI from offering an action that would be refused.
+ */
+const isRetryable = (status: string): boolean =>
+  status === "failed" || status === "abandoned";
 
 const statusClass = (status: string): string => {
   if (status === "success") return "bg-green-100 text-green-700";
@@ -49,9 +60,15 @@ const MemberGiving = () => {
   const { data: optionsData, loading: optionsLoading } = useFetch(
     api.fetch.fetchAvailableGivingOptions
   );
-  const { data: historyData, loading: historyLoading } = useFetch(
-    api.fetch.fetchMyContributions
-  );
+  const {
+    data: historyData,
+    loading: historyLoading,
+    refetch: refetchHistory,
+  } = useFetch(api.fetch.fetchMyContributions);
+
+  // The reference currently being retried or removed, so only that row's
+  // buttons go busy rather than every row's.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const options = useMemo(
     () => (Array.isArray(optionsData?.data) ? optionsData.data : []),
@@ -141,6 +158,63 @@ const MemberGiving = () => {
     }
   };
 
+  /**
+   * A fresh attempt at a gift that did not go through. The server reads the fund
+   * and the amount off the failed row and mints a new reference, so nothing
+   * about the gift is resent from here — only which attempt is being retried.
+   */
+  const retry = async (row: GivingContribution) => {
+    setPendingAction(row.reference);
+
+    try {
+      const response = await api.post.retryGivingPayment({
+        reference: row.reference,
+        client: "web",
+      });
+
+      const checkoutUrl = response?.data?.checkoutUrl;
+
+      if (!checkoutUrl) throw new Error("Checkout URL was not returned.");
+
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      showNotification(
+        extractErrorMessage(error, "Unable to restart this payment"),
+        "error"
+      );
+      setPendingAction(null);
+    }
+  };
+
+  const remove = (row: GivingContribution) => {
+    showDeleteDialog(
+      {
+        name: `this ${formatMinorUnits(row.amount, row.currency)} attempt for ${
+          row.giving_option_name
+        }`,
+        id: row.reference,
+      },
+      async (reference) => {
+        setPendingAction(String(reference));
+
+        try {
+          await api.delete.deleteMyContribution({
+            reference: String(reference),
+          });
+          showNotification("Payment attempt removed", "success");
+          await refetchHistory();
+        } catch (error) {
+          showNotification(
+            extractErrorMessage(error, "Unable to remove this payment"),
+            "error"
+          );
+        } finally {
+          setPendingAction(null);
+        }
+      }
+    );
+  };
+
   return (
     <div>
       <BannerWrapper>
@@ -215,6 +289,9 @@ const MemberGiving = () => {
                     <th className="px-4 py-3 font-medium">Date</th>
                     <th className="px-4 py-3 font-medium">Amount</th>
                     <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium text-right">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -238,6 +315,34 @@ const MemberGiving = () => {
                         >
                           {row.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isRetryable(row.status) ? (
+                          <div className="flex justify-end gap-3">
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-primary underline disabled:opacity-50"
+                              disabled={pendingAction === row.reference}
+                              onClick={() => retry(row)}
+                            >
+                              Try again
+                            </button>
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-red-600 underline disabled:opacity-50"
+                              disabled={pendingAction === row.reference}
+                              onClick={() => remove(row)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : row.status === "pending" ? (
+                          <span className="text-xs text-primaryGray">
+                            Awaiting confirmation
+                          </span>
+                        ) : (
+                          <span className="text-xs text-primaryGray">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}

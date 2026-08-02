@@ -190,3 +190,14 @@ export interface InitializePledgePaymentResult {
   reference: string;
   payment: PledgePayment;
 }
+
+/**
+ * Retrying names the failed attempt and nothing else — the pledge and the amount
+ * are read off that row server-side. The result carries a NEW reference, so the
+ * failed attempt stays in history as its own row.
+ */
+export interface RetryPledgePaymentPayload {
+  reference: string;
+  /** Picks the post-payment landing page server-side. Never a URL. */
+  client?: "web" | "mobile";
+}

@@ -122,6 +122,8 @@ Base `/pledges`. All require a bearer token.
 | POST | `/initialize-payment` | auth only | Body `{ pledger_id, amount, client? }`. Returns `{ checkoutUrl, reference, payment }`. |
 | GET | `/verify-payment/:reference` | auth only | On-demand settle; 404 if unknown or belongs to another member. |
 | GET | `/my-pledge-payments` | auth only | Caller's own history, paginated. |
+| DELETE | `/my-pledge-payments?reference=<ref>` | auth only | Removes one of the caller's own unsuccessful payments. See "Retrying and removing a failed payment". |
+| POST | `/retry-payment` | auth only | Body `{ reference, client? }`. Starts a fresh attempt at one of the caller's failed payments. Same response shape as `/initialize-payment`, with a **new** reference. |
 | GET | `/pledge-payments?pledge_id=<id>` | `Pledges:view` | Every online payment against one pledge, paginated. |
 
 `client` works exactly as it does for giving: an enum of `"web"` / `"mobile"`
@@ -148,6 +150,40 @@ failed lookup and nothing useful.
   409 rather than taking a payment it cannot route.
 - Unknown `pledger_id` and "belongs to someone else" both answer the same 404,
   so the endpoint cannot be used to probe which pledger ids exist.
+
+### Retrying and removing a failed payment
+
+Member-facing (`protect` only) and scoped to the caller's own rows — a reference
+belonging to someone else answers the same 404 as one that does not exist.
+
+Both accept only a row whose charge is resolved and collected nothing (`failed` or
+`abandoned`):
+
+- `success` → **409**. A collected redemption is never retried or deleted.
+- `pending` → verified against Paystack first, through the same idempotent
+  settlement path as the webhook, then re-read; the action is judged on whatever
+  that settles it to. If the verify call itself fails, the row stays `pending` and
+  the action is refused (409). Mobile money is why: a charge sits `pending` during
+  the USSD prompt, and deleting that row would leave a later webhook settling —
+  and crediting a redemption — against a reference no longer in the database.
+
+`/retry-payment` mints a **new** reference (Paystack requires them to be unique per
+initialization) and reads the pledge and the amount off the original row, so a
+retry cannot become a payment against a different pledge. The outstanding balance
+is re-checked by the same shared path `/initialize-payment` uses, so retrying an
+amount that has since been redeemed another way answers 422 with the real balance
+rather than overpaying. Clients must verify the reference the retry **returned**,
+not the one they sent.
+
+`pledger_id` is `SetNull`, so replacing a pledge's groups detaches old payments
+from the pledger they were made for. A retry of a detached row answers 409 — there
+is nothing left to credit it to — and directs the member to start again from their
+pledges.
+
+The delete is a hard delete, guarded by a conditional `deleteMany` on both
+`status != "success"` **and** `redemption_id: null`: if a webhook settles the row
+between the status check and the delete, zero rows match and the caller is told the
+payment completed rather than a credited redemption being orphaned.
 
 ## One webhook, two settlement paths
 
@@ -227,8 +263,14 @@ Everything else — `PAYSTACK_SECRET_KEY`, `PAYSTACK_BASE_URL`, `PAYSTACK_FEE_*`
   collects the settlement account (bank list and account-name lookup proxied via
   the giving endpoints `/givingoption/banks` and `/givingoption/resolve-account`).
   `PledgesOverview` shows an "Online payment: Enabled / Unavailable" column.
+  `PledgeDetail.tsx` lists every online attempt against the pledge in an "Online
+  transactions" section (`components/PledgePaymentsTable.tsx`), including failed
+  ones — a member insisting they paid needs something to point at. It flags
+  `status: success` with `redemption_id: null`, the one failure mode that loses
+  money quietly: the charge settled but the pledger was never credited.
 - **Member portal (web)** — `More → Pledges` → `/member/pledges`
-  (`MemberPledges.tsx`), returning to `/member/pledges/complete`.
+  (`MemberPledges.tsx`), returning to `/member/pledges/complete`. Payment-history
+  rows with status `failed` / `abandoned` offer **Try again** and **Delete**.
 - **Mobile** — `More → Pledges` → `PledgesScreen`, with `PledgePaymentsScreen`
-  for history. Deep links: `wwm-mobile://pledges` and
-  `wwm-mobile://pledges/payments`.
+  for history, where `failed` / `abandoned` rows offer the same two actions. Deep
+  links: `wwm-mobile://pledges` and `wwm-mobile://pledges/payments`.

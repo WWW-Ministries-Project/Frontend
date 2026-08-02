@@ -245,6 +245,21 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("pledges/delete-redemption", query);
   };
 
+  /**
+   * Remove one of the caller's OWN unsuccessful giving attempts. Query:
+   * { reference }. The server refuses a completed payment, and verifies a
+   * pending one against Paystack before allowing it, so this can never erase a
+   * gift that was collected.
+   */
+  deleteMyContribution = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("givingoption/my-contributions", query);
+  };
+
+  /** Same, for the caller's own unsuccessful pledge payments. Query: { reference }. */
+  deleteMyPledgePayment = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("pledges/my-pledge-payments", query);
+  };
+
   clearAllNotifications = (): Promise<ApiResponse<NotificationClearAllPayload>> => {
     return this.apiExecution.deleteData("notifications");
   };
