@@ -343,9 +343,19 @@ RUN_BACKGROUND_JOBS=true                 # set to false/0/no to disable all cron
 (`resolveCallbackUrl` in `contributionService.ts`), and deliberately so: accepting
 a redirect target from the client would make this an open redirect on a payment
 flow. If it is unset, the code falls back to `Frontend_URL` and constructs
-`${Frontend_URL}/out/verify-payment/mobile`; if neither is set, no `callback_url`
+`${Frontend_URL}/out/giving-complete`; if neither is set, no `callback_url`
 is sent to Paystack at all (logged as a warning) and the donor is simply not
 redirected back automatically.
+
+**It must not point at `/out/verify-payment/:type`.** That page belongs to the
+marketplace flow: it reads the reference from `order_reference` (Paystack sends
+`reference` and `trxref`), verifies against the orders endpoint, and calls
+`clearCart()`. Sending a donor there showed them "Missing payment reference" and
+silently emptied their shopping basket. `/out/giving-complete` exists for giving
+and is deliberately inert — it makes no API call, touches no client state, and
+only offers the donor a deep link back into the mobile app. Settlement is the
+webhook's job, with the app's on-demand verify as a second path; the landing page
+is never on the critical path for the money.
 
 `RUN_BACKGROUND_JOBS` gates every cron job registered in `Backend/index.ts`,
 including the giving reconciliation sweep — not a giving-specific variable, but
