@@ -240,7 +240,7 @@ Base `/givingoption`. All require a bearer token except the webhook.
 |---|---|---|---|
 | GET | `/available` | auth only | Non-archived, active, Paystack-synced options visible to the caller's branch or branch-less |
 | GET | `/fee-preview?amount=<minor units>` | auth only | Creates nothing. Returns `{ amount, fee, amount_charged }` for a donation amount, so the app can show the donor the total before they commit. Computed server-side so a client copy of the fee formula can't drift from the configured rate |
-| POST | `/initialize` | auth only | Starts a payment, returns `{ checkoutUrl, reference, contribution }` |
+| POST | `/initialize` | auth only | Starts a payment, returns `{ checkoutUrl, reference, contribution }`. Body: `{ giving_option_id, amount, client? }` — see "Choosing the landing page" below |
 | GET | `/verify/:reference` | auth only | On-demand settle; 404 if unknown or belongs to another user |
 | GET | `/my-contributions` | auth only | Caller's own history, paginated |
 | GET | `/contributions` | `Giving:view` | All contributions for finance staff, paginated, filterable by `branch_id`, `giving_option_id`, `status`, `from`, `to` |
@@ -416,6 +416,33 @@ only offers the donor a deep link back into the mobile app. Settlement is the
 webhook's job, with the app's on-demand verify as a second path; the landing page
 is never on the critical path for the money.
 
+For the same reason its deep link is **`wwm-mobile://give`**, not
+`wwm-mobile://payment/verify`. The app's `PaymentVerifyScreen` is the marketplace
+screen: it verifies against the orders endpoint and calls `clearCart()`. Pointing
+the giving landing page at it merely moved the trap from the browser into the
+app — a failed order lookup for a reference the orders endpoint has never heard
+of. The link's only job is to put the donor back on the Give screen; the money is
+settled by the webhook, and by the app's own verify call when the member returns
+through the in-app browser.
+
 `RUN_BACKGROUND_JOBS` gates every cron job registered in `Backend/index.ts`,
 including the giving reconciliation sweep — not a giving-specific variable, but
 the reconciliation cron is the reason it matters for this feature.
+
+### Choosing the landing page: `client`
+
+`POST /initialize` accepts an optional `client` of `"web"` or `"mobile"`,
+defaulting to `"mobile"`. It is an **enum, not a URL** — the two destinations are
+both known to the server, so this stays a closed set and never becomes an open
+redirect:
+
+| `client` | Callback URL |
+|---|---|
+| `"mobile"` (default) | `PAYSTACK_GIVING_CALLBACK_URL`, else `${Frontend_URL}/out/giving-complete` |
+| `"web"` | `<origin>/member/giving/complete`, where `<origin>` is the origin of `PAYSTACK_GIVING_CALLBACK_URL` if set, otherwise `Frontend_URL` |
+
+The mobile page is inert and deep-links back into the app. The web page verifies
+the reference against `/verify/:reference` and reports the outcome inline, which
+is what the member portal's Giving screen sends donors to. An unrecognised value
+falls back to `"mobile"` rather than erroring, so a client that predates this
+field — or one from a future build — can still take a payment.

@@ -8,6 +8,8 @@ import type { Announcement, CreateAnnouncementDto } from "./announcements/interf
 import type { SermonSeries, CreateSermonSeriesDto } from "./sermons/interfaces";
 import { AssetPayloadType } from "./assets/interfaces";
 import type {
+  InitializePledgePaymentPayload,
+  InitializePledgePaymentResult,
   PledgeDetail,
   PledgeMutationPayload,
   PledgerInput,
@@ -73,6 +75,8 @@ import type {
   FinancialRecord,
   GivingOption,
   GivingOptionPayload,
+  InitializeGivingPayload,
+  InitializeGivingResult,
 } from "./finance/interface";
 import type {
   ApprovalConfig,
@@ -629,6 +633,20 @@ export class ApiCreationCalls {
     image_url?: string | null;
   }): Promise<ApiResponse<Redemption>> => {
     return this.postToApi("pledges/create-redemption", payload);
+  };
+
+  // start a Paystack payment for the caller's own pledge (member portal)
+  initializePledgePayment = (
+    payload: InitializePledgePaymentPayload
+  ): Promise<ApiResponse<InitializePledgePaymentResult>> => {
+    return this.postToApi("pledges/initialize-payment", payload);
+  };
+
+  // start a Paystack giving payment for the caller (member portal)
+  initializeGiving = (
+    payload: InitializeGivingPayload
+  ): Promise<ApiResponse<InitializeGivingResult>> => {
+    return this.postToApi("givingoption/initialize", payload);
   };
 
   upsertFinanceApprovalConfig = (

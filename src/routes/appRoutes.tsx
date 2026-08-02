@@ -71,6 +71,11 @@ import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import GivingComplete from "@/pages/MembersPage/Pages/GivingComplete.js";
+import PledgeComplete from "@/pages/MembersPage/Pages/PledgeComplete.js";
+import MemberGiving from "@/pages/MembersPage/Pages/MemberGiving.js";
+import MemberGivingComplete from "@/pages/MembersPage/Pages/MemberGivingComplete.js";
+import MemberPledges from "@/pages/MembersPage/Pages/MemberPledges.js";
+import MemberPledgeComplete from "@/pages/MembersPage/Pages/MemberPledgeComplete.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
 import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
@@ -1069,6 +1074,12 @@ export const routes: AppRoute[] = [
         element: <GivingComplete />,
         isPrivate: false,
       },
+      {
+        path: "pledge-complete",
+        name: "Pledge Complete",
+        element: <PledgeComplete />,
+        isPrivate: false,
+      },
     ],
   },
 
@@ -1176,6 +1187,34 @@ export const routes: AppRoute[] = [
         path: relativePath.member.lifeCenter,
         name: "member_life_center",
         element: <MyLifeCenter />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.giving,
+        name: "member_giving",
+        element: <MemberGiving />,
+        isPrivate: false,
+      },
+      {
+        // Must be declared before nothing else claims it — Paystack returns the
+        // browser here, so the path is part of the payment contract with the
+        // backend (GIVING_WEB_CALLBACK_PATH).
+        path: relativePath.member.givingComplete,
+        name: "member_giving_complete",
+        element: <MemberGivingComplete />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.pledges,
+        name: "member_pledges",
+        element: <MemberPledges />,
+        isPrivate: false,
+      },
+      {
+        // Paired with PLEDGE_WEB_CALLBACK_PATH on the backend.
+        path: relativePath.member.pledgesComplete,
+        name: "member_pledges_complete",
+        element: <MemberPledgeComplete />,
         isPrivate: false,
       },
       {

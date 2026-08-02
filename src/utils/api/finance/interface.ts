@@ -165,3 +165,43 @@ export type GivingContributionQuery = Partial<
     string | number
   >
 >;
+
+/* ------------------------------------------------------------------ */
+/* Member-facing giving                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A giving option as a member sees it. Deliberately far narrower than the admin
+ * `GivingOption`: settlement details are none of a donor's business.
+ */
+export interface AvailableGivingOption {
+  id: string;
+  name: string;
+  description: string | null;
+  currency: string;
+  branch_id: number | null;
+}
+
+/** All amounts in minor units (pesewas). */
+export interface GivingFeePreview {
+  /** The donation — what the fund receives. */
+  amount: number;
+  /** The Paystack fee the donor covers on top. */
+  fee: number;
+  /** What the card is actually charged. */
+  amount_charged: number;
+}
+
+export interface InitializeGivingPayload {
+  giving_option_id: string;
+  /** Minor units (pesewas). Minimum 100. */
+  amount: number;
+  /** Picks the post-payment landing page server-side. Never a URL. */
+  client?: "web" | "mobile";
+}
+
+export interface InitializeGivingResult {
+  checkoutUrl: string;
+  reference: string;
+  contribution: GivingContribution;
+}

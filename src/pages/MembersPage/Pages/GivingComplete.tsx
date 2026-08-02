@@ -11,23 +11,34 @@ export default function GivingComplete() {
     searchParams.get("reference") ?? searchParams.get("trxref") ?? "";
   const hasReference = Boolean(reference.trim());
 
+  /**
+   * Deliberately the Give screen, NOT `payment/verify`.
+   *
+   * `payment/verify` belongs to the marketplace: it verifies against the ORDERS
+   * endpoint and calls `clearCart()` on success. Handing it a giving reference
+   * produced a failed order lookup and nothing useful — the same trap this
+   * landing page was created to avoid on the web side.
+   *
+   * Nothing is lost by not passing the reference along: the webhook settles the
+   * contribution, and the app verifies it itself when the member returns
+   * through the in-app browser. All this link has to do is put them back where
+   * they can see the result.
+   */
+  const deepLink = "wwm-mobile://give";
+
   const openMobileApp = () => {
-    const encodedReference = encodeURIComponent(reference);
-    window.location.href = `wwm-mobile://payment/verify?reference=${encodedReference}&order_reference=${encodedReference}`;
+    window.location.href = deepLink;
   };
 
   useEffect(() => {
     if (!hasReference) return;
 
     const timer = setTimeout(() => {
-      const encodedReference = encodeURIComponent(reference);
-      window.location.replace(
-        `wwm-mobile://payment/verify?reference=${encodedReference}&order_reference=${encodedReference}`
-      );
+      window.location.replace(deepLink);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [hasReference, reference]);
+  }, [hasReference]);
 
   return (
     <div className="flex items-center justify-center w-full h-[80vh] px-4">

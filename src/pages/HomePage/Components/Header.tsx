@@ -100,12 +100,16 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSchoolMenuOpen, setIsSchoolMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const schoolRef = useRef<HTMLDivElement>(null);
   const schoolButtonRef = useRef<HTMLButtonElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
@@ -121,6 +125,9 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isInstructor = token?.instructor;
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
+  const isMoreRoute =
+    location.pathname.startsWith(relativePath.member.giving) ||
+    location.pathname.startsWith(relativePath.member.pledges);
   const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
   const showAdminAiEntry = !isMemberRoute && canView("AI");
 
@@ -143,11 +150,20 @@ export const Header = ({ handleShowNav }: IProps) => {
       : []),
   ];
 
+  // Everything a member can reach that is not one of the top-level tabs. Kept
+  // as a list so the desktop dropdown and the mobile accordion cannot drift.
+  const moreItems = [
+    { label: "Giving", path: relativePath.member.giving },
+    { label: "Pledges", path: relativePath.member.pledges },
+  ];
+
   const handleNavigate = (path: string) => {
     navigate(path);
     setIsMobileNavOpen(false);
     setIsMobileSchoolOpen(false);
+    setIsMobileMoreOpen(false);
     setIsSchoolMenuOpen(false);
+    setIsMoreMenuOpen(false);
     setIsProfileMenuOpen(false);
   };
 
@@ -182,6 +198,10 @@ export const Header = ({ handleShowNav }: IProps) => {
         setIsSchoolMenuOpen(false);
       }
 
+      if (moreRef.current && !moreRef.current.contains(target)) {
+        setIsMoreMenuOpen(false);
+      }
+
       if (
         isMobileNavOpen &&
         mobileNavRef.current &&
@@ -190,6 +210,7 @@ export const Header = ({ handleShowNav }: IProps) => {
       ) {
         setIsMobileNavOpen(false);
         setIsMobileSchoolOpen(false);
+        setIsMobileMoreOpen(false);
       }
     };
 
@@ -202,6 +223,7 @@ export const Header = ({ handleShowNav }: IProps) => {
       if (e.key === "Escape" && isMobileNavOpen) {
         setIsMobileNavOpen(false);
         setIsMobileSchoolOpen(false);
+        setIsMobileMoreOpen(false);
       }
     };
 
@@ -326,6 +348,47 @@ export const Header = ({ handleShowNav }: IProps) => {
                 triggerRef={schoolButtonRef}
               >
                 {schoolItems.map(item => (
+                  <button
+                    role="menuitem"
+                    tabIndex={0}
+                    key={item.label}
+                    onClick={() => handleNavigate(item.path)}
+                    className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
+                      isActive(item.path) ? "text-primary font-semibold" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </AccessibleMenu>
+            </div>
+
+            <div ref={moreRef} className="relative">
+              <button
+                ref={moreButtonRef}
+                aria-expanded={isMoreMenuOpen}
+                aria-haspopup="menu"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setIsMoreMenuOpen(false);
+                  if (e.key === "Enter" || e.key === " ") setIsMoreMenuOpen(v => !v);
+                }}
+                onClick={() => setIsMoreMenuOpen(v => !v)}
+                className={`px-4 py-2 rounded-md flex items-center gap-1 font-semibold ${
+                  isMoreRoute
+                    ? "bg-primary text-white"
+                    : "text-primary hover:bg-primary/10"
+                }`}
+              >
+                More
+              </button>
+
+              <AccessibleMenu
+                isOpen={isMoreMenuOpen}
+                label="More"
+                onClose={() => setIsMoreMenuOpen(false)}
+                triggerRef={moreButtonRef}
+              >
+                {moreItems.map(item => (
                   <button
                     role="menuitem"
                     tabIndex={0}
@@ -507,6 +570,49 @@ export const Header = ({ handleShowNav }: IProps) => {
                 }`}
               >
                 {schoolItems.map(item => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleNavigate(item.path)}
+                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile More */}
+            <div>
+              <button
+                onClick={() => setIsMobileMoreOpen(v => !v)}
+                aria-expanded={isMobileMoreOpen}
+                aria-controls="mobile-more-items"
+                className="w-full flex justify-between items-center px-4 py-3 rounded-md hover:bg-primary/10 font-medium"
+              >
+                <span>More</span>
+                <svg
+                  className={`h-4 w-4 transform transition-transform ${
+                    isMobileMoreOpen ? "rotate-180" : ""
+                  }`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.08 1.04l-4.25 4.65a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              <div
+                id="mobile-more-items"
+                className={`overflow-hidden transition-[max-height] duration-200 ${
+                  isMobileMoreOpen ? "max-h-96" : "max-h-0"
+                }`}
+              >
+                {moreItems.map(item => (
                   <button
                     key={item.label}
                     onClick={() => handleNavigate(item.path)}
