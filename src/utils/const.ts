@@ -100,6 +100,10 @@ export const relativePath = {
     },
     registerMember: "/out/register-member",
     registerEvent: "/out/events/register-event",
+    // Inert landing pages Paystack returns MOBILE payers to; both deep-link
+    // back into the app. The in-browser equivalents live under /member.
+    givingComplete: "/out/giving-complete",
+    pledgeComplete: "/out/pledge-complete",
   },
   programs: {
     details: "/programs/:name",
@@ -117,6 +121,14 @@ export const relativePath = {
     orders: "/member/market/orders",
     verify_payment: "/member/market/verify_payment/member",
     lifeCenter: "/member/life-center",
+    giving: "/member/giving",
+    // Where Paystack returns a donor who gave from the browser. The server
+    // picks this path from `client: "web"`, so it must stay in step with
+    // GIVING_WEB_CALLBACK_PATH in the backend's contributionService.
+    givingComplete: "/member/giving/complete",
+    pledges: "/member/pledges",
+    // Likewise for pledge redemptions — see PLEDGE_WEB_CALLBACK_PATH.
+    pledgesComplete: "/member/pledges/complete",
     schoolOfMinistries: {
       main: "school-of-ministries",
       allPrograms: "school-of-ministries/programs",
