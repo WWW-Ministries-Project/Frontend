@@ -70,6 +70,7 @@ import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
+import GivingComplete from "@/pages/MembersPage/Pages/GivingComplete.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
 import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
@@ -1060,6 +1061,12 @@ export const routes: AppRoute[] = [
         path: "verify-payment/:type",
         name: "Verify payment",
         element: <VerifyPayment />,
+        isPrivate: false,
+      },
+      {
+        path: "giving-complete",
+        name: "Giving Complete",
+        element: <GivingComplete />,
         isPrivate: false,
       },
     ],
