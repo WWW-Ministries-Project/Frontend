@@ -139,9 +139,15 @@ export interface GivingContribution {
   user_id: number | null;
   donor_name: string;
   donor_email: string;
-  /** Minor units (pesewas) - divide by 100 to display */
+  /** Minor units (pesewas) - divide by 100 to display. The donation: what the fund receives, NOT what the donor's card was charged */
   amount: number;
-  /** What Paystack collected. Differs from amount only when something went wrong */
+  /** The Paystack fee the donor was grossed up by, at the rate configured when the payment started. Added on top of `amount` - never part of it */
+  fee: number;
+  /** What the donor's card was actually charged: amount + fee. Null for rows predating the gross-up. Compare `amount_paid` against THIS, not `amount` */
+  amount_charged: number | null;
+  /** The fee Paystack actually took, from the verify payload. Differs from `fee` only when the configured fee rate has drifted from Paystack's real one */
+  fee_actual: number | null;
+  /** What Paystack collected. Differs from amount_charged only when something went wrong */
   amount_paid: number | null;
   currency: string;
   status: GivingContributionStatus;

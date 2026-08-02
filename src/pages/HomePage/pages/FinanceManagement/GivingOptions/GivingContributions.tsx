@@ -52,11 +52,13 @@ const GivingContributions = () => {
     [data]
   );
 
+  // The fund's income, not the donor's charge: `amount` is the donation itself,
+  // unaffected by the fee grossed up on top of it.
   const totalReceived = React.useMemo(
     () =>
       contributions
         .filter((row) => row.status === "success")
-        .reduce((sum, row) => sum + (row.amount_paid ?? row.amount), 0),
+        .reduce((sum, row) => sum + row.amount, 0),
     [contributions]
   );
 
@@ -96,13 +98,14 @@ const GivingContributions = () => {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-lightGray/60">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1050px] text-left text-sm">
             <thead className="bg-lightGray/30 text-primaryGray">
               <tr>
                 <th className="px-4 py-3 font-medium">Date</th>
                 <th className="px-4 py-3 font-medium">Donor</th>
                 <th className="px-4 py-3 font-medium">Giving option</th>
-                <th className="px-4 py-3 font-medium">Amount</th>
+                <th className="px-4 py-3 font-medium">Giving</th>
+                <th className="px-4 py-3 font-medium">Fee / charged</th>
                 <th className="px-4 py-3 font-medium">Method</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Reference</th>
@@ -122,16 +125,54 @@ const GivingContributions = () => {
                   </td>
                   <td className="px-4 py-3">{row.giving_option_name}</td>
                   <td className="px-4 py-3">
-                    {formatAmount(row.amount_paid ?? row.amount, row.currency)}
-                    {row.amount_paid !== null &&
-                    row.amount_paid !== row.amount ? (
-                      <span
-                        className="ml-2 text-xs font-medium text-red-600"
-                        title={`Quoted ${formatAmount(row.amount, row.currency)}`}
-                      >
-                        mismatch
-                      </span>
-                    ) : null}
+                    {(() => {
+                      // The gross-up means `amount_paid` (what Paystack collected)
+                      // is the donor's charge, not the gift - so it must be
+                      // compared against `amount_charged`. Rows predating the
+                      // gross-up have no `amount_charged`, so fall back to
+                      // `amount` for those.
+                      const expectedCharge = row.amount_charged ?? row.amount;
+                      const isMismatch =
+                        row.amount_paid !== null &&
+                        row.amount_paid !== expectedCharge;
+                      const isFeeDrift =
+                        row.fee_actual !== null && row.fee_actual !== row.fee;
+
+                      return (
+                        <>
+                          <span className="block font-medium">
+                            {formatAmount(row.amount, row.currency)}
+                          </span>
+                          {isMismatch ? (
+                            <span
+                              className="mr-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600"
+                              title={`Charged ${formatAmount(expectedCharge, row.currency)}, Paystack collected ${formatAmount(row.amount_paid as number, row.currency)}`}
+                            >
+                              mismatch
+                            </span>
+                          ) : null}
+                          {isFeeDrift ? (
+                            <span
+                              className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+                              title={`Grossed up by ${formatAmount(row.fee, row.currency)}, Paystack actually charged ${formatAmount(row.fee_actual as number, row.currency)}. The configured fee rate may be stale.`}
+                            >
+                              fee drift
+                            </span>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-primaryGray">
+                    <span className="block">
+                      Fee: {formatAmount(row.fee, row.currency)}
+                    </span>
+                    <span className="block">
+                      Charged:{" "}
+                      {row.amount_charged !== null
+                        ? formatAmount(row.amount_charged, row.currency)
+                        : "-"}
+                    </span>
                   </td>
                   <td className="px-4 py-3 capitalize">
                     {row.channel?.replace(/_/g, " ") ?? "-"}
