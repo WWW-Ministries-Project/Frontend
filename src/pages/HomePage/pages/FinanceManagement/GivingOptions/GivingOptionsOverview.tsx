@@ -8,12 +8,14 @@ import { api } from "@/utils";
 import type { GivingOption } from "@/utils/api/finance/interface";
 import { cn } from "@/utils/cn";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import GivingOptionCard from "./components/GivingOptionCard";
 import GivingOptionForm from "./components/GivingOptionForm";
 
 type StatusFilter = "active" | "archived";
 
 const GivingOptionsOverview = () => {
+  const navigate = useNavigate();
   const [openModal, setOpenModal] = React.useState(false);
   const [selectedOption, setSelectedOption] =
     React.useState<GivingOption | null>(null);
@@ -117,6 +119,9 @@ const GivingOptionsOverview = () => {
             <GivingOptionCard
               key={option.id}
               givingOption={option}
+              onOpen={() =>
+                navigate(`/home/finance/giving-options/${option.id}`)
+              }
               onEdit={() => {
                 setSelectedOption(option);
                 setOpenModal(true);
