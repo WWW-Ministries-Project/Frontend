@@ -16,12 +16,28 @@ import {
   toPayload,
   emptyGroup,
   detailToFormValues,
+  CURRENCY,
   type PledgeFormValues,
 } from "./utils/pledgeHelpers";
 
 interface PledgeFormProps {
   mode: "create" | "edit";
 }
+
+const ACCOUNT_TYPE_OPTIONS = [
+  { value: "ghipss", label: "Bank account" },
+  { value: "mobile_money", label: "Mobile money" },
+];
+
+const extractErrorMessage = (error: unknown, fallback: string): string => {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: string } } })
+      .response;
+    if (response?.data?.message) return response.data.message;
+  }
+
+  return error instanceof Error ? error.message : fallback;
+};
 
 const buildInitialValues = (): PledgeFormValues => ({
   branch_id: "",
@@ -32,6 +48,12 @@ const buildInitialValues = (): PledgeFormValues => ({
   callers: [],
   groups: [emptyGroup()],
   editGroups: true,
+  account_type: "ghipss",
+  settlement_bank: "",
+  bank_name: "",
+  account_number: "",
+  account_name: "",
+  editAccount: true,
 });
 
 const PledgeForm = ({ mode }: PledgeFormProps) => {
@@ -41,11 +63,22 @@ const PledgeForm = ({ mode }: PledgeFormProps) => {
   const eventsOptions = useStore((state) => state.eventsOptions);
   const { activeBranchId } = useBranchStore();
   const [submitting, setSubmitting] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
   const { data: detail } = useFetch(
     api.fetch.fetchPledge,
     mode === "edit" && id ? { id: Number(id) } : undefined,
     mode !== "edit",
+  );
+
+  const { data: banksResponse, loading: banksLoading } = useFetch(
+    api.fetch.fetchPaystackBanks,
+    { currency: CURRENCY },
+  );
+
+  const banks = useMemo(
+    () => (Array.isArray(banksResponse?.data) ? banksResponse.data : []),
+    [banksResponse],
   );
 
   const initialValues = useMemo<PledgeFormValues>(() => {
@@ -71,8 +104,14 @@ const PledgeForm = ({ mode }: PledgeFormProps) => {
         const newId = res?.data?.id;
         navigate(newId ? `/home/finance/pledges/${newId}` : "/home/finance/pledges");
       }
-    } catch {
-      showNotification("Something went wrong saving the pledge", "error");
+    } catch (error) {
+      // Surfaced verbatim: creating a pledge mints a Paystack subaccount, and
+      // "Paystack rejected the settlement account" is actionable in a way that
+      // a generic failure is not.
+      showNotification(
+        extractErrorMessage(error, "Something went wrong saving the pledge"),
+        "error",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +128,45 @@ const PledgeForm = ({ mode }: PledgeFormProps) => {
         validationSchema={pledgeSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, setFieldValue, errors, touched }) => (
+        {({ values, setFieldValue, errors, touched }) => {
+          const bankOptions = banks
+            .filter((bank) =>
+              values.account_type === "mobile_money"
+                ? bank.type === "mobile_money"
+                : bank.type !== "mobile_money",
+            )
+            .map((bank) => ({ value: bank.code, label: bank.name }));
+
+          /**
+           * Convenience only. Paystack's resolve endpoint has patchy coverage
+           * in Ghana, so a miss is silent and the typed name stands.
+           */
+          const tryResolveAccountName = async () => {
+            const accountNumber = values.account_number.trim();
+
+            if (!values.settlement_bank || !/^[0-9]{5,20}$/.test(accountNumber)) {
+              return;
+            }
+
+            setResolving(true);
+
+            try {
+              const response = await api.fetch.resolveBankAccount({
+                account_number: accountNumber,
+                bank_code: values.settlement_bank,
+              });
+
+              if (response?.data?.account_name) {
+                setFieldValue("account_name", response.data.account_name);
+              }
+            } catch {
+              // Deliberately silent — the field stays editable.
+            } finally {
+              setResolving(false);
+            }
+          };
+
+          return (
           <Form className="flex flex-col gap-6">
             <div className="grid md:grid-cols-2 gap-4">
               <BranchSelectField
@@ -142,6 +219,152 @@ const PledgeForm = ({ mode }: PledgeFormProps) => {
                   onChange={(e) => setFieldValue("deadline", e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="border-t pt-4 flex flex-col gap-4">
+              <div>
+                <h4 className="font-semibold">Settlement account</h4>
+                <p className="text-sm text-gray-500">
+                  Redemptions paid online are routed in full to this account.
+                  Paystack transaction fees are added on top and paid by the
+                  member, so the pledge receives the whole amount.
+                </p>
+              </div>
+
+              {mode === "edit" && (
+                <div className="rounded-md border bg-gray-50 p-3 text-sm flex flex-col gap-1">
+                  <span>
+                    Current:{" "}
+                    <strong>
+                      {detail?.data?.bank_name ?? "No account on file"}
+                    </strong>
+                    {detail?.data?.masked_account_number
+                      ? ` · ${detail.data.masked_account_number}`
+                      : ""}
+                    {detail?.data?.account_name
+                      ? ` · ${detail.data.account_name}`
+                      : ""}
+                  </span>
+                  {detail?.data && !detail.data.can_be_paid_online && (
+                    <span className="text-amber-700">
+                      This pledge cannot take online payments yet. Set a
+                      settlement account below to enable them.
+                    </span>
+                  )}
+                  <label className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      checked={values.editAccount}
+                      onChange={(e) =>
+                        setFieldValue("editAccount", e.target.checked)
+                      }
+                    />
+                    Change the settlement account
+                  </label>
+                </div>
+              )}
+
+              {(mode === "create" || values.editAccount) && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium">
+                      Settlement account type
+                    </label>
+                    <SelectField
+                      id="account_type"
+                      placeholder="Select"
+                      options={ACCOUNT_TYPE_OPTIONS}
+                      value={values.account_type}
+                      onChange={(_n, value) => {
+                        setFieldValue("account_type", value ?? "ghipss");
+                        // Bank codes are not shared between the two lists.
+                        setFieldValue("settlement_bank", "");
+                        setFieldValue("bank_name", "");
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium">
+                      {values.account_type === "mobile_money"
+                        ? "Mobile money provider"
+                        : "Bank"}
+                    </label>
+                    <SelectField
+                      id="settlement_bank"
+                      searchable
+                      placeholder={
+                        banksLoading ? "Loading providers..." : "Select"
+                      }
+                      options={bankOptions}
+                      value={values.settlement_bank}
+                      onChange={(_n, value) => {
+                        const code = value == null ? "" : String(value);
+                        setFieldValue("settlement_bank", code);
+                        // bank_name travels with the code: the API stores the
+                        // human label for display and cannot derive it.
+                        setFieldValue(
+                          "bank_name",
+                          banks.find((bank) => bank.code === code)?.name ?? "",
+                        );
+                      }}
+                      error={
+                        touched.settlement_bank
+                          ? (errors.settlement_bank as string)
+                          : undefined
+                      }
+                    />
+                    {!banksLoading && bankOptions.length === 0 && (
+                      <span className="text-xs text-amber-700">
+                        Could not load the list from Paystack. Check the
+                        server&apos;s Paystack configuration.
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium">
+                      {values.account_type === "mobile_money"
+                        ? "Mobile money number"
+                        : "Account number"}
+                    </label>
+                    <input
+                      className="border rounded-md p-2 text-sm"
+                      value={values.account_number}
+                      onChange={(e) =>
+                        setFieldValue("account_number", e.target.value)
+                      }
+                      onBlur={() => void tryResolveAccountName()}
+                    />
+                    {touched.account_number && errors.account_number && (
+                      <span className="text-xs text-red-500">
+                        {errors.account_number as string}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium">Account name</label>
+                    <input
+                      className="border rounded-md p-2 text-sm"
+                      placeholder={
+                        resolving
+                          ? "Looking up account name..."
+                          : "Account holder name"
+                      }
+                      value={values.account_name}
+                      onChange={(e) =>
+                        setFieldValue("account_name", e.target.value)
+                      }
+                    />
+                    {touched.account_name && errors.account_name && (
+                      <span className="text-xs text-red-500">
+                        {errors.account_name as string}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="border-t pt-4">
@@ -245,7 +468,8 @@ const PledgeForm = ({ mode }: PledgeFormProps) => {
               </button>
             </div>
           </Form>
-        )}
+          );
+        }}
       </Formik>
     </PageOutline>
   );

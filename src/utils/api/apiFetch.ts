@@ -6,7 +6,13 @@ import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
 import type { SermonSeries } from "./sermons/interfaces";
-import type { PledgeDetail, PledgeListRow } from "./pledges/interface";
+import type {
+  MyPledgeRow,
+  PledgeDetail,
+  PledgeFeePreview,
+  PledgeListRow,
+  PledgePayment,
+} from "./pledges/interface";
 import {
   BiometricAttendanceImportJob,
   BiometricEventAttendanceListResponse,
@@ -64,9 +70,13 @@ import type {
   AiUsageSummary,
 } from "./ai/interfaces";
 import type {
+  AvailableGivingOption,
   FinanceApprovalConfig,
   FinanceData,
   FinancialRecord,
+  GivingContribution,
+  GivingContributionQuery,
+  GivingFeePreview,
   GivingOption,
   PaystackBank,
   ResolvedBankAccount,
@@ -767,6 +777,43 @@ export class ApiCalls {
     return this.fetchFromApi(`givingoption/${query?.id ?? ""}`);
   };
 
+  // giving options the caller may give to (member portal) — no permission needed
+  fetchAvailableGivingOptions = (): Promise<
+    ApiResponse<AvailableGivingOption[]>
+  > => {
+    return this.fetchFromApi("givingoption/available");
+  };
+
+  // what a donation of `amount` (minor units) will cost the donor
+  fetchGivingFeePreview = (
+    query?: QueryType
+  ): Promise<ApiResponse<GivingFeePreview>> => {
+    return this.fetchFromApi("givingoption/fee-preview", query);
+  };
+
+  // the caller's own giving history
+  fetchMyContributions = (
+    query?: QueryType
+  ): Promise<ApiResponse<GivingContribution[]>> => {
+    return this.fetchFromApi("givingoption/my-contributions", query);
+  };
+
+  // settle-and-read a contribution the donor has just returned from paying
+  verifyGivingContribution = (
+    reference: string
+  ): Promise<ApiResponse<GivingContribution | null>> => {
+    return this.fetchFromApi(
+      `givingoption/verify/${encodeURIComponent(reference)}`
+    );
+  };
+
+  // fetch giving contributions (admin view)
+  fetchGivingContributions = (
+    query?: GivingContributionQuery
+  ): Promise<ApiResponse<GivingContribution[]>> => {
+    return this.fetchFromApi("givingoption/contributions", query);
+  };
+
   // fetch Paystack banks and mobile money providers (proxied server-side)
   fetchPaystackBanks = (
     query?: QueryType
@@ -814,6 +861,41 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<PledgeDetail>> => {
     return this.fetchFromApi("pledges/get-pledge", query);
+  };
+
+  // the caller's own pledges (member portal) — no permission needed
+  fetchMyPledges = (): Promise<ApiResponse<MyPledgeRow[]>> => {
+    return this.fetchFromApi("pledges/my-pledges");
+  };
+
+  // what a pledge payment of `amount` (minor units) will cost the payer
+  fetchPledgeFeePreview = (
+    query?: QueryType
+  ): Promise<ApiResponse<PledgeFeePreview>> => {
+    return this.fetchFromApi("pledges/payment-fee-preview", query);
+  };
+
+  // the caller's own pledge payment history
+  fetchMyPledgePayments = (
+    query?: QueryType
+  ): Promise<ApiResponse<PledgePayment[]>> => {
+    return this.fetchFromApi("pledges/my-pledge-payments", query);
+  };
+
+  // settle-and-read a pledge payment the member has just returned from paying
+  verifyPledgePayment = (
+    reference: string
+  ): Promise<ApiResponse<PledgePayment | null>> => {
+    return this.fetchFromApi(
+      `pledges/verify-payment/${encodeURIComponent(reference)}`
+    );
+  };
+
+  // every online payment against one pledge (finance staff)
+  fetchPledgePayments = (
+    query?: QueryType
+  ): Promise<ApiResponse<PledgePayment[]>> => {
+    return this.fetchFromApi("pledges/pledge-payments", query);
   };
 
   fetchFinanceApprovalConfig = (

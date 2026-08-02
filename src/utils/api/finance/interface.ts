@@ -122,3 +122,86 @@ export interface ResolvedBankAccount {
   account_number: string;
   account_name: string;
 }
+
+export type GivingContributionStatus =
+  | "pending"
+  | "success"
+  | "failed"
+  | "abandoned";
+
+export interface GivingContribution {
+  id: string;
+  /** Paystack transaction reference */
+  reference: string;
+  giving_option_id: string;
+  /** Snapshot taken when the payment started, not a live join */
+  giving_option_name: string;
+  user_id: number | null;
+  donor_name: string;
+  donor_email: string;
+  /** Minor units (pesewas) - divide by 100 to display. The donation: what the fund receives, NOT what the donor's card was charged */
+  amount: number;
+  /** The Paystack fee the donor was grossed up by, at the rate configured when the payment started. Added on top of `amount` - never part of it */
+  fee: number;
+  /** What the donor's card was actually charged: amount + fee. Null for rows predating the gross-up. Compare `amount_paid` against THIS, not `amount` */
+  amount_charged: number | null;
+  /** The fee Paystack actually took, from the verify payload. Differs from `fee` only when the configured fee rate has drifted from Paystack's real one */
+  fee_actual: number | null;
+  /** What Paystack collected. Differs from amount_charged only when something went wrong */
+  amount_paid: number | null;
+  currency: string;
+  status: GivingContributionStatus;
+  channel: string | null;
+  paid_at: string | null;
+  receipt_sent_at: string | null;
+  branch_id: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GivingContributionQuery = Partial<
+  Record<
+    "page" | "take" | "branch_id" | "giving_option_id" | "status" | "from" | "to",
+    string | number
+  >
+>;
+
+/* ------------------------------------------------------------------ */
+/* Member-facing giving                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A giving option as a member sees it. Deliberately far narrower than the admin
+ * `GivingOption`: settlement details are none of a donor's business.
+ */
+export interface AvailableGivingOption {
+  id: string;
+  name: string;
+  description: string | null;
+  currency: string;
+  branch_id: number | null;
+}
+
+/** All amounts in minor units (pesewas). */
+export interface GivingFeePreview {
+  /** The donation — what the fund receives. */
+  amount: number;
+  /** The Paystack fee the donor covers on top. */
+  fee: number;
+  /** What the card is actually charged. */
+  amount_charged: number;
+}
+
+export interface InitializeGivingPayload {
+  giving_option_id: string;
+  /** Minor units (pesewas). Minimum 100. */
+  amount: number;
+  /** Picks the post-payment landing page server-side. Never a URL. */
+  client?: "web" | "mobile";
+}
+
+export interface InitializeGivingResult {
+  checkoutUrl: string;
+  reference: string;
+  contribution: GivingContribution;
+}

@@ -1,5 +1,6 @@
 import * as Yup from "yup";
 import type {
+  PledgeAccountType,
   PledgeDetail,
   PledgeMutationPayload,
 } from "@/utils/api/pledges/interface";
@@ -34,7 +35,18 @@ export interface PledgeFormValues {
   groups: GroupFormValue[];
   // controls whether groups are sent on edit (replacing pledgers wipes redemptions)
   editGroups: boolean;
+  // Settlement account. On create these are required — the backend mints a
+  // Paystack subaccount from them so members can redeem the pledge online. On
+  // edit they are only sent when the account is actually being changed.
+  account_type: PledgeAccountType;
+  settlement_bank: string;
+  bank_name: string;
+  account_number: string;
+  account_name: string;
+  editAccount: boolean;
 }
+
+export const CURRENCY = "GHS";
 
 export const personLabel = (p: {
   user?: { name?: string } | null;
@@ -80,7 +92,46 @@ const personSchema = Yup.object({
   }),
 });
 
+/**
+ * The settlement account fields validate only when they are actually in play:
+ * always on create, and on edit only once the user opts into changing the
+ * account. `editAccount` carries that decision.
+ */
+const whenEditingAccount = <T extends Yup.AnySchema>(
+  schema: T,
+  message: string,
+) =>
+  Yup.mixed().when("editAccount", {
+    is: true,
+    then: () => schema.required(message),
+    otherwise: () => Yup.mixed().notRequired(),
+  });
+
 export const pledgeSchema = Yup.object({
+  account_type: Yup.string().oneOf(
+    ["ghipss", "mobile_money"],
+    "Select a valid account type",
+  ),
+  settlement_bank: whenEditingAccount(
+    Yup.string().trim(),
+    "Bank or provider is required",
+  ),
+  bank_name: whenEditingAccount(Yup.string().trim(), "Bank name is required"),
+  account_number: whenEditingAccount(
+    Yup.string()
+      .trim()
+      // excludeEmptyString so a blank field reports only "is required", rather
+      // than that plus a format complaint about the empty string.
+      .matches(/^[0-9]{5,20}$/, {
+        message: "Account number must be 5 to 20 digits",
+        excludeEmptyString: true,
+      }),
+    "Account number is required",
+  ),
+  account_name: whenEditingAccount(
+    Yup.string().trim(),
+    "Account name is required",
+  ),
   event_id: Yup.mixed().required("Event is required"),
   title: Yup.string(),
   target_amount: Yup.number().nullable().min(0),
@@ -131,6 +182,16 @@ export const toPayload = (
     deadline: values.deadline || null,
     callers: (values.callers ?? []).map(stripPerson),
   };
+  // Sent on create, and on edit only when the account is being changed —
+  // resending it otherwise would make every meta edit hit Paystack.
+  if (mode === "create" || values.editAccount) {
+    payload.currency = CURRENCY;
+    payload.account_type = values.account_type;
+    payload.settlement_bank = values.settlement_bank;
+    payload.bank_name = values.bank_name;
+    payload.account_number = values.account_number.trim();
+    payload.account_name = values.account_name.trim();
+  }
   if (mode === "create" || values.editGroups) {
     payload.groups = (values.groups ?? []).map((g) => ({
       called_amount: Number(g.called_amount),
@@ -172,4 +233,12 @@ export const detailToFormValues = (d: PledgeDetail): PledgeFormValues => ({
     })),
   })),
   editGroups: false,
+  // The API never returns the account number, so the form starts blank and the
+  // existing account is described read-only alongside it.
+  account_type: (d.account_type as PledgeFormValues["account_type"]) ?? "ghipss",
+  settlement_bank: "",
+  bank_name: d.bank_name ?? "",
+  account_number: "",
+  account_name: d.account_name ?? "",
+  editAccount: false,
 });

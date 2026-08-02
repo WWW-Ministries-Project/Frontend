@@ -102,6 +102,23 @@ const PledgesOverview = () => {
           </span>
         ),
       },
+      {
+        // Members only see a Pay button when this is true, so a pledge stuck
+        // without a live subaccount is worth surfacing here rather than leaving
+        // finance to discover it from a member's complaint.
+        header: "Online payment",
+        accessorKey: "can_be_paid_online",
+        cell: ({ row }) =>
+          row.original.can_be_paid_online ? (
+            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+              Enabled
+            </span>
+          ) : (
+            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+              Unavailable
+            </span>
+          ),
+      },
     ],
     [],
   );
