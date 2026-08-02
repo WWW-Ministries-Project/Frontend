@@ -4,14 +4,18 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import type React from "react";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import type { GivingOption } from "@/utils/api/finance/interface";
+import { cn } from "@/utils/cn";
 
 interface IProps {
   givingOption: GivingOption;
   onEdit?: () => void;
   onArchive?: () => void;
   onRestore?: () => void;
+  /** Opens the option's detail page, where its transactions are listed. */
+  onOpen?: () => void;
 }
 
 const GivingOptionCard = ({
@@ -19,12 +23,36 @@ const GivingOptionCard = ({
   onEdit,
   onArchive,
   onRestore,
+  onOpen,
 }: IProps) => {
   const { canManageCurrentRoute } = useRouteAccess();
   const isArchived = Boolean(givingOption.archived_at);
 
   return (
-    <div className="app-card relative space-y-3">
+    // A div rather than a button: the card already contains its own edit,
+    // archive and restore buttons, and nesting interactive elements inside a
+    // button is invalid HTML that browsers resolve unpredictably. The keyboard
+    // path is provided explicitly instead.
+    <div
+      className={cn(
+        "app-card relative space-y-3",
+        onOpen && "cursor-pointer transition-shadow hover:shadow-md"
+      )}
+      {...(onOpen
+        ? {
+            role: "link",
+            tabIndex: 0,
+            "aria-label": `View ${givingOption.name} transactions`,
+            onClick: onOpen,
+            onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            },
+          }
+        : {})}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-base font-semibold text-primary">
@@ -41,10 +69,15 @@ const GivingOptionCard = ({
           </span>
         </div>
 
+        {/* stopPropagation on each: the whole card navigates to the detail page,
+            and an edit or archive click must not also take the user there. */}
         <div className="flex gap-2">
           {!isArchived && onEdit && canManageCurrentRoute && (
             <button
-              onClick={onEdit}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
               className="app-icon-btn"
               aria-label={`Edit ${givingOption.name}`}
             >
@@ -53,7 +86,10 @@ const GivingOptionCard = ({
           )}
           {!isArchived && onArchive && canManageCurrentRoute && (
             <button
-              onClick={onArchive}
+              onClick={(event) => {
+                event.stopPropagation();
+                onArchive();
+              }}
               className="app-icon-btn app-icon-btn-danger"
               aria-label={`Archive ${givingOption.name}`}
             >
@@ -62,7 +98,10 @@ const GivingOptionCard = ({
           )}
           {isArchived && onRestore && canManageCurrentRoute && (
             <button
-              onClick={onRestore}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRestore();
+              }}
               className="app-icon-btn"
               aria-label={`Restore ${givingOption.name}`}
             >

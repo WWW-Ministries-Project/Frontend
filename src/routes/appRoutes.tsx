@@ -105,6 +105,7 @@ import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/Fina
 import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
 import GivingOptionsOverview from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionsOverview";
 import GivingContributions from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingContributions";
+import GivingOptionDetail from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionDetail";
 import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
 import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
 import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
@@ -709,6 +710,14 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_giving",
             sideTab: true,
+          },
+          {
+            // Not a sideTab: reached by clicking an option on the overview.
+            path: "giving-options/:id",
+            name: "Giving Option Detail",
+            element: <GivingOptionDetail />,
+            isPrivate: true,
+            permissionNeeded: "view_giving",
           },
           {
             path: "giving-contributions",

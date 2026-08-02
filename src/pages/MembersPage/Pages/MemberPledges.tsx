@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { showNotification } from "@/pages/HomePage/utils";
+import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import type {
   MyPledgeRow,
   PledgeFeePreview,
+  PledgePayment,
 } from "@/utils/api/pledges/interface";
 import BannerWrapper from "../layouts/BannerWrapper";
 
@@ -22,6 +23,15 @@ const formatMinorUnits = (minorUnits: number, currency = "GHS"): string =>
 
 const formatDate = (value?: string | null): string =>
   value ? new Date(value).toLocaleDateString() : "--";
+
+/**
+ * Rows a payer may retry or remove. "pending" is excluded on purpose: a mobile
+ * money charge sits pending while the customer finishes a USSD prompt, so
+ * offering "delete" there invites removing a payment that is about to land and
+ * write its redemption. The server enforces the same rule.
+ */
+const isRetryable = (status: string): boolean =>
+  status === "failed" || status === "abandoned";
 
 const statusClass = (status: string): string => {
   if (status === "success") return "bg-green-100 text-green-700";
@@ -50,12 +60,20 @@ const MemberPledges = () => {
   const [feePreview, setFeePreview] = useState<PledgeFeePreview | null>(null);
   const [feeLoading, setFeeLoading] = useState(false);
 
-  const { data: pledgesData, loading: pledgesLoading } = useFetch(
-    api.fetch.fetchMyPledges
-  );
-  const { data: paymentsData, loading: paymentsLoading } = useFetch(
-    api.fetch.fetchMyPledgePayments
-  );
+  const {
+    data: pledgesData,
+    loading: pledgesLoading,
+    refetch: refetchPledges,
+  } = useFetch(api.fetch.fetchMyPledges);
+  const {
+    data: paymentsData,
+    loading: paymentsLoading,
+    refetch: refetchPayments,
+  } = useFetch(api.fetch.fetchMyPledgePayments);
+
+  // The reference currently being retried or removed, so only that row's
+  // buttons go busy rather than every row's.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const pledges = useMemo(
     () => (Array.isArray(pledgesData?.data) ? pledgesData.data : []),
@@ -156,6 +174,66 @@ const MemberPledges = () => {
       );
       setSubmitting(false);
     }
+  };
+
+  /**
+   * A fresh attempt at a payment that did not go through. The server reads the
+   * pledge and the amount off the failed row, re-checks the outstanding balance
+   * and mints a new reference — nothing about the payment is resent from here.
+   */
+  const retry = async (row: PledgePayment) => {
+    setPendingAction(row.reference);
+
+    try {
+      const response = await api.post.retryPledgePayment({
+        reference: row.reference,
+        client: "web",
+      });
+
+      const checkoutUrl = response?.data?.checkoutUrl;
+
+      if (!checkoutUrl) throw new Error("Checkout URL was not returned.");
+
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      showNotification(
+        extractErrorMessage(error, "Unable to restart this payment"),
+        "error"
+      );
+      setPendingAction(null);
+    }
+  };
+
+  const remove = (row: PledgePayment) => {
+    showDeleteDialog(
+      {
+        name: `this ${formatMinorUnits(row.amount, row.currency)} attempt for ${
+          row.pledge_title
+        }`,
+        id: row.reference,
+      },
+      async (reference) => {
+        setPendingAction(String(reference));
+
+        try {
+          await api.delete.deleteMyPledgePayment({
+            reference: String(reference),
+          });
+          showNotification("Payment attempt removed", "success");
+          // Both lists: removing an attempt cannot change a balance (a failed
+          // row never wrote a redemption), but the server may have settled a
+          // pending row while checking it, and that one did.
+          await Promise.all([refetchPayments(), refetchPledges()]);
+        } catch (error) {
+          showNotification(
+            extractErrorMessage(error, "Unable to remove this payment"),
+            "error"
+          );
+        } finally {
+          setPendingAction(null);
+        }
+      }
+    );
   };
 
   return (
@@ -279,6 +357,9 @@ const MemberPledges = () => {
                     <th className="px-4 py-3 font-medium">Date</th>
                     <th className="px-4 py-3 font-medium">Amount</th>
                     <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium text-right">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -301,6 +382,34 @@ const MemberPledges = () => {
                         >
                           {row.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isRetryable(row.status) ? (
+                          <div className="flex justify-end gap-3">
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-primary underline disabled:opacity-50"
+                              disabled={pendingAction === row.reference}
+                              onClick={() => retry(row)}
+                            >
+                              Try again
+                            </button>
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-red-600 underline disabled:opacity-50"
+                              disabled={pendingAction === row.reference}
+                              onClick={() => remove(row)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : row.status === "pending" ? (
+                          <span className="text-xs text-primaryGray">
+                            Awaiting confirmation
+                          </span>
+                        ) : (
+                          <span className="text-xs text-primaryGray">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}

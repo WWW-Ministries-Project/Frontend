@@ -47,6 +47,13 @@ export function CheckoutForm(props: IProps) {
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [pendingCheckoutData, setPendingCheckoutData] =
     useState<ICheckoutForm | null>(null);
+  const [orderAcknowledged, setOrderAcknowledged] = useState(false);
+
+  const closeOrderConfirmation = useCallback(() => {
+    setPendingCheckoutData(null);
+    setShowOrderConfirmation(false);
+    setOrderAcknowledged(false);
+  }, []);
 
   const my_cart = getGuestCheckoutItem();
 
@@ -94,6 +101,7 @@ export function CheckoutForm(props: IProps) {
         validationSchema={validationSchema}
         onSubmit={async (values) => {
           setPendingCheckoutData(values);
+          setOrderAcknowledged(false);
           setShowOrderConfirmation(true);
         }}
       >
@@ -128,10 +136,7 @@ export function CheckoutForm(props: IProps) {
       <Modal
         open={showOrderConfirmation}
         persist={false}
-        onClose={() => {
-          setPendingCheckoutData(null);
-          setShowOrderConfirmation(false);
-        }}
+        onClose={closeOrderConfirmation}
         className="max-w-2xl"
       >
         <div className="p-6 space-y-5 text-[#474D66]">
@@ -160,7 +165,7 @@ export function CheckoutForm(props: IProps) {
                           className="inline-block h-4 w-6 rounded border border-gray-300"
                           style={{ backgroundColor: item.color }}
                         />
-                        <span>Selected</span>
+                        <span>{item.color}</span>
                       </span>
                     ) : (
                       "-"
@@ -196,24 +201,47 @@ export function CheckoutForm(props: IProps) {
             </p>
           </div>
 
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-3">
+            <p className="font-bold">⚠️ Please Review Your Order Carefully</p>
+            <label
+              htmlFor="order-acknowledgement"
+              className="flex items-start gap-3 text-sm cursor-pointer"
+            >
+              <input
+                id="order-acknowledgement"
+                type="checkbox"
+                className="mt-1 h-4 w-4 shrink-0 cursor-pointer"
+                checked={orderAcknowledged}
+                onChange={(e) => setOrderAcknowledged(e.target.checked)}
+              />
+              <span>
+                I have carefully reviewed my order and confirm that all items,
+                colours, sizes, and quantities are correct. I understand that my
+                order will be processed exactly as submitted, and the PA Apparel
+                Team will not be held responsible for any incorrect selections
+                made by me.
+              </span>
+            </label>
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button
               value="Cancel"
               variant="secondary"
-              onClick={() => {
-                setPendingCheckoutData(null);
-                setShowOrderConfirmation(false);
-              }}
+              onClick={closeOrderConfirmation}
             />
             <Button
               value="Confirm"
               loading={props.loading}
-              disabled={props.loading || checkoutItems.length === 0}
+              disabled={
+                props.loading ||
+                checkoutItems.length === 0 ||
+                !orderAcknowledged
+              }
               onClick={() => {
-                if (!pendingCheckoutData) return;
+                if (!pendingCheckoutData || !orderAcknowledged) return;
                 props.handleCheckout(pendingCheckoutData);
-                setPendingCheckoutData(null);
-                setShowOrderConfirmation(false);
+                closeOrderConfirmation();
               }}
             />
           </div>

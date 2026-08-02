@@ -6,10 +6,11 @@ import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent"
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils";
-import type { PledgerRow } from "@/utils/api/pledges/interface";
+import type { PledgePayment, PledgerRow } from "@/utils/api/pledges/interface";
 import { formatMoney, personLabel } from "./utils/pledgeHelpers";
 import RedemptionModal from "./components/RedemptionModal";
 import AddPledgersModal from "./components/AddPledgersModal";
+import PledgePaymentsTable from "./components/PledgePaymentsTable";
 
 const StatCard = ({ label, value }: { label: string; value: string }) => (
   <div className="border rounded-lg p-4 flex flex-col gap-1">
@@ -29,10 +30,24 @@ const PledgeDetail = () => {
   );
   const pledge = data?.data;
 
+  // Every online attempt against this pledge, successful or not. Separate fetch
+  // rather than part of the pledge payload: it is paginated and only this page
+  // needs it, so folding it into the pledge endpoint would make every pledge
+  // list pay for it.
+  const { data: paymentsData, loading: paymentsLoading } = useFetch(
+    api.fetch.fetchPledgePayments,
+    id ? { pledge_id: Number(id) } : undefined,
+  );
+
   const [redeemFor, setRedeemFor] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const pledgers: PledgerRow[] = useMemo(() => pledge?.pledgers ?? [], [pledge]);
+
+  const payments: PledgePayment[] = useMemo(
+    () => (Array.isArray(paymentsData?.data) ? paymentsData.data : []),
+    [paymentsData],
+  );
 
   const columns: ColumnDef<PledgerRow>[] = useMemo(
     () => [
@@ -138,7 +153,23 @@ const PledgeDetail = () => {
         <StatCard label="% Covered" value={`${pledge.percent}%`} />
       </div>
 
+      <h3 className="text-base font-semibold mb-2">Pledgers</h3>
       <TableComponent columns={columns} data={pledgers} />
+
+      <section className="mt-8">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <h3 className="text-base font-semibold">Online transactions</h3>
+          <span className="text-xs text-gray-500">
+            {payments.length} attempt{payments.length === 1 ? "" : "s"} through
+            Paystack
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mb-3">
+          Paystack attempts against this pledge. A successful one is credited to
+          the pledger as a redemption; unsuccessful ones collected nothing.
+        </p>
+        <PledgePaymentsTable payments={payments} loading={paymentsLoading} />
+      </section>
 
       <RedemptionModal
         open={redeemFor != null}

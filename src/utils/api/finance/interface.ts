@@ -205,3 +205,15 @@ export interface InitializeGivingResult {
   reference: string;
   contribution: GivingContribution;
 }
+
+/**
+ * Retrying names the failed attempt and nothing else — the amount and the fund
+ * are read off that row server-side, so a retry cannot become a different gift.
+ * The result carries a NEW reference: Paystack requires references to be unique
+ * per initialization, so the old attempt stays in history as its own row.
+ */
+export interface RetryGivingPayload {
+  reference: string;
+  /** Picks the post-payment landing page server-side. Never a URL. */
+  client?: "web" | "mobile";
+}

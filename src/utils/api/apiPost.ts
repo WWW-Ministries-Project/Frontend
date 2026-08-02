@@ -14,6 +14,7 @@ import type {
   PledgeMutationPayload,
   PledgerInput,
   Redemption,
+  RetryPledgePaymentPayload,
 } from "./pledges/interface";
 import { LifeCenterType } from "./lifeCenter/interfaces";
 import {
@@ -77,6 +78,7 @@ import type {
   GivingOptionPayload,
   InitializeGivingPayload,
   InitializeGivingResult,
+  RetryGivingPayload,
 } from "./finance/interface";
 import type {
   ApprovalConfig,
@@ -647,6 +649,21 @@ export class ApiCreationCalls {
     payload: InitializeGivingPayload
   ): Promise<ApiResponse<InitializeGivingResult>> => {
     return this.postToApi("givingoption/initialize", payload);
+  };
+
+  // start a fresh attempt at one of the caller's unsuccessful contributions.
+  // The result carries a NEW reference — the failed row stays in history.
+  retryGivingPayment = (
+    payload: RetryGivingPayload
+  ): Promise<ApiResponse<InitializeGivingResult>> => {
+    return this.postToApi("givingoption/retry-payment", payload);
+  };
+
+  // start a fresh attempt at one of the caller's unsuccessful pledge payments
+  retryPledgePayment = (
+    payload: RetryPledgePaymentPayload
+  ): Promise<ApiResponse<InitializePledgePaymentResult>> => {
+    return this.postToApi("pledges/retry-payment", payload);
   };
 
   upsertFinanceApprovalConfig = (
