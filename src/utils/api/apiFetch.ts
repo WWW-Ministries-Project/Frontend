@@ -67,6 +67,8 @@ import type {
   FinanceApprovalConfig,
   FinanceData,
   FinancialRecord,
+  GivingContribution,
+  GivingContributionQuery,
   GivingOption,
   PaystackBank,
   ResolvedBankAccount,
@@ -765,6 +767,13 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<GivingOption>> => {
     return this.fetchFromApi(`givingoption/${query?.id ?? ""}`);
+  };
+
+  // fetch giving contributions (admin view)
+  fetchGivingContributions = (
+    query?: GivingContributionQuery
+  ): Promise<ApiResponse<GivingContribution[]>> => {
+    return this.fetchFromApi("givingoption/contributions", query);
   };
 
   // fetch Paystack banks and mobile money providers (proxied server-side)

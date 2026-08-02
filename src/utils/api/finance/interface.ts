@@ -122,3 +122,40 @@ export interface ResolvedBankAccount {
   account_number: string;
   account_name: string;
 }
+
+export type GivingContributionStatus =
+  | "pending"
+  | "success"
+  | "failed"
+  | "abandoned";
+
+export interface GivingContribution {
+  id: string;
+  /** Paystack transaction reference */
+  reference: string;
+  giving_option_id: string;
+  /** Snapshot taken when the payment started, not a live join */
+  giving_option_name: string;
+  user_id: number | null;
+  donor_name: string;
+  donor_email: string;
+  /** Minor units (pesewas) - divide by 100 to display */
+  amount: number;
+  /** What Paystack collected. Differs from amount only when something went wrong */
+  amount_paid: number | null;
+  currency: string;
+  status: GivingContributionStatus;
+  channel: string | null;
+  paid_at: string | null;
+  receipt_sent_at: string | null;
+  branch_id: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GivingContributionQuery = Partial<
+  Record<
+    "page" | "take" | "branch_id" | "giving_option_id" | "status" | "from" | "to",
+    string | number
+  >
+>;
