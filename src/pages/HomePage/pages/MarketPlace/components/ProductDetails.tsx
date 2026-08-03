@@ -68,17 +68,38 @@ export function ProductDetails({ product, addToCart }: IProps) {
     action: "buy_now" | "add_to_cart";
     item: ICartItem;
   } | null>(null);
+  const productColors = Array.from(
+    new Set(product.product_colours.map((color) => color.colour))
+  );
+  const sizes = useMemo(() => {
+    return product?.product_colours?.[selection.currentIndex]?.stock ?? []
+  }, [selection.currentIndex, product?.product_colours])
+
+  const isStockManaged = product.stock_managed === "yes";
+  const selectedStockEntry = sizes.find((s) => s.size === selection.selectedSize);
+  const availableStock = isStockManaged ? Number(selectedStockEntry?.stock ?? 0) : undefined;
+  const colorOutOfStock = (colourIdx: number) => {
+    if (!isStockManaged) return false;
+    const stockList = product.product_colours[colourIdx]?.stock ?? [];
+    return stockList.length > 0 && stockList.every((s) => Number(s.stock) <= 0);
+  };
+  const productOutOfStock =
+    isStockManaged &&
+    product.product_colours.every((_, idx) => colorOutOfStock(idx));
+  const selectionOutOfStock = isStockManaged && (availableStock ?? 0) <= 0;
+
   const handleQuantityChange = (
     type: "increment" | "decrement",
     value?: number
   ) => {
     setSelection((prev) => {
+      const cap = availableStock ?? Infinity;
       const hasExplicitValue =
         typeof value === "number" && Number.isFinite(value);
       const newQuantity = hasExplicitValue
-        ? Math.max(1, Math.floor(value))
+        ? Math.max(1, Math.min(Math.floor(value), cap))
         : type === "increment"
-          ? prev.quantity + 1
+          ? Math.min(prev.quantity + 1, cap)
           : prev.quantity > 1
             ? prev.quantity - 1
             : 1;
@@ -131,14 +152,6 @@ export function ProductDetails({ product, addToCart }: IProps) {
     setSelection((prev) => ({ ...prev, selectedSize: size }));
   };
 
-  const productColors = Array.from(
-    new Set(product.product_colours.map((color) => color.colour))
-  );
-  const sizes = useMemo(() => {
-    return product?.product_colours?.[selection.currentIndex]?.stock ?? []
-  }, [selection.currentIndex, product?.product_colours])
-
-
   const cartItem = {
     name: product.name,
     product_id: `${product.id}`,
@@ -153,7 +166,9 @@ export function ProductDetails({ product, addToCart }: IProps) {
       product.product_colours[selection.currentIndex].colour,
     size: selection.selectedSize || sizes[0]?.size || "",
     productColors,
-    productSizes:sizes?.map(size=>size?.size),
+    productSizes: sizes?.map((size) => size?.size),
+    sizeStocks: sizes.map((s) => ({ size: s.size, stock: Number(s.stock) })),
+    stock: availableStock,
     market_id: product?.market_id || "",
   };
 
@@ -277,6 +292,11 @@ export function ProductDetails({ product, addToCart }: IProps) {
         <div className="flex flex-col gap-6">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">{product.name}</h1>
+            {productOutOfStock && (
+              <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
+                Out of stock
+              </span>
+            )}
             <div className="flex items-center gap-2">
               <ProductChip section="type" text={product.product_type?.name} />
               <ProductChip
@@ -292,35 +312,44 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
           <Section title="Colors">
             <div className="flex gap-2 flex-wrap">
-              {product.product_colours.map((color, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleColorChange(color.colour, idx)}
-                  className={`w-8 h-8 rounded-lg border-2 ${selection.selectedColor === color.colour
-                      ? "border-blue-500"
-                      : "border-gray-300"
-                    }`}
-                  style={{ backgroundColor: color.colour }}
-                />
-              ))}
+              {product.product_colours.map((color, idx) => {
+                const disabled = colorOutOfStock(idx);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => !disabled && handleColorChange(color.colour, idx)}
+                    disabled={disabled}
+                    title={disabled ? "Out of stock" : undefined}
+                    className={`w-8 h-8 rounded-lg border-2 ${selection.selectedColor === color.colour
+                        ? "border-blue-500"
+                        : "border-gray-300"
+                      } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
+                    style={{ backgroundColor: color.colour }}
+                  />
+                );
+              })}
             </div>
           </Section>
 
           {/* Sizes */}
           <Section title="Sizes">
             <div className="flex gap-2 flex-wrap">
-              {sizes.map((size) => (
-                <button
-                  key={size.size}
-                  onClick={() => handleSizeChange(size?.size)}
-                  className={`px-3 py-1 border rounded ${selection.selectedSize === size?.size
-                      ? "border border-black"
-                      : "border-gray-300"
-                    }`}
-                >
-                  {size?.size}
-                </button>
-              ))}
+              {sizes.map((size) => {
+                const disabled = isStockManaged && Number(size.stock) <= 0;
+                return (
+                  <button
+                    key={size.size}
+                    onClick={() => !disabled && handleSizeChange(size?.size)}
+                    disabled={disabled}
+                    className={`px-3 py-1 border rounded ${selection.selectedSize === size?.size
+                        ? "border border-black"
+                        : "border-gray-300"
+                      } ${disabled ? "opacity-30 cursor-not-allowed line-through" : ""}`}
+                  >
+                    {size?.size}
+                  </button>
+                );
+              })}
             </div>
           </Section>
 
@@ -335,18 +364,29 @@ export function ProductDetails({ product, addToCart }: IProps) {
 
           {/* Buttons */}
           {is_not_admin && (
-            <div className="flex gap-4 flex-wrap w-full">
-              {/* {!itemExistInCart && ( */}
-              <Button value="Buy now" className="w-full" onClick={handleBuy} />
-              {/* )} */}
-              {routeName !== "out" && (
+            <div className="flex flex-col gap-2 w-full">
+              {productOutOfStock ? (
+                <p className="text-red-600 font-semibold">Out of stock</p>
+              ) : selectionOutOfStock ? (
+                <p className="text-red-600 text-sm">This colour/size is out of stock.</p>
+              ) : null}
+              <div className="flex gap-4 flex-wrap w-full">
                 <Button
-                  value="Add to cart"
-                  variant={"secondary"}
+                  value="Buy now"
                   className="w-full"
-                  onClick={handleAddToCart}
+                  onClick={handleBuy}
+                  disabled={productOutOfStock || selectionOutOfStock}
                 />
-              )}
+                {routeName !== "out" && (
+                  <Button
+                    value="Add to cart"
+                    variant={"secondary"}
+                    className="w-full"
+                    onClick={handleAddToCart}
+                    disabled={productOutOfStock || selectionOutOfStock}
+                  />
+                )}
+              </div>
             </div>
           )}
 
