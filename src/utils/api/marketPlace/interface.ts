@@ -66,6 +66,7 @@ export interface ICartItem {
   productColors?: string[];
   productSizes?: string[];
   sizeStocks?: { size: string; stock: number }[];
+  colorStocks?: Record<string, { size: string; stock: number }[]>;
   stock?: number;
   product_id: string;
   market_id: string;
@@ -88,6 +89,12 @@ export interface ICartSlice {
     productId: string,
     section: T,
     value: T extends "quantity" | "stock" ? number : string
+  ) => void;
+  updateVariant: (
+    identifier: string,
+    patch: Partial<
+      Pick<ICartItem, "color" | "size" | "stock" | "sizeStocks" | "quantity">
+    >
   ) => void;
   billinDetails?: ICheckoutForm;
   setBillinDetails: (details: ICheckoutForm) => void;

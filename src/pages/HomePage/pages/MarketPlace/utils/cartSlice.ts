@@ -117,6 +117,33 @@ export const useCart = create<ICartSlice>()(
           return { cartItems: updatedCartItems };
         });
       },
+      updateVariant: (identifier, patch) => {
+        set((state) => {
+          const hasUuidMatch = state.cartItems.some(
+            (item) => item.item_uuid === identifier
+          );
+          let hasUpdatedByProductId = false;
+
+          const updatedCartItems = state.cartItems.map((item) => {
+            const isTarget = hasUuidMatch
+              ? item.item_uuid === identifier
+              : !hasUpdatedByProductId && item.product_id === identifier;
+            if (!isTarget) return item;
+            if (!hasUuidMatch) hasUpdatedByProductId = true;
+
+            const stockCap =
+              patch.stock ?? item.stock ?? Infinity;
+            const quantity = Math.max(
+              1,
+              Math.min(patch.quantity ?? item.quantity, stockCap)
+            );
+
+            return { ...item, ...patch, quantity };
+          });
+
+          return { cartItems: updatedCartItems };
+        });
+      },
       setBillinDetails: (details) => {
         set({ billinDetails: details });
       },

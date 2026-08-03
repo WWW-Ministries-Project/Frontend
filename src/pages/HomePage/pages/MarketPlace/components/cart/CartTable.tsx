@@ -13,7 +13,8 @@ import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSele
 import { useCartDetails } from "../../utils/useCartDetails";
 
 export function CartTable() {
-  const { setCartItems, updateSection, removeFromCart } = useCart();
+  const { setCartItems, updateSection, updateVariant, removeFromCart } =
+    useCart();
   const { items: cartWithDetails } = useCartDetails();
 
   const initialValues = {
@@ -91,15 +92,56 @@ export function CartTable() {
                               colors={item.productColors || []}
                               placeholder="Select color"
                               onChange={(_: string, value: string) => {
-                                handleUpdateSection(
-                                  item.item_uuid!,
-                                  "color",
-                                  value
+                                if (!item.colorStocks) {
+                                  // legacy cart item persisted before per-color
+                                  // stock tracking; nothing to recompute from.
+                                  handleUpdateSection(
+                                    item.item_uuid!,
+                                    "color",
+                                    value
+                                  );
+                                  setFieldValue(
+                                    `cartItems[${index}].color`,
+                                    value
+                                  );
+                                  return;
+                                }
+
+                                const newSizeStocks =
+                                  item.colorStocks[value] ?? [];
+                                const inStockSizes = newSizeStocks.filter(
+                                  (s) => s.stock > 0
                                 );
+                                const keepsCurrentSize = inStockSizes.some(
+                                  (s) => s.size === item.size
+                                );
+                                const nextSize = keepsCurrentSize
+                                  ? item.size
+                                  : inStockSizes[0]?.size ?? "";
+                                const nextStock = newSizeStocks.find(
+                                  (s) => s.size === nextSize
+                                )?.stock;
+
+                                updateVariant(item.item_uuid!, {
+                                  color: value,
+                                  size: nextSize,
+                                  sizeStocks: newSizeStocks,
+                                  stock: nextStock,
+                                });
                                 setFieldValue(
                                   `cartItems[${index}].color`,
                                   value
                                 );
+                                setFieldValue(
+                                  `cartItems[${index}].size`,
+                                  nextSize
+                                );
+                                if (typeof nextStock === "number") {
+                                  setFieldValue(
+                                    `cartItems[${index}].stock`,
+                                    nextStock
+                                  );
+                                }
                               }}
                               showAll={false}
                             />

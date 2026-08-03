@@ -74,6 +74,18 @@ export function ProductDetails({ product, addToCart }: IProps) {
   const sizes = useMemo(() => {
     return product?.product_colours?.[selection.currentIndex]?.stock ?? []
   }, [selection.currentIndex, product?.product_colours])
+  const colorStocks = useMemo(() => {
+    return product.product_colours.reduce<Record<string, { size: string; stock: number }[]>>(
+      (acc, colorItem) => {
+        acc[colorItem.colour] = (colorItem.stock ?? []).map((s) => ({
+          size: s.size,
+          stock: Number(s.stock),
+        }));
+        return acc;
+      },
+      {}
+    );
+  }, [product.product_colours]);
 
   const isStockManaged = product.stock_managed === "yes";
   const selectedStockEntry = sizes.find((s) => s.size === selection.selectedSize);
@@ -168,6 +180,7 @@ export function ProductDetails({ product, addToCart }: IProps) {
     productColors,
     productSizes: sizes?.map((size) => size?.size),
     sizeStocks: sizes.map((s) => ({ size: s.size, stock: Number(s.stock) })),
+    colorStocks,
     stock: availableStock,
     market_id: product?.market_id || "",
   };
