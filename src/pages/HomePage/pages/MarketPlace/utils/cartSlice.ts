@@ -30,11 +30,12 @@ export const useCart = create<ICartSlice>()(
           if (existingItemIndex >= 0) {
             const updatedCartItems = [...state.cartItems];
             const existingItem = updatedCartItems[existingItemIndex];
+            const stockCap = normalizedItem.stock ?? Infinity;
 
             updatedCartItems[existingItemIndex] = {
               ...existingItem,
               ...normalizedItem,
-              quantity: existingItem.quantity + normalizedQuantity,
+              quantity: Math.min(existingItem.quantity + normalizedQuantity, stockCap),
             };
 
             showNotification("Product quantity updated in cart", "success");
@@ -92,35 +93,27 @@ export const useCart = create<ICartSlice>()(
           );
           let hasUpdatedByProductId = false;
           let hasChange = false;
-          const normalizedValue =
-            section === "quantity"
-              ? Math.max(1, Number(value) || 1)
-              : String(value || "");
 
           const updatedCartItems = state.cartItems.map((item) => {
-            if (hasUuidMatch) {
-              if (item.item_uuid !== identifier) return item;
-              if (item[section] === normalizedValue) return item;
-              hasChange = true;
-              return { ...item, [section]: normalizedValue };
-            }
+            const isTarget = hasUuidMatch
+              ? item.item_uuid === identifier
+              : !hasUpdatedByProductId && item.product_id === identifier;
+            if (!isTarget) return item;
+            if (!hasUuidMatch) hasUpdatedByProductId = true;
 
-            if (!hasUpdatedByProductId && item.product_id === identifier) {
-              hasUpdatedByProductId = true;
-              if (item[section] === normalizedValue) {
-                return item;
-              }
-              hasChange = true;
-              return { ...item, [section]: normalizedValue };
-            }
+            const normalizedValue =
+              section === "quantity"
+                ? Math.max(1, Math.min(Number(value) || 1, item.stock ?? Infinity))
+                : section === "stock"
+                ? Math.max(0, Number(value) || 0)
+                : String(value || "");
 
-            return item;
+            if (item[section] === normalizedValue) return item;
+            hasChange = true;
+            return { ...item, [section]: normalizedValue };
           });
 
-          if (!hasChange) {
-            return state;
-          }
-
+          if (!hasChange) return state;
           return { cartItems: updatedCartItems };
         });
       },
