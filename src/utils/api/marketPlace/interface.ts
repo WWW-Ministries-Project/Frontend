@@ -65,12 +65,14 @@ export interface ICartItem {
   size: string;
   productColors?: string[];
   productSizes?: string[];
+  sizeStocks?: { size: string; stock: number }[];
+  stock?: number;
   product_id: string;
   market_id: string;
   item_uuid?: string;
 }
 
-export type CartSections = "color" | "quantity" | "size";
+export type CartSections = "color" | "quantity" | "size" | "stock";
 export interface ICartSlice {
   cartItems: ICartItem[];
   addToCart: (product: ICartItem) => void;
@@ -85,7 +87,7 @@ export interface ICartSlice {
   updateSection: <T extends CartSections>(
     productId: string,
     section: T,
-    value: T extends "quantity" ? number : string
+    value: T extends "quantity" | "stock" ? number : string
   ) => void;
   billinDetails?: ICheckoutForm;
   setBillinDetails: (details: ICheckoutForm) => void;

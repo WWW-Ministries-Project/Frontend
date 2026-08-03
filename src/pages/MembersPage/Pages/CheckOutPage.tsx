@@ -13,7 +13,7 @@ import { useCartDetails } from "@/pages/HomePage/pages/MarketPlace/utils/useCart
 
 export function CheckOutPage() {
   const { setBillinDetails } = useCart();
-  const { postData, data, loading } = usePost(api.post.createOrder);
+  const { postData, data, error, loading } = usePost(api.post.createOrder);
   const { items: cartItems, clearCart } = useCartDetails();
 
   const location = useLocation();
@@ -94,6 +94,12 @@ export function CheckOutPage() {
       localStorage.removeItem("my_cart");
     }
   }, [data, clearCart]);
+
+  useEffect(() => {
+    if (error) {
+      showNotification(error.message, "error");
+    }
+  }, [error]);
 
   return (
     <>

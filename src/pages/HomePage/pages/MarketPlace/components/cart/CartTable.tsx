@@ -111,22 +111,20 @@ export function CartTable() {
                               name={`cartItems[${index}].size`}
                               id={`cartItems[${index}].size`}
                               options={
-                                item.productSizes?.map((size) => ({
-                                  value: size,
-                                  label: size,
-                                })) || []
+                                (item.sizeStocks?.length
+                                  ? item.sizeStocks.filter((s) => s.stock > 0)
+                                  : (item.productSizes || []).map((size) => ({ size, stock: Infinity }))
+                                ).map((s) => ({ value: s.size, label: s.size }))
                               }
                               placeholder="Select size"
                               onChange={(_: string, value: string) => {
-                                handleUpdateSection(
-                                  item.item_uuid!,
-                                  "size",
-                                  value
-                                );
-                                setFieldValue(
-                                  `cartItems[${index}].size`,
-                                  value
-                                );
+                                const newStock = item.sizeStocks?.find((s) => s.size === value)?.stock;
+                                handleUpdateSection(item.item_uuid!, "size", value);
+                                setFieldValue(`cartItems[${index}].size`, value);
+                                if (typeof newStock === "number") {
+                                  handleUpdateSection(item.item_uuid!, "stock", newStock);
+                                  setFieldValue(`cartItems[${index}].stock`, newStock);
+                                }
                               }}
                             />
                           </td>
@@ -139,11 +137,13 @@ export function CartTable() {
                               id={`cartItems[${index}].quantity`}
                               className="w-16"
                               min="1"
+                              max={item.stock}
                               placeholder="Quantity"
                               onChange={(_: string, value: string) => {
+                                const cap = item.stock ?? Infinity;
                                 const parsedQuantity = Math.max(
                                   1,
-                                  Number.parseInt(value, 10) || 1
+                                  Math.min(Number.parseInt(value, 10) || 1, cap)
                                 );
                                 handleUpdateSection(
                                   item.item_uuid!,
