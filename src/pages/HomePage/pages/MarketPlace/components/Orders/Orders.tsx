@@ -7,6 +7,7 @@ import { HeaderControls } from "@/components/HeaderControls";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import type { IOrders, PaymentStatus } from "@/utils";
 import { OrderFilters } from "./OrderFilters";
+import { getDeliveryStatusBadge } from "./OrdersTableColumns";
 
 const getStatusBadge = (status: PaymentStatus) => {
   const base =
@@ -85,7 +86,10 @@ const OrderCard = ({
         <p className="text-sm font-medium">
           GHC {total} • Qty {order.quantity}
         </p>
-        {getStatusBadge(order.payment_status)}
+        <div className="flex items-center gap-2">
+          {getStatusBadge(order.payment_status)}
+          {getDeliveryStatusBadge(order.delivery_status)}
+        </div>
       </div>
 
       {/* Attributes */}
