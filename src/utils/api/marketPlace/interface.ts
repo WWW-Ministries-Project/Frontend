@@ -133,7 +133,7 @@ export interface RetryOrderPaymentPayload {
 export type PaymentStatus = "pending" | "success" | "failed" | "delivered";
 export interface IOrders extends ICartItem, IUserDetails {
   payment_status: PaymentStatus;
-  delivery_status?: "pending" | "delivered" | "cancelled";
+  delivery_status?: "pending" | "shipped" | "delivered" | "cancelled";
   market_status: MarketStatusType;
   order_number: string;
   order_id?: string | number;

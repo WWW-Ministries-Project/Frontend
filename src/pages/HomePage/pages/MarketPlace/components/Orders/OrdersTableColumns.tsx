@@ -62,6 +62,11 @@ export const getBaseOrderColumns = (
     accessorKey: "payment_status",
     cell: ({ row }) => getStatusBadge(row.original.payment_status),
   },
+  {
+    header: "Delivery",
+    accessorKey: "delivery_status",
+    cell: ({ row }) => getDeliveryStatusBadge(row.original.delivery_status),
+  },
 ];
 
 export const getStatusColor = (status: string) => {
@@ -82,6 +87,30 @@ export const getStatusBadge = (status: string) => {
   return (
     <span className={`inline-block px-2 py-1 rounded ${color}`}>
       {status?.charAt(0).toUpperCase() + status?.slice(1)}
+    </span>
+  );
+};
+
+export const getDeliveryStatusColor = (status?: string) => {
+  switch (status) {
+    case "shipped":
+      return "bg-blue-100 text-blue-700";
+    case "delivered":
+      return "bg-green-100 text-green-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    case "pending":
+    default:
+      return "bg-[#EAECF0] text-gray-700";
+  }
+};
+
+export const getDeliveryStatusBadge = (status?: string) => {
+  const label = status || "pending";
+  const color = getDeliveryStatusColor(status);
+  return (
+    <span className={`inline-block px-2 py-1 rounded capitalize ${color}`}>
+      {label}
     </span>
   );
 };

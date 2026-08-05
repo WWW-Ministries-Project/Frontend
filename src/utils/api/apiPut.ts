@@ -26,7 +26,12 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
-import type { IMarket, IProductType, IProduct } from "./marketPlace/interface";
+import type {
+  IMarket,
+  IProductType,
+  IProduct,
+  IOrders,
+} from "./marketPlace/interface";
 import type {
   Appointment,
   StaffAvailability,
@@ -468,6 +473,15 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("appointment/status", payload, {
       id: appointmentId,
     });
+  };
+
+  updateOrderDeliveryStatus = (
+    payload: {
+      id: number | string;
+      status: "pending" | "shipped" | "delivered" | "cancelled";
+    }
+  ): Promise<ApiResponse<IOrders>> => {
+    return this.apiExecution.updateData("orders/update-delivery-status", payload);
   };
 
   // uodate church attendance
