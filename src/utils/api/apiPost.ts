@@ -16,7 +16,7 @@ import type {
   Redemption,
   RetryPledgePaymentPayload,
 } from "./pledges/interface";
-import { LifeCenterType } from "./lifeCenter/interfaces";
+import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
   ProgramsPayloadType,
@@ -428,8 +428,29 @@ export class ApiCreationCalls {
     return this.postToApi("lifecenter/create-lifecenter", payload);
   };
 
-  createSoul = (payload: ISoulsWonForm): Promise<ApiResponse<undefined>> => {
+  createSoul = (
+    payload: ISoulsWonForm
+  ): Promise<
+    ApiResponse<{
+      id: string | number;
+      first_name: string;
+      last_name: string;
+    }>
+  > => {
     return this.postToApi("lifecenter/soulwon", payload);
+  };
+
+  createMeeting = (payload: {
+    lifeCenterId: string;
+    date: string;
+    offeringAmount: string;
+    currency: string;
+    note: string | null;
+    attendeeSoulWonIds: number[];
+    firstTimerSoulWonIds: number[];
+    newFirstTimers: unknown[];
+  }): Promise<ApiResponse<MeetingType>> => {
+    return this.postToApi("lifecenter/meeting", payload);
   };
 
   createLifeCenterRole = (

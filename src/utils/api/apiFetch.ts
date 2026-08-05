@@ -25,6 +25,9 @@ import {
   LifeCenterStatsType,
   LifeCenterType,
   SoulWonListType,
+  MeetingType,
+  MeetingListResponse,
+  EligibleFirstTimerType,
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
@@ -592,6 +595,24 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/soulswon`, query);
   };
 
+  fetchMeetings = (
+    query?: QueryType
+  ): Promise<ApiResponse<MeetingListResponse>> => {
+    return this.fetchFromApi(`lifecenter/meetings`, query);
+  };
+
+  fetchMeetingById = (
+    query?: QueryType
+  ): Promise<ApiResponse<MeetingType>> => {
+    return this.fetchFromApi(`lifecenter/meeting`, query);
+  };
+
+  fetchEligibleFirstTimers = (
+    query?: QueryType
+  ): Promise<ApiResponse<EligibleFirstTimerType[]>> => {
+    return this.fetchFromApi(`lifecenter/soulswon-eligible-first-timers`, query);
+  };
+
   fetchMarkets = (query?: QueryType): Promise<ApiResponse<IMarket[]>> => {
     return this.fetchFromApi(`market/list-markets`, query);
   };
@@ -662,6 +683,19 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
     return this.fetchFromApi("appointment/availability/status", query);
+  };
+
+  // `appointment/availability/status` is scoped by `can_view_appointments_scoped`:
+  // members without the global "view appointments" permission get back only
+  // their *own* ("own"-scoped) availability, which is always empty since
+  // they aren't staff — so a member's booking form "Who" list reads empty.
+  // `appointment/availability/booking-options` is the unscoped (protect-only)
+  // counterpart the mobile app uses for exactly this — same payload shape,
+  // full staff list. Use this for any self-service (member-facing) booking UI.
+  fetchAppointmentBookingOptions = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
+    return this.fetchFromApi("appointment/availability/booking-options", query);
   };
 
   fetchAppointmentBookings = (
