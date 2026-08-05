@@ -81,3 +81,37 @@ export interface LifeCenterDetailsType extends LifeCenterType {
   members: LifeCenterMemberType[];
   soulsWon: ISoulsWonForm[];
 }
+
+export type MeetingAttendeeType = {
+  soulWonId: string | number;
+  name: string;
+  isFirstTimer: boolean;
+};
+
+export type MeetingType = {
+  id: string | number;
+  lifeCenterId: string | number;
+  date: string;
+  offeringAmount: string;
+  currency: string;
+  note: string | null;
+  createdById: string | number;
+  createdAt: string;
+  attendees: MeetingAttendeeType[];
+};
+
+export type EligibleFirstTimerType = {
+  id: string | number;
+  title?: string | null;
+  first_name: string;
+  last_name: string;
+};
+
+export type MeetingListResponse = {
+  message: string;
+  current_page: number;
+  page_size: number;
+  total: number;
+  totalPages: number;
+  data: MeetingType[];
+};

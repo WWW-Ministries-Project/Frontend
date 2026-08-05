@@ -9,7 +9,7 @@ import type { SermonSeries, UpdateSermonSeriesDto } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
-import { LifeCenterType } from "./lifeCenter/interfaces";
+import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
 import {
   activateMemberPayloadType,
   activateMemberType,
@@ -364,6 +364,13 @@ export class ApiUpdateCalls {
     query?: QueryType
   ): Promise<ApiResponse<ISoulsWonForm>> => {
     return this.apiExecution.updateData("lifecenter/soulwon", payload, query);
+  };
+
+  updateMeeting = (
+    payload: unknown,
+    query?: QueryType
+  ): Promise<ApiResponse<MeetingType>> => {
+    return this.apiExecution.updateData("lifecenter/meeting", payload, query);
   };
 
   updateLifeCenterRole = (

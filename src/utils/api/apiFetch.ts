@@ -25,6 +25,9 @@ import {
   LifeCenterStatsType,
   LifeCenterType,
   SoulWonListType,
+  MeetingType,
+  MeetingListResponse,
+  EligibleFirstTimerType,
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
@@ -590,6 +593,24 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<SoulWonListType[]>> => {
     return this.fetchFromApi(`lifecenter/soulswon`, query);
+  };
+
+  fetchMeetings = (
+    query?: QueryType
+  ): Promise<ApiResponse<MeetingListResponse>> => {
+    return this.fetchFromApi(`lifecenter/meetings`, query);
+  };
+
+  fetchMeetingById = (
+    query?: QueryType
+  ): Promise<ApiResponse<MeetingType>> => {
+    return this.fetchFromApi(`lifecenter/meeting`, query);
+  };
+
+  fetchEligibleFirstTimers = (
+    query?: QueryType
+  ): Promise<ApiResponse<EligibleFirstTimerType[]>> => {
+    return this.fetchFromApi(`lifecenter/soulswon-eligible-first-timers`, query);
   };
 
   fetchMarkets = (query?: QueryType): Promise<ApiResponse<IMarket[]>> => {
