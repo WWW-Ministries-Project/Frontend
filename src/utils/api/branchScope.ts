@@ -40,6 +40,7 @@ const BRANCH_SCOPED_ENDPOINTS = [
   "product/update-product",
   "appointment/availability",
   "appointment/availability/status",
+  "appointment/availability/booking-options",
   "appointment/book",
   "appointment/bookings",
   "theme/",

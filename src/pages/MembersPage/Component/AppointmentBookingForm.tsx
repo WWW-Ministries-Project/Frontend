@@ -499,8 +499,11 @@ const AppointmentBookingForm = ({
     [membersOptions]
   );
 
+  // Open (protect-only) endpoint — same one the mobile app uses — so members
+  // without the global "view appointments" permission still get the full
+  // staff list to book against, instead of an empty "own"-scoped result.
   const { data: availabilityResponse, loading: availabilityLoading } = useFetch(
-    api.fetch.fetchStaffAvailabilityStatus
+    api.fetch.fetchAppointmentBookingOptions
   );
 
   const {
