@@ -685,6 +685,19 @@ export class ApiCalls {
     return this.fetchFromApi("appointment/availability/status", query);
   };
 
+  // `appointment/availability/status` is scoped by `can_view_appointments_scoped`:
+  // members without the global "view appointments" permission get back only
+  // their *own* ("own"-scoped) availability, which is always empty since
+  // they aren't staff — so a member's booking form "Who" list reads empty.
+  // `appointment/availability/booking-options` is the unscoped (protect-only)
+  // counterpart the mobile app uses for exactly this — same payload shape,
+  // full staff list. Use this for any self-service (member-facing) booking UI.
+  fetchAppointmentBookingOptions = (
+    query?: QueryType
+  ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
+    return this.fetchFromApi("appointment/availability/booking-options", query);
+  };
+
   fetchAppointmentBookings = (
     query?: AppointmentBookingsQuery
   ): Promise<ApiResponse<Appointment[]>> => {
