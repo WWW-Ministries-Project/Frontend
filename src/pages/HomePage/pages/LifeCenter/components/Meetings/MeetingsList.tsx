@@ -255,22 +255,40 @@ export const MeetingsList = ({
             </p>
             <div>
               <p className="font-medium text-sm">Attendees</p>
-              <ul className="text-sm text-gray-700 list-disc pl-5">
-                {viewing.attendees.map((a) => (
-                  <li key={a.soulWonId}>
-                    {a.name}
-                    {a.isFirstTimer ? " (first timer)" : ""}
-                  </li>
-                ))}
-              </ul>
+              {viewing.attendees.filter((a) => !a.isFirstTimer).length > 0 ? (
+                <ul className="text-sm text-gray-700 list-disc pl-5">
+                  {viewing.attendees
+                    .filter((a) => !a.isFirstTimer)
+                    .map((a) => (
+                      <li key={a.soulWonId}>{a.name}</li>
+                    ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-400">None recorded</p>
+              )}
             </div>
+            {viewing.attendees.some((a) => a.isFirstTimer) && (
+              <div>
+                <p className="font-medium text-sm">First timers</p>
+                <ul className="text-sm text-gray-700 list-disc pl-5">
+                  {viewing.attendees
+                    .filter((a) => a.isFirstTimer)
+                    .map((a) => (
+                      <li key={a.soulWonId}>{a.name}</li>
+                    ))}
+                </ul>
+              </div>
+            )}
             {viewing.note && (
-              <div
-                className="text-sm text-gray-700 prose"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(viewing.note),
-                }}
-              />
+              <div className="rounded-md border border-gray-200 p-3">
+                <p className="font-medium text-sm mb-1">Notes</p>
+                <div
+                  className="text-sm text-gray-700 prose"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(viewing.note),
+                  }}
+                />
+              </div>
             )}
             <div className="flex justify-end">
               <button
