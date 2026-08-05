@@ -106,12 +106,3 @@ export type EligibleFirstTimerType = {
   first_name: string;
   last_name: string;
 };
-
-export type MeetingListResponse = {
-  message: string;
-  current_page: number;
-  page_size: number;
-  total: number;
-  totalPages: number;
-  data: MeetingType[];
-};

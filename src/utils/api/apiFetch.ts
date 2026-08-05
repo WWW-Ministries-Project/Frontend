@@ -26,7 +26,6 @@ import {
   LifeCenterType,
   SoulWonListType,
   MeetingType,
-  MeetingListResponse,
   EligibleFirstTimerType,
 } from "./lifeCenter/interfaces";
 import type {
@@ -597,7 +596,7 @@ export class ApiCalls {
 
   fetchMeetings = (
     query?: QueryType
-  ): Promise<ApiResponse<MeetingListResponse>> => {
+  ): Promise<ApiResponse<MeetingType[]>> => {
     return this.fetchFromApi(`lifecenter/meetings`, query);
   };
 

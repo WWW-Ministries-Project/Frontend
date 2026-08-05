@@ -259,25 +259,27 @@ export const MeetingForm = ({
                   </button>
                 </div>
 
-                <Field
-                  name="currency"
-                  component={FormikSelectField}
-                  options={CURRENCY_OPTIONS}
-                  label="Currency *"
-                  id="currency"
-                />
-                <Field
-                  type="number"
-                  name="offeringAmount"
-                  component={FormikInputDiv}
-                  label="Offering amount *"
-                  id="offeringAmount"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                />
+                <div className="grid grid-cols-2 gap-4 md:col-span-2 md:gap-5">
+                  <Field
+                    name="currency"
+                    component={FormikSelectField}
+                    options={CURRENCY_OPTIONS}
+                    label="Currency *"
+                    id="currency"
+                  />
+                  <Field
+                    type="number"
+                    name="offeringAmount"
+                    component={FormikInputDiv}
+                    label="Offering amount *"
+                    id="offeringAmount"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-primary font-semibold" htmlFor="note">
                     Note (optional)
                   </label>
@@ -285,6 +287,7 @@ export const MeetingForm = ({
                     value={values.note}
                     onChange={(value) => setFieldValue("note", value)}
                     placeholder="Anything worth remembering about this meeting..."
+                    className="[&_.ql-editor]:min-h-[4.5rem] [&_.ql-editor]:max-h-[7.5rem] [&_.ql-editor]:overflow-y-auto"
                   />
                 </div>
               </FormLayout>

@@ -3,12 +3,14 @@
 import React from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { cn } from "@/utils/cn";
 
 export interface TextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   readOnly?: boolean;
+  className?: string;
 }
 
 const modules: ReactQuill.ReactQuillProps["modules"] = {
@@ -38,9 +40,10 @@ const TextEditor: React.FC<TextEditorProps> = ({
   onChange,
   placeholder = "Start typing...",
   readOnly = false,
+  className,
 }) => {
   return (
-    <div className="rounded-md border border-gray-300">
+    <div className={cn("rounded-md border border-gray-300", className)}>
       <ReactQuill
         theme="snow"
         value={value}

@@ -62,8 +62,8 @@ export const MeetingsList = ({
     loading: isUpdating,
   } = usePut(api.put.updateMeeting);
 
-  const meetings = data?.data?.data ?? [];
-  const totalPages = data?.data?.totalPages ?? 1;
+  const meetings = data?.data ?? [];
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   // Route-mode edit/delete is gated by ActionButton's own useRouteAccess
   // check (default true/true props, deferring entirely to the real
@@ -81,6 +81,9 @@ export const MeetingsList = ({
 
   useEffect(() => {
     if (postResponse?.data) {
+      // Backend sorts by date desc, so a new meeting lands on page 1 —
+      // jump there so it's visible even if the user was on a later page.
+      setPage(1);
       refetch();
       showNotification("Meeting added successfully", "success");
       closeFormModal();
