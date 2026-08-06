@@ -1,6 +1,7 @@
 import { cn } from "@/utils/cn";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import {
+  DocumentDuplicateIcon,
   EyeIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -9,6 +10,7 @@ import { memo } from "react";
 
 interface IAction {
   onEdit?: () => void;
+  onDuplicate?: () => void;
   onDelete?: () => void;
   onView?: () => void;
   hideDelete?: boolean;
@@ -20,6 +22,7 @@ interface IAction {
 
 const Action = ({
   onEdit,
+  onDuplicate,
   onDelete,
   onView,
   className,
@@ -32,11 +35,12 @@ const Action = ({
   const canRunManageActions = !requireManageAccess || canManageCurrentRoute;
   const canRunAdminActions = !requireAdminAccess || canAdminCurrentRoute;
   const canShowEdit = Boolean(canRunManageActions && onEdit && isEditable);
+  const canShowDuplicate = Boolean(canRunManageActions && onDuplicate && isEditable);
   const canShowDelete = Boolean(
     canRunAdminActions && onDelete && !hideDelete && isEditable
   );
   const hasVisibleAction = Boolean(
-    onView || canShowEdit || canShowDelete
+    onView || canShowEdit || canShowDuplicate || canShowDelete
   );
 
   if (!hasVisibleAction) return null;
@@ -50,6 +54,9 @@ const Action = ({
     >
       <ul className="!divide-lightGray py-2 text-sm text-primary flex flex-col gap-y-1">
         {canShowEdit && onEdit && <ActionButton onClick={onEdit} text="Edit" />}
+        {canShowDuplicate && onDuplicate && (
+          <ActionButton onClick={onDuplicate} text="Duplicate" />
+        )}
         {onView && <ActionButton onClick={onView} text="View" />}
         {canShowDelete && onDelete && (
           <>
@@ -63,7 +70,7 @@ const Action = ({
 };
 
 interface IActionButton {
-  text: "Edit" | "View" | "Delete";
+  text: "Edit" | "Duplicate" | "View" | "Delete";
   onClick: () => void;
 }
 
@@ -75,6 +82,8 @@ const ActionButton = memo(({ text, onClick }: IActionButton) => {
     >
       {text === "Edit" ? (
         <PencilSquareIcon width={20} />
+      ) : text === "Duplicate" ? (
+        <DocumentDuplicateIcon width={20} />
       ) : text === "View" ? (
         <EyeIcon width={20} />
       ) : (

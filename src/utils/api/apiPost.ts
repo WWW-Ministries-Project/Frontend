@@ -472,6 +472,12 @@ export class ApiCreationCalls {
     return this.postToApi("market/create-market", payload);
   };
 
+  duplicateMarket = (
+    payload: Omit<IMarket, "id" | "event_name"> & { source_market_id: string }
+  ): Promise<ApiResponse<{ market: IMarket; products_count: number }>> => {
+    return this.postToApi("market/duplicate-market", payload);
+  };
+
   //products
   createProductType = (payload: {
     name: string;

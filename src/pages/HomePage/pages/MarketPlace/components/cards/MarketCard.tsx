@@ -10,6 +10,7 @@ import { MarketStatusChip } from "../chips/MarketStatusChip";
 interface IProps {
   market: IMarket;
   handleEdit: (market: IMarket) => void;
+  handleDuplicate: (market: IMarket) => void;
   handleDelete: (id: string, name: string) => void;
   openMarket: (id: string) => void;
 }
@@ -18,6 +19,7 @@ export function MarketCard({
   market,
   handleDelete,
   handleEdit,
+  handleDuplicate,
   openMarket,
 }: IProps) {
   const { name, description, event_name, start_date, end_date, id } = market;
@@ -44,6 +46,7 @@ export function MarketCard({
                 showOptions={showOptions}
                 onDelete={() => handleDelete(market.id, name)}
                 onEdit={() => handleEdit(market)}
+                onDuplicate={() => handleDuplicate(market)}
               />
             </div>
           </div>

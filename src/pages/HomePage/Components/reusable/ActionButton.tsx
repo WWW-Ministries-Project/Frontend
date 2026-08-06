@@ -7,6 +7,7 @@ interface ActionButtonProps {
   onDelete?: () => void;
   onView?: () => void;
   onEdit?: () => void;
+  onDuplicate?: () => void;
   hideDelete?: boolean;
   requireManageAccess?: boolean;
   requireAdminAccess?: boolean;
@@ -21,6 +22,7 @@ const ActionButton = (props: ActionButtonProps) => {
   const hasVisibleOptions = Boolean(
     props.onView ||
       (canRunManageActions && props.onEdit) ||
+      (canRunManageActions && props.onDuplicate) ||
       (canRunAdminActions && props.onDelete && !props.hideDelete)
   );
 
@@ -37,6 +39,7 @@ const ActionButton = (props: ActionButtonProps) => {
           onDelete={props.onDelete}
           onView={props.onView}
           onEdit={props.onEdit}
+          onDuplicate={props.onDuplicate}
           hideDelete={props.hideDelete}
           requireManageAccess={requireManageAccess}
           requireAdminAccess={requireAdminAccess}

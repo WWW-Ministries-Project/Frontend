@@ -17,6 +17,7 @@ interface IProps {
   editData: IMarket | null;
   loading: boolean;
   events: eventType[] | undefined;
+  isDuplicate?: boolean;
 }
 
 export function AddMarketForm({
@@ -25,6 +26,7 @@ export function AddMarketForm({
   editData,
   loading,
   events,
+  isDuplicate = false,
 }: IProps) {
   const initials = useMemo(() => editData ?? initialValues, [editData]);
 
@@ -50,7 +52,7 @@ export function AddMarketForm({
         <Form className="space-y-6 ">
           <div className="bg-primary h-28 w-full -mt-3 text-white p-6">
             <p className="font-bold text-2xl">
-              {editData ? "Update" : "Create New"} Market
+              {isDuplicate ? "Duplicate" : editData ? "Update" : "Create New"} Market
             </p>
             <p className="text-xl">
               Set up a new marketplace for your event merchandise
@@ -118,7 +120,7 @@ export function AddMarketForm({
               <Button
                 type="submit"
                 disabled={loading}
-                value={editData ? "Update" : "Save"}
+                value={isDuplicate ? "Duplicate Market" : editData ? "Update" : "Save"}
                 variant="primary"
                 onClick={handleSubmit}
                 loading={loading}
