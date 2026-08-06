@@ -27,6 +27,9 @@ import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
 export function MarketPlace() {
   const [openModal, setOpenModal] = useState(false);
   const [editData, setEditData] = useState<IMarket | null>(null);
+  const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(
+    null
+  );
   const TABS = {
     active: "Active",
     upcoming: "Upcoming",
@@ -45,15 +48,24 @@ export function MarketPlace() {
     data: updateValue,
     loading: isUpdating,
   } = usePut(api.put.updateMarket);
+  const {
+    postData: duplicateMarket,
+    data: duplicatedMarket,
+    loading: isDuplicating,
+  } = usePost(api.post.duplicateMarket);
   const { executeDelete, success } = useDelete(api.delete.deleteMarket);
   const { events } = useStore();
   const { activeBranchId } = useBranchStore();
 
   const handleOpenModal = () => {
     setEditData(null);
+    setDuplicateSourceId(null);
     setOpenModal(true);
   };
-  const handleCloseModal = () => setOpenModal(false);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setDuplicateSourceId(null);
+  };
 
   const handleAddMarket = async (market: IMarket) => {
     const { id, event_id, event_name, branch_id, ...rest } = market;
@@ -67,6 +79,13 @@ export function MarketPlace() {
 
     if (id) {
       await updateMarket({ ...rest, ...branchPayload, id, event_id: +event_id }, { id });
+    } else if (duplicateSourceId) {
+      await duplicateMarket({
+        ...rest,
+        ...branchPayload,
+        event_id: +event_id,
+        source_market_id: duplicateSourceId,
+      });
     } else {
       await postData({ ...rest, ...branchPayload, event_id: +event_id });
     }
@@ -89,10 +108,27 @@ export function MarketPlace() {
       showNotification("Market deleted successfully", "success");
       refetch();
     }
-  }, [newMarket, refetch, updateValue, success]);
+
+    if (duplicatedMarket) {
+      showNotification(
+        `Market duplicated successfully with ${duplicatedMarket.data.products_count} product(s)`,
+        "success"
+      );
+      refetch();
+      handleCloseModal();
+      setDuplicateSourceId(null);
+    }
+  }, [newMarket, refetch, updateValue, success, duplicatedMarket]);
 
   const handleEdit = (market: IMarket) => {
     setEditData(market);
+    setDuplicateSourceId(null);
+    setOpenModal(true);
+  };
+
+  const handleDuplicate = (market: IMarket) => {
+    setEditData({ ...market, id: "", name: `${market.name} (Copy)` });
+    setDuplicateSourceId(market.id);
     setOpenModal(true);
   };
 
@@ -144,6 +180,7 @@ export function MarketPlace() {
             key={original.id}
             market={original}
             handleEdit={handleEdit}
+            handleDuplicate={handleDuplicate}
             handleDelete={handleDelete}
             openMarket={openShop}
           />
@@ -158,8 +195,9 @@ export function MarketPlace() {
           onClose={handleCloseModal}
           editData={editData}
           onSubmit={handleAddMarket}
-          loading={isSubmitting || isUpdating}
+          loading={isSubmitting || isUpdating || isDuplicating}
           events={events}
+          isDuplicate={Boolean(duplicateSourceId)}
         />
       </Modal>
     </PageOutline>
