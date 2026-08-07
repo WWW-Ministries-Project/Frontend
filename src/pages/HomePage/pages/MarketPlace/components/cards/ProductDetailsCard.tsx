@@ -36,7 +36,7 @@ export const ProductDetailsCard = memo(
 
     const [showOptions, setShowOptions] = useState(false);
     return (
-      <div className="relative w-full rounded-xl border bg-white p-2 shadow-sm">
+      <div className="relative w-full rounded-xl border border-lightGray bg-white p-2 shadow-sm transition-shadow hover:shadow-md">
         <div className="flex gap-4">
           <img
             src={`${product_colours[0]?.image_url}`}
@@ -51,7 +51,7 @@ export const ProductDetailsCard = memo(
                 </h3>
                 <div className="flex items-center gap-1">
                   <p
-                    className={`text-xs px-2 py-0.5 h-fit rounded-full  capitalize ${statusColors[status]}`}
+                    className={`text-xs px-2.5 py-1 h-fit capitalize ${statusColors[status]}`}
                   >
                     <span className="hidden md:block lg:block"> {status}</span>
                   </p>
@@ -93,6 +93,6 @@ export const ProductDetailsCard = memo(
 ProductDetailsCard.displayName = "ProductDetailsCard";
 
 export const statusColors: Record<string, string> = {
-  published: "bg-[#34C759] text-white",
-  draft: "bg-gray-400 text-white",
+  published: "bg-[#34C759] text-white rounded-full",
+  draft: "bg-gray-400 text-white rounded-full",
 };
