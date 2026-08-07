@@ -1,15 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { ShoppingCartIcon } from "@heroicons/react/24/outline";
+import { ShoppingCartIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { relativePath } from "@/utils";
 import { useCart } from "../../utils/cartSlice";
+import { useCartDetails } from "../../utils/useCartDetails";
 import { ProductChip } from "../chips/ProductChip";
 import EmptyCartComponent from "./EmptyCartComponent";
-import { relativePath } from "@/utils";
-import { useCartDetails } from "../../utils/useCartDetails";
 
 export default function CartDrawer() {
   const { cartOpen, toggleCart, removeFromCart } = useCart();
@@ -42,64 +41,56 @@ export default function CartDrawer() {
 
   return (
     <div
-      className={`fixed top-[65px] right-0 w-96 h-fit   z-50 p-4 rounded-tl-md text-[#474D66] bg-white shadow-lg transform transition-transform duration-300 ${
+      className={`fixed top-[65px] right-0 z-50 flex h-fit w-96 max-w-full flex-col rounded-tl-2xl border border-lightGray bg-white text-primary shadow-2xl transition-transform duration-300 ${
         cartOpen ? "translate-x-0" : "translate-x-full"
       }`}
       ref={drawerRef}
     >
-      <div className="flex items-center justify-between border-b ">
-        <div className="flex items-center ">
-          <ShoppingCartIcon className="size-7" />
-          <h2 className="p-4 font-bold text-xl">Shopping cart</h2>
+      <div className="flex items-center justify-between border-b border-lightGray px-5 py-4">
+        <div className="flex items-center gap-2">
+          <ShoppingCartIcon className="size-6" />
+          <h2 className="text-lg font-bold">Your cart</h2>
         </div>
-        <button onClick={() => toggleCart(!cartOpen)} className="p-4">
+        <button
+          onClick={() => toggleCart(!cartOpen)}
+          className="rounded-full p-1 hover:bg-lightGray/40"
+          aria-label="Close cart"
+        >
           <XMarkIcon className="size-5" />
         </button>
       </div>
-      <div className="p-4 divide-y-[1px] max-h-[60vh] overflow-y-scroll">
+
+      <div className="max-h-[60vh] divide-y divide-lightGray overflow-y-auto px-5">
         {cartWithDetails.length === 0 ? (
-          <EmptyCartComponent />
+          <div className="py-6">
+            <EmptyCartComponent />
+          </div>
         ) : (
-          <>
-            {cartWithDetails.map((item) => (
-              <CartCard
-                key={item.item_uuid}
-                cartItem={item}
-                onDelete={handleRemoveFromCart}
-              />
-            ))}
-          </>
+          cartWithDetails.map((item) => (
+            <CartCard
+              key={item.item_uuid}
+              cartItem={item}
+              onDelete={handleRemoveFromCart}
+            />
+          ))
         )}
       </div>
+
       {cartWithDetails.length > 0 && (
-        <>
-          <div className="pt-2 border-t">
-            <div className="flex items-center justify-between">
-              <p className="text-lg font-semibold">Subtotal</p>
-              <p className="text-lg font-semibold">
-                <span>GHC </span>
-                {totalPrice.toFixed(2)}
-              </p>
-            </div>
+        <div className="space-y-3 border-t border-lightGray px-5 py-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-primaryGray">Subtotal</p>
+            <p className="text-lg font-bold">GHC {totalPrice.toFixed(2)}</p>
           </div>
-          <div className="flex items-center justify-between mt-3">
-            <Button
-              value="Checkout"
-              onClick={() => {
-                toggleCart(false);
-                navigate(relativePath.member.checkOut);
-              }}
-            />
-            <Button
-              value="View cart"
-              variant="secondary"
-              onClick={() => {
-                toggleCart(false);
-                navigate(relativePath.member.cart);
-              }}
-            />
-          </div>
-        </>
+          <Button
+            value="Proceed to checkout"
+            className="w-full"
+            onClick={() => {
+              toggleCart(false);
+              navigate(relativePath.member.checkOut);
+            }}
+          />
+        </div>
       )}
     </div>
   );
@@ -116,42 +107,35 @@ interface CartCardProps {
     product_category: string;
     item_uuid?: string | undefined;
   };
-
   onDelete: (itemId: string) => void;
 }
 const CartCard = ({ cartItem, onDelete }: CartCardProps) => {
-  const handleRemoveFromCart = (itemId: string) => {
-    onDelete(itemId);
-  };
   return (
-    <div className="flex justify-between mb-2 py-2 font-medium">
-      <div className="flex  gap-2">
-        <div className="bg-slate-500 rounded-lg overflow-hidden w-20 h-24 ">
-          <img
-            src={cartItem.image_url}
-            alt=""
-            className="w-20 h-24 object-cover"
-          />
-        </div>
-        <div className="flex flex-col justify-between h-full ">
-          <p>{cartItem.name}</p>
-          <div className="flex items-center gap-2">
-            <ProductChip section="type" text={cartItem.product_type} />
-            <ProductChip section="category" text={cartItem.product_category} />
-          </div>
-          <p className="flex items-center gap-2 pt-4">
-            <span>{cartItem.quantity}</span>
-            <span>
-              <XMarkIcon className="size-5" />
-            </span>
-            <span>GHC {cartItem.price_amount?.toFixed(2)}</span>
-          </p>
-        </div>
+    <div className="flex items-start gap-3 py-4">
+      <div className="h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-lightGray bg-lightGray/30">
+        <img
+          src={cartItem.image_url}
+          alt={cartItem.name}
+          className="h-full w-full object-cover"
+        />
       </div>
-      <XMarkIcon
-        className="size-5 cursor-pointer"
-        onClick={() => handleRemoveFromCart(cartItem.item_uuid!)}
-      />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <p className="truncate text-sm font-semibold">{cartItem.name}</p>
+        <div className="flex flex-wrap items-center gap-1">
+          <ProductChip section="type" text={cartItem.product_type} />
+          <ProductChip section="category" text={cartItem.product_category} />
+        </div>
+        <p className="text-sm text-primaryGray">
+          Qty {cartItem.quantity} · GHC {cartItem.price_amount?.toFixed(2)}
+        </p>
+      </div>
+      <button
+        onClick={() => onDelete(cartItem.item_uuid!)}
+        className="rounded-full p-1 text-primaryGray hover:bg-lightGray/40 hover:text-red-600"
+        aria-label={`Remove ${cartItem.name} from cart`}
+      >
+        <XMarkIcon className="size-4" />
+      </button>
     </div>
   );
 };
