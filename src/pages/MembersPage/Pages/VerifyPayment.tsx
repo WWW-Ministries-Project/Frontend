@@ -60,14 +60,12 @@ export default function VerifyPayment() {
 
   return (
     <div className="flex items-center justify-center w-full h-[80vh] px-4">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md text-center">
+      <div className="bg-white shadow-lg rounded-2xl border border-lightGray p-8 w-full max-w-md text-center">
         {!hasReference && (
           <div className="flex flex-col items-center gap-4">
             <XCircleIcon className="w-12 h-12 text-red-500" />
-            <p className="text-red-600 font-medium">
-              Missing payment reference.
-            </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-red-600 font-medium">Missing payment reference.</p>
+            <p className="text-primaryGray text-sm">
               We could not verify your payment because the reference is missing.
             </p>
             <Button
@@ -81,18 +79,16 @@ export default function VerifyPayment() {
 
         {loading && (
           <div className="flex flex-col items-center gap-4">
-            <ArrowPathIcon className="w-12 h-12 animate-spin text-blue-500" />
-            <p className="text-gray-600 text-lg">Verifying your payment...</p>
+            <ArrowPathIcon className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-primary text-lg">Verifying your payment...</p>
           </div>
         )}
 
         {error && !loading && hasReference && (
           <div className="flex flex-col items-center gap-4">
             <XCircleIcon className="w-12 h-12 text-red-500" />
-            <p className="text-red-600 font-medium">
-              Payment verification failed.
-            </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-red-600 font-medium">Payment verification failed.</p>
+            <p className="text-primaryGray text-sm">
               Please try again or contact support.
             </p>
             <Button value="Retry" onClick={() => refetch({ reference })} />
@@ -101,17 +97,17 @@ export default function VerifyPayment() {
 
         {verificationResult && !loading && !error && hasReference && (
           <div className="flex flex-col items-center gap-4">
-            <CheckCircleIcon className="w-12 h-12 text-green-500" />
-            <p className="text-green-600 font-medium">
-              Payment verified successfully!
-            </p>
-            <p className="text-gray-600 text-sm">
+            <CheckCircleIcon className="w-12 h-12 text-green-600" />
+            <p className="text-green-700 font-medium">Payment verified successfully!</p>
+            <p className="text-primaryGray text-sm">
               Order Reference: <span className="font-mono">{reference}</span>
             </p>
 
-            <p className="text-gray-500 text-sm mt-2">
-              {isMobileReturn ? "You will be returned to the mobile app in " : "You will be redirected in "}
-              <span className="font-semibold">{countdown}</span> seconds...
+            <p className="text-primaryGray text-sm mt-2">
+              {isMobileReturn
+                ? "You will be returned to the mobile app in "
+                : "You will be redirected in "}
+              <span className="font-semibold text-primary">{countdown}</span> seconds...
             </p>
             {isMobileReturn ? (
               <Button

@@ -1,25 +1,25 @@
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { ProductDetails } from "@/pages/HomePage/pages/MarketPlace/components/ProductDetails";
-import { api, ICartItem } from "@/utils";
+import { api, ICartItem, IProductTypeResponse } from "@/utils";
 import { decodeQuery } from "@/pages/HomePage/utils";
 import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
 import EmptyState from "@/components/EmptyState";
+import { Skeleton } from "@/components/Skeleton";
 
 export function ProductDetailsPage() {
   const { id } = useParams();
   const productId = decodeQuery(id || "");
 
-  // If your useFetch exposes isLoading/error, we use them.
-  // Otherwise we infer loading by checking for undefined data.
   const {
-    data: product, 
+    data: product,
     loading,
     error,
   } = useFetch(api.fetch.fetchProductById, { id: productId });
 
-  
+  const { data: allProducts } = useFetch(api.fetch.fetchAllProducts);
 
   const { addToCart } = useCart();
 
@@ -27,14 +27,23 @@ export function ProductDetailsPage() {
     addToCart(item);
   };
 
+  const relatedProducts = useMemo<IProductTypeResponse[]>(() => {
+    if (!product?.data) return [];
+    const current = product.data;
+    return (allProducts?.data || [])
+      .filter((candidate) => String(candidate.id) !== String(current.id))
+      .filter(
+        (candidate) =>
+          String(candidate.market_id) === String(current.market_id) ||
+          String(candidate.product_type_id) === String(current.product_type_id)
+      )
+      .slice(0, 4);
+  }, [allProducts?.data, product?.data]);
+
   return (
     <div className="mx-auto bg-white rounded-xl">
-      {/* Loading state */}
-      {loading && (
-        <ProductDetailsSkeleton />
-      )}
+      {loading && <ProductDetailsSkeleton />}
 
-      {/* Error / empty state */}
       {!loading && (!product || !product?.data) && (
         <EmptyState
           scope="page"
@@ -42,59 +51,53 @@ export function ProductDetailsPage() {
         />
       )}
 
-      {/* Loaded state */}
       {!loading && product?.data && (
-        <ProductDetails product={product.data} addToCart={handleAddToCart} />
+        <ProductDetails
+          product={product.data}
+          addToCart={handleAddToCart}
+          relatedProducts={relatedProducts}
+        />
       )}
     </div>
   );
 }
 
-/** ---------- Skeleton ---------- **/
 function ProductDetailsSkeleton() {
   return (
     <div
-      className="w-full max-w-6xl mx-auto p-6 md:p-8 animate-pulse"
+      className="w-full max-w-6xl mx-auto p-6 md:p-8"
       aria-busy="true"
       aria-live="polite"
       aria-label="Loading product details"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Image placeholder */}
-        <div className="aspect-square w-full rounded-2xl bg-gray-200" />
+        <Skeleton className="aspect-square w-full rounded-2xl" />
 
-        {/* Right column */}
         <div className="space-y-4">
-          {/* Title */}
-          <div className="h-8 w-3/4 rounded bg-gray-200" />
-          {/* Price */}
-          <div className="h-6 w-40 rounded bg-gray-200" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-6 w-40" />
 
-          {/* Rating / meta */}
           <div className="flex gap-3">
-            <div className="h-4 w-24 rounded bg-gray-200" />
-            <div className="h-4 w-16 rounded bg-gray-200" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-16" />
           </div>
 
-          {/* Short bullets */}
           <div className="space-y-2 pt-2">
-            <div className="h-4 w-full rounded bg-gray-200" />
-            <div className="h-4 w-5/6 rounded bg-gray-200" />
-            <div className="h-4 w-4/6 rounded bg-gray-200" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/6" />
           </div>
 
-          {/* Quantity + Add to cart */}
           <div className="flex items-center gap-4 pt-4">
-            <div className="h-10 w-28 rounded-xl bg-gray-200" />
-            <div className="h-11 w-40 rounded-xl bg-gray-200" />
+            <Skeleton className="h-10 w-28 rounded-xl" />
+            <Skeleton className="h-11 w-40 rounded-xl" />
           </div>
 
-          {/* Description */}
           <div className="space-y-2 pt-6">
-            <div className="h-4 w-2/3 rounded bg-gray-200" />
-            <div className="h-4 w-full rounded bg-gray-200" />
-            <div className="h-4 w-11/12 rounded bg-gray-200" />
-            <div className="h-4 w-10/12 rounded bg-gray-200" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-11/12" />
+            <Skeleton className="h-4 w-10/12" />
           </div>
         </div>
       </div>

@@ -85,7 +85,7 @@ export const getStatusColor = (status: string) => {
 export const getStatusBadge = (status: string) => {
   const color = getStatusColor(status);
   return (
-    <span className={`inline-block px-2 py-1 rounded ${color}`}>
+    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${color}`}>
       {status?.charAt(0).toUpperCase() + status?.slice(1)}
     </span>
   );
@@ -109,7 +109,9 @@ export const getDeliveryStatusBadge = (status?: string) => {
   const label = status || "pending";
   const color = getDeliveryStatusColor(status);
   return (
-    <span className={`inline-block px-2 py-1 rounded capitalize ${color}`}>
+    <span
+      className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium capitalize ${color}`}
+    >
       {label}
     </span>
   );

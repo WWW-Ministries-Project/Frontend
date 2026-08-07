@@ -64,8 +64,10 @@ const ContactInputComponent = ({
 
   useEffect(() => {
     if (!dialOptions.length) {
+      // Go through setCountries (not a raw setState) so countryOptions and
+      // dialOptions actually get derived from the fetched list.
       fetchCountries().then((data) => {
-        useCountryStore.setState({ countries: data });
+        useCountryStore.getState().setCountries(data);
       });
     }
   }, [dialOptions]);
@@ -122,11 +124,13 @@ const ContactInputComponent = ({
                   onClick={() => handleCountrySelect(country)}
                   className="p-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <img
-                    src={country.flag}
-                    alt={country.name}
-                    className="h-4 w-6 object-cover"
-                  />
+                  <span
+                    className="text-base leading-none"
+                    role="img"
+                    aria-label={country.name}
+                  >
+                    {country.flag}
+                  </span>
                   <span className="font-medium">{country.dialCode}</span>
                   <span className="text-gray-600">{country.name}</span>
                 </div>
