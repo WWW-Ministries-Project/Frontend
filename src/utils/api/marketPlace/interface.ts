@@ -113,6 +113,9 @@ export interface ICheckOut {
   total_amount: string;
   return_url?: string;
   cancellation_url?: string;
+  // Backend field name is `payment_type`, not `payment_method` - see
+  // orderService.create in the Backend repo.
+  payment_type?: "hubtel" | "paystack";
   billing: IUserDetails;
   items: ICartItem[];
 }

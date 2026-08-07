@@ -13,7 +13,8 @@ export interface RestCountryAPIResponse {
   cca2: CountryCode;
   idd?: { root: string; suffixes: string[] };
   altSpellings?: string[];
-  flags: { png: string };
+  // Unicode flag emoji glyph (not an image URL - see fetchCountries).
+  flags: { emoji: string };
 }
 
 export interface Currency {

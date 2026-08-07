@@ -79,21 +79,26 @@ export function CheckoutForm(props: IProps) {
     );
   }, [checkoutItems, is_member, totalPrice]);
 
-  const initialValues: ICheckoutForm = billinDetails || {
-    personal_info: {
-      first_name: first_name || "",
-      other_name: other_name || "",
-      last_name: last_name || "",
-    },
-    contact_info: {
-      ...ContactsSubForm.initialValues,
-      email: email || "",
-      phone: {
-        ...ContactsSubForm.initialValues.phone,
-        number: phone || "",
+  const initialValues: ICheckoutForm = {
+    ...(billinDetails || {
+      personal_info: {
+        first_name: first_name || "",
+        other_name: other_name || "",
+        last_name: last_name || "",
       },
-    },
-    payment_method: "paystack",
+      contact_info: {
+        ...ContactsSubForm.initialValues,
+        email: email || "",
+        phone: {
+          ...ContactsSubForm.initialValues.phone,
+          number: phone || "",
+        },
+      },
+    }),
+    // Paystack is temporarily disabled - Hubtel is the only available
+    // payment method, so it's forced here regardless of any stale
+    // persisted billing details from an earlier session.
+    payment_method: "hubtel",
   };
 
   return (
