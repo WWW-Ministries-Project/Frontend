@@ -89,12 +89,6 @@ export default function ProductsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {routeName === "out" && (
-        <div className="text-2xl font-semibold text-white mb-4">
-          10th Anniversary Apparel
-        </div>
-      )}
-
       {featuredMarket && (
         <div className="rounded-2xl bg-gradient-to-r from-primary to-primary/70 p-6 text-white">
           <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
