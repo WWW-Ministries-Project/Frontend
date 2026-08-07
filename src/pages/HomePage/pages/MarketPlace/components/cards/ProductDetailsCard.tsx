@@ -1,9 +1,6 @@
 import { memo, useState } from "react";
 import { ProductChip } from "../chips/ProductChip";
-import type {
-  IProduct,
-  IProductTypeResponse,
-} from "@/utils/api/marketPlace/interface";
+import type { IProductTypeResponse } from "@/utils/api/marketPlace/interface";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 
 type ProductDetailsCardProps = {
