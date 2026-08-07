@@ -1,6 +1,4 @@
 import type { IProductTypeResponse } from "@/utils/api/marketPlace/interface";
-import { ProductChip } from "../chips/ProductChip";
-import { Button } from "@/components";
 
 interface IProps {
   product: IProductTypeResponse;
@@ -19,45 +17,58 @@ const isOutOfStock = (product: IProductTypeResponse) => {
 
 export const ProductCard = ({ product, handleViewProduct }: IProps) => {
   const outOfStock = isOutOfStock(product);
+  const swatches = Array.from(
+    new Set((product.product_colours ?? []).map((colour) => colour.colour))
+  ).filter(Boolean);
+  const visibleSwatches = swatches.slice(0, 4);
+  const extraSwatchCount = swatches.length - visibleSwatches.length;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-      <div className=" bg-[#D9D9D9] relative">
+    <button
+      type="button"
+      onClick={() => handleViewProduct(`${product.id}`)}
+      className="group w-full rounded-xl bg-white text-left shadow-sm transition-shadow duration-300 hover:shadow-md"
+    >
+      <div className="relative overflow-hidden rounded-t-xl bg-[#F5F5F5]">
         <img
           src={`${product?.product_colours?.[0]?.image_url}`}
           alt={`${product.name} product image`}
-          className="w-full object-cover h-56 p-4"
+          className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
         {outOfStock && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded">
+          <span className="absolute top-2 left-2 rounded-md bg-primary/90 px-2 py-1 text-xs font-semibold text-white">
             Out of stock
           </span>
         )}
-        <div className="flex justify-between px-4 pt-2 pb-4">
-          <ProductChip section="type" text={product.product_type?.name} />
-          <ProductChip
-            section="category"
-            text={product.product_category?.name}
-          />
-        </div>
       </div>
 
-      <div className="p-4 space-y-2">
-        <div className="flex flex-col gap-2 text-[#404040]">
-          <h2 className="font-semibold text-sm line-clamp-1">{product.name}</h2>
-          <p className="text-lg font-bold ">
-            {product.price_currency || "GHC"}{" "}
-            {Number(product.price_amount).toFixed(2)}
+      <div className="space-y-1.5 p-3">
+        {product.product_category?.name && (
+          <p className="text-xs font-medium uppercase tracking-wide text-primaryGray">
+            {product.product_category.name}
           </p>
-        </div>
-        <div className="w-full">
-          <Button
-            value="View Product"
-            className="w-full"
-            onClick={() => handleViewProduct(`${product.id}`)}
-          />
-        </div>
+        )}
+        <h2 className="line-clamp-1 text-sm font-semibold text-[#404040]">
+          {product.name}
+        </h2>
+        <p className="text-base font-bold text-[#404040]">
+          {product.price_currency || "GHC"} {Number(product.price_amount).toFixed(2)}
+        </p>
+        {visibleSwatches.length > 0 && (
+          <div className="flex items-center gap-1 pt-0.5">
+            {visibleSwatches.map((colour, index) => (
+              <span
+                key={`${colour}-${index}`}
+                className="h-4 w-4 rounded-full border border-lightGray"
+                style={{ backgroundColor: colour }}
+              />
+            ))}
+            {extraSwatchCount > 0 && (
+              <span className="text-[11px] text-primaryGray">+{extraSwatchCount}</span>
+            )}
+          </div>
+        )}
       </div>
-    </div>
+    </button>
   );
 };
