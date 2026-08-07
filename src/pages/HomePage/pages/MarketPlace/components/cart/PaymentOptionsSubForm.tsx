@@ -14,31 +14,36 @@ function PaymentOptionsSubForm() {
         name="payment_method"
         render={() => (
           <div className="flex items-center flex-wrap gap-2">
-            {PaymentOptions.map((option) => (
-              <div className="relative " key={option.id}>
-                <label
-                  htmlFor={`payment_method_${option.id}`}
-                  className={`cursor-pointer block relative border rounded-lg shadow-md ${
-                    values.payment_method === option.value
-                      ? "ring-2 ring-primary rounded-lg"
-                      : ""
-                  }`}
-                >
-                  <img
-                    src={option.logo}
-                    alt={option.name}
-                    className="size-20  p-1 rounded-lg"
-                  />
-                  <Field
-                    type="radio"
-                    name="payment_method"
-                    id={`payment_method_${option.id}`}
-                    value={option.value}
-                    className="absolute top-1 right-1 cursor-pointer"
-                  />
-                </label>
-              </div>
-            ))}
+            {PaymentOptions.filter((option) => !option.hidden).map(
+              (option) => (
+                <div className="relative " key={option.id}>
+                  <label
+                    htmlFor={`payment_method_${option.id}`}
+                    className={`block relative border rounded-lg shadow-md ${
+                      option.disabled ? "cursor-not-allowed" : "cursor-pointer"
+                    } ${
+                      values.payment_method === option.value
+                        ? "ring-2 ring-primary rounded-lg"
+                        : ""
+                    }`}
+                  >
+                    <img
+                      src={option.logo}
+                      alt={option.name}
+                      className="size-20  p-1 rounded-lg"
+                    />
+                    <Field
+                      type="radio"
+                      name="payment_method"
+                      id={`payment_method_${option.id}`}
+                      value={option.value}
+                      disabled={option.disabled}
+                      className="absolute top-1 right-1 disabled:cursor-not-allowed"
+                    />
+                  </label>
+                </div>
+              )
+            )}
           </div>
         )}
       />
@@ -50,25 +55,29 @@ function PaymentOptionsSubForm() {
 }
 
 const initialValues = {
-  payment_method: "",
+  payment_method: "hubtel",
 };
 
 const validationSchema = {
   payment_method: string().required("Select a payment method"),
 };
 
+// Paystack is temporarily hidden - Hubtel is the only supported payment
+// method for now, and it's locked (disabled) so it can't be unselected.
 const PaymentOptions = [
   {
     id: 1,
     name: "Paystack",
     logo: PaystackLogo,
     value: "paystack",
+    hidden: true,
   },
   {
     id: 2,
     name: "Hubtel",
     logo: HubtelLogo,
     value: "hubtel",
+    disabled: true,
   },
 ];
 

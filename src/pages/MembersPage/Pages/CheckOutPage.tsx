@@ -71,6 +71,9 @@ export function CheckOutPage() {
       total_amount: `${amount.toFixed(2)}`,
       cancellation_url,
       return_url: `${window.location.origin}${url}`,
+      // Backend reads `payment_type` (not `payment_method`) to pick the
+      // gateway - forward the form's selection under that name.
+      payment_type: data.payment_method,
       billing: {
         first_name,
         last_name,

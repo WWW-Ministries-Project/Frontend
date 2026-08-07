@@ -60,14 +60,21 @@ const getOrderDateValue = (order: IOrders) => {
 const OrderCard = ({
   order,
   renderOrderAction,
+  onClick,
 }: {
   order: IOrders;
   renderOrderAction?: (order: IOrders) => ReactNode;
+  onClick?: () => void;
 }) => {
   const total = (order.price_amount * order.quantity).toFixed(2);
 
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+    <div
+      className={`border rounded-lg p-4 bg-white shadow-sm space-y-3 ${
+        onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+      }`}
+      onClick={onClick}
+    >
       {/* Header */}
       <div className="flex items-start gap-3">
         <img
@@ -124,7 +131,9 @@ const OrderCard = ({
       </div>
 
       {renderOrderAction && (
-        <div className="pt-2 border-t">{renderOrderAction(order)}</div>
+        <div className="pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+          {renderOrderAction(order)}
+        </div>
       )}
     </div>
   );
@@ -140,6 +149,7 @@ interface IProps{
   renderOrderAction?: (order: IOrders) => ReactNode;
   headerAction?: ReactNode;
   enableOrderDateFilter?: boolean;
+  onRowClick?: (order: IOrders) => void;
 }
 export const Orders = ({
   orders,
@@ -150,6 +160,7 @@ export const Orders = ({
   renderOrderAction,
   headerAction,
   enableOrderDateFilter = false,
+  onRowClick,
 }: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -278,6 +289,7 @@ export const Orders = ({
               key={String(order.id)}
               order={order}
               renderOrderAction={renderOrderAction}
+              onClick={onRowClick ? () => onRowClick(order) : undefined}
             />
           ))}
         </div>
@@ -287,6 +299,7 @@ export const Orders = ({
           data={allOrders || []}
           displayedCount={10}
           className="relative"
+          onRowClick={onRowClick}
         />
       )}
       {allOrders?.length === 0 && (

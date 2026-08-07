@@ -13,16 +13,14 @@ export default function EmptyCartComponent() {
     navigate("/member/market");
   };
   return (
-    <div className="space-y-2 text-[#474D66] flex flex-col items-center justify-center text-center">
-      <img src={emptyCartSvg} alt="" />
-
+    <div className="flex flex-col items-center justify-center gap-2 py-6 text-center text-primary">
+      <img src={emptyCartSvg} alt="" className="h-24 w-24" />
       <h3 className="font-semibold">Your cart is empty</h3>
-      <p className="text-sm">Continue shopping to explore more</p>
-
+      <p className="text-sm text-primaryGray">Continue shopping to explore more</p>
       <Button
         value="Explore items"
         variant="secondary"
-        className="w-full"
+        className="mt-2 w-full"
         onClick={handleExploreItems}
       />
     </div>

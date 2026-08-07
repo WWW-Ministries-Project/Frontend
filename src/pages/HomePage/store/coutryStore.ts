@@ -51,7 +51,7 @@ export const useCountryStore = create<CountrySlice>()(
                   dialCode: dialCode,
                   countryCode: country.cca2 ?? "Unknown",
                   initials: country.altSpellings?.[0] ?? "Unknown",
-                  flag: country.flags.png,
+                  flag: country.flags.emoji,
                 };
               })
             ),

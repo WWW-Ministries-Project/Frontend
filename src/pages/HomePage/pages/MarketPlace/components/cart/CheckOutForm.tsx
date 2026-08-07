@@ -2,6 +2,8 @@ import { Form, Formik } from "formik";
 import { useCallback, useMemo, useState } from "react";
 import { object } from "yup";
 
+import { MinusIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+
 import { Button } from "@/components";
 import { Modal } from "@/components/Modal";
 import {
@@ -42,7 +44,7 @@ export function CheckoutForm(props: IProps) {
   const email = user?.email || "";
   const [first_name, other_name, last_name] = name.split(" ");
 
-  const { billinDetails } = useCart();
+  const { billinDetails, updateSection, removeFromCart } = useCart();
   const { items: cartWithDetails, totalPrice } = useCartDetails();
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [pendingCheckoutData, setPendingCheckoutData] =
@@ -77,21 +79,26 @@ export function CheckoutForm(props: IProps) {
     );
   }, [checkoutItems, is_member, totalPrice]);
 
-  const initialValues: ICheckoutForm = billinDetails || {
-    personal_info: {
-      first_name: first_name || "",
-      other_name: other_name || "",
-      last_name: last_name || "",
-    },
-    contact_info: {
-      ...ContactsSubForm.initialValues,
-      email: email || "",
-      phone: {
-        ...ContactsSubForm.initialValues.phone,
-        number: phone || "",
+  const initialValues: ICheckoutForm = {
+    ...(billinDetails || {
+      personal_info: {
+        first_name: first_name || "",
+        other_name: other_name || "",
+        last_name: last_name || "",
       },
-    },
-    payment_method: "paystack",
+      contact_info: {
+        ...ContactsSubForm.initialValues,
+        email: email || "",
+        phone: {
+          ...ContactsSubForm.initialValues.phone,
+          number: phone || "",
+        },
+      },
+    }),
+    // Paystack is temporarily disabled - Hubtel is the only available
+    // payment method, so it's forced here regardless of any stale
+    // persisted billing details from an earlier session.
+    payment_method: "hubtel",
   };
 
   return (
@@ -114,8 +121,17 @@ export function CheckoutForm(props: IProps) {
                 <ContactsSubForm prefix="contact_info" />
               </FormLayout>
             </div>
-            <div className="w-full lg:w-1/2  space-y-5">
-              <OrderSummary items={checkoutItems} totalAmount={checkoutTotalPrice} />
+            <div className="w-full lg:w-1/2 space-y-5">
+              <OrderSummary
+                items={checkoutItems}
+                totalAmount={checkoutTotalPrice}
+                editable={is_member}
+                onQuantityChange={(item, quantity) =>
+                  updateSection(item.item_uuid!, "quantity", quantity)
+                }
+                onRemove={(item) => removeFromCart(item.item_uuid!)}
+              />
+              <PaymentOptionsForm />
               <div className="flex items-center gap-2 justify-end">
                 <Button
                   value="Cancel"
@@ -270,27 +286,42 @@ const validationSchema = object({
 const OrderSummary = ({
   items,
   totalAmount,
+  editable = false,
+  onQuantityChange,
+  onRemove,
 }: {
   items: ICartItem[];
   totalAmount: number;
+  editable?: boolean;
+  onQuantityChange?: (item: ICartItem, quantity: number) => void;
+  onRemove?: (item: ICartItem) => void;
 }) => {
   const amount = Number(totalAmount || 0).toFixed(2);
 
   return (
     <div className="w-full h-fit border rounded-lg p-4 space-y-2">
       <p className="font-bold text-xl">Order</p>
-      <div className="flex justify-between">
-        <p className="font-bold">Product</p>
-        <p className="font-bold">Subtotal</p>
-      </div>
-      <div className="w-full space-y-2">
-        {items.map((item, index) => (
-          <ItemCard
-            key={`${item.item_uuid || item.product_id || "item"}-${index}`}
-            item={item}
-          />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-500">Your cart is empty.</p>
+      ) : (
+        <>
+          <div className="flex justify-between">
+            <p className="font-bold">Product</p>
+            <p className="font-bold">Subtotal</p>
+          </div>
+          <div className="w-full space-y-2">
+            {items.map((item, index) => (
+              <ItemCard
+                key={`${item.item_uuid || item.product_id || "item"}-${index}`}
+                item={item}
+                editable={editable}
+                onQuantityChange={onQuantityChange}
+                onRemove={onRemove}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="flex justify-between">
         <p className="font-bold">Total</p>
@@ -302,20 +333,64 @@ const OrderSummary = ({
 
 interface ICardProp {
   item: ICartItem;
+  editable?: boolean;
+  onQuantityChange?: (item: ICartItem, quantity: number) => void;
+  onRemove?: (item: ICartItem) => void;
 }
-const ItemCard = ({ item }: ICardProp) => {
+const ItemCard = ({ item, editable, onQuantityChange, onRemove }: ICardProp) => {
   const getProductTotalAmount = useCallback(() => {
     return (item.price_amount * item.quantity).toFixed(2);
   }, [item]);
 
+  const stockCap = item.stock ?? Infinity;
+
   return (
     <div className="w-full flex justify-between items-center gap-2 font-medium">
-      <p className="flex items-center gap-2">
-        {item.name} <span>x</span>
-        <span>{item.quantity}</span>
-      </p>
+      <div className="flex items-center gap-2">
+        <p>{item.name}</p>
+        {editable ? (
+          <div className="flex items-center gap-1 rounded border border-gray-300 bg-gray-50">
+            <button
+              type="button"
+              className="p-1 disabled:opacity-40"
+              disabled={item.quantity <= 1}
+              onClick={() => onQuantityChange?.(item, Math.max(1, item.quantity - 1))}
+            >
+              <MinusIcon className="size-3" />
+            </button>
+            <span className="w-6 text-center text-sm">{item.quantity}</span>
+            <button
+              type="button"
+              className="p-1 disabled:opacity-40"
+              disabled={item.quantity >= stockCap}
+              onClick={() =>
+                onQuantityChange?.(item, Math.min(stockCap, item.quantity + 1))
+              }
+            >
+              <PlusIcon className="size-3" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <span>x</span>
+            <span>{item.quantity}</span>
+          </>
+        )}
+      </div>
 
-      <p>GHC {getProductTotalAmount()}</p>
+      <div className="flex items-center gap-3">
+        <p>GHC {getProductTotalAmount()}</p>
+        {editable && (
+          <button
+            type="button"
+            aria-label={`Remove ${item.name}`}
+            onClick={() => onRemove?.(item)}
+            className="text-gray-400 hover:text-red-600"
+          >
+            <XMarkIcon className="size-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

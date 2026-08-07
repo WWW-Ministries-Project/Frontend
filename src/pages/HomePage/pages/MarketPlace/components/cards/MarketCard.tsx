@@ -26,7 +26,7 @@ export function MarketCard({
   const [showOptions, setShowOptions] = useState(false);
 
   return (
-    <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white relative">
+    <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white shadow-sm transition-shadow hover:shadow-md relative">
       <div>
         <div className="flex justify-between items-start gap-2">
           <div>
