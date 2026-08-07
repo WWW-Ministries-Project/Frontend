@@ -16,13 +16,16 @@ import { useCart } from "../utils/cartSlice";
 import { matchRoutes, useLocation, useNavigate } from "react-router-dom";
 import { routes } from "@/routes/appRoutes";
 import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
+import { ProductCard } from "./cards/ProductCard";
+import { encodeQuery } from "@/pages/HomePage/utils";
 
 interface IProps {
   readonly product: IProductTypeResponse;
   readonly addToCart: (item: ICartItem) => void;
+  readonly relatedProducts?: IProductTypeResponse[];
 }
 
-export function ProductDetails({ product, addToCart }: IProps) {
+export function ProductDetails({ product, addToCart, relatedProducts = [] }: IProps) {
   const { cartItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -321,6 +324,12 @@ export function ProductDetails({ product, addToCart }: IProps) {
               <span>{product.price_currency || "GHC"}</span>{" "}
               {Number(product.price_amount).toFixed(2)}
             </p>
+            {product.market?.name && (
+              <p className="text-sm text-gray-500">
+                Part of{" "}
+                <span className="font-medium text-gray-700">{product.market.name}</span>
+              </p>
+            )}
           </div>
 
           <Section title="Colors">
@@ -410,6 +419,28 @@ export function ProductDetails({ product, addToCart }: IProps) {
           </div>
         </div>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <div className="mx-auto max-w-6xl px-4 pb-10">
+          <h3 className="text-lg font-bold text-[#404040] mb-4">You may also like</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedProducts.map((related) => (
+              <ProductCard
+                key={related.id}
+                product={related}
+                handleViewProduct={(id) =>
+                  navigate(
+                    routeName === "out"
+                      ? `/out/products/${encodeQuery(id)}`
+                      : `/member/market/product/${encodeQuery(id)}`
+                  )
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <Modal
         open={Boolean(pendingPurchase)}
         persist={false}
