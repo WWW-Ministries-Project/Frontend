@@ -116,7 +116,6 @@ export const relativePath = {
     notifications: "/member/notifications",
     market: "/member/market/",
     productDetails: "/member/market/product/:id",
-    cart: "/member/market/carts",
     checkOut: "/member/market/check-out",
     orders: "/member/market/orders",
     verify_payment: "/member/market/verify_payment/member",

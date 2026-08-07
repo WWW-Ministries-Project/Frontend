@@ -65,7 +65,6 @@ import Market from "@/pages/MembersPage/Pages/Market.js";
 import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
 import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage";
-import { ViewCart } from "@/pages/MembersPage/Pages/ViewCart";
 import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
@@ -1165,12 +1164,6 @@ export const routes: AppRoute[] = [
             isPrivate: false,
           },
 
-          {
-            path: relativePath.member.cart,
-            name: "Carts",
-            element: <ViewCart />,
-            isPrivate: false,
-          },
           {
             path: relativePath.member.checkOut,
             name: "Check Out",

@@ -47,7 +47,7 @@ const Market = () => {
         <div className="p-6 space-y-5">
           <div className="w-fit">
           <TabSelection
-            tabs={["Products", "Carts", "Orders"]}
+            tabs={["Products", "Orders"]}
             onTabSelect={handleSelectedTab}
             selectedTab={routeName || "Products"}
           />
