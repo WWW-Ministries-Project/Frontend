@@ -3,8 +3,10 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
 import { Orders } from "@/pages/HomePage/pages/MarketPlace/components/Orders/Orders";
 import { getBaseOrderColumns } from "@/pages/HomePage/pages/MarketPlace/components/Orders/OrdersTableColumns";
+import { OrderStatusTimeline } from "@/pages/HomePage/pages/MarketPlace/components/Orders/OrderStatusTimeline";
 import { showNotification } from "@/pages/HomePage/utils";
 import {
   api,
@@ -24,6 +26,7 @@ export const MyOrders = () => {
   const [processingOrderKey, setProcessingOrderKey] = useState<string | null>(
     null
   );
+  const [viewingOrder, setViewingOrder] = useState<IOrders | null>(null);
 
   const memberOrders = useMemo<IOrders[]>(() => {
     if (!data) return [];
@@ -116,7 +119,10 @@ export const MyOrders = () => {
             className="min-h-8 px-3 py-1 text-xs"
             loading={processingOrderKey === orderKey}
             disabled={processingOrderKey !== null}
-            onClick={() => handleRetryPayment(order)}
+            onClick={(e) => {
+              e?.stopPropagation?.();
+              handleRetryPayment(order);
+            }}
           />
         );
       },
@@ -126,29 +132,88 @@ export const MyOrders = () => {
   }, [getOrderKey, handleRetryPayment, processingOrderKey]);
 
   return (
-    <Orders
-      orders={memberOrders}
-      tableColumns={tableColumns}
-      searchCustomer={false}
-      defaultMarketStatus="active"
-      renderOrderAction={(order) => {
-        const orderKey = getOrderKey(order);
-        const isPending = (order.payment_status || "").toLowerCase() === "pending";
+    <>
+      <Orders
+        orders={memberOrders}
+        tableColumns={tableColumns}
+        searchCustomer={false}
+        defaultMarketStatus="active"
+        onRowClick={(order) => setViewingOrder(order)}
+        renderOrderAction={(order) => {
+          const orderKey = getOrderKey(order);
+          const isPending = (order.payment_status || "").toLowerCase() === "pending";
 
-        if (!isPending) {
-          return <p className="text-xs text-gray-500">Payment completed</p>;
-        }
+          if (!isPending) {
+            return <p className="text-xs text-gray-500">Payment completed</p>;
+          }
 
-        return (
-          <Button
-            value="Pay now"
-            className="w-full"
-            loading={processingOrderKey === orderKey}
-            disabled={processingOrderKey !== null}
-            onClick={() => handleRetryPayment(order)}
-          />
-        );
-      }}
-    />
+          return (
+            <Button
+              value="Pay now"
+              className="w-full"
+              loading={processingOrderKey === orderKey}
+              disabled={processingOrderKey !== null}
+              onClick={() => handleRetryPayment(order)}
+            />
+          );
+        }}
+      />
+
+      <Modal
+        open={Boolean(viewingOrder)}
+        persist={false}
+        onClose={() => setViewingOrder(null)}
+        className="max-w-lg"
+      >
+        {viewingOrder && (
+          <div className="space-y-5 p-6 text-[#474D66]">
+            <div>
+              <h3 className="text-lg font-bold">{viewingOrder.order_number}</h3>
+              <p className="text-sm text-primaryGray">
+                {viewingOrder.name} · Qty {viewingOrder.quantity}
+              </p>
+            </div>
+
+            <OrderStatusTimeline
+              paymentStatus={viewingOrder.payment_status}
+              deliveryStatus={viewingOrder.delivery_status}
+            />
+
+            <div className="rounded-lg border border-lightGray p-4 space-y-1 text-sm">
+              <p className="flex items-center justify-between">
+                <span className="font-medium">Total</span>
+                <span>
+                  GHC{" "}
+                  {(
+                    Number(viewingOrder.price_amount || 0) *
+                    Number(viewingOrder.quantity || 0)
+                  ).toFixed(2)}
+                </span>
+              </p>
+              <p className="flex items-center justify-between">
+                <span className="font-medium">Billed to</span>
+                <span>
+                  {viewingOrder.first_name} {viewingOrder.last_name}
+                </span>
+              </p>
+              <p className="flex items-center justify-between">
+                <span className="font-medium">Email</span>
+                <span>{viewingOrder.email}</span>
+              </p>
+            </div>
+
+            {(viewingOrder.payment_status || "").toLowerCase() === "pending" && (
+              <Button
+                value="Pay now"
+                className="w-full"
+                loading={processingOrderKey === getOrderKey(viewingOrder)}
+                disabled={processingOrderKey !== null}
+                onClick={() => handleRetryPayment(viewingOrder)}
+              />
+            )}
+          </div>
+        )}
+      </Modal>
+    </>
   );
 };
