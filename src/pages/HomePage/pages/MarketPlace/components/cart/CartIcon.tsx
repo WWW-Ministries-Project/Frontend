@@ -8,13 +8,18 @@ export function CartIcon() {
   const cartCount = getTotalItems();
 
   return (
-    <div className="relative cursor-pointer" onClick={() => toggleCart(true)}>
+    <button
+      type="button"
+      className="relative"
+      onClick={() => toggleCart(true)}
+      aria-label={cartCount > 0 ? `Open cart, ${cartCount} items` : "Open cart"}
+    >
       <ShoppingCartIcon className="size-7" />
       {cartCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-white">
           {cartCount}
         </span>
       )}
-    </div>
+    </button>
   );
 }
