@@ -9,7 +9,7 @@ const AssMatSidebar = ({materials, assignments}: {materials: any[], assignments:
     <aside className="w-full space-y-6  lg:flex-shrink-0">
       {/* Assignments */}
       <div>
-        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
           Assignment
         </h3>
         <div className="space-y-3">
@@ -27,7 +27,7 @@ const AssMatSidebar = ({materials, assignments}: {materials: any[], assignments:
 
       {/* Materials */}
       <div>
-        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
           Material
         </h3>
         <div className="space-y-2">

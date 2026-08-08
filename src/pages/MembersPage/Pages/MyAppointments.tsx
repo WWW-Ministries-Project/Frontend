@@ -333,7 +333,7 @@ const MyAppointments = () => {
         </div>
 
         {!requesterId ? (
-          <div className="text-sm text-red-600">
+          <div className="text-sm text-red-600 dark:text-red-400">
             Unable to fetch appointments: requester id is missing.
           </div>
         ) : loading ? (

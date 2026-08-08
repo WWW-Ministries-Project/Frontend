@@ -102,7 +102,7 @@ export function CheckoutForm(props: IProps) {
   };
 
   return (
-    <div className="text-[#474D66] bg-white rounded-lg ">
+    <div className="text-primaryGray bg-white rounded-lg ">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
@@ -155,7 +155,7 @@ export function CheckoutForm(props: IProps) {
         onClose={closeOrderConfirmation}
         className="max-w-2xl"
       >
-        <div className="p-6 space-y-5 text-[#474D66]">
+        <div className="p-6 space-y-5 text-primaryGray">
           <h3 className="text-xl font-bold">Confirm Order</h3>
 
           <div className="max-h-[45vh] overflow-y-auto space-y-3">
@@ -217,7 +217,7 @@ export function CheckoutForm(props: IProps) {
             </p>
           </div>
 
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-3">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-3 dark:border-amber-800 dark:bg-amber-900/30">
             <p className="font-bold">⚠️ Please Review Your Order Carefully</p>
             <label
               htmlFor="order-acknowledgement"
@@ -385,7 +385,7 @@ const ItemCard = ({ item, editable, onQuantityChange, onRemove }: ICardProp) => 
             type="button"
             aria-label={`Remove ${item.name}`}
             onClick={() => onRemove?.(item)}
-            className="text-gray-400 hover:text-red-600"
+            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
           >
             <XMarkIcon className="size-4" />
           </button>

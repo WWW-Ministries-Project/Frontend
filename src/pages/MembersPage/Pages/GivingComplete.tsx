@@ -44,8 +44,8 @@ export default function GivingComplete() {
     <div className="flex items-center justify-center w-full h-[80vh] px-4">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md text-center">
         <div className="flex flex-col items-center gap-4">
-          <CheckCircleIcon className="w-12 h-12 text-green-500" />
-          <p className="text-green-600 font-medium">
+          <CheckCircleIcon className="w-12 h-12 text-green-500 dark:text-green-400" />
+          <p className="text-green-600 font-medium dark:text-green-400">
             Thank you for your giving!
           </p>
 

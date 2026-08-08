@@ -11,17 +11,17 @@ interface AssignmentCardProps {
 
 const AssignmentCard = ({ name, dueDate, submittedDate, status }: AssignmentCardProps) => {
   return (
-    <div className="rounded-lg border border-border bg-white p-4 transition-shadow hover:shadow-sm">
+    <div className="rounded-lg border border-lightGray bg-white p-4 transition-shadow hover:shadow-sm">
       <div className="flex items-start justify-between">
-        <h4 className="text-sm font-medium text-foreground">{name}</h4>
+        <h4 className="text-sm font-medium text-primary">{name}</h4>
         {status === "submitted" && (
-          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success dark:bg-green-900/30 dark:text-green-300">
             submitted
           </span>
         )}
       </div>
 
-      <div className="mt-3 flex gap-6 text-xs text-muted-foreground">
+      <div className="mt-3 flex gap-6 text-xs text-primaryGray">
         <div>
           <span className="block font-medium">Due</span>
           <span>{formatDatefull(dueDate)}</span>
