@@ -244,7 +244,7 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
           <div className="text-xl font-bold ">Product Specification</div>
         </div>
       )}
-      <div className=" mx-auto max-w-6xl  rounded-lg   p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-[#404040]">
+      <div className=" mx-auto max-w-6xl  rounded-lg   p-4 grid grid-cols-1 lg:grid-cols-2 gap-10 text-primary">
         {/* Image Section */}
         <div className="">
           <div className=" border p-2 rounded-lg overflow-hidden ">
@@ -309,7 +309,7 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">{product.name}</h1>
             {productOutOfStock && (
-              <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
+              <span className="inline-block bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 text-xs font-semibold px-2 py-1 rounded">
                 Out of stock
               </span>
             )}
@@ -388,9 +388,9 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
           {is_not_admin && (
             <div className="flex flex-col gap-2 w-full">
               {productOutOfStock ? (
-                <p className="text-red-600 font-semibold">Out of stock</p>
+                <p className="text-red-600 dark:text-red-400 font-semibold">Out of stock</p>
               ) : selectionOutOfStock ? (
-                <p className="text-red-600 text-sm">This colour/size is out of stock.</p>
+                <p className="text-red-600 dark:text-red-400 text-sm">This colour/size is out of stock.</p>
               ) : null}
               <div className="flex gap-4 flex-wrap w-full">
                 <Button
@@ -422,7 +422,7 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
 
       {relatedProducts.length > 0 && (
         <div className="mx-auto max-w-6xl px-4 pb-10">
-          <h3 className="text-lg font-bold text-[#404040] mb-4">You may also like</h3>
+          <h3 className="text-lg font-bold text-primary mb-4">You may also like</h3>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {relatedProducts.map((related) => (
               <ProductCard
@@ -448,7 +448,7 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
         className="max-w-xl"
       >
         <div className="p-6 space-y-4">
-          <h3 className="text-lg font-bold text-[#404040]">
+          <h3 className="text-lg font-bold text-primary">
             Confirm {pendingPurchase?.action === "buy_now" ? "Purchase" : "Cart Item"}
           </h3>
 
@@ -463,7 +463,7 @@ export function ProductDetails({ product, addToCart, relatedProducts = [] }: IPr
               </div>
 
               <div className="space-y-1 text-sm text-gray-700">
-                <p className="font-semibold text-base text-[#404040]">
+                <p className="font-semibold text-base text-primary">
                   {pendingPurchase.item.name}
                 </p>
                 <p>
@@ -580,7 +580,7 @@ const QuantityButton = ({
   return (
     <button
       className={cn(
-        " h-full hover:bg-gray-100 bg-[#F3F4F6] w-8 flex items-center justify-center disabled:cursor-not-allowed",
+        " h-full hover:bg-gray-100 bg-inputBackground w-8 flex items-center justify-center disabled:cursor-not-allowed",
         className
       )}
       onClick={onClick}

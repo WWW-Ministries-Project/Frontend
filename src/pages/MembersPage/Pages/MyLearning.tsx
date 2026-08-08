@@ -79,7 +79,7 @@ const MyLearning: React.FC = () => {
               filteredPrograms.map((program: EnrolledProgramResponse) => (
                 <div
                   key={program.id}
-                  className="flex items-center justify-between rounded-xl border border-lightGray bg-white p-4 w-full"
+                  className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-lightGray bg-white p-4 w-full"
                 >
                   <div>
                     <h3 className="mb-2 text-lg font-medium text-primary">{program.program.title}</h3>

@@ -63,8 +63,8 @@ export default function VerifyPayment() {
       <div className="bg-white shadow-lg rounded-2xl border border-lightGray p-8 w-full max-w-md text-center">
         {!hasReference && (
           <div className="flex flex-col items-center gap-4">
-            <XCircleIcon className="w-12 h-12 text-red-500" />
-            <p className="text-red-600 font-medium">Missing payment reference.</p>
+            <XCircleIcon className="w-12 h-12 text-red-500 dark:text-red-400" />
+            <p className="text-red-600 font-medium dark:text-red-400">Missing payment reference.</p>
             <p className="text-primaryGray text-sm">
               We could not verify your payment because the reference is missing.
             </p>
@@ -86,8 +86,8 @@ export default function VerifyPayment() {
 
         {error && !loading && hasReference && (
           <div className="flex flex-col items-center gap-4">
-            <XCircleIcon className="w-12 h-12 text-red-500" />
-            <p className="text-red-600 font-medium">Payment verification failed.</p>
+            <XCircleIcon className="w-12 h-12 text-red-500 dark:text-red-400" />
+            <p className="text-red-600 font-medium dark:text-red-400">Payment verification failed.</p>
             <p className="text-primaryGray text-sm">
               Please try again or contact support.
             </p>
@@ -97,8 +97,8 @@ export default function VerifyPayment() {
 
         {verificationResult && !loading && !error && hasReference && (
           <div className="flex flex-col items-center gap-4">
-            <CheckCircleIcon className="w-12 h-12 text-green-600" />
-            <p className="text-green-700 font-medium">Payment verified successfully!</p>
+            <CheckCircleIcon className="w-12 h-12 text-green-600 dark:text-green-400" />
+            <p className="text-green-700 font-medium dark:text-green-400">Payment verified successfully!</p>
             <p className="text-primaryGray text-sm">
               Order Reference: <span className="font-mono">{reference}</span>
             </p>

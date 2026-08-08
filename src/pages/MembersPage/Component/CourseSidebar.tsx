@@ -29,7 +29,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const renderIcon = (nav: NavItem) => {
     const iconClass = cn(
       "h-6 w-6",
-      nav.active ? "text-white" : nav.completed?"text-lime-700":"text-primary"
+      nav.active ? "text-white" : nav.completed?"text-lime-700 dark:text-lime-400":"text-primary"
     );
 
     if (nav.completed) {
@@ -61,8 +61,8 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
   return (
     <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading} sidebar`}>
-      <div className="rounded-xl border border-border bg-white p-4">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="rounded-xl border border-lightGray bg-white p-4">
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
           {heading}
         </h2>
 
@@ -77,7 +77,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-all",
                 nav.active
                   ? "bg-primary text-white"
-                  : "text-muted-foreground hover:bg-primary/15 hover:text-foreground"
+                  : "text-primaryGray hover:bg-primary/15 hover:text-primary"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >

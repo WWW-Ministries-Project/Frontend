@@ -44,8 +44,8 @@ export default function PledgeComplete() {
     <div className="flex h-[80vh] w-full items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
         <div className="flex flex-col items-center gap-4">
-          <CheckCircleIcon className="h-12 w-12 text-green-500" />
-          <p className="font-medium text-green-600">
+          <CheckCircleIcon className="h-12 w-12 text-green-500 dark:text-green-400" />
+          <p className="font-medium text-green-600 dark:text-green-400">
             Thank you for redeeming your pledge!
           </p>
 

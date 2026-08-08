@@ -46,7 +46,7 @@ export default function CartDrawer() {
       }`}
       ref={drawerRef}
     >
-      <div className="flex items-center justify-between border-b border-lightGray px-5 py-4">
+      <div className="flex items-center justify-between border-b border-lightGray px-4 py-4 sm:px-5">
         <div className="flex items-center gap-2">
           <ShoppingCartIcon className="size-6" />
           <h2 className="text-lg font-bold">Your cart</h2>
@@ -60,7 +60,7 @@ export default function CartDrawer() {
         </button>
       </div>
 
-      <div className="max-h-[60vh] divide-y divide-lightGray overflow-y-auto px-5">
+      <div className="max-h-[60vh] divide-y divide-lightGray overflow-y-auto px-4 sm:px-5">
         {cartWithDetails.length === 0 ? (
           <div className="py-6">
             <EmptyCartComponent />
@@ -77,7 +77,7 @@ export default function CartDrawer() {
       </div>
 
       {cartWithDetails.length > 0 && (
-        <div className="space-y-3 border-t border-lightGray px-5 py-4">
+        <div className="space-y-3 border-t border-lightGray px-4 py-4 sm:px-5">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-primaryGray">Subtotal</p>
             <p className="text-lg font-bold">GHC {totalPrice.toFixed(2)}</p>
@@ -131,7 +131,7 @@ const CartCard = ({ cartItem, onDelete }: CartCardProps) => {
       </div>
       <button
         onClick={() => onDelete(cartItem.item_uuid!)}
-        className="rounded-full p-1 text-primaryGray hover:bg-lightGray/40 hover:text-red-600"
+        className="rounded-full p-1 text-primaryGray hover:bg-lightGray/40 hover:text-red-600 dark:hover:text-red-400"
         aria-label={`Remove ${cartItem.name} from cart`}
       >
         <XMarkIcon className="size-4" />

@@ -166,7 +166,7 @@ export const MyOrders = () => {
         className="max-w-lg"
       >
         {viewingOrder && (
-          <div className="space-y-5 p-6 text-[#474D66]">
+          <div className="space-y-5 p-6 text-primary">
             <div>
               <h3 className="text-lg font-bold">{viewingOrder.order_number}</h3>
               <p className="text-sm text-primaryGray">
@@ -180,9 +180,9 @@ export const MyOrders = () => {
             />
 
             <div className="rounded-lg border border-lightGray p-4 space-y-1 text-sm">
-              <p className="flex items-center justify-between">
+              <p className="flex items-center justify-between gap-3">
                 <span className="font-medium">Total</span>
-                <span>
+                <span className="min-w-0 break-words text-right">
                   GHC{" "}
                   {(
                     Number(viewingOrder.price_amount || 0) *
@@ -190,15 +190,15 @@ export const MyOrders = () => {
                   ).toFixed(2)}
                 </span>
               </p>
-              <p className="flex items-center justify-between">
+              <p className="flex items-center justify-between gap-3">
                 <span className="font-medium">Billed to</span>
-                <span>
+                <span className="min-w-0 break-words text-right">
                   {viewingOrder.first_name} {viewingOrder.last_name}
                 </span>
               </p>
-              <p className="flex items-center justify-between">
+              <p className="flex items-center justify-between gap-3">
                 <span className="font-medium">Email</span>
-                <span>{viewingOrder.email}</span>
+                <span className="min-w-0 break-words text-right">{viewingOrder.email}</span>
               </p>
             </div>
 
