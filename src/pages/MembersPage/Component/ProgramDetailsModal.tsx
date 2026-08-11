@@ -193,7 +193,7 @@ export const ProgramDetailsModal: FC<{
         </div>
       </div>
 
-      <div className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 md:px-8">
+      <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
         <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
           <section className="space-y-6">
             <div className="rounded-xl border border-lightGray bg-white p-5">

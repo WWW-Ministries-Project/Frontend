@@ -143,7 +143,7 @@ const CreateEvent = () => {
             ? "Changes will apply to this occurrence and all future ones in the series."
             : "Update event scheduling information and recurrence settings."}
         </p>
-        <div className="hideScrollbar overflow-y-auto pt-2">
+        <div className="overflow-y-auto pt-2">
           <ImageUpload onFileChange={(file: File) => setFile(file)} src={(inputValue as any)?.poster || ""} />
           <EventsScheduleForm
             inputValue={inputValue}

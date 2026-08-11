@@ -306,7 +306,7 @@ const RequestDetails = () => {
               No matching item requests were found in this period.
             </div>
           ) : (
-            <div className="app-scrollbar max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+            <div className="max-h-[22rem] space-y-3 overflow-y-auto pr-1">
               {similarItemGroups.map((group, index) => (
                 <div
                   key={`${group.requestedItem.item_name}-${group.requestedItem.requisition_id}-${index}`}

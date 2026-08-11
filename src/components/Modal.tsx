@@ -28,7 +28,7 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
           <Dialog.Content
             aria-describedby="dialog-description"
             className={cn(
-              "app-scrollbar relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-lightGray bg-white shadow-2xl focus:outline-none md:max-h-[calc(100dvh-3rem)]",
+              "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-lightGray bg-white shadow-2xl focus:outline-none md:max-h-[calc(100dvh-3rem)]",
               className
             )}
             onPointerDownOutside={

@@ -171,8 +171,3 @@ const TabSelection = <T extends string = string>({
 };
 
 export default TabSelection;
-
-/* Optional global CSS for clean mobile scrollbars:
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-*/

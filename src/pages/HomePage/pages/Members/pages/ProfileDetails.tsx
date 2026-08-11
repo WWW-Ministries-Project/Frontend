@@ -216,7 +216,7 @@ export const ProfileDetails = () => {
       )}
 
       <section className="bg-white w-full h-full mb-4 mx-auto">
-        <div className="hideScrollbar pb-4 mx-auto rounded-b-xl overflow-y-auto">
+        <div className="pb-4 mx-auto rounded-b-xl overflow-y-auto">
           <Outlet
             context={{
               handleEdit,
