@@ -399,7 +399,7 @@ export function ManageAccess() {
   return (
     <PageOutline className="!overflow-hidden !p-0">
       <section className="flex min-h-0 flex-1 flex-col">
-        <div className="app-page-padding app-scrollbar min-h-0 flex-1 space-y-6 overflow-y-auto pb-8">
+        <div className="app-page-padding min-h-0 flex-1 space-y-6 overflow-y-auto pb-8">
           <PageHeader title={`${id ? "Update" : "Create"} Access Level`} />
 
           <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-secondary/10 to-white p-5">

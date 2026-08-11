@@ -30,7 +30,7 @@ const Badge: FC<{ variant?: "default" | "full"; children: ReactNode }> = ({
   <span
     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
       variant === "full"
-        ? "bg-red-50 text-red-700"
+        ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300"
         : "bg-lightGray/50 text-primaryGray"
     }`}
   >
@@ -41,7 +41,7 @@ const Badge: FC<{ variant?: "default" | "full"; children: ReactNode }> = ({
 const ProgressBar: FC<{ value: number; isFull?: boolean }> = ({ value, isFull }) => (
   <div className="h-1 w-full overflow-hidden rounded-full bg-lightGray/50">
     <div 
-      className={`h-full transition-all duration-300 ${isFull ? "bg-red-500" : "bg-primary"}`}
+      className={`h-full transition-all duration-300 ${isFull ? "bg-red-500 dark:bg-red-400" : "bg-primary"}`}
       style={{ width: `${value}%` }} 
     />
   </div>
@@ -193,7 +193,7 @@ export const ProgramDetailsModal: FC<{
         </div>
       </div>
 
-      <div className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 md:px-8">
+      <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8">
         <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
           <section className="space-y-6">
             <div className="rounded-xl border border-lightGray bg-white p-5">

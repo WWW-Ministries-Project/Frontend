@@ -59,16 +59,16 @@ const MemberPledgeComplete = () => {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
         <div className="flex flex-col items-center gap-4">
           {settled ? (
-            <CheckCircleIcon className="h-12 w-12 text-green-500" />
+            <CheckCircleIcon className="h-12 w-12 text-green-500 dark:text-green-400" />
           ) : (
-            <ClockIcon className="h-12 w-12 text-amber-500" />
+            <ClockIcon className="h-12 w-12 text-amber-500 dark:text-amber-400" />
           )}
 
           {loading ? (
             <p className="text-primaryGray">Confirming your payment...</p>
           ) : settled && payment ? (
             <>
-              <p className="font-medium text-green-600">
+              <p className="font-medium text-green-600 dark:text-green-400">
                 Thank you for redeeming your pledge!
               </p>
               <p className="text-sm text-primaryGray">

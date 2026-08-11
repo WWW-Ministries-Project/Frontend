@@ -26,7 +26,7 @@ export function MarketCard({
   const [showOptions, setShowOptions] = useState(false);
 
   return (
-    <div className="w-full flex flex-col justify-between rounded-2xl text-[#474D66] border border-lightGray p-4 bg-white shadow-sm transition-shadow hover:shadow-md relative">
+    <div className="w-full flex flex-col justify-between rounded-2xl text-primaryGray border border-lightGray p-4 bg-white shadow-sm transition-shadow hover:shadow-md relative">
       <div>
         <div className="flex justify-between items-start gap-2">
           <div>
@@ -54,7 +54,7 @@ export function MarketCard({
 
         <p className="my-3">{description}</p>
 
-        <div className="flex items-center gap-2 text-[#101840]">
+        <div className="flex items-center gap-2 text-primary">
           <CalendarIcon className="h-5 w-5 text-black" />
           <span>
             {formatDate(start_date)} to {formatDate(end_date)}

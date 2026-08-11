@@ -355,11 +355,11 @@ const GradingPanel = () => {
       header: "Status",
       cell: ({ row }) =>
         row.original.status === "pending" ? (
-          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
+          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
             Pending
           </span>
         ) : (
-          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
+          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-300">
             Graded
           </span>
         ),
@@ -460,7 +460,7 @@ const GradingPanel = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-muted-foreground">
+      <div className="flex items-center justify-center py-16 text-primaryGray">
         Loading assignment results...
       </div>
     );
@@ -468,48 +468,48 @@ const GradingPanel = () => {
 
   if (!assignment) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16">
-        <p className="mb-4 text-muted-foreground">Select an assignment to grade</p>
+      <div className="flex flex-col items-center justify-center rounded-xl border border-lightGray bg-white py-16">
+        <p className="mb-4 text-primaryGray">Select an assignment to grade</p>
         <Button variant="secondary" value="Back to Assignment" onClick={onBack}/>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-border w-full">
+    <div className="rounded-xl border border-lightGray w-full">
       {/* Header */}
-      <div className="border-b border-border p-6">
+      <div className="border-b border-lightGray p-6">
         <button
           onClick={onBack}
-          className="mb-3 flex items-center gap-1  text-muted-foreground transition-colors hover:text-foreground"
+          className="mb-3 flex items-center gap-1  text-primaryGray transition-colors hover:text-primary"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to assignments
         </button>
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">{assignment.title}</h2>
-            <div className="mt-2 flex items-center gap-4  text-muted-foreground">
+            <h2 className="text-lg font-semibold text-primary">{assignment.title}</h2>
+            <div className="mt-2 flex items-center gap-4  text-primaryGray">
               <span className="flex items-center gap-1">
                 <UsersIcon className="h-4 w-4" />
                 {totalCount} submissions
               </span>
               <span className="flex items-center gap-1">
-                <ClockIcon className="h-4 w-4 text-amber-600" />
+                <ClockIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 {pendingCount} pending
               </span>
               <span className="flex items-center gap-1">
-                <CheckIcon className="h-4 w-4 text-green-600" />
+                <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
                 {gradedCount} graded
               </span>
             </div>
           </div>
           {/* Progress bar */}
           <div className="text-right">
-            <p className=" font-medium text-foreground">
+            <p className=" font-medium text-primary">
               {progress}% complete
             </p>
-            <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-muted">
+            <div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-lightGray/40">
               <div
                 className="h-full bg-primary transition-all"
                 style={{ width: `${progress}%` }}
@@ -519,9 +519,9 @@ const GradingPanel = () => {
         </div>
       </div>
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
+      <div className="flex flex-wrap items-center gap-3 border-b border-lightGray p-4">
         <div className="relative flex-1 min-w-[200px]">
-          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primaryGray" />
           <input
             type="text"
             id="search-students"

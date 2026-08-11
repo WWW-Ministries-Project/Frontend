@@ -107,14 +107,14 @@ const InstructorCohort = () => {
               filteredCohorts.map((cohort) => (
                 <div
                   key={cohort.id}
-                  className="flex w-full items-center justify-between rounded-xl border border-lightGray bg-white p-4"
+                  className="flex w-full flex-col items-start gap-4 rounded-xl border border-lightGray bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex flex-col gap-y-2">
                     <div className="flex items-center gap-x-2">
                       <h3 className="font-medium text-lg">{cohort.name}</h3>
                       <Badge>{cohort.status}</Badge>
                     </div>
-                    <div className="flex gap-4 text-sm text-gray-600">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                       <span>Starts: {new Date(cohort.startDate).toLocaleDateString()}</span>
                       <span>•</span>
                       <span>{cohort.duration}</span>

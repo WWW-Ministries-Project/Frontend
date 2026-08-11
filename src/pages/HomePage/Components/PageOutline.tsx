@@ -62,7 +62,7 @@ const PageOutline = ({
       <section
         role="main"
         className={cn(
-          "app-page-content app-page-padding app-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl",
+          "app-page-content app-page-padding flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl",
           className
         )}
       >

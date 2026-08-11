@@ -458,7 +458,7 @@ const Calendar: React.FC<CalendarProps> = ({
 
       {/* Views */}
       {currentView === VIEW_TYPES.MONTH && (
-        <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5px] hideScrollbar overflow-y-auto">
+        <div className="bg-white shadow-lg rounded-xl grid grid-cols-7 gap-[0.5px] overflow-y-auto">
           {DAYS_OF_WEEK_SHORT.map((day, i) => (
             <div
               key={i}

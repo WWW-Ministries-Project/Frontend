@@ -851,16 +851,16 @@ const AppointmentBookingForm = ({
               />
 
               {availabilityLoading && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-primaryGray">
                   Loading staff availability...
                 </div>
               )}
 
               {selectedStaff && (
-                <div className="text-sm bg-muted p-3 rounded break-words">
+                <div className="text-sm bg-lightGray/40 p-3 rounded break-words">
                   <strong>Availability</strong>
                   {selectedStaff.timeSlots.length === 0 && (
-                    <p className="mt-1 text-muted-foreground">
+                    <p className="mt-1 text-primaryGray">
                       No configured availability for this staff member.
                     </p>
                   )}
@@ -917,7 +917,7 @@ const AppointmentBookingForm = ({
                 </p>
               )}
               {!isSelectedDateAllowed && (
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-red-600 dark:text-red-400">
                   Please choose one of the available days for this staff member.
                 </p>
               )}
@@ -987,7 +987,7 @@ const AppointmentBookingForm = ({
                   </div>
 
                   {sessionTouched && typeof sessionError === "string" && (
-                    <p className="text-sm text-red-600">{sessionError}</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">{sessionError}</p>
                   )}
                 </div>
               )}
@@ -997,7 +997,7 @@ const AppointmentBookingForm = ({
                 !availabilityLoading &&
                 isSelectedDateAllowed &&
                 slotsForDay.length === 0 && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-primaryGray">
                     No available time slots for the selected date.
                   </div>
                 )}

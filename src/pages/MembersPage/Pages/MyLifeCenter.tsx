@@ -40,7 +40,7 @@ const MyLifeCenter = () => {
               <p>{lifeCenterData?.description || ""}</p>
             )}
           </div>
-          <div className="flex gap-5 items-center ">
+          <div className="flex flex-wrap gap-3 sm:gap-5 items-center ">
             {lifeCenterData?.location && (
               <InfoRow
                 icon={<MapPinIcon className="h-6 w-6 " />}

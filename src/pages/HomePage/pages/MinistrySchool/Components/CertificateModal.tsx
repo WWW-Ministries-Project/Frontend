@@ -140,7 +140,7 @@ const CertificateModal: React.FC<CertificateModalProps> = ({
 
         <div
           ref={previewViewportRef}
-          className="app-scrollbar flex-1 overflow-auto bg-gradient-to-br from-lightest/70 via-white to-lightGray/10 p-4 tablet:p-6"
+          className="flex-1 overflow-auto bg-gradient-to-br from-lightest/70 via-white to-lightGray/10 p-4 tablet:p-6"
         >
           <div
             className="mx-auto"

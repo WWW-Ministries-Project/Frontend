@@ -24,15 +24,15 @@ interface AppointmentCardProps {
 const getStatusColor = (status?: string) => {
   switch ((status || "").toLowerCase()) {
     case "confirmed":
-      return "bg-emerald-100 text-sm text-emerald-700 border border-emerald-200";
+      return "bg-emerald-100 text-sm text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800";
     case "cancelled":
-      return "bg-red-100 text-sm text-red-700 border border-red-200";
+      return "bg-red-100 text-sm text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
     case "pending":
-      return "bg-amber-100 text-sm text-amber-700 border border-amber-200";
+      return "bg-amber-100 text-sm text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
     case "completed":
-      return "bg-blue-100 text-sm text-blue-700 border border-blue-200";
+      return "bg-blue-100 text-sm text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
     case "rescheduled":
-      return "bg-indigo-100 text-sm text-indigo-700 border border-indigo-200";
+      return "bg-indigo-100 text-sm text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800";
     default:
       return "bg-gray-100 text-sm text-gray-600 border border-gray-300";
   }
@@ -130,10 +130,10 @@ const AppointmentCard = ({
                 if (deleteDisabled) return;
                 onDelete(appointment);
               }}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 ${
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 dark:border-red-800 dark:text-red-400 ${
                 deleteDisabled
                   ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-red-50"
+                  : "hover:bg-red-50 dark:hover:bg-red-900/30"
               }`}
               aria-label="Delete appointment"
             >

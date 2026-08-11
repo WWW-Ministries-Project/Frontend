@@ -115,7 +115,7 @@ export const ManageAsset = () => {
             Fill in the form below with the asset details
           </p>
         )}
-        <div className="hideScrollbar overflow-y-auto">
+        <div className="overflow-y-auto">
           <div className="grid md:grid-cols-3 gap-4">
             <ImageUpload
               onFileChange={(file: File) => setFile(file)}

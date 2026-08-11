@@ -176,7 +176,7 @@ export default function ProductsPage() {
             placeholder="Any"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            className="h-10 w-full rounded-lg border border-[#dcdcdc] bg-white px-3 text-sm text-primary"
+            className="h-10 w-full rounded-lg border border-lightGray bg-white px-3 text-sm text-primary"
           />
         </div>
       </div>

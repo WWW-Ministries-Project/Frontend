@@ -169,7 +169,7 @@ export const AccessLevelViewModal = ({
             </div>
           </div>
 
-          <div className="app-scrollbar flex-1 overflow-y-auto px-6 py-5">
+          <div className="flex-1 overflow-y-auto px-6 py-5">
             {activeTab === "access_info" ? (
               <div className="space-y-6">
                 {accessRight.description ? (

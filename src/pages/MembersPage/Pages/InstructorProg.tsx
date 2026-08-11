@@ -123,11 +123,11 @@ const InstructorProg = () => {
               filteredPrograms.map((program) => (
                 <div
                   key={program.id}
-                  className="flex w-full items-center justify-between rounded-xl border border-lightGray bg-white p-4"
+                  className="flex w-full flex-col items-start gap-4 rounded-xl border border-lightGray bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <h3 className="mb-2 text-lg font-medium text-primary">{program.title}</h3>
-                    <div className="flex gap-4 text-sm text-primaryGray">
+                    <div className="flex flex-wrap gap-4 text-sm text-primaryGray">
                       <span>{program.cohortName}</span>
                       <span>•</span>
                       <span>{program.schedule}</span>

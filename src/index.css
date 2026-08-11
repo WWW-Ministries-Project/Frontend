@@ -367,8 +367,7 @@ body {
 }
 
 *:hover,
-*:focus-within,
-*.is-scrolling {
+*:focus-within {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
@@ -383,22 +382,20 @@ body {
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
-  transition: background-color 0.2s ease;
+  /* Delay applies only when leaving hover/focus - lets the thumb linger
+     briefly before fading out instead of vanishing the instant the
+     pointer leaves. */
+  transition: background-color 0.25s ease 500ms;
 }
 
 *:hover::-webkit-scrollbar-thumb,
-*:focus-within::-webkit-scrollbar-thumb,
-*.is-scrolling::-webkit-scrollbar-thumb {
+*:focus-within::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb);
+  transition: background-color 0.15s ease;
 }
 
 *::-webkit-scrollbar-track {
   background: transparent;
-}
-
-.hideScrollbar {
-  -ms-overflow-style: auto;
-  scrollbar-width: none;
 }
 
 .no-scrollbar {
@@ -410,11 +407,6 @@ body {
   display: none;
   width: 0;
   height: 0;
-}
-
-.app-scrollbar {
-  -ms-overflow-style: auto;
-  scrollbar-width: none;
 }
 
 .userInfo {
@@ -586,16 +578,8 @@ input.input::placeholder {
 }
 
 .sidebar-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none !important;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-}
-
-.sidebar-scroll::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
 }
 
 .container {

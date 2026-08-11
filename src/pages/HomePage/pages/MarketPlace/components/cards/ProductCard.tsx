@@ -29,7 +29,7 @@ export const ProductCard = ({ product, handleViewProduct }: IProps) => {
       onClick={() => handleViewProduct(`${product.id}`)}
       className="group w-full rounded-xl bg-white text-left shadow-sm transition-shadow duration-300 hover:shadow-md"
     >
-      <div className="relative overflow-hidden rounded-t-xl bg-[#F5F5F5]">
+      <div className="relative overflow-hidden rounded-t-xl bg-inputBackground">
         <img
           src={`${product?.product_colours?.[0]?.image_url}`}
           alt={`${product.name} product image`}
@@ -48,10 +48,10 @@ export const ProductCard = ({ product, handleViewProduct }: IProps) => {
             {product.product_category.name}
           </p>
         )}
-        <h2 className="line-clamp-1 text-sm font-semibold text-[#404040]">
+        <h2 className="line-clamp-1 text-sm font-semibold text-primary">
           {product.name}
         </h2>
-        <p className="text-base font-bold text-[#404040]">
+        <p className="text-base font-bold text-primary">
           {product.price_currency || "GHC"} {Number(product.price_amount).toFixed(2)}
         </p>
         {visibleSwatches.length > 0 && (

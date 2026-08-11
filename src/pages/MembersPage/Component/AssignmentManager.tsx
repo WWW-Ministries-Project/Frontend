@@ -90,27 +90,27 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
     return ( 
         <div className="flex flex-col gap-4 lg:flex-1">
                               {assignments.length === 0 ? (
-                                <div className="rounded-xl border border-border p-6 bg-card text-muted-foreground">No assignments match the selected filters.</div>
+                                <div className="rounded-xl border border-lightGray p-6 bg-white text-primaryGray">No assignments match the selected filters.</div>
                               ) : (
                                 assignments.map((topic) => (
                                   <div
                                     key={topic.id}
-                                    className="flex items-center gap-6 border border-border rounded-xl justify-between p-4 w-full bg-card"
+                                    className="flex items-center gap-6 border border-lightGray rounded-xl justify-between p-4 w-full bg-white"
                                   >
                                     <div>
                                       <div className="flex items-center gap-3">
-                                        <h3 className="font-medium text-lg text-foreground">{topic.title}</h3>
+                                        <h3 className="font-medium text-lg text-primary">{topic.title}</h3>
                                         <Badge
                                           className={`text-xs border normal-case text-white ${
                                             topic.isActive
-                                              ? "border-green-500 bg-green-400"
+                                              ? "border-green-500 bg-green-400 dark:border-green-400"
                                               : "border-gray-400 bg-gray-400"
                                           }`}
                                         >
                                           {topic.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                       </div>
-                                      <div className="flex gap-4 text-sm text-muted-foreground">
+                                      <div className="flex gap-4 text-sm text-primaryGray">
                                         <div>
                                           Due: {topic?.dueDate ? formatDatefull(topic.dueDate) : "N/A"}
                                         </div>
@@ -159,7 +159,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                     <div className="flex items-start justify-between">
                                       <div>
                                         <h2 className="text-xl font-semibold text-gray-900">Activate Assignment</h2>
-                                        <p className="text-sm text-muted-foreground mt-1">
+                                        <p className="text-sm text-primaryGray mt-1">
                                           Set a due date for &quot;{selectedAssignment.title}&quot;
                                         </p>
                                       </div>
@@ -209,7 +209,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                       <h2 className="text-xl font-semibold text-gray-900">
                                         Deactivate Assignment
                                       </h2>
-                                      <p className="text-sm text-muted-foreground mt-1">
+                                      <p className="text-sm text-primaryGray mt-1">
                                         Are you sure you want to deactivate &quot;{selectedAssignment.title}&quot;?
                                       </p>
                                     </div>
