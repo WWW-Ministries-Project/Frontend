@@ -149,6 +149,7 @@ export default function ProductsPage() {
           name="category"
           className="sm:w-48"
           label="Category"
+          labelClassName="text-white"
           placeholder="All categories"
           options={[{ label: "All categories", value: "" }, ...categoryOptions]}
           value={selectedCategoryId}
@@ -159,6 +160,7 @@ export default function ProductsPage() {
             name="market"
             className="sm:w-48"
             label="Market"
+            labelClassName="text-white"
             placeholder="All markets"
             options={[{ label: "All markets", value: "" }, ...marketOptions]}
             value={selectedMarketId}
@@ -166,7 +168,7 @@ export default function ProductsPage() {
           />
         )}
         <div className="sm:w-40">
-          <label className="mb-1 block text-sm" htmlFor="max-price">
+          <label className="mb-1 block text-sm text-white" htmlFor="max-price">
             Max price
           </label>
           <input

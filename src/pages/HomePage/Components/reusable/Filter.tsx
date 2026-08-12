@@ -8,6 +8,7 @@ interface FilterProps {
   placeholder?: string;
   size?: number;
   label?: string;
+  labelClassName?: string;
   value?: string;
 }
 
@@ -22,7 +23,9 @@ const Filter: React.FC<FilterProps> = (props) => {
   return (
     <div className={props.className || ""}>
       {props.label ? (
-        <label className="mb-1 block text-sm">{props.label}</label>
+        <label className={`mb-1 block text-sm ${props.labelClassName || ""}`}>
+          {props.label}
+        </label>
       ) : null}
       <select
         name={props.name}
