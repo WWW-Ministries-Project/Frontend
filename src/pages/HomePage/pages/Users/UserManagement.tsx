@@ -44,10 +44,16 @@ export const UserManagement = () => {
 
   const usersQuery = useMemo(() => {
     const query: QueryType = {
-      is_user: "true",
       page: String(page),
       limit: String(limit),
     };
+    // Default view is accounts-only (is_user=true). Once an Account Status
+    // filter is applied, that restriction is dropped so "Inactive"/"Active"
+    // matches against all members with that status, not just the ones
+    // flagged as accounts — otherwise the filter silently only ever
+    // surfaces the tiny is_user=true subset (e.g. 2 of 68 inactive
+    // members), which reads as "the filter is broken."
+    if (!statusFilter) query.is_user = "true";
     if (appliedSearch) query.name = appliedSearch;
     if (statusFilter) query.is_active = statusFilter;
     return query;
