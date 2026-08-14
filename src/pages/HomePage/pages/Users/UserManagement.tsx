@@ -8,20 +8,38 @@ import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
+import { QueryType } from "@/utils/interfaces";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { Modal } from "@/components/Modal";
 import { ViewUser } from "./pages/ViewUser";
+import UsersFilter from "./Components/UsersFilter";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 export const UserManagement = () => {
-  const { data: registeredMembers, refetch: refetchMembers } = useFetch(api.fetch.fetchAllMembers, {
-    is_user: "true",
-  });
   const [searchedUser, setSearchedUser] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [showSearch, setShowSearch] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(12);
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string>()
+
+  const usersQuery = useMemo(() => {
+    const query: QueryType = {
+      is_user: "true",
+      page: String(page),
+      limit: String(limit),
+    };
+    if (appliedSearch) query.name = appliedSearch;
+    if (statusFilter) query.is_active = statusFilter;
+    return query;
+  }, [appliedSearch, statusFilter, page, limit]);
+
+  const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, usersQuery);
+
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
     { label: "User Management", link: "" },
@@ -31,6 +49,16 @@ export const UserManagement = () => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchedUser(e.target.value);
+  };
+
+  const handleSearchSubmit = () => {
+    setPage(1);
+    setAppliedSearch(searchedUser);
+  };
+
+  const handleStatusFilterChange = (_name: string, value: string) => {
+    setPage(1);
+    setStatusFilter(value);
   };
 
   const handleEditing = (id: string) => {
@@ -115,7 +143,9 @@ export const UserManagement = () => {
       <HeaderControls
         title={`Users (${users.length})`}
         setShowSearch={setShowSearch}
-        hasFilter={false}
+        hasFilter={true}
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
         screenWidth={window.innerWidth}
       />
       {/* <PageHeader title={`Users(${users.length})`} /> */}
@@ -126,10 +156,13 @@ export const UserManagement = () => {
           id="searchUsers"
           value={searchedUser}
           onChange={handleSearchChange}
-          onSubmit={() => {
-            refetchMembers({ page: "1", limit: "12", name: searchedUser });
-          }}
+          onSubmit={handleSearchSubmit}
         />
+      )}
+      {showFilter && (
+        <div className="mb-4 rounded-2xl border border-lightGray bg-[#fafbfc] p-4">
+          <UsersFilter value={statusFilter} onChange={handleStatusFilterChange} />
+        </div>
       )}
       { }
       {users.length === 0 ? (
@@ -144,10 +177,11 @@ export const UserManagement = () => {
           data={users}
           columnFilters={[]}
           setColumnFilters={() => { }}
-          displayedCount={12}
+          displayedCount={limit}
           total={total}
-          onPageChange={(page, limit) => {
-            refetchMembers({ limit: String(limit), page: String(page) });
+          onPageChange={(newPage, newLimit) => {
+            setPage(newPage);
+            setLimit(newLimit);
           }}
         />
       )}
