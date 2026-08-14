@@ -1,5 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { HeaderControls } from "@/components/HeaderControls";
 import EmptyState from "@/components/EmptyState";
@@ -17,15 +18,29 @@ import UsersFilter from "./Components/UsersFilter";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 export const UserManagement = () => {
+  // page/take live in the URL because TableComponent's pagination widget
+  // (PaginationComponent -> usePaginate -> usePaginationQueryParams) reads
+  // and writes them there directly, independent of any local state passed
+  // in. Mirroring that here (same param names) keeps a single source of
+  // truth instead of two page counters drifting apart - see Members.tsx,
+  // which uses the same pattern.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Math.max(Number(searchParams.get("page")) || 1, 1);
+  const limit = Math.max(Number(searchParams.get("take")) || 12, 1);
+
   const [searchedUser, setSearchedUser] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [showSearch, setShowSearch] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string>()
+
+  const resetToFirstPage = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("page", "1");
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const usersQuery = useMemo(() => {
     const query: QueryType = {
@@ -52,13 +67,13 @@ export const UserManagement = () => {
   };
 
   const handleSearchSubmit = () => {
-    setPage(1);
     setAppliedSearch(searchedUser);
+    resetToFirstPage();
   };
 
   const handleStatusFilterChange = (_name: string, value: string) => {
-    setPage(1);
     setStatusFilter(value);
+    resetToFirstPage();
   };
 
   const handleEditing = (id: string) => {
@@ -179,10 +194,7 @@ export const UserManagement = () => {
           setColumnFilters={() => { }}
           displayedCount={limit}
           total={total}
-          onPageChange={(newPage, newLimit) => {
-            setPage(newPage);
-            setLimit(newLimit);
-          }}
+          onPageChange={() => { }}
         />
       )}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
