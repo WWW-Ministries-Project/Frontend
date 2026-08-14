@@ -13,10 +13,10 @@ const accountStatusOptions: ISelectOption[] = [
 
 const UsersFilter = ({ value, onChange }: UsersFilterProps) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-4">
       <Filter
         name="is_active"
-        className="w-full"
+        className="w-full max-w-xs"
         label="Account Status"
         placeholder="All statuses"
         options={accountStatusOptions}
