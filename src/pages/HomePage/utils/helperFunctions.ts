@@ -34,6 +34,22 @@ export const showDeleteDialog = <T extends DialogValue>(
   });
 };
 
+export const showConfirmDialog = (
+  message: string,
+  onConfirm: () => void
+) => {
+  const dialogStore = useDialogStore.getState();
+  dialogStore.setDialog({
+    name: message,
+    showModal: true,
+    onConfirm: () => {
+      onConfirm();
+      dialogStore.dialogDataReset();
+    },
+    onCancel: dialogStore.dialogDataReset,
+  });
+};
+
 export const showNotification = (
   message: string,
   type: "success" | "error" = "success",
