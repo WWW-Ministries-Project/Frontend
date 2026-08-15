@@ -24,6 +24,8 @@ import {
 import type {
   BulkUpdateMemberStatusPayload,
   BulkUpdateMemberStatusResponse,
+  BulkUpdateUserStatusPayload,
+  BulkUpdateUserStatusResponse,
 } from "./members/interfaces";
 import { DepartmentType } from "./settings/departmentInterfaces";
 import type {
@@ -205,6 +207,12 @@ export class ApiCreationCalls {
     payload: BulkUpdateMemberStatusPayload
   ): Promise<ApiResponse<BulkUpdateMemberStatusResponse>> => {
     return this.postToApi("user/update-member-status/bulk", payload);
+  };
+
+  bulkUpdateUserStatus = (
+    payload: BulkUpdateUserStatusPayload
+  ): Promise<ApiResponse<BulkUpdateUserStatusResponse>> => {
+    return this.postToApi("user/update-user-status/bulk", payload);
   };
 
   createEvent = (
