@@ -47,6 +47,12 @@ interface NotificationSlice {
 
 interface DialogType {
   name?: string;
+  // Optional overrides so non-delete confirmations (e.g. bulk
+  // activate/deactivate) don't inherit the delete-flavored default copy.
+  // Omitting all three keeps today's "Delete {name}" behavior unchanged.
+  title?: string;
+  message?: string;
+  confirmLabel?: string;
   onCancel: () => void;
   onConfirm: () => void;
   showModal: boolean;

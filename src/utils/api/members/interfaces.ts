@@ -27,6 +27,31 @@ export type activateMemberType = {
   status: "UNCONFIRMED" | "CONFIRMED" | "MEMBER";
 };
 
+export type BulkUpdateUserStatusPayload = {
+  user_ids: (string | number)[];
+  is_active: boolean;
+};
+
+export type BulkUpdateUserStatusResult = {
+  user_id: string | number;
+  success: boolean;
+  noop?: boolean;
+  code?: string;
+  message?: string;
+  previous?: boolean;
+  current?: boolean;
+};
+
+export type BulkUpdateUserStatusResponse = {
+  results: BulkUpdateUserStatusResult[];
+  summary: {
+    total: number;
+    succeeded: number;
+    skipped: number;
+    failed: number;
+  };
+};
+
 export type BulkUpdateMemberStatusPayload = {
   status: "CONFIRMED" | "MEMBER";
   user_ids: Array<string | number>;

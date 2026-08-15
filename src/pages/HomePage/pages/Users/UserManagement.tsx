@@ -7,9 +7,12 @@ import EmptyState from "@/components/EmptyState";
 import { ProfilePicture } from "@/components/ProfilePicture";
 import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useUserStore } from "@/store/userStore";
 import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { QueryType } from "@/utils/interfaces";
+import { showConfirmDialog, showLoader, showNotification } from "@/pages/HomePage/utils";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { Modal } from "@/components/Modal";
@@ -59,7 +62,10 @@ export const UserManagement = () => {
     return query;
   }, [appliedSearch, statusFilter, page, limit]);
 
-  const { data: registeredMembers } = useFetch(api.fetch.fetchAllMembers, usersQuery);
+  const { data: registeredMembers, refetch } = useFetch(api.fetch.fetchAllMembers, usersQuery);
+
+  const { canManage } = useAccessControl();
+  const canBulkManage = canManage("Members");
 
   const crumbs = [
     { label: "Home", link: relativePath.home.main },
@@ -86,6 +92,65 @@ export const UserManagement = () => {
     setSelectedUserId(id)
     setIsModalOpen(true)
   }
+
+  const handleBulkStatusChange = (
+    selectedUsers: User[],
+    action: string
+  ) => {
+    const isActivating = action === "activate";
+    const currentUserId = useUserStore.getState().id;
+
+    let targets = selectedUsers;
+    let selfExcluded = false;
+
+    if (!isActivating) {
+      targets = selectedUsers.filter((u) => String(u.id) !== currentUserId);
+      selfExcluded = targets.length !== selectedUsers.length;
+    }
+
+    if (targets.length === 0) {
+      showNotification(
+        "You can't deactivate only your own account.",
+        "error"
+      );
+      return;
+    }
+
+    const verb = isActivating ? "Activate" : "Deactivate";
+    const consequence = isActivating
+      ? "They will regain login access."
+      : "They will lose login access until reactivated.";
+    const selfNote = selfExcluded
+      ? " Your own account was excluded from this action."
+      : "";
+
+    showConfirmDialog(
+      `${verb} ${targets.length} user${targets.length !== 1 ? "s" : ""}?`,
+      () => {
+        showLoader(true);
+        api.post
+          .bulkUpdateUserStatus({
+            user_ids: targets.map((u) => u.id),
+            is_active: isActivating,
+          })
+          .then((response) => {
+            const summary = response?.data?.summary;
+            if (summary) {
+              showNotification(
+                `${summary.succeeded} updated, ${summary.skipped} already ${isActivating ? "active" : "inactive"}, ${summary.failed} failed`,
+                summary.failed > 0 ? "error" : "success"
+              );
+            }
+            refetch();
+          })
+          .catch(() => {
+            showNotification("Bulk update failed. Try again.", "error");
+          })
+          .finally(() => showLoader(false));
+      },
+      { message: `${consequence}${selfNote}`, confirmLabel: verb }
+    );
+  };
 
   //displayed headers for table
   const usersColumns: ColumnDef<User>[] = [
@@ -201,6 +266,16 @@ export const UserManagement = () => {
           displayedCount={limit}
           total={total}
           onPageChange={() => { }}
+          enableSelection={canBulkManage}
+          bulkActions={
+            canBulkManage
+              ? [
+                { label: "Activate", value: "activate" },
+                { label: "Deactivate", value: "deactivate", variant: "danger" },
+              ]
+              : []
+          }
+          onBulkAction={handleBulkStatusChange}
         />
       )}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
