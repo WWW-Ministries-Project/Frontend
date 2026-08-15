@@ -125,7 +125,7 @@ export const UserManagement = () => {
       : "";
 
     showConfirmDialog(
-      `${verb} ${targets.length} user${targets.length !== 1 ? "s" : ""}? ${consequence}${selfNote}`,
+      `${verb} ${targets.length} user${targets.length !== 1 ? "s" : ""}?`,
       () => {
         showLoader(true);
         api.post
@@ -147,7 +147,8 @@ export const UserManagement = () => {
             showNotification("Bulk update failed. Try again.", "error");
           })
           .finally(() => showLoader(false));
-      }
+      },
+      { message: `${consequence}${selfNote}`, confirmLabel: verb }
     );
   };
 

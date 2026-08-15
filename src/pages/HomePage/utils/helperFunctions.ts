@@ -35,12 +35,15 @@ export const showDeleteDialog = <T extends DialogValue>(
 };
 
 export const showConfirmDialog = (
-  message: string,
-  onConfirm: () => void
+  title: string,
+  onConfirm: () => void,
+  options?: { message?: string; confirmLabel?: string }
 ) => {
   const dialogStore = useDialogStore.getState();
   dialogStore.setDialog({
-    name: message,
+    title,
+    message: options?.message,
+    confirmLabel: options?.confirmLabel,
     showModal: true,
     onConfirm: () => {
       onConfirm();

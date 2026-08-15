@@ -24,10 +24,14 @@ export const Dialog = () => {
         ref={dialog}
         className="w-full max-w-md rounded-2xl border border-lightGray p-6 text-primary shadow-2xl backdrop:bg-primary/45"
       >
-        <h1 className="H600">Delete {dialogData.name}</h1>
+        <h1 className="H600">{dialogData.title ?? `Delete ${dialogData.name}`}</h1>
         <div className="mt-3 text-sm text-primaryGray">
-          Are you sure you want to delete {dialogData.name}. <br /> This action
-          cannot be undone.
+          {dialogData.message ?? (
+            <>
+              Are you sure you want to delete {dialogData.name}. <br /> This
+              action cannot be undone.
+            </>
+          )}
         </div>
         <div className="mt-6 flex items-center justify-end gap-3">
           <Button
@@ -35,7 +39,11 @@ export const Dialog = () => {
             variant="secondary"
             onClick={handleShowModal}
           />
-          <Button value="Delete" variant="primary" onClick={handleDelete} />
+          <Button
+            value={dialogData.confirmLabel ?? "Delete"}
+            variant="primary"
+            onClick={handleDelete}
+          />
         </div>
       </dialog>
     </div>
