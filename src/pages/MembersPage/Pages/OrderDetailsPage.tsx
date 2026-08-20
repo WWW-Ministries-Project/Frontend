@@ -104,8 +104,8 @@ export function OrderDetailsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 rounded-xl bg-white p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-lightGray/20 p-4">
+    <div className="mx-auto max-w-4xl space-y-6 rounded-xl bg-white p-4 sm:p-6">
+      <div className="flex flex-col gap-4 rounded-lg bg-lightGray/20 p-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-lg font-semibold text-primary">{lifecycle.label}</p>
           <p className="text-sm text-primaryGray">
@@ -116,7 +116,7 @@ export function OrderDetailsPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <Button
             value="Contact Us"
             variant="secondary"
@@ -125,6 +125,7 @@ export function OrderDetailsPage() {
                 `Order ${order.order_number}`
               )}`;
             }}
+            className="w-full sm:w-auto"
           />
           {lifecycle.canCancel && (
             <Button
@@ -132,10 +133,17 @@ export function OrderDetailsPage() {
               variant="secondary"
               disabled={isProcessing}
               onClick={handleCancel}
+              className="w-full sm:w-auto"
             />
           )}
           {lifecycle.canPay && (
-            <Button value="Pay Now" loading={isProcessing} disabled={isProcessing} onClick={handlePay} />
+            <Button
+              value="Pay Now"
+              loading={isProcessing}
+              disabled={isProcessing}
+              onClick={handlePay}
+              className="w-full sm:w-auto"
+            />
           )}
         </div>
       </div>
@@ -148,29 +156,36 @@ export function OrderDetailsPage() {
 
       <div className="divide-y divide-lightGray/60 rounded-lg border border-lightGray">
         {order.items.map((item, index) => (
-          <div key={`${item.id}-${index}`} className="flex gap-4 p-4">
-            <img
-              src={item.image_url}
-              alt={item.name}
-              className="h-16 w-16 flex-shrink-0 rounded-lg border border-lightGray object-cover"
-            />
-            <div className="flex-1">
-              <p className="font-medium text-primary">{item.name}</p>
-              <p className="text-sm text-primaryGray">{item.color}</p>
+          <div
+            key={`${item.id}-${index}`}
+            className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-4"
+          >
+            <div className="flex gap-4 md:min-w-0 md:flex-1">
+              <img
+                src={item.image_url}
+                alt={item.name}
+                className="h-16 w-16 flex-shrink-0 rounded-lg border border-lightGray object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-primary">{item.name}</p>
+                <p className="text-sm text-primaryGray">{item.color}</p>
+              </div>
             </div>
-            <div className="w-16 text-center text-sm">
-              <p className="text-primaryGray">Qty</p>
-              <p className="font-semibold text-primary">X{item.quantity}</p>
-            </div>
-            <div className="w-24 text-right text-sm">
-              <p className="text-primaryGray">Price</p>
-              <p className="font-semibold text-primary">{formatMoney(Number(item.price_amount || 0))}</p>
+            <div className="grid grid-cols-2 gap-3 text-sm md:flex md:w-auto md:flex-shrink-0 md:gap-4">
+              <div className="md:w-16 md:text-center">
+                <p className="text-primaryGray">Qty</p>
+                <p className="font-semibold text-primary">X{item.quantity}</p>
+              </div>
+              <div className="md:w-24 md:text-right">
+                <p className="text-primaryGray">Price</p>
+                <p className="font-semibold text-primary">{formatMoney(Number(item.price_amount || 0))}</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="ml-auto w-full max-w-xs space-y-2 text-sm">
+      <div className="w-full space-y-2 text-sm md:ml-auto md:w-full md:max-w-xs">
         <p className="flex items-center justify-between">
           <span className="text-primaryGray">Subtotal</span>
           <span className="font-medium text-primary">{formatMoney(subtotal)}</span>
