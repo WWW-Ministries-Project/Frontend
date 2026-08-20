@@ -43,18 +43,14 @@ const Market = () => {
 
   return (
     <MarketLayout title={routeName}>
-      <div className="bg-white p-6 space-y-5 container mx-auto">
-        <div className="p-6 space-y-5">
-          <div className="w-fit">
-          <TabSelection
-            tabs={["Products", "Orders"]}
-            onTabSelect={handleSelectedTab}
-            selectedTab={routeName || "Products"}
-          />
-        </div>
+      <div className="bg-white p-4 sm:p-6 space-y-4 sm:space-y-5 container mx-auto">
+        <TabSelection
+          tabs={["Products", "Orders"]}
+          onTabSelect={handleSelectedTab}
+          selectedTab={routeName || "Products"}
+        />
 
         <Outlet />
-        </div>
       </div>
     </MarketLayout>
   );
