@@ -3,7 +3,7 @@ import { ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { useCart } from "../../utils/cartSlice";
 
 export function CartIcon() {
-  const { toggleCart, getTotalItems } = useCart();
+  const { openCartManually, getTotalItems } = useCart();
 
   const cartCount = getTotalItems();
 
@@ -11,7 +11,7 @@ export function CartIcon() {
     <button
       type="button"
       className="relative"
-      onClick={() => toggleCart(true)}
+      onClick={() => openCartManually()}
       aria-label={cartCount > 0 ? `Open cart, ${cartCount} items` : "Open cart"}
     >
       <ShoppingCartIcon className="size-7" />
