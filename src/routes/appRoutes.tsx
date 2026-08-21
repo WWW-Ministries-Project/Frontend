@@ -68,6 +68,7 @@ import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage
 import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
 import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
 import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
+import { OrderDetailsPage } from "@/pages/MembersPage/Pages/OrderDetailsPage";
 import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import GivingComplete from "@/pages/MembersPage/Pages/GivingComplete.js";
 import PledgeComplete from "@/pages/MembersPage/Pages/PledgeComplete.js";
@@ -1174,6 +1175,12 @@ export const routes: AppRoute[] = [
             path: relativePath.member.orders,
             name: "Orders",
             element: <MyOrders />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.orderDetails,
+            name: "Order Details",
+            element: <OrderDetailsPage />,
             isPrivate: false,
           },
           {

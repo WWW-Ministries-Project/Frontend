@@ -30,6 +30,7 @@ import {
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
+  IOrderDetail,
   IOrders,
   IProductType,
   IProductTypeResponse,
@@ -669,6 +670,12 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IOrders[]>> => {
     return this.fetchFromApi(`orders/get-orders-by-user/`, query);
+  };
+
+  fetchOrderById = (
+    query?: QueryType
+  ): Promise<ApiResponse<IOrderDetail>> => {
+    return this.fetchFromApi(`orders/get-order-by-id`, query);
   };
 
   // Fetch staff appointment availability
