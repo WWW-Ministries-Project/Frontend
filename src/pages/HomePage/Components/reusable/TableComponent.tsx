@@ -151,13 +151,13 @@ function TableComponent<TData>({
     <div className={`overflow-x-auto ${props.className}`}>
       {/* Bulk Actions Bar */}
       {enableSelection && selectedCount > 0 && bulkActions.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-blue-700">
               {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
             </span>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             {bulkActions.map((action) => (
               <button
                 key={action.value}

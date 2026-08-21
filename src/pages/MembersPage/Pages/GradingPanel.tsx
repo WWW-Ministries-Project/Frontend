@@ -486,10 +486,10 @@ const GradingPanel = () => {
           <ArrowLeftIcon className="h-4 w-4" />
           Back to assignments
         </button>
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-primary">{assignment.title}</h2>
-            <div className="mt-2 flex items-center gap-4  text-primaryGray">
+            <div className="mt-2 flex flex-wrap items-center gap-4  text-primaryGray">
               <span className="flex items-center gap-1">
                 <UsersIcon className="h-4 w-4" />
                 {totalCount} submissions
@@ -505,7 +505,7 @@ const GradingPanel = () => {
             </div>
           </div>
           {/* Progress bar */}
-          <div className="text-right">
+          <div className="text-left md:text-right">
             <p className=" font-medium text-primary">
               {progress}% complete
             </p>
