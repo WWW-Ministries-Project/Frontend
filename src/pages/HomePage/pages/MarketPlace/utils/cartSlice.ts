@@ -9,6 +9,8 @@ export const useCart = create<ICartSlice>()(
     (set, get) => ({
       cartItems: [],
       cartOpen: false,
+      cartAutoCloseArmed: false,
+      cartAddPulse: 0,
       addToCart: (item) => {
         set((state) => {
           const normalizedQuantity = Math.max(1, Number(item.quantity) || 1);
@@ -27,6 +29,12 @@ export const useCart = create<ICartSlice>()(
               cartItem.size === normalizedItem.size
           );
 
+          const openDrawerState = {
+            cartOpen: true,
+            cartAutoCloseArmed: true,
+            cartAddPulse: state.cartAddPulse + 1,
+          };
+
           if (existingItemIndex >= 0) {
             const updatedCartItems = [...state.cartItems];
             const existingItem = updatedCartItems[existingItemIndex];
@@ -38,16 +46,15 @@ export const useCart = create<ICartSlice>()(
               quantity: Math.min(existingItem.quantity + normalizedQuantity, stockCap),
             };
 
-            showNotification("Product quantity updated in cart", "success");
-            return { cartItems: updatedCartItems };
+            return { cartItems: updatedCartItems, ...openDrawerState };
           }
 
-          showNotification("Product added to cart", "success");
           return {
             cartItems: [
               ...state.cartItems,
               { ...normalizedItem, item_uuid: crypto.randomUUID() },
             ],
+            ...openDrawerState,
           };
         });
       },
@@ -76,7 +83,17 @@ export const useCart = create<ICartSlice>()(
         }, 0);
       },
       toggleCart: (value) => {
-        set({ cartOpen: value });
+        set((state) => ({
+          cartOpen: value,
+          // Closing always disarms, so state doesn't leak into the next open.
+          cartAutoCloseArmed: value ? state.cartAutoCloseArmed : false,
+        }));
+      },
+      openCartManually: () => {
+        set({ cartOpen: true, cartAutoCloseArmed: false });
+      },
+      disarmAutoClose: () => {
+        set({ cartAutoCloseArmed: false });
       },
       setCartItems: (items) => {
         const normalizedItems = items.map((item) => ({
