@@ -148,6 +148,43 @@ export interface IOrders extends ICartItem, IUserDetails {
   id: string | number;
 }
 
+// Unflattened order shape returned by GET /orders/get-order-by-id — one
+// order with a real items[] array, as opposed to IOrders which is one
+// flattened order+item row (mirrors the Backend's flattenOrders output used
+// for order lists).
+export interface IOrderItem {
+  id: number;
+  name: string;
+  image_url: string;
+  color: string;
+  size: string;
+  price_amount: number;
+  price_currency: string;
+  quantity: number;
+  product_type: string;
+  product_category: string;
+}
+
+export interface IOrderBillingDetails {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  country: string;
+}
+
+export interface IOrderDetail {
+  id: number;
+  order_number: string;
+  total_amount: number;
+  payment_status: PaymentStatus;
+  delivery_status: "pending" | "shipped" | "delivered" | "cancelled";
+  created_at: string;
+  reference: string;
+  items: IOrderItem[];
+  billing_details?: IOrderBillingDetails | null;
+}
+
 export interface IProductSlice {
   products: IProductTypeResponse[];
   setProducts: (products: IProductTypeResponse[]) => void;
