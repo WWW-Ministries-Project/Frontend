@@ -47,7 +47,7 @@ export function CheckOutPage() {
     : "/out/verify-payment/out";
 
   const cancellation_url = is_member
-    ? `${window.location.origin}/member/market/check-out`
+    ? `${window.location.origin}${relativePath.member.orders}`
     : `${window.location.origin}/out/products/check-out`;
 
   const handleCheckout = async (data: ICheckoutForm) => {

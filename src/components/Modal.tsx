@@ -20,11 +20,11 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
       <Dialog.Portal>
         {/* Fullscreen overlay */}
         <Dialog.Overlay
-          className="fixed inset-0 z-50 bg-primary/45 backdrop-blur-sm"
+          className="fixed inset-0 z-[130] bg-primary/45 backdrop-blur-sm"
           style={{ animation: "fadeIn 0.2s" }}
         />
 
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 md:p-6">
+        <div className="fixed inset-0 z-[130] flex items-center justify-center overflow-y-auto p-4 md:p-6">
           <Dialog.Content
             aria-describedby="dialog-description"
             className={cn(
