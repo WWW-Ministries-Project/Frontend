@@ -84,6 +84,16 @@ export interface ICartSlice {
   getTotalPrice: () => number;
   cartOpen: boolean;
   toggleCart: (value: boolean) => void;
+  /** True only when the drawer was opened by addToCart (not the cart icon). */
+  cartAutoCloseArmed: boolean;
+  /** Bumped on every addToCart call so an effect keyed on it can restart a
+   * 5s auto-close countdown even when cartOpen/cartAutoCloseArmed didn't
+   * themselves change value (e.g. adding a 2nd item while already open). */
+  cartAddPulse: number;
+  /** Opens the drawer as a deliberate user action — never auto-closes. */
+  openCartManually: () => void;
+  /** Cancels the auto-close countdown for the current open session. */
+  disarmAutoClose: () => void;
   setCartItems: (items: ICartItem[]) => void;
   updateSection: <T extends CartSections>(
     productId: string,

@@ -9,13 +9,15 @@ import { useCart } from "../../utils/cartSlice";
 import { useCartDetails } from "../../utils/useCartDetails";
 import { ProductChip } from "../chips/ProductChip";
 import EmptyCartComponent from "./EmptyCartComponent";
+import { useCartAutoClose } from "./useCartAutoClose";
 
 export default function CartDrawer() {
-  const { cartOpen, toggleCart, removeFromCart } = useCart();
+  const { cartOpen, toggleCart, removeFromCart, disarmAutoClose } = useCart();
   const { items: cartWithDetails, totalPrice } = useCartDetails();
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const autoCloseHandlers = useCartAutoClose(drawerRef);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,6 +38,7 @@ export default function CartDrawer() {
   }, [cartOpen, toggleCart]);
 
   const handleRemoveFromCart = (itemId: string) => {
+    disarmAutoClose();
     removeFromCart(itemId);
   };
 
@@ -45,6 +48,7 @@ export default function CartDrawer() {
         cartOpen ? "translate-x-0" : "translate-x-full"
       }`}
       ref={drawerRef}
+      {...autoCloseHandlers}
     >
       <div className="flex items-center justify-between border-b border-lightGray px-4 py-4 sm:px-5">
         <div className="flex items-center gap-2">
@@ -86,6 +90,7 @@ export default function CartDrawer() {
             value="Proceed to checkout"
             className="w-full"
             onClick={() => {
+              disarmAutoClose();
               toggleCart(false);
               navigate(relativePath.member.checkOut);
             }}
