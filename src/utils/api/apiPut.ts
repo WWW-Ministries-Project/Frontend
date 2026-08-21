@@ -31,6 +31,7 @@ import type {
   IProductType,
   IProduct,
   IOrders,
+  IOrderDetail,
 } from "./marketPlace/interface";
 import type {
   Appointment,
@@ -489,6 +490,12 @@ export class ApiUpdateCalls {
     }
   ): Promise<ApiResponse<IOrders>> => {
     return this.apiExecution.updateData("orders/update-delivery-status", payload);
+  };
+
+  cancelOrder = (
+    payload: { id: number | string }
+  ): Promise<ApiResponse<IOrderDetail>> => {
+    return this.apiExecution.updateData("orders/cancel-order", payload);
   };
 
   // uodate church attendance

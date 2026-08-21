@@ -1,32 +1,43 @@
 import { useCallback, useMemo, useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
 
 import { useFetch } from "@/CustomHooks/useFetch";
-import { Button } from "@/components";
-import { Modal } from "@/components/Modal";
-import { Orders } from "@/pages/HomePage/pages/MarketPlace/components/Orders/Orders";
-import { getBaseOrderColumns } from "@/pages/HomePage/pages/MarketPlace/components/Orders/OrdersTableColumns";
-import { OrderStatusTimeline } from "@/pages/HomePage/pages/MarketPlace/components/Orders/OrderStatusTimeline";
+import { PaginationComponent } from "@/pages/HomePage/Components/reusable/PaginationComponent";
 import { showNotification } from "@/pages/HomePage/utils";
-import {
-  api,
-  decodeToken,
-  IOrders,
-  relativePath,
-} from "@/utils";
+import { MemberOrderGroup } from "@/pages/MembersPage/components/MemberOrderGroup";
+import { api, decodeToken, IOrders, relativePath } from "@/utils";
+import EmptyState from "@/components/EmptyState";
+import { Skeleton } from "@/components/Skeleton";
+
+const PAGE_SIZE = 10;
 
 export const MyOrders = () => {
   const user = decodeToken();
   const userId = user?.id ? String(user.id) : "";
-  const { data } = useFetch(
+  const { data, loading, error, refetch } = useFetch(
     api.fetch.fetchOrdersByUser,
     userId ? { user_id: userId } : undefined,
     !userId
   );
-  const [processingOrderKey, setProcessingOrderKey] = useState<string | null>(
-    null
+  const [processingKeys, setProcessingKeys] = useState<Set<string>>(
+    new Set()
   );
-  const [viewingOrder, setViewingOrder] = useState<IOrders | null>(null);
+  const [page, setPage] = useState(1);
+
+  const markProcessing = useCallback((key: string) => {
+    setProcessingKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const unmarkProcessing = useCallback((key: string) => {
+    setProcessingKeys((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
 
   const memberOrders = useMemo<IOrders[]>(() => {
     if (!data) return [];
@@ -49,6 +60,36 @@ export const MyOrders = () => {
     );
   }, []);
 
+  // Group the flattened one-row-per-line-item rows by order_number, in
+  // descending order (newest order first, preserving memberOrders' sort).
+  const groupedOrders = useMemo(() => {
+    const groups = new Map<string, IOrders[]>();
+    for (const order of memberOrders) {
+      const key = getOrderKey(order);
+      const existing = groups.get(key);
+      if (existing) existing.push(order);
+      else groups.set(key, [order]);
+    }
+    return Array.from(groups.entries()).map(([orderNumber, rows]) => ({
+      orderNumber,
+      rows,
+    }));
+  }, [memberOrders, getOrderKey]);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(groupedOrders.length / PAGE_SIZE)),
+    [groupedOrders.length]
+  );
+  // groupedOrders can shrink out from under `page` (e.g. cancelling the only
+  // order on the last page) without `page` itself being re-clamped, so slice
+  // using an effective page that's always within range.
+  const effectivePage = Math.min(page, totalPages);
+
+  const pagedGroups = useMemo(() => {
+    const start = (effectivePage - 1) * PAGE_SIZE;
+    return groupedOrders.slice(start, start + PAGE_SIZE);
+  }, [groupedOrders, effectivePage]);
+
   const handleRetryPayment = useCallback(
     async (selectedOrder: IOrders) => {
       if ((selectedOrder.payment_status || "").toLowerCase() !== "pending") {
@@ -57,12 +98,12 @@ export const MyOrders = () => {
       }
 
       const orderKey = getOrderKey(selectedOrder);
-      setProcessingOrderKey(orderKey);
+      markProcessing(orderKey);
 
       const retryOrderId = String(selectedOrder.order_id || selectedOrder.id || "").trim();
       if (!retryOrderId) {
         showNotification("Unable to process payment for this order.", "error");
-        setProcessingOrderKey(null);
+        unmarkProcessing(orderKey);
         return;
       }
 
@@ -95,125 +136,109 @@ export const MyOrders = () => {
 
         showNotification(message || "Failed to initiate payment.", "error");
       } finally {
-        setProcessingOrderKey(null);
+        unmarkProcessing(orderKey);
       }
     },
-    [getOrderKey]
+    [getOrderKey, markProcessing, unmarkProcessing]
   );
 
-  const tableColumns = useMemo(() => {
-    const actionColumn: ColumnDef<IOrders> = {
-      header: "Action",
-      cell: ({ row }) => {
-        const order = row.original;
-        const orderKey = getOrderKey(order);
-        const isPending = (order.payment_status || "").toLowerCase() === "pending";
+  const handleCancelOrder = useCallback(
+    async (selectedOrder: IOrders) => {
+      const orderKey = getOrderKey(selectedOrder);
+      markProcessing(orderKey);
 
-        if (!isPending) {
-          return <span className="text-xs text-gray-400">Paid</span>;
-        }
+      const orderId = String(selectedOrder.order_id || selectedOrder.id || "").trim();
+      if (!orderId) {
+        showNotification("Unable to cancel this order.", "error");
+        unmarkProcessing(orderKey);
+        return;
+      }
 
-        return (
-          <Button
-            value="Pay now"
-            className="min-h-8 px-3 py-1 text-xs"
-            loading={processingOrderKey === orderKey}
-            disabled={processingOrderKey !== null}
-            onClick={(e) => {
-              e?.stopPropagation?.();
-              handleRetryPayment(order);
-            }}
-          />
-        );
-      },
-    };
+      try {
+        await api.put.cancelOrder({ id: orderId });
+        showNotification("Order cancelled.", "success");
+        await refetch();
+      } catch (error: unknown) {
+        const message =
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error &&
+          typeof (error as { response?: { data?: { message?: string } } })
+            .response?.data?.message === "string"
+            ? (error as { response?: { data?: { message?: string } } }).response
+                ?.data?.message
+            : "Failed to cancel order.";
 
-    return getBaseOrderColumns([actionColumn]);
-  }, [getOrderKey, handleRetryPayment, processingOrderKey]);
+        showNotification(message || "Failed to cancel order.", "error");
+      } finally {
+        unmarkProcessing(orderKey);
+      }
+    },
+    [getOrderKey, markProcessing, unmarkProcessing, refetch]
+  );
+
+  if (loading) {
+    return <OrdersSkeleton />;
+  }
+
+  if (error) {
+    return <EmptyState scope="page" msg="Failed to load your orders" />;
+  }
+
+  if (groupedOrders.length === 0) {
+    return <EmptyState scope="page" msg="You have not placed any orders yet" />;
+  }
 
   return (
-    <>
-      <Orders
-        orders={memberOrders}
-        tableColumns={tableColumns}
-        searchCustomer={false}
-        defaultMarketStatus="active"
-        onRowClick={(order) => setViewingOrder(order)}
-        renderOrderAction={(order) => {
-          const orderKey = getOrderKey(order);
-          const isPending = (order.payment_status || "").toLowerCase() === "pending";
+    <div className="rounded-xl bg-white">
+      {pagedGroups.map(({ orderNumber, rows }) => (
+        <MemberOrderGroup
+          key={orderNumber}
+          orderNumber={orderNumber}
+          rows={rows}
+          onPay={handleRetryPayment}
+          onCancel={handleCancelOrder}
+          isProcessing={processingKeys.has(orderNumber)}
+        />
+      ))}
 
-          if (!isPending) {
-            return <p className="text-xs text-gray-500">Payment completed</p>;
-          }
-
-          return (
-            <Button
-              value="Pay now"
-              className="w-full"
-              loading={processingOrderKey === orderKey}
-              disabled={processingOrderKey !== null}
-              onClick={() => handleRetryPayment(order)}
-            />
-          );
-        }}
+      <PaginationComponent
+        total={groupedOrders.length}
+        take={PAGE_SIZE}
+        onPageChange={(newPage) => setPage(newPage)}
       />
-
-      <Modal
-        open={Boolean(viewingOrder)}
-        persist={false}
-        onClose={() => setViewingOrder(null)}
-        className="max-w-lg"
-      >
-        {viewingOrder && (
-          <div className="space-y-5 p-6 text-primary">
-            <div>
-              <h3 className="text-lg font-bold">{viewingOrder.order_number}</h3>
-              <p className="text-sm text-primaryGray">
-                {viewingOrder.name} · Qty {viewingOrder.quantity}
-              </p>
-            </div>
-
-            <OrderStatusTimeline
-              paymentStatus={viewingOrder.payment_status}
-              deliveryStatus={viewingOrder.delivery_status}
-            />
-
-            <div className="rounded-lg border border-lightGray p-4 space-y-1 text-sm">
-              <p className="flex items-center justify-between gap-3">
-                <span className="font-medium">Total</span>
-                <span className="min-w-0 break-words text-right">
-                  GHC{" "}
-                  {(
-                    Number(viewingOrder.price_amount || 0) *
-                    Number(viewingOrder.quantity || 0)
-                  ).toFixed(2)}
-                </span>
-              </p>
-              <p className="flex items-center justify-between gap-3">
-                <span className="font-medium">Billed to</span>
-                <span className="min-w-0 break-words text-right">
-                  {viewingOrder.first_name} {viewingOrder.last_name}
-                </span>
-              </p>
-              <p className="flex items-center justify-between gap-3">
-                <span className="font-medium">Email</span>
-                <span className="min-w-0 break-words text-right">{viewingOrder.email}</span>
-              </p>
-            </div>
-
-            {(viewingOrder.payment_status || "").toLowerCase() === "pending" && (
-              <Button
-                value="Pay now"
-                className="w-full"
-                loading={processingOrderKey === getOrderKey(viewingOrder)}
-                disabled={processingOrderKey !== null}
-                onClick={() => handleRetryPayment(viewingOrder)}
-              />
-            )}
-          </div>
-        )}
-      </Modal>
-    </>
+    </div>
   );
 };
+
+function OrdersSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div
+      className="rounded-xl bg-white"
+      aria-busy="true"
+      aria-live="polite"
+      aria-label="Loading your orders"
+    >
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index} className="border-b border-lightGray py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-lightGray/20 px-4 py-3">
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-9 w-24 rounded-lg" />
+          </div>
+
+          <div className="flex gap-4 px-4 py-4">
+            <Skeleton className="h-16 w-16 flex-shrink-0 rounded-lg" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">Loading your orders…</span>
+    </div>
+  );
+}
