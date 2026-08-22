@@ -3,12 +3,13 @@ import { ApiResponse, QueryType } from "@/utils/interfaces";
 import { useCallback } from "react";
 import useState from "react-usestateref";
 
-export const useDelete = (
-  deleteFunction: (query: QueryType) => Promise<ApiResponse<void>>
+export const useDelete = <T = void,>(
+  deleteFunction: (query: QueryType) => Promise<ApiResponse<T>>
 ) => {
   const [loading, setLoading] = useState(false);
   const [, setError, errorRef] = useState<Error | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [data, setData] = useState<T | null>(null);
 
   const executeDelete = useCallback(
     async (query: QueryType): Promise<void> => {
@@ -17,7 +18,8 @@ export const useDelete = (
       setError(null);
       setSuccess(false);
       try {
-        await deleteFunction(query);
+        const response = await deleteFunction(query);
+        setData(response.data);
         setSuccess(true);
       } catch (error) {
         setError(error as Error);
@@ -30,5 +32,5 @@ export const useDelete = (
     [deleteFunction]
   );
 
-  return { executeDelete, loading, error: errorRef.current, success };
+  return { executeDelete, loading, error: errorRef.current, success, data };
 };

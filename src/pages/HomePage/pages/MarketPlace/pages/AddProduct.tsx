@@ -61,6 +61,7 @@ export function AddProduct() {
 
         return {
           colour: item.colour,
+          colour_name: item.colour_name,
           image_url: String(uploadedUrl),
           stock: manage_stock
             ? item.stock?.map((stock) => {

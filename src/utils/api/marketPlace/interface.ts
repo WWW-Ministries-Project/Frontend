@@ -25,6 +25,7 @@ export interface IProductType {
 
 export type ProductColour = {
   colour: string;
+  colour_name?: string;
   image_url: string | File;
   stock?: {
     size: string;
@@ -109,7 +110,7 @@ export interface ICartSlice {
   setBillinDetails: (details: ICheckoutForm) => void;
 }
 
-interface IUserDetails {
+export interface IUserDetails {
   first_name: string;
   last_name: string;
   email: string;
@@ -172,6 +173,10 @@ export interface IOrderItem {
   quantity: number;
   product_type: string;
   product_category: string;
+  product_id?: number | null;
+  product_colour_id?: number | null;
+  size_id?: number | null;
+  market_id?: number | null;
 }
 
 export interface IOrderBillingDetails {
@@ -180,6 +185,7 @@ export interface IOrderBillingDetails {
   email: string;
   phone_number: string;
   country: string;
+  country_code?: string;
 }
 
 export interface IOrderDetail {
@@ -192,6 +198,53 @@ export interface IOrderDetail {
   reference: string;
   items: IOrderItem[];
   billing_details?: IOrderBillingDetails | null;
+}
+
+export type OrderItemEditPayload = {
+  id: number;
+  quantity: number;
+  color: string;
+  size: string;
+  price_amount: number;
+  removed?: boolean;
+};
+
+export interface IUpdateOrderPayload {
+  id: number | string;
+  billing?: Partial<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone_number: string;
+    country: string;
+    country_code: string;
+  }>;
+  payment_status?: "pending" | "success" | "failed";
+  delivery_status?: "pending" | "shipped" | "delivered" | "cancelled";
+  items?: OrderItemEditPayload[];
+}
+
+export interface ICreateOrderForMemberPayload {
+  user_id: number;
+  billing: IUserDetails;
+  items: {
+    market_id: number | string;
+    id: number | string;
+    name: string;
+    price_amount: number;
+    price_currency: string;
+    quantity: number;
+    product_type: string;
+    product_category: string;
+    image_url: string;
+    color: string;
+    size: string;
+  }[];
+  payment_mode: "manual" | "gateway";
+  manual_status?: "success" | "pending";
+  payment_type?: "paystack" | "hubtel";
+  return_url?: string;
+  cancellation_url?: string;
 }
 
 export interface IProductSlice {
