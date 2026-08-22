@@ -44,7 +44,6 @@ export interface IProduct {
   stock_managed: "yes" | "no";
   id?: number | string;
   product_colours: ProductColour[];
-  branch_id?: number | "";
 }
 
 export interface IProductTypeResponse extends IProduct {
