@@ -267,4 +267,24 @@ export class ApiDeletionCalls {
   clearAllNotifications = (): Promise<ApiResponse<NotificationClearAllPayload>> => {
     return this.apiExecution.deleteData("notifications");
   };
+
+  deleteOrder = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("orders/delete-order", query);
+  };
+
+  /** query.ids is a comma-separated string of order ids, e.g. "12,13,14". */
+  bulkDeleteOrders = async (
+    query: QueryType
+  ): Promise<ApiResponse<{ deleted: number; skipped: number[] }>> => {
+    // deleteFromApi (unlike fetchFromApi) returns the raw response body with
+    // no `.data.data` unwrap — the backend wraps its payload as
+    // `{ message, data: result }`, so unwrap it here explicitly.
+    const response = await this.deleteFromApi<{
+      data: { deleted: number; skipped: number[] };
+    }>("orders/bulk-delete-orders", query);
+    return {
+      ...response,
+      data: response.data?.data ?? { deleted: 0, skipped: [] },
+    };
+  };
 }

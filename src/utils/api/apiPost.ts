@@ -65,6 +65,8 @@ import type {
   ICheckOut,
   CheckOutResponse,
   RetryOrderPaymentPayload,
+  ICreateOrderForMemberPayload,
+  IOrderDetail,
 } from "./marketPlace/interface";
 import {
   Appointment,
@@ -513,6 +515,12 @@ export class ApiCreationCalls {
     payload: RetryOrderPaymentPayload
   ): Promise<ApiResponse<CheckOutResponse>> => {
     return this.postToApi("orders/retry-payment", payload);
+  };
+
+  createOrderForMember = (
+    payload: ICreateOrderForMemberPayload
+  ): Promise<ApiResponse<(CheckOutResponse & { updated_order: IOrderDetail }) | IOrderDetail>> => {
+    return this.postToApi("orders/create-for-member", payload);
   };
 
   reconcileHubtelPendingPayments = (
