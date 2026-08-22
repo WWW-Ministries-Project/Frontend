@@ -1,15 +1,21 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePut } from "@/CustomHooks/usePut";
 import { useDelete } from "@/CustomHooks/useDelete";
+import { usePost } from "@/CustomHooks/usePost";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { Orders } from "./Orders";
 import { Modal } from "@/components/Modal";
 import { api, IOrders } from "@/utils";
-import type { IOrderDetail, IUpdateOrderPayload } from "@/utils/api/marketPlace/interface";
+import type {
+  IOrderDetail,
+  IUpdateOrderPayload,
+  ICreateOrderForMemberPayload,
+} from "@/utils/api/marketPlace/interface";
 import { useParams } from "react-router-dom";
 import { decodeQuery, showDeleteDialog } from "@/pages/HomePage/utils";
 import { getBaseOrderColumns } from "./OrdersTableColumns";
 import { EditOrderModal } from "./EditOrderModal";
+import { CreateOrderForMemberModal } from "./CreateOrderForMemberModal";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -71,7 +77,11 @@ export function MarketOrders() {
   const [isReconciling, setIsReconciling] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [editingOrder, setEditingOrder] = useState<IOrderDetail | null>(null);
-  const { canAdmin } = useAccessControl();
+  const [showCreateForMember, setShowCreateForMember] = useState(false);
+  const [createForMemberCheckoutUrl, setCreateForMemberCheckoutUrl] = useState<
+    string | null
+  >(null);
+  const { canAdmin, canManage } = useAccessControl();
 
   const {
     data: deliveryStatusResponse,
@@ -103,6 +113,13 @@ export function MarketOrders() {
     error: bulkDeleteError,
     success: bulkDeleteSuccess,
   } = useDelete(api.delete.bulkDeleteOrders);
+
+  const {
+    data: createdOrderResponse,
+    error: createOrderError,
+    loading: isCreatingOrder,
+    postData: submitCreateOrderForMember,
+  } = usePost(api.post.createOrderForMember);
 
   useEffect(() => {
     if (orderDetailResponse?.data) {
@@ -147,6 +164,34 @@ export function MarketOrders() {
     showNotification(extractErrorMessage(bulkDeleteError, "Unable to delete selected orders"), "error");
   }, [bulkDeleteError]);
 
+  useEffect(() => {
+    if (!createdOrderResponse) return;
+    const hasCheckoutUrl = "checkoutUrl" in createdOrderResponse.data;
+    if (hasCheckoutUrl) {
+      // Keep the modal open so the admin can copy the link — do NOT close it
+      // here. Track the URL in its own state (not read straight from
+      // createdOrderResponse) because usePost has no reset function: if we
+      // read the checkout URL directly off createdOrderResponse.data, it
+      // would still be truthy the NEXT time this modal opens for a brand
+      // new order, showing a stale link and incorrectly locking the form.
+      setCreateForMemberCheckoutUrl(
+        (createdOrderResponse.data as { checkoutUrl: string }).checkoutUrl
+      );
+    } else {
+      showNotification("Order placed successfully", "success");
+      setShowCreateForMember(false);
+    }
+    refetch({ market_id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createdOrderResponse]);
+
+  useEffect(() => {
+    if (!createOrderError) return;
+    // usePost already extracts the server's message into .message (unlike
+    // usePut/useDelete) — no need for extractErrorMessage here.
+    showNotification(createOrderError.message || "Unable to place order", "error");
+  }, [createOrderError]);
+
   const handleEditOrder = (order: IOrders) => {
     const orderId = order.order_id;
     if (orderId == null) {
@@ -187,6 +232,20 @@ export function MarketOrders() {
         await executeBulkDeleteOrders({ ids });
       }
     );
+  };
+
+  const handleOpenCreateForMember = () => {
+    setCreateForMemberCheckoutUrl(null);
+    setShowCreateForMember(true);
+  };
+
+  const handleCloseCreateForMember = () => {
+    setShowCreateForMember(false);
+    setCreateForMemberCheckoutUrl(null);
+  };
+
+  const handleCreateOrderForMember = (payload: ICreateOrderForMemberPayload) => {
+    submitCreateOrderForMember(payload);
   };
 
   useEffect(() => {
@@ -334,13 +393,22 @@ export function MarketOrders() {
         enableBulkDelete={canAdmin("Marketplace")}
         onBulkDelete={handleBulkDeleteOrders}
         headerAction={
-          <Button
-            value="Reconcile Payments"
-            variant="secondary"
-            loading={isReconciling}
-            disabled={isReconciling}
-            onClick={handleReconcilePendingPayments}
-          />
+          <div className="flex gap-2">
+            <Button
+              value="Reconcile Payments"
+              variant="secondary"
+              loading={isReconciling}
+              disabled={isReconciling}
+              onClick={handleReconcilePendingPayments}
+            />
+            {canManage("Marketplace") && (
+              <Button
+                value="Place order for member"
+                variant="primary"
+                onClick={handleOpenCreateForMember}
+              />
+            )}
+          </div>
         }
       />
 
@@ -350,6 +418,16 @@ export function MarketOrders() {
           loading={isUpdatingOrder}
           onSubmit={handleUpdateOrder}
           onClose={() => setEditingOrder(null)}
+        />
+      </Modal>
+
+      <Modal open={showCreateForMember} onClose={handleCloseCreateForMember}>
+        <CreateOrderForMemberModal
+          marketId={market_id}
+          loading={isCreatingOrder}
+          checkoutUrl={createForMemberCheckoutUrl}
+          onSubmit={handleCreateOrderForMember}
+          onClose={handleCloseCreateForMember}
         />
       </Modal>
     </div>
