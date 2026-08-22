@@ -9,6 +9,7 @@ export const useDelete = <T = void,>(
   const [loading, setLoading] = useState(false);
   const [, setError, errorRef] = useState<Error | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [data, setData] = useState<T | null>(null);
 
   const executeDelete = useCallback(
     async (query: QueryType): Promise<void> => {
@@ -17,7 +18,8 @@ export const useDelete = <T = void,>(
       setError(null);
       setSuccess(false);
       try {
-        await deleteFunction(query);
+        const response = await deleteFunction(query);
+        setData(response.data);
         setSuccess(true);
       } catch (error) {
         setError(error as Error);
@@ -30,5 +32,5 @@ export const useDelete = <T = void,>(
     [deleteFunction]
   );
 
-  return { executeDelete, loading, error: errorRef.current, success };
+  return { executeDelete, loading, error: errorRef.current, success, data };
 };

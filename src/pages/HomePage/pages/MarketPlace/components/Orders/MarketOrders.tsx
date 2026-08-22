@@ -110,6 +110,7 @@ export function MarketOrders() {
   } = useDelete(api.delete.deleteOrder);
   const {
     executeDelete: executeBulkDeleteOrders,
+    data: bulkDeleteResult,
     error: bulkDeleteError,
     success: bulkDeleteSuccess,
   } = useDelete(api.delete.bulkDeleteOrders);
@@ -154,7 +155,15 @@ export function MarketOrders() {
 
   useEffect(() => {
     if (!bulkDeleteSuccess) return;
-    showNotification("Selected orders deleted successfully", "success");
+    const skippedCount = bulkDeleteResult?.skipped?.length || 0;
+    if (skippedCount > 0) {
+      showNotification(
+        `${bulkDeleteResult?.deleted ?? 0} order(s) deleted, ${skippedCount} could not be deleted`,
+        "error"
+      );
+    } else {
+      showNotification("Selected orders deleted successfully", "success");
+    }
     refetch({ market_id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bulkDeleteSuccess]);

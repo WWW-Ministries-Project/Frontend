@@ -305,6 +305,11 @@ export const Orders = ({
           className="relative"
           onRowClick={onRowClick}
           enableSelection={enableBulkDelete}
+          getRowId={
+            enableBulkDelete
+              ? (order) => String(order.order_id ?? order.id)
+              : undefined
+          }
           bulkActions={
             enableBulkDelete
               ? [{ label: "Delete selected", value: "delete", variant: "danger" }]

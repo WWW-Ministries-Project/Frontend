@@ -8,7 +8,7 @@ import FormikSelect from "@/components/FormikSelect";
 import { Actions } from "@/components/ui/form/Actions";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
-import { api } from "@/utils";
+import { api, relativePath } from "@/utils";
 import type {
   ICreateOrderForMemberPayload,
   IProductTypeResponse,
@@ -191,8 +191,8 @@ export function CreateOrderForMemberModal({
         ? { manual_status: values.manual_status }
         : {
             payment_type: values.payment_type,
-            return_url: `${window.location.origin}/homepage/marketplace`,
-            cancellation_url: `${window.location.origin}/homepage/marketplace`,
+            return_url: `${window.location.origin}${relativePath.member.verify_payment}`,
+            cancellation_url: `${window.location.origin}${relativePath.member.orders}`,
           }),
     });
   };

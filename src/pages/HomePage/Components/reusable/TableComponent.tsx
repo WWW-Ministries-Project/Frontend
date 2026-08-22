@@ -33,6 +33,11 @@ interface TableComponentProps<TData> {
   onBulkAction?: (selectedRows: TData[], action: string) => void;
   bulkActions?: { label: string; value: string; variant?: 'default' | 'danger' }[];
   showNumberColumn?: boolean;
+  /** Optional row-id override — when multiple source rows should be
+   * treated as one selectable unit (e.g. a multi-item order flattened
+   * into one row per item), return the same id for all of them; checking
+   * one is then reflected across all rows sharing that id for free. */
+  getRowId?: (row: TData, index: number) => string;
 }
 
 function TableComponent<TData>({
@@ -51,6 +56,7 @@ function TableComponent<TData>({
   onBulkAction,
   bulkActions = [],
   showNumberColumn = true,
+  getRowId,
   ...props
 }: TableComponentProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -113,6 +119,7 @@ function TableComponent<TData>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getRowId,
     state: {
       sorting,
       globalFilter: filter,
