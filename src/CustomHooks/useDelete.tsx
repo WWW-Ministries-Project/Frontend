@@ -3,8 +3,8 @@ import { ApiResponse, QueryType } from "@/utils/interfaces";
 import { useCallback } from "react";
 import useState from "react-usestateref";
 
-export const useDelete = (
-  deleteFunction: (query: QueryType) => Promise<ApiResponse<void>>
+export const useDelete = <T = void,>(
+  deleteFunction: (query: QueryType) => Promise<ApiResponse<T>>
 ) => {
   const [loading, setLoading] = useState(false);
   const [, setError, errorRef] = useState<Error | null>(null);
