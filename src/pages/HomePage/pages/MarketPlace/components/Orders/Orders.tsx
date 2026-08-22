@@ -150,6 +150,8 @@ interface IProps{
   headerAction?: ReactNode;
   enableOrderDateFilter?: boolean;
   onRowClick?: (order: IOrders) => void;
+  enableBulkDelete?: boolean;
+  onBulkDelete?: (orders: IOrders[]) => void;
 }
 export const Orders = ({
   orders,
@@ -161,6 +163,8 @@ export const Orders = ({
   headerAction,
   enableOrderDateFilter = false,
   onRowClick,
+  enableBulkDelete = false,
+  onBulkDelete,
 }: IProps) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -300,6 +304,20 @@ export const Orders = ({
           displayedCount={10}
           className="relative"
           onRowClick={onRowClick}
+          enableSelection={enableBulkDelete}
+          getRowId={
+            enableBulkDelete
+              ? (order) => String(order.order_id ?? order.id)
+              : undefined
+          }
+          bulkActions={
+            enableBulkDelete
+              ? [{ label: "Delete selected", value: "delete", variant: "danger" }]
+              : []
+          }
+          onBulkAction={(selectedRows, action) => {
+            if (action === "delete") onBulkDelete?.(selectedRows);
+          }}
         />
       )}
       {allOrders?.length === 0 && (
