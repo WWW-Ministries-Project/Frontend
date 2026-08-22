@@ -229,7 +229,7 @@ function TableComponent<TData>({
             <tbody>
               {table.getRowModel().rows.map((row) => (
                 <tr
-                  key={row.id}
+                  key={`${row.id}-${row.index}`}
                   className={`border-b border-x border-lightGray text-primary h-16 leading-6 hover:bg-lightGray/20 cursor-pointer ${
                     row.getIsSelected() ? 'bg-blue-50' : ''
                   } ${rowClass}`}
