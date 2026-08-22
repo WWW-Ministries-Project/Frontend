@@ -27,11 +27,9 @@ Repos: Backend (`src/modules/orders`), Frontend (`MarketOrders.tsx` admin page).
 
 ## 3. Permissions (Frontend)
 
-Add missing flag to `CANONICAL_PERMISSION_DOMAINS` in `accessControl.ts` (matches `delete_giving`/`delete_pledges` pattern):
-```
-delete_marketplace: { domain: "Marketplace", action: "admin" },
-```
-`manage_marketplace` gates Edit + Place-order UI; `delete_marketplace` gates Delete/Bulk-delete.
+No new permission key needed. `Button` already auto-gates by label regex (`/\bdelete\b/i` → requires admin, `/\bedit\b/i` → requires manage) against the *current route's* domain via `useRouteAccess()` / `toAdminRequirement`/`toManageRequirement`, which derive `{domain, action}` straight from the route's `permissionNeeded` string — no map lookup involved. So "Edit"/"Delete" buttons built with the shared `Button` component are gated for free.
+
+The one gap: `TableComponent`'s built-in bulk-action bar renders plain `<button>`s, bypassing `Button`'s auto-gating. Gate the "Delete selected" entry explicitly with `useAccessControl().canAdmin("Marketplace")` before adding it to the `bulkActions` array.
 
 ## 4. Frontend UI (`MarketOrders.tsx` / `Orders.tsx`)
 
