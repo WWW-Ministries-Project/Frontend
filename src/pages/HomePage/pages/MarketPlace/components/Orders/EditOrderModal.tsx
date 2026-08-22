@@ -124,10 +124,6 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
       initialValues.items.map((item) => [item.id, item])
     );
 
-    // Only send lines that actually changed. Sending the full array on
-    // every save — even a pure billing edit — would make the Backend
-    // recompute total_amount from every line every time, silently
-    // rewriting the order's total when nothing about its items changed.
     const dirtyItems = itemsLocked
       ? []
       : values.items.filter((item) => {
@@ -142,37 +138,57 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
           );
         });
 
-    onSubmit({
-      id: order.id,
-      billing: {
+    const billingChanged =
+      values.first_name !== initialValues.first_name ||
+      values.last_name !== initialValues.last_name ||
+      values.email !== initialValues.email ||
+      values.phone_number !== initialValues.phone_number ||
+      values.country !== initialValues.country ||
+      values.country_code !== initialValues.country_code;
+
+    const payload: IUpdateOrderPayload = { id: order.id };
+
+    if (billingChanged) {
+      payload.billing = {
         first_name: values.first_name,
         last_name: values.last_name,
         email: values.email,
         phone_number: values.phone_number,
         country: values.country,
         country_code: values.country_code,
-      },
-      payment_status: values.payment_status as "pending" | "success" | "failed",
-      delivery_status: values.delivery_status as
+      };
+    }
+
+    if (values.payment_status !== initialValues.payment_status) {
+      payload.payment_status = values.payment_status as
+        | "pending"
+        | "success"
+        | "failed";
+    }
+
+    if (values.delivery_status !== initialValues.delivery_status) {
+      payload.delivery_status = values.delivery_status as
         | "pending"
         | "shipped"
         | "delivered"
-        | "cancelled",
-      items:
-        dirtyItems.length === 0
-          ? undefined
-          : dirtyItems.map((item) => ({
-              id: item.id,
-              // FormikInputDiv's number inputs hand back a string —
-              // coerce explicitly so the payload always matches
-              // IUpdateOrderPayload's declared number types.
-              quantity: Number(item.quantity),
-              color: item.color,
-              size: item.size,
-              price_amount: Number(item.price_amount),
-              removed: item.removed,
-            })),
-    });
+        | "cancelled";
+    }
+
+    if (dirtyItems.length > 0) {
+      payload.items = dirtyItems.map((item) => ({
+        id: item.id,
+        // FormikInputDiv's number inputs hand back a string —
+        // coerce explicitly so the payload always matches
+        // IUpdateOrderPayload's declared number types.
+        quantity: Number(item.quantity),
+        color: item.color,
+        size: item.size,
+        price_amount: Number(item.price_amount),
+        removed: item.removed,
+      }));
+    }
+
+    onSubmit(payload);
   };
 
   return (
