@@ -18,6 +18,7 @@ import { EditOrderModal } from "./EditOrderModal";
 import { CreateOrderForMemberModal } from "./CreateOrderForMemberModal";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
+import { ActionsMenu } from "@/pages/HomePage/Components/reusable/ActionsMenu";
 import { showNotification } from "@/pages/HomePage/utils";
 
 /**
@@ -316,7 +317,10 @@ export function MarketOrders() {
     }
   };
   const tableColumns = useMemo(() => {
-    return getBaseOrderColumns([
+    // Update Delivery + Actions are appended AFTER getBaseOrderColumns
+    // (rather than passed in as otherFields, which getBaseOrderColumns
+    // always puts first) so they land as the last two columns.
+    const baseColumns = getBaseOrderColumns([
       {
         header: "Name",
         cell: ({ row }) => {
@@ -346,9 +350,13 @@ export function MarketOrders() {
           return <span>{formatOrderDateTime(timestamp)}</span>;
         },
       },
+    ]);
+
+    return [
+      ...baseColumns,
       {
         header: "Update Delivery",
-        cell: ({ row }) => {
+        cell: ({ row }: { row: { original: IOrders } }) => {
           const order = row.original;
           const orderId = String(order.order_id ?? order.id ?? "");
           const isThisRowUpdating =
@@ -377,20 +385,36 @@ export function MarketOrders() {
       },
       {
         header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button value="Edit" variant="secondary" onClick={() => handleEditOrder(row.original)} />
-            <Button
-              value="Delete"
-              variant="secondary"
-              onClick={() => handleDeleteOrder(row.original)}
-            />
-          </div>
-        ),
+        cell: ({ row }: { row: { original: IOrders } }) => {
+          const order = row.original;
+          const paid = order.payment_status === "success";
+          // ActionsMenu has no built-in permission gating (unlike Button's
+          // label-regex auto-derivation) — gate explicitly here so Edit/
+          // Delete keep matching the manage/admin tiers the old buttons had.
+          const menuActions = [
+            ...(canManage("Marketplace")
+              ? [{ label: "Edit", onClick: () => handleEditOrder(order) }]
+              : []),
+            ...(canAdmin("Marketplace")
+              ? [
+                  {
+                    label: "Delete",
+                    variant: "danger" as const,
+                    disabled: paid,
+                    disabledReason: "Paid orders can't be deleted from here.",
+                    onClick: () => handleDeleteOrder(order),
+                  },
+                ]
+              : []),
+          ];
+
+          if (menuActions.length === 0) return null;
+          return <ActionsMenu actions={menuActions} />;
+        },
       },
-    ]);
+    ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUpdatingDeliveryStatus, updatingOrderId]);
+  }, [isUpdatingDeliveryStatus, updatingOrderId, canAdmin, canManage]);
 
   return (
     <div className="mb-10">

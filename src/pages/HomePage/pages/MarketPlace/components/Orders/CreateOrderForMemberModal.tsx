@@ -42,14 +42,18 @@ interface IFormValues {
   payment_type: "paystack" | "hubtel";
 }
 
-const initialValues: IFormValues = {
-  user_id: "",
+const emptyMemberValues = {
   first_name: "",
   last_name: "",
   email: "",
   phone_number: "",
   country: "",
   country_code: "",
+};
+
+const initialValues: IFormValues = {
+  user_id: "",
+  ...emptyMemberValues,
   payment_mode: "manual",
   manual_status: "success",
   payment_type: "paystack",
@@ -77,6 +81,18 @@ export function CreateOrderForMemberModal({
   });
   const products = useMemo(() => productsResponse?.data || [], [productsResponse]);
 
+  // Selecting a member only fetches their profile — it does NOT set
+  // user_id/billing on the field itself (see the Field's onChange below).
+  // Those come back through `memberDetails` and flow into `initial`,
+  // which Formik's enableReinitialize then applies to the whole form —
+  // same pattern as StudentForm.tsx's member picker.
+  const { data: memberDetailsResponse, refetch: fetchMemberDetails } = useFetch(
+    api.fetch.fetchAMember,
+    {},
+    true
+  );
+  const memberDetails = memberDetailsResponse?.data || null;
+
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
@@ -95,7 +111,14 @@ export function CreateOrderForMemberModal({
   // treat unmanaged products: no size required, no stock cap.
   const isStockManaged = selectedProduct?.stock_managed === "yes";
   const colorOptions = useMemo(
-    () => (selectedProduct?.product_colours || []).map((c) => ({ label: c.colour, value: c.colour })),
+    () =>
+      (selectedProduct?.product_colours || []).map((c) => ({
+        // Colour is stored as a raw hex value — show the admin-given name
+        // when one exists (see ProductGallery's "Colour name" field);
+        // otherwise the hex code is all we have.
+        label: c.colour_name?.trim() || c.colour,
+        value: c.colour,
+      })),
     [selectedProduct]
   );
   const selectedColourRow = useMemo(
@@ -158,6 +181,25 @@ export function CreateOrderForMemberModal({
     setLines((prev) => prev.filter((_, lineIndex) => lineIndex !== index));
   };
 
+  const initial: IFormValues = useMemo(
+    () =>
+      memberDetails
+        ? {
+            user_id: String(memberDetails.id ?? ""),
+            first_name: memberDetails.first_name || "",
+            last_name: memberDetails.last_name || "",
+            email: memberDetails.email || "",
+            phone_number: memberDetails.primary_number || "",
+            country: memberDetails.country || "",
+            country_code: memberDetails.country_code || "",
+            payment_mode: "manual",
+            manual_status: "success",
+            payment_type: "paystack",
+          }
+        : initialValues,
+    [memberDetails]
+  );
+
   const handleFormSubmit = (values: IFormValues) => {
     if (lines.length === 0 || formLocked) return;
 
@@ -200,7 +242,7 @@ export function CreateOrderForMemberModal({
   return (
     <div className="bg-white rounded-lg md:w-[42rem] text-primary overflow-auto">
       <Formik
-        initialValues={initialValues}
+        initialValues={initial}
         validationSchema={validationSchema}
         onSubmit={handleFormSubmit}
         enableReinitialize
@@ -216,6 +258,10 @@ export function CreateOrderForMemberModal({
                 component={FormikSelect}
                 id="user_id"
                 name="user_id"
+                value={values.user_id}
+                onChange={(_name: string, selectedOption: string | number | null) => {
+                  if (selectedOption) fetchMemberDetails({ user_id: selectedOption });
+                }}
                 options={membersOptions}
                 label="Select a member *"
                 placeholder="Select a member"
@@ -253,22 +299,31 @@ export function CreateOrderForMemberModal({
                       </option>
                     ))}
                   </select>
-                  <select
-                    className="border rounded px-2 py-1 text-sm"
-                    value={selectedColor}
-                    onChange={(e) => {
-                      setSelectedColor(e.target.value);
-                      setSelectedSize("");
-                    }}
-                    disabled={formLocked || !selectedProduct}
-                  >
-                    <option value="">Color</option>
-                    {colorOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-1.5">
+                    {selectedColor && (
+                      <span
+                        className="h-6 w-4 shrink-0 rounded border border-gray-300"
+                        style={{ backgroundColor: selectedColor }}
+                        title={selectedColor}
+                      />
+                    )}
+                    <select
+                      className="border rounded px-2 py-1 text-sm w-full"
+                      value={selectedColor}
+                      onChange={(e) => {
+                        setSelectedColor(e.target.value);
+                        setSelectedSize("");
+                      }}
+                      disabled={formLocked || !selectedProduct}
+                    >
+                      <option value="">Color</option>
+                      {colorOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <select
                     className="border rounded px-2 py-1 text-sm"
                     value={selectedSize}
@@ -303,13 +358,21 @@ export function CreateOrderForMemberModal({
 
                 {lines.length > 0 && (
                   <div className="mt-3 space-y-2">
-                    {lines.map((line, index) => (
+                    {lines.map((line, index) => {
+                      const lineColourName =
+                        line.product.product_colours.find((c) => c.colour === line.color)
+                          ?.colour_name?.trim() || line.color;
+                      return (
                       <div
                         key={`${line.product.id}-${line.color}-${line.size}-${index}`}
                         className="flex items-center justify-between text-sm"
                       >
-                        <span>
-                          {line.product.name} — {line.color}
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className="h-4 w-4 shrink-0 rounded border border-gray-300"
+                            style={{ backgroundColor: line.color }}
+                          />
+                          {line.product.name} — {lineColourName}
                           {line.size ? `/${line.size}` : ""} × {line.quantity}
                         </span>
                         {!formLocked && (
@@ -322,7 +385,8 @@ export function CreateOrderForMemberModal({
                           </button>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

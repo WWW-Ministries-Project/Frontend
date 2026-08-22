@@ -25,6 +25,7 @@ export interface IProductType {
 
 export type ProductColour = {
   colour: string;
+  colour_name?: string;
   image_url: string | File;
   stock?: {
     size: string;
