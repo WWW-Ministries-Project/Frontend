@@ -1314,6 +1314,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ## Task 10: Redesign View Meeting as a full-screen table (Frontend)
 
+**✅ COMPLETE** — commit `2fcd9021` (amended from `e97c7def`). Quality review caught a real defect: the plan's own `Modal` className override didn't actually achieve full-screen (verified via tailwind-merge variant-scoping + flex-shrink mechanics) — fixed by replacing `Modal` with a bespoke fixed-position overlay, plus added Escape-to-close, optional-chained the `phone` read, and dropped the stray row-number column. Re-reviewed and approved. Minor non-blocking note: the bespoke overlay lacks Radix's focus-trap/body-scroll-lock — worth a follow-up if accessibility polish is wanted later.
+
 **Files:**
 - Modify: `src/pages/HomePage/pages/LifeCenter/components/Meetings/MeetingsList.tsx`
 
