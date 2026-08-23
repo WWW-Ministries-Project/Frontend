@@ -249,14 +249,11 @@ export const MeetingForm = ({
                     onChange={(selected) => setFieldValue("firstTimers", selected)}
                     placeholder="Select first timers"
                     emptyMsg="No first timers selected"
+                    footerAction={{
+                      label: "+ Add new first timer",
+                      onClick: () => setShowAddFirstTimer(true),
+                    }}
                   />
-                  <button
-                    type="button"
-                    className="mt-2 text-sm font-medium text-primary underline"
-                    onClick={() => setShowAddFirstTimer(true)}
-                  >
-                    + Add new first timer
-                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 md:col-span-2 md:gap-5">
