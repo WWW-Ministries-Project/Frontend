@@ -1528,6 +1528,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ## Task 11: Fix flag icons (Frontend)
 
+**✅ COMPLETE** — commit `76186d9f`. Spec review: compliant. Code quality: approved (reviewer confirmed both `fi`/`fi-xx` classes needed and present; `countryCode: "Unknown"` fallback in `coutryStore.ts` is unreachable dead code given the current `libphonenumber-js`-backed data source).
+
 **Files:**
 - Modify: `package.json`
 - Modify: `src/main.tsx`
