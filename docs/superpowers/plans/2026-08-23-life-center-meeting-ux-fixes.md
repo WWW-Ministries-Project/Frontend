@@ -683,6 +683,8 @@ gh pr create --base main --title "feat(life-center): add gender to soul_won, exp
 
 ## Task 5: Full-width Attendees/First-timers fields (Frontend)
 
+**✅ COMPLETE** — commit `4b15a81c`. Spec review: compliant. Code quality: approved.
+
 **Files:**
 - Modify: `src/pages/HomePage/pages/LifeCenter/components/Meetings/MeetingForm.tsx:229,242`
 
@@ -747,6 +749,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 ## Task 6: Move "add new first timer" into the dropdown (Frontend)
+
+**✅ COMPLETE** — commit `86d93d56` (amended from `066d44b8` to fix a stale-search-term bug found in quality review). Spec review: compliant. Code quality: approved after one fix.
 
 **Files:**
 - Modify: `src/components/MultiSelect.tsx`
