@@ -43,17 +43,21 @@
 
 **Files:** none (git only)
 
-- [ ] **Step 1: Create a matching feature branch in the Backend repo**
+- [x] **Step 1: Create a matching feature branch in the Backend repo**
+
+Backend's default branch is `main` (not `development` — that convention is Frontend-specific):
 
 ```bash
 cd /Users/akwaah/Documents/GitHub/Backend
 git fetch origin
-git checkout development
-git pull origin development
+git checkout main
+git pull origin main
 git checkout -b feat/life-center-meeting-ux
 ```
 
 Expected: `Switched to a new branch 'feat/life-center-meeting-ux'`, working tree clean (`git status --short` prints nothing).
+
+**Done** — branch created 2026-08-23.
 
 ---
 
@@ -662,7 +666,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ```bash
 git push -u origin feat/life-center-meeting-ux
-gh pr create --base development --title "feat(life-center): add gender to soul_won, expose phone+gender on meeting attendees" --body "Backend half of the Life Center meeting UX fixes. See Frontend PR for the consuming changes.
+gh pr create --base main --title "feat(life-center): add gender to soul_won, expose phone+gender on meeting attendees" --body "Backend half of the Life Center meeting UX fixes. See Frontend PR for the consuming changes.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 ```
