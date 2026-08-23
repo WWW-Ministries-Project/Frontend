@@ -32,6 +32,9 @@ interface IFormItem {
   id: number;
   name: string;
   color: string;
+  // Display-only — resolved from product_colour, not submitted in the
+  // update payload (color itself, the hex, remains the editable field).
+  colour_name?: string | null;
   size: string;
   quantity: number;
   price_amount: number;
@@ -108,6 +111,7 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
         id: item.id,
         name: item.name,
         color: item.color,
+        colour_name: item.product_colour?.colour_name ?? null,
         size: item.size,
         quantity: item.quantity,
         price_amount: item.price_amount,
@@ -250,13 +254,20 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
                           className="grid grid-cols-2 sm:grid-cols-6 items-end gap-2 rounded border p-3"
                         >
                           <p className="col-span-2 text-sm font-medium">{item.name}</p>
-                          <Field
-                            component={FormikInputDiv}
-                            id={`items.${index}.color`}
-                            name={`items.${index}.color`}
-                            label="Color"
-                            disabled={itemsLocked}
-                          />
+                          <div>
+                            <Field
+                              component={FormikInputDiv}
+                              id={`items.${index}.color`}
+                              name={`items.${index}.color`}
+                              label="Color"
+                              disabled={itemsLocked}
+                            />
+                            {item.colour_name && (
+                              <p className="mt-1 text-xs text-gray-500">
+                                {item.colour_name}
+                              </p>
+                            )}
+                          </div>
                           <Field
                             component={FormikInputDiv}
                             id={`items.${index}.size`}

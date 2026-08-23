@@ -161,6 +161,10 @@ export interface IOrders extends ICartItem, IUserDetails {
   // name (see ProductGallery's "Colour name" field) — used by the Excel
   // export and anywhere else a human-readable colour is needed.
   product_colours?: ProductColour[];
+  // Backend's flattenOrders joins order_items.product_colour_id -> the
+  // product_colour table and attaches its colour_name directly, so callers
+  // don't need to resolve it from product_colours themselves.
+  colour_name?: string | null;
 }
 
 // Unflattened order shape returned by GET /orders/get-order-by-id — one
@@ -182,6 +186,15 @@ export interface IOrderItem {
   product_colour_id?: number | null;
   size_id?: number | null;
   market_id?: number | null;
+  // Raw Prisma relation object from order_items.product_colour_id ->
+  // product_colour (findOne now includes it) — nested, not flattened, since
+  // this endpoint returns the order as-is with no per-item mapping step.
+  product_colour?: {
+    id: number;
+    colour: string;
+    colour_name?: string | null;
+    image_url?: string | null;
+  } | null;
 }
 
 export interface IOrderBillingDetails {
