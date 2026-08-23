@@ -924,6 +924,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ## Task 7: Gender field on Add-a-Soul form (Frontend)
 
+**✅ COMPLETE** — commit `8fc8c477`. Spec review: compliant. Code quality: approved.
+
 **Files:**
 - Modify: `src/pages/HomePage/pages/LifeCenter/components/SoulsWonForm.tsx`
 
@@ -1085,6 +1087,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 ## Task 8: Update `MeetingAttendeeType` for phone + gender (Frontend)
+
+**✅ COMPLETE** — commit `ed54a66f`. Spec review: compliant. Code quality: approved.
 
 **Files:**
 - Modify: `src/utils/api/lifeCenter/interfaces.ts`
