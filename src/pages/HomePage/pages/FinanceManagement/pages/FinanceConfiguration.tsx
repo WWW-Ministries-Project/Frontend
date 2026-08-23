@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { HeaderControls } from "@/components/HeaderControls";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import Receipt from "../Components/Receipt";
 import Payment from "../Components/Payment";
 import BankAccount from "../Components/BankAccount";
@@ -29,7 +29,7 @@ const FinanceConfiguration = () => {
       />
 
       <div className="mb-2 w-full max-w-3xl">
-        <TabSelection
+        <SlantTabs
           tabs={[...financeTabs]}
           selectedTab={selectedTab}
           onTabSelect={setSelectedTab}

@@ -6,7 +6,7 @@ import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import BannerSkeletonLoader from "@/pages/HomePage/Components/reusable/BannerSkeletonLoader";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import TableSkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import { api, VisitorType } from "@/utils";
 import { formatDate } from "@/utils/helperFunctions";
@@ -145,7 +145,7 @@ export const VisitorDetails = () => {
             ) : (
               <div className="overflow-x-auto no-scrollbar px-3 sm:px-0">
                 <div className="min-w-max">
-                  <TabSelection
+                  <SlantTabs
                     tabs={["Visit", "Follow-ups"]}
                     selectedTab={selectedTab}
                     onTabSelect={handleTabSelect}

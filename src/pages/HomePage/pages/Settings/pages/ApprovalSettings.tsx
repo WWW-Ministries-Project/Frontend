@@ -3,7 +3,7 @@ import MultiSelect from "@/components/MultiSelect";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import {
   ApprovalConfig,
@@ -904,7 +904,7 @@ const ApprovalSettings = () => {
       </p>
 
       <div className="mb-2 w-full max-w-sm">
-        <TabSelection
+        <SlantTabs
           tabs={[...approvalSubTabs]}
           selectedTab={selectedSubTab}
           onTabSelect={setSelectedSubTab}

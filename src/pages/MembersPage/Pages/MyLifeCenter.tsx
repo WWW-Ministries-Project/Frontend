@@ -3,7 +3,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { InfoRow } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterCard";
 import { SoulsWon } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWon";
 import { MeetingsList } from "@/pages/HomePage/pages/LifeCenter/components/Meetings/MeetingsList";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils/api/apiCalls";
 import { CalendarIcon, MapPinIcon } from "@heroicons/react/24/outline";
@@ -69,7 +69,7 @@ const MyLifeCenter = () => {
       </BannerWrapper>
 
       <div className="app-page-padding">
-        <TabSelection
+        <SlantTabs
           tabs={[...TABS]}
           selectedTab={selectedTab}
           onTabSelect={setSelectedTab}
