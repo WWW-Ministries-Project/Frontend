@@ -226,7 +226,7 @@ export const MeetingForm = ({
                   max={new Date().toISOString().split("T")[0]}
                 />
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-primary font-semibold" htmlFor="attendees">
                     Attendees
                   </label>
@@ -239,7 +239,7 @@ export const MeetingForm = ({
                   />
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-primary font-semibold" htmlFor="firstTimers">
                     First timers
                   </label>
