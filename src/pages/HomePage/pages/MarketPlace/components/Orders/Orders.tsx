@@ -437,6 +437,7 @@ async function exportToExcel(orders: IOrders[]) {
     { header: "Product Name", key: "name" },
     { header: "Type", key: "product_type" },
     { header: "Category", key: "product_category" },
+    { header: "Color", key: "color" },
     { header: "Color Name", key: "color_name" },
     { header: "Size", key: "size" },
     { header: "Quantity", key: "quantity" },
@@ -450,6 +451,7 @@ async function exportToExcel(orders: IOrders[]) {
       name: order.name,
       product_type: order.product_type,
       product_category: order.product_category,
+      color: "",
       color_name: getOrderColourName(order),
       size: order.size,
       quantity: order.quantity,
@@ -461,6 +463,16 @@ async function exportToExcel(orders: IOrders[]) {
       phone_number: order.phone_number,
       country: order.country,
     });
+
+    const colorCell = row.getCell("color");
+    if (typeof order.color === "string" && order.color.startsWith("#")) {
+      const hex = order.color.replace("#", "");
+      colorCell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: `FF${hex.toUpperCase()}` },
+      };
+    }
 
     const paymentCell = row.getCell("payment_status");
     const style = getPaymentStyle(order.payment_status);
