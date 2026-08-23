@@ -13,8 +13,11 @@ interface IProps {
   showFilter: boolean;
   colors: string[];
   sizes: { label: string; value: string }[];
+  productNames: { label: string; value: string }[];
   selectedColor?: string;
+  selectedProductName?: string;
   selectedMarketStatus?: string;
+  selectedPaymentStatus?: PaymentStatus | "";
   selectedOrderDate?: string;
   showOrderDateFilter?: boolean;
 }
@@ -25,8 +28,11 @@ export function OrderFilters({
   showFilter,
   colors,
   sizes,
+  productNames,
   selectedColor = "",
+  selectedProductName = "",
   selectedMarketStatus = "",
+  selectedPaymentStatus = "",
   selectedOrderDate = "",
   showOrderDateFilter = false,
 }: IProps) {
@@ -109,6 +115,16 @@ export function OrderFilters({
       {showFilter && (
         <div className="flex flex-col sm:flex-row items-end gap-5 w-full">
           <Filter
+            name="product_name"
+            className="w-full"
+            options={[{ label: "All", value: "" }, ...productNames]}
+            onChange={handleChange}
+            placeholder="Select product name"
+            label="Product Name"
+            value={selectedProductName}
+          />
+
+          <Filter
             name="product_type"
             className="w-full"
             options={[{ label: "All", value: "" }, ...productTypes]}
@@ -150,6 +166,7 @@ export function OrderFilters({
             onChange={handleChange}
             placeholder="Select payment status"
             label="Payment Status"
+            value={selectedPaymentStatus}
           />
           {showOrderDateFilter && (
             <div className="w-full">
