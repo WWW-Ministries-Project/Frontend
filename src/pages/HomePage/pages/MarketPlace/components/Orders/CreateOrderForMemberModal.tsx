@@ -7,6 +7,7 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelect from "@/components/FormikSelect";
 import { Actions } from "@/components/ui/form/Actions";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
 import { useStore } from "@/store/useStore";
 import { api, relativePath } from "@/utils";
 import type {
@@ -120,6 +121,10 @@ export function CreateOrderForMemberModal({
         value: c.colour,
       })),
     [selectedProduct]
+  );
+  const colorLabels = useMemo(
+    () => Object.fromEntries(colorOptions.map((option) => [option.value, option.label])),
+    [colorOptions]
   );
   const selectedColourRow = useMemo(
     () => selectedProduct?.product_colours.find((c) => c.colour === selectedColor),
@@ -299,31 +304,19 @@ export function CreateOrderForMemberModal({
                       </option>
                     ))}
                   </select>
-                  <div className="flex items-center gap-1.5">
-                    {selectedColor && (
-                      <span
-                        className="h-6 w-4 shrink-0 rounded border border-gray-300"
-                        style={{ backgroundColor: selectedColor }}
-                        title={selectedColor}
-                      />
-                    )}
-                    <select
-                      className="border rounded px-2 py-1 text-sm w-full"
-                      value={selectedColor}
-                      onChange={(e) => {
-                        setSelectedColor(e.target.value);
-                        setSelectedSize("");
-                      }}
-                      disabled={formLocked || !selectedProduct}
-                    >
-                      <option value="">Color</option>
-                      {colorOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <ColorSelectField
+                    id="create_order_color"
+                    name="color"
+                    colors={colorOptions.map((option) => option.value)}
+                    labels={colorLabels}
+                    value={selectedColor}
+                    showAll={false}
+                    disabled={formLocked || !selectedProduct}
+                    onChange={(_name, color) => {
+                      setSelectedColor(color);
+                      setSelectedSize("");
+                    }}
+                  />
                   <select
                     className="border rounded px-2 py-1 text-sm"
                     value={selectedSize}

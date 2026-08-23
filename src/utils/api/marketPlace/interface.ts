@@ -156,6 +156,11 @@ export interface IOrders extends ICartItem, IUserDetails {
   order_created_at?: string;
   ordered_at?: string;
   id: string | number;
+  // Backend's flattenOrders attaches the ordered product's full colour list
+  // per row so the raw `color` hex can be resolved back to its admin-given
+  // name (see ProductGallery's "Colour name" field) — used by the Excel
+  // export and anywhere else a human-readable colour is needed.
+  product_colours?: ProductColour[];
 }
 
 // Unflattened order shape returned by GET /orders/get-order-by-id — one
