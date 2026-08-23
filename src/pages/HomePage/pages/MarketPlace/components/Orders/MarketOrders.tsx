@@ -422,6 +422,7 @@ export function MarketOrders() {
         orders={data?.data || []}
         tableColumns={tableColumns}
         showExport
+        defaultPaymentStatus="success"
         enableOrderDateFilter
         enableBulkDelete={canAdmin("Marketplace")}
         onBulkDelete={handleBulkDeleteOrders}

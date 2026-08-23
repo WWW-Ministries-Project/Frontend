@@ -10,6 +10,10 @@ interface IColorProps {
   value: string;
   showAll?: boolean;
   label?: string;
+  /** Optional hex -> display name lookup, e.g. product colour names. Colors
+   * missing an entry fall back to showing their raw hex code. */
+  labels?: Record<string, string>;
+  disabled?: boolean;
 }
 
 export const ColorSelectField = ({
@@ -20,6 +24,8 @@ export const ColorSelectField = ({
   value,
   showAll = true,
   label,
+  labels,
+  disabled = false,
 }: IColorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -28,6 +34,8 @@ export const ColorSelectField = ({
   useEffect(() => {
     setSelectedColor(value || "");
   }, [value]);
+
+  const getLabel = (color: string) => labels?.[color]?.trim() || color;
 
   const handleSelect = (color: string) => {
     onChange(name, color);
@@ -53,20 +61,24 @@ export const ColorSelectField = ({
 
   return (
     <div>
-      <p className="text-sm">{label}</p>
+      {label && <p className="text-sm">{label}</p>}
       <div
         ref={dropdownRef}
-        className="relative min-w-32 h-10 border rounded-lg"
+        className={`relative min-w-32 h-10 border rounded-lg ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
         {/* Selected Color Display */}
         <div
           id={id}
-          className="h-full w-full flex items-center justify-between cursor-pointer rounded-lg px-2"
+          className={`h-full w-full flex items-center justify-between rounded-lg px-2 ${
+            disabled ? "pointer-events-none" : "cursor-pointer"
+          }`}
           style={{ backgroundColor: selectedColor || "#fff" }}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => !disabled && setIsOpen((prev) => !prev)}
         >
-          <span className="text-sm text-gray-500">
-            {selectedColor || "Select color"}
+          <span className="text-sm text-gray-500 bg-white/70 rounded px-1">
+            {selectedColor ? getLabel(selectedColor) : "Select color"}
           </span>
           <ChevronDownIcon
             className={`transition-transform  text-gray-500 size-4 ${
@@ -105,11 +117,15 @@ export const ColorSelectField = ({
               {colors.map((color) => (
                 <div
                   key={color}
-                  className="w-full h-8 rounded-sm cursor-pointer border border-gray-300"
+                  className="w-full h-8 rounded-sm cursor-pointer border border-gray-300 flex items-center px-2"
                   style={{ backgroundColor: color }}
                   onClick={() => handleSelect(color)}
-                  title={color}
-                />
+                  title={getLabel(color)}
+                >
+                  <span className="text-xs text-gray-700 bg-white/70 px-1 rounded">
+                    {getLabel(color)}
+                  </span>
+                </div>
               ))}
             </div>,
             document.body

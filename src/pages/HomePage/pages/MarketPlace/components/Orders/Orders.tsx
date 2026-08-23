@@ -38,10 +38,27 @@ const getStatusBadge = (status: PaymentStatus) => {
 
 const isMobileScreen = () => typeof globalThis !== "undefined" && window.innerWidth <= 1024;
 const orderSummaryFormatter = new Intl.NumberFormat("en-US");
+const orderAmountFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 const getOrderQuantity = (order: IOrders) => {
   const quantity = Number(order.quantity);
   return Number.isFinite(quantity) ? quantity : 0;
+};
+
+const getOrderAmount = (order: IOrders) => {
+  const price = Number(order.price_amount);
+  return (Number.isFinite(price) ? price : 0) * getOrderQuantity(order);
+};
+
+// `order.color` is a raw hex value — resolve it back to the admin-given
+// colour name via the product's colour list (see IOrders.product_colours),
+// falling back to the hex code when no name was set.
+const getOrderColourName = (order: IOrders) => {
+  const match = order.product_colours?.find((c) => c.colour === order.color);
+  return match?.colour_name?.trim() || order.color || "";
 };
 
 const getOrderDateValue = (order: IOrders) => {
@@ -146,6 +163,7 @@ interface IProps{
   searchCustomer?: boolean
   showExport?: boolean
   defaultMarketStatus?: "active" | "upcoming" | "ended" | "";
+  defaultPaymentStatus?: PaymentStatus | "";
   renderOrderAction?: (order: IOrders) => ReactNode;
   headerAction?: ReactNode;
   enableOrderDateFilter?: boolean;
@@ -159,6 +177,7 @@ export const Orders = ({
   searchCustomer = true,
   showExport,
   defaultMarketStatus = "",
+  defaultPaymentStatus = "",
   renderOrderAction,
   headerAction,
   enableOrderDateFilter = false,
@@ -170,11 +189,12 @@ export const Orders = ({
   const [showFilter, setShowFilter] = useState(false);
   const [filterOrders, setFilterOrders] = useState<IFilters>({
     customer_name: "",
+    product_name: "",
     product_type: "",
     product_category: "",
     color: "",
     size: "",
-    payment_status: "",
+    payment_status: defaultPaymentStatus,
     market_status: defaultMarketStatus,
     order_date: "",
   });
@@ -190,6 +210,10 @@ export const Orders = ({
   useEffect(() => {
     setFilterOrders((prev) => ({ ...prev, market_status: defaultMarketStatus }));
   }, [defaultMarketStatus]);
+
+  useEffect(() => {
+    setFilterOrders((prev) => ({ ...prev, payment_status: defaultPaymentStatus }));
+  }, [defaultPaymentStatus]);
 
   const allOrders = useMemo(() => {
     const normalizedOrders = orders || [];
@@ -207,6 +231,10 @@ export const Orders = ({
           return getOrderDateValue(order) === value;
         }
 
+        if (key === "product_name") {
+          return String(order.name || "").trim().toLowerCase() === value.trim().toLowerCase();
+        }
+
         const normalizedFilterValue = value.trim().toLowerCase();
         const normalizedOrderValue = String(order[key as keyof IOrders] || "")
           .trim()
@@ -217,11 +245,27 @@ export const Orders = ({
     });
   }, [filterOrders, orders]);
 
+  // `orders` is flattened item-level rows — one per order_items row, not one
+  // per order (see Backend's flattenOrders comment). A multi-item order
+  // legitimately produces several rows here, so `allOrders.length` counts
+  // items, not orders: deleting a 3-item order dropped the "Orders (N)"
+  // title by 3 and looked like the count was ignoring the delete entirely.
+  // Count distinct order_id (falling back to id) instead.
+  const distinctOrderCount = useMemo(
+    () => new Set(allOrders.map((order) => order.order_id ?? order.id)).size,
+    [allOrders]
+  );
+
   const totalOrderQuantity = useMemo(
     () => allOrders.reduce((total, order) => total + getOrderQuantity(order), 0),
     [allOrders]
   );
-  
+
+  const totalOrderAmount = useMemo(
+    () => allOrders.reduce((total, order) => total + getOrderAmount(order), 0),
+    [allOrders]
+  );
+
 
   const handleExport = useCallback(() => {
     if (allOrders.length === 0) return;
@@ -242,6 +286,16 @@ export const Orders = ({
         .filter((color): color is string => Boolean(color))
     )
   );
+  const allProductNames = Array.from(
+    new Set(
+      (orders || [])
+        .map((order) => order.name)
+        .filter((name): name is string => Boolean(name))
+    )
+  ).map((name) => ({
+    label: name,
+    value: name,
+  }));
   const allSizes = Array.from(
     new Set(
       (orders || [])
@@ -258,8 +312,10 @@ export const Orders = ({
   return (
     <>
       <HeaderControls
-        title={`Orders (${orderSummaryFormatter.format(allOrders.length)})`}
-        subtitle={`Total quantity: ${orderSummaryFormatter.format(totalOrderQuantity)}`}
+        title={`Orders (${orderSummaryFormatter.format(distinctOrderCount)})`}
+        subtitle={`Total quantity: ${orderSummaryFormatter.format(
+          totalOrderQuantity
+        )} • Total amount: GHC ${orderAmountFormatter.format(totalOrderAmount)}`}
         btnName={showExport && allOrders?.length > 0 ? "Export to Excel" : ""}
         screenWidth={typeof window !== "undefined" ? window.innerWidth : 1024}
         handleClick={handleExport}
@@ -280,8 +336,11 @@ export const Orders = ({
           showFilter={showFilter}
           colors={allColors || []}
           sizes={allSizes}
+          productNames={allProductNames}
           selectedColor={filterOrders.color}
+          selectedProductName={filterOrders.product_name}
           selectedMarketStatus={filterOrders.market_status}
+          selectedPaymentStatus={filterOrders.payment_status}
           selectedOrderDate={filterOrders.order_date}
           showOrderDateFilter={enableOrderDateFilter}
         />
@@ -366,6 +425,18 @@ function getPaymentStyle(status: string) {
   }
 }
 
+// Picks black or white text so the colour name stays legible against its
+// own swatch fill (dark swatches need white text, light ones need black).
+function getContrastFontColor(hex: string): string {
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return "FF000000";
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "FF000000" : "FFFFFFFF";
+}
+
 async function exportToExcel(orders: IOrders[]) {
   const workbook = new Workbook();
   const worksheet = workbook.addWorksheet("Orders");
@@ -391,7 +462,7 @@ async function exportToExcel(orders: IOrders[]) {
       name: order.name,
       product_type: order.product_type,
       product_category: order.product_category,
-      color: "",
+      color: getOrderColourName(order),
       size: order.size,
       quantity: order.quantity,
       price_amount: order.price_amount,
@@ -411,6 +482,7 @@ async function exportToExcel(orders: IOrders[]) {
         pattern: "solid",
         fgColor: { argb: `FF${hex.toUpperCase()}` },
       };
+      colorCell.font = { color: { argb: getContrastFontColor(hex) } };
     }
 
     const paymentCell = row.getCell("payment_status");
@@ -434,6 +506,7 @@ async function exportToExcel(orders: IOrders[]) {
 
 export interface IFilters {
   customer_name: string;
+  product_name: string;
   product_type: string;
   product_category: string;
   color: string;
