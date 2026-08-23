@@ -26,13 +26,15 @@ export const getBaseOrderColumns = (
 
       if (!hasColor) return <div>-</div>;
 
+      const colourName = row.original.colour_name;
+
       return (
         <div className="flex items-center gap-2">
           <div
             style={{ backgroundColor: color }}
             className="w-8 h-5 rounded-lg border"
           ></div>
-          <span className="text-xs text-gray-600">Selected</span>
+          <span className="text-xs text-gray-600">{colourName || "Selected"}</span>
         </div>
       );
     },
