@@ -7,8 +7,9 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import EmptyState from "@/components/EmptyState";
 import { Badge } from "@/components/Badge";
-import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
+import { ActionsMenu } from "@/pages/HomePage/Components/reusable/ActionsMenu";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
@@ -37,7 +38,6 @@ export const MeetingsList = ({
   isLeadershipMember = false,
 }: IProps) => {
   const { page, take, setPage } = usePaginationQueryParams(10);
-  const [selectedId, setSelectedId] = useState<string | number>("");
   const [openModal, setOpenModal] = useState(false);
   const [viewing, setViewing] = useState<MeetingType | null>(null);
   const [editing, setEditing] = useState<MeetingType | null>(null);
@@ -63,14 +63,17 @@ export const MeetingsList = ({
   const meetings = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
-  // Route-mode edit/delete is gated by ActionButton's own useRouteAccess
-  // check (default true/true props, deferring entirely to the real
-  // RouteAccessProvider on that route). Membership-mode passes
-  // requireManageAccess/requireAdminAccess=false and instead gates by
-  // whether onEdit/onDelete are even defined, since useRouteAccess()
-  // defaults to permissive true/true outside a RouteAccessProvider and
-  // MyLifeCenter.tsx has no such provider.
+  // ActionsMenu has no built-in permission gating (unlike the old
+  // ActionButton/Action pair, which read useRouteAccess() internally) — so
+  // it's computed here instead. Route mode (admin/HomePage side) defers to
+  // the real RouteAccessProvider; membership mode (member portal, no such
+  // provider) gates purely on leadership status.
+  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
   const canManageHere = accessMode === "route" || isLeadershipMember;
+  const canEdit =
+    accessMode === "route" ? canManageCurrentRoute : isLeadershipMember;
+  const canDelete =
+    accessMode === "route" ? canAdminCurrentRoute : isLeadershipMember;
 
   const closeFormModal = () => {
     setOpenModal(false);
@@ -166,35 +169,34 @@ export const MeetingsList = ({
         header: "Actions",
         cell: ({ row }) => {
           const meeting = row.original;
-          return (
-            <div
-              onClick={() =>
-                setSelectedId((prev) => (prev === meeting.id ? "" : meeting.id))
-              }
-            >
-              <ActionButton
-                showOptions={meeting.id === selectedId}
-                onView={() => setViewing(meeting)}
-                onEdit={
-                  canManageHere
-                    ? () => {
-                        setEditing(meeting);
-                        setOpenModal(true);
-                      }
-                    : undefined
-                }
-                onDelete={
-                  canManageHere ? () => handleDelete(meeting) : undefined
-                }
-                requireManageAccess={accessMode === "route"}
-                requireAdminAccess={accessMode === "route"}
-              />
-            </div>
-          );
+          const menuActions = [
+            { label: "View", onClick: () => setViewing(meeting) },
+            ...(canEdit
+              ? [
+                  {
+                    label: "Edit",
+                    onClick: () => {
+                      setEditing(meeting);
+                      setOpenModal(true);
+                    },
+                  },
+                ]
+              : []),
+            ...(canDelete
+              ? [
+                  {
+                    label: "Delete",
+                    variant: "danger" as const,
+                    onClick: () => handleDelete(meeting),
+                  },
+                ]
+              : []),
+          ];
+          return <ActionsMenu actions={menuActions} />;
         },
       },
     ],
-    [selectedId, canManageHere, accessMode, handleDelete]
+    [canEdit, canDelete, handleDelete]
   );
 
   return (
