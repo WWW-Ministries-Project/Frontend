@@ -1143,6 +1143,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ## Task 9: Migrate the Actions cell to `ActionsMenu` (Frontend)
 
+**✅ COMPLETE** — commit `18c5fba3`. Spec review: compliant (permission-gating algebra independently traced and verified). Code quality: approved.
+
 **Files:**
 - Modify: `src/pages/HomePage/pages/LifeCenter/components/Meetings/MeetingsList.tsx`
 
