@@ -63,6 +63,8 @@ Expected: `Switched to a new branch 'feat/life-center-meeting-ux'`, working tree
 
 ## Task 1: Add `gender` column to `soul_won` (Backend, schema + migration)
 
+**✅ COMPLETE** — Backend commit `27fc619`. Spec review: compliant. Code quality: approved.
+
 **Files:**
 - Modify: `prisma/schema.prisma`
 - Create: `prisma/migrations/20260823013000_add_soul_won_gender/migration.sql`
@@ -142,6 +144,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 ## Task 2: Thread `gender` through the soul_won service layer (Backend)
+
+**✅ COMPLETE** — Backend commit `27294d3`. Spec review: compliant. Code quality: approved.
 
 **Files:**
 - Modify: `src/modules/lifeCenterMangement/lifeCenterService.ts`
@@ -301,6 +305,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 ## Task 3: Thread `gender` through the soul_won controller (Backend)
+
+**✅ COMPLETE** — Backend commit `199962a`. Spec review: compliant. Code quality: approved.
 
 **Files:**
 - Modify: `src/modules/lifeCenterMangement/lifeCenterController.ts`
@@ -569,6 +575,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 ## Task 4: Expose phone + gender on meeting attendees (Backend)
+
+**✅ COMPLETE** — Backend commit `41274bf`. Spec review: compliant. Code quality: approved (2 minor observations, no changes required). Branch pushed, PR opened: https://github.com/WWW-Ministries-Project/Backend/pull/442
 
 **Files:**
 - Modify: `src/modules/lifeCenterMangement/lifeCenterMeetingService.ts`
