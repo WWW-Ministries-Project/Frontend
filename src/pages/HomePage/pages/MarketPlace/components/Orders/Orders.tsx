@@ -54,11 +54,11 @@ const getOrderAmount = (order: IOrders) => {
 };
 
 // `order.color` is a raw hex value — resolve it back to the admin-given
-// colour name via the product's colour list (see IOrders.product_colours),
-// falling back to the hex code when no name was set.
+// colour name via the product's colour list (see IOrders.product_colours).
+// Blank when no name was set — never falls back to the hex code itself.
 const getOrderColourName = (order: IOrders) => {
   const match = order.product_colours?.find((c) => c.colour === order.color);
-  return match?.colour_name?.trim() || order.color || "";
+  return match?.colour_name?.trim() || "";
 };
 
 const getOrderDateValue = (order: IOrders) => {
@@ -425,18 +425,6 @@ function getPaymentStyle(status: string) {
   }
 }
 
-// Picks black or white text so the colour name stays legible against its
-// own swatch fill (dark swatches need white text, light ones need black).
-function getContrastFontColor(hex: string): string {
-  const clean = hex.replace("#", "");
-  if (clean.length !== 6) return "FF000000";
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.6 ? "FF000000" : "FFFFFFFF";
-}
-
 async function exportToExcel(orders: IOrders[]) {
   const workbook = new Workbook();
   const worksheet = workbook.addWorksheet("Orders");
@@ -449,7 +437,7 @@ async function exportToExcel(orders: IOrders[]) {
     { header: "Product Name", key: "name" },
     { header: "Type", key: "product_type" },
     { header: "Category", key: "product_category" },
-    { header: "Color", key: "color" },
+    { header: "Color Name", key: "color_name" },
     { header: "Size", key: "size" },
     { header: "Quantity", key: "quantity" },
     { header: "Price (GHC)", key: "price_amount" },
@@ -462,7 +450,7 @@ async function exportToExcel(orders: IOrders[]) {
       name: order.name,
       product_type: order.product_type,
       product_category: order.product_category,
-      color: getOrderColourName(order),
+      color_name: getOrderColourName(order),
       size: order.size,
       quantity: order.quantity,
       price_amount: order.price_amount,
@@ -473,17 +461,6 @@ async function exportToExcel(orders: IOrders[]) {
       phone_number: order.phone_number,
       country: order.country,
     });
-
-    const colorCell = row.getCell("color");
-    if (typeof order.color === "string" && order.color.startsWith("#")) {
-      const hex = order.color.replace("#", "");
-      colorCell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: `FF${hex.toUpperCase()}` },
-      };
-      colorCell.font = { color: { argb: getContrastFontColor(hex) } };
-    }
 
     const paymentCell = row.getCell("payment_status");
     const style = getPaymentStyle(order.payment_status);
