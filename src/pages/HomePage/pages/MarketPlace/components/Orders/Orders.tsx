@@ -53,10 +53,13 @@ const getOrderAmount = (order: IOrders) => {
   return (Number.isFinite(price) ? price : 0) * getOrderQuantity(order);
 };
 
-// `order.color` is a raw hex value — resolve it back to the admin-given
-// colour name via the product's colour list (see IOrders.product_colours),
-// falling back to the hex code when no name was set.
+// `order.color` is a raw hex value. Backend's flattenOrders now joins
+// order_items.product_colour_id -> product_colour and attaches its name
+// directly as `colour_name` — prefer that. `product_colours` (the product's
+// full colour list) is kept as a fallback match for older records, then the
+// hex code itself when no name was ever set.
 const getOrderColourName = (order: IOrders) => {
+  if (order.colour_name?.trim()) return order.colour_name.trim();
   const match = order.product_colours?.find((c) => c.colour === order.color);
   return match?.colour_name?.trim() || order.color || "";
 };
