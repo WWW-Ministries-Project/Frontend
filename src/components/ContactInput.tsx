@@ -125,12 +125,10 @@ const ContactInputComponent = ({
                   className="p-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
                 >
                   <span
-                    className="text-base leading-none"
+                    className={`fi fi-${country.countryCode.toLowerCase()}`}
                     role="img"
                     aria-label={country.name}
-                  >
-                    {country.flag}
-                  </span>
+                  />
                   <span className="font-medium">{country.dialCode}</span>
                   <span className="text-gray-600">{country.name}</span>
                 </div>

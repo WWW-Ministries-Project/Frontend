@@ -15,6 +15,7 @@ interface MultiselectProps {
   emptyMsg?: string;
   disabled?: boolean;
   className?: string;
+  footerAction?: { label: string; onClick: () => void };
 }
 
 const Multiselect: React.FC<MultiselectProps> = ({
@@ -25,6 +26,7 @@ const Multiselect: React.FC<MultiselectProps> = ({
   emptyMsg = "No selection",
   disabled,
   className,
+  footerAction,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -190,6 +192,19 @@ const Multiselect: React.FC<MultiselectProps> = ({
               <div className="px-3 py-2 text-sm text-gray-500">No results</div>
             )}
           </div>
+          {footerAction && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                setSearchTerm("");
+                footerAction.onClick();
+              }}
+              className="flex w-full items-center gap-2 border-t px-3 py-2 text-sm font-medium text-primary hover:bg-gray-100"
+            >
+              {footerAction.label}
+            </button>
+          )}
         </div>
       )}
 
