@@ -226,7 +226,7 @@ export const MeetingForm = ({
                   max={new Date().toISOString().split("T")[0]}
                 />
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-primary font-semibold" htmlFor="attendees">
                     Attendees
                   </label>
@@ -239,7 +239,7 @@ export const MeetingForm = ({
                   />
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-primary font-semibold" htmlFor="firstTimers">
                     First timers
                   </label>
@@ -249,14 +249,11 @@ export const MeetingForm = ({
                     onChange={(selected) => setFieldValue("firstTimers", selected)}
                     placeholder="Select first timers"
                     emptyMsg="No first timers selected"
+                    footerAction={{
+                      label: "+ Add new first timer",
+                      onClick: () => setShowAddFirstTimer(true),
+                    }}
                   />
-                  <button
-                    type="button"
-                    className="mt-2 text-sm font-medium text-primary underline"
-                    onClick={() => setShowAddFirstTimer(true)}
-                  >
-                    + Add new first timer
-                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 md:col-span-2 md:gap-5">

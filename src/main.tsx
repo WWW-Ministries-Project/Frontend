@@ -8,6 +8,7 @@ import { NotificationCard } from "./components/NotificationCard";
 import { AuthWrapper } from "./context/AuthWrapper";
 import { ThemeProvider } from "./context/ThemeContext";
 import "./index.css";
+import "flag-icons/css/flag-icons.min.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
 
 if (import.meta.env.PROD) {

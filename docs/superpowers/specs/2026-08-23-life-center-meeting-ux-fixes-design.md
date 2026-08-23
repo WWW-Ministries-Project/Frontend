@@ -9,8 +9,15 @@ Repos: Frontend (this repo) + Backend (sibling repo, `WWW-Ministries-Project/Bac
 ## 2. "Add new first timer" moves into the dropdown
 **Frontend.** Add optional prop to `Multiselect.tsx`: `footerAction?: { label: string; onClick: () => void }`, rendered as a non-checkbox row at the bottom of the option list. `MeetingForm.tsx` passes `{ label: "+ Add new first timer", onClick: () => setShowAddFirstTimer(true) }` instead of today's link below the field. Existing modal/`SoulsWonForm` flow unchanged. Optional prop — `EventsScheduleForm.tsx`'s usage of `Multiselect` is unaffected.
 
-## 3. Actions dropdown positioning (member portal + everywhere else)
-**Frontend.** Root cause: `ActionButton.tsx` renders the trigger icon and `Action` menu as unpositioned siblings, plus an invalid Tailwind class `bottom-50%` (dropped by JIT). Fix: wrap both in `<div className="relative inline-block">`; replace `absolute right-0 bottom-50%` with `absolute right-0 top-full mt-1`. One shared-component fix covers `MeetingsList`, `MarketCard`, `Visit`, `AllEventCard`, `LifeCenterRoles`, `SoulsWon`, `ProductDetailsCard`.
+## 3. Actions dropdown positioning (member portal "My Meetings")
+**Frontend.** Root cause: `MeetingsList.tsx` uses the legacy `ActionButton`/`Action.tsx` pair, which renders the trigger icon and menu as unpositioned siblings plus an invalid Tailwind class `bottom-50%` (dropped by JIT) — no positioned ancestor, so the menu lands wherever the browser's fallback placement puts it.
+
+`development` already has a proper fix for this shape of problem: `ActionsMenu.tsx` (portal-based, positions itself off the trigger's `getBoundingClientRect()`), adopted so far only by `MarketOrders.tsx`. Rather than patch the legacy shared component (which would touch 6 unrelated screens: `MarketCard`, `Visit`, `AllEventCard`, `LifeCenterRoles`, `SoulsWon`, `ProductDetailsCard`), migrate just `MeetingsList.tsx`'s Actions cell to `ActionsMenu`, matching the established `MarketOrders.tsx` pattern: build a `menuActions` array inline, gating Edit/Delete explicitly via `useRouteAccess()` (`canManageCurrentRoute`/`canAdminCurrentRoute`) since `ActionsMenu` has no built-in permission gating (unlike `Action.tsx`). Equivalent gate, derived from the current `requireManageAccess`/`requireAdminAccess`/`canManageHere` logic:
+- `canEdit = accessMode === "route" ? canManageCurrentRoute : isLeadershipMember`
+- `canDelete = accessMode === "route" ? canAdminCurrentRoute : isLeadershipMember`
+- View: always shown (unconditional today too).
+
+Other `ActionButton`/`Action` consumers are untouched — out of scope.
 
 ## 4. Gender field on Add-a-Soul form
 **Backend:**

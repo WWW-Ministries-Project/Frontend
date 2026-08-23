@@ -7,8 +7,9 @@ import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import EmptyState from "@/components/EmptyState";
 import { Badge } from "@/components/Badge";
-import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
+import { ActionsMenu } from "@/pages/HomePage/Components/reusable/ActionsMenu";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
+import { useRouteAccess } from "@/context/RouteAccessContext";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
@@ -19,7 +20,10 @@ import { usePaginationQueryParams } from "@/CustomHooks/usePaginationQueryParams
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { LifeCenterMemberType } from "@/utils";
-import { MeetingType } from "@/utils/api/lifeCenter/interfaces";
+import {
+  MeetingAttendeeType,
+  MeetingType,
+} from "@/utils/api/lifeCenter/interfaces";
 
 import { MeetingForm } from "./MeetingForm";
 
@@ -37,7 +41,6 @@ export const MeetingsList = ({
   isLeadershipMember = false,
 }: IProps) => {
   const { page, take, setPage } = usePaginationQueryParams(10);
-  const [selectedId, setSelectedId] = useState<string | number>("");
   const [openModal, setOpenModal] = useState(false);
   const [viewing, setViewing] = useState<MeetingType | null>(null);
   const [editing, setEditing] = useState<MeetingType | null>(null);
@@ -63,14 +66,17 @@ export const MeetingsList = ({
   const meetings = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
-  // Route-mode edit/delete is gated by ActionButton's own useRouteAccess
-  // check (default true/true props, deferring entirely to the real
-  // RouteAccessProvider on that route). Membership-mode passes
-  // requireManageAccess/requireAdminAccess=false and instead gates by
-  // whether onEdit/onDelete are even defined, since useRouteAccess()
-  // defaults to permissive true/true outside a RouteAccessProvider and
-  // MyLifeCenter.tsx has no such provider.
+  // ActionsMenu has no built-in permission gating (unlike the old
+  // ActionButton/Action pair, which read useRouteAccess() internally) — so
+  // it's computed here instead. Route mode (admin/HomePage side) defers to
+  // the real RouteAccessProvider; membership mode (member portal, no such
+  // provider) gates purely on leadership status.
+  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
   const canManageHere = accessMode === "route" || isLeadershipMember;
+  const canEdit =
+    accessMode === "route" ? canManageCurrentRoute : isLeadershipMember;
+  const canDelete =
+    accessMode === "route" ? canAdminCurrentRoute : isLeadershipMember;
 
   const closeFormModal = () => {
     setOpenModal(false);
@@ -97,6 +103,15 @@ export const MeetingsList = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateResponse]);
+
+  useEffect(() => {
+    if (!viewing) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setViewing(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [viewing]);
 
   const handleSave = (payload: {
     id?: string;
@@ -133,6 +148,38 @@ export const MeetingsList = ({
     [executeDelete, refetch]
   );
 
+  const attendeeColumns = useMemo<ColumnDef<MeetingAttendeeType>[]>(
+    () => [
+      { header: "Name", cell: ({ row }) => row.original.name },
+      {
+        header: "Phone",
+        cell: ({ row }) => {
+          const country_code = row.original.phone?.country_code;
+          const number = row.original.phone?.number;
+          return country_code && number
+            ? `${country_code} ${number}`
+            : "—";
+        },
+      },
+      {
+        header: "Gender",
+        cell: ({ row }) => row.original.gender ?? "—",
+      },
+      {
+        header: "Type",
+        cell: ({ row }) =>
+          row.original.isFirstTimer ? (
+            <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+              First Timer
+            </Badge>
+          ) : (
+            "Member"
+          ),
+      },
+    ],
+    []
+  );
+
   const columns = useMemo<ColumnDef<MeetingType>[]>(
     () => [
       {
@@ -166,35 +213,34 @@ export const MeetingsList = ({
         header: "Actions",
         cell: ({ row }) => {
           const meeting = row.original;
-          return (
-            <div
-              onClick={() =>
-                setSelectedId((prev) => (prev === meeting.id ? "" : meeting.id))
-              }
-            >
-              <ActionButton
-                showOptions={meeting.id === selectedId}
-                onView={() => setViewing(meeting)}
-                onEdit={
-                  canManageHere
-                    ? () => {
-                        setEditing(meeting);
-                        setOpenModal(true);
-                      }
-                    : undefined
-                }
-                onDelete={
-                  canManageHere ? () => handleDelete(meeting) : undefined
-                }
-                requireManageAccess={accessMode === "route"}
-                requireAdminAccess={accessMode === "route"}
-              />
-            </div>
-          );
+          const menuActions = [
+            { label: "View", onClick: () => setViewing(meeting) },
+            ...(canEdit
+              ? [
+                  {
+                    label: "Edit",
+                    onClick: () => {
+                      setEditing(meeting);
+                      setOpenModal(true);
+                    },
+                  },
+                ]
+              : []),
+            ...(canDelete
+              ? [
+                  {
+                    label: "Delete",
+                    variant: "danger" as const,
+                    onClick: () => handleDelete(meeting),
+                  },
+                ]
+              : []),
+          ];
+          return <ActionsMenu actions={menuActions} />;
         },
       },
     ],
-    [selectedId, canManageHere, accessMode, handleDelete]
+    [canEdit, canDelete, handleDelete]
   );
 
   return (
@@ -241,64 +287,62 @@ export const MeetingsList = ({
         />
       </Modal>
 
-      <Modal open={Boolean(viewing)} onClose={() => setViewing(null)}>
-        {viewing && (
-          <div className="p-6 max-w-lg mx-auto bg-white rounded-lg space-y-3">
-            <h3 className="text-lg font-semibold">
-              Meeting — {format(new Date(viewing.date), "dd MMM yyyy")}
-            </h3>
-            <p className="text-sm text-gray-600">
-              Offering: {viewing.currency} {viewing.offeringAmount}
-            </p>
-            <div>
-              <p className="font-medium text-sm">Attendees</p>
-              {viewing.attendees.filter((a) => !a.isFirstTimer).length > 0 ? (
-                <ul className="text-sm text-gray-700 list-disc pl-5">
-                  {viewing.attendees
-                    .filter((a) => !a.isFirstTimer)
-                    .map((a) => (
-                      <li key={a.soulWonId}>{a.name}</li>
-                    ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-400">None recorded</p>
-              )}
-            </div>
-            {viewing.attendees.some((a) => a.isFirstTimer) && (
+      {viewing && (
+        <div
+          className="fixed inset-0 z-[130] flex h-[100dvh] w-screen flex-col overflow-hidden bg-white"
+          role="dialog"
+          aria-modal="true"
+        >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-primary px-6 py-4 text-white">
               <div>
-                <p className="font-medium text-sm">First timers</p>
-                <ul className="text-sm text-gray-700 list-disc pl-5">
-                  {viewing.attendees
-                    .filter((a) => a.isFirstTimer)
-                    .map((a) => (
-                      <li key={a.soulWonId}>{a.name}</li>
-                    ))}
-                </ul>
+                <h3 className="text-lg font-semibold">
+                  Meeting — {format(new Date(viewing.date), "dd MMM yyyy")}
+                </h3>
+                <p className="text-sm text-white/80">
+                  Offering: {viewing.currency} {viewing.offeringAmount}
+                </p>
               </div>
-            )}
-            {viewing.note && (
-              <div className="rounded-md border border-gray-200 p-3">
-                <p className="font-medium text-sm mb-1">Notes</p>
-                <div
-                  className="text-sm text-gray-700 prose"
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(viewing.note),
-                  }}
-                />
-              </div>
-            )}
-            <div className="flex justify-end">
               <button
                 type="button"
-                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-md"
+                className="rounded-md px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
                 onClick={() => setViewing(null)}
               >
                 Close
               </button>
             </div>
-          </div>
-        )}
-      </Modal>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+              {viewing.note && (
+                <div className="rounded-md border border-gray-200 p-3">
+                  <p className="font-medium text-sm mb-1">Notes</p>
+                  <div
+                    className="text-sm text-gray-700 prose"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(viewing.note),
+                    }}
+                  />
+                </div>
+              )}
+
+              {viewing.attendees.length > 0 ? (
+                <TableComponent
+                  columns={attendeeColumns}
+                  data={viewing.attendees}
+                  total={viewing.attendees.length}
+                  displayedCount={viewing.attendees.length}
+                  getRowId={(a) => String(a.soulWonId)}
+                  showNumberColumn={false}
+                />
+              ) : (
+                <EmptyState
+                  scope="section"
+                  msg="No attendees recorded"
+                  description="No one was marked present or first-timer for this meeting."
+                />
+              )}
+            </div>
+        </div>
+      )}
     </div>
   );
 };

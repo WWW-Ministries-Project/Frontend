@@ -86,6 +86,11 @@ export type MeetingAttendeeType = {
   soulWonId: string | number;
   name: string;
   isFirstTimer: boolean;
+  phone: {
+    number: string | null;
+    country_code: string | null;
+  };
+  gender: string | null;
 };
 
 export type MeetingType = {
