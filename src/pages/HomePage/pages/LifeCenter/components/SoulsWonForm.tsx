@@ -9,6 +9,7 @@ import { Field, Form, Formik } from "formik";
 import { useMemo } from "react";
 import { object, string } from "yup";
 import { LifeCenterMemberType } from "@/utils";
+import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
 interface IProps {
   onSubmit: (values: ISoulsWonForm) => void;
@@ -67,6 +68,14 @@ export const SoulsWonForm = ({
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <FormLayout>
               <NameInfo />
+              <Field
+                name="gender"
+                component={FormikSelectField}
+                options={genderOptions}
+                label="Gender *"
+                id="gender"
+                placeholder="Select gender"
+              />
               <ContactInput />
               <Field
                 name="contact_email"
@@ -133,6 +142,7 @@ export interface ISoulsWonForm extends INameInfo {
   contact_email: string;
   country: string;
   phone: IContactInput;
+  gender: string;
   city: string;
   date_won: string;
   wonById: string;
@@ -151,6 +161,7 @@ const initialValues: ISoulsWonForm = {
   phone: ContactInput.initialValues,
   contact_email: "",
   country: "",
+  gender: "",
   city: "",
   date_won: "",
   wonById: "",
@@ -160,10 +171,16 @@ const initialValues: ISoulsWonForm = {
   lifeCenterId: "",
 };
 
+const genderOptions: ISelectOption[] = [
+  { label: "Male", value: "Male" },
+  { label: "Female", value: "Female" },
+];
+
 const validationSchema = object().shape({
   ...NameInfo.validationSchema,
   contact_email: string().email(),
   country: string().required("required"),
+  gender: string().required("Gender is required"),
   city: string().required("required"),
   date_won: string().required("required"),
   wonById: string().required("required"),
