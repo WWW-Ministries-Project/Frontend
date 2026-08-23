@@ -1,6 +1,6 @@
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import { ensureAnalyticsChartsRegistered } from "@/pages/HomePage/pages/Analytics/chartSetup";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -1187,7 +1187,7 @@ const EventReportDetails = () => {
           <span className="text-xs text-primaryGray">{activeReportViewTab}</span>
         </div>
 
-        <TabSelection
+        <SlantTabs
           tabs={[...reportViewTabs]}
           selectedTab={activeReportViewTab}
           onTabSelect={setActiveReportViewTab}
@@ -1211,7 +1211,7 @@ const EventReportDetails = () => {
           </span>
         </div>
 
-        <TabSelection
+        <SlantTabs
           tabs={[...reportSectionTabs]}
           selectedTab={activeReportSectionTab}
           onTabSelect={setActiveReportSectionTab}

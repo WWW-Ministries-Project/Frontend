@@ -9,7 +9,7 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import {
   decodeQuery,
   encodeQuery,
@@ -106,7 +106,7 @@ export function MarketDetails() {
       <MarketHeader market={market?.data} />
       <div className="app-page-padding">
         <div className="w-fit mb-3">
-          <TabSelection
+          <SlantTabs
             tabs={[`Products`, "Orders"]}
             selectedTab={tab}
             onTabSelect={(tab) => setTab(tab)}

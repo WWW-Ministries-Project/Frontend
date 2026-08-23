@@ -1,7 +1,7 @@
 import { matchRoutes, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import { routes } from "@/routes/appRoutes";
 import { api } from "@/utils";
 import { MarketLayout } from "../layouts/MarketLayout";
@@ -44,7 +44,7 @@ const Market = () => {
   return (
     <MarketLayout title={routeName}>
       <div className="bg-white p-4 sm:p-6 space-y-4 sm:space-y-5 container mx-auto">
-        <TabSelection
+        <SlantTabs
           tabs={["Products", "Orders"]}
           onTabSelect={handleSelectedTab}
           selectedTab={routeName || "Products"}
