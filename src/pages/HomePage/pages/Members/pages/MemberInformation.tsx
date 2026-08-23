@@ -1,5 +1,5 @@
 import { ReactNode, isValidElement, useState } from "react";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import { formatDate, formatPhoneNumber } from "@/utils";
 import {
   UserIcon,
@@ -81,7 +81,8 @@ export function MemberInformation() {
 
   return (
     <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
-      <TabSelection
+      <SlantTabs
+        className="mt-4"
         tabs={[
           "Basic Information",
           "Contact Information",
@@ -92,6 +93,14 @@ export function MemberInformation() {
         ]}
         selectedTab={selectedTab}
         onTabSelect={handleTabSelect}
+        tabLabels={{
+          "Basic Information": "Basic",
+          "Contact Information": "Contact",
+          "Church Information": "Church",
+          "Employment/Schooling Information": "Employment",
+          "Family Information": "Family",
+          "Enrolled Programs": "Programs",
+        }}
         tabIcons={{
           "Basic Information": <UserIcon className="h-4 w-4" />,
           "Contact Information": <PhoneIcon className="h-4 w-4" />,

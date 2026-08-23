@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import type { IProductType } from "@/utils/api/marketPlace/interface";
 import { usePost } from "@/CustomHooks/usePost";
@@ -183,7 +183,7 @@ export const ConfigurationsDrawer = ({
         </header>
 
         <div className="p-4 overflow-y-auto">
-          <TabSelection
+          <SlantTabs
             selectedTab={activeTab.label}
             tabs={TABS.map((t) => t.label)}
             onTabSelect={(label) => {

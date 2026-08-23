@@ -11,7 +11,7 @@ import { CohortForm, ICohortForm } from "../Components/CohortForm";
 import { useViewPage } from "../customHooks/useViewPage";
 import AllTopics from "../Components/AllTopics";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
 
 const TAB_STORAGE_KEY = "view_program_selected_tab";
 
@@ -93,7 +93,7 @@ export const ViewProgram = () => {
     <PageOutline>
       <div className="flex flex-col gap-6 py-6">
         <div className="w-fit">
-          <TabSelection tabs={["Cohorts", "Topics"]} selectedTab={selectedTab} onTabSelect={handleTabSelect} />
+          <SlantTabs tabs={["Cohorts", "Topics"]} selectedTab={selectedTab} onTabSelect={handleTabSelect} />
         </div>
 
         {selectedTab === "Cohorts" && (
