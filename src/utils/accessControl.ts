@@ -34,6 +34,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "AI",
   "Announcements",
   "Sermons",
+  "Promotions",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -98,6 +99,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   "Life Center": ["Life Center", "Life_Center", "Life center", "LifeCenter"],
   Announcements: ["Announcements", "Announcement"],
   Sermons: ["Sermons", "Sermon"],
+  Promotions: ["Promotions", "Promotion"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -108,6 +110,10 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // Giving shipped after access levels were saved, so anyone who already
   // administers Financials keeps working until Giving is set explicitly.
   Giving: ["Financials"],
+  // Promotions were split out of Announcements, so whoever already administers
+  // announcements keeps managing mobile banners until Promotions is set
+  // explicitly on the access level.
+  Promotions: ["Announcements"],
 };
 
 const REQUIRED_KEYS_ON_MUTATION = new Set<PermissionDomain>([
@@ -238,6 +244,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     required: false,
   },
   {
+    key: "Promotions",
+    label: "Promotions",
+    description: "Promotional banners on the mobile app home screen",
+    group: "Engagement",
+    required: false,
+  },
+  {
     key: "Life Center",
     label: "Life Center",
     description: "Life center administration and soul winning data",
@@ -352,6 +365,8 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_announcements: { domain: "Announcements", action: "manage" },
   view_sermons: { domain: "Sermons", action: "view" },
   manage_sermons: { domain: "Sermons", action: "manage" },
+  view_promotions: { domain: "Promotions", action: "view" },
+  manage_promotions: { domain: "Promotions", action: "manage" },
 };
 
 const VIEW_ACCESS = new Set<PermissionValue>([

@@ -44,11 +44,6 @@ const AnnouncementCard = ({ item, onEdit, onDelete }: AnnouncementCardProps) => 
           >
             {isPublished ? "Published" : "Draft"}
           </Badge>
-          {item.is_promoted && (
-            <Badge className="border-amber-200 bg-amber-50 text-xs text-amber-700">
-              Promoted
-            </Badge>
-          )}
         </div>
         <p className="text-sm text-gray-500">{audienceLabel}</p>
       </div>

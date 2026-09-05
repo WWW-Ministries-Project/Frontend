@@ -5,6 +5,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
+import type { Promotion } from "./promotions/interfaces";
 import type { SermonSeries } from "./sermons/interfaces";
 import type {
   MyPledgeRow,
@@ -761,6 +762,19 @@ export class ApiCalls {
     id: number
   ): Promise<ApiResponse<Announcement>> => {
     return this.fetchFromApi(`announcements/${id}`);
+  };
+
+  // Promotions (mobile Home banners)
+  fetchPromotions = (
+    query?: QueryType
+  ): Promise<ApiResponse<Promotion[]>> => {
+    return this.fetchFromApi("promotions", query);
+  };
+
+  fetchPromotion = (
+    id: number
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.fetchFromApi(`promotions/${id}`);
   };
 
   // Sermons
