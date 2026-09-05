@@ -116,7 +116,10 @@ already read.
   `expo-sharing.shareAsync`. The OS share sheet is how a file reaches the user on iOS and
   Android; there is no download folder to write into.
 - `features/lifecenter/components/MeetingExportSheet.tsx` — same presets and formats,
-  native modal, `DateTimePicker` for the custom range.
+  native modal. The custom range uses `Field` inputs validated with `isIsoDate`, matching
+  `MeetingRecordForm`, rather than a native date picker: no datetimepicker dependency
+  exists in this repo and adding a native module would require every user to install a
+  new binary.
 - `LifeCenterScreen.tsx` — Download action in the *My Meetings* tab header.
 
 Additive only. No existing endpoint shape changes, so installed binaries are unaffected.
@@ -128,6 +131,9 @@ Additive only. No existing endpoint shape changes, so installed binaries are una
   rather than an error. Downloading an empty period is a legitimate answer.
 - Puppeteer launch failure → `InternalServerError` carrying the real cause, as the event
   report path already does.
+- On the web the error body arrives as a Blob (the request sets `responseType: "blob"`),
+  so `downloadFile` re-parses it into JSON before delegating to `ApiErrorHandler` —
+  otherwise session-expiry and permission handling would see nothing to act on.
 - Clients show the backend's message through their normal notification path and leave the
   modal open so the range can be adjusted.
 
@@ -139,8 +145,21 @@ No test runner exists in any of the three repos.
 - Frontend — `npm run lint` (fails on any warning) and `npx tsc --noEmit`
 - Mobile — `npx tsc --noEmit`
 
-Plus a manual pass per client: export each of the three formats over a preset range and a
-custom range, and confirm the file opens.
+Verified during implementation:
+
+- All three formats generated against a stubbed Prisma client and checked by file
+  signature (`PK` for xlsx/docx, `%PDF` for pdf); the spreadsheet was read back to confirm
+  typed date and amount cells, stripped notes, and per-currency totals. An empty range
+  rendered a document rather than throwing.
+- The PDF's HTML was screenshotted, which surfaced two defects fixed before commit:
+  exceljs's CommonJS exports needed unwrapping from `.default`, and Chromium's dark-mode
+  UA stylesheet made the tables unreadable until the stylesheet pinned `color-scheme` and
+  painted explicit backgrounds.
+- The web modal was rendered in a throwaway Vite page and screenshotted in both light and
+  dark themes, including the inverted-range guard.
+
+Still to do manually: export each format from a running admin portal, member portal, and
+mobile build against real data, and confirm the files open in Word/Excel.
 
 ## Out of scope
 
