@@ -111,10 +111,11 @@ already read.
 
 ### Mobile
 
-- `features/lifecenter/api.ts` — `exportMeetings(...)` via the axios client with
-  `responseType: "arraybuffer"`, written with `expo-file-system`, then passed to
-  `expo-sharing.shareAsync`. The OS share sheet is how a file reaches the user on iOS and
-  Android; there is no download folder to write into.
+- `features/lifecenter/api.ts` — `exportMeetings(...)` streams the document straight to a
+  cache file with `expo-file-system`'s `downloadAsync` (the body is binary, so it bypasses
+  the axios JSON client) and returns the local URI for `expo-sharing.shareAsync`, matching
+  how `schoolApi.downloadCertificatePdf` already works. The OS share sheet is how a file
+  reaches the user on iOS and Android; there is no download folder to write into.
 - `features/lifecenter/components/MeetingExportSheet.tsx` — same presets and formats,
   native modal. The custom range uses `Field` inputs validated with `isIsoDate`, matching
   `MeetingRecordForm`, rather than a native date picker: no datetimepicker dependency
