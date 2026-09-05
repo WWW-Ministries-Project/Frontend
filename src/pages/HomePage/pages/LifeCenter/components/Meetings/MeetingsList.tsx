@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import DOMPurify from "dompurify";
 import { ColumnDef } from "@tanstack/react-table";
 
+import { Button } from "@/components";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
 import EmptyState from "@/components/EmptyState";
@@ -25,6 +26,7 @@ import {
   MeetingType,
 } from "@/utils/api/lifeCenter/interfaces";
 
+import { MeetingExportModal } from "./MeetingExportModal";
 import { MeetingForm } from "./MeetingForm";
 
 interface IProps {
@@ -42,6 +44,7 @@ export const MeetingsList = ({
 }: IProps) => {
   const { page, take, setPage } = usePaginationQueryParams(10);
   const [openModal, setOpenModal] = useState(false);
+  const [openExportModal, setOpenExportModal] = useState(false);
   const [viewing, setViewing] = useState<MeetingType | null>(null);
   const [editing, setEditing] = useState<MeetingType | null>(null);
 
@@ -245,16 +248,28 @@ export const MeetingsList = ({
 
   return (
     <div className="space-y-6">
-      <HeaderControls
-        title={`My Meetings (${total})`}
-        subtitle=""
-        screenWidth={window.innerWidth}
-        btnName={canManageHere ? "Create Meeting" : ""}
-        handleClick={() => {
-          setEditing(null);
-          setOpenModal(true);
-        }}
-      />
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0 flex-1">
+          <HeaderControls
+            title={`My Meetings (${total})`}
+            subtitle=""
+            screenWidth={window.innerWidth}
+            btnName={canManageHere ? "Create Meeting" : ""}
+            handleClick={() => {
+              setEditing(null);
+              setOpenModal(true);
+            }}
+          />
+        </div>
+        {/* Exporting only ever returns what this list already shows, so it is
+            available to anyone who can see the list. */}
+        <Button
+          value="Download"
+          variant="secondary"
+          requireManageAccess={false}
+          onClick={() => setOpenExportModal(true)}
+        />
+      </div>
 
       <hr />
 
@@ -273,6 +288,18 @@ export const MeetingsList = ({
           description="Meetings you create for this life center will appear here."
         />
       )}
+
+      <Modal
+        open={openExportModal}
+        persist={false}
+        className="max-w-xl"
+        onClose={() => setOpenExportModal(false)}
+      >
+        <MeetingExportModal
+          lifeCenterId={lifeCenterId}
+          onClose={() => setOpenExportModal(false)}
+        />
+      </Modal>
 
       <Modal open={openModal} onClose={closeFormModal}>
         <MeetingForm
