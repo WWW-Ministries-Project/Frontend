@@ -11,7 +11,6 @@ import {
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/context/AuthWrapper";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { AiStructuredMessage } from "@/pages/HomePage/pages/AI/components/AiStructuredMessage";
 import { api, relativePath } from "@/utils";
@@ -173,7 +172,6 @@ const buildIntroMessages = (config: AiChatbotConfig | null): ChatEntry[] => {
 const DEFAULT_PANEL_OFFSET: PanelOffset = { x: 0, y: 0 };
 
 export const AiChatbotWidget = () => {
-  const { user } = useAuth();
   const { canManage, canView } = useAccessControl();
   const navigate = useNavigate();
   const location = useLocation();

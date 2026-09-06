@@ -16,13 +16,6 @@ interface ProgramsCardBaseProps {
   children?: React.ReactNode;
 }
 
-const StatTile = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-lg border border-lightGray bg-lightGray/20 px-3 py-2">
-    <p className="text-[11px] uppercase tracking-wide text-primaryGray">{label}</p>
-    <p className="text-sm font-semibold text-primary">{value}</p>
-  </div>
-);
-
 export const ProgramBaseCard = ({
   program,
   cohorts = [],

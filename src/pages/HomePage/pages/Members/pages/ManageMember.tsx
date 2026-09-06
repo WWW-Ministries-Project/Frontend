@@ -128,7 +128,6 @@ export function ManageMember() {
         state: { task: data ? "add" : "update" },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);
 
   const handleCancel = () => {

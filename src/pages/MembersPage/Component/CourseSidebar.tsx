@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
-import { BookOpenIcon, ChevronRightIcon, DocumentCheckIcon, DocumentTextIcon, PlayIcon, UsersIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, ChevronRightIcon, DocumentCheckIcon, DocumentTextIcon, PlayIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon, } from "@heroicons/react/24/solid";
 
 export interface NavItem {

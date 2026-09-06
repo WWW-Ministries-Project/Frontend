@@ -1,13 +1,10 @@
 import React from 'react';
-import { 
-  CalendarDaysIcon, 
-  ClockIcon, 
-  MapPinIcon, 
-  UserIcon, 
-  DocumentTextIcon, 
-  PencilSquareIcon, 
-  TrashIcon, 
-  XMarkIcon 
+import {
+  CalendarDaysIcon,
+  ClockIcon,
+  MapPinIcon,
+  UserIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
 // Type interfaces
@@ -36,14 +33,14 @@ interface EventDetailsModalProps {
   showOptions?: boolean;
 }
 
-const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ 
-  event, 
-  onClose, 
-  modalRef, 
-  onDelete, 
-  onEdit, 
-  onShowOptions, 
-  showOptions 
+const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
+  event,
+  onClose,
+  modalRef,
+  onDelete,
+  onEdit,
+  onShowOptions,
+  showOptions: _showOptions
 }) => {
   if (!event) return null;
 
@@ -84,21 +81,21 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
     }
   };
 
-  const handleEdit = (): void => {
+  const _handleEdit = (): void => {
     if (onEdit) {
       onEdit(event);
     }
     onClose();
   };
 
-  const handleDelete = (): void => {
+  const _handleDelete = (): void => {
     if (onDelete && window.confirm('Are you sure you want to delete this event?')) {
       onDelete(event.id);
     }
     onClose();
   };
 
-  const handleShowOptions = (): void => {
+  const _handleShowOptions = (): void => {
     if (onShowOptions) {
       onShowOptions(event.id);
     }

@@ -1,8 +1,4 @@
-import { useNavigate } from "react-router-dom";
-
 const Navbar = () => {
-    const navigate = useNavigate();
-    
     // For external URLs, use window.location.href or an anchor tag
     const handleLogoClick = () => {
         window.location.href = "https://worldwidewordministries.org/";

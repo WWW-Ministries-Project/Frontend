@@ -28,6 +28,9 @@ export function validate(name,inputValue) {
 // export const baseUrl='http://51.20.9.33:8000';
 // export const baseUrl='https://greatsohis.online';
 // export const baseUrl="https://jack.greatsohis.online";
+// `process` is not a browser global, but Vite's `define: { "process.env": env }`
+// (see vite.config.js) replaces this reference at build time.
+/* global process */
 export const baseUrl=process.env.REACT_APP_API_URL;
 
 export const logOut = () => {

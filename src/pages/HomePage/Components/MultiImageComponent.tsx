@@ -102,7 +102,6 @@ const MultiImageComponent = ({
             ]);
           };
           reader.onerror = () => {
-            console.error("File reading has failed.");
             showNotification(
               "There was an error reading the file. Please try again.",
               "error"

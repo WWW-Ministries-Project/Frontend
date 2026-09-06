@@ -102,7 +102,13 @@ export const ManageAsset = () => {
       if (id) {
         updateData(dataToSend);
       } else postData(dataToSend);
-    } catch (error) {
+    } catch (submitError) {
+      showNotification(
+        submitError instanceof Error
+          ? submitError.message
+          : "Something went wrong",
+        "error"
+      );
     }
   };
 

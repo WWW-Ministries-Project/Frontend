@@ -27,6 +27,7 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
+import type { EventOnlineLink } from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
@@ -88,6 +89,18 @@ export class ApiUpdateCalls {
     payload: Record<string, unknown>
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("event/update-series-from", payload);
+  };
+
+  /**
+   * Set an event's Zoom / YouTube links. Separate from `updateEvent` because
+   * that endpoint notifies and SMSes every registrant on any change.
+   * An entry with an empty url deletes that platform's link.
+   */
+  updateEventOnlineLinks = (
+    payload: { links: { platform: string; url: string }[] },
+    query?: QueryType
+  ): Promise<ApiResponse<{ event_id: number; online_links: EventOnlineLink[] }>> => {
+    return this.apiExecution.updateData("event/online-links", payload, query);
   };
 
   updateUniqueEvent = (

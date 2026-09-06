@@ -67,7 +67,7 @@ export function LifeCenter() {
       } else {
         await postData(data);
       }
-    } catch (error) {
+    } catch {
       showNotification("Something went wrong", "error");
     }
   };

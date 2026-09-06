@@ -327,7 +327,6 @@ const EventsManagement = () => {
           showNotification("Event could not be deleted", "error");
         });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
   );
 

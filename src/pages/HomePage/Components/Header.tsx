@@ -92,7 +92,7 @@ interface IProps {
 export const Header = ({ handleShowNav }: IProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const { canView } = useAccessControl();
   const branches = useBranchStore((state) => state.branches);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);

@@ -1,5 +1,4 @@
 // MembersIcon.jsx
-import React from 'react';
 
 const UsersIcon = (props) => (
     <svg width="24" height="25" viewBox="0 0 20 21" fill="currentColor" {...props} xmlns="http://www.w3.org/2000/svg">

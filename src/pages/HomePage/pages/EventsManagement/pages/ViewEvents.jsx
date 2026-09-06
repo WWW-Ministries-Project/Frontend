@@ -1,10 +1,12 @@
 import SkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { showNotification } from "@/pages/HomePage/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers";
 import SeriesScopeModal from "../Components/SeriesScopeModal";
+import OnlineLinkModal from "../Components/OnlineLinkModal";
 import defaultImage1 from "/src/assets/image.svg";
 import axios from "/src/axiosInstance";
 import { Button } from "/src/components";
@@ -53,6 +55,10 @@ const ViewEvents = () => {
   const params = new URLSearchParams(query);
   const navigate = useNavigate();
   const id = params.get("event_id");
+  const [onlineLinkModal, setOnlineLinkModal] = useState(false);
+  const { canManage } = useAccessControl();
+  const canManageEvents = canManage("Events");
+  const onlineLinks = eventdetails?.online_links || [];
 
   const handleEditClick = () => {
     if (eventdetails?.recurrence_series_id) {
@@ -73,11 +79,11 @@ const ViewEvents = () => {
     navigate(`/home/manage-event?${urlParams.toString()}`);
   };
 
-  useEffect(() => {
-    if (!id) return;
+  const fetchEvent = useCallback(() => {
+    if (!id) return undefined;
 
     setQueryLoading(true);
-    axios
+    return axios
       .get(`/event/get-event?id=${id}`)
       .then((res) => {
         setEventdetails(res.data.data);
@@ -86,6 +92,10 @@ const ViewEvents = () => {
         setQueryLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    fetchEvent();
+  }, [fetchEvent]);
 
   const tabs = useMemo(() => {
     if (eventdetails?.requires_registration) {
@@ -112,6 +122,15 @@ const ViewEvents = () => {
     }
   };
 
+  const handleCopyOnlineLink = async (link) => {
+    try {
+      await navigator.clipboard.writeText(link.url);
+      showNotification(`${link.label} link copied`, "success");
+    } catch {
+      showNotification("Unable to copy the link", "error");
+    }
+  };
+
   const registrationCount = eventdetails?.registration_count || 0;
 
   return (
@@ -124,6 +143,13 @@ const ViewEvents = () => {
           onCancel={() => setSeriesModal(false)}
         />
       )}
+      <OnlineLinkModal
+        open={onlineLinkModal}
+        eventId={id}
+        links={onlineLinks}
+        onClose={() => setOnlineLinkModal(false)}
+        onSaved={fetchEvent}
+      />
       <section className="overflow-hidden rounded-3xl border border-lightGray bg-white shadow-sm">
         <div className="relative min-h-[280px] overflow-hidden bg-primary text-white">
           <div
@@ -273,6 +299,75 @@ const ViewEvents = () => {
                   </div>
                 ))}
               </div>
+
+              <section className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 className="H400 text-primary">Online Access</h2>
+                    <p className="text-sma text-primaryGray">
+                      Join links members can use to attend this event online.
+                    </p>
+                  </div>
+                  {onlineLinks.length > 0 && canManageEvents && (
+                    <Button
+                      value="Edit links"
+                      variant="secondary"
+                      onClick={() => setOnlineLinkModal(true)}
+                    />
+                  )}
+                </div>
+
+                {onlineLinks.length > 0 ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {onlineLinks.map((link) => (
+                      <div
+                        key={link.platform}
+                        className="rounded-2xl border border-lightGray bg-gray-50 p-4"
+                      >
+                        <p className="text-xs uppercase tracking-[0.2em] text-primaryGray">
+                          {link.label}
+                        </p>
+                        <p
+                          className="mt-2 truncate text-sm font-medium text-primary"
+                          title={link.url}
+                        >
+                          {link.url}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button
+                            value="Open"
+                            variant="secondary"
+                            onClick={() =>
+                              window.open(link.url, "_blank", "noopener,noreferrer")
+                            }
+                          />
+                          <Button
+                            value="Copy"
+                            variant="secondary"
+                            onClick={() => handleCopyOnlineLink(link)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : canManageEvents ? (
+                  <EmptyState
+                    scope="section"
+                    className="mx-auto w-[20rem]"
+                    msg="No online link added yet"
+                    description="Add a Zoom or YouTube link so members can join this event online."
+                    actionLabel="Click here to add"
+                    onAction={() => setOnlineLinkModal(true)}
+                  />
+                ) : (
+                  <EmptyState
+                    scope="section"
+                    className="mx-auto w-[20rem]"
+                    msg="No online link added yet"
+                    description="An administrator has not added an online link for this event yet."
+                  />
+                )}
+              </section>
 
               <section className="space-y-3">
                 <div>

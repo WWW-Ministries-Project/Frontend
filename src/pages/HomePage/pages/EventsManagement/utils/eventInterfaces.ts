@@ -1,5 +1,6 @@
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import {
+  EventOnlineLink,
   EventRegistrationAudience,
   EventRegistrationRecord,
 } from "@/utils/api/events/interfaces";
@@ -60,6 +61,8 @@ export interface eventType {
   public_registration_url?: string | null;
   registration_count?: number;
   event_registers?: EventRegistrationRecord[];
+  /** Zoom / YouTube links members join through. Always present, may be empty. */
+  online_links?: EventOnlineLink[];
   /** Reminder offsets in minutes before event start */
   reminders?: ReminderOffsetMinutes[];
   /** Who this event is intended for: all members, specific departments, or specific positions */

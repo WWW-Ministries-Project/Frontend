@@ -5,7 +5,6 @@ import { encodeQuery } from "@/pages/HomePage/utils";
 import { LifeCenterType } from "@/utils/api/lifeCenter/interfaces";
 import {
   CalendarIcon,
-  IdentificationIcon,
   MapPinIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
