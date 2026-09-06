@@ -19,7 +19,7 @@ const MinistrySchoolCard = ({ enrollment }: MinistrySchoolCardProps) => {
         <div className="w-full rounded-lg p-6 bg-primary/5 text-center">
           <div className="text-gray-500 mb-2">No active enrollments</div>
           <p className="text-sm text-gray-400 mb-4">
-            You're not currently enrolled in any programs
+            You&apos;re not currently enrolled in any programs
           </p>
         </div>
       </div>
