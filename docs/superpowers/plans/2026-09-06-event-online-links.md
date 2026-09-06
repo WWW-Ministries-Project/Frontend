@@ -927,6 +927,22 @@ export const onlineLinkWarning = (
   }
 };
 
+/**
+ * Blocking validation for both forms that host `OnlineLinksFields` — the
+ * schedule form and the view page's modal — so their error messages and
+ * field keys cannot drift apart.
+ */
+export const validateOnlineLinks = (
+  values: Record<string, unknown>
+): Record<string, string> => {
+  const errors: Record<string, string> = {};
+  ONLINE_PLATFORMS.forEach((platform) => {
+    const message = onlineLinkError(values[platform.field]);
+    if (message) errors[platform.field] = message;
+  });
+  return errors;
+};
+
 export const hasOnlineLinkErrors = (values: Record<string, unknown>): boolean =>
   ONLINE_PLATFORMS.some((platform) =>
     Boolean(onlineLinkError(values[platform.field] ?? ""))
@@ -1072,9 +1088,9 @@ import {
   emptyOnlineLinkValues,
   formValuesToOnlineLinks,
   hasOnlineLinkErrors,
-  onlineLinkError,
   ONLINE_PLATFORMS,
   onlineLinksToFormValues,
+  validateOnlineLinks,
 } from "../utils/onlinePlatforms";
 ```
 
@@ -1107,11 +1123,10 @@ Inside the `useMemo` object literal, add after the `branch_id:` entry:
 In the `validate={(values) => {...}}` prop, add before `return errors;`:
 
 ```ts
-        ONLINE_PLATFORMS.forEach((platform) => {
-          const message = onlineLinkError(String(values[platform.field] ?? ""));
-          if (message) errors[platform.field] = message;
-        });
+        Object.assign(errors, validateOnlineLinks(values));
 ```
+
+Leave the existing `branch_id` check in that same validator alone.
 
 - [ ] **Step 5: Attach `links` to the submitted payload**
 
