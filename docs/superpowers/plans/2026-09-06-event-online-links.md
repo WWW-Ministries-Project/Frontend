@@ -102,7 +102,6 @@ model event_online_link {
   event      event_mgt @relation(fields: [event_id], references: [id], onDelete: Cascade)
 
   @@unique([event_id, platform], map: "event_online_link_event_id_platform_key")
-  @@index([event_id], map: "event_online_link_event_id_idx")
 }
 ```
 
@@ -137,7 +136,6 @@ CREATE TABLE `event_online_link` (
     `updated_by` INTEGER NULL,
     `updated_at` DATETIME(3) NULL,
 
-    INDEX `event_online_link_event_id_idx`(`event_id`),
     UNIQUE INDEX `event_online_link_event_id_platform_key`(`event_id`, `platform`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

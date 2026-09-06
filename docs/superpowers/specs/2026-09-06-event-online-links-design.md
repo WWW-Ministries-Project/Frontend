@@ -46,7 +46,6 @@ model event_online_link {
   event      event_mgt @relation(fields: [event_id], references: [id], onDelete: Cascade)
 
   @@unique([event_id, platform])
-  @@index([event_id])
 }
 ```
 
