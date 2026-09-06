@@ -1199,9 +1199,10 @@ git -C /Users/akwaah/Documents/GitHub/Frontend commit -m "feat(events): add Onli
 
 On create the array is inlined in the create payload. On every update path it goes to the dedicated endpoint instead, so no update ever SMSes registrants over a link change.
 
-- [ ] **Step 1: Import the api module**
+- [ ] **Step 1: Imports**
 
-`api` is already imported. No new import needed.
+`api` is already imported. Add `showNotification` — match how sibling files in
+this feature import it (`ViewEvents.jsx` uses `@/pages/HomePage/utils`).
 
 - [ ] **Step 2: Split `links` off the payload**
 
@@ -1226,9 +1227,25 @@ Directly after the `if (!id) { ... }` create branch and the three update branche
       // path sends them separately so `update-event` (which SMSes registrants)
       // never carries them. Links are per-occurrence, series edits included.
       if (id && links) {
-        await api.put.updateEventOnlineLinks({ links }, { id });
+        try {
+          await api.put.updateEventOnlineLinks({ links }, { id });
+        } catch (linkError) {
+          void linkError;
+          // The event itself saved. Say so, rather than letting the outer
+          // catch swallow this and leave the user with a silent no-op.
+          showNotification(
+            "Event saved, but the online links could not be updated.",
+            "error"
+          );
+        }
       }
 ```
+
+The inner catch is deliberate. `handleSubmit`'s outer `catch (error) { void error; }`
+swallows failures with no message at all, so without this the user would see
+nothing while their event edits had already persisted. Flow continues to
+`isSuccessful = true` — the event update genuinely succeeded, so navigating away
+is right, and the toast is what reports the links failure.
 
 - [ ] **Step 5: Inline the links on create**
 
