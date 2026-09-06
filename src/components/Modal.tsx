@@ -7,9 +7,21 @@ interface IProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  /** Accessible name for the dialog (Radix `Dialog.Title`). Visually hidden. */
+  title?: string;
+  /** Accessible description for the dialog (Radix `Dialog.Description`). Visually hidden. */
+  description?: string;
 }
 
-export const Modal = ({ open, persist = true, onClose, children, className }: IProps) => {
+export const Modal = ({
+  open,
+  persist = true,
+  onClose,
+  children,
+  className,
+  title = "Dialog",
+  description = "Modal dialog content",
+}: IProps) => {
   return (
     <Dialog.Root
       open={open}
@@ -38,9 +50,9 @@ export const Modal = ({ open, persist = true, onClose, children, className }: IP
               persist ? (e) => e.preventDefault() : undefined
             }
           >
-            <Dialog.Title className="hidden">title</Dialog.Title>
+            <Dialog.Title className="sr-only">{title}</Dialog.Title>
             <Dialog.Description id="dialog-description" className="sr-only">
-              Modal dialog content
+              {description}
             </Dialog.Description>
             {children}
           </Dialog.Content>
