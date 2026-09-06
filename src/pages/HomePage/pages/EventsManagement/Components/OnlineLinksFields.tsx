@@ -1,10 +1,6 @@
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field, useFormikContext } from "formik";
-import {
-  ONLINE_PLATFORMS,
-  onlineLinkWarning,
-  type OnlineLinkFormValues,
-} from "../utils/onlinePlatforms";
+import { ONLINE_PLATFORMS, onlineLinkWarning } from "../utils/onlinePlatforms";
 
 /**
  * One optional URL field per streaming platform, shared by the schedule form
@@ -12,7 +8,7 @@ import {
  * Neither field is required — an event can have one link, both, or none.
  */
 export const OnlineLinksFields = () => {
-  const { values } = useFormikContext<OnlineLinkFormValues>();
+  const { values } = useFormikContext<Record<string, unknown>>();
 
   return (
     <div className="grid gap-4 md:grid-cols-2">

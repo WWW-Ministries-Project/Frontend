@@ -50,7 +50,7 @@ export const onlineLinksToFormValues = (
  * all: an empty url is how the API is told to delete that link.
  */
 export const formValuesToOnlineLinks = (
-  values: OnlineLinkFormValues
+  values: Record<string, unknown>
 ): { platform: string; url: string }[] =>
   ONLINE_PLATFORMS.map((platform) => ({
     platform: platform.key,
@@ -58,7 +58,7 @@ export const formValuesToOnlineLinks = (
   }));
 
 /** Blocking error, or "" when the value is acceptable (empty counts as acceptable). */
-export const onlineLinkError = (value: string): string => {
+export const onlineLinkError = (value: unknown): string => {
   const url = String(value ?? "").trim();
   if (!url) return "";
   try {
@@ -78,7 +78,7 @@ export const onlineLinkError = (value: string): string => {
  */
 export const onlineLinkWarning = (
   platform: OnlinePlatform,
-  value: string
+  value: unknown
 ): string => {
   const url = String(value ?? "").trim();
   if (!url || onlineLinkError(url)) return "";
@@ -95,7 +95,7 @@ export const onlineLinkWarning = (
   }
 };
 
-export const hasOnlineLinkErrors = (values: OnlineLinkFormValues): boolean =>
+export const hasOnlineLinkErrors = (values: Record<string, unknown>): boolean =>
   ONLINE_PLATFORMS.some((platform) =>
     Boolean(onlineLinkError(values[platform.field] ?? ""))
   );

@@ -579,7 +579,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         // dedicated online-links endpoint on update, and inlines it on create.
         props.onSubmit({
           ...changedValues,
-          links: formValuesToOnlineLinks(val as unknown as Record<string, string>),
+          links: formValuesToOnlineLinks(val),
         });
       }}
       initialValues={normalizedInitialValues}
@@ -1374,7 +1374,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 disabled={
                   Boolean(props.loading) ||
                   form.isSubmitting ||
-                  hasOnlineLinkErrors(form.values as unknown as Record<string, string>)
+                  hasOnlineLinkErrors(form.values)
                 }
               />
             </div>
