@@ -850,7 +850,13 @@ export const ONLINE_PLATFORMS = [
 
 export type OnlinePlatform = (typeof ONLINE_PLATFORMS)[number];
 
-/** Form-shaped values: one string per platform, keyed by `field`. */
+/**
+ * What the producers below return: one string per platform, keyed by `field`.
+ * The consumers take `Record<string, unknown>` instead, because the schedule
+ * form's own value type carries an `unknown` index signature — accepting that
+ * directly avoids a cast at every call site, and the helpers coerce with
+ * `String()` anyway.
+ */
 export type OnlineLinkFormValues = Record<string, string>;
 
 export const emptyOnlineLinkValues = (): OnlineLinkFormValues =>
@@ -876,7 +882,7 @@ export const onlineLinksToFormValues = (
  * all: an empty url is how the API is told to delete that link.
  */
 export const formValuesToOnlineLinks = (
-  values: OnlineLinkFormValues
+  values: Record<string, unknown>
 ): { platform: string; url: string }[] =>
   ONLINE_PLATFORMS.map((platform) => ({
     platform: platform.key,
@@ -884,7 +890,7 @@ export const formValuesToOnlineLinks = (
   }));
 
 /** Blocking error, or "" when the value is acceptable (empty counts as acceptable). */
-export const onlineLinkError = (value: string): string => {
+export const onlineLinkError = (value: unknown): string => {
   const url = String(value ?? "").trim();
   if (!url) return "";
   try {
@@ -904,7 +910,7 @@ export const onlineLinkError = (value: string): string => {
  */
 export const onlineLinkWarning = (
   platform: OnlinePlatform,
-  value: string
+  value: unknown
 ): string => {
   const url = String(value ?? "").trim();
   if (!url || onlineLinkError(url)) return "";
@@ -921,7 +927,7 @@ export const onlineLinkWarning = (
   }
 };
 
-export const hasOnlineLinkErrors = (values: OnlineLinkFormValues): boolean =>
+export const hasOnlineLinkErrors = (values: Record<string, unknown>): boolean =>
   ONLINE_PLATFORMS.some((platform) =>
     Boolean(onlineLinkError(values[platform.field] ?? ""))
   );
@@ -994,11 +1000,7 @@ git -C /Users/akwaah/Documents/GitHub/Frontend commit -m "feat(events): add upda
 ```tsx
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field, useFormikContext } from "formik";
-import {
-  ONLINE_PLATFORMS,
-  onlineLinkWarning,
-  type OnlineLinkFormValues,
-} from "../utils/onlinePlatforms";
+import { ONLINE_PLATFORMS, onlineLinkWarning } from "../utils/onlinePlatforms";
 
 /**
  * One optional URL field per streaming platform, shared by the schedule form
@@ -1006,7 +1008,7 @@ import {
  * Neither field is required — an event can have one link, both, or none.
  */
 export const OnlineLinksFields = () => {
-  const { values } = useFormikContext<OnlineLinkFormValues>();
+  const { values } = useFormikContext<Record<string, unknown>>();
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
