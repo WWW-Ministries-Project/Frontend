@@ -193,6 +193,20 @@ entries with an empty `url`. Icon resolves through a local `platform → IconNam
 map with `"videocam-outline"` as the fallback, so an unrecognized platform still
 renders. `label` / `joinLabel` are read from the payload, never hardcoded.
 
+### Shared join state
+
+`src/features/events/useEventJoin.ts` — a logic-only hook returning
+`{ live, onlineLinks, soleLink, canJoin, awaitingLink, openJoin, joinOpen, closeJoin }`,
+plus an `openOnlineLink(link)` helper that opens a URL and alerts when the device
+cannot handle it. Both heroes consume the hook rather than each keeping a copy of
+the invariant — the first draft duplicated it and the copies drifted immediately.
+`canJoin` is `live && links.length > 0`; `awaitingLink` is `live && links.length === 0`;
+`soleLink` is non-null only when there is exactly one link, which drives the
+skip-the-picker path.
+
+The heroes keep their own layout and icons (`videocam-outline` vs `play`) — only
+the state is shared, which is why this is a hook and not a component.
+
 ### New component
 
 `src/features/events/components/JoinOnlineModal.tsx` — React Native `Modal` plus
@@ -214,6 +228,10 @@ All three key off `isEventLive(event)` and `links.length`:
 With exactly one link, skip the picker and open it directly; the button label
 becomes that link's `joinLabel` ("Watch on YouTube"). A picker with a single row is
 friction. Two or more links → picker.
+
+Every link open — the sole-link path, the picker rows, and the detail modal's
+per-platform buttons — routes through `openOnlineLink`, so a device with no Zoom
+app installed reports the failure instead of a button that silently does nothing.
 
 ### Knock-on cleanup
 
