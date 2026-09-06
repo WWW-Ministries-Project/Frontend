@@ -271,10 +271,12 @@ export const parseOnlineLinksInput = (
     }
 
     if (platform.length > MAX_PLATFORM_LENGTH) {
-      return { error: "Unsupported online platform" };
+      return { error: "Online platform name is too long" };
     }
 
-    if (!platformMeta(platform)) {
+    const meta = platformMeta(platform);
+
+    if (!meta) {
       return { error: `Unsupported online platform: ${platform}` };
     }
 
@@ -287,13 +289,13 @@ export const parseOnlineLinksInput = (
 
     if (url && !isValidHttpUrl(url)) {
       return {
-        error: `The ${platformMeta(platform)!.label} link must be a valid http or https URL`,
+        error: `The ${meta.label} link must be a valid http or https URL`,
       };
     }
 
     if (url.length > MAX_URL_LENGTH) {
       return {
-        error: `The ${platformMeta(platform)!.label} link is too long`,
+        error: `The ${meta.label} link is too long`,
       };
     }
 
@@ -313,15 +315,12 @@ export const applyOnlineLinks = async (
   links: OnlineLinkInput[],
   actorUserId: number | null,
 ) => {
-  if (!links.length) return;
-
-  const now = new Date();
+  if (links.length === 0) return;
 
   // Every link targets a distinct (event_id, platform) row — duplicates are
   // rejected upstream — and no write depends on another's result, so the
   // non-interactive array form applies them atomically in one round trip.
-  await prisma.$transaction(
-    links.map((link) =>
+  const operations = links.map((link) =>
       link.url
         ? prisma.event_online_link.upsert({
             where: {
@@ -332,19 +331,20 @@ export const applyOnlineLinks = async (
               platform: link.platform,
               url: link.url,
               updated_by: actorUserId,
-              updated_at: now,
+              updated_at: new Date(),
             },
             update: {
               url: link.url,
               updated_by: actorUserId,
-              updated_at: now,
+              updated_at: new Date(),
             },
           })
         : prisma.event_online_link.deleteMany({
             where: { event_id: eventId, platform: link.platform },
           }),
-    ),
   );
+
+  await prisma.$transaction(operations);
 };
 
 /** Reads back an event's links in the serialized client shape. */
@@ -387,14 +387,11 @@ Every event response already funnels through one mapper (`mapEventResponse`, lin
 Add after the `attendanceVisitorCounts` import block (around line 25):
 
 ```ts
-import {
-  applyOnlineLinks,
-  onlineLinkSelect,
-  parseOnlineLinksInput,
-  readOnlineLinks,
-  serializeOnlineLinks,
-} from "./onlineLinks";
+import { onlineLinkSelect, serializeOnlineLinks } from "./onlineLinks";
 ```
+
+Tasks 4 and 5 extend this import as they need more from the module — do not
+import `applyOnlineLinks`, `parseOnlineLinksInput` or `readOnlineLinks` yet.
 
 - [ ] **Step 2: Add the relation to `eventBaseSelect`**
 
