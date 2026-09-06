@@ -24,6 +24,14 @@ import {
   REMINDER_OFFSET_OPTIONS,
   type ReminderOffsetMinutes,
 } from "../utils/eventInterfaces";
+import { OnlineLinksFields } from "./OnlineLinksFields";
+import {
+  emptyOnlineLinkValues,
+  formValuesToOnlineLinks,
+  hasOnlineLinkErrors,
+  onlineLinksToFormValues,
+  validateOnlineLinks,
+} from "../utils/onlinePlatforms";
 
 // ─── Timezone helpers ────────────────────────────────────────────────────────
 const COMMON_TIMEZONES = [
@@ -118,6 +126,10 @@ export interface EventsFormValues {
   target_departments?: string[];
   target_positions?: string[];
   branch_id?: number | "";
+  /** One flat string per platform — see utils/onlinePlatforms.ts */
+  zoom_url?: string;
+  youtube_url?: string;
+  links?: { platform: string; url: string }[];
   [key: string]: unknown;
 }
 
@@ -126,6 +138,8 @@ interface EventsFormProps {
   onSubmit: (val: EventsFormValues) => void;
   loading?: boolean;
   updating?: boolean;
+  /** Which occurrences this edit applies to. Online links are always per-occurrence, regardless of scope. */
+  editScope?: "following" | "all" | null;
 }
 
 const WEEKDAY_OPTIONS = [
@@ -481,6 +495,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         props.inputValue.branch_id !== undefined && props.inputValue.branch_id !== null
           ? (props.inputValue.branch_id as number | "")
           : "",
+      ...emptyOnlineLinkValues(),
+      ...onlineLinksToFormValues(
+        props.inputValue.online_links as
+          | { platform: string; label: string; join_label: string; url: string }[]
+          | undefined
+      ),
       recurring: {
         interval:
           props.inputValue.recurring?.interval !== undefined &&
@@ -554,7 +574,14 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         const changedValues = props.updating
           ? getChangedValues(normalizedInitialValues, preparedValues)
           : preparedValues;
-        props.onSubmit(changedValues);
+
+        // `getChangedValues` drops every object/array-valued key, so `links`
+        // is re-attached after the diff. CreateEvent routes it to the
+        // dedicated online-links endpoint on update, and inlines it on create.
+        props.onSubmit({
+          ...changedValues,
+          links: formValuesToOnlineLinks(val),
+        });
       }}
       initialValues={normalizedInitialValues}
       enableReinitialize
@@ -563,6 +590,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         if (activeBranchId === ALL_BRANCHES && (values.branch_id === "" || values.branch_id === undefined || values.branch_id === null)) {
           errors.branch_id = "Branch is required";
         }
+        Object.assign(errors, validateOnlineLinks(values));
         return errors;
       }}
       validationSchema={
@@ -1145,6 +1173,28 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
 
           <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
             <div className="mb-4 space-y-1">
+              <h2 className="H400 text-primary">Online Access</h2>
+              {props.editScope === "all" || props.editScope === "following" ? (
+                <p className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  <span>⚠️</span>
+                  <span>
+                    Optional. Unlike the other fields on this page, online
+                    links apply <strong>only to this occurrence</strong> — not
+                    to the rest of the series.
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sma text-primaryGray">
+                  Optional. Add a Zoom and/or YouTube link so members can join
+                  online. Links apply to this occurrence only.
+                </p>
+              )}
+            </div>
+            <OnlineLinksFields />
+          </section>
+
+          <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
+            <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Reminders</h2>
               <p className="text-sma text-primaryGray">
                 Send attendees a notification before this event starts. Select
@@ -1330,7 +1380,11 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 type="submit"
                 variant="primary"
                 loading={props.loading}
-                disabled={Boolean(props.loading) || form.isSubmitting}
+                disabled={
+                  Boolean(props.loading) ||
+                  form.isSubmitting ||
+                  hasOnlineLinkErrors(form.values)
+                }
               />
             </div>
           </div>

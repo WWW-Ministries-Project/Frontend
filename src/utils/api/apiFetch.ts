@@ -3,8 +3,10 @@ import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
-import { fetchData } from "./apiFunctions";
+import { downloadFile, fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
+import type { DownloadedFile } from "./eventReports/interfaces";
+import type { Promotion } from "./promotions/interfaces";
 import type { SermonSeries } from "./sermons/interfaces";
 import type {
   MyPledgeRow,
@@ -27,6 +29,7 @@ import {
   SoulWonListType,
   MeetingType,
   EligibleFirstTimerType,
+  MeetingExportQuery,
 } from "./lifeCenter/interfaces";
 import type {
   IMarket,
@@ -607,6 +610,20 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/meeting`, query);
   };
 
+  downloadLifeCenterMeetings = ({
+    lifeCenterId,
+    format,
+    from,
+    to,
+  }: MeetingExportQuery): Promise<DownloadedFile> => {
+    return downloadFile(
+      this.apiExecution.baseUrl,
+      "lifecenter/meetings/export",
+      { lifeCenterId, format, ...(from ? { from } : {}), ...(to ? { to } : {}) },
+      `life-center-meetings.${format}`
+    );
+  };
+
   fetchEligibleFirstTimers = (
     query?: QueryType
   ): Promise<ApiResponse<EligibleFirstTimerType[]>> => {
@@ -761,6 +778,19 @@ export class ApiCalls {
     id: number
   ): Promise<ApiResponse<Announcement>> => {
     return this.fetchFromApi(`announcements/${id}`);
+  };
+
+  // Promotions (mobile Home banners)
+  fetchPromotions = (
+    query?: QueryType
+  ): Promise<ApiResponse<Promotion[]>> => {
+    return this.fetchFromApi("promotions", query);
+  };
+
+  fetchPromotion = (
+    id: number
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.fetchFromApi(`promotions/${id}`);
   };
 
   // Sermons

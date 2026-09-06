@@ -557,7 +557,7 @@ export function Members() {
                   onClick={clearSearch}
                   className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/15"
                 >
-                  <span>Search: "{activeSearchTerm}"</span>
+                  <span>Search: &quot;{activeSearchTerm}&quot;</span>
                   <span aria-hidden="true">x</span>
                 </button>
               ) : null}

@@ -5,6 +5,7 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
+import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
 import type { SermonSeries, CreateSermonSeriesDto } from "./sermons/interfaces";
 import { AssetPayloadType } from "./assets/interfaces";
 import type {
@@ -593,6 +594,25 @@ export class ApiCreationCalls {
     id: number
   ): Promise<ApiResponse<Announcement>> => {
     return this.postToApi(`announcements/${id}/publish`, {});
+  };
+
+  // Promotions
+  createPromotion = (
+    payload: CreatePromotionDto
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.postToApi("promotions", payload);
+  };
+
+  publishPromotion = (
+    id: number
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.postToApi(`promotions/${id}/publish`, {});
+  };
+
+  archivePromotion = (
+    id: number
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.postToApi(`promotions/${id}/archive`, {});
   };
 
   // Sermons

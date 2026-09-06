@@ -1,5 +1,4 @@
 // DashboardIcon.jsx
-import React from 'react';
 
 const LogoutIcon = (props) => (
     <div className="rotate-180">

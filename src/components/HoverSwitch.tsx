@@ -1,5 +1,5 @@
 // HoverSwitch.js
-import React, { useState } from 'react';
+import { useState } from 'react';
 import ChurchLogo from './ChurchLogo';
 import LoginIcon from '@/assets/sidebar/LoginIcon';
 

@@ -34,8 +34,12 @@ export const useImageUpload = () => {
         return { URL: response.data.result.link as string };
       }
       return null;
-    } catch (error) {
-      console.error("Image upload failed", error);
+    } catch {
+      showNotification(
+        "There was an error uploading the file. Please try again.",
+        "error",
+        "File upload"
+      );
       return null;
     } finally {
       setAddingImage(false);

@@ -188,7 +188,6 @@ export function useSettingsTabs({
     setColumns([]);
     setData([]);
     setTotal(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTab, positionData, positionTotal, positionsColumns, branchColumns, branches]);
 
   const selectOptions = useMemo(() => {

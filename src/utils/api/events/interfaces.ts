@@ -16,6 +16,13 @@ export type EventRegistrationRecord = {
   country_code?: string | null;
 };
 
+export type EventOnlineLink = {
+  platform: string;
+  label: string;
+  join_label: string;
+  url: string;
+};
+
 export type EventResponseType = {
   id: number;
   name: string;
@@ -37,6 +44,7 @@ export type EventResponseType = {
   public_registration_url?: string | null;
   registration_count?: number;
   event_registers?: EventRegistrationRecord[];
+  online_links?: EventOnlineLink[];
   registration_open?: boolean;
   registration_message?: string | null;
 };

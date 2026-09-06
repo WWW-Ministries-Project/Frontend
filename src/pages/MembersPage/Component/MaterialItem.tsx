@@ -1,4 +1,4 @@
-import { ArrowDownTrayIcon, DocumentTextIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
 
 interface MaterialItemProps {

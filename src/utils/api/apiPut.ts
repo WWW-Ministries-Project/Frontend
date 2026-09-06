@@ -5,6 +5,7 @@ import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInter
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
+import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
 import type { SermonSeries, UpdateSermonSeriesDto } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
@@ -26,6 +27,7 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
+import type { EventOnlineLink } from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
@@ -87,6 +89,18 @@ export class ApiUpdateCalls {
     payload: Record<string, unknown>
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("event/update-series-from", payload);
+  };
+
+  /**
+   * Set an event's Zoom / YouTube links. Separate from `updateEvent` because
+   * that endpoint notifies and SMSes every registrant on any change.
+   * An entry with an empty url deletes that platform's link.
+   */
+  updateEventOnlineLinks = (
+    payload: { links: { platform: string; url: string }[] },
+    query?: QueryType
+  ): Promise<ApiResponse<{ event_id: number; online_links: EventOnlineLink[] }>> => {
+    return this.apiExecution.updateData("event/online-links", payload, query);
   };
 
   updateUniqueEvent = (
@@ -527,6 +541,14 @@ export class ApiUpdateCalls {
     payload: UpdateAnnouncementDto
   ): Promise<ApiResponse<Announcement>> => {
     return this.apiExecution.updateData(`announcements/${id}`, payload);
+  }
+
+  // update promotion
+  updatePromotion = (
+    id: number,
+    payload: UpdatePromotionDto
+  ): Promise<ApiResponse<Promotion>> => {
+    return this.apiExecution.updateData(`promotions/${id}`, payload);
   }
 
   // update sermon series

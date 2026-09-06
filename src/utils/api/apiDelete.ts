@@ -188,6 +188,13 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`announcements/${id}`, {});
   }
 
+  // Delete Promotion
+  deletePromotion = (
+    id: number
+  ): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`promotions/${id}`, {});
+  }
+
   // Delete Sermon Series
   deleteSermonSeries = (
     id: number

@@ -101,7 +101,6 @@ const resolvePositionRules = (
 export const normalizeEligibilityRules = (
   payload: RoleEligibilityConfig | RoleEligibilityRule[] | null | unknown,
 ): EligibilityRulesState => {
-  const baseRules = createEmptyEligibilityRules();
   const rules = resolveRules(payload);
   const positionRules = resolvePositionRules(
     Array.isArray(payload) ? null : payload,

@@ -62,7 +62,6 @@ export const EnhancedModal: React.FC<EnhancedModalProps> = ({
         const {
             preferredPosition = 'auto',
             offset = 8,
-            avoidOverlap = true,
             centerIfNoSpace = true
         } = options;
 

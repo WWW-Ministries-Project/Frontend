@@ -4,7 +4,6 @@ import cloud_upload from "../assets/cloud_upload.svg";
 const ImageUpload = ({ onFileChange, src, disabled=false,id="fileUpload", label="Click here to upload the event banner" }) => {
   const {
     isDragActive,
-    file,
     preview,
     handleDragEnter,
     handleDragLeave,

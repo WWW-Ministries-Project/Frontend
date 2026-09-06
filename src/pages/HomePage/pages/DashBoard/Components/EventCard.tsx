@@ -52,9 +52,6 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
   const mobileShareMenuRef = useRef<HTMLDivElement | null>(null);
   const desktopShareMenuRef = useRef<HTMLDivElement | null>(null);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const isMemberPortal =
-    typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/member");
   const canRegisterForEvent = event.requires_registration;
 
   /* ------------------------------- Date helpers ------------------------------- */

@@ -8,7 +8,6 @@ import FormikSelectField from "@/components/FormikSelect";
 import TextEditor from "@/components/TextEditor";
 import { api } from "@/utils/api/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
 import { showNotification } from "@/pages/HomePage/utils";
 import type {
   Announcement,
@@ -22,27 +21,7 @@ interface AnnouncementFormValues {
   audience_type: AudienceType;
   department_id: number | null;
   position_id: number | null;
-  /** Banner Carousel fields (wwm-mobile Home screen) — see the design spec
-   *  in wwm-mobile's docs/superpowers/specs/2026-08-20-banner-carousel-design.md. */
-  is_promoted: boolean;
-  image_url: string;
-  cta_label: string;
-  deep_link: string;
-  /** Kept as a string (native number input reports strings) — parsed in
-   *  buildPayload. */
-  sort_order: string;
-  start_date: string;
-  end_date: string;
 }
-
-/** ISO datetime → the `YYYY-MM-DD` shape a native `<input type="date">`
- *  expects. Empty/invalid input returns "" so the field just renders blank
- *  rather than crashing. */
-const toDateInputValue = (value?: string | null): string => {
-  if (!value) return "";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
-};
 
 const AUDIENCE_OPTIONS: { label: string; value: AudienceType }[] = [
   { label: "All members", value: "ALL_MEMBERS" },
@@ -80,10 +59,6 @@ const validationSchema = Yup.object({
       then: (schema) => schema.required("Position is required"),
       otherwise: (schema) => schema.nullable(),
     }),
-  sort_order: Yup.number()
-    .transform((value, original) => (original === "" ? undefined : value))
-    .integer("Must be a whole number")
-    .nullable(),
 });
 
 interface AnnouncementFormProps {
@@ -99,8 +74,6 @@ const AnnouncementForm = ({
 }: AnnouncementFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const publishRef = useRef(false);
-  const [imagePreview, setImagePreview] = useState(announcement?.image_url ?? "");
-  const { handleUpload, loading: uploadLoading } = usePictureUpload();
 
   const isEdit = Boolean(announcement);
   const isPublished = announcement?.status === "PUBLISHED";
@@ -133,13 +106,6 @@ const AnnouncementForm = ({
     audience_type: announcement?.audience_type ?? "ALL_MEMBERS",
     department_id: announcement?.department_id ?? null,
     position_id: announcement?.position_id ?? null,
-    is_promoted: announcement?.is_promoted ?? false,
-    image_url: announcement?.image_url ?? "",
-    cta_label: announcement?.cta_label ?? "",
-    deep_link: announcement?.deep_link ?? "",
-    sort_order: announcement?.sort_order != null ? String(announcement.sort_order) : "",
-    start_date: toDateInputValue(announcement?.start_date),
-    end_date: toDateInputValue(announcement?.end_date),
   };
 
   const buildPayload = (
@@ -154,27 +120,7 @@ const AnnouncementForm = ({
         : null,
     position_id:
       values.audience_type === "SPECIFIC_POSITION" ? values.position_id : null,
-    is_promoted: values.is_promoted,
-    // Sent as-entered regardless of is_promoted — unchecking "Promote" just
-    // stops the carousel from showing it (is_promoted is the only gate on
-    // the mobile/backend side); it doesn't wipe the banner copy an admin
-    // might re-enable later.
-    image_url: values.image_url || null,
-    cta_label: values.cta_label.trim() || null,
-    deep_link: values.deep_link.trim() || null,
-    sort_order: values.sort_order === "" ? null : Number(values.sort_order),
-    start_date: values.start_date || null,
-    end_date: values.end_date || null,
   });
-
-  const handleImageSelect = async (file: File | null) => {
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    const uploadedUrl = await handleUpload(formData);
-    if (uploadedUrl) setImagePreview(uploadedUrl);
-    return uploadedUrl;
-  };
 
   const handleSave = async (values: AnnouncementFormValues) => {
     const shouldPublish = publishRef.current;
@@ -297,111 +243,6 @@ const AnnouncementForm = ({
               />
             )}
 
-            <div className="flex items-center pt-2 border-t">
-              <Field
-                type="checkbox"
-                id="is_promoted"
-                name="is_promoted"
-                className="mr-2"
-              />
-              <label htmlFor="is_promoted" className="text-sm font-medium">
-                Promote on the mobile app&apos;s Home carousel
-              </label>
-            </div>
-
-            {values.is_promoted && (
-              <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">
-                  Shown as a banner slide on the mobile app&apos;s Home screen
-                  while published and within the active window below. Up to
-                  3 promoted announcements show at once, ordered by display
-                  order.
-                </p>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Banner image (Optional)
-                  </label>
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Banner preview"
-                      className="mb-2 h-24 w-full max-w-xs rounded-lg object-cover"
-                    />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={uploadLoading}
-                    onChange={async (event) => {
-                      const url = await handleImageSelect(
-                        event.target.files?.[0] ?? null
-                      );
-                      if (url) setFieldValue("image_url", url);
-                    }}
-                    className="text-sm"
-                  />
-                  {uploadLoading && (
-                    <p className="mt-1 text-xs text-gray-500">Uploading…</p>
-                  )}
-                  <p className="mt-1 text-xs text-gray-500">
-                    16:9 works best (about 1200×675px). Leave empty for a
-                    plain accent-colored card instead of a photo.
-                  </p>
-                </div>
-
-                <Field
-                  component={FormikInputDiv}
-                  label="Button label"
-                  name="cta_label"
-                  id="cta_label"
-                  placeholder="Reserve your seat"
-                />
-
-                <div>
-                  <Field
-                    component={FormikInputDiv}
-                    label="Deep link"
-                    name="deep_link"
-                    id="deep_link"
-                    placeholder="/member/appointments"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Where tapping the banner goes in the app, e.g.{" "}
-                    <code>/member/appointments</code>,{" "}
-                    <code>/member/give?segment=Pledges</code>,{" "}
-                    <code>/member/watch</code>. Leave empty for a
-                    non-tappable banner.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <Field
-                    component={FormikInputDiv}
-                    label="Start date"
-                    name="start_date"
-                    id="start_date"
-                    type="date"
-                  />
-                  <Field
-                    component={FormikInputDiv}
-                    label="End date"
-                    name="end_date"
-                    id="end_date"
-                    type="date"
-                  />
-                </div>
-
-                <Field
-                  component={FormikInputDiv}
-                  label="Display order"
-                  name="sort_order"
-                  id="sort_order"
-                  type="number"
-                  placeholder="1"
-                />
-              </div>
-            )}
           </div>
 
           <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">

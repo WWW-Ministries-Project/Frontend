@@ -408,7 +408,11 @@ function Settings() {
           ? Number(inputValue.pastor_in_charge_id)
           : null,
       };
-      editMode ? updateBranch(payload) : postBranch(payload);
+      if (editMode) {
+        updateBranch(payload);
+      } else {
+        postBranch(payload);
+      }
     }
 
     if (selectedTab === "Position") {

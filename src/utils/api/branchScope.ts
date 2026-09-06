@@ -50,6 +50,7 @@ const BRANCH_SCOPED_ENDPOINTS = [
   "givingoption/",
   "tithebreakdownconfig/",
   "financials/",
+  "promotions",
 ] as const;
 
 const isBranchScopedEndpoint = (path: string) =>

@@ -111,3 +111,14 @@ export type EligibleFirstTimerType = {
   first_name: string;
   last_name: string;
 };
+
+export const MEETING_EXPORT_FORMATS = ["pdf", "docx", "xlsx"] as const;
+export type MeetingExportFormat = (typeof MEETING_EXPORT_FORMATS)[number];
+
+export type MeetingExportQuery = {
+  lifeCenterId: string | number;
+  format: MeetingExportFormat;
+  /** Inclusive `YYYY-MM-DD` bounds. Omit both to export every meeting. */
+  from?: string;
+  to?: string;
+};

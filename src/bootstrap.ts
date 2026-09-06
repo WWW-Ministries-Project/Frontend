@@ -7,8 +7,8 @@ const clearDevServiceWorkerState = async () => {
     await Promise.all(
       registrations.map((registration) => registration.unregister())
     );
-  } catch (error) {
-    console.warn("Unable to unregister service workers in development.", error);
+  } catch {
+    // Best-effort dev-only cleanup; ignore failures unregistering service workers.
   }
 
   if (!("caches" in window)) return;
@@ -16,8 +16,8 @@ const clearDevServiceWorkerState = async () => {
   try {
     const cacheKeys = await caches.keys();
     await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
-  } catch (error) {
-    console.warn("Unable to clear caches in development.", error);
+  } catch {
+    // Best-effort dev-only cleanup; ignore failures clearing caches.
   }
 };
 

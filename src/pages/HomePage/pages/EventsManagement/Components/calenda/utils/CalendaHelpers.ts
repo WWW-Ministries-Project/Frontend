@@ -206,7 +206,6 @@ export function calculateDynamicModalPosition(
   const {
     preferredPosition = 'auto',
     offset = 8,
-    avoidOverlap = true,
     centerIfNoSpace = true
   } = options;
 
