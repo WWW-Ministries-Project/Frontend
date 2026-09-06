@@ -59,7 +59,13 @@ const OnlineLinkModal = ({
   };
 
   return (
-    <Modal open={open} onClose={onClose} className="w-full max-w-lg p-6">
+    <Modal
+      open={open}
+      onClose={onClose}
+      className="w-full max-w-lg p-6"
+      title="Online Access"
+      description="Add or update the Zoom and YouTube links for this event occurrence."
+    >
       <Formik<OnlineLinkFormValues>
         initialValues={onlineLinksToFormValues(links)}
         enableReinitialize
