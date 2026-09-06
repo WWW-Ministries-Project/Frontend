@@ -24,6 +24,15 @@ import {
   REMINDER_OFFSET_OPTIONS,
   type ReminderOffsetMinutes,
 } from "../utils/eventInterfaces";
+import { OnlineLinksFields } from "./OnlineLinksFields";
+import {
+  emptyOnlineLinkValues,
+  formValuesToOnlineLinks,
+  hasOnlineLinkErrors,
+  onlineLinkError,
+  ONLINE_PLATFORMS,
+  onlineLinksToFormValues,
+} from "../utils/onlinePlatforms";
 
 // ─── Timezone helpers ────────────────────────────────────────────────────────
 const COMMON_TIMEZONES = [
@@ -118,6 +127,10 @@ export interface EventsFormValues {
   target_departments?: string[];
   target_positions?: string[];
   branch_id?: number | "";
+  /** One flat string per platform — see utils/onlinePlatforms.ts */
+  zoom_url?: string;
+  youtube_url?: string;
+  links?: { platform: string; url: string }[];
   [key: string]: unknown;
 }
 
@@ -481,6 +494,12 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         props.inputValue.branch_id !== undefined && props.inputValue.branch_id !== null
           ? (props.inputValue.branch_id as number | "")
           : "",
+      ...emptyOnlineLinkValues(),
+      ...onlineLinksToFormValues(
+        props.inputValue.online_links as
+          | { platform: string; label: string; join_label: string; url: string }[]
+          | undefined
+      ),
       recurring: {
         interval:
           props.inputValue.recurring?.interval !== undefined &&
@@ -554,7 +573,14 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         const changedValues = props.updating
           ? getChangedValues(normalizedInitialValues, preparedValues)
           : preparedValues;
-        props.onSubmit(changedValues);
+
+        // `getChangedValues` drops every object/array-valued key, so `links`
+        // is re-attached after the diff. CreateEvent routes it to the
+        // dedicated online-links endpoint on update, and inlines it on create.
+        props.onSubmit({
+          ...changedValues,
+          links: formValuesToOnlineLinks(val as unknown as Record<string, string>),
+        });
       }}
       initialValues={normalizedInitialValues}
       enableReinitialize
@@ -563,6 +589,10 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         if (activeBranchId === ALL_BRANCHES && (values.branch_id === "" || values.branch_id === undefined || values.branch_id === null)) {
           errors.branch_id = "Branch is required";
         }
+        ONLINE_PLATFORMS.forEach((platform) => {
+          const message = onlineLinkError(String(values[platform.field] ?? ""));
+          if (message) errors[platform.field] = message;
+        });
         return errors;
       }}
       validationSchema={
@@ -1145,6 +1175,17 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
 
           <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
             <div className="mb-4 space-y-1">
+              <h2 className="H400 text-primary">Online Access</h2>
+              <p className="text-sma text-primaryGray">
+                Optional. Add a Zoom and/or YouTube link so members can join
+                online. Links apply to this occurrence only.
+              </p>
+            </div>
+            <OnlineLinksFields />
+          </section>
+
+          <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
+            <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Reminders</h2>
               <p className="text-sma text-primaryGray">
                 Send attendees a notification before this event starts. Select
@@ -1330,7 +1371,11 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
                 type="submit"
                 variant="primary"
                 loading={props.loading}
-                disabled={Boolean(props.loading) || form.isSubmitting}
+                disabled={
+                  Boolean(props.loading) ||
+                  form.isSubmitting ||
+                  hasOnlineLinkErrors(form.values as unknown as Record<string, string>)
+                }
               />
             </div>
           </div>
