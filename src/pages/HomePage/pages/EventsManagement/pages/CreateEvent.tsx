@@ -173,6 +173,7 @@ const CreateEvent = () => {
             onSubmit={handleSubmit}
             loading={postLoading || isSubmitting}
             updating={isUpdating}
+            editScope={editScope}
           />
         </div>
       </section>

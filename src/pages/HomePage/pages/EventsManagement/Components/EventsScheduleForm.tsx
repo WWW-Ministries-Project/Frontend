@@ -138,6 +138,8 @@ interface EventsFormProps {
   onSubmit: (val: EventsFormValues) => void;
   loading?: boolean;
   updating?: boolean;
+  /** Which occurrences this edit applies to. Online links are always per-occurrence, regardless of scope. */
+  editScope?: "following" | "all" | null;
 }
 
 const WEEKDAY_OPTIONS = [
@@ -1172,10 +1174,21 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
           <section className="rounded-xl border border-lightGray bg-white p-5 md:p-6">
             <div className="mb-4 space-y-1">
               <h2 className="H400 text-primary">Online Access</h2>
-              <p className="text-sma text-primaryGray">
-                Optional. Add a Zoom and/or YouTube link so members can join
-                online. Links apply to this occurrence only.
-              </p>
+              {props.editScope === "all" || props.editScope === "following" ? (
+                <p className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  <span>⚠️</span>
+                  <span>
+                    Optional. Unlike the other fields on this page, online
+                    links apply <strong>only to this occurrence</strong> — not
+                    to the rest of the series.
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sma text-primaryGray">
+                  Optional. Add a Zoom and/or YouTube link so members can join
+                  online. Links apply to this occurrence only.
+                </p>
+              )}
             </div>
             <OnlineLinksFields />
           </section>
