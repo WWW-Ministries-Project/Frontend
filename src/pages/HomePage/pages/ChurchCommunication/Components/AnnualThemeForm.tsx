@@ -119,8 +119,7 @@ const AnnualThemeFormComponent = ({
       if (onClose) {
         onClose();
       }
-    } catch (error) {
-      console.error("Annual theme submit failed", error);
+    } catch {
       showNotification(
         "Annual theme could not be saved. Please try again.",
         "error",

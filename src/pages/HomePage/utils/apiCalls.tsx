@@ -49,8 +49,7 @@ export async function fetchCurrencies(): Promise<{ data: Currency[] }> {
       "https://countriesnow.space/api/v0.1/countries/currency"
     );
     return await response?.json();
-  } catch (error) {
-    console.error("Failed to retrieve data", error);
+  } catch {
     return { data: [] };
   }
 }
