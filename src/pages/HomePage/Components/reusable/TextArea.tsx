@@ -23,7 +23,9 @@ const Textarea: React.FC<TextareaProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
-    onChange && onChange(e.target.value);
+    if (onChange) {
+      onChange(e.target.value);
+    }
   };
 
   return (
