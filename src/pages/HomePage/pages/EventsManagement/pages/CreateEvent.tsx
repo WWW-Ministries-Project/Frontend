@@ -54,6 +54,9 @@ const CreateEvent = () => {
 
     submittingRef.current = true;
     setIsSubmitting(true);
+    const { links, ...eventValues } = val as {
+      links?: { platform: string; url: string }[];
+    } & Record<string, unknown>;
     // setLoading(true);
     const data = new FormData();
     if (file) {
@@ -78,15 +81,16 @@ const CreateEvent = () => {
       }
       if (!id) {
         const eventData = {
-          ...val,
+          ...eventValues,
           ...(posterLink ? { poster: posterLink } : {}),
+          ...(links ? { links } : {}),
           created_by: user?.id,
         };
         await postData(eventData);
       } else if (editScope === "all" && seriesId) {
         // Update every occurrence in the series
         const eventData = {
-          ...val,
+          ...eventValues,
           ...(posterLink ? { poster: posterLink } : {}),
           updated_by: user?.id,
           series_id: seriesId,
@@ -95,7 +99,7 @@ const CreateEvent = () => {
       } else if (editScope === "following" && seriesId && seriesFromDate) {
         // Update this occurrence and all future ones
         const eventData = {
-          ...val,
+          ...eventValues,
           ...(posterLink ? { poster: posterLink } : {}),
           updated_by: user?.id,
           series_id: seriesId,
@@ -105,12 +109,20 @@ const CreateEvent = () => {
       } else {
         // Normal single-event update
         const eventData = {
-          ...val,
+          ...eventValues,
           ...(posterLink ? { poster: posterLink } : {}),
           updated_by: user?.id,
         };
         await updateData(eventData, { id });
       }
+
+      // On create the links rode along in the create payload. Every update
+      // path sends them separately so `update-event` (which SMSes registrants)
+      // never carries them. Links are per-occurrence, series edits included.
+      if (id && links) {
+        await api.put.updateEventOnlineLinks({ links }, { id });
+      }
+
       isSuccessful = true;
     } catch (error) {
       void error;
