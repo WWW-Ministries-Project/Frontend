@@ -19,7 +19,7 @@ interface DayCellProps {
 
 const DayCell: React.FC<DayCellProps> = ({
   day,
-  date,
+  date: _date,
   dayEvents = [],
   isToday,
   isCurrentMonth,

@@ -7,7 +7,6 @@ import React, {
   RefObject,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isArray } from '@/pages/HomePage/utils';
 import {
   VIEW_TYPES,
   MONTHS,
@@ -19,7 +18,6 @@ import {
   getWeekDates,
   formatDate,
   formatTime,
-  parseTimeToMinutes,
   CalendarEvent,
 } from './calenda/utils/CalendaHelpers';
 import DayCell from './calenda/components/DayCell';
@@ -28,8 +26,6 @@ import EventItem from './calenda/components/EventItem';
 import WeekView from './calenda/components/WeekView';
 import DayView from './calenda/components/DayView';
 import EnhancedModal from './calenda/components/EnhancedModal';
-import EventDetailsModal from './EventDetailsModal';
-import { EventCard } from '../../DashBoard/Components/EventCard';
 import { EventsCard } from './EventsCard';
 
 interface CalendarProps {

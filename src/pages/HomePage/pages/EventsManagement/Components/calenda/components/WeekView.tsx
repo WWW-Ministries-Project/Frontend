@@ -64,7 +64,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       };
     const positioned: Record<string, PositionedWeekEvent[]> = {}
 
-    weekDates.forEach((date, dayIndex) => {
+    weekDates.forEach((date, _dayIndex) => {
       const iso = date.toISOString().split('T')[0]
       const dayEvents = eventsByDate[iso] || []
 

@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export default function LifeCenterIcon(props: SVGProps<SVGSVGElement>) {
+export default function LifeCenterIcon(_props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" >
       <path d="M11 12h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 14"/>

@@ -1,7 +1,5 @@
-import { Badge } from "@/components/Badge";
 import { HeaderControls } from "@/components/HeaderControls";
 import { Modal } from "@/components/Modal";
-import { ToggleSwitch } from "@/components/ToggleSwitch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -12,17 +10,11 @@ import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { getBadgeColor } from "../utils/eventHelpers";
 import { AllEventCard } from "../Components/AllEventCard";
 import { TAB_TO_EVENT_TYPE } from "../utils/eventInterfaces";
 import { useNavigate } from "react-router-dom";
 
 // Tab to event type mapping
-
-
-interface BadgeColors {
-    [key: string]: string;
-}
 
 const compareEventsAlphabetically = (a: EventType, b: EventType) => {
   const nameComparison = String(a.event_name || "").localeCompare(
@@ -64,12 +56,10 @@ const AllEvent = () => {
 
   const { data: lcData } = useFetch(api.fetch.fetchAllUniqueEvents);
   const { executeDelete } = useDelete(api.delete.deleteUniqueEvent);
-  const { postData, data, loading } = usePost(api.post.createUniqueEvent);
-  const {
-    updateData,
-    data: update_value,
-    loading: isUpdating,
-  } = usePut(api.put.updateUniqueEvent);
+  const { postData, data } = usePost(api.post.createUniqueEvent);
+  const { updateData, data: update_value } = usePut(
+    api.put.updateUniqueEvent
+  );
 
 
 

@@ -1,7 +1,6 @@
 import { routes } from "@/routes/appRoutes";
 import { matchRoutes, useLocation } from "react-router-dom";
 
-import PageOutline from "../../Components/PageOutline";
 import { ChurchAnnouncements } from "./Components/ChurchAnnouncements";
 import { MyAppointments } from "./Components/MyAppointments";
 import { ProfileSummary } from "./Components/ProfileSummary";
@@ -19,7 +18,7 @@ export const DashBoardPage = () => {
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.find((m) => m.route.name)?.route.name;
-  const { data, loading, refetch } = useFetch(api.fetch.fetchActiveAnnualTheme);
+  const { data } = useFetch(api.fetch.fetchActiveAnnualTheme);
 
   useEffect(() => {
     if (data && data.data) {

@@ -15,7 +15,7 @@ interface ChildCardProps {
   onAddChild?: () => void;
 }
 
-const ChildCard = ({ child, onAddChild }: ChildCardProps) => {
+const ChildCard = ({ child, onAddChild: _onAddChild }: ChildCardProps) => {
   // Calculate age from date of birth
   const calculateAge = (birthDate: string | undefined): string => {
     if (!birthDate) return "N/A";

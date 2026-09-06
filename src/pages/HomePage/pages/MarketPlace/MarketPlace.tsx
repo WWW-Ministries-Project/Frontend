@@ -68,7 +68,7 @@ export function MarketPlace() {
   };
 
   const handleAddMarket = async (market: IMarket) => {
-    const { id, event_id, event_name, branch_id, ...rest } = market;
+    const { id, event_id, event_name: _event_name, branch_id, ...rest } = market;
 
     if (activeBranchId === ALL_BRANCHES && !branch_id) {
       showNotification("Please select a branch", "error");
