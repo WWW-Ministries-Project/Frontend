@@ -3,6 +3,7 @@ import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/context/AuthWrapper";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
+import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { validateUploadFile } from "@/utils/uploadValidation";
 import { useEffect, useRef, useState } from "react";
@@ -120,7 +121,17 @@ const CreateEvent = () => {
       // path sends them separately so `update-event` (which SMSes registrants)
       // never carries them. Links are per-occurrence, series edits included.
       if (id && links) {
-        await api.put.updateEventOnlineLinks({ links }, { id });
+        try {
+          await api.put.updateEventOnlineLinks({ links }, { id });
+        } catch (linkError) {
+          void linkError;
+          // The event itself saved. Say so, rather than letting the outer
+          // catch swallow this and leave the user with a silent no-op.
+          showNotification(
+            "Event saved, but the online links could not be updated.",
+            "error"
+          );
+        }
       }
 
       isSuccessful = true;
