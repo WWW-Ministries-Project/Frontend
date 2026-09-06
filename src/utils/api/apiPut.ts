@@ -90,6 +90,18 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("event/update-series-from", payload);
   };
 
+  /**
+   * Set an event's Zoom / YouTube links. Separate from `updateEvent` because
+   * that endpoint notifies and SMSes every registrant on any change.
+   * An entry with an empty url deletes that platform's link.
+   */
+  updateEventOnlineLinks = (
+    payload: { links: { platform: string; url: string }[] },
+    query?: QueryType
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("event/online-links", payload, query);
+  };
+
   updateUniqueEvent = (
     payload: EventType,
     query?: QueryType
