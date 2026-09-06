@@ -106,10 +106,17 @@ A dedicated route rather than folding the fields into `update-event`, because
 - merges with `value ? value : existing`, so an empty string can never clear a
   field.
 
-`create-event` and `update-event` additionally accept an optional `links` array so
-the schedule form can set links at creation time. There the same upsert-or-delete
-logic runs, and the existing registrant notification fires as it already does for
-any edit through that handler.
+`create-event` additionally accepts an optional `links` array so the schedule form
+can set links at creation time; they apply to every occurrence that call creates
+(the user typed them once for the series they are creating). Editing them
+afterwards is per-occurrence.
+
+`update-event` deliberately does **not** accept `links`. Beyond the SMS blast, the
+web form could not have delivered them anyway: `getChangedValues`
+(`src/utils/helperFunctions.ts:117-129`) skips every object/array-valued key, so an
+array named `links` would be silently dropped from the update payload. Every
+update path — the view-page modal and the schedule form alike — therefore goes
+through `PUT /event/online-links`.
 
 ### URL validation
 
@@ -129,8 +136,11 @@ inline block.
 
 ### New files
 
-- `src/utils/api/events/onlineLinks.ts` — `updateEventOnlineLinks({ event_id, links })`
-  against `PUT /event/online-links`.
+- `updateEventOnlineLinks` on `ApiUpdateCalls` in `src/utils/api/apiPut.ts` —
+  `PUT /event/online-links`, alongside the other event update calls.
+- `src/pages/HomePage/pages/EventsManagement/utils/onlinePlatforms.ts` — the client
+  mirror of `ONLINE_PLATFORMS`, plus the form-value ↔ API-array converters and the
+  URL validators shared by the form and the modal.
 - `src/pages/HomePage/pages/EventsManagement/Components/OnlineLinksFields.tsx` —
   labelled `FormikInputDiv` URL inputs, rendered by iterating the platform list so a
   third platform renders itself. Neither field required in the Yup schema.
@@ -141,7 +151,10 @@ inline block.
 
 One new `<section>` after the Location/Timezone section (~line 1119), titled
 **Online Access**, body `<OnlineLinksFields />`. Values initialize from the loaded
-event's `online_links` and post as `links` on create and update.
+event's `online_links` as one flat string per platform (`zoom_url`, `youtube_url`),
+converted to a `links` array at submit. On create the array is inlined in the
+create payload; on update `CreateEvent` sends it to `PUT /event/online-links`
+separately, since `getChangedValues` would otherwise drop it.
 
 Sharing `OnlineLinksFields` between the form and the modal means one validation
 rule, not two.
@@ -221,7 +234,7 @@ renamed or removed, per the mobile additive-only rule.
 
 1. **Backend** — migration → `ONLINE_PLATFORMS` constant + validation → selects →
    `PUT /event/online-links` route and controller → `links` handling in
-   `create-event` / `update-event`.
+   `create-event`.
 2. Record the shipped request/response shape verbatim from the controller.
 3. **Frontend** — API function → `OnlineLinksFields` → schedule-form section →
    ViewEvents block → `OnlineLinkModal`.
