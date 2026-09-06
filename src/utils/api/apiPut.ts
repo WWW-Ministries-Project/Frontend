@@ -27,6 +27,7 @@ import {
   VisitPayloadType,
 } from "./visitors/interfaces";
 import { EventType } from "./events/interfaces";
+import type { EventOnlineLink } from "./events/interfaces";
 import type {
   IMarket,
   IProductType,
@@ -98,7 +99,7 @@ export class ApiUpdateCalls {
   updateEventOnlineLinks = (
     payload: { links: { platform: string; url: string }[] },
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<{ event_id: number; online_links: EventOnlineLink[] }>> => {
     return this.apiExecution.updateData("event/online-links", payload, query);
   };
 
