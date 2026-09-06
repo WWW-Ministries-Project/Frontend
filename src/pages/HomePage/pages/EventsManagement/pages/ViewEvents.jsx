@@ -80,10 +80,10 @@ const ViewEvents = () => {
   };
 
   const fetchEvent = useCallback(() => {
-    if (!id) return;
+    if (!id) return undefined;
 
     setQueryLoading(true);
-    axios
+    return axios
       .get(`/event/get-event?id=${id}`)
       .then((res) => {
         setEventdetails(res.data.data);

@@ -9,9 +9,8 @@ import { OnlineLinksFields } from "./OnlineLinksFields";
 import {
   formValuesToOnlineLinks,
   hasOnlineLinkErrors,
-  onlineLinkError,
-  ONLINE_PLATFORMS,
   onlineLinksToFormValues,
+  validateOnlineLinks,
   type OnlineLinkFormValues,
 } from "../utils/onlinePlatforms";
 
@@ -20,7 +19,11 @@ interface OnlineLinkModalProps {
   eventId: string | number;
   links: EventOnlineLink[];
   onClose: () => void;
-  onSaved: () => void;
+  /**
+   * Awaited before closing, so a refetch that changes `links` cannot land
+   * while the form is still mounted and silently reinitialize live input.
+   */
+  onSaved: () => void | Promise<void>;
 }
 
 /**
@@ -46,7 +49,7 @@ const OnlineLinkModal = ({
         { id: eventId }
       );
       showNotification("Online links updated", "success");
-      onSaved();
+      await onSaved();
       onClose();
     } catch {
       showNotification("Unable to update the online links", "error");
@@ -60,14 +63,7 @@ const OnlineLinkModal = ({
       <Formik<OnlineLinkFormValues>
         initialValues={onlineLinksToFormValues(links)}
         enableReinitialize
-        validate={(values) => {
-          const errors: Record<string, string> = {};
-          ONLINE_PLATFORMS.forEach((platform) => {
-            const message = onlineLinkError(values[platform.field]);
-            if (message) errors[platform.field] = message;
-          });
-          return errors;
-        }}
+        validate={validateOnlineLinks}
         onSubmit={handleSubmit}
       >
         {(form) => (

@@ -73,6 +73,22 @@ export const onlineLinkError = (value: unknown): string => {
 };
 
 /**
+ * Blocking validation for both forms that host `OnlineLinksFields` — the
+ * schedule form and the view page's modal — so their error messages and
+ * field keys cannot drift apart.
+ */
+export const validateOnlineLinks = (
+  values: Record<string, unknown>
+): Record<string, string> => {
+  const errors: Record<string, string> = {};
+  ONLINE_PLATFORMS.forEach((platform) => {
+    const message = onlineLinkError(values[platform.field]);
+    if (message) errors[platform.field] = message;
+  });
+  return errors;
+};
+
+/**
  * Non-blocking hint when the host does not look like the platform. Churches
  * use vanity domains and shorteners, so this never blocks a save.
  */

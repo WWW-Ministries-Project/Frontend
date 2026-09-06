@@ -29,9 +29,8 @@ import {
   emptyOnlineLinkValues,
   formValuesToOnlineLinks,
   hasOnlineLinkErrors,
-  onlineLinkError,
-  ONLINE_PLATFORMS,
   onlineLinksToFormValues,
+  validateOnlineLinks,
 } from "../utils/onlinePlatforms";
 
 // ─── Timezone helpers ────────────────────────────────────────────────────────
@@ -589,10 +588,7 @@ const EventsScheduleForm: React.FC<EventsFormProps> = (props) => {
         if (activeBranchId === ALL_BRANCHES && (values.branch_id === "" || values.branch_id === undefined || values.branch_id === null)) {
           errors.branch_id = "Branch is required";
         }
-        ONLINE_PLATFORMS.forEach((platform) => {
-          const message = onlineLinkError(String(values[platform.field] ?? ""));
-          if (message) errors[platform.field] = message;
-        });
+        Object.assign(errors, validateOnlineLinks(values));
         return errors;
       }}
       validationSchema={
