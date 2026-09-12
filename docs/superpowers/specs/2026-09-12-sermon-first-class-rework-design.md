@@ -65,11 +65,10 @@ model sermon {
   series  sermon_series? @relation(fields: [series_id], references: [id], onDelete: SetNull)
   branch  branch?        @relation(fields: [branch_id], references: [id])
   creator user           @relation("sermon_creator", fields: [created_by], references: [id])
-  tags    sermon_tag_on_sermon[]
+  tags    sermon_tag_assignment[]
 
   @@index([series_id])
-  @@index([branch_id])
-  @@index([status])
+  @@index([branch_id, status])
 }
 ```
 
@@ -83,7 +82,7 @@ to `model user`.
 `onDelete` on the series relation changes from `Cascade` to `SetNull`. Deleting a
 series must not destroy its sermons — the sermon is now the record worth keeping.
 
-### `sermon_tag` and `sermon_tag_on_sermon` (new)
+### `sermon_tag` and `sermon_tag_assignment` (new)
 
 ```prisma
 model sermon_tag {
@@ -92,10 +91,10 @@ model sermon_tag {
   slug       String   @unique
   created_at DateTime @default(now())
 
-  sermons sermon_tag_on_sermon[]
+  sermons sermon_tag_assignment[]
 }
 
-model sermon_tag_on_sermon {
+model sermon_tag_assignment {
   sermon_id Int
   tag_id    Int
 

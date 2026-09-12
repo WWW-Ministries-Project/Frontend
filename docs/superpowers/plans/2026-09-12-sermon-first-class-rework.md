@@ -33,7 +33,7 @@
 
 | File | Action | Responsibility |
 |---|---|---|
-| `prisma/schema.prisma` | Modify | `sermon` columns and nullable `series_id`; new `sermon_tag` and `sermon_tag_on_sermon`; back-relations on `branch` and `user` |
+| `prisma/schema.prisma` | Modify | `sermon` columns and nullable `series_id`; new `sermon_tag` and `sermon_tag_assignment`; back-relations on `branch` and `user` |
 | `prisma/migrations/20260912160000_sermon_first_class/migration.sql` | Create | Hand-written DDL plus backfill |
 | `src/modules/sermons/sermonTagService.ts` | Create | Slug normalisation, tag upsert, tag listing. Isolated so the dedupe rule lives in exactly one place |
 | `src/modules/sermons/sermonService.ts` | Modify | Sermon CRUD and publish; series create no longer requires sermons |
@@ -99,12 +99,11 @@ model sermon {
   series  sermon_series? @relation(fields: [series_id], references: [id], onDelete: SetNull)
   branch  branch?        @relation(fields: [branch_id], references: [id])
   creator user           @relation("sermon_creator", fields: [created_by], references: [id])
-  tags    sermon_tag_on_sermon[]
+  tags    sermon_tag_assignment[]
 
   @@index([series_id])
-  @@index([branch_id])
+  @@index([branch_id, status])
   @@index([created_by])
-  @@index([status])
 }
 ```
 
@@ -121,10 +120,10 @@ model sermon_tag {
   slug       String   @unique
   created_at DateTime @default(now())
 
-  sermons sermon_tag_on_sermon[]
+  sermons sermon_tag_assignment[]
 }
 
-model sermon_tag_on_sermon {
+model sermon_tag_assignment {
   sermon_id Int
   tag_id    Int
 
@@ -266,10 +265,10 @@ ALTER TABLE `sermon`
     FOREIGN KEY (`created_by`) REFERENCES `user`(`id`)
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- Indexes
-CREATE INDEX `sermon_branch_id_idx` ON `sermon`(`branch_id`);
+-- Indexes. branch_id leads the composite, so the branch foreign key is still
+-- covered; a standalone index on a two-value status enum would earn little.
+CREATE INDEX `sermon_branch_id_status_idx` ON `sermon`(`branch_id`, `status`);
 CREATE INDEX `sermon_created_by_idx` ON `sermon`(`created_by`);
-CREATE INDEX `sermon_status_idx` ON `sermon`(`status`);
 
 -- CreateTable
 CREATE TABLE `sermon_tag` (
@@ -283,22 +282,22 @@ CREATE TABLE `sermon_tag` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `sermon_tag_on_sermon` (
+CREATE TABLE `sermon_tag_assignment` (
     `sermon_id` INTEGER NOT NULL,
     `tag_id` INTEGER NOT NULL,
 
-    INDEX `sermon_tag_on_sermon_tag_id_idx`(`tag_id`),
+    INDEX `sermon_tag_assignment_tag_id_idx`(`tag_id`),
     PRIMARY KEY (`sermon_id`, `tag_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `sermon_tag_on_sermon`
-    ADD CONSTRAINT `sermon_tag_on_sermon_sermon_id_fkey`
+ALTER TABLE `sermon_tag_assignment`
+    ADD CONSTRAINT `sermon_tag_assignment_sermon_id_fkey`
     FOREIGN KEY (`sermon_id`) REFERENCES `sermon`(`id`)
     ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE `sermon_tag_on_sermon`
-    ADD CONSTRAINT `sermon_tag_on_sermon_tag_id_fkey`
+ALTER TABLE `sermon_tag_assignment`
+    ADD CONSTRAINT `sermon_tag_assignment_tag_id_fkey`
     FOREIGN KEY (`tag_id`) REFERENCES `sermon_tag`(`id`)
     ON DELETE CASCADE ON UPDATE CASCADE;
 ```
