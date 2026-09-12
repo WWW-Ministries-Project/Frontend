@@ -1260,7 +1260,11 @@ export interface UpdateSermonSeriesDto {
 npx --prefix /Users/akwaah/Documents/GitHub/Frontend tsc --noEmit 2>&1 | grep -i sermon
 ```
 
-Expected: errors in `SermonForm.tsx`, `SermonManager.tsx`, `apiPost.ts`, `apiPut.ts`. Those files are rewritten in later tasks. Note the list; do not fix it here.
+Expected: exactly two errors, both in `SermonForm.tsx`, for the `sermons:` key in the two series payload literals. That file is rewritten in Task B6. Note them; do not fix them here.
+
+**`SermonManager.tsx`, `apiPost.ts` and `apiPut.ts` will NOT error, and that is the important thing to understand about this codebase.** `apiPost`/`apiPut` forward their payload straight into a generic `postToApi(path, payload)` / `updateData(path, payload)` without ever constructing a literal against the DTO, so the compiler has nothing to check. `SermonManager.tsx` only treats `SermonSeries` as an opaque type.
+
+The consequence for every remaining Frontend task: **a wrong endpoint path, a wrong payload shape, or a wrong response-unwrapping depth will not produce a type error.** `tsc` passing means almost nothing at the API boundary here. Verify those by reading the code against the endpoint table in this plan, and by the manual walkthrough in Task B10 — not by the typecheck.
 
 - [ ] **Step 3: Commit**
 
