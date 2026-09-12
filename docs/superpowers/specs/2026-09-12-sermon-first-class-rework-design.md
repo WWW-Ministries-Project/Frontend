@@ -308,9 +308,10 @@ into the `useFetch` calls so the list re-fetches when the active branch changes.
 
 ### Other consumers
 
-`src/pages/HomePage/pages/DashBoard/Components/RecentSermons.tsx` reads
-`GET /sermons` and expects series. It must be updated in the same Frontend PR to
-read the new sermon shape.
+None. `src/pages/HomePage/pages/DashBoard/Components/RecentSermons.tsx` renders a
+hardcoded "No sermons posted yet" empty state and never calls the API, so the
+response shape change does not reach it. Wiring it to real data is a separate
+piece of work and is out of scope here.
 
 ## Out of scope
 
