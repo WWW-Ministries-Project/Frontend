@@ -733,9 +733,16 @@ export const sermonService = {
 npx --prefix /Users/akwaah/Documents/GitHub/Backend tsc --noEmit
 ```
 
-Expected: no output, exit code 0.
+Expected: the two `creator` errors are GONE, replaced by exactly these two:
 
-This is the first point in the plan where `tsc` is expected to be clean. It currently reports the two `creator` errors above; Step 4 is what clears them. If either survives, Step 4 is incomplete.
+```
+src/modules/sermons/sermonController.ts(51,9): error TS2353: 'sermons' does not exist in type 'CreateSermonSeriesInput'.
+src/modules/sermons/sermonController.ts(130,9): error TS2353: 'sermons' does not exist in type 'UpdateSermonSeriesInput'.
+```
+
+That is the correct state to finish this task in. Removing `sermons` from the series DTOs in Step 4 is what turns those two call sites into excess-property errors, and Task A5 rewrites both. **Do not fix them by editing the controller here** — and do not restore `sermons` to the DTOs to silence them.
+
+If either `creator` error survives, Step 4 is incomplete. `tsc` first goes fully clean at the end of Task A6.
 
 - [ ] **Step 7: Commit**
 
