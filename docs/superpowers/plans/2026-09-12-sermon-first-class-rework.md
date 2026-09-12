@@ -1831,16 +1831,21 @@ interface SermonFormValues {
   tags: string[];
 }
 
-const YOUTUBE_URL_REGEX =
-  /^(https?:\/\/)?(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\/.+/i;
-
+// Validate with the same parser that produces the preview, rather than a
+// looser regex. A regex accepts /channel/... and /playlist?... links, which
+// yield no video id — the field goes green while the preview stays blank and
+// the save then fails server-side.
 const validationSchema = Yup.object({
   title: Yup.string().trim().required("Name is required"),
   description: Yup.string().nullable(),
   youtube_url: Yup.string()
     .trim()
     .required("A YouTube link is required")
-    .matches(YOUTUBE_URL_REGEX, "Enter a valid YouTube link"),
+    .test(
+      "is-youtube-video",
+      "Enter a link to a YouTube video",
+      (value) => !!extractYouTubeVideoId(value ?? "")
+    ),
 });
 
 interface SermonFormProps {
@@ -2772,3 +2777,14 @@ State which verification commands were actually run and what they output. If any
 That asymmetry is why the old `SermonManager.tsx` used `data.data` while the old `SermonForm.tsx` used `response.data?.id`. Both were right. `.data.data` inside a component after a direct `await` is always wrong.
 
 **Do not add a test runner.** Both repos deliberately have none.
+
+**Deliberately left alone.** Two pre-existing issues surfaced during review.
+Neither is this feature's business, but both deserve a ticket:
+
+- `can_view_sermons` is defined in the Backend's `authorization.ts` and
+  referenced nowhere, while `Sermons` is a live domain in the access-level
+  catalog — so admins see a Sermons "view" toggle that grants nothing. Fixing
+  it means touching the permissions UI.
+- The Frontend has a second YouTube parser in `LearningUnit.tsx`, differing in
+  subdomain matching and `/v/` handling. Consolidating means editing another
+  feature's code.
