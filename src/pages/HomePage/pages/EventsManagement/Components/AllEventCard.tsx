@@ -5,6 +5,29 @@ import { ReactNode, useCallback, useState } from "react";
 import { getBadgeColor } from "../utils/eventHelpers";
 import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
 
+const WEEKDAY_LABELS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+/** "Sundays, 09:00 - 11:00" — omits whichever parts were never filled in. */
+const formatSchedule = (item: EventType): string => {
+  const day =
+    typeof item.schedule_day === "number"
+      ? WEEKDAY_LABELS[item.schedule_day]
+      : undefined;
+  const times = [item.schedule_start_time, item.schedule_end_time]
+    .filter(Boolean)
+    .join(" - ");
+
+  return [day ? `${day}s` : "", times].filter(Boolean).join(", ");
+};
+
 interface IProps {
   item: EventType;
   handleEdit: (item: EventType) => void;
@@ -73,6 +96,18 @@ export const AllEventCard = ({
       <div className="text-sm leading-relaxed text-primaryGray">
         {item.event_description}
       </div>
+
+      {(item.event_category || formatSchedule(item)) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-primaryGray">
+          {item.event_category && (
+            <span className="font-medium capitalize">
+              {item.event_category.toLowerCase()}
+            </span>
+          )}
+          {item.event_category && formatSchedule(item) && <span>&middot;</span>}
+          {formatSchedule(item) && <span>{formatSchedule(item)}</span>}
+        </div>
+      )}
 
       {onView && (
         <button

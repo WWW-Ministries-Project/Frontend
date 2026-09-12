@@ -164,10 +164,8 @@ const AllEvent = () => {
     if (update_value?.data && currentData?.id) {
       const updatedData = update_value.data;
       editItem({
+        ...updatedData,
         id: currentData?.id,
-        event_name: updatedData.event_name,
-        event_type: updatedData.event_type,
-        event_description: updatedData.event_description,
       });
       showNotification("Event updated successfully", "success");
       setCurrentData(null);
