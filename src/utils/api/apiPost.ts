@@ -6,7 +6,12 @@ import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
-import type { SermonSeries, CreateSermonSeriesDto } from "./sermons/interfaces";
+import type {
+  Sermon,
+  SermonSeries,
+  CreateSermonDto,
+  CreateSermonSeriesDto,
+} from "./sermons/interfaces";
 import { AssetPayloadType } from "./assets/interfaces";
 import type {
   InitializePledgePaymentPayload,
@@ -616,22 +621,22 @@ export class ApiCreationCalls {
   };
 
   // Sermons
-  createSermonSeries = (
-    payload: CreateSermonSeriesDto
-  ): Promise<ApiResponse<SermonSeries>> => {
+  createSermon = (payload: CreateSermonDto): Promise<ApiResponse<Sermon>> => {
     return this.postToApi("sermons", payload);
   };
 
-  publishSermonSeries = (
-    id: number
-  ): Promise<ApiResponse<SermonSeries>> => {
+  publishSermon = (id: number): Promise<ApiResponse<Sermon>> => {
     return this.postToApi(`sermons/${id}/publish`, {});
   };
 
-  unpublishSermonSeries = (
-    id: number
-  ): Promise<ApiResponse<SermonSeries>> => {
+  unpublishSermon = (id: number): Promise<ApiResponse<Sermon>> => {
     return this.postToApi(`sermons/${id}/unpublish`, {});
+  };
+
+  createSermonSeries = (
+    payload: CreateSermonSeriesDto
+  ): Promise<ApiResponse<SermonSeries>> => {
+    return this.postToApi("sermons/series", payload);
   };
 
   // create receipt config 
