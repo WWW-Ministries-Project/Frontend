@@ -28,6 +28,13 @@ export interface Sermon {
   tags: SermonTag[];
 }
 
+/**
+ * Sermons nested inside a series come back as raw rows: the Backend's series
+ * include hydrates neither tags nor the parent series reference. Only a
+ * sermon fetched through the sermon endpoints carries those.
+ */
+export type SermonInSeries = Omit<Sermon, "tags" | "series">;
+
 export interface SermonSeries {
   id: number;
   title: string;
@@ -38,7 +45,7 @@ export interface SermonSeries {
   published_at: string | null;
   created_at: string;
   updated_at: string;
-  sermons: Sermon[];
+  sermons: SermonInSeries[];
 }
 
 export interface CreateSermonDto {
