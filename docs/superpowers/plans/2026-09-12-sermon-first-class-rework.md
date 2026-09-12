@@ -14,7 +14,20 @@
 
 ## Before you start
 
-**Neither repository has a test runner.** `Frontend/CLAUDE.md` says explicitly: "No test runner is configured. Do not add test scripts unless asked." Do not add Jest, Vitest, or `npm test` to either repo. Verification in this plan is `tsc --noEmit`, `npm run lint`, and named manual checks. Every "verify" step below states the exact command and the exact expected output.
+**Neither repository has a test runner.** `Frontend/CLAUDE.md` says explicitly: "No test runner is configured. Do not add test scripts unless asked." Do not add Jest, Vitest, or `npm test` to either repo. Verification in this plan is `tsc --noEmit`, targeted eslint, and named manual checks. Every "verify" step below states the exact command and the exact expected output.
+
+**`npm run lint` does not pass on the Frontend, and did not before this work.** A clean `development` worktree reports 86 errors and 18 warnings — almost all `@typescript-eslint/no-explicit-any` in Finance, Events, Reports and Members. Verified by running eslint against `development` directly; the count is identical with and without this branch. So a repo-wide `npm run lint` is NOT an achievable gate here, and no task should be blocked on it.
+
+The achievable gate, and the one every Frontend task uses, is that the files this work touches lint clean on their own:
+
+```bash
+npx --prefix /Users/akwaah/Documents/GitHub/Frontend eslint \
+  src/pages/HomePage/pages/ChurchCommunication \
+  src/utils/api/sermons \
+  src/utils/api/branchScope.ts --max-warnings 0
+```
+
+Expected: no output. Do not try to fix the 86 pre-existing violations — that is a separate cleanup across features this work does not touch.
 
 **Two repositories, two branches, two pull requests. Never stage files from both in one commit.** Always pass `-C <repo path>` to git rather than `cd`-ing, so the target repo is explicit.
 
