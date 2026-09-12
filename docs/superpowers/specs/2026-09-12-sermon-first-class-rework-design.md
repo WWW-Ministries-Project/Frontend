@@ -76,6 +76,10 @@ model sermon {
 New columns: `description`, `thumbnail_url`, `status`, `branch_id`, `created_by`,
 `published_at`, `updated_at`. `series_id` becomes nullable.
 
+Prisma requires both sides of a relation, so the migration also adds
+`sermons sermon[]` to `model branch` and `sermons sermon[] @relation("sermon_creator")`
+to `model user`.
+
 `onDelete` on the series relation changes from `Cascade` to `SetNull`. Deleting a
 series must not destroy its sermons — the sermon is now the record worth keeping.
 
@@ -130,9 +134,21 @@ Backfill, applied before the new columns are made non-nullable where relevant:
 - `title` is already populated by the existing oEmbed resolution, so it becomes
   the sermon Name with no transformation.
 
-No column is dropped and no row is deleted, so the migration is safe against a
+No column is dropped and no row is deleted, so the *migration* is safe against a
 client running older code. It is not reversible once new writes land in the new
 columns.
+
+The *endpoint* is not backward compatible. `GET /sermons` stops returning series,
+so the deployed Frontend breaks between the Backend merge and the Frontend merge.
+Two ways to close that window, pick one at implementation time:
+
+- Ship the Frontend PR immediately after the Backend deploy and accept a short
+  break on the Sermons page. Acceptable if the dev environment is the only target.
+- Serve the new listing at `GET /sermons/list` and leave `GET /sermons` returning
+  series until the Frontend has shipped, then collapse the two. Costs one extra
+  Backend PR but has no broken window.
+
+The first option is the default. Confirm before merging the Backend PR.
 
 **Deployment note:** Backend CI runs `prisma migrate deploy` on every push to
 `main`, against the shared dev database. Merging the Backend PR applies this
