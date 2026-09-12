@@ -182,6 +182,8 @@ vocabulary hangs off it."
 
 Migrations in this repo are hand-written SQL with an explanatory comment header — see `20260912120000_add_event_type_category_and_schedule/migration.sql` for the house style. Follow it.
 
+**Do not reorder the statements below.** Two of the orderings are load-bearing and were found the hard way: `series_id` must be widened while no foreign key references it, and each referencing column must be indexed before its key is added. Both are explained in the file's header comment.
+
 - [ ] **Step 1: Create the migration file**
 
 ```bash
@@ -201,6 +203,13 @@ Write this exact content to `prisma/migrations/20260912160000_sermon_first_class
   then tightened to NOT NULL, so the statement order below matters. `series_id`
   becomes nullable and its foreign key switches from ON DELETE CASCADE to
   ON DELETE SET NULL — deleting a series must no longer destroy its sermons.
+
+  Two orderings here are load-bearing rather than stylistic. `series_id` is
+  widened while no key references it, because InnoDB refuses a rebuilding ALTER
+  on a live foreign key column. And every referencing column is indexed before
+  its key is added, because MySQL otherwise auto-creates an index named after
+  the constraint — an index in no Prisma schema, which a later migrate dev would
+  try to drop and be refused (errno 1553).
 
   `thumbnail_url` is derived from the already-stored `video_id` rather than
   uploaded. It is a stored column, not a computed one, so a non-YouTube source
@@ -244,15 +253,27 @@ UPDATE `sermon` SET `updated_at` = `created_at` WHERE `updated_at` IS NULL;
 -- Tighten the backfilled columns
 ALTER TABLE `sermon`
     MODIFY `created_by` INTEGER NOT NULL,
-    MODIFY `updated_at` DATETIME(3) NOT NULL,
-    MODIFY `series_id` INTEGER NULL;
+    MODIFY `updated_at` DATETIME(3) NOT NULL;
 
--- Replace the cascading series foreign key with SET NULL
+-- Replace the cascading series foreign key with SET NULL. series_id is widened
+-- to NULL while no foreign key references it: InnoDB refuses a rebuilding
+-- ALTER on a column that is still the child side of a live key
+-- (ER_FK_COLUMN_CANNOT_CHANGE, 1832). Re-adding the key revalidates every row,
+-- which all pass because the old NOT NULL key already guaranteed a real parent.
 ALTER TABLE `sermon` DROP FOREIGN KEY `sermon_series_id_fkey`;
+ALTER TABLE `sermon` MODIFY `series_id` INTEGER NULL;
 ALTER TABLE `sermon`
     ADD CONSTRAINT `sermon_series_id_fkey`
     FOREIGN KEY (`series_id`) REFERENCES `sermon_series`(`id`)
     ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Indexes first: MySQL auto-creates an index named after the constraint if the
+-- referencing column is unindexed when the foreign key is added, which would
+-- drift from the Prisma schema. branch_id leads the composite, so the branch
+-- foreign key is still covered; a standalone index on a two-value status enum
+-- would earn little. `sermon_series_id_idx` already exists from 20260726130000.
+CREATE INDEX `sermon_branch_id_status_idx` ON `sermon`(`branch_id`, `status`);
+CREATE INDEX `sermon_created_by_idx` ON `sermon`(`created_by`);
 
 -- New foreign keys
 ALTER TABLE `sermon`
@@ -264,11 +285,6 @@ ALTER TABLE `sermon`
     ADD CONSTRAINT `sermon_created_by_fkey`
     FOREIGN KEY (`created_by`) REFERENCES `user`(`id`)
     ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- Indexes. branch_id leads the composite, so the branch foreign key is still
--- covered; a standalone index on a two-value status enum would earn little.
-CREATE INDEX `sermon_branch_id_status_idx` ON `sermon`(`branch_id`, `status`);
-CREATE INDEX `sermon_created_by_idx` ON `sermon`(`created_by`);
 
 -- CreateTable
 CREATE TABLE `sermon_tag` (
