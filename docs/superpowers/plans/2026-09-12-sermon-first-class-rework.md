@@ -217,7 +217,9 @@ Write this exact content to `prisma/migrations/20260912160000_sermon_first_class
 
   `sermon_tag.slug` is the deduplication key: lowercased, trimmed, inner
   whitespace collapsed. The unique index makes duplicate tags impossible even
-  under concurrent writes.
+  under concurrent writes. `sermon_tag_assignment` is a plain join table with no
+  timestamps of its own — a tag either applies to a sermon or it does not, and
+  both sides cascade, so removing either end removes the link.
 
   Forward-only. No column is dropped and no row is deleted, so this is safe to
   apply ahead of the clients that use the new columns.
@@ -247,7 +249,10 @@ SET s.`created_by`   = ss.`created_by`,
         ELSE NULL
     END;
 
--- Any row the join missed still needs a non-null updated_at
+-- Defensive only. The JOIN above reaches every row under the schema's own
+-- constraints, since series_id is still NOT NULL and foreign-key enforced here.
+-- This covers only rows some out-of-band write (an import run with
+-- FOREIGN_KEY_CHECKS=0, say) could have orphaned.
 UPDATE `sermon` SET `updated_at` = `created_at` WHERE `updated_at` IS NULL;
 
 -- Tighten the backfilled columns
