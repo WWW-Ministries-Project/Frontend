@@ -6,7 +6,12 @@ import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
-import type { SermonSeries, UpdateSermonSeriesDto } from "./sermons/interfaces";
+import type {
+  Sermon,
+  SermonSeries,
+  UpdateSermonDto,
+  UpdateSermonSeriesDto,
+} from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
@@ -551,13 +556,20 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData(`promotions/${id}`, payload);
   }
 
-  // update sermon series
+  // Sermons
+  updateSermon = (
+    id: number,
+    payload: UpdateSermonDto
+  ): Promise<ApiResponse<Sermon>> => {
+    return this.apiExecution.updateData(`sermons/${id}`, payload);
+  };
+
   updateSermonSeries = (
     id: number,
     payload: UpdateSermonSeriesDto
   ): Promise<ApiResponse<SermonSeries>> => {
-    return this.apiExecution.updateData(`sermons/${id}`, payload);
-  }
+    return this.apiExecution.updateData(`sermons/series/${id}`, payload);
+  };
 
 // update receipt config
   updateReceiptConfig = (
