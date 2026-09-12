@@ -659,33 +659,46 @@ const setSermonStatus = async (id: number, publish: boolean) => {
 };
 ```
 
-- [ ] **Step 4: Let a series be created without sermons**
+- [ ] **Step 4: Remove nested sermon writes from the series functions**
 
-Replace the first line of `createSermonSeries`:
+A series no longer contains sermons — a sermon references a series. Both series functions still write sermons as nested rows, and after Task A1 both fail to compile, because a nested `sermon` create now requires `created_by` which neither supplies:
 
-```ts
-  const sermons = validateSermons(input.sermons);
+```
+sermonService.ts(136,18): error TS2322: Property 'creator' is missing in type
+sermonService.ts(224,7):  error TS2322: Property 'creator' is missing in type
 ```
 
-with:
+Do not patch these by threading `created_by` through. Delete the nested-sermon paths outright — they are dead once the DTOs carry only `title` and `description`, and one of them is actively destructive: `updateSermonSeries` replaces the sermon set with `deleteMany: {}` followed by recreate, which under the new model would destroy each sermon's id, tags, description and publish status.
 
-```ts
-  // A series may now be created empty — the sermon form creates one inline
-  // before the sermon itself exists.
-  const sermons = input.sermons?.length ? validateSermons(input.sermons) : [];
-```
-
-and change its `CreateSermonSeriesInput` type so `sermons` is optional:
+Replace `CreateSermonSeriesInput` and `UpdateSermonSeriesInput` with:
 
 ```ts
 export type CreateSermonSeriesInput = {
   title: string;
   description?: string | null;
-  sermons?: SermonInput[];
   branch_id?: number | null;
   created_by: number;
 };
+
+export type UpdateSermonSeriesInput = {
+  title?: string;
+  description?: string | null;
+};
 ```
+
+In `createSermonSeries`, delete the `const sermons = validateSermons(input.sermons);` line and the `const rows = await resolveSermonRows(sermons);` line, and remove `sermons: { create: rows },` from the `data` object. A series is now created empty — the sermon form creates one inline, before any sermon exists.
+
+In `updateSermonSeries`, delete the entire `let sermonsWrite ...` block (everything from the `// When sermons are supplied` comment down to the closing of the `if (input.sermons !== undefined) { ... }` block) and remove `...(sermonsWrite ? { sermons: sermonsWrite } : {}),` from the `data` object. Its `include: sermonSeriesInclude` may stay — reading a series with its sermons is still useful.
+
+Then delete what is now unreachable: `resolveSermonRows`, `validateSermons`, and the `SermonInput` type. Keep `resolveYoutube` and `extractYouTubeVideoId` — `createSermon` uses both.
+
+Verify nothing else referenced them:
+
+```bash
+grep -rn "resolveSermonRows\|validateSermons\|SermonInput" /Users/akwaah/Documents/GitHub/Backend/src
+```
+
+Expected after the edit: only `CreateSermonInput` and `UpdateSermonInput` match (they contain the substring `SermonInput`). Any other hit means something still depends on the deleted code — stop and report rather than deleting it.
 
 - [ ] **Step 5: Export the new functions**
 
@@ -716,6 +729,8 @@ npx --prefix /Users/akwaah/Documents/GitHub/Backend tsc --noEmit
 ```
 
 Expected: no output, exit code 0.
+
+This is the first point in the plan where `tsc` is expected to be clean. It currently reports the two `creator` errors above; Step 4 is what clears them. If either survives, Step 4 is incomplete.
 
 - [ ] **Step 7: Commit**
 
