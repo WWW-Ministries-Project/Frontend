@@ -195,12 +195,14 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`promotions/${id}`, {});
   }
 
-  // Delete Sermon Series
-  deleteSermonSeries = (
-    id: number
-  ): Promise<ApiResponse<void>> => {
+  // Sermons
+  deleteSermon = (id: number): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`sermons/${id}`, {});
-  }
+  };
+
+  deleteSermonSeries = (id: number): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>(`sermons/series/${id}`, {});
+  };
 
   // delete receipt confiq
   deleteReceiptConfig = (

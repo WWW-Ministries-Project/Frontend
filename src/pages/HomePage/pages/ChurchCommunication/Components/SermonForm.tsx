@@ -1,121 +1,135 @@
-import { Formik, Form, Field, FieldArray } from "formik";
+import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
 import { api } from "@/utils/api/apiCalls";
 import { showNotification } from "@/pages/HomePage/utils";
+import { extractYouTubeVideoId, youtubeThumbnail } from "../utils/youtube";
+import SeriesForm from "./SeriesForm";
+import TagSelect from "./TagSelect";
 import type {
+  Sermon,
   SermonSeries,
-  CreateSermonSeriesDto,
-  UpdateSermonSeriesDto,
+  SermonTag,
 } from "@/utils/api/sermons/interfaces";
-
-interface SermonLinkValue {
-  id?: number;
-  youtube_url: string;
-  title?: string;
-}
 
 interface SermonFormValues {
   title: string;
   description: string;
-  sermons: SermonLinkValue[];
+  youtube_url: string;
+  series_id: number | "";
+  tags: string[];
 }
 
-const YOUTUBE_URL_REGEX =
-  /^(https?:\/\/)?(www\.|m\.|music\.)?(youtube\.com|youtu\.be)\/.+/i;
-
+// Validate with the same parser that produces the preview, rather than a
+// looser regex. A regex accepts /channel/... and /playlist?... links, which
+// yield no video id — the field goes green while the preview stays blank and
+// the save then fails server-side.
 const validationSchema = Yup.object({
-  title: Yup.string().trim().required("Title is required"),
+  title: Yup.string().trim().required("Name is required"),
   description: Yup.string().nullable(),
-  sermons: Yup.array()
-    .of(
-      Yup.object({
-        youtube_url: Yup.string()
-          .trim()
-          .required("YouTube link is required")
-          .matches(YOUTUBE_URL_REGEX, "Enter a valid YouTube link"),
-      })
-    )
-    .min(1, "Add at least one YouTube link"),
+  youtube_url: Yup.string()
+    .trim()
+    .required("A YouTube link is required")
+    .test(
+      "is-youtube-video",
+      "Enter a link to a YouTube video",
+      (value) => !!extractYouTubeVideoId(value ?? "")
+    ),
 });
 
 interface SermonFormProps {
-  series?: SermonSeries | null;
+  sermon?: Sermon | null;
   onClose: () => void;
   onSaved: () => void;
 }
 
-const emptyLink = (): SermonLinkValue => ({ youtube_url: "" });
-
-const SermonForm = ({ series, onClose, onSaved }: SermonFormProps) => {
+export const SermonForm = ({ sermon, onClose, onSaved }: SermonFormProps) => {
   const [submitting, setSubmitting] = useState(false);
+  const [seriesOptions, setSeriesOptions] = useState<SermonSeries[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<SermonTag[]>([]);
+  const [seriesModalOpen, setSeriesModalOpen] = useState(false);
   const publishRef = useRef(false);
 
-  const isEdit = Boolean(series);
-  const isPublished = series?.status === "PUBLISHED";
+  const isEdit = Boolean(sermon);
+  const isPublished = sermon?.status === "PUBLISHED";
+
+  // Loaded once when the form mounts. The series list is mutated locally when
+  // the user creates one inline, so it is not re-fetched on every render.
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const [seriesRes, tagsRes] = await Promise.all([
+          api.fetch.fetchSermonSeries(),
+          api.fetch.fetchSermonTags(),
+        ]);
+        if (cancelled) return;
+        setSeriesOptions(seriesRes.data ?? []);
+        setTagSuggestions(tagsRes.data ?? []);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to load sermon form options", error);
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const initialValues: SermonFormValues = {
-    title: series?.title ?? "",
-    description: series?.description ?? "",
-    sermons:
-      series?.sermons && series.sermons.length > 0
-        ? series.sermons.map((sermon) => ({
-            id: sermon.id,
-            youtube_url: sermon.youtube_url,
-            title: sermon.title,
-          }))
-        : [emptyLink()],
+    title: sermon?.title ?? "",
+    description: sermon?.description ?? "",
+    youtube_url: sermon?.youtube_url ?? "",
+    series_id: sermon?.series_id ?? "",
+    tags: sermon?.tags?.map((tag) => tag.name) ?? [],
   };
+
+  const seriesSelectOptions = useMemo(
+    () => seriesOptions.map((item) => ({ value: item.id, label: item.title })),
+    [seriesOptions]
+  );
 
   const handleSave = async (values: SermonFormValues) => {
     const shouldPublish = publishRef.current;
-
     setSubmitting(true);
+
     try {
-      if (series) {
-        const payload: UpdateSermonSeriesDto = {
-          title: values.title.trim(),
-          description: values.description.trim() || null,
-          sermons: values.sermons.map((link) => ({
-            ...(link.id ? { id: link.id } : {}),
-            youtube_url: link.youtube_url.trim(),
-          })),
-        };
-        await api.put.updateSermonSeries(series.id, payload);
-        if (shouldPublish && !isPublished) {
-          await api.post.publishSermonSeries(series.id);
-        }
-      } else {
-        const payload: CreateSermonSeriesDto = {
-          title: values.title.trim(),
-          description: values.description.trim() || null,
-          sermons: values.sermons.map((link) => ({
-            youtube_url: link.youtube_url.trim(),
-          })),
-        };
-        const response = await api.post.createSermonSeries(payload);
-        const newId = response.data?.id;
-        if (shouldPublish && newId) {
-          await api.post.publishSermonSeries(newId);
-        }
+      const payload = {
+        title: values.title.trim(),
+        description: values.description.trim() || null,
+        youtube_url: values.youtube_url.trim(),
+        series_id: values.series_id === "" ? null : Number(values.series_id),
+        tags: values.tags,
+      };
+
+      const saved = sermon
+        ? await api.put.updateSermon(sermon.id, payload)
+        : await api.post.createSermon(payload);
+
+      const savedId = sermon?.id ?? saved.data?.id;
+      if (shouldPublish && savedId && !isPublished) {
+        await api.post.publishSermon(savedId);
       }
 
       showNotification(
-        shouldPublish
-          ? "Sermon series published successfully"
-          : "Sermon series saved successfully",
+        shouldPublish ? "Sermon published" : "Sermon saved",
         "success"
       );
       onSaved();
       onClose();
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("Sermon series submit failed", error);
+      console.error("Sermon submit failed", error);
       showNotification(
-        "Sermon series could not be saved. Please try again.",
+        "The sermon could not be saved. Please try again.",
         "error",
         "Sermons"
       );
@@ -124,8 +138,6 @@ const SermonForm = ({ series, onClose, onSaved }: SermonFormProps) => {
     }
   };
 
-  const primaryLabel = isPublished ? "Save" : "Save & publish";
-
   return (
     <Formik
       initialValues={initialValues}
@@ -133,125 +145,149 @@ const SermonForm = ({ series, onClose, onSaved }: SermonFormProps) => {
       enableReinitialize
       onSubmit={handleSave}
     >
-      {({ handleSubmit, values }) => (
-        <Form className="h-[calc(100vh-180px)] flex flex-col overflow-auto">
-          <div className="sticky top-0 z-10">
-            <FormHeader>
-              <p className="text-lg font-semibold">
-                {isEdit ? "Edit Sermon Series" : "Create Sermon Series"}
-              </p>
-              <p className="text-sm text-white">
-                {isEdit
-                  ? "Make changes to the sermon series"
-                  : "Add a title, description and one or more YouTube links"}
-              </p>
-            </FormHeader>
-          </div>
+      {({ handleSubmit, values, setFieldValue }) => {
+        const previewUrl = youtubeThumbnail(
+          extractYouTubeVideoId(values.youtube_url)
+        );
 
-          <div className="flex-1 overflow-y-auto space-y-4 px-6 py-4">
-            <Field
-              component={FormikInputDiv}
-              label="Title *"
-              name="title"
-              id="title"
-              placeholder="Sermon series title"
-            />
+        return (
+          <Form className="flex h-[calc(100vh-180px)] flex-col overflow-auto">
+            <div className="sticky top-0 z-10">
+              <FormHeader>
+                <p className="text-lg font-semibold">
+                  {isEdit ? "Edit sermon" : "Add sermon"}
+                </p>
+                <p className="text-sm text-white">
+                  {isEdit
+                    ? "Make changes to this sermon"
+                    : "The thumbnail is generated from the YouTube link"}
+                </p>
+              </FormHeader>
+            </div>
 
-            <Field
-              component={FormikInputDiv}
-              label="Short description"
-              name="description"
-              id="description"
-              placeholder="What is this series about?"
-            />
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              <Field
+                component={FormikInputDiv}
+                label="Name *"
+                name="title"
+                id="sermon-title"
+                placeholder="Walking In Faith"
+              />
 
-            <FieldArray name="sermons">
-              {({ push, remove }) => (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium">
-                      YouTube links *
-                    </label>
-                    <button
-                      type="button"
-                      className="text-sm text-primary"
-                      onClick={() => push(emptyLink())}
-                    >
-                      + Add link
-                    </button>
+              <Field
+                component={FormikInputDiv}
+                label="Description"
+                name="description"
+                id="sermon-description"
+                type="textarea"
+                placeholder="What is this message about?"
+              />
+
+              <Field
+                component={FormikInputDiv}
+                label="YouTube link *"
+                name="youtube_url"
+                id="sermon-url"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+
+              <div className="flex flex-col gap-1">
+                <span className="block text-sm font-medium">Thumbnail</span>
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="Video thumbnail"
+                    className="aspect-video w-full max-w-xs rounded-lg border object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-video w-full max-w-xs items-center justify-center rounded-lg border border-dashed text-xs text-gray-400">
+                    Paste a YouTube link to preview the thumbnail
                   </div>
+                )}
+                <p className="text-xs text-gray-400">
+                  Generated from the link. Nothing to upload.
+                </p>
+              </div>
 
-                  {values.sermons.map((link, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-2 rounded-md border p-3"
-                    >
-                      <div className="flex-1">
-                        <Field
-                          component={FormikInputDiv}
-                          name={`sermons[${index}].youtube_url`}
-                          id={`sermons-${index}-url`}
-                          placeholder="https://www.youtube.com/watch?v=..."
-                        />
-                        {link.title && (
-                          <p className="mt-1 truncate text-xs text-gray-500">
-                            {link.title}
-                          </p>
-                        )}
-                      </div>
-                      {values.sermons.length > 1 && (
-                        <button
-                          type="button"
-                          className="mt-2 text-sm text-red-500"
-                          onClick={() => remove(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <p className="text-xs text-gray-400">
-                    Video names are captured automatically from each link when
-                    you save.
-                  </p>
-                </div>
-              )}
-            </FieldArray>
-          </div>
+              <div className="flex flex-col gap-1">
+                <Field
+                  component={FormikSelectField}
+                  label="Series"
+                  name="series_id"
+                  id="sermon-series"
+                  options={seriesSelectOptions}
+                  placeholder="No series"
+                  searchable
+                  clearable
+                />
+                <button
+                  type="button"
+                  className="self-start text-sm text-primary"
+                  onClick={() => setSeriesModalOpen(true)}
+                >
+                  + Create new series
+                </button>
+              </div>
 
-          <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
-            <Button
-              variant="secondary"
-              type="button"
-              value="Cancel"
-              onClick={onClose}
-            />
+              <TagSelect
+                suggestions={tagSuggestions}
+                value={values.tags}
+                onChange={(names) => setFieldValue("tags", names)}
+              />
+            </div>
 
-            {!isPublished && (
+            <div className="sticky bottom-0 flex justify-end gap-3 border-t bg-white px-6 py-4">
               <Button
                 variant="secondary"
                 type="button"
-                value="Save as draft"
+                value="Cancel"
+                onClick={onClose}
+              />
+
+              {!isPublished && (
+                <Button
+                  variant="secondary"
+                  type="button"
+                  value="Save as draft"
+                  loading={submitting}
+                  onClick={() => {
+                    publishRef.current = false;
+                    handleSubmit();
+                  }}
+                />
+              )}
+
+              <Button
+                type="button"
+                value={isPublished ? "Save" : "Save & publish"}
                 loading={submitting}
                 onClick={() => {
-                  publishRef.current = false;
+                  publishRef.current = !isPublished;
                   handleSubmit();
                 }}
               />
-            )}
+            </div>
 
-            <Button
-              type="button"
-              value={primaryLabel}
-              loading={submitting}
-              onClick={() => {
-                publishRef.current = !isPublished;
-                handleSubmit();
-              }}
-            />
-          </div>
-        </Form>
-      )}
+            {/* Stacked over this form. The sermon form is never unmounted, so
+                anything already typed survives creating a series. */}
+            <Modal
+              open={seriesModalOpen}
+              onClose={() => setSeriesModalOpen(false)}
+              title="Create series"
+              className="max-w-lg"
+            >
+              <SeriesForm
+                compact
+                onClose={() => setSeriesModalOpen(false)}
+                onSaved={(created) => {
+                  setSeriesOptions((prev) => [created, ...prev]);
+                  setFieldValue("series_id", created.id);
+                }}
+              />
+            </Modal>
+          </Form>
+        );
+      }}
     </Formik>
   );
 };

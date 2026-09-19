@@ -7,7 +7,7 @@ import { downloadFile, fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
-import type { SermonSeries } from "./sermons/interfaces";
+import type { Sermon, SermonSeries, SermonTag } from "./sermons/interfaces";
 import type {
   MyPledgeRow,
   PledgeDetail,
@@ -794,16 +794,26 @@ export class ApiCalls {
   };
 
   // Sermons
-  fetchSermonSeries = (
-    query?: QueryType
-  ): Promise<ApiResponse<SermonSeries[]>> => {
+  fetchSermons = (query?: QueryType): Promise<ApiResponse<Sermon[]>> => {
     return this.fetchFromApi("sermons", query);
   };
 
-  fetchOneSermonSeries = (
-    id: number
-  ): Promise<ApiResponse<SermonSeries>> => {
+  fetchOneSermon = (id: number): Promise<ApiResponse<Sermon>> => {
     return this.fetchFromApi(`sermons/${id}`);
+  };
+
+  fetchSermonSeries = (
+    query?: QueryType
+  ): Promise<ApiResponse<SermonSeries[]>> => {
+    return this.fetchFromApi("sermons/series", query);
+  };
+
+  fetchOneSermonSeries = (id: number): Promise<ApiResponse<SermonSeries>> => {
+    return this.fetchFromApi(`sermons/series/${id}`);
+  };
+
+  fetchSermonTags = (query?: QueryType): Promise<ApiResponse<SermonTag[]>> => {
+    return this.fetchFromApi("sermons/tags", query);
   };
 
   fetchMyAnnouncements = (

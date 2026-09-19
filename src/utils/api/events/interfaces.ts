@@ -49,11 +49,20 @@ export type EventResponseType = {
   registration_message?: string | null;
 };
 
+export type EventCategory = "WEEKLY" | "SPECIAL";
+
 export type EventType = {
   id: string;
   event_name: string;
   event_type: string;
   event_description: string;
+  /** Pairs with `event_type` for display, e.g. WEEKLY + SERVICE -> "Weekly Service". */
+  event_category?: EventCategory | "";
+  /** Weekday the event runs on, 0 (Sunday) - 6, matching Date.getDay(). */
+  schedule_day?: number | "" | null;
+  /** "HH:mm", 24-hour. */
+  schedule_start_time?: string | null;
+  schedule_end_time?: string | null;
   branch_id?: number | "";
 };
 
