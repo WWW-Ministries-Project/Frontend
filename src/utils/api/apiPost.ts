@@ -33,7 +33,10 @@ import type {
   BulkUpdateUserStatusPayload,
   BulkUpdateUserStatusResponse,
 } from "./members/interfaces";
-import { DepartmentType } from "./settings/departmentInterfaces";
+import {
+  CreateDepartmentPayload,
+  DepartmentType,
+} from "./settings/departmentInterfaces";
 import type {
   BulkJoinRequestPayload,
   CreateJoinRequestPayload,
@@ -332,7 +335,7 @@ export class ApiCreationCalls {
     this.postToApi<T>("access/create-access-level", payload);
 
   createDepartment = (
-    payload: unknown
+    payload: CreateDepartmentPayload
   ): Promise<ApiResponse<DepartmentType[]>> => {
     return this.postToApi("department/create-department", payload);
   };

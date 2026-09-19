@@ -21,7 +21,12 @@ import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStor
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { useStore } from "@/store/useStore";
 import { useUserStore } from "@/store/userStore";
-import { api, DepartmentType, relativePath } from "@/utils";
+import {
+  api,
+  DepartmentMutationPayload,
+  DepartmentType,
+  relativePath,
+} from "@/utils";
 import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -375,15 +380,24 @@ export const DepartmentsAndMinistries = () => {
       return;
     }
 
-    const payload = {
-      ...formState,
-      created_by: userId,
+    const payload: DepartmentMutationPayload = {
       name: formState.name.trim(),
       description: formState.description.trim(),
+      department_head: formState.department_head,
+      branch_id: formState.branch_id,
+      status: formState.status,
+      // The store keeps the user id as a string, but the API column is an Int
+      // and Prisma rejects the write outright if it arrives as a string.
+      created_by: Number(userId),
     };
 
     if (isEditMode) {
-      void updateDepartment(payload);
+      if (!formState.id) {
+        showNotification("Cannot update a department without an id.", "error");
+        return;
+      }
+
+      void updateDepartment({ ...payload, id: formState.id });
       return;
     }
 

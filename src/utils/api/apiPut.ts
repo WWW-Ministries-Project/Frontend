@@ -21,6 +21,10 @@ import {
   activateMemberType,
 } from "./members/interfaces";
 import type { Branch, BranchPayload } from "./settings/branchInterfaces";
+import type {
+  DepartmentType,
+  UpdateDepartmentPayload,
+} from "./settings/departmentInterfaces";
 import {
   CohortPayloadType,
   ReorderProgramTopicsPayload,
@@ -149,10 +153,10 @@ export class ApiUpdateCalls {
   };
 
   // Update Department
-  updateDepartment = <T>(
-    payload: unknown,
+  updateDepartment = (
+    payload: UpdateDepartmentPayload,
     query?: QueryType
-  ): Promise<ApiResponse<T>> => {
+  ): Promise<ApiResponse<DepartmentType>> => {
     return this.apiExecution.updateData(
       "department/update-department",
       payload,
