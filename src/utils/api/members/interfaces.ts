@@ -93,6 +93,9 @@ export type MembersType = {
   primary_number: string;
   title: string;
   photo: string;
+  // Set by the API when the member is on the viewer's Members exclusion
+  // list; contact details come back null.
+  is_restricted?: boolean;
 };
 
 export type AccessLevelType = {

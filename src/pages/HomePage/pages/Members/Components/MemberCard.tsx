@@ -16,7 +16,12 @@ interface IProps {
   onCloseOptions: () => void;
   onDelete: (val?: MembersType) => void;
   canManage?: boolean;
+  // Member is on the viewer's Members exclusion list: contact details are
+  // masked and the profile can't be opened.
+  isExcluded?: boolean;
 }
+
+const MASKED_VALUE = "••••••••";
 
 export const MemberCard = (props: IProps) => {
   const {
@@ -26,7 +31,9 @@ export const MemberCard = (props: IProps) => {
     onCloseOptions,
     onDelete,
     canManage,
+    isExcluded: isExcludedProp = false,
   } = props;
+  const isExcluded = isExcludedProp || Boolean(member?.is_restricted);
   const navigate = useNavigate();
   const optionsRef = useRef<HTMLDivElement | null>(null);
 
@@ -44,9 +51,11 @@ export const MemberCard = (props: IProps) => {
     ? member.status.replace(/_/g, " ")
     : "Profile pending";
   const memberIdLabel = member?.member_id || "Member ID pending";
-  const phoneLabel =
-    `${member?.country_code ? `${member.country_code} ` : ""}${member?.primary_number || ""}`.trim() ||
-    "No phone number";
+  const phoneLabel = isExcluded
+    ? MASKED_VALUE
+    : `${member?.country_code ? `${member.country_code} ` : ""}${member?.primary_number || ""}`.trim() ||
+      "No phone number";
+  const emailLabel = isExcluded ? MASKED_VALUE : member?.email || "No email";
 
   const handleDelete = () => {
     onDelete(member);
@@ -92,16 +101,24 @@ export const MemberCard = (props: IProps) => {
           {showOptions && (
             <Action
               onDelete={handleDelete}
-              onView={() => {
-                onCloseOptions();
-                navigate(`/home/members/${encodeQuery(member.id)}`);
-              }}
-              onEdit={() => {
-                onCloseOptions();
-                navigate(
-                  `/home/members/manage-member?member_id=${encodeQuery(member.id)}`,
-                );
-              }}
+              onView={
+                isExcluded
+                  ? undefined
+                  : () => {
+                      onCloseOptions();
+                      navigate(`/home/members/${encodeQuery(member.id)}`);
+                    }
+              }
+              onEdit={
+                isExcluded
+                  ? undefined
+                  : () => {
+                      onCloseOptions();
+                      navigate(
+                        `/home/members/manage-member?member_id=${encodeQuery(member.id)}`,
+                      );
+                    }
+              }
             />
           )}
         </div>
@@ -132,7 +149,7 @@ export const MemberCard = (props: IProps) => {
         <div className="flex items-center gap-2 text-sm text-primary">
           {/* <img src={email} alt="email" /> */}
           <EnvelopeIcon className="h-4 w-4 text-primary" />
-          <p className="truncate">{member?.email || "No email"}</p>
+          <p className="truncate">{emailLabel}</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-primary">
           {/* <img src={phone} alt="phone" /> */}
@@ -181,6 +198,7 @@ export const MemberCard = (props: IProps) => {
         value="View profile"
         variant="secondary"
         onClick={() => navigate(`/home/members/${encodeQuery(member.id)}`)}
+        disabled={isExcluded}
         className="mt-auto w-full border-[#D8DAE5]"
       />
     </CardWrapper>

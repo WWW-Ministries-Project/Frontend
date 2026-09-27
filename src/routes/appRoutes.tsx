@@ -6,6 +6,7 @@ import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.
 import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
+import { MemberExclusionGuard } from "@/routes/MemberExclusionGuard";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
 import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
@@ -318,14 +319,22 @@ export const routes: AppRoute[] = [
       },
       {
         path: relativePath.home.members.manage,
-        element: <ManageMember />,
+        element: (
+          <MemberExclusionGuard>
+            <ManageMember />
+          </MemberExclusionGuard>
+        ),
         name: "Manage Member",
         isPrivate: true,
         permissionNeeded: "manage_members",
       },
       {
         path: "members/:id",
-        element: <ProfileDetails />,
+        element: (
+          <MemberExclusionGuard>
+            <ProfileDetails />
+          </MemberExclusionGuard>
+        ),
         isPrivate: true,
         name: "Profile Details",
         permissionNeeded: "view_members",
