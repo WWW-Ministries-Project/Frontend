@@ -7,7 +7,11 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import PageHeader from "@/pages/HomePage/Components/PageHeader";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
-import { encodeQuery, showDeleteDialog } from "@/pages/HomePage/utils";
+import {
+  encodeQuery,
+  showConfirmDialog,
+  showDeleteDialog,
+} from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import {
   EXCLUSION_SUPPORTED_DOMAINS,
@@ -18,8 +22,11 @@ import {
 } from "@/utils/accessControl";
 import { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AccessLevelViewModal } from "../Components/AccessLevelViewModal";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  AccessLevelViewModal,
+  AccessLevelViewTab,
+} from "../Components/AccessLevelViewModal";
 import { AccessRight } from "../utils/settingsInterfaces";
 
 type AccessRightRow = AccessRight & {
@@ -43,9 +50,13 @@ export function AccessRights() {
   );
 
   const [filter, setFilter] = useState("");
-  const [viewingAccessRight, setViewingAccessRight] =
-    useState<AccessRightRow | null>(null);
+  const [viewingId, setViewingId] = useState<number | null>(null);
+  const [viewTab, setViewTab] = useState<AccessLevelViewTab>("access_info");
   const navigate = useNavigate();
+  const location = useLocation();
+  const assignMembersFor = (
+    location.state as { assignMembersFor?: string } | null
+  )?.assignMembersFor;
 
   const accessRights = useMemo(() => data?.data || [], [data]);
 
@@ -73,6 +84,12 @@ export function AccessRights() {
     });
   }, [accessRights]);
 
+  // Derive from rows so the modal reflects a refetch after members change.
+  const viewingAccessRight = useMemo(
+    () => rows.find((row) => row.id === viewingId) || null,
+    [rows, viewingId]
+  );
+
   const handleDelete = useCallback(
     (accessRight: AccessRight) => {
       showDeleteDialog(accessRight, () => {
@@ -93,13 +110,44 @@ export function AccessRights() {
     [navigate]
   );
 
-  const openViewModal = useCallback((accessRight: AccessRightRow) => {
-    setViewingAccessRight(accessRight);
-  }, []);
+  const openViewModal = useCallback(
+    (accessRight: AccessRight, tab: AccessLevelViewTab = "access_info") => {
+      setViewTab(tab);
+      setViewingId(accessRight.id);
+    },
+    []
+  );
 
   const closeViewModal = useCallback(() => {
-    setViewingAccessRight(null);
+    setViewingId(null);
   }, []);
+
+  useEffect(() => {
+    if (!assignMembersFor || !canManageAccessRights) return;
+    const created = accessRights.find(
+      (accessRight) => accessRight.name === assignMembersFor
+    );
+    if (!created) return;
+
+    // Clear the router state so a refresh or back-navigation does not re-prompt.
+    navigate(location.pathname, { replace: true, state: null });
+    showConfirmDialog(
+      `Assign members to ${created.name}?`,
+      () => openViewModal(created, "assigned_members"),
+      {
+        message:
+          "You can pick ministry workers for this access level now, or do it later from View.",
+        confirmLabel: "Assign members",
+      }
+    );
+  }, [
+    accessRights,
+    assignMembersFor,
+    canManageAccessRights,
+    location.pathname,
+    navigate,
+    openViewModal,
+  ]);
 
   const columns: ColumnDef<AccessRightRow>[] = useMemo(
     () => [
@@ -171,7 +219,7 @@ export function AccessRights() {
   useEffect(() => {
     if (deleteSuccess) {
       refetch();
-      setViewingAccessRight(null);
+      setViewingId(null);
     }
   }, [deleteSuccess, refetch]);
 
@@ -240,7 +288,9 @@ export function AccessRights() {
         open={Boolean(viewingAccessRight)}
         accessRight={viewingAccessRight}
         canManageAccessRights={canManageAccessRights}
+        initialTab={viewTab}
         onClose={closeViewModal}
+        onMembersUpdated={refetch}
         onEdit={(accessRight) => {
           closeViewModal();
           openEdit(accessRight);

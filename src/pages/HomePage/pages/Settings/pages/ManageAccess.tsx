@@ -277,9 +277,13 @@ export function ManageAccess() {
   useEffect(() => {
     if (response) {
       showNotification("Access level created successfully", "success");
-      navigate("/home/settings/access-rights");
+      // Names are unique, so the list page can find the new level by name
+      // and offer to assign members to it.
+      navigate("/home/settings/access-rights", {
+        state: { assignMembersFor: name.trim() },
+      });
     }
-  }, [navigate, response]);
+  }, [name, navigate, response]);
 
   useEffect(() => {
     if (updatedData) {

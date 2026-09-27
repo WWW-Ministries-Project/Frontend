@@ -22,6 +22,7 @@ export type GeneralSettingsTab =
   | "Position"
   | "Requisition"
   | "Attendance"
+  | "Reports"
   | "Eligibility Rules"
   | "Notifications"
   | "Logs";
@@ -42,12 +43,16 @@ export function useSettingsTabs({
     "Position",
     "Requisition",
     "Attendance",
+    "Reports",
     "Notifications",
     "Logs",
     "Eligibility Rules",
   ];
   const [selectedTab, setSelectedTab] = useState<GeneralSettingsTab>(tabs[0]);
+  // Holds either the branch or the position table, depending on the tab.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [columns, setColumns] = useState<ColumnDef<any>[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [selectedId, setSelectedId] = useState<string>("pastor_in_charge_id");

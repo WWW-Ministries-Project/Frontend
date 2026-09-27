@@ -32,6 +32,7 @@ import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
 import { LogsSettings } from "./Components/LogsSettings";
 import { NotificationSettings } from "./Components/NotificationSettings";
+import { ReportsSettings } from "./Components/ReportsSettings";
 import {
   buildEligibilityRulesPayload,
   createEmptyEligibilityRules,
@@ -576,8 +577,8 @@ function Settings() {
       <div>
         <PageHeader title="General configuration" />
         <p className="P200 text-gray">
-          Manage branches, position, requisition, attendance, log routing,
-          notification, and eligibility rule configuration settings.
+          Manage branches, position, requisition, attendance, reports, log
+          routing, notification, and eligibility rule configuration settings.
         </p>
         <div className="mt-2 mb-6 overflow-x-auto">
           <div className="flex min-w-max gap-2 rounded-lg border border-lightGray p-1">
@@ -683,6 +684,13 @@ function Settings() {
         <>
           <PageHeader className="font-semibold text-xl" title="Attendance" />
           <AttendanceSettings />
+        </>
+      )}
+
+      {selectedTab === "Reports" && (
+        <>
+          <PageHeader className="font-semibold text-xl" title="Reports" />
+          <ReportsSettings />
         </>
       )}
 

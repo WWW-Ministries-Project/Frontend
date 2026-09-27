@@ -292,6 +292,56 @@ Optional alternative (if backend prefers module-specific namespace):
 - `POST /event-reports/upsert-approval-config`
 - `GET /event-reports/get-approval-config`
 
+## Settings > Attendance > Timing Rules
+
+Attendee `status` (`early` | `on_time` | `late` | `absent`) in the report detail is
+classified server-side from the saved timing rules. Rules are versioned: each save
+creates a version with an `effective_from`, and an arrival uses the most recently
+saved version whose `effective_from` is on or before the arrival time.
+
+`POST settings/upsert-attendance-timing-config`
+
+```json
+{
+  "early":   { "value": 15, "unit": "MINUTES" },
+  "on_time": { "value": 15, "unit": "MINUTES" },
+  "late":    { "value": 15, "unit": "MINUTES" },
+  "apply_to_existing": true,
+  "apply_from": "2026-06"
+}
+```
+
+- `apply_to_existing: false` (or omitted): rules apply only to attendance recorded after the save.
+- `apply_to_existing: true`: `apply_from` (`YYYY-MM`, not in the future) is required; attendance
+  from the first day of that month (UTC) onwards is reclassified.
+- Classification: `minutes_from_start <= -early` → early; `>= late` → late; otherwise on time.
+
+`GET settings/attendance-timing-config` response adds `effective_from` (ISO; `1970-01-01` means
+the rules cover all history).
+
+## Settings > Reports > Event Report
+
+Members on the exclusion list are removed from event report department rosters, member counts,
+attendance percentages and exported summaries. Church head-count totals are unaffected.
+
+`GET settings/event-report-exclusions` (view settings)
+
+```json
+{
+  "users": [
+    { "id": 12, "name": "Jane Doe", "email": "jane@example.com", "member_id": "WWM-0012", "excluded_at": "2026-09-27T10:00:00.000Z" }
+  ],
+  "total": 1
+}
+```
+
+`POST settings/upsert-event-report-exclusions` (manage settings) replaces the whole list and
+returns the same shape:
+
+```json
+{ "user_ids": [12, 45] }
+```
+
 ## Notification Events
 Emit and register these events (same style as requisition):
 - `event_report.submitted_for_final_approval` (to currently pending configured final approver(s))

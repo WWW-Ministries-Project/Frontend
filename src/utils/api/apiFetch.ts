@@ -2,6 +2,7 @@ import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsI
 import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
+import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
@@ -56,6 +57,7 @@ import type {
 } from "./departmentJoinRequests/interfaces";
 import { Branch } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
+import type { EventReportExclusionsConfig } from "./settings/eventReportExclusionInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import type {
   SystemNotificationAdminCandidate,
@@ -281,6 +283,9 @@ export class ApiCalls {
   fetchAnAccess = (query?: QueryType): Promise<ApiResponse<AccessRight>> => {
     return this.fetchFromApi("access/get-access-level", query);
   };
+  fetchAssignableUsers = (): Promise<ApiResponse<AssignableUser[]>> => {
+    return this.fetchFromApi("access/assignable-users");
+  };
 
   // Requisition Management
   fetchRequisitions = (
@@ -321,6 +326,12 @@ export class ApiCalls {
     ApiResponse<AttendanceTimingSettingsConfig>
   > => {
     return this.fetchFromApi("settings/attendance-timing-config");
+  };
+
+  fetchEventReportExclusions = (): Promise<
+    ApiResponse<EventReportExclusionsConfig>
+  > => {
+    return this.fetchFromApi("settings/event-report-exclusions");
   };
 
   fetchSystemNotificationConfig = (): Promise<

@@ -67,7 +67,7 @@ export function Members() {
   const task = location.state?.task;
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canManage } = useAccessControl();
+  const { canManage, isExcluded } = useAccessControl();
   const canManageMembers = canManage("Members");
 
   const { refetchMembersOptions } = useOutletContext<{
@@ -654,6 +654,7 @@ export function Members() {
                   onCloseOptions={() => setShowOptions(false)}
                   onDelete={handleDeleteModal}
                   canManage={canManageMembers}
+                  isExcluded={isExcluded("Members", row.original.id)}
                 />
               )}
             />

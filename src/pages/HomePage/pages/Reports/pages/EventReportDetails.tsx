@@ -115,6 +115,7 @@ const DEFAULT_ATTENDANCE_TIMING_CONFIG: AttendanceTimingSettingsConfig = {
     unit: "MINUTES",
     minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
   },
+  effective_from: null,
   updated_at: null,
   updated_by: null,
 };
@@ -1041,10 +1042,10 @@ const EventReportDetails = () => {
       );
       downloadBlobFile(file.blob, file.fileName);
     } catch (error: unknown) {
-      const backendMessage =
-        (error as any)?.response?.data?.message ||
-        (error as any)?.response?.data?.error ||
-        "";
+      const responseData = (
+        error as { response?: { data?: { message?: string; error?: string } } }
+      )?.response?.data;
+      const backendMessage = responseData?.message || responseData?.error || "";
       showNotification(
         backendMessage ||
           (error instanceof Error
