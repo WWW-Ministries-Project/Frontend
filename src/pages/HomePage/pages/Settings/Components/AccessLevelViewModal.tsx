@@ -1,5 +1,4 @@
 import { Button } from "@/components/Button";
-import EmptyState from "@/components/EmptyState";
 import { Modal } from "@/components/Modal";
 import {
   getDomainLabel,
@@ -9,19 +8,21 @@ import {
 } from "@/utils/accessControl";
 import { useEffect, useMemo, useState } from "react";
 import {
-  AccessLevelAssignedUser,
   AccessLevelExclusionUser,
   AccessRight,
 } from "../utils/settingsInterfaces";
+import { AccessLevelMembersPanel } from "./AccessLevelMembersPanel";
 import { ActiveAccess } from "./ActiveAccess";
 
-type ViewTab = "access_info" | "assigned_members";
+export type AccessLevelViewTab = "access_info" | "assigned_members";
 
 interface AccessLevelViewModalProps {
   open: boolean;
   accessRight: AccessRight | null;
   canManageAccessRights: boolean;
+  initialTab?: AccessLevelViewTab;
   onClose: () => void;
+  onMembersUpdated: () => void;
   onEdit: (accessRight: AccessRight) => void;
   onDelete: (accessRight: AccessRight) => void;
 }
@@ -32,35 +33,26 @@ const isPermissionValue = (value: unknown): value is PermissionValue =>
   value === "Can_Manage" ||
   value === "Super_Admin";
 
-const getAssignedUserName = (user: AccessLevelAssignedUser): string =>
-  user.name || user.full_name || `User #${user.id}`;
-
 const getExclusionUserName = (user: AccessLevelExclusionUser): string =>
   user.full_name || user.name || `User #${user.id}`;
-
-const getInitials = (value: string): string =>
-  value
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("") || "U";
 
 export const AccessLevelViewModal = ({
   open,
   accessRight,
   canManageAccessRights,
+  initialTab = "access_info",
   onClose,
+  onMembersUpdated,
   onEdit,
   onDelete,
 }: AccessLevelViewModalProps) => {
-  const [activeTab, setActiveTab] = useState<ViewTab>("access_info");
+  const [activeTab, setActiveTab] = useState<AccessLevelViewTab>(initialTab);
 
   useEffect(() => {
     if (open) {
-      setActiveTab("access_info");
+      setActiveTab(initialTab);
     }
-  }, [open, accessRight?.id]);
+  }, [open, accessRight?.id, initialTab]);
 
   const assignedUsers = useMemo(
     () => accessRight?.users_assigned || [],
@@ -229,59 +221,11 @@ export const AccessLevelViewModal = ({
                 </section>
               </div>
             ) : (
-              <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-semibold text-primary">
-                    Assigned Members
-                  </h4>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    {assignedUsers.length} members
-                  </span>
-                </div>
-
-                {assignedUsers.length === 0 ? (
-                  <EmptyState
-                    scope="section"
-                    msg="No members assigned"
-                    description="This access level has not been assigned to any users yet."
-                  />
-                ) : (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {assignedUsers.map((user) => {
-                      const displayName = getAssignedUserName(user);
-                      const avatarUrl = user.user_info?.photo;
-
-                      return (
-                        <article
-                          key={user.id}
-                          className="flex items-center gap-3 rounded-xl border border-lightGray bg-white p-4 shadow-sm"
-                        >
-                          {avatarUrl ? (
-                            <img
-                              src={avatarUrl}
-                              alt={displayName}
-                              className="h-11 w-11 rounded-full border border-lightGray object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                              {getInitials(displayName)}
-                            </div>
-                          )}
-
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-primary">
-                              {displayName}
-                            </p>
-                            <p className="text-xs text-primaryGray">
-                              User ID: {user.id}
-                            </p>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
+              <AccessLevelMembersPanel
+                accessRight={accessRight}
+                canManageAccessRights={canManageAccessRights}
+                onMembersUpdated={onMembersUpdated}
+              />
             )}
           </div>
         </div>
