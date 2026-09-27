@@ -4,6 +4,10 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
+import type {
+  BulkAssignAccessLevelPayload,
+  BulkAssignAccessLevelResult,
+} from "./settings/accessLevelAssignmentInterfaces";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
 import type {
@@ -194,6 +198,16 @@ export class ApiUpdateCalls {
   }): Promise<ApiResponse<AccessRight>> => {
     return this.apiExecution.updateData(
       "access/assign_access_to_user",
+      payload
+    );
+  };
+
+  // Assign and/or unassign many users on one access level
+  bulkAssignAccessLevel = (
+    payload: BulkAssignAccessLevelPayload
+  ): Promise<ApiResponse<BulkAssignAccessLevelResult>> => {
+    return this.apiExecution.updateData(
+      "access/bulk-assign-access-level",
       payload
     );
   };
