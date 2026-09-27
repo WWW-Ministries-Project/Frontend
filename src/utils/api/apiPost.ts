@@ -47,6 +47,10 @@ import type {
   AttendanceTimingSettingsPayload,
 } from "./settings/attendanceTimingInterfaces";
 import type {
+  EventReportExclusionsConfig,
+  EventReportExclusionsPayload,
+} from "./settings/eventReportExclusionInterfaces";
+import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
 } from "./settings/eligibilityInterfaces";
@@ -261,6 +265,12 @@ export class ApiCreationCalls {
     payload: AttendanceTimingSettingsPayload
   ): Promise<ApiResponse<AttendanceTimingSettingsConfig>> => {
     return this.postToApi("settings/upsert-attendance-timing-config", payload);
+  };
+
+  upsertEventReportExclusions = (
+    payload: EventReportExclusionsPayload
+  ): Promise<ApiResponse<EventReportExclusionsConfig>> => {
+    return this.postToApi("settings/upsert-event-report-exclusions", payload);
   };
 
   upsertSystemNotificationConfig = (

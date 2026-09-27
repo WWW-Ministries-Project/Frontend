@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components";
+import { Modal } from "@/components/Modal";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import type {
@@ -20,6 +21,25 @@ type TimingDraftState = {
   late: TimingRuleDraft;
 };
 
+type ApplyScopeStep = "scope" | "range";
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const DEFAULT_LOOKBACK_MONTHS = 3;
+const SELECTABLE_YEARS = 10;
+
 const DEFAULT_CONFIG: AttendanceTimingSettingsConfig = {
   early: {
     value: 15,
@@ -36,6 +56,7 @@ const DEFAULT_CONFIG: AttendanceTimingSettingsConfig = {
     unit: "MINUTES",
     minutes: 15,
   },
+  effective_from: null,
   updated_at: null,
   updated_by: null,
 };
@@ -101,6 +122,38 @@ const buildDraftFromConfig = (
   };
 };
 
+/** Month (0-11) and year `monthsBack` months before today. */
+const getMonthsAgo = (monthsBack: number) => {
+  const date = new Date();
+  date.setDate(1);
+  date.setMonth(date.getMonth() - monthsBack);
+  return { month: date.getMonth(), year: date.getFullYear() };
+};
+
+const toApplyFromValue = (year: number, month: number) =>
+  `${year}-${String(month + 1).padStart(2, "0")}`;
+
+/** The baseline rules carry an epoch start, meaning they cover all history. */
+const describeEffectiveFrom = (value?: string | null) => {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (parsed.getUTCFullYear() <= 1970) {
+    return "All recorded attendance";
+  }
+
+  return `Attendance recorded from ${new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(parsed)}`;
+};
+
 const toMinutes = (value: number, unit: AttendanceTimingUnit) =>
   unit === "HOURS" ? value * 60 : value;
 
@@ -125,6 +178,15 @@ export function AttendanceSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [applyScopeStep, setApplyScopeStep] = useState<ApplyScopeStep | null>(
+    null
+  );
+  const [applyFromMonth, setApplyFromMonth] = useState(
+    () => getMonthsAgo(DEFAULT_LOOKBACK_MONTHS).month
+  );
+  const [applyFromYear, setApplyFromYear] = useState(
+    () => getMonthsAgo(DEFAULT_LOOKBACK_MONTHS).year
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +245,21 @@ export function AttendanceSettings() {
     currentConfig.late.unit !== draft.late.unit;
 
   const formattedUpdatedAt = formatUpdatedAt(config?.updated_at);
+  const effectiveFromLabel = describeEffectiveFrom(config?.effective_from);
+
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  const yearOptions = Array.from(
+    { length: SELECTABLE_YEARS },
+    (_, index) => currentYear - index
+  );
+  const monthOptions = MONTH_NAMES.map((name, index) => ({
+    name,
+    index,
+  })).filter(
+    (option) => applyFromYear < currentYear || option.index <= currentMonth
+  );
 
   const handleRuleChange = (
     ruleKey: keyof TimingDraftState,
@@ -198,11 +275,29 @@ export function AttendanceSettings() {
     }));
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
     if (hasInvalidDraft) {
       const message = "Each attendance timing rule must be a positive whole number.";
       setError(message);
       showNotification(message, "error", { title: "Attendance" });
+      return;
+    }
+
+    const defaultStart = getMonthsAgo(DEFAULT_LOOKBACK_MONTHS);
+    setApplyFromMonth(defaultStart.month);
+    setApplyFromYear(defaultStart.year);
+    setApplyScopeStep("scope");
+  };
+
+  const handleApplyFromYearChange = (year: number) => {
+    setApplyFromYear(year);
+    if (year === currentYear && applyFromMonth > currentMonth) {
+      setApplyFromMonth(currentMonth);
+    }
+  };
+
+  const handleSave = async (applyToExisting: boolean) => {
+    if (hasInvalidDraft) {
       return;
     }
 
@@ -222,6 +317,10 @@ export function AttendanceSettings() {
         value: parsedDraft.late as number,
         unit: draft.late.unit,
       },
+      apply_to_existing: applyToExisting,
+      ...(applyToExisting
+        ? { apply_from: toApplyFromValue(applyFromYear, applyFromMonth) }
+        : {}),
     };
 
     try {
@@ -229,10 +328,15 @@ export function AttendanceSettings() {
       const nextConfig = response.data || DEFAULT_CONFIG;
       setConfig(nextConfig);
       setDraft(buildDraftFromConfig(nextConfig));
+      setApplyScopeStep(null);
 
-      showNotification("Attendance timing rules saved.", "success", {
-        title: "Attendance",
-      });
+      showNotification(
+        applyToExisting
+          ? `Attendance timing rules saved and applied from ${MONTH_NAMES[applyFromMonth]} ${applyFromYear}.`
+          : "Attendance timing rules saved for new attendance entries.",
+        "success",
+        { title: "Attendance" }
+      );
     } catch (saveError) {
       const message = toErrorMessage(
         saveError,
@@ -357,6 +461,17 @@ export function AttendanceSettings() {
             classifying member attendance.
           </div>
 
+          {effectiveFromLabel && (
+            <div className="rounded-lg border border-lightGray bg-white px-4 py-3">
+              <h5 className="text-sm font-semibold text-primary">
+                Current rules apply to
+              </h5>
+              <p className="mt-1 text-sm text-primaryGray">
+                {effectiveFromLabel}
+              </p>
+            </div>
+          )}
+
           {(config?.updated_by || formattedUpdatedAt) && (
             <div className="rounded-lg border border-lightGray bg-white px-4 py-3">
               <h5 className="text-sm font-semibold text-primary">Last update</h5>
@@ -372,13 +487,124 @@ export function AttendanceSettings() {
           <div className="flex justify-end">
             <Button
               value="Save Changes"
-              onClick={handleSave}
+              onClick={handleSaveClick}
               disabled={loading || saving || hasInvalidDraft || !hasChanges}
               loading={saving}
             />
           </div>
         </>
       )}
+
+      <Modal
+        open={applyScopeStep !== null}
+        onClose={() => {
+          if (!saving) setApplyScopeStep(null);
+        }}
+        className="max-w-lg"
+        title="Apply attendance timing rules"
+        description="Choose whether the new rules also apply to attendance already recorded."
+      >
+        <div className="space-y-4 p-5">
+          {applyScopeStep === "scope" ? (
+            <>
+              <div className="space-y-1">
+                <h4 className="text-base font-semibold text-primary">
+                  Apply to previous attendance?
+                </h4>
+                <p className="text-sm text-primaryGray">
+                  Should these rules also reclassify attendance that has
+                  already been recorded? If not, they apply only to new
+                  attendance entries.
+                </p>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  value="No, new entries only"
+                  variant="secondary"
+                  onClick={() => void handleSave(false)}
+                  disabled={saving}
+                  loading={saving}
+                />
+                <Button
+                  value="Yes, apply to previous data"
+                  onClick={() => setApplyScopeStep("range")}
+                  disabled={saving}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <h4 className="text-base font-semibold text-primary">
+                  How far back?
+                </h4>
+                <p className="text-sm text-primaryGray">
+                  Attendance recorded from the start of this month onwards
+                  will be reclassified with the new rules.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="space-y-1">
+                  <span className="block text-xs font-medium text-primaryGray">
+                    Month
+                  </span>
+                  <select
+                    className="app-input w-full"
+                    value={applyFromMonth}
+                    onChange={(event) =>
+                      setApplyFromMonth(Number(event.target.value))
+                    }
+                    disabled={saving}
+                  >
+                    {monthOptions.map((option) => (
+                      <option key={option.index} value={option.index}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="space-y-1">
+                  <span className="block text-xs font-medium text-primaryGray">
+                    Year
+                  </span>
+                  <select
+                    className="app-input w-full"
+                    value={applyFromYear}
+                    onChange={(event) =>
+                      handleApplyFromYearChange(Number(event.target.value))
+                    }
+                    disabled={saving}
+                  >
+                    {yearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  value="Back"
+                  variant="secondary"
+                  onClick={() => setApplyScopeStep("scope")}
+                  disabled={saving}
+                />
+                <Button
+                  value={`Apply from ${MONTH_NAMES[applyFromMonth]} ${applyFromYear}`}
+                  onClick={() => void handleSave(true)}
+                  disabled={saving}
+                  loading={saving}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
     </section>
   );
 }
