@@ -56,6 +56,7 @@ import type {
 } from "./departmentJoinRequests/interfaces";
 import { Branch } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
+import type { EventReportExclusionsConfig } from "./settings/eventReportExclusionInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import type {
   SystemNotificationAdminCandidate,
@@ -321,6 +322,12 @@ export class ApiCalls {
     ApiResponse<AttendanceTimingSettingsConfig>
   > => {
     return this.fetchFromApi("settings/attendance-timing-config");
+  };
+
+  fetchEventReportExclusions = (): Promise<
+    ApiResponse<EventReportExclusionsConfig>
+  > => {
+    return this.fetchFromApi("settings/event-report-exclusions");
   };
 
   fetchSystemNotificationConfig = (): Promise<

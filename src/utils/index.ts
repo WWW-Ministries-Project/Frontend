@@ -11,6 +11,7 @@ export * from "./api/settings/departmentInterfaces";
 export * from "./api/departmentJoinRequests/interfaces";
 export * from "./api/settings/branchInterfaces";
 export * from "./api/settings/attendanceTimingInterfaces";
+export * from "./api/settings/eventReportExclusionInterfaces";
 export * from "./api/settings/positionInterfaces";
 export * from "./api/visitors/interfaces";
 export * from "./api/lifeCenter/interfaces";
