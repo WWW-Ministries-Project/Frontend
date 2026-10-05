@@ -8,6 +8,7 @@ import { downloadFile, fetchData } from "./apiFunctions";
 import type { Announcement } from "./announcements/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
+import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
 import type { Sermon, SermonSeries, SermonTag } from "./sermons/interfaces";
 import type {
   MyPledgeRow,
@@ -156,6 +157,18 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<VisitorType[]>> => {
     return this.fetchFromApi("visitor/visitors", query);
+  };
+
+  // Guests who joined from the mobile app (Visitors > Guests).
+  fetchGuests = (query?: QueryType): Promise<ApiResponse<PagedItems<GuestType>>> => {
+    return this.fetchFromApi("user/guests", query);
+  };
+
+  // Guest-to-membership requests (Membership management).
+  fetchMembershipRequests = (
+    query?: QueryType
+  ): Promise<ApiResponse<PagedItems<MembershipRequestRow>>> => {
+    return this.fetchFromApi("user/membership-requests", query);
   };
 
   fetchVisitorById = (
