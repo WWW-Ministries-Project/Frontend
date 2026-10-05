@@ -14,6 +14,7 @@ import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess
 import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import VisitorAnalytics from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorAnalytics";
+import { Guests } from "@/pages/HomePage/pages/VisitorManagement/pages/Guests";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import { Registration } from "@/pages/Registration/Registration";
@@ -48,6 +49,7 @@ import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/
 import { SoulwonToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/SoulwonToMembership";
 import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
 import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagement/pages/JoinDepartmentRequests";
+import { GuestToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/GuestToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
@@ -292,6 +294,13 @@ export const routes: AppRoute[] = [
                 permissionNeeded: "manage_membership_management",
               },
               {
+                path: relativePath.home.membership.management.guestToMembership,
+                name: "Guest-to-Membership",
+                element: <GuestToMembership />,
+                isPrivate: true,
+                permissionNeeded: "manage_membership_management",
+              },
+              {
                 path: relativePath.home.membership.management.joinRequests,
                 name: "Join Department Requests",
                 element: <JoinDepartmentRequests />,
@@ -366,6 +375,14 @@ export const routes: AppRoute[] = [
             path: "",
             name: "Visitors",
             element: <VisitorManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_visitors",
+            sideTab: true,
+          },
+          {
+            path: relativePath.home.visitors.guests,
+            name: "Guests",
+            element: <Guests />,
             isPrivate: true,
             permissionNeeded: "view_visitors",
             sideTab: true,

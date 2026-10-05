@@ -10,6 +10,7 @@ import type {
 } from "./settings/accessLevelAssignmentInterfaces";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
+import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
   Sermon,
   SermonSeries,
@@ -701,6 +702,18 @@ export class ApiUpdateCalls {
       "department-join-request/decline",
       payload
     );
+  };
+
+  approveMembershipRequest = (
+    payload: DecideMembershipRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData("user/membership-requests/approve", payload);
+  };
+
+  declineMembershipRequest = (
+    payload: DecideMembershipRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData("user/membership-requests/decline", payload);
   };
 
   markNotificationRead = (
