@@ -90,7 +90,9 @@ const PromotionCard = ({
         </div>
         <p className="truncate text-sm text-gray-500">
           {formatWindow(item)}
-          {item.deep_link ? ` · ${item.deep_link}` : ""}
+          {item.deep_link
+            ? ` · ${/^https?:\/\//i.test(item.deep_link) ? "Web" : "In app"}: ${item.deep_link}`
+            : " · Not tappable"}
         </p>
       </div>
 
