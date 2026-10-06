@@ -99,6 +99,12 @@ import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonMana
 import CommunityLayout from "@/pages/HomePage/pages/Community/CommunityLayout.js";
 import MemberCommunityPage from "@/pages/HomePage/pages/Community/MemberCommunityPage.js";
 import CommunityPostPage from "@/pages/HomePage/pages/Community/CommunityPostPage.js";
+import RidesLayout from "@/pages/HomePage/pages/Rides/RidesLayout.js";
+import RidesHubPage from "@/pages/HomePage/pages/Rides/RidesHubPage.js";
+import RideOfferPage from "@/pages/HomePage/pages/Rides/RideOfferPage.js";
+import RideFindPage from "@/pages/HomePage/pages/Rides/RideFindPage.js";
+import MyRidePage from "@/pages/HomePage/pages/Rides/MyRidePage.js";
+import RidesManager from "@/pages/HomePage/pages/Rides/admin/RidesManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
@@ -314,6 +320,16 @@ export const routes: AppRoute[] = [
                 permissionNeeded: "manage_membership_management",
               },
             ],
+          },
+          {
+            // The backend checks Membership_Management "manage" — the same
+            // rule that picks who receives ride safety reports.
+            path: relativePath.home.membership.rides,
+            name: "Ride to church",
+            element: <RidesManager />,
+            isPrivate: true,
+            permissionNeeded: "manage_membership_management",
+            sideTab: true,
           },
           {
             path: relativePath.home.membership.analytics,
@@ -1355,6 +1371,38 @@ export const routes: AppRoute[] = [
             path: relativePath.member.communityPost,
             name: "member_community",
             element: <CommunityPostPage />,
+            isPrivate: false,
+          },
+        ],
+      },
+      {
+        path: relativePath.member.rides,
+        name: "member_rides",
+        element: <RidesLayout />,
+        isPrivate: false,
+        children: [
+          {
+            path: "",
+            name: "member_rides",
+            element: <RidesHubPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.rideOffer,
+            name: "member_rides",
+            element: <RideOfferPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.rideFind,
+            name: "member_rides",
+            element: <RideFindPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.myRide,
+            name: "member_rides",
+            element: <MyRidePage />,
             isPrivate: false,
           },
         ],
