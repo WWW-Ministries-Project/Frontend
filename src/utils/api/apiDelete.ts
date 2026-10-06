@@ -181,13 +181,6 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("theme/delete-theme", query);
   }
 
-  // Delete Announcement
-  deleteAnnouncement = (
-    id: number
-  ): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`announcements/${id}`, {});
-  }
-
   // Community
   deleteCommunityPost = (id: number): Promise<ApiResponse<unknown>> => {
     return this.deleteFromApi(`community/posts/${id}`, {});

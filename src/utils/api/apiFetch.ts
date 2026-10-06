@@ -5,7 +5,6 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
-import type { Announcement } from "./announcements/interfaces";
 import type {
   CommunityAdminPost,
   CommunityAuditLogEntry,
@@ -804,19 +803,6 @@ export class ApiCalls {
     return this.fetchFromApi("theme/get-active-theme", query);
   }
 
-  // Announcements
-  fetchAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements", query);
-  };
-
-  fetchAnnouncement = (
-    id: number
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.fetchFromApi(`announcements/${id}`);
-  };
-
   // Community (members' feed)
   fetchCommunityMe = (): Promise<ApiResponse<CommunityMe>> => {
     return this.fetchFromApi("community/me");
@@ -926,12 +912,6 @@ export class ApiCalls {
 
   fetchSermonTags = (query?: QueryType): Promise<ApiResponse<SermonTag[]>> => {
     return this.fetchFromApi("sermons/tags", query);
-  };
-
-  fetchMyAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements/mine", query);
   };
 
   // fetch receipt config

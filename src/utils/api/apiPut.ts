@@ -8,7 +8,6 @@ import type {
   BulkAssignAccessLevelPayload,
   BulkAssignAccessLevelResult,
 } from "./settings/accessLevelAssignmentInterfaces";
-import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
 import type {
   CommunityPost,
   UpdateCommunityPostDto,
@@ -562,14 +561,6 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
-
-  // update announcement
-  updateAnnouncement = (
-    id: number,
-    payload: UpdateAnnouncementDto
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.apiExecution.updateData(`announcements/${id}`, payload);
-  }
 
   // update community post (author or Community manager)
   updateCommunityPost = (
