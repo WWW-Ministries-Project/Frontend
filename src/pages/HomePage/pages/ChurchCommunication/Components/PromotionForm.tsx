@@ -36,8 +36,19 @@ const toDateInputValue = (value?: string | null): string => {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 };
 
+/** Same rule the API enforces: an app path, the app's own scheme, or a web
+ *  page (which the app opens in its in-app browser). */
+const LINK_PATTERN = /^(\/|wwm-mobile:\/\/|https?:\/\/[^\s/?#]+)\S*$/i;
+
 const validationSchema = Yup.object({
   title: Yup.string().trim().required("Title is required"),
+  deep_link: Yup.string()
+    .trim()
+    .test(
+      "valid-link",
+      "Use an app path like /member/give, or a web address starting with https://",
+      (value) => !value || LINK_PATTERN.test(value)
+    ),
   sort_order: Yup.number()
     .transform((value, original) => (original === "" ? undefined : value))
     .integer("Must be a whole number")
@@ -224,17 +235,20 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
             <div>
               <Field
                 component={FormikInputDiv}
-                label="Deep link"
+                label="Link"
                 name="deep_link"
                 id="deep_link"
-                placeholder="/member/appointments"
+                placeholder="/member/give?segment=Pledges or https://…"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Where tapping the banner goes in the app, e.g.{" "}
-                <code>/member/appointments</code>,{" "}
+                Where tapping the banner goes. An app path such as{" "}
                 <code>/member/give?segment=Pledges</code>,{" "}
-                <code>/member/community</code>. Leave empty for a
-                non-tappable banner.
+                <code>/member/appointments</code> or{" "}
+                <code>/member/community</code> opens that screen in the app. A
+                web address (<code>https://…</code>) opens in the app&apos;s
+                built-in browser, where members can also copy, share or open it
+                in Safari/Chrome. Leave empty for a banner that isn&apos;t
+                tappable — its button label is then not shown.
               </p>
             </div>
 
