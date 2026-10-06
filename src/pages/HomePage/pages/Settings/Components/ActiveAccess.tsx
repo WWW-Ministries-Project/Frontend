@@ -1,6 +1,7 @@
 import EmptyState from "@/components/EmptyState";
 import {
   ACCESS_LEVEL_DOMAINS,
+  RETIRED_PERMISSION_DOMAINS,
   EXCLUSION_SUPPORTED_DOMAINS,
   ExclusionsMap,
   getDomainLabel,
@@ -68,6 +69,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
 
     const knownKeys = new Set([
       ...ACCESS_LEVEL_DOMAINS.map((domain) => domain.key),
+      ...RETIRED_PERMISSION_DOMAINS,
       "Exclusions",
       "Scopes",
     ]);
