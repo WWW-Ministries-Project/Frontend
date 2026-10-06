@@ -92,10 +92,11 @@ import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
-import AnnouncementManager from "@/pages/HomePage/pages/ChurchCommunication/AnnouncementManager.js";
+import CommunityManager from "@/pages/HomePage/pages/ChurchCommunication/CommunityManager.js";
 import PromotionManager from "@/pages/HomePage/pages/ChurchCommunication/PromotionManager.js";
 import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
-import MemberAnnouncementsPage from "@/pages/HomePage/pages/Announcements/MemberAnnouncementsPage.js";
+import MemberCommunityPage from "@/pages/HomePage/pages/Community/MemberCommunityPage.js";
+import CommunityPostPage from "@/pages/HomePage/pages/Community/CommunityPostPage.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
@@ -560,12 +561,20 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
           {
-            path: "announcements",
-            name: "Announcement",
-            element: <AnnouncementManager />,
+            path: "community",
+            name: "Community",
+            element: <CommunityManager />,
             isPrivate: true,
-            permissionNeeded: "view_announcements",
+            permissionNeeded: "view_community",
             sideTab: true,
+          },
+          {
+            // Community replaced Announcements; keep old bookmarks working.
+            path: "announcements",
+            name: "Announcements Redirect",
+            element: <Navigate to="/home/communication/community" replace />,
+            isPrivate: true,
+            permissionNeeded: "view_community",
           },
           {
             path: "promotions",
@@ -1324,9 +1333,23 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: relativePath.member.announcements,
-        name: "member_announcements",
-        element: <MemberAnnouncementsPage />,
+        path: relativePath.member.community,
+        name: "member_community",
+        element: <MemberCommunityPage />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.communityPost,
+        name: "member_community",
+        element: <CommunityPostPage />,
+        isPrivate: false,
+      },
+      {
+        // Community replaced Announcements; old links and push actionUrls
+        // still land in the right place.
+        path: "/member/announcements/*",
+        name: "member_community",
+        element: <Navigate to={relativePath.member.community} replace />,
         isPrivate: false,
       }
       // {
