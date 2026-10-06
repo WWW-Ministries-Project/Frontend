@@ -98,14 +98,8 @@ const ChurchMessageForm = ({ onClose, onSaved }: ChurchMessageFormProps) => {
       showNotification("Church message posted", "success");
       onSaved();
       onClose();
-    } catch (error) {
-      showNotification(
-        error instanceof Error && error.message
-          ? error.message
-          : "The message could not be posted. Please try again.",
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error.
     } finally {
       setSubmitting(false);
     }

@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import EmptyState from "@/components/EmptyState";
 import { api } from "@/utils/api/apiCalls";
 import { showConfirmDialog, showNotification } from "@/pages/HomePage/utils";
@@ -12,7 +12,6 @@ import { PostTypePill } from "@/pages/HomePage/pages/Community/components/PostTy
 import { POST_TYPES } from "@/pages/HomePage/pages/Community/utils/communityConstants";
 import {
   audienceLabels,
-  errorMessage,
   totalReactions,
 } from "@/pages/HomePage/pages/Community/utils/communityHelpers";
 import { CommunityPager } from "./CommunityPager";
@@ -44,16 +43,20 @@ export const CommunityAdminPosts = ({
   const [failed, setFailed] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
 
+  const requestRef = useRef(0);
+
+  // Each filter change resets the page in the same update, so one request
+  // goes out with the new filter and skip 0.
   useEffect(() => {
-    const timer = setTimeout(() => setQuery(search.trim()), SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(() => {
+      setQuery(search.trim());
+      setSkip(0);
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    setSkip(0);
-  }, [type, status, query]);
-
   const load = useCallback(async () => {
+    const requestId = ++requestRef.current;
     setLoading(true);
     setFailed(false);
     try {
@@ -64,13 +67,14 @@ export const CommunityAdminPosts = ({
         skip,
         take: PAGE_SIZE,
       });
+      if (requestId !== requestRef.current) return;
       const rows = Array.isArray(response.data) ? response.data : [];
       setPosts(rows);
       setTotal(Number(response.meta?.total ?? rows.length) || 0);
     } catch {
-      setFailed(true);
+      if (requestId === requestRef.current) setFailed(true);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }, [type, status, query, skip]);
 
@@ -88,12 +92,8 @@ export const CommunityAdminPosts = ({
           "success"
         );
         await load();
-      } catch (error) {
-        showNotification(
-          errorMessage(error, "The post could not be updated."),
-          "error",
-          "Community"
-        );
+      } catch {
+        // ApiErrorHandler has already shown the error.
       } finally {
         setBusyId(null);
       }
@@ -244,9 +244,10 @@ export const CommunityAdminPosts = ({
           <select
             className={selectClass}
             value={type}
-            onChange={(event) =>
-              setType(event.target.value as CommunityPostType | "")
-            }
+            onChange={(event) => {
+              setType(event.target.value as CommunityPostType | "");
+              setSkip(0);
+            }}
           >
             <option value="">All types</option>
             {(Object.keys(POST_TYPES) as CommunityPostType[]).map((key) => (
@@ -261,9 +262,10 @@ export const CommunityAdminPosts = ({
           <select
             className={selectClass}
             value={status}
-            onChange={(event) =>
-              setStatus(event.target.value as "" | "ACTIVE" | "REMOVED")
-            }
+            onChange={(event) => {
+              setStatus(event.target.value as "" | "ACTIVE" | "REMOVED");
+              setSkip(0);
+            }}
           >
             <option value="">All statuses</option>
             <option value="ACTIVE">Active</option>
@@ -276,7 +278,7 @@ export const CommunityAdminPosts = ({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search post text or author"
+            placeholder="Search post text"
             className={selectClass}
           />
         </label>

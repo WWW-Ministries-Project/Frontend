@@ -9,10 +9,7 @@ import type {
   CommunityModerationStatus,
 } from "@/utils/api/community/interfaces";
 import { REPORT_REASON_LABEL } from "@/pages/HomePage/pages/Community/utils/communityConstants";
-import {
-  errorMessage,
-  plural,
-} from "@/pages/HomePage/pages/Community/utils/communityHelpers";
+import { plural } from "@/pages/HomePage/pages/Community/utils/communityHelpers";
 
 type StatusFilter = CommunityModerationStatus | "ALL";
 
@@ -92,12 +89,8 @@ export const CommunityReportsQueue = ({
         "success"
       );
       await load();
-    } catch (error) {
-      showNotification(
-        errorMessage(error, "The action could not be completed."),
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error.
     } finally {
       setBusyKey(null);
     }
