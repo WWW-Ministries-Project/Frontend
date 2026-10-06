@@ -755,11 +755,21 @@ export const toAdminRequirement = (
   return toActionRequirement(requirement, "admin");
 };
 
+/** Domains that are never granted by a blanket default or preset and must be
+ *  opted into explicitly. Community view reveals the real authors of
+ *  anonymous posts, so it starts at No_Access. */
+export const EXPLICIT_GRANT_DOMAINS: PermissionDomain[] = ["Community"];
+
+export const isExplicitGrantDomain = (domain: string): boolean =>
+  EXPLICIT_GRANT_DOMAINS.includes(domain as PermissionDomain);
+
 export const createDefaultPermissionMatrix = (
   defaultValue: PermissionValue = "Can_View"
 ): Record<PermissionDomain, PermissionValue> =>
   ACCESS_LEVEL_DOMAINS.reduce((acc, module) => {
-    acc[module.key] = defaultValue;
+    acc[module.key] = isExplicitGrantDomain(module.key)
+      ? "No_Access"
+      : defaultValue;
     return acc;
   }, {} as Record<PermissionDomain, PermissionValue>);
 
