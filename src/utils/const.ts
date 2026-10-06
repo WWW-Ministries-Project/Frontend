@@ -144,6 +144,8 @@ export const relativePath = {
     },
     appointments: "/member/appointments",
     announcements: "/member/announcements",
+    community: "/member/community",
+    communityPost: "/member/community/posts/:id",
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

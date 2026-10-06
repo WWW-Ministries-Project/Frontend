@@ -123,6 +123,8 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMinistryWorker = token?.ministry_worker;
   const isLifeCenterLeader = token?.life_center_leader;
   const isInstructor = token?.instructor;
+  // Community is members-only; guests never see the entry.
+  const isGuest = token?.is_guest === true;
   const isMemberRoute = location.pathname.startsWith("/member");
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
   const isMoreRoute =
@@ -135,6 +137,9 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   const memberNavItems = [
     { label: "Home", path: relativePath.member.dashboard },
+    ...(!isGuest
+      ? [{ label: "Community", path: relativePath.member.community }]
+      : []),
     { label: "Marketplace", path: relativePath.member.market },
     ...(isLifeCenterLeader
       ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]

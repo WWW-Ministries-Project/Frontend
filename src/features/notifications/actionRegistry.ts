@@ -10,6 +10,65 @@ export interface NotificationActionDefinition {
 }
 
 export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
+  // Community: the backend sends the exact actionUrl
+  // (/member/community/posts/<postId>[?comment=<commentId>]); these templates
+  // document it and back the fallback when it is missing.
+  {
+    type: "community.comment",
+    entityType: "COMMUNITY_POST",
+    description: "Someone commented on your community post.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.reply",
+    entityType: "COMMUNITY_POST",
+    description: "Someone replied to your community comment.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.praying",
+    entityType: "COMMUNITY_POST",
+    description: "People are praying for your prayer request.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.reaction",
+    entityType: "COMMUNITY_POST",
+    description: "Reactions on your community post.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.important",
+    entityType: "COMMUNITY_POST",
+    description: "Important message from church leadership.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.department_post",
+    entityType: "COMMUNITY_POST",
+    description: "New post in your department.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.warning",
+    entityType: "COMMUNITY_POST",
+    description: "A moderator warned you about community content.",
+    actionUrlTemplate: "/member/community",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
   {
     type: "assignment.submitted",
     entityType: "assignment_submission",
