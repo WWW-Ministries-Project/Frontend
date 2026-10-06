@@ -524,7 +524,7 @@ const buildFallbackActionUrl = (
 
   // Safety reports reach the church office without an actionUrl.
   if (entityType === "ride_report" || typeToken === "ride.safety_report") {
-    return `${relativePath.home.main}/${relativePath.home.membership.main}/${relativePath.home.membership.rides}?tab=reports`;
+    return `${relativePath.home.main}/${relativePath.home.rides}?tab=reports`;
   }
 
   if (entityType === "ride" || typeToken.startsWith("ride.")) {

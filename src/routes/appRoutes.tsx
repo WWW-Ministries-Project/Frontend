@@ -322,16 +322,6 @@ export const routes: AppRoute[] = [
             ],
           },
           {
-            // The backend checks Membership_Management "manage" — the same
-            // rule that picks who receives ride safety reports.
-            path: relativePath.home.membership.rides,
-            name: "Ride to church",
-            element: <RidesManager />,
-            isPrivate: true,
-            permissionNeeded: "manage_membership_management",
-            sideTab: true,
-          },
-          {
             path: relativePath.home.membership.analytics,
             name: "Analytics",
             element: <MembershipAnalytics />,
@@ -385,6 +375,18 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_members",
           },
         ],
+      },
+      {
+        // Top-level so the church office finds it; needs a `sidebarIcons`
+        // entry keyed by this name or the sidebar skips it. The backend checks
+        // Membership_Management "manage" — the same rule that picks who
+        // receives ride safety reports.
+        path: relativePath.home.rides,
+        name: "Ride to church",
+        element: <RidesManager />,
+        isPrivate: true,
+        permissionNeeded: "manage_membership_management",
+        sideTab: true,
       },
       {
         path: "visitors",

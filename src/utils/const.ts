@@ -17,6 +17,8 @@ export const relativePath = {
       details: "members/:id",
       info: "members/:id",
     },
+    // Ride to church admin (safety team / church office), a top-level tab.
+    rides: "ride-to-church",
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
@@ -25,8 +27,6 @@ export const relativePath = {
         details: "departments-and-ministries/:id",
       },
       analytics: "analytics",
-      // Ride to church admin (safety team / church office).
-      rides: "ride-to-church",
       management: {
         main: "membership-management",
         memberConfirmation: "member-confirmation",
