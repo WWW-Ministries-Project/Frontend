@@ -15,7 +15,12 @@ export interface CommunityInteractionsValue {
   openBlock: (target: ContentTarget, onBlocked: () => void) => void;
   hideContent: (
     target: ContentTarget,
-    handlers: { onHidden: () => void; onRestored: () => void }
+    handlers: {
+      onHidden: () => void;
+      onRestored: () => void;
+      /** Where to navigate after Undo, when the hiding page has gone. */
+      restorePath?: string;
+    }
   ) => void;
   deleteContent: (target: ContentTarget, onDeleted: () => void) => void;
 }

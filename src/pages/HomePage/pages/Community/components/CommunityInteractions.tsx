@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   useCallback,
   useEffect,
@@ -7,9 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "@/utils/api/apiCalls";
-import { showConfirmDialog, showNotification } from "@/pages/HomePage/utils";
+import { showConfirmDialog } from "@/pages/HomePage/utils";
 import type { CommunityReportReason } from "@/utils/api/community/interfaces";
-import { errorMessage } from "../utils/communityHelpers";
 import { BlockConfirmModal } from "./BlockConfirmModal";
 import { CommunityToast, type CommunityToastState } from "./CommunityToast";
 import { ReportModal } from "./ReportModal";
@@ -23,12 +23,15 @@ import {
 const TOAST_MS = 3600;
 
 /** Owns the shared sheets (who reacted, report, block) and the undo toast so
- *  every post card and comment can trigger them without its own copies. */
+ *  every post card and comment can trigger them without its own copies.
+ *  Mounted once by CommunityLayout so the toast survives navigating between
+ *  the feed and a post. */
 export const CommunityInteractionsProvider = ({
   children,
 }: {
   children: ReactNode;
 }) => {
+  const navigate = useNavigate();
   const [toast, setToast] = useState<CommunityToastState | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -92,12 +95,8 @@ export const CommunityInteractionsProvider = ({
           ...(details ? { details } : {}),
         });
         setReportSubmitted(true);
-      } catch (error) {
-        showNotification(
-          errorMessage(error, "Your report could not be sent. Please try again."),
-          "error",
-          "Community"
-        );
+      } catch {
+        // ApiErrorHandler has already shown the error.
       } finally {
         setReportSubmitting(false);
       }
@@ -126,19 +125,15 @@ export const CommunityInteractionsProvider = ({
       blockDone.current = null;
       setBlockTarget(null);
       showToast("Blocked. You won't see their posts or comments.");
-    } catch (error) {
-      showNotification(
-        errorMessage(error, "Could not block this author. Please try again."),
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error.
     } finally {
       setBlockSubmitting(false);
     }
   }, [blockTarget, showToast]);
 
   const hideContent = useCallback<CommunityInteractionsValue["hideContent"]>(
-    async (target, { onHidden, onRestored }) => {
+    async (target, { onHidden, onRestored, restorePath }) => {
       try {
         if (target.kind === "post") {
           await api.post.hideCommunityPost(target.id);
@@ -156,24 +151,19 @@ export const CommunityInteractionsProvider = ({
                 await api.delete.unhideCommunityComment(target.id);
               }
               onRestored();
-            } catch (error) {
-              showNotification(
-                errorMessage(error, "Could not undo. Please try again."),
-                "error",
-                "Community"
-              );
+              // Hidden from a page that then navigated away (post detail):
+              // the provider outlives it, so take the member back.
+              if (restorePath) navigate(restorePath);
+            } catch {
+              // ApiErrorHandler has already shown the error.
             }
           }
         );
-      } catch (error) {
-        showNotification(
-          errorMessage(error, "Could not hide this. Please try again."),
-          "error",
-          "Community"
-        );
+      } catch {
+        // ApiErrorHandler has already shown the error.
       }
     },
-    [showToast]
+    [navigate, showToast]
   );
 
   const deleteContent = useCallback<CommunityInteractionsValue["deleteContent"]>(
@@ -189,12 +179,8 @@ export const CommunityInteractionsProvider = ({
             }
             onDeleted();
             showToast(target.kind === "post" ? "Post deleted" : "Comment deleted");
-          } catch (error) {
-            showNotification(
-              errorMessage(error, "Could not delete. Please try again."),
-              "error",
-              "Community"
-            );
+          } catch {
+            // ApiErrorHandler has already shown the error.
           }
         },
         { message: "It will be removed for everyone.", confirmLabel: "Delete" }

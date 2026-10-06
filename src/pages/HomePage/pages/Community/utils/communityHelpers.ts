@@ -161,11 +161,3 @@ export const toggleReactionLocally = (
 export const authorDisplayName = (
   item: Pick<CommunityPost | CommunityComment, "isAnonymous" | "author">
 ): string => (item.isAnonymous || !item.author ? "Anonymous" : item.author.name);
-
-export const errorMessage = (error: unknown, fallback: string): string => {
-  if (error && typeof error === "object" && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === "string" && message.trim()) return message;
-  }
-  return fallback;
-};

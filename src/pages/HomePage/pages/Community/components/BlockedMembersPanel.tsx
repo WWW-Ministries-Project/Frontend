@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/utils/api/apiCalls";
-import { showNotification } from "@/pages/HomePage/utils";
 import type { CommunityBlock } from "@/utils/api/community/interfaces";
-import { errorMessage } from "../utils/communityHelpers";
 
 interface BlockedMembersPanelProps {
   /** Bumped by the page after a new block so the list reloads. */
@@ -36,12 +34,8 @@ export const BlockedMembersPanel = ({
       await api.delete.deleteCommunityBlock(block.id);
       setBlocks((current) => current.filter((item) => item.id !== block.id));
       onUnblocked();
-    } catch (error) {
-      showNotification(
-        errorMessage(error, "Could not unblock. Please try again."),
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error.
     }
   };
 

@@ -1,31 +1,49 @@
-import { ArrowLeftIcon, PaperAirplaneIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  PaperAirplaneIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import EmptyState from "@/components/EmptyState";
 import { api } from "@/utils/api/apiCalls";
 import { relativePath } from "@/utils/const";
-import { showNotification } from "@/pages/HomePage/utils";
 import type {
   CommunityComment,
   CommunityPost,
+  CommunityReactionSummary,
 } from "@/utils/api/community/interfaces";
 import { CommentItem } from "./components/CommentItem";
-import { CommunityInteractionsProvider } from "./components/CommunityInteractions";
-import { MembersOnlyNotice } from "./components/MembersOnlyNotice";
 import { PostCard } from "./components/PostCard";
 import { useCommunityMe } from "./hooks/useCommunityMe";
 import { POST_TYPES } from "./utils/communityConstants";
 import {
   authorDisplayName,
-  errorMessage,
+  communityPostPath,
   firstName,
-  isGuestViewer,
 } from "./utils/communityHelpers";
 
 interface ReplyTarget {
   parentId: number;
   name: string;
 }
+
+const parseCommentParam = (value: string | null): number | null => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+/** The comment plus its replies: what disappears when it is removed. */
+const findCommentWeight = (
+  comments: CommunityComment[],
+  id: number
+): number => {
+  for (const comment of comments) {
+    if (comment.id === id) return 1 + comment.replies.length;
+    if (comment.replies.some((reply) => reply.id === id)) return 1;
+  }
+  return 0;
+};
 
 const countComments = (comments: CommunityComment[]) =>
   comments.reduce((sum, comment) => sum + 1 + comment.replies.length, 0);
@@ -45,10 +63,13 @@ const mapComment = (
     return [{ ...comment, replies: mapComment(comment.replies, id, fn) }];
   });
 
+/** /member/community/posts/:id. Rendered inside CommunityLayout, which
+ *  handles guests and provides the shared interactions. */
 const CommunityPostDetail = () => {
   const { id } = useParams();
   const postId = Number(id);
   const [searchParams] = useSearchParams();
+  const commentParam = searchParams.get("comment");
   const navigate = useNavigate();
   const { me } = useCommunityMe();
 
@@ -56,18 +77,19 @@ const CommunityPostDetail = () => {
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [highlightId, setHighlightId] = useState<number | null>(() => {
-    const value = Number(searchParams.get("comment"));
-    return Number.isFinite(value) && value > 0 ? value : null;
-  });
+  const [highlightId, setHighlightId] = useState<number | null>(null);
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null);
   const [text, setText] = useState("");
   const [replyAnonymously, setReplyAnonymously] = useState(true);
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const removedRef = useRef(new Map<number, CommunityComment[]>());
+  const removedRef = useRef(
+    new Map<number, { snapshot: CommunityComment[]; weight: number }>()
+  );
+  const requestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++requestRef.current;
     if (!Number.isFinite(postId) || postId <= 0) {
       setNotFound(true);
       setLoading(false);
@@ -76,23 +98,38 @@ const CommunityPostDetail = () => {
     setLoading(true);
     try {
       const response = await api.fetch.fetchCommunityPost(postId);
+      if (requestId !== requestRef.current) return;
       if (!response.data?.post) {
         setNotFound(true);
         return;
       }
       setPost(response.data.post);
-      setComments(Array.isArray(response.data.comments) ? response.data.comments : []);
+      setComments(
+        Array.isArray(response.data.comments) ? response.data.comments : []
+      );
       setNotFound(false);
     } catch {
-      setNotFound(true);
+      if (requestId === requestRef.current) setNotFound(true);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }, [postId]);
 
+  // Refetch when the post changes, and when a notification for this same post
+  // lands with a different ?comment= (it may be a comment we haven't loaded).
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, commentParam]);
+
+  useEffect(() => {
+    setHighlightId(parseCommentParam(commentParam));
+  }, [commentParam]);
+
+  // A different post: drop the draft reply aimed at the previous one.
+  useEffect(() => {
+    setReplyTo(null);
+    setText("");
+  }, [postId]);
 
   // Notification deep links: scroll the highlighted comment into view.
   useEffect(() => {
@@ -103,28 +140,41 @@ const CommunityPostDetail = () => {
 
   const backToFeed = () => navigate(relativePath.member.community);
 
-  const updateComment = (updated: CommunityComment) =>
-    setComments((current) => mapComment(current, updated.id, () => updated));
+  const updateCommentReactions = (
+    commentId: number,
+    update: (reactions: CommunityReactionSummary[]) => CommunityReactionSummary[]
+  ) =>
+    setComments((current) =>
+      mapComment(current, commentId, (comment) => ({
+        ...comment,
+        reactions: update(comment.reactions),
+      }))
+    );
 
   const removeComment = (commentId: number) => {
-    setComments((current) => {
-      removedRef.current.set(commentId, current);
-      return mapComment(current, commentId, () => null);
-    });
+    // Removing a top-level comment takes its replies with it.
+    const weight = findCommentWeight(comments, commentId);
+    removedRef.current.set(commentId, { snapshot: comments, weight });
+    setComments((current) => mapComment(current, commentId, () => null));
     setPost((current) =>
       current
-        ? { ...current, commentCount: Math.max(0, current.commentCount - 1) }
+        ? {
+            ...current,
+            commentCount: Math.max(0, current.commentCount - weight),
+          }
         : current
     );
   };
 
   const restoreComment = (commentId: number) => {
-    const snapshot = removedRef.current.get(commentId);
-    if (!snapshot) return;
+    const removed = removedRef.current.get(commentId);
+    if (!removed) return;
     removedRef.current.delete(commentId);
-    setComments(snapshot);
+    setComments(removed.snapshot);
     setPost((current) =>
-      current ? { ...current, commentCount: current.commentCount + 1 } : current
+      current
+        ? { ...current, commentCount: current.commentCount + removed.weight }
+        : current
     );
   };
 
@@ -165,18 +215,16 @@ const CommunityPostDetail = () => {
             : [...current, { ...created, replies: created.replies ?? [] }]
         );
         setPost((current) =>
-          current ? { ...current, commentCount: current.commentCount + 1 } : current
+          current
+            ? { ...current, commentCount: current.commentCount + 1 }
+            : current
         );
         setHighlightId(created.id);
       }
       setText("");
       setReplyTo(null);
-    } catch (error) {
-      showNotification(
-        errorMessage(error, "Your comment could not be posted."),
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error; keep the draft.
     } finally {
       setSending(false);
     }
@@ -241,6 +289,7 @@ const CommunityPostDetail = () => {
         onChange={setPost}
         onRemove={backToFeed}
         onRestore={load}
+        restorePath={communityPostPath(post.id)}
         onBlocked={backToFeed}
       />
 
@@ -263,7 +312,7 @@ const CommunityPostDetail = () => {
                   comment={comment}
                   highlighted={highlightId === comment.id}
                   canManage={me.canManage}
-                  onChange={updateComment}
+                  onReactionsChange={updateCommentReactions}
                   onRemove={() => removeComment(comment.id)}
                   onRestore={() => restoreComment(comment.id)}
                   onBlocked={load}
@@ -276,7 +325,7 @@ const CommunityPostDetail = () => {
                     isReply
                     highlighted={highlightId === reply.id}
                     canManage={me.canManage}
-                    onChange={updateComment}
+                    onReactionsChange={updateCommentReactions}
                     onRemove={() => removeComment(reply.id)}
                     onRestore={() => restoreComment(reply.id)}
                     onBlocked={load}
@@ -351,20 +400,4 @@ const CommunityPostDetail = () => {
   );
 };
 
-const CommunityPostPage = () => {
-  if (isGuestViewer()) {
-    return (
-      <div className="mx-auto w-full max-w-3xl p-4 md:p-6">
-        <MembersOnlyNotice />
-      </div>
-    );
-  }
-
-  return (
-    <CommunityInteractionsProvider>
-      <CommunityPostDetail />
-    </CommunityInteractionsProvider>
-  );
-};
-
-export default CommunityPostPage;
+export default CommunityPostDetail;

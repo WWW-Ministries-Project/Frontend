@@ -144,7 +144,8 @@ export const relativePath = {
     },
     appointments: "/member/appointments",
     community: "/member/community",
-    communityPost: "/member/community/posts/:id",
+    // Relative to `community` (nested under CommunityLayout).
+    communityPost: "posts/:id",
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

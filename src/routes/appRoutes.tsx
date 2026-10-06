@@ -95,6 +95,7 @@ import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/Annua
 import CommunityManager from "@/pages/HomePage/pages/ChurchCommunication/CommunityManager.js";
 import PromotionManager from "@/pages/HomePage/pages/ChurchCommunication/PromotionManager.js";
 import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
+import CommunityLayout from "@/pages/HomePage/pages/Community/CommunityLayout.js";
 import MemberCommunityPage from "@/pages/HomePage/pages/Community/MemberCommunityPage.js";
 import CommunityPostPage from "@/pages/HomePage/pages/Community/CommunityPostPage.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
@@ -1335,14 +1336,22 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.community,
         name: "member_community",
-        element: <MemberCommunityPage />,
+        element: <CommunityLayout />,
         isPrivate: false,
-      },
-      {
-        path: relativePath.member.communityPost,
-        name: "member_community",
-        element: <CommunityPostPage />,
-        isPrivate: false,
+        children: [
+          {
+            path: "",
+            name: "member_community",
+            element: <MemberCommunityPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.communityPost,
+            name: "member_community",
+            element: <CommunityPostPage />,
+            isPrivate: false,
+          },
+        ],
       },
       {
         // Community replaced Announcements; old links and push actionUrls

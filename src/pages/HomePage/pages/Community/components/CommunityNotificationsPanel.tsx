@@ -14,6 +14,8 @@ import {
 interface CommunityNotificationsPanelProps {
   unreadCount: number;
   onUnreadChange: (count: number) => void;
+  /** Re-reads /community/me so the badge matches the server. */
+  onRefresh: () => void;
 }
 
 const PAGE_SIZE = 30;
@@ -31,6 +33,7 @@ const splitTitle = (notification: CommunityNotification) => {
 export const CommunityNotificationsPanel = ({
   unreadCount,
   onUnreadChange,
+  onRefresh,
 }: CommunityNotificationsPanelProps) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -56,8 +59,10 @@ export const CommunityNotificationsPanel = ({
   }, []);
 
   useEffect(() => {
-    if (open) load();
-  }, [open, load]);
+    if (!open) return;
+    load();
+    onRefresh();
+  }, [open, load, onRefresh]);
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +89,8 @@ export const CommunityNotificationsPanel = ({
     } catch {
       setItems(previous);
       onUnreadChange(unreadCount);
+    } finally {
+      onRefresh();
     }
   };
 
@@ -95,9 +102,12 @@ export const CommunityNotificationsPanel = ({
         )
       );
       onUnreadChange(Math.max(0, unreadCount - 1));
-      api.put.markCommunityNotificationRead(notification.id).catch(() => {
-        // The badge self-corrects on the next /community/me load.
-      });
+      api.put
+        .markCommunityNotificationRead(notification.id)
+        .catch(() => {
+          // ApiErrorHandler has already shown the error.
+        })
+        .finally(onRefresh);
     }
     setOpen(false);
     if (notification.postId) {

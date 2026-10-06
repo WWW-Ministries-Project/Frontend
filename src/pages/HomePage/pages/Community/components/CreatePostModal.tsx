@@ -29,7 +29,7 @@ import {
   MEMBER_POST_TYPES,
   POST_TYPES,
 } from "../utils/communityConstants";
-import { errorMessage, firstName, plural } from "../utils/communityHelpers";
+import { firstName, plural } from "../utils/communityHelpers";
 import { CommunityAvatar } from "./CommunityAvatar";
 import { useCommunityInteractions } from "./communityInteractionsContext";
 import {
@@ -264,12 +264,8 @@ export const CreatePostModal = ({
           : "Saved privately"
       );
       onClose();
-    } catch (error) {
-      showNotification(
-        errorMessage(error, "Your post could not be published. Please try again."),
-        "error",
-        "Community"
-      );
+    } catch {
+      // ApiErrorHandler has already shown the error; keep the draft.
     } finally {
       setSubmitting(false);
     }

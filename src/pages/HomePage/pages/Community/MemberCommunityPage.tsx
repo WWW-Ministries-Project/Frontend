@@ -15,14 +15,12 @@ import type {
   CommunityPost,
 } from "@/utils/api/community/interfaces";
 import { CommunityAvatar } from "./components/CommunityAvatar";
-import { CommunityInteractionsProvider } from "./components/CommunityInteractions";
 import { CommunityNotificationsPanel } from "./components/CommunityNotificationsPanel";
 import { CommunitySheet } from "./components/CommunitySheet";
 import {
   CreatePostModal,
   type AudienceSelection,
 } from "./components/CreatePostModal";
-import { MembersOnlyNotice } from "./components/MembersOnlyNotice";
 import { MyCommunitiesPanel } from "./components/MyCommunitiesPanel";
 import { BlockedMembersPanel } from "./components/BlockedMembersPanel";
 import { PostCard } from "./components/PostCard";
@@ -32,22 +30,33 @@ import {
   FEED_FILTERS,
   FEED_PAGE_SIZE,
 } from "./utils/communityConstants";
-import { isGuestViewer, plural } from "./utils/communityHelpers";
+import { plural } from "./utils/communityHelpers";
 
 const ADMIN_REPORTS_PATH = "/home/communication/community?tab=reported";
 
+/** /member/community. Rendered inside CommunityLayout, which handles guests
+ *  and provides the shared interactions. */
 const MemberCommunityFeed = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const token = decodeToken();
   const viewerName = token?.name ?? "";
-  const { me, setUnread } = useCommunityMe();
+  const { me, loaded: meLoaded, refresh: refreshMe, setUnread } =
+    useCommunityMe();
 
+  // `?department=` is only honoured for one of the viewer's own departments;
+  // anything else falls back to the whole feed.
   const departmentParam = Number(searchParams.get("department"));
-  const departmentId =
+  const requestedDepartment =
     Number.isFinite(departmentParam) && departmentParam > 0
       ? departmentParam
       : null;
-  const department = me.departments.find((item) => item.id === departmentId);
+  const department = requestedDepartment
+    ? me.departments.find((item) => item.id === requestedDepartment)
+    : undefined;
+  const departmentId = department?.id ?? null;
+  // Until /community/me answers we cannot tell whether the requested
+  // department is the viewer's, so hold the first load.
+  const waitingForMe = Boolean(requestedDepartment) && !meLoaded;
 
   const [filter, setFilter] = useState<CommunityFeedFilter>("all");
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -108,8 +117,8 @@ const MemberCommunityFeed = () => {
   );
 
   useEffect(() => {
-    load(0);
-  }, [load]);
+    if (!waitingForMe) load(0);
+  }, [load, waitingForMe]);
 
   // Dashboard "Share a testimony or prayer request…" lands here with ?compose=1.
   useEffect(() => {
@@ -154,6 +163,29 @@ const MemberCommunityFeed = () => {
   const onBlocked = () => {
     setBlockRefresh((value) => value + 1);
     load(0);
+  };
+
+  /** Whether a just-created post would appear in the feed being shown. */
+  const belongsToCurrentFeed = (post: CommunityPost): boolean => {
+    if (departmentId) {
+      return (
+        post.audience.kind === "DEPARTMENT" &&
+        post.audience.departmentId === departmentId
+      );
+    }
+    switch (filter) {
+      case "prayer":
+        return post.type === "PRAYER";
+      case "testimony":
+        return post.type === "TESTIMONY";
+      case "discussion":
+        return post.type === "DISCUSSION";
+      case "department":
+        return post.audience.kind === "DEPARTMENT";
+      case "all":
+      default:
+        return true;
+    }
   };
 
   const openComposer = (audience?: AudienceSelection) => {
@@ -266,6 +298,7 @@ const MemberCommunityFeed = () => {
           <CommunityNotificationsPanel
             unreadCount={me.unreadNotifications}
             onUnreadChange={setUnread}
+            onRefresh={refreshMe}
           />
           <button
             type="button"
@@ -403,9 +436,8 @@ const MemberCommunityFeed = () => {
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
         onCreated={(post) => {
-          if (!departmentId && filter !== "all") {
-            // Show the new post where the design puts it: the full feed.
-            setFilter("all");
+          if (!belongsToCurrentFeed(post)) {
+            load(0);
             return;
           }
           setPosts((current) => [
@@ -423,20 +455,4 @@ const MemberCommunityFeed = () => {
   );
 };
 
-const MemberCommunityPage = () => {
-  if (isGuestViewer()) {
-    return (
-      <div className="mx-auto w-full max-w-3xl p-4 md:p-6">
-        <MembersOnlyNotice />
-      </div>
-    );
-  }
-
-  return (
-    <CommunityInteractionsProvider>
-      <MemberCommunityFeed />
-    </CommunityInteractionsProvider>
-  );
-};
-
-export default MemberCommunityPage;
+export default MemberCommunityFeed;

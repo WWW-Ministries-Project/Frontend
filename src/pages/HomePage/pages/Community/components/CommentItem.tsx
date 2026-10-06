@@ -1,13 +1,13 @@
+import { useRef } from "react";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
-import { showNotification } from "@/pages/HomePage/utils";
 import type {
   CommunityComment,
   CommunityCommentReactionType,
+  CommunityReactionSummary,
 } from "@/utils/api/community/interfaces";
 import { REACTIONS } from "../utils/communityConstants";
 import {
-  errorMessage,
   findReaction,
   firstName,
   timeAgo,
@@ -23,7 +23,12 @@ interface CommentItemProps {
   isReply?: boolean;
   highlighted: boolean;
   canManage: boolean;
-  onChange: (comment: CommunityComment) => void;
+  /** Patches only this comment's reactions, functionally, so replies added
+   *  while a request is in flight are kept. */
+  onReactionsChange: (
+    commentId: number,
+    update: (reactions: CommunityReactionSummary[]) => CommunityReactionSummary[]
+  ) => void;
   onRemove: () => void;
   onRestore: () => void;
   onBlocked: () => void;
@@ -55,7 +60,7 @@ export const CommentItem = ({
   isReply,
   highlighted,
   canManage,
-  onChange,
+  onReactionsChange,
   onRemove,
   onRestore,
   onBlocked,
@@ -75,24 +80,27 @@ export const CommentItem = ({
     authorFirstName: anonymous ? null : firstName(comment.author?.name),
   };
 
+  // Only the latest reaction request may apply its response or roll back.
+  const reactionSeq = useRef(0);
+
   const toggle = async (type: CommunityCommentReactionType) => {
+    const seq = ++reactionSeq.current;
     const before = comment.reactions;
-    onChange({ ...comment, reactions: toggleReactionLocally(before, type) });
+    onReactionsChange(comment.id, (reactions) =>
+      toggleReactionLocally(reactions, type)
+    );
     try {
       const response = await api.post.toggleCommunityCommentReaction(
         comment.id,
         type
       );
-      if (Array.isArray(response.data)) {
-        onChange({ ...comment, reactions: response.data });
-      }
-    } catch (error) {
-      onChange({ ...comment, reactions: before });
-      showNotification(
-        errorMessage(error, "Your reaction could not be saved."),
-        "error",
-        "Community"
-      );
+      if (seq !== reactionSeq.current) return;
+      const next = response.data;
+      if (Array.isArray(next)) onReactionsChange(comment.id, () => next);
+    } catch {
+      // ApiErrorHandler has already shown the error.
+      if (seq !== reactionSeq.current) return;
+      onReactionsChange(comment.id, () => before);
     }
   };
 

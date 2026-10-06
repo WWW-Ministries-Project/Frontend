@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
-import { showNotification } from "@/pages/HomePage/utils";
 import type {
   CommunityPost,
   CommunityReactionType,
@@ -17,7 +16,6 @@ import {
   audienceLabels,
   authorDisplayName,
   communityPostPath,
-  errorMessage,
   findReaction,
   firstName,
   plural,
@@ -44,6 +42,9 @@ interface PostCardProps {
   /** The author was blocked; the list should refetch. */
   onBlocked: () => void;
   highlighted?: boolean;
+  /** Where Undo of a hide should take the member back to, when hiding also
+   *  navigates away (post detail). */
+  restorePath?: string;
 }
 
 export const PostCard = ({
@@ -55,12 +56,15 @@ export const PostCard = ({
   onRestore,
   onBlocked,
   highlighted,
+  restorePath,
 }: PostCardProps) => {
   const interactions = useCommunityInteractions();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
   const postRef = useRef(post);
   postRef.current = post;
+  // Only the latest reaction request may apply its response or roll back.
+  const reactionSeq = useRef(0);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -88,6 +92,7 @@ export const PostCard = ({
   };
 
   const toggleReaction = async (type: CommunityReactionType) => {
+    const seq = ++reactionSeq.current;
     const before = postRef.current;
     const wasReacted = Boolean(findReaction(before.reactions, type)?.reacted);
     onChange({
@@ -104,17 +109,19 @@ export const PostCard = ({
     }
 
     try {
-      const response = await api.post.toggleCommunityPostReaction(before.id, type);
+      const response = await api.post.toggleCommunityPostReaction(
+        before.id,
+        type
+      );
+      if (seq !== reactionSeq.current) return;
       if (Array.isArray(response.data)) {
         onChange({ ...postRef.current, reactions: response.data });
       }
-    } catch (error) {
+    } catch {
+      // ApiErrorHandler has already shown the error; undo the optimistic
+      // toggle unless a newer request has taken over.
+      if (seq !== reactionSeq.current) return;
       onChange({ ...postRef.current, reactions: before.reactions });
-      showNotification(
-        errorMessage(error, "Your reaction could not be saved."),
-        "error",
-        "Community"
-      );
     }
   };
 
@@ -170,6 +177,7 @@ export const PostCard = ({
             interactions.hideContent(target, {
               onHidden: onRemove,
               onRestored: onRestore,
+              restorePath,
             })
           }
           onBlock={() => interactions.openBlock(target, onBlocked)}
