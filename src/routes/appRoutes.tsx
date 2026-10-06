@@ -93,6 +93,7 @@ import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import CommunityManager from "@/pages/HomePage/pages/ChurchCommunication/CommunityManager.js";
+import CommunicationIndexRedirect from "@/pages/HomePage/pages/ChurchCommunication/CommunicationIndexRedirect.js";
 import PromotionManager from "@/pages/HomePage/pages/ChurchCommunication/PromotionManager.js";
 import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
 import CommunityLayout from "@/pages/HomePage/pages/Community/CommunityLayout.js";
@@ -137,6 +138,9 @@ export interface AppRoute {
   isPrivate?: boolean;
   permissionNeeded?: PermissionRequirement;
   sideTab?: boolean;
+  /** A pure redirect: never a navigation entry, so it does not count when
+   *  deciding whether a parent has anything the user can open. */
+  redirectOnly?: boolean;
   children?: AppRoute[];
 }
 
@@ -547,11 +551,13 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
+            // No permissionNeeded: the redirect picks the first child the
+            // user can access (each child enforces its own permission).
             path: "",
             name: "Communication Default",
-            element: <Navigate to="theme-manager" replace />,
+            element: <CommunicationIndexRedirect />,
             isPrivate: true,
-            permissionNeeded: "view_theme",
+            redirectOnly: true,
           },
           {
             path: "theme-manager",

@@ -24,6 +24,8 @@ export const filterRoutesByAccess = (
   legacyPermissions: Record<string, boolean> | null | undefined
 ): AppRoute[] =>
   routes.reduce<AppRoute[]>((visibleRoutes, route) => {
+    if (route.redirectOnly) return visibleRoutes;
+
     const visibleChildren = route.children
       ? filterRoutesByAccess(route.children, accessPermissions, legacyPermissions)
       : undefined;
