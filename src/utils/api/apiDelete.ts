@@ -3,6 +3,7 @@ import { ApiExecution } from "./apiConstructor";
 import { deleteData } from "./apiFunctions";
 import type { NotificationClearAllPayload } from "./notifications/interfaces";
 
+
 export class ApiDeletionCalls {
   private apiExecution: ApiExecution;
 
@@ -311,5 +312,10 @@ export class ApiDeletionCalls {
       ...response,
       data: response.data?.data ?? { deleted: 0, skipped: [] },
     };
+  };
+
+  // Ride to church (safety team / church office)
+  removeRideBlock = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`rides/admin/blocks/${id}`, {});
   };
 }

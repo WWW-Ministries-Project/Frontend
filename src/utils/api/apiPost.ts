@@ -16,6 +16,19 @@ import type {
   CreateCommunityPostDto,
   CreateCommunityReportDto,
 } from "./community/interfaces";
+import type {
+  AdminRideArea,
+  AdminRidePickupPoint,
+  DeclineRequestDto,
+  DriverRide,
+  MyRide,
+  PublishRideDto,
+  RequestSeatDto,
+  RideAlertDto,
+  RideReportDto,
+  SaveRideAreaDto,
+  SaveRidePickupPointDto,
+} from "./rides/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
 import type {
   Sermon,
@@ -855,5 +868,76 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<AiInsightResponse>> => {
     const encodedModule = encodeURIComponent(module.trim());
     return this.postToApi(`ai/insights/${encodedModule}`, payload);
+  };
+
+  // Ride to church (members)
+  publishRide = (payload: PublishRideDto): Promise<ApiResponse<DriverRide>> => {
+    return this.postToApi("rides/offers", payload);
+  };
+
+  cancelRideOffer = (
+    id: number
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.postToApi(`rides/offers/${id}/cancel`, {});
+  };
+
+  requestRideSeat = (payload: RequestSeatDto): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi("rides/requests", payload);
+  };
+
+  acceptRideRequest = (id: number): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi(`rides/requests/${id}/accept`, {});
+  };
+
+  declineRideRequest = (
+    id: number,
+    payload: DeclineRequestDto
+  ): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi(`rides/requests/${id}/decline`, payload);
+  };
+
+  cancelRideRequest = (
+    id: number
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.postToApi(`rides/requests/${id}/cancel`, {});
+  };
+
+  /** Acknowledge a declined / driver-cancelled request ("Find another ride"). */
+  dismissRideRequest = (id: number): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`rides/requests/${id}/dismiss`, {});
+  };
+
+  setRideAlert = (
+    payload: RideAlertDto
+  ): Promise<ApiResponse<{ pickup_point_id: number; alert_on: boolean }>> => {
+    return this.postToApi("rides/alerts", payload);
+  };
+
+  reportRide = (
+    payload: RideReportDto
+  ): Promise<ApiResponse<{ id: number; blocked: boolean }>> => {
+    return this.postToApi("rides/reports", payload);
+  };
+
+  // Ride to church (safety team / church office)
+  adminCancelRide = (
+    id: number,
+    payload: { reason?: string }
+  ): Promise<
+    ApiResponse<{ id: number; status: string; passengers_notified: number }>
+  > => {
+    return this.postToApi(`rides/admin/offers/${id}/cancel`, payload);
+  };
+
+  createRidePickupPoint = (
+    payload: SaveRidePickupPointDto
+  ): Promise<ApiResponse<AdminRidePickupPoint>> => {
+    return this.postToApi("rides/admin/pickup-points", payload);
+  };
+
+  createRideArea = (
+    payload: SaveRideAreaDto
+  ): Promise<ApiResponse<AdminRideArea>> => {
+    return this.postToApi("rides/admin/areas", payload);
   };
 }

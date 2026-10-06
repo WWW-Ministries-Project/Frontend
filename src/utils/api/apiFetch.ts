@@ -18,6 +18,15 @@ import type {
   CommunityPostDetail,
   CommunityReactor,
 } from "./community/interfaces";
+import type {
+  AdminRideCatalog,
+  AdminRideOverview,
+  MyRide,
+  RideBlock,
+  RideCatalog,
+  RideReport,
+  RideSearchResult,
+} from "./rides/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
 import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
@@ -1099,5 +1108,41 @@ export class ApiCalls {
     return this.fetchFromApi("ai/usage-history", query);
   };
 
+  // Ride to church (members)
+  fetchRideCatalog = (): Promise<ApiResponse<RideCatalog>> => {
+    return this.fetchFromApi("rides/catalog");
+  };
 
+  fetchMyRide = (): Promise<ApiResponse<MyRide>> => {
+    return this.fetchFromApi("rides/mine");
+  };
+
+  searchRides = (
+    pickupPointId: number
+  ): Promise<ApiResponse<RideSearchResult>> => {
+    return this.fetchFromApi("rides/search", { pickup_point_id: pickupPointId });
+  };
+
+  // Ride to church (safety team / church office)
+  /** Query: service_date (YYYY-MM-DD, defaults to the Sunday being arranged). */
+  fetchRideAdminOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<AdminRideOverview>> => {
+    return this.fetchFromApi("rides/admin/overview", query);
+  };
+
+  /** Query: status (OPEN|RESOLVED|ALL, default OPEN). */
+  fetchRideReports = (
+    query?: QueryType
+  ): Promise<ApiResponse<RideReport[]>> => {
+    return this.fetchFromApi("rides/admin/reports", query);
+  };
+
+  fetchRideAdminCatalog = (): Promise<ApiResponse<AdminRideCatalog>> => {
+    return this.fetchFromApi("rides/admin/catalog");
+  };
+
+  fetchRideBlocks = (): Promise<ApiResponse<RideBlock[]>> => {
+    return this.fetchFromApi("rides/admin/blocks");
+  };
 }

@@ -522,6 +522,15 @@ const buildFallbackActionUrl = (
   const entityType = (notification.entityType || "").trim().toLowerCase();
   const typeToken = notification.type.trim().toLowerCase();
 
+  // Safety reports reach the church office without an actionUrl.
+  if (entityType === "ride_report" || typeToken === "ride.safety_report") {
+    return `${relativePath.home.main}/${relativePath.home.membership.main}/${relativePath.home.membership.rides}?tab=reports`;
+  }
+
+  if (entityType === "ride" || typeToken.startsWith("ride.")) {
+    return relativePath.member.rides;
+  }
+
   // Community notifications normally carry an actionUrl; this covers any
   // that arrive without one.
   if (entityType.includes("community") || typeToken.startsWith("community.")) {

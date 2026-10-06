@@ -12,6 +12,12 @@ import type {
   CommunityPost,
   UpdateCommunityPostDto,
 } from "./community/interfaces";
+import type {
+  AdminRideArea,
+  AdminRidePickupPoint,
+  SaveRideAreaDto,
+  SaveRidePickupPointDto,
+} from "./rides/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
 import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
@@ -771,5 +777,33 @@ export class ApiUpdateCalls {
       `notifications/preferences/${encodeURIComponent(notificationType)}`,
       payload
     );
+  };
+
+  // Ride to church (safety team / church office)
+  resolveRideReport = (
+    id: number,
+    payload: { resolution_note?: string }
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.apiExecution.patchData(
+      `rides/admin/reports/${id}/resolve`,
+      payload
+    );
+  };
+
+  updateRidePickupPoint = (
+    id: number,
+    payload: SaveRidePickupPointDto
+  ): Promise<ApiResponse<AdminRidePickupPoint>> => {
+    return this.apiExecution.updateData(
+      `rides/admin/pickup-points/${id}`,
+      payload
+    );
+  };
+
+  updateRideArea = (
+    id: number,
+    payload: SaveRideAreaDto
+  ): Promise<ApiResponse<AdminRideArea>> => {
+    return this.apiExecution.updateData(`rides/admin/areas/${id}`, payload);
   };
 }
