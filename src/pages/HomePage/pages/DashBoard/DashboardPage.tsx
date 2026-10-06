@@ -1,7 +1,7 @@
 import { routes } from "@/routes/appRoutes";
 import { matchRoutes, useLocation } from "react-router-dom";
 
-import { ChurchAnnouncements } from "./Components/ChurchAnnouncements";
+import { CommunityPreview } from "./Components/CommunityPreview";
 import { MyAppointments } from "./Components/MyAppointments";
 import { ProfileSummary } from "./Components/ProfileSummary";
 import { QuickActions } from "./Components/QuickActions";
@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 export const DashBoardPage = () => {
   const location = useLocation();
-  const [activeTheme, setActiveTheme] = useState<any>(null);
+  const [activeTheme, setActiveTheme] = useState<unknown>(null);
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.find((m) => m.route.name)?.route.name;
@@ -42,7 +42,7 @@ export const DashBoardPage = () => {
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           <UpcomingEvents />
-          <ChurchAnnouncements />
+          <CommunityPreview />
           <RecentSermons />
         </div>
 

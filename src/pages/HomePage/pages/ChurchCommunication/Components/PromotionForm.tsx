@@ -233,7 +233,7 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
                 Where tapping the banner goes in the app, e.g.{" "}
                 <code>/member/appointments</code>,{" "}
                 <code>/member/give?segment=Pledges</code>,{" "}
-                <code>/member/announcements</code>. Leave empty for a
+                <code>/member/community</code>. Leave empty for a
                 non-tappable banner.
               </p>
             </div>

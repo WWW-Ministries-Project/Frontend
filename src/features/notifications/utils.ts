@@ -522,6 +522,15 @@ const buildFallbackActionUrl = (
   const entityType = (notification.entityType || "").trim().toLowerCase();
   const typeToken = notification.type.trim().toLowerCase();
 
+  // Community notifications normally carry an actionUrl; this covers any
+  // that arrive without one.
+  if (entityType.includes("community") || typeToken.startsWith("community.")) {
+    if (notification.entityId) {
+      return `${relativePath.member.community}/posts/${notification.entityId}`;
+    }
+    return relativePath.member.community;
+  }
+
   if (entityType.includes("requisition") || typeToken.includes("requisition")) {
     const baseRoute = `${relativePath.home.main}/requests`;
     if (notification.entityId) {

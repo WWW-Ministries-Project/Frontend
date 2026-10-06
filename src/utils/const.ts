@@ -143,7 +143,9 @@ export const relativePath = {
       InstructorGradingPanel:":programId/cohort/:cohortId/grades/:topicId"
     },
     appointments: "/member/appointments",
-    announcements: "/member/announcements",
+    community: "/member/community",
+    // Relative to `community` (nested under CommunityLayout).
+    communityPost: "posts/:id",
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

@@ -4,7 +4,18 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
-import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
+import type {
+  CommunityComment,
+  CommunityCommentReactionType,
+  CommunityModerationKind,
+  CommunityPost,
+  CommunityReactionSummary,
+  CommunityReactionType,
+  CreateCommunityBlockDto,
+  CreateCommunityCommentDto,
+  CreateCommunityPostDto,
+  CreateCommunityReportDto,
+} from "./community/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
 import type {
   Sermon,
@@ -601,17 +612,72 @@ export class ApiCreationCalls {
     return this.postToApi("theme/create-theme", payload);
   }
 
-  // Announcements
-  createAnnouncement = (
-    payload: CreateAnnouncementDto
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.postToApi("announcements", payload);
+  // Community
+  createCommunityPost = (
+    payload: CreateCommunityPostDto
+  ): Promise<ApiResponse<CommunityPost>> => {
+    return this.postToApi("community/posts", payload);
   };
 
-  publishAnnouncement = (
+  /** Toggles the viewer's reaction of `type`. */
+  toggleCommunityPostReaction = (
+    id: number,
+    type: CommunityReactionType
+  ): Promise<ApiResponse<CommunityReactionSummary[]>> => {
+    return this.postToApi(`community/posts/${id}/reactions`, { type });
+  };
+
+  createCommunityComment = (
+    postId: number,
+    payload: CreateCommunityCommentDto
+  ): Promise<ApiResponse<CommunityComment>> => {
+    return this.postToApi(`community/posts/${postId}/comments`, payload);
+  };
+
+  toggleCommunityCommentReaction = (
+    id: number,
+    type: CommunityCommentReactionType
+  ): Promise<ApiResponse<CommunityReactionSummary[]>> => {
+    return this.postToApi(`community/comments/${id}/reactions`, { type });
+  };
+
+  hideCommunityPost = (id: number): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`community/posts/${id}/hide`, {});
+  };
+
+  hideCommunityComment = (
     id: number
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.postToApi(`announcements/${id}/publish`, {});
+  ): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`community/comments/${id}/hide`, {});
+  };
+
+  /** Also hides the target for the reporter. */
+  createCommunityReport = (
+    payload: CreateCommunityReportDto
+  ): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi("community/reports", payload);
+  };
+
+  /** The server resolves the real author, so anonymous authors can be
+   *  blocked without being revealed. */
+  createCommunityBlock = (
+    payload: CreateCommunityBlockDto
+  ): Promise<ApiResponse<{ ok: true }>> => {
+    return this.postToApi("community/blocks", payload);
+  };
+
+  markAllCommunityNotificationsRead = (): Promise<
+    ApiResponse<{ count: number }>
+  > => {
+    return this.postToApi("community/notifications/read-all", {});
+  };
+
+  moderateCommunityContent = (
+    kind: CommunityModerationKind,
+    id: number,
+    action: "remove" | "restore" | "warn"
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(`community/moderation/${kind}/${id}/${action}`, {});
   };
 
   // Promotions

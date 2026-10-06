@@ -181,12 +181,28 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("theme/delete-theme", query);
   }
 
-  // Delete Announcement
-  deleteAnnouncement = (
-    id: number
-  ): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`announcements/${id}`, {});
-  }
+  // Community
+  deleteCommunityPost = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/posts/${id}`, {});
+  };
+
+  deleteCommunityComment = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/comments/${id}`, {});
+  };
+
+  /** Undo of `hideCommunityPost`. */
+  unhideCommunityPost = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/posts/${id}/hide`, {});
+  };
+
+  /** Undo of `hideCommunityComment`. */
+  unhideCommunityComment = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/comments/${id}/hide`, {});
+  };
+
+  deleteCommunityBlock = (blockId: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/blocks/${blockId}`, {});
+  };
 
   // Delete Promotion
   deletePromotion = (

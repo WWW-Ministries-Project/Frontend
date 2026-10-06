@@ -5,7 +5,19 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
-import type { Announcement } from "./announcements/interfaces";
+import type {
+  CommunityAdminPost,
+  CommunityAuditLogEntry,
+  CommunityBlock,
+  CommunityDepartment,
+  CommunityMe,
+  CommunityModerationItem,
+  CommunityNotification,
+  CommunityPerson,
+  CommunityPost,
+  CommunityPostDetail,
+  CommunityReactor,
+} from "./community/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
 import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
@@ -791,17 +803,79 @@ export class ApiCalls {
     return this.fetchFromApi("theme/get-active-theme", query);
   }
 
-  // Announcements
-  fetchAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements", query);
+  // Community (members' feed)
+  fetchCommunityMe = (): Promise<ApiResponse<CommunityMe>> => {
+    return this.fetchFromApi("community/me");
   };
 
-  fetchAnnouncement = (
+  /** Query: filter (all|prayer|testimony|discussion|department), departmentId, skip, take. */
+  fetchCommunityFeed = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityPost[]>> => {
+    return this.fetchFromApi("community/feed", query);
+  };
+
+  fetchCommunityDepartments = (): Promise<
+    ApiResponse<CommunityDepartment[]>
+  > => {
+    return this.fetchFromApi("community/departments");
+  };
+
+  fetchCommunityPost = (
     id: number
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.fetchFromApi(`announcements/${id}`);
+  ): Promise<ApiResponse<CommunityPostDetail>> => {
+    return this.fetchFromApi(`community/posts/${id}`);
+  };
+
+  fetchCommunityPostReactions = (
+    id: number
+  ): Promise<ApiResponse<CommunityReactor[]>> => {
+    return this.fetchFromApi(`community/posts/${id}/reactions`);
+  };
+
+  fetchCommunityCommentReactions = (
+    id: number
+  ): Promise<ApiResponse<CommunityReactor[]>> => {
+    return this.fetchFromApi(`community/comments/${id}/reactions`);
+  };
+
+  fetchCommunityBlocks = (): Promise<ApiResponse<CommunityBlock[]>> => {
+    return this.fetchFromApi("community/blocks");
+  };
+
+  /** Query: q (min 1 char), take (<= 20). */
+  searchCommunityMembers = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityPerson[]>> => {
+    return this.fetchFromApi("community/members", query);
+  };
+
+  /** Query: skip, take. Unread count comes from `fetchCommunityMe`. */
+  fetchCommunityNotifications = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityNotification[]>> => {
+    return this.fetchFromApi("community/notifications", query);
+  };
+
+  /** Query: status (PENDING|REMOVED|RESTORED|ALL, default PENDING). */
+  fetchCommunityModerationReports = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityModerationItem[]>> => {
+    return this.fetchFromApi("community/moderation/reports", query);
+  };
+
+  /** Query: type, status, q, skip, take. */
+  fetchCommunityAdminPosts = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityAdminPost[]>> => {
+    return this.fetchFromApi("community/admin/posts", query);
+  };
+
+  /** Query: skip, take. */
+  fetchCommunityAuditLog = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityAuditLogEntry[]>> => {
+    return this.fetchFromApi("community/moderation/audit-log", query);
   };
 
   // Promotions (mobile Home banners)
@@ -838,12 +912,6 @@ export class ApiCalls {
 
   fetchSermonTags = (query?: QueryType): Promise<ApiResponse<SermonTag[]>> => {
     return this.fetchFromApi("sermons/tags", query);
-  };
-
-  fetchMyAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements/mine", query);
   };
 
   // fetch receipt config
