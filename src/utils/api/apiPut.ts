@@ -9,6 +9,10 @@ import type {
   BulkAssignAccessLevelResult,
 } from "./settings/accessLevelAssignmentInterfaces";
 import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
+import type {
+  CommunityPost,
+  UpdateCommunityPostDto,
+} from "./community/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
 import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
@@ -566,6 +570,20 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<Announcement>> => {
     return this.apiExecution.updateData(`announcements/${id}`, payload);
   }
+
+  // update community post (author or Community manager)
+  updateCommunityPost = (
+    id: number,
+    payload: UpdateCommunityPostDto
+  ): Promise<ApiResponse<CommunityPost>> => {
+    return this.apiExecution.updateData(`community/posts/${id}`, payload);
+  };
+
+  markCommunityNotificationRead = (
+    id: number
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData(`community/notifications/${id}/read`, {});
+  };
 
   // update promotion
   updatePromotion = (
