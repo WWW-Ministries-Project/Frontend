@@ -133,7 +133,7 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     type: "ride.safety_report",
     entityType: "ride_report",
     description: "A member reported a safety concern about a ride.",
-    actionUrlTemplate: "/home/membership/ride-to-church?tab=reports",
+    actionUrlTemplate: "/home/ride-to-church?tab=reports",
     defaultPriority: "HIGH",
     toastForHighPriorityOnly: false,
   },
