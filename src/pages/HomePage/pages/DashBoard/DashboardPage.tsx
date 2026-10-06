@@ -8,6 +8,7 @@ import { QuickActions } from "./Components/QuickActions";
 import { RecentSermons } from "./Components/RecentSermons";
 import { UpcomingEvents } from "./Components/UpcomingEvents";
 import { WelcomeHeader } from "./Components/WelcomeHeader";
+import { RideHomeCard } from "@/pages/HomePage/pages/Rides/components/RideHomeCard";
 import { api } from "@/utils/api/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useEffect, useState } from "react";
@@ -41,6 +42,9 @@ export const DashBoardPage = () => {
       >
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Member portal only: admins without a membership would get the
+              backend's members-only error on every dashboard visit. */}
+          {routeName === "member" ? <RideHomeCard /> : null}
           <UpcomingEvents />
           <CommunityPreview />
           <RecentSermons />

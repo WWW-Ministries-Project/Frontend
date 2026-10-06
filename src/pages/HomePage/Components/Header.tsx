@@ -129,7 +129,8 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isSchoolRoute = location.pathname.includes("school-of-ministries");
   const isMoreRoute =
     location.pathname.startsWith(relativePath.member.giving) ||
-    location.pathname.startsWith(relativePath.member.pledges);
+    location.pathname.startsWith(relativePath.member.pledges) ||
+    location.pathname.startsWith(relativePath.member.rides);
   const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
   const showAdminAiEntry = !isMemberRoute && canView("AI");
 
@@ -160,6 +161,10 @@ export const Header = ({ handleShowNav }: IProps) => {
   const moreItems = [
     { label: "Giving", path: relativePath.member.giving },
     { label: "Pledges", path: relativePath.member.pledges },
+    // Ride to church is members-only, like Community.
+    ...(!isGuest
+      ? [{ label: "Ride to church", path: relativePath.member.rides }]
+      : []),
   ];
 
   const handleNavigate = (path: string) => {
