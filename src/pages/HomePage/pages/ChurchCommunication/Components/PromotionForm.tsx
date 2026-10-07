@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
+import FormikSelectField from "@/components/FormikSelect";
 import { api } from "@/utils/api/apiCalls";
 import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -11,6 +12,12 @@ import type {
   CreatePromotionDto,
   Promotion,
 } from "@/utils/api/promotions/interfaces";
+import {
+  parsePromotionLink,
+  PROMOTION_APP_SCREENS,
+  type PromotionLinkType,
+  WEB_LINK_PATTERN,
+} from "./promotionLinks";
 
 interface PromotionFormValues {
   title: string;
@@ -19,7 +26,10 @@ interface PromotionFormValues {
   subtitle: string;
   image_url: string;
   cta_label: string;
-  deep_link: string;
+  /** Where tapping the banner goes; combined into `deep_link` on save. */
+  link_type: PromotionLinkType;
+  app_screen: string;
+  web_url: string;
   /** Kept as a string (native number input reports strings) — parsed in
    *  buildPayload. */
   sort_order: string;
@@ -36,19 +46,24 @@ const toDateInputValue = (value?: string | null): string => {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 };
 
-/** Same rule the API enforces: an app path, the app's own scheme, or a web
- *  page (which the app opens in its in-app browser). */
-const LINK_PATTERN = /^(\/|wwm-mobile:\/\/|https?:\/\/[^\s/?#]+)\S*$/i;
-
 const validationSchema = Yup.object({
   title: Yup.string().trim().required("Title is required"),
-  deep_link: Yup.string()
+  app_screen: Yup.string().when("link_type", {
+    is: "screen",
+    then: (schema) => schema.required("Choose the screen to open"),
+  }),
+  web_url: Yup.string()
     .trim()
-    .test(
-      "valid-link",
-      "Use an app path like /member/give, or a web address starting with https://",
-      (value) => !value || LINK_PATTERN.test(value)
-    ),
+    .when("link_type", {
+      is: "web",
+      then: (schema) =>
+        schema
+          .required("Enter the web address")
+          .matches(
+            WEB_LINK_PATTERN,
+            "Enter a full web address starting with https://"
+          ),
+    }),
   sort_order: Yup.number()
     .transform((value, original) => (original === "" ? undefined : value))
     .integer("Must be a whole number")
@@ -74,18 +89,33 @@ interface PromotionFormProps {
 const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const publishRef = useRef(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState(promotion?.image_url ?? "");
   const { handleUpload, loading: uploadLoading } = usePictureUpload();
 
   const isEdit = Boolean(promotion);
   const isPublished = promotion?.status === "PUBLISHED";
 
+  const initialLink = parsePromotionLink(promotion?.deep_link);
+  // A link saved before the picker existed may point at a path that isn't in
+  // the list — keep it selectable so editing the banner doesn't lose it.
+  const screenOptions =
+    initialLink.screen &&
+    !PROMOTION_APP_SCREENS.some((option) => option.value === initialLink.screen)
+      ? [
+          ...PROMOTION_APP_SCREENS,
+          { value: initialLink.screen, label: `Current: ${initialLink.screen}` },
+        ]
+      : [...PROMOTION_APP_SCREENS];
+
   const initialValues: PromotionFormValues = {
     title: promotion?.title ?? "",
     subtitle: promotion?.subtitle ?? "",
     image_url: promotion?.image_url ?? "",
     cta_label: promotion?.cta_label ?? "",
-    deep_link: promotion?.deep_link ?? "",
+    link_type: initialLink.type,
+    app_screen: initialLink.screen,
+    web_url: initialLink.url,
     sort_order:
       promotion?.sort_order != null ? String(promotion.sort_order) : "",
     start_date: toDateInputValue(promotion?.start_date),
@@ -97,7 +127,12 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
     subtitle: values.subtitle.trim() || null,
     image_url: values.image_url || null,
     cta_label: values.cta_label.trim() || null,
-    deep_link: values.deep_link.trim() || null,
+    deep_link:
+      values.link_type === "screen"
+        ? values.app_screen || null
+        : values.link_type === "web"
+          ? values.web_url.trim() || null
+          : null,
     sort_order: values.sort_order === "" ? null : Number(values.sort_order),
     start_date: values.start_date || null,
     end_date: values.end_date || null,
@@ -161,7 +196,7 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
       enableReinitialize
       onSubmit={handleSave}
     >
-      {({ handleSubmit, setFieldValue }) => (
+      {({ handleSubmit, setFieldValue, values }) => (
         <Form className="h-[calc(100vh-180px)] flex flex-col overflow-auto">
           <div className="sticky top-0 z-10">
             <FormHeader>
@@ -197,13 +232,30 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
                 Banner image (Optional)
               </label>
               {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Banner preview"
-                  className="mb-2 h-24 w-full max-w-xs rounded-lg object-cover"
-                />
+                <div className="mb-2 flex items-end gap-3">
+                  <img
+                    src={imagePreview}
+                    alt="Banner preview"
+                    className="h-24 w-full max-w-xs rounded-lg object-cover"
+                  />
+                  <button
+                    type="button"
+                    disabled={uploadLoading}
+                    onClick={() => {
+                      setImagePreview("");
+                      setFieldValue("image_url", "");
+                      // Clear the picker too, so choosing the same file
+                      // again still fires onChange.
+                      if (imageInputRef.current) imageInputRef.current.value = "";
+                    }}
+                    className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
+                  >
+                    Remove image
+                  </button>
+                </div>
               )}
               <input
+                ref={imageInputRef}
                 type="file"
                 accept="image/*"
                 disabled={uploadLoading}
@@ -233,23 +285,65 @@ const PromotionForm = ({ promotion, onClose, onSaved }: PromotionFormProps) => {
             />
 
             <div>
-              <Field
-                component={FormikInputDiv}
-                label="Link"
-                name="deep_link"
-                id="deep_link"
-                placeholder="/member/give?segment=Pledges or https://…"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Where tapping the banner goes. An app path such as{" "}
-                <code>/member/give?segment=Pledges</code>,{" "}
-                <code>/member/appointments</code> or{" "}
-                <code>/member/community</code> opens that screen in the app. A
-                web address (<code>https://…</code>) opens in the app&apos;s
-                built-in browser, where members can also copy, share or open it
-                in Safari/Chrome. Leave empty for a banner that isn&apos;t
-                tappable — its button label is then not shown.
-              </p>
+              <label className="block text-sm font-medium mb-2">
+                When a member taps the banner
+              </label>
+              <div className="flex flex-col gap-2 md:flex-row md:gap-6">
+                {(
+                  [
+                    ["screen", "Open a screen in the app"],
+                    ["web", "Open a web page"],
+                    ["none", "Nothing (not tappable)"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label key={value} className="text-sm">
+                    <Field
+                      type="radio"
+                      name="link_type"
+                      value={value}
+                      className="mr-1"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+
+              {values.link_type === "screen" && (
+                <div className="mt-3">
+                  <Field
+                    component={FormikSelectField}
+                    label="Screen"
+                    name="app_screen"
+                    id="app_screen"
+                    placeholder="Choose a screen"
+                    options={screenOptions}
+                    searchable
+                  />
+                </div>
+              )}
+
+              {values.link_type === "web" && (
+                <div className="mt-3">
+                  <Field
+                    component={FormikInputDiv}
+                    label="Web address"
+                    name="web_url"
+                    id="web_url"
+                    placeholder="https://wwmchurch.org/events/convocation"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Opens in the app&apos;s built-in browser, where members can
+                    also copy, share or open it in Safari/Chrome.
+                  </p>
+                </div>
+              )}
+
+              {values.link_type === "none" && (
+                <p className="mt-1 text-xs text-gray-500">
+                  The button label above isn&apos;t shown on a banner that
+                  doesn&apos;t go anywhere.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-6">
