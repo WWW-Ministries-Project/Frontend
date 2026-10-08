@@ -1,4 +1,5 @@
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import { communityBodyToPlainText } from "@/pages/HomePage/pages/Community/utils/communityBody";
 import type {
   InAppNotification,
   NotificationPriority,
@@ -134,9 +135,11 @@ export const normalizeInAppNotification = (
     toNonEmptyString(getObjectValue(record, ["title", "heading"])) ||
     "Notification";
 
-  const body =
+  // Community notifications may carry a rich-text (HTML) post/comment preview.
+  const body = communityBodyToPlainText(
     toNonEmptyString(getObjectValue(record, ["body", "message", "content"])) ||
-    "";
+      ""
+  );
 
   const createdAt = safeTimestamp(
     getObjectValue(record, ["createdAt", "created_at", "timestamp"])

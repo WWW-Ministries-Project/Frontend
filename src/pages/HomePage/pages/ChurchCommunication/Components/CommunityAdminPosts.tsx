@@ -8,6 +8,7 @@ import type {
   CommunityAdminPost,
   CommunityPostType,
 } from "@/utils/api/community/interfaces";
+import { CommunityBody } from "@/pages/HomePage/pages/Community/components/CommunityBody";
 import { PostTypePill } from "@/pages/HomePage/pages/Community/components/PostTypePill";
 import { POST_TYPES } from "@/pages/HomePage/pages/Community/utils/communityConstants";
 import {
@@ -118,9 +119,11 @@ export const CommunityAdminPosts = ({
                   </span>
                 ) : null}
               </div>
-              <p className="line-clamp-2 whitespace-pre-line text-sm text-primary">
-                {post.body}
-              </p>
+              <CommunityBody
+                body={post.body}
+                lines={2}
+                className="text-sm text-primary"
+              />
               {post.images.length ? (
                 <span className="text-xs text-primaryGray">
                   {post.images.length} photo{post.images.length === 1 ? "" : "s"}
