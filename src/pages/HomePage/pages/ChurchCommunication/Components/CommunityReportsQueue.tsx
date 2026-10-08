@@ -8,6 +8,7 @@ import type {
   CommunityModerationItem,
   CommunityModerationStatus,
 } from "@/utils/api/community/interfaces";
+import { CommunityBody } from "@/pages/HomePage/pages/Community/components/CommunityBody";
 import { REPORT_REASON_LABEL } from "@/pages/HomePage/pages/Community/utils/communityConstants";
 import { plural } from "@/pages/HomePage/pages/Community/utils/communityHelpers";
 
@@ -186,9 +187,10 @@ export const CommunityReportsQueue = ({
                     Members see:{" "}
                     <strong className="text-primary">{item.shownAs}</strong>
                   </p>
-                  <p className="whitespace-pre-line break-words text-sm text-primary">
-                    {item.body}
-                  </p>
+                  <CommunityBody
+                    body={item.body}
+                    className="text-sm text-primary"
+                  />
                 </div>
 
                 <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">

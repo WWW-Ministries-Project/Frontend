@@ -16,6 +16,7 @@ import {
 } from "../utils/communityHelpers";
 import { CommunityAvatar } from "./CommunityAvatar";
 import { useCommunityInteractions } from "./communityInteractionsContext";
+import { CommunityBody } from "./CommunityBody";
 import { ContentOptionsMenu } from "./ContentOptionsMenu";
 
 interface CommentItemProps {
@@ -134,9 +135,10 @@ export const CommentItem = ({
               {timeAgo(comment.createdAt)}
             </span>
           </div>
-          <p className="mt-1 whitespace-pre-line break-words text-sm text-primary">
-            {comment.body}
-          </p>
+          <CommunityBody
+            body={comment.body}
+            className="mt-1 text-sm text-primary"
+          />
         </div>
 
         <div className="mt-1 flex flex-wrap items-center gap-1 text-xs">

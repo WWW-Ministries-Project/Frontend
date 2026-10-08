@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
 import type { CommunityNotification } from "@/utils/api/community/interfaces";
+import { communityBodyToPlainText } from "../utils/communityBody";
 import { NOTIFICATION_EMOJI } from "../utils/communityConstants";
 import {
   communityPostPath,
@@ -206,7 +207,10 @@ export const CommunityNotificationsPanel = ({
                                 {rest}
                               </span>
                               <span className="mt-0.5 block truncate text-xs text-primaryGray">
-                                {[notification.body, timeAgo(notification.createdAt)]
+                                {[
+                                  communityBodyToPlainText(notification.body),
+                                  timeAgo(notification.createdAt),
+                                ]
                                   .filter(Boolean)
                                   .join(" · ")}
                               </span>

@@ -72,7 +72,8 @@ export interface CommunityPostAudience {
 export interface CommunityPost {
   id: number;
   type: CommunityPostType;
-  /** Plain text, newlines preserved. */
+  /** Rich text wrapped in `<html>…</html>` (mobile editor), or legacy plain
+   *  text with newlines preserved. Render with `CommunityBody`. */
   body: string;
   audience: CommunityPostAudience;
   isAnonymous: boolean;

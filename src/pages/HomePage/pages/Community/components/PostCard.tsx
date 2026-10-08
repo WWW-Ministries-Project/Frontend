@@ -26,6 +26,7 @@ import {
 } from "../utils/communityHelpers";
 import { CommunityAvatar } from "./CommunityAvatar";
 import { useCommunityInteractions } from "./communityInteractionsContext";
+import { CommunityBody } from "./CommunityBody";
 import { ContentOptionsMenu } from "./ContentOptionsMenu";
 import { PostTypePill } from "./PostTypePill";
 
@@ -126,14 +127,12 @@ export const PostCard = ({
   };
 
   const body = (
-    <p
-      className={cn(
-        "whitespace-pre-line break-words text-[15px] leading-6 text-primary",
-        isFeed && "line-clamp-5"
-      )}
-    >
-      {post.body}
-    </p>
+    <CommunityBody
+      body={post.body}
+      lines={isFeed ? 5 : undefined}
+      inertLinks={isFeed}
+      className="text-[15px] leading-6 text-primary"
+    />
   );
 
   return (

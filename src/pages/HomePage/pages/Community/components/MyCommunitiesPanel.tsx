@@ -1,6 +1,7 @@
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/utils/cn";
 import type { CommunityDepartment } from "@/utils/api/community/interfaces";
+import { communityBodyToPlainText } from "../utils/communityBody";
 import { firstName, plural } from "../utils/communityHelpers";
 
 interface MyCommunitiesPanelProps {
@@ -39,7 +40,7 @@ export const MyCommunitiesPanel = ({
               department.latest.authorName
                 ? firstName(department.latest.authorName)
                 : "Anonymous"
-            }: ${department.latest.body}`
+            }: ${communityBodyToPlainText(department.latest.body)}`
           : "No posts yet";
         return (
           <li key={department.id}>

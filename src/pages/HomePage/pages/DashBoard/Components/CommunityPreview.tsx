@@ -5,6 +5,7 @@ import { api } from "@/utils/api/apiCalls";
 import { relativePath } from "@/utils/const";
 import { decodeToken } from "@/utils/helperFunctions";
 import type { CommunityPost } from "@/utils/api/community/interfaces";
+import { CommunityBody } from "@/pages/HomePage/pages/Community/components/CommunityBody";
 import { CommunityAvatar } from "@/pages/HomePage/pages/Community/components/CommunityAvatar";
 import { PostTypePill } from "@/pages/HomePage/pages/Community/components/PostTypePill";
 import {
@@ -111,9 +112,12 @@ export const CommunityPreview = () => {
                   </span>
                   <PostTypePill type={post.type} />
                 </span>
-                <span className="line-clamp-2 whitespace-pre-line text-sm text-gray-700">
-                  {post.body}
-                </span>
+                <CommunityBody
+                  body={post.body}
+                  lines={2}
+                  inertLinks
+                  className="text-sm text-gray-700"
+                />
               </Link>
             </li>
           ))}
