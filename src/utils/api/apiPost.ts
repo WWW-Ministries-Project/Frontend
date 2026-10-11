@@ -171,6 +171,15 @@ const serializeQuery = (query?: QueryType): string => {
 const toStringValue = (value: unknown) =>
   typeof value === "string" && value.trim() ? value.trim() : "";
 
+import type {
+  AudienceCount,
+  CreateGeneralMessageDto,
+  MessageAudience,
+  MessageDispatch,
+  MessagePreview,
+  MessagePreviewRequest,
+} from "./messaging/interfaces";
+
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;
   constructor() {
@@ -630,6 +639,35 @@ export class ApiCreationCalls {
     payload: CreateCommunityPostDto
   ): Promise<ApiResponse<CommunityPost>> => {
     return this.postToApi("community/posts", payload);
+  };
+
+  // Messaging
+  previewMessage = (
+    payload: MessagePreviewRequest
+  ): Promise<ApiResponse<MessagePreview>> => {
+    return this.postToApi("messaging/preview", payload);
+  };
+
+  countMessageAudience = (payload: {
+    audience: MessageAudience;
+  }): Promise<ApiResponse<AudienceCount>> => {
+    return this.postToApi("messaging/audience/count", payload);
+  };
+
+  createGeneralMessage = (
+    payload: CreateGeneralMessageDto
+  ): Promise<ApiResponse<MessageDispatch>> => {
+    return this.postToApi("messaging/dispatches", payload);
+  };
+
+  cancelMessageDispatch = (id: number): Promise<ApiResponse<MessageDispatch>> => {
+    return this.postToApi(`messaging/dispatches/${id}/cancel`, {});
+  };
+
+  retryFailedMessages = (
+    id: number
+  ): Promise<ApiResponse<{ retried: number }>> => {
+    return this.postToApi(`messaging/dispatches/${id}/retry-failed`, {});
   };
 
   /** Toggles the viewer's reaction of `type`. */
