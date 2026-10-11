@@ -39,6 +39,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Announcements",
   "Sermons",
   "Promotions",
+  "Messaging",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -105,6 +106,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Announcements: ["Announcements", "Announcement"],
   Sermons: ["Sermons", "Sermon"],
   Promotions: ["Promotions", "Promotion"],
+  Messaging: ["Messaging"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -265,6 +267,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     required: false,
   },
   {
+    key: "Messaging",
+    label: "Messaging",
+    description: "Welcome, birthday and church-wide SMS, email and in-app messages",
+    group: "Engagement",
+    required: false,
+  },
+  {
     key: "Life Center",
     label: "Life Center",
     description: "Life center administration and soul winning data",
@@ -381,6 +390,8 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_sermons: { domain: "Sermons", action: "manage" },
   view_promotions: { domain: "Promotions", action: "view" },
   manage_promotions: { domain: "Promotions", action: "manage" },
+  view_messaging: { domain: "Messaging", action: "view" },
+  manage_messaging: { domain: "Messaging", action: "manage" },
 };
 
 const VIEW_ACCESS = new Set<PermissionValue>([
@@ -757,8 +768,9 @@ export const toAdminRequirement = (
 
 /** Domains that are never granted by a blanket default or preset and must be
  *  opted into explicitly. Community view reveals the real authors of
- *  anonymous posts, so it starts at No_Access. */
-export const EXPLICIT_GRANT_DOMAINS: PermissionDomain[] = ["Community"];
+ *  anonymous posts, so it starts at No_Access. Messaging sends bulk SMS,
+ *  which costs money, so it is never handed out by a preset either. */
+export const EXPLICIT_GRANT_DOMAINS: PermissionDomain[] = ["Community", "Messaging"];
 
 export const isExplicitGrantDomain = (domain: string): boolean =>
   EXPLICIT_GRANT_DOMAINS.includes(domain as PermissionDomain);
