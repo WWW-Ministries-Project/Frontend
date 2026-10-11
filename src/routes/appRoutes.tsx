@@ -94,6 +94,7 @@ import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAna
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
 import CommunityManager from "@/pages/HomePage/pages/ChurchCommunication/CommunityManager.js";
 import CommunicationIndexRedirect from "@/pages/HomePage/pages/ChurchCommunication/CommunicationIndexRedirect.js";
+import MessagingManager from "@/pages/HomePage/pages/ChurchCommunication/Messaging/MessagingManager.js";
 import PromotionManager from "@/pages/HomePage/pages/ChurchCommunication/PromotionManager.js";
 import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
 import CommunityLayout from "@/pages/HomePage/pages/Community/CommunityLayout.js";
@@ -615,6 +616,14 @@ export const routes: AppRoute[] = [
             element: <SermonManager />,
             isPrivate: true,
             permissionNeeded: "view_sermons",
+            sideTab: true,
+          },
+          {
+            path: "messaging",
+            name: "Messaging",
+            element: <MessagingManager />,
+            isPrivate: true,
+            permissionNeeded: "view_messaging",
             sideTab: true,
           },
         ],

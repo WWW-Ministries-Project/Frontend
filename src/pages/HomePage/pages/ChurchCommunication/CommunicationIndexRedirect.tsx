@@ -8,6 +8,7 @@ const COMMUNICATION_PAGES = [
   { path: "community", permission: "view_community" },
   { path: "promotions", permission: "view_promotions" },
   { path: "sermons", permission: "view_sermons" },
+  { path: "messaging", permission: "view_messaging" },
 ];
 
 /** /home/communication → the first page the user can open, so a user with
