@@ -129,6 +129,16 @@ import type {
   EventReportOverviewItem,
 } from "./eventReports/interfaces";
 
+import type {
+  MessageDispatch,
+  MessageRecipient,
+  MessageTemplate,
+  MessagingSettings,
+  PlaceholderInfo,
+  TemplateStats,
+  UpcomingBirthday,
+} from "./messaging/interfaces";
+
 export class ApiCalls {
   private apiExecution: ApiExecution;
 
@@ -892,6 +902,46 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<Promotion[]>> => {
     return this.fetchFromApi("promotions", query);
+  };
+
+  // Messaging
+  fetchMessageTemplates = (): Promise<ApiResponse<MessageTemplate[]>> => {
+    return this.fetchFromApi("messaging/templates");
+  };
+
+  fetchMessagingSettings = (): Promise<ApiResponse<MessagingSettings>> => {
+    return this.fetchFromApi("messaging/settings");
+  };
+
+  fetchMessagePlaceholders = (
+    query?: QueryType
+  ): Promise<ApiResponse<PlaceholderInfo[]>> => {
+    return this.fetchFromApi("messaging/placeholders", query);
+  };
+
+  fetchUpcomingBirthdays = (
+    query?: QueryType
+  ): Promise<ApiResponse<UpcomingBirthday[]>> => {
+    return this.fetchFromApi("messaging/birthdays/upcoming", query);
+  };
+
+  fetchMessagingStats = (
+    query?: QueryType
+  ): Promise<ApiResponse<TemplateStats>> => {
+    return this.fetchFromApi("messaging/stats", query);
+  };
+
+  fetchMessageDispatches = (
+    query?: QueryType
+  ): Promise<ApiResponse<MessageDispatch[]>> => {
+    return this.fetchFromApi("messaging/dispatches", query);
+  };
+
+  fetchMessageRecipients = (
+    id: number,
+    query?: QueryType
+  ): Promise<ApiResponse<MessageRecipient[]>> => {
+    return this.fetchFromApi(`messaging/dispatches/${id}/recipients`, query);
   };
 
   fetchPromotion = (

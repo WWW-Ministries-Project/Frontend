@@ -82,6 +82,14 @@ import type {
   DeclineJoinRequestPayload,
 } from "./departmentJoinRequests/interfaces";
 
+import type {
+  MessageTemplate,
+  MessageTemplateKey,
+  MessagingSettings,
+  UpdateMessageTemplateDto,
+  UpdateMessagingSettingsDto,
+} from "./messaging/interfaces";
+
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
 
@@ -589,6 +597,20 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<Promotion>> => {
     return this.apiExecution.updateData(`promotions/${id}`, payload);
   }
+
+  // Messaging
+  updateMessageTemplate = (
+    key: MessageTemplateKey,
+    payload: UpdateMessageTemplateDto
+  ): Promise<ApiResponse<MessageTemplate>> => {
+    return this.apiExecution.updateData(`messaging/templates/${key}`, payload);
+  };
+
+  updateMessagingSettings = (
+    payload: UpdateMessagingSettingsDto
+  ): Promise<ApiResponse<MessagingSettings>> => {
+    return this.apiExecution.updateData("messaging/settings", payload);
+  };
 
   // Sermons
   updateSermon = (
