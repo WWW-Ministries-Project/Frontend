@@ -51,14 +51,6 @@ export const TemplateCard = ({
   const [includeAppLink, setIncludeAppLink] = useState(template.includeAppLink);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    setEnabled(template.enabled);
-    setChannels(template.channels);
-    setSubject(template.emailSubject ?? "");
-    setBody(template.body);
-    setIncludeAppLink(template.includeAppLink);
-  }, [template]);
-
   const dirty = useMemo(
     () =>
       enabled !== template.enabled ||
@@ -88,7 +80,9 @@ export const TemplateCard = ({
       await api.put.updateMessageTemplate(template.key, {
         enabled,
         channels,
-        emailSubject: subject.trim() || null,
+        // A hidden subject (email off) is not sent, so it can never fail
+        // validation on a field the admin cannot see.
+        emailSubject: channels.email ? subject.trim() || null : template.emailSubject,
         body,
         includeAppLink: Boolean(allowAppLink && includeAppLink),
       });

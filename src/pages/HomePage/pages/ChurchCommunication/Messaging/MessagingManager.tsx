@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components";
 import { HeaderControls } from "@/components/HeaderControls";
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -54,6 +55,7 @@ const MessagingManager = () => {
   }, []);
 
   const selectTab = (tab: MessagingTab) => {
+    if (tab === activeTab) return;
     if (dirtyKeys.current.size && !window.confirm("You have unsaved changes. Leave this tab without saving?")) return;
     dirtyKeys.current.clear();
     const next = new URLSearchParams(searchParams);
@@ -80,10 +82,7 @@ const MessagingManager = () => {
       <HeaderControls
         title="Messaging"
         subtitle="Welcome and birthday messages sent automatically, and messages to the church, departments or people"
-        btnName="Settings"
-        requireManageAccess={false}
-        screenWidth={window.innerWidth}
-        handleClick={() => setSettingsOpen(true)}
+        customIcon={<Button value="Settings" variant="secondary" onClick={() => setSettingsOpen(true)} />}
       />
 
       <div className="mb-6">

@@ -28,17 +28,20 @@ export const isAudienceComplete = (a: MessageAudience) =>
   (a.scope === "DEPARTMENTS" && a.departmentIds.length > 0) ||
   (a.scope === "PEOPLE" && a.userIds.length > 0);
 
+/** idle: audience incomplete · loading: count in flight · error: count failed · ok: count is current. */
+export type AudienceCountState = "idle" | "loading" | "error" | "ok";
+
 interface AudiencePickerProps {
   value: MessageAudience;
   onChange: (value: MessageAudience) => void;
-  onCount: (count: AudienceCount | null) => void;
+  onCount: (count: AudienceCount | null, state: AudienceCountState) => void;
   count: AudienceCount | null;
+  countState: AudienceCountState;
 }
 
-export const AudiencePicker = ({ value, onChange, onCount, count }: AudiencePickerProps) => {
+export const AudiencePicker = ({ value, onChange, onCount, count, countState }: AudiencePickerProps) => {
   const [departments, setDepartments] = useState<DepartmentType[]>([]);
   const membersOptions = useStore((s) => s.membersOptions);
-  const [counting, setCounting] = useState(false);
 
   // Plain fetch (not useFetch): useFetch toggles the full-screen loader.
   useEffect(() => {
@@ -63,19 +66,19 @@ export const AudiencePicker = ({ value, onChange, onCount, count }: AudiencePick
 
   useEffect(() => {
     if (!isAudienceComplete(value)) {
-      onCount(null);
+      onCount(null, "idle");
       return;
     }
     let cancelled = false;
-    setCounting(true);
+    // Drop the stale count right away so nothing can be sent against it
+    // during the debounce.
+    onCount(null, "loading");
     const timer = setTimeout(async () => {
       try {
         const response = await api.post.countMessageAudience({ audience: value });
-        if (!cancelled) onCount(response.data);
+        if (!cancelled) onCount(response.data, "ok");
       } catch {
-        if (!cancelled) onCount(null);
-      } finally {
-        if (!cancelled) setCounting(false);
+        if (!cancelled) onCount(null, "error");
       }
     }, 300);
     return () => {
@@ -133,11 +136,13 @@ export const AudiencePicker = ({ value, onChange, onCount, count }: AudiencePick
       )}
 
       <p className="text-sm text-gray-600" aria-live="polite">
-        {counting
+        {countState === "loading"
           ? "Counting…"
-          : count
-            ? `${count.people} people · ${count.sms} with a phone · ${count.email} with an email · ${count.inApp} on the app`
-            : ""}
+          : countState === "error"
+            ? "Couldn't count recipients."
+            : countState === "ok" && count
+              ? `${count.people} people · ${count.sms} with a phone · ${count.email} with an email · ${count.inApp} on the app`
+              : ""}
       </p>
     </fieldset>
   );

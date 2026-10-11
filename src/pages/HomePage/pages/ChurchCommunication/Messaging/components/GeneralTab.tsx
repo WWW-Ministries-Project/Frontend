@@ -9,7 +9,7 @@ import type {
   MessageChannels,
 } from "@/utils/api/messaging/interfaces";
 import { useMessagePreview } from "../useMessagePreview";
-import { AudiencePicker, emptyAudience, isAudienceComplete } from "./AudiencePicker";
+import { AudiencePicker, emptyAudience, isAudienceComplete, type AudienceCountState } from "./AudiencePicker";
 import { ChannelPicker } from "./ChannelPicker";
 import { DispatchHistory } from "./DispatchHistory";
 import { MessageComposer } from "./MessageComposer";
@@ -17,11 +17,29 @@ import { MessagePreviewPanel } from "./MessagePreviewPanel";
 
 const NO_CHANNELS: MessageChannels = { sms: false, email: false, inApp: true };
 
-/** Earliest selectable schedule time: now + 5 minutes, as a local datetime-local value. */
-const minScheduleValue = () => {
-  const d = new Date(Date.now() + 5 * 60_000);
+const MINUTE_MS = 60_000;
+const DAY_MS = 86_400_000;
+const MAX_SCHEDULE_MS = 90 * DAY_MS;
+
+/** A timestamp as a local datetime-local value (minute precision). */
+const toLocalInputValue = (ms: number) => {
+  const d = new Date(ms);
   d.setSeconds(0, 0);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+  return new Date(d.getTime() - d.getTimezoneOffset() * MINUTE_MS).toISOString().slice(0, 16);
+};
+
+/** Earliest selectable schedule time: now + 5 minutes. */
+const minScheduleValue = () => toLocalInputValue(Date.now() + 5 * MINUTE_MS);
+
+/** Latest selectable schedule time: now + 90 days - 1 minute. */
+const maxScheduleValue = () => toLocalInputValue(Date.now() + MAX_SCHEDULE_MS - MINUTE_MS);
+
+/** Whether a datetime-local value is far enough ahead and within the 90-day window. */
+const isScheduleValid = (value: string) => {
+  const t = new Date(value).getTime();
+  if (Number.isNaN(t)) return false;
+  const now = Date.now();
+  return t > now + MINUTE_MS && t <= now + MAX_SCHEDULE_MS;
 };
 
 export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
@@ -31,23 +49,30 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
   const [channels, setChannels] = useState<MessageChannels>(NO_CHANNELS);
   const [audience, setAudience] = useState<MessageAudience>(emptyAudience());
   const [count, setCount] = useState<AudienceCount | null>(null);
+  const [countState, setCountState] = useState<AudienceCountState>("idle");
   const [when, setWhen] = useState<"now" | "later">("now");
   const [scheduledFor, setScheduledFor] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [historyKey, setHistoryKey] = useState(0);
 
-  const onCount = useCallback((c: AudienceCount | null) => setCount(c), []);
+  const onCount = useCallback((c: AudienceCount | null, state: AudienceCountState) => {
+    setCount(c);
+    setCountState(state);
+  }, []);
   const preview = useMessagePreview({ body, subject: channels.email ? subject : null, kind: "GENERAL" });
 
   const hasChannel = channels.sms || channels.email || channels.inApp;
+  const scheduleOk = when === "now" || isScheduleValid(scheduledFor);
+  const reachOk = countState === "ok" && !!count && count.people > 0;
   const ready =
     title.trim() &&
     body.trim() &&
     hasChannel &&
     (!channels.email || subject.trim()) &&
     isAudienceComplete(audience) &&
-    (when === "now" || scheduledFor) &&
+    reachOk &&
+    scheduleOk &&
     !(preview?.unknownPlaceholders.length);
 
   const reset = () => {
@@ -61,6 +86,11 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
   };
 
   const send = async () => {
+    // The confirm dialog can sit open past the schedule window.
+    if (when === "later" && !isScheduleValid(scheduledFor)) {
+      showNotification("Pick a time between 5 minutes and 90 days from now", "error");
+      return;
+    }
     setSending(true);
     try {
       await api.post.createGeneralMessage({
@@ -82,7 +112,7 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
     }
   };
 
-  const reach = count
+  const reach = reachOk && count
     ? [
         `${count.people} people`,
         channels.sms && `${count.sms} SMS`,
@@ -104,7 +134,7 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
                 <span className="font-medium text-primary">Title (only admins see this)</span>
                 <input className={input} value={title} maxLength={150} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Sunday service moved to 9am" />
               </label>
-              <AudiencePicker value={audience} onChange={setAudience} onCount={onCount} count={count} />
+              <AudiencePicker value={audience} onChange={setAudience} onCount={onCount} count={count} countState={countState} />
               <ChannelPicker value={channels} onChange={setChannels} />
               {channels.email && (
                 <label className="block space-y-1 text-sm">
@@ -122,7 +152,12 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
                   <input type="radio" name="when" checked={when === "later"} onChange={() => setWhen("later")} /> Schedule
                 </label>
                 {when === "later" && (
-                  <input type="datetime-local" className={input} min={minScheduleValue()} value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
+                  <>
+                    <input type="datetime-local" className={input} min={minScheduleValue()} max={maxScheduleValue()} value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
+                    {scheduledFor && !scheduleOk && (
+                      <p className="text-xs text-red-600">Pick a time between 5 minutes and 90 days from now</p>
+                    )}
+                  </>
                 )}
               </fieldset>
               <div className="flex justify-end">
@@ -139,14 +174,22 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
       <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirm message">
         <div className="w-[min(92vw,440px)] space-y-4 p-6">
           <p className="text-lg font-semibold text-primary">{when === "later" ? "Schedule this message?" : "Send this message now?"}</p>
-          <p className="text-sm">{reach || "Counting recipients…"}</p>
+          <p className="text-sm">
+            {countState === "loading"
+              ? "Counting recipients…"
+              : countState === "error"
+                ? "Couldn't count recipients — try again"
+                : countState === "ok" && count?.people === 0
+                  ? "No one matches this audience"
+                  : reach}
+          </p>
           {when === "later" && scheduledFor && (
             <p className="text-sm text-gray-600">Goes out {new Date(scheduledFor).toLocaleString()}.</p>
           )}
           {channels.sms && <p className="text-xs text-gray-500">SMS messages are charged per message.</p>}
           <div className="flex justify-end gap-2">
             <Button value="Back" variant="secondary" onClick={() => setConfirmOpen(false)} />
-            <Button value={when === "later" ? "Schedule" : "Send"} variant="primary" loading={sending} disabled={sending} onClick={send} />
+            <Button value={when === "later" ? "Schedule" : "Send"} variant="primary" loading={sending} disabled={sending || !reachOk || !scheduleOk} onClick={send} />
           </div>
         </div>
       </Modal>

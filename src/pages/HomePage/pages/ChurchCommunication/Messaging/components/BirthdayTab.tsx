@@ -47,7 +47,7 @@ export const BirthdayTab = ({ template, settings, stats, canManage, onOpenSettin
         <button type="button" className="text-primary underline" onClick={onOpenSettings}>Change time</button>
       </p>
       {template && (
-        <TemplateCard template={template} stats={stats?.BIRTHDAY} canManage={canManage}
+        <TemplateCard key={`${template.key}:${template.updatedAt}`} template={template} stats={stats?.BIRTHDAY} canManage={canManage}
           title="Birthday message" description="People born on 29 February get theirs on 28 February in non-leap years."
           onDirtyChange={onDirtyChange} onSaved={onSaved} />
       )}

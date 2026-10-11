@@ -32,17 +32,17 @@ export const WelcomeTab = ({ templates, settings, stats, canManage, onOpenSettin
   return (
     <div className="space-y-6">
       {member && (
-        <TemplateCard {...common} template={member} stats={stats?.WELCOME_MEMBER}
+        <TemplateCard {...common} key={`${member.key}:${member.updatedAt}`} template={member} stats={stats?.WELCOME_MEMBER}
           title="Member sign-up" description="Sent when someone joins as a member in the mobile app."
           channelNote={SET_PASSWORD_NOTE} />
       )}
       {guest && (
-        <TemplateCard {...common} template={guest} stats={stats?.WELCOME_GUEST}
+        <TemplateCard {...common} key={`${guest.key}:${guest.updatedAt}`} template={guest} stats={stats?.WELCOME_GUEST}
           title="Guest sign-up" description="Sent when someone joins as a guest in the mobile app."
           channelNote={SET_PASSWORD_NOTE} />
       )}
       {visitor && (
-        <TemplateCard {...common} template={visitor} stats={stats?.WELCOME_VISITOR}
+        <TemplateCard {...common} key={`${visitor.key}:${visitor.updatedAt}`} template={visitor} stats={stats?.WELCOME_VISITOR}
           title="Visitor added" description="Sent when a visitor who agreed to be contacted is added."
           allowAppLink storeLinksMissing={storeLinksMissing} onOpenSettings={onOpenSettings} />
       )}
