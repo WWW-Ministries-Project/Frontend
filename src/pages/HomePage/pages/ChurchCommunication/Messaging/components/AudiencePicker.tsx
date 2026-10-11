@@ -90,18 +90,23 @@ export const AudiencePicker = ({ value, onChange, onCount, count, countState }: 
   return (
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium text-primary">Send to</legend>
-      <div className="inline-flex rounded-lg border border-lightGray p-1" role="radiogroup">
+      {/* Native radios styled as a segmented control; the fieldset legend names the group. */}
+      <div className="inline-flex rounded-lg border border-lightGray p-1">
         {SCOPES.map((s) => (
-          <button
+          <label
             key={s.value}
-            type="button"
-            role="radio"
-            aria-checked={value.scope === s.value}
-            onClick={() => onChange({ ...emptyAudience(), scope: s.value })}
-            className={`rounded-md px-3 py-1.5 text-sm ${value.scope === s.value ? "bg-primary text-white" : "text-primary"}`}
+            className={`cursor-pointer rounded-md px-3 py-1.5 text-sm focus-within:ring-2 focus-within:ring-primary/40 ${value.scope === s.value ? "bg-primary text-white" : "text-primary"}`}
           >
+            <input
+              type="radio"
+              name="audience-scope"
+              value={s.value}
+              checked={value.scope === s.value}
+              onChange={() => onChange({ ...emptyAudience(), scope: s.value })}
+              className="sr-only"
+            />
             {s.label}
-          </button>
+          </label>
         ))}
       </div>
 

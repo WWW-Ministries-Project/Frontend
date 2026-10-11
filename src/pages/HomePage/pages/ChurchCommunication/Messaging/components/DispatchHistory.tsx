@@ -37,12 +37,32 @@ export const channelSummary = (d: MessageDispatch) => {
   return parts.join(" · ");
 };
 
+/** Poll while something is sending, or is scheduled to go out soon. */
+const POLL_MS = 15_000;
+const SOON_MS = 15 * 60_000;
+const needsPolling = (rows: MessageDispatch[]) => {
+  const now = Date.now();
+  return rows.some(
+    (r) =>
+      r.status === "QUEUED" ||
+      (r.status === "SCHEDULED" && !!r.scheduledFor && new Date(r.scheduledFor).getTime() - now <= SOON_MS)
+  );
+};
+
 export const DispatchHistory = ({ refreshKey, canManage }: { refreshKey: number; canManage: boolean }) => {
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<MessageDispatch | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rows, setRows] = useState<MessageDispatch[]>([]);
   const [totalPages, setTotalPages] = useState(1);
+  const [loadState, setLoadState] = useState<"loading" | "error" | "ok">("loading");
+  const [seenRefreshKey, setSeenRefreshKey] = useState(refreshKey);
   const requestId = useRef(0);
+
+  // A new send lands on page 1; jump there so it is visible.
+  if (seenRefreshKey !== refreshKey) {
+    setSeenRefreshKey(refreshKey);
+    setPage(1);
+  }
 
   // Plain fetch (not useFetch): useFetch toggles the full-screen loader and
   // would flash it on every poll. requestId drops out-of-order responses.
@@ -53,8 +73,10 @@ export const DispatchHistory = ({ refreshKey, canManage }: { refreshKey: number;
       if (id !== requestId.current) return;
       setRows(response.data ?? []);
       setTotalPages(response.meta?.totalPages ?? 1);
+      setLoadState("ok");
     } catch {
-      // ApiErrorHandler has already shown the error.
+      // ApiErrorHandler has already shown the error; keep any rows we have.
+      if (id === requestId.current) setLoadState((s) => (s === "ok" ? s : "error"));
     }
   }, [page]);
 
@@ -62,24 +84,32 @@ export const DispatchHistory = ({ refreshKey, canManage }: { refreshKey: number;
     load();
   }, [load, refreshKey]);
 
-  // While anything is sending or scheduled, poll so counts move.
-  const active = rows.some((r) => r.status === "QUEUED" || r.status === "SCHEDULED");
+  const active = needsPolling(rows);
   useEffect(() => {
     if (!active) return;
-    const timer = setInterval(load, 15_000);
+    const timer = setInterval(() => {
+      if (!document.hidden) load();
+    }, POLL_MS);
     return () => clearInterval(timer);
   }, [active, load]);
+
+  // Derived from rows so a poll refreshes the open detail.
+  const selected = selectedId === null ? null : rows.find((r) => r.id === selectedId) ?? null;
 
   return (
     <section className="rounded-xl border border-lightGray bg-white">
       <h3 className="border-b border-lightGray px-5 py-3 text-base font-semibold text-primary">Sent and scheduled</h3>
-      {rows.length === 0 ? (
+      {loadState === "loading" ? (
+        <p className="px-5 py-6 text-sm text-gray-500">Loading…</p>
+      ) : loadState === "error" ? (
+        <p className="px-5 py-6 text-sm text-red-600">Couldn't load messages.</p>
+      ) : rows.length === 0 ? (
         <p className="px-5 py-6 text-sm text-gray-500">No messages yet.</p>
       ) : (
         <ul className="divide-y divide-lightGray">
           {rows.map((d) => (
             <li key={d.id}>
-              <button type="button" onClick={() => setSelected(d)} className="flex w-full flex-wrap items-center justify-between gap-2 px-5 py-3 text-left hover:bg-lightGray/40">
+              <button type="button" onClick={() => setSelectedId(d.id)} className="flex w-full flex-wrap items-center justify-between gap-2 px-5 py-3 text-left hover:bg-lightGray/40">
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{d.title}</span>
                   <span className="block text-xs text-gray-500">
@@ -104,9 +134,10 @@ export const DispatchHistory = ({ refreshKey, canManage }: { refreshKey: number;
         </div>
       )}
       <DispatchDetail
+        key={selectedId ?? "none"}
         dispatch={selected}
         canManage={canManage}
-        onClose={() => setSelected(null)}
+        onClose={() => setSelectedId(null)}
         onChanged={load}
       />
     </section>

@@ -53,11 +53,11 @@ export const MessagingSettingsModal = ({ open, settings, canManage, onClose, onS
         <div className="space-y-4 px-6 py-4">
           <label className="block space-y-1 text-sm">
             <span className="font-medium text-primary">App Store link (iPhone)</span>
-            <input className={input} type="url" placeholder="https://apps.apple.com/…" value={appStoreUrl} disabled={!canManage} onChange={(e) => setAppStoreUrl(e.target.value)} />
+            <input className={input} type="url" maxLength={191} placeholder="https://apps.apple.com/…" value={appStoreUrl} disabled={!canManage} onChange={(e) => setAppStoreUrl(e.target.value)} />
           </label>
           <label className="block space-y-1 text-sm">
             <span className="font-medium text-primary">Play Store link (Android)</span>
-            <input className={input} type="url" placeholder="https://play.google.com/store/apps/…" value={playStoreUrl} disabled={!canManage} onChange={(e) => setPlayStoreUrl(e.target.value)} />
+            <input className={input} type="url" maxLength={191} placeholder="https://play.google.com/store/apps/…" value={playStoreUrl} disabled={!canManage} onChange={(e) => setPlayStoreUrl(e.target.value)} />
           </label>
           <label className="block space-y-1 text-sm">
             <span className="font-medium text-primary">Birthday messages send at</span>

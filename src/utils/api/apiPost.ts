@@ -148,6 +148,14 @@ import type {
   EventReportGenerateResult,
   EventReportServiceSummaryFormat,
 } from "./eventReports/interfaces";
+import type {
+  AudienceCount,
+  CreateGeneralMessageDto,
+  MessageAudience,
+  MessageDispatch,
+  MessagePreview,
+  MessagePreviewRequest,
+} from "./messaging/interfaces";
 import { extractFileNameFromDisposition } from "../helperFunctions";
 
 interface PostRequestOptions {
@@ -170,15 +178,6 @@ const serializeQuery = (query?: QueryType): string => {
 
 const toStringValue = (value: unknown) =>
   typeof value === "string" && value.trim() ? value.trim() : "";
-
-import type {
-  AudienceCount,
-  CreateGeneralMessageDto,
-  MessageAudience,
-  MessageDispatch,
-  MessagePreview,
-  MessagePreviewRequest,
-} from "./messaging/interfaces";
 
 export class ApiCreationCalls {
   private apiExecution: ApiExecution;

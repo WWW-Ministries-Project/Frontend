@@ -71,7 +71,7 @@ export const MessageComposer = ({
         {label}
       </label>
       {!disabled && placeholders.length > 0 && (
-        <div className="flex flex-wrap gap-2" aria-label="Insert placeholder">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Insert placeholder">
           {placeholders.map((p) => (
             <button
               key={p.token}
@@ -89,13 +89,14 @@ export const MessageComposer = ({
         id={id}
         ref={textareaRef}
         rows={rows}
+        maxLength={2000}
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg border border-lightGray p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-lightGray/40"
       />
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className="text-red-600" role="alert">
+        <span className="text-red-600" aria-live="polite">
           {unknown.length > 0 &&
             `Unknown placeholder${unknown.length > 1 ? "s" : ""}: ${unknown.join(", ")}`}
         </span>

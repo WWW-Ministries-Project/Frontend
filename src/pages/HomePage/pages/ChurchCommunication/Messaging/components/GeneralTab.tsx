@@ -153,7 +153,7 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
                 </label>
                 {when === "later" && (
                   <>
-                    <input type="datetime-local" className={input} min={minScheduleValue()} max={maxScheduleValue()} value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
+                    <input type="datetime-local" aria-label="Send date and time" className={input} min={minScheduleValue()} max={maxScheduleValue()} value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} />
                     {scheduledFor && !scheduleOk && (
                       <p className="text-xs text-red-600">Pick a time between 5 minutes and 90 days from now</p>
                     )}
@@ -171,8 +171,8 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
 
       <DispatchHistory refreshKey={historyKey} canManage={canManage} />
 
-      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirm message">
-        <div className="w-[min(92vw,440px)] space-y-4 p-6">
+      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirm message" className="max-w-md">
+        <div className="space-y-4 p-6">
           <p className="text-lg font-semibold text-primary">{when === "later" ? "Schedule this message?" : "Send this message now?"}</p>
           <p className="text-sm">
             {countState === "loading"
@@ -188,7 +188,7 @@ export const GeneralTab = ({ canManage }: { canManage: boolean }) => {
           )}
           {channels.sms && <p className="text-xs text-gray-500">SMS messages are charged per message.</p>}
           <div className="flex justify-end gap-2">
-            <Button value="Back" variant="secondary" onClick={() => setConfirmOpen(false)} />
+            <Button value="Back" variant="secondary" disabled={sending} onClick={() => setConfirmOpen(false)} />
             <Button value={when === "later" ? "Schedule" : "Send"} variant="primary" loading={sending} disabled={sending || !reachOk || !scheduleOk} onClick={send} />
           </div>
         </div>

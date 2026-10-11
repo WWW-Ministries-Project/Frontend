@@ -103,7 +103,7 @@ export const TemplateCard = ({
           <p className="text-sm text-gray-500">{description}</p>
         </div>
         <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" checked={enabled} disabled={!canManage} onChange={(e) => setEnabled(e.target.checked)} />
+          <input type="checkbox" aria-label={`Send ${title}`} checked={enabled} disabled={!canManage} onChange={(e) => setEnabled(e.target.checked)} />
           {enabled ? "On" : "Off"}
         </label>
       </header>
