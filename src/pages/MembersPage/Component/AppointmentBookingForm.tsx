@@ -1,7 +1,7 @@
 import { Button } from "@/components";
 import { Formik, Form, Field, getIn } from "formik";
 import * as Yup from "yup";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FormikSelectField from "@/components/FormikSelect";
 import { FormHeader } from "@/components/ui";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
@@ -467,6 +467,42 @@ const toInputDate = (value?: string): string => {
   return value.split("T")[0];
 };
 
+/** How often the open form re-reads availability, so a time someone else
+ *  books greys out here before this member clicks it. */
+const AVAILABILITY_POLL_MS = 30 * 1000;
+
+/** The backend's wording when another booking got the session first. */
+const isSlotTakenError = (error: Error | null) =>
+  Boolean(error) &&
+  /already booked|max number of booked sessions|status code 409/i.test(
+    error?.message ?? ""
+  );
+
+const SLOT_TAKEN_MESSAGE =
+  "That time was just booked by someone else. Please pick another time.";
+
+/**
+ * Clears the picked time when a refresh shows it was taken in the meantime,
+ * and says so. Lives as a component because Formik's values are only
+ * reachable inside its render prop.
+ */
+const SelectedSessionGuard = ({
+  taken,
+  onTaken,
+}: {
+  taken: boolean;
+  onTaken: () => void;
+}) => {
+  // Keyed to `taken` alone: onTaken is a fresh closure every render, and a
+  // render that lands before the cleared value would otherwise notify twice.
+  const onTakenRef = useRef(onTaken);
+  onTakenRef.current = onTaken;
+  useEffect(() => {
+    if (taken) onTakenRef.current();
+  }, [taken]);
+  return null;
+};
+
 const getTodayInputDate = (): string => {
   const now = new Date();
   const year = now.getFullYear();
@@ -502,9 +538,41 @@ const AppointmentBookingForm = ({
   // Open (protect-only) endpoint — same one the mobile app uses — so members
   // without the global "view appointments" permission still get the full
   // staff list to book against, instead of an empty "own"-scoped result.
-  const { data: availabilityResponse, loading: availabilityLoading } = useFetch(
+  const { data: initialAvailability, loading: availabilityLoading } = useFetch(
     api.fetch.fetchAppointmentBookingOptions
   );
+
+  // Background refreshes call the API directly: useFetch flashes the global
+  // loader on every fetch. Polls only while the form is open and the browser
+  // tab is visible, plus once on returning to the tab.
+  const [freshAvailability, setFreshAvailability] =
+    useState<typeof initialAvailability>(null);
+  const availabilityResponse = freshAvailability ?? initialAvailability;
+  const refreshing = useRef(false);
+  const refreshAvailability = useCallback(async () => {
+    if (refreshing.current) return;
+    refreshing.current = true;
+    try {
+      setFreshAvailability(await api.fetch.fetchAppointmentBookingOptions());
+    } catch {
+      // Keep showing the last list; the next tick or the save will catch up.
+    } finally {
+      refreshing.current = false;
+    }
+  }, []);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    }, AVAILABILITY_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshAvailability]);
 
   const {
     data: postResponse,
@@ -634,13 +702,23 @@ const AppointmentBookingForm = ({
 
   useEffect(() => {
     if (!postError) return;
-    showNotification(postError.message || "Unable to book appointment.", "error");
-  }, [postError]);
+    if (isSlotTakenError(postError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(postError.message || "Unable to book appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [postError, refreshAvailability]);
 
   useEffect(() => {
     if (!putError) return;
-    showNotification(putError.message || "Unable to update appointment.", "error");
-  }, [putError]);
+    if (isSlotTakenError(putError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(putError.message || "Unable to update appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [putError, refreshAvailability]);
 
   const handleSubmitForm = (values: BookingFormValues) => {
     if (!values.session) {
@@ -773,8 +851,40 @@ const AppointmentBookingForm = ({
         const sessionError = getIn(errors, "session");
         const sessionTouched = Boolean(getIn(touched, "session"));
 
+        const isOwnAppointmentSession = (session: Session) =>
+          Boolean(appointment?.id) &&
+          toStringValue(appointment?.staffId ?? appointment?.attendeeId) ===
+            values.staffId &&
+          toInputDate(appointment?.date) === toInputDate(values.date) &&
+          appointment?.session?.start === session.start &&
+          appointment?.session?.end === session.end;
+
+        const isSessionBooked = (session: Session) =>
+          staffBookedSessions.some(
+            (booked) =>
+              booked.staffId === values.staffId &&
+              toInputDate(booked.date) === toInputDate(values.date) &&
+              booked.start === session.start &&
+              booked.end === session.end
+          ) && !isOwnAppointmentSession(session);
+
+        const selectedSessionTaken = Boolean(
+          values.session && isSessionBooked(values.session)
+        );
+
         return (
           <Form className="flex h-[80vh] flex-col overflow-hidden">
+            <SelectedSessionGuard
+              taken={selectedSessionTaken}
+              onTaken={() => {
+                setFieldValue("session", undefined);
+                showNotification(
+                  `${values.session?.start ?? "That time"} was just booked by someone else. Please pick another time.`,
+                  "error",
+                  "Appointment"
+                );
+              }}
+            />
             <div className="sticky top-0 z-10">
               <FormHeader>
                 <p className="text-lg font-semibold">
@@ -936,26 +1046,7 @@ const AppointmentBookingForm = ({
                   >
                     {slotsForDay.flatMap((slot, slotIndex) =>
                       slot.sessions.map((session, sessionIndex) => {
-                        const isBookedBySession = staffBookedSessions.some(
-                          (booked) =>
-                            booked.staffId === values.staffId &&
-                            toInputDate(booked.date) === toInputDate(values.date) &&
-                            booked.start === session.start &&
-                            booked.end === session.end
-                        );
-
-                        const isCurrentAppointmentSession =
-                          Boolean(appointment?.id) &&
-                          toStringValue(
-                            appointment?.staffId ?? appointment?.attendeeId
-                          ) === values.staffId &&
-                          toInputDate(appointment?.date) ===
-                            toInputDate(values.date) &&
-                          appointment?.session?.start === session.start &&
-                          appointment?.session?.end === session.end;
-
-                        const isBooked =
-                          isBookedBySession && !isCurrentAppointmentSession;
+                        const isBooked = isSessionBooked(session);
 
                         const isSelected =
                           values.session?.start === session.start &&
