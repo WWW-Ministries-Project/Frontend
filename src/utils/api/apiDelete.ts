@@ -168,6 +168,16 @@ export class ApiDeletionCalls {
     return this.apiExecution.deleteData(`appointment/bookings/${bookingId}`);
   };
 
+  deleteAppointmentReason = (query: QueryType): Promise<ApiResponse<void>> => {
+    const reasonId = query?.id;
+
+    if (!reasonId) {
+      throw new Error("Reason id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(`appointment/reasons/${reasonId}`);
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType

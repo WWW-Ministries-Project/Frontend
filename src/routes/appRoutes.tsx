@@ -109,6 +109,7 @@ import RidesManager from "@/pages/HomePage/pages/Rides/admin/RidesManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
+import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
 import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
 import MarketplaceAnalytics from "@/pages/HomePage/pages/MarketPlace/pages/MarketplaceAnalytics";
@@ -667,7 +668,14 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_appointments",
             sideTab: true,
           },
-          
+          {
+            path: "settings",
+            name: "Settings",
+            element: <AppointmentSettings />,
+            isPrivate: true,
+            permissionNeeded: "manage_appointments",
+            sideTab: true,
+          },
         ],
       },
    
