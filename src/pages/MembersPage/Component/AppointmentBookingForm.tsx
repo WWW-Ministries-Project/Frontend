@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import {
   KeyboardEvent,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -194,6 +195,42 @@ const FieldError = ({ id, children }: { id: string; children: ReactNode }) => (
   </p>
 );
 
+/** How often the open form re-reads availability, so a time someone else
+ *  books greys out here before this member clicks it. */
+const AVAILABILITY_POLL_MS = 30 * 1000;
+
+/** The backend's wording when another booking got the session first. */
+const isSlotTakenError = (error: Error | null) =>
+  Boolean(error) &&
+  /already booked|max number of booked sessions|status code 409/i.test(
+    error?.message ?? ""
+  );
+
+const SLOT_TAKEN_MESSAGE =
+  "That time was just booked by someone else. Please pick another time.";
+
+/**
+ * Clears the picked time when a refresh shows it was taken in the meantime,
+ * and says so. Lives as a component because Formik's values are only
+ * reachable inside its render prop.
+ */
+const SelectedSessionGuard = ({
+  taken,
+  onTaken,
+}: {
+  taken: boolean;
+  onTaken: () => void;
+}) => {
+  // Keyed to `taken` alone: onTaken is a fresh closure every render, and a
+  // render that lands before the cleared value would otherwise notify twice.
+  const onTakenRef = useRef(onTaken);
+  onTakenRef.current = onTaken;
+  useEffect(() => {
+    if (taken) onTakenRef.current();
+  }, [taken]);
+  return null;
+};
+
 /* -------------------------------------------------------------------------- */
 /*  Component                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -231,9 +268,41 @@ const AppointmentBookingForm = ({
   // Open (protect-only) endpoint — same one the mobile app uses — so members
   // without the global "view appointments" permission still get the full
   // staff list to book against, instead of an empty "own"-scoped result.
-  const { data: availabilityResponse, loading: availabilityLoading } = useFetch(
+  const { data: initialAvailability, loading: availabilityLoading } = useFetch(
     api.fetch.fetchAppointmentBookingOptions
   );
+
+  // Background refreshes call the API directly: useFetch flashes the global
+  // loader on every fetch. Polls only while the form is open and the browser
+  // tab is visible, plus once on returning to the tab.
+  const [freshAvailability, setFreshAvailability] =
+    useState<typeof initialAvailability>(null);
+  const availabilityResponse = freshAvailability ?? initialAvailability;
+  const refreshing = useRef(false);
+  const refreshAvailability = useCallback(async () => {
+    if (refreshing.current) return;
+    refreshing.current = true;
+    try {
+      setFreshAvailability(await api.fetch.fetchAppointmentBookingOptions());
+    } catch {
+      // Keep showing the last list; the next tick or the save will catch up.
+    } finally {
+      refreshing.current = false;
+    }
+  }, []);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    }, AVAILABILITY_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshAvailability]);
   const { data: reasonsResponse, loading: reasonsLoading } = useFetch(
     api.fetch.fetchAppointmentReasons
   );
@@ -359,13 +428,23 @@ const AppointmentBookingForm = ({
 
   useEffect(() => {
     if (!postError) return;
-    showNotification(postError.message || "Unable to book appointment.", "error");
-  }, [postError]);
+    if (isSlotTakenError(postError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(postError.message || "Unable to book appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [postError, refreshAvailability]);
 
   useEffect(() => {
     if (!putError) return;
-    showNotification(putError.message || "Unable to update appointment.", "error");
-  }, [putError]);
+    if (isSlotTakenError(putError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(putError.message || "Unable to update appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [putError, refreshAvailability]);
 
   const purposeFor = (reasonKey: string): string => {
     if (reasonKey === OTHER_REASON_KEY) return OTHER_REASON_LABEL;
@@ -581,8 +660,33 @@ const AppointmentBookingForm = ({
           (entry) => !entry.booked
         );
 
+        // A refresh can mark the picked time booked, or drop its whole day
+        // once that day has no open time left.
+        const selectedEntry = selectedDay?.sessions.find(
+          (entry) =>
+            entry.session.start === values.session?.start &&
+            entry.session.end === values.session?.end
+        );
+        const selectedSessionTaken =
+          Boolean(values.session && values.date) &&
+          !isOriginalSlot &&
+          (selectedDay
+            ? Boolean(selectedEntry?.booked)
+            : Boolean(selectedStaff) && days.length > 0);
+
         return (
           <Form className="flex h-[80vh] flex-col overflow-hidden" noValidate>
+            <SelectedSessionGuard
+              taken={selectedSessionTaken}
+              onTaken={() => {
+                setFieldValue("session", undefined);
+                showNotification(
+                  `${values.session?.start ?? "That time"} was just booked by someone else. Please pick another time.`,
+                  "error",
+                  "Appointment"
+                );
+              }}
+            />
             <div className="sticky top-0 z-10">
               <FormHeader>
                 <p className="text-xs font-medium uppercase tracking-wide text-white/80">
