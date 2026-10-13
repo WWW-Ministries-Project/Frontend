@@ -90,6 +90,7 @@ import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
   Appointment,
   AppointmentBookingsQuery,
+  AppointmentReason,
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
@@ -774,6 +775,20 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
     return this.fetchFromApi("appointment/availability/booking-options", query);
+  };
+
+  // Active booking reasons, ordered — any signed-in user (member booking form).
+  fetchAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons", query);
+  };
+
+  // Every booking reason incl. inactive — Appointments manage permission.
+  fetchManageAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons/manage", query);
   };
 
   fetchAppointmentBookings = (

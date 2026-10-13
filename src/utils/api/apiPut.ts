@@ -61,8 +61,11 @@ import type {
 } from "./marketPlace/interface";
 import type {
   Appointment,
+  AppointmentReason,
+  ReorderAppointmentReasonsPayload,
   StaffAvailability,
   UpdateAppointmentBookingPayload,
+  UpdateAppointmentReasonPayload,
   UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
@@ -522,6 +525,28 @@ export class ApiUpdateCalls {
       `appointment/bookings/${bookingId}`,
       payload
     );
+  };
+
+  updateAppointmentReason = (
+    payload: UpdateAppointmentReasonPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason>> => {
+    const reasonId = query?.id;
+
+    if (!reasonId) {
+      throw new Error("Reason id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/reasons/${reasonId}`,
+      payload
+    );
+  };
+
+  reorderAppointmentReasons = (
+    payload: ReorderAppointmentReasonsPayload
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.apiExecution.updateData("appointment/reasons/reorder", payload);
   };
 
   updateAppointmentStatus = (

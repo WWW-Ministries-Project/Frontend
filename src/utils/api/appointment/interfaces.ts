@@ -163,3 +163,28 @@ export interface Appointment {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Reasons members choose from on step 1 of the booking flow. Managed by
+// admins under Appointments → Settings. Staff are NOT linked to reasons.
+export interface AppointmentReason {
+  id: number;
+  label: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateAppointmentReasonPayload {
+  label: string;
+  description?: string | null;
+  is_active?: boolean;
+}
+
+export type UpdateAppointmentReasonPayload =
+  Partial<CreateAppointmentReasonPayload>;
+
+export interface ReorderAppointmentReasonsPayload {
+  ids: number[];
+}
