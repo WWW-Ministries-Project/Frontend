@@ -504,7 +504,7 @@ export const NotificationRealtimeConnector = () => {
       const payload = parseSsePayload(event.data);
       if (payload === null) return;
 
-      ingestNotificationPayload(payload, "sse");
+      ingestNotificationPayload(payload, "realtime");
       applyUnreadCountPayload(payload);
       publishCrossTab("notification", payload);
       publishCrossTab("unread_count", payload);
@@ -545,7 +545,7 @@ export const NotificationRealtimeConnector = () => {
       if (payload === null) return;
 
       applyUnreadCountPayload(payload);
-      ingestNotificationPayload(payload, "sse");
+      ingestNotificationPayload(payload, "realtime");
       publishCrossTab("unread_count", payload);
       publishCrossTab("notification", payload);
       publishSnapshot();

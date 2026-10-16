@@ -28,7 +28,7 @@ const MAX_TOAST_KEYS = 120;
  */
 const hasActiveSession = (): boolean => Boolean(getToken());
 
-type NotificationIngestSource = "sse" | "broadcast" | "fetch" | "manual";
+type NotificationIngestSource = "realtime" | "broadcast" | "fetch" | "manual";
 
 interface FetchNotificationsOptions {
   page?: number;
@@ -62,6 +62,7 @@ interface InAppNotificationStore {
   applyUnreadCountPayload: (payload: unknown) => void;
   applyReadAllFromServer: (payload?: unknown) => void;
   applyClearAllFromServer: (payload?: unknown) => void;
+  applyDeletedFromServer: (payload?: unknown) => void;
   markAsRead: (notificationId: string) => Promise<boolean>;
   markAsUnread: (notificationId: string) => Promise<boolean>;
   markAllAsRead: () => Promise<boolean>;
@@ -349,7 +350,7 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
       });
     },
 
-    ingestNotificationPayload: (payload, source = "sse") => {
+    ingestNotificationPayload: (payload, source = "realtime") => {
       const notifications = extractNotificationsFromPayload(payload);
       if (!notifications.length) return;
 
@@ -359,7 +360,7 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
 
       const toastKeys = [...state.recentlyToastedKeys];
 
-      if (source === "sse" || source === "broadcast") {
+      if (source === "realtime" || source === "broadcast") {
         if (merged.added.length > 0) {
           playIncomingNotificationSound();
         }
@@ -439,6 +440,38 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
         totalCount: parsedTotalCount === null ? 0 : parsedTotalCount,
         hasMore: false,
         currentPage: 1,
+      });
+    },
+
+    applyDeletedFromServer: (payload) => {
+      const record =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>)
+          : {};
+      const ids = new Set(
+        (Array.isArray(record.ids) ? record.ids : []).map((id) => String(id))
+      );
+      if (!ids.size) return;
+
+      const parsedUnreadCount = parseUnreadCount(payload);
+      const parsedDeleted = parseOptionalNonNegativeInteger(record.deleted);
+
+      set((state) => {
+        const removed = state.notifications.filter((notification) =>
+          ids.has(String(notification.id))
+        );
+        const removedUnread = removed.filter((notification) => !notification.isRead).length;
+
+        return {
+          notifications: state.notifications.filter(
+            (notification) => !ids.has(String(notification.id))
+          ),
+          unreadCount:
+            parsedUnreadCount === null
+              ? Math.max(0, state.unreadCount - removedUnread)
+              : parsedUnreadCount,
+          totalCount: Math.max(0, state.totalCount - (parsedDeleted ?? removed.length)),
+        };
       });
     },
 
