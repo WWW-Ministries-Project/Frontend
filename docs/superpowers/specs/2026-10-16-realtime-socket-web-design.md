@@ -57,7 +57,8 @@ openNotificationSocket(options: {
 | Code | Action |
 |---|---|
 | `TOKEN_MISSING`, `TOKEN_INVALID`, `TOKEN_EXPIRED`, `ACCOUNT_INACTIVE` | `socket.disconnect()` (stops reconnecting), then `onFatal(code)` |
-| `SERVER_ERROR`, or no code (network, server without sockets yet) | nothing — socket.io keeps retrying |
+| no code (network failure, server without sockets yet) | nothing — socket.io retries by itself (`socket.active` stays true) |
+| `SERVER_ERROR`, or a server-initiated disconnect (`"io server disconnect"`) | socket.io does **not** retry after a middleware rejection or server disconnect (`socket.active` is false), so the transport schedules `socket.connect()` itself with jittered backoff (2 s doubling, max 60 s) |
 
 ### `NotificationRealtimeConnector.tsx` (changed)
 
