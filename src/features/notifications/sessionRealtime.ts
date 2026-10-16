@@ -14,19 +14,36 @@ const SESSION_REFRESH_DEBOUNCE_MS = 500;
 
 let refreshTimer: number | null = null;
 
+const hasOwn = (value: unknown, key: string) =>
+  !!value &&
+  typeof value === "object" &&
+  Object.prototype.hasOwnProperty.call(value, key);
+
 const refreshCurrentUser = async () => {
-  if (!getToken()) return;
+  const startToken = getToken();
+  if (!startToken) return;
 
   try {
     const response = await axios.get("user/current-user");
-    if (!getToken()) return;
+    // Ignore a response that outlived its session (logout or re-login).
+    if (getToken() !== startToken) return;
 
     const state = useUserStore.getState();
-    const merged = mergeUserPermissionSources(
-      state as unknown as userTypeWithToken,
-      response.data
-    );
-    state.setUser(merged);
+    const payload = response.data;
+    // When the response states `permissions` (null for non-admins) it is
+    // authoritative, as the login token is: start from the same empty base
+    // login uses so a removed access level clears. An older backend omits the
+    // key; keep the stored permissions then rather than strip admins' access.
+    const statesPermissions =
+      hasOwn(payload?.data, "permissions") || hasOwn(payload, "permissions");
+    const base = statesPermissions
+      ? {
+          ...(state as unknown as userTypeWithToken),
+          permissions: null,
+          access_permissions: undefined,
+        }
+      : (state as unknown as userTypeWithToken);
+    state.setUser(mergeUserPermissionSources(base, payload));
   } catch {
     // The next 401/403 from the API handles a session that really changed.
   }
