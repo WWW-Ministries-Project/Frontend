@@ -2,38 +2,25 @@ import { useEffect } from "react";
 
 import { useAuth } from "@/context/AuthWrapper";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
-import { api } from "@/utils/api/apiCalls";
 import { AUTH_SESSION_CLEARED_EVENT } from "@/utils/authSession";
 import { getToken } from "@/utils/helperFunctions";
+import { openNotificationSocket, type RealtimeEvent } from "./notificationSocket";
 import {
   NOTIFICATION_CHANNEL_NAME,
   NOTIFICATION_EVENT_KEY,
-  NOTIFICATION_LAST_EVENT_ID_KEY,
   NOTIFICATION_LEADER_KEY,
   NOTIFICATION_SNAPSHOT_KEY,
 } from "./realtimeStorageKeys";
-import {
-  parseNotificationStreamToken,
-  resolveNotificationSseUrl,
-} from "./utils";
-
-const SSE_EVENTS = {
-  connected: "connected",
-  heartbeat: "heartbeat",
-  notification: "notification",
-  notificationUpdated: "notification_updated",
-  notificationsReadAll: "notifications_read_all",
-  notificationsCleared: "notifications_cleared",
-  unreadCount: "unread_count",
-} as const;
+import { handleSessionChanged, handleSessionRevoked } from "./sessionRealtime";
+import { resolveRealtimeOrigin } from "./utils";
 
 const LEADER_HEARTBEAT_MS = 4_000;
 const LEADER_STALE_MS = 12_000;
 const FOLLOWER_CHECK_MS = 4_000;
 const RESYNC_THROTTLE_MS = 60_000;
 const FALLBACK_POLL_MS = 60_000;
-const RECONNECT_BASE_MS = 2_000;
-const RECONNECT_MAX_MS = 120_000;
+/** Spread the post-reconnect REST sync so a deploy doesn't stampede the API. */
+const RECOVERY_SYNC_JITTER_MS = 3_000;
 const SNAPSHOT_TTL_MS = 120_000;
 const MAX_SNAPSHOT_ITEMS = 30;
 
@@ -49,6 +36,8 @@ type CrossTabMessageType =
   | "unread_count"
   | "read_all"
   | "cleared"
+  | "deleted"
+  | "session_changed"
   | "snapshot";
 
 type CrossTabMessage = {
@@ -115,6 +104,8 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "unread_count" &&
     type !== "read_all" &&
     type !== "cleared" &&
+    type !== "deleted" &&
+    type !== "session_changed" &&
     type !== "snapshot"
   ) {
     return null;
@@ -157,23 +148,7 @@ const parseNotificationSnapshot = (value: unknown): NotificationSnapshot | null 
 const isLeaderLeaseStale = (lease: RealtimeLeaderLease): boolean =>
   Date.now() - lease.heartbeatAt > LEADER_STALE_MS;
 
-const parseSsePayload = (value: string): unknown => {
-  if (!value) return null;
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-};
-
 const hasActiveSession = (): boolean => Boolean(getToken());
-
-const parseLastEventId = (value: unknown): string | null => {
-  if (typeof value !== "string") return null;
-  const normalized = value.trim();
-  return normalized ? normalized : null;
-};
 
 export const NotificationRealtimeConnector = () => {
   const {
@@ -199,6 +174,9 @@ export const NotificationRealtimeConnector = () => {
   const applyClearAllFromServer = useInAppNotificationStore(
     (state) => state.applyClearAllFromServer
   );
+  const applyDeletedFromServer = useInAppNotificationStore(
+    (state) => state.applyDeletedFromServer
+  );
 
   useEffect(() => {
     const token = getToken();
@@ -219,20 +197,18 @@ export const NotificationRealtimeConnector = () => {
       }
     })();
 
-    let eventSource: EventSource | null = null;
+    let socketHandle: { close: () => void } | null = null;
     let broadcastChannel: BroadcastChannel | null = null;
 
-    let reconnectTimer: number | null = null;
+    let recoverySyncTimer: number | null = null;
     let fallbackPollTimer: number | null = null;
     let followerCheckTimer: number | null = null;
     let leaderHeartbeatTimer: number | null = null;
 
     let isDisposed = false;
     let isLeader = false;
-    let reconnectAttempts = 0;
     let lastResyncAt = 0;
     let syncInFlight: Promise<unknown> | null = null;
-    let lastEventId = "";
 
     const clearTimer = (timer: number | null) => {
       if (timer === null) return;
@@ -303,34 +279,9 @@ export const NotificationRealtimeConnector = () => {
       }
     };
 
-    const readStoredLastEventId = (): string => {
-      if (!storageAvailable) return "";
-
-      try {
-        return parseLastEventId(
-          localStorage.getItem(NOTIFICATION_LAST_EVENT_ID_KEY)
-        ) || "";
-      } catch {
-        return "";
-      }
-    };
-
-    const writeStoredLastEventId = (value: string) => {
-      if (!storageAvailable) return;
-      if (!value) return;
-
-      try {
-        localStorage.setItem(NOTIFICATION_LAST_EVENT_ID_KEY, value);
-      } catch {
-        // Ignore storage failures.
-      }
-    };
-
-    lastEventId = readStoredLastEventId();
-
-    const clearReconnectTimer = () => {
-      clearTimer(reconnectTimer);
-      reconnectTimer = null;
+    const clearRecoverySyncTimer = () => {
+      clearTimer(recoverySyncTimer);
+      recoverySyncTimer = null;
     };
 
     const clearFallbackPoll = () => {
@@ -466,9 +417,9 @@ export const NotificationRealtimeConnector = () => {
     };
 
     const disconnect = () => {
-      if (!eventSource) return;
-      eventSource.close();
-      eventSource = null;
+      if (!socketHandle) return;
+      socketHandle.close();
+      socketHandle = null;
     };
 
     /**
@@ -482,7 +433,7 @@ export const NotificationRealtimeConnector = () => {
 
       isDisposed = true;
       isLeader = false;
-      clearReconnectTimer();
+      clearRecoverySyncTimer();
       clearFallbackPoll();
       clearFollowerCheck();
       clearLeaderHeartbeat();
@@ -491,119 +442,50 @@ export const NotificationRealtimeConnector = () => {
       setConnected(false);
     };
 
-    const rememberLastEventId = (event: MessageEvent<string>) => {
-      const nextLastEventId = parseLastEventId(event.lastEventId);
-      if (!nextLastEventId) return;
+    const handleRealtimeEvent = ({ name, body }: RealtimeEvent) => {
+      if (isDisposed || !isLeader) return;
 
-      lastEventId = nextLastEventId;
-      writeStoredLastEventId(nextLastEventId);
-    };
-
-    const onNotificationEvent = (event: MessageEvent<string>) => {
-      rememberLastEventId(event);
-      const payload = parseSsePayload(event.data);
-      if (payload === null) return;
-
-      ingestNotificationPayload(payload, "realtime");
-      applyUnreadCountPayload(payload);
-      publishCrossTab("notification", payload);
-      publishCrossTab("unread_count", payload);
-    };
-
-    const onUnreadCountEvent = (event: MessageEvent<string>) => {
-      rememberLastEventId(event);
-      const payload = parseSsePayload(event.data);
-      if (payload === null) return;
-
-      applyUnreadCountPayload(payload);
-      publishCrossTab("unread_count", payload);
-    };
-
-    const onReadAllEvent = (event: MessageEvent<string>) => {
-      rememberLastEventId(event);
-      const payload = parseSsePayload(event.data);
-      applyReadAllFromServer(payload ?? undefined);
-      publishCrossTab("read_all", payload ?? undefined);
-      publishSnapshot();
-    };
-
-    const onClearAllEvent = (event: MessageEvent<string>) => {
-      rememberLastEventId(event);
-      const payload = parseSsePayload(event.data);
-      applyClearAllFromServer(payload ?? undefined);
-      publishCrossTab("cleared", payload ?? undefined);
-      publishSnapshot();
-    };
-
-    const onConnectedEvent = (event: MessageEvent<string>) => {
-      rememberLastEventId(event);
-      setConnected(true);
-      clearFallbackPoll();
-      publishCrossTab("connected");
-
-      const payload = parseSsePayload(event.data);
-      if (payload === null) return;
-
-      applyUnreadCountPayload(payload);
-      ingestNotificationPayload(payload, "realtime");
-      publishCrossTab("unread_count", payload);
-      publishCrossTab("notification", payload);
-      publishSnapshot();
-    };
-
-    const attachListeners = () => {
-      if (!eventSource) return;
-
-      eventSource.addEventListener(
-        SSE_EVENTS.connected,
-        onConnectedEvent as EventListener
-      );
-      eventSource.addEventListener(SSE_EVENTS.heartbeat, () => {
-        // Heartbeat intentionally ignored. Connection health is tracked by EventSource lifecycle.
-      });
-      eventSource.addEventListener(
-        SSE_EVENTS.notification,
-        onNotificationEvent as EventListener
-      );
-      eventSource.addEventListener(
-        SSE_EVENTS.notificationUpdated,
-        onNotificationEvent as EventListener
-      );
-      eventSource.addEventListener(
-        SSE_EVENTS.notificationsReadAll,
-        onReadAllEvent as EventListener
-      );
-      eventSource.addEventListener(
-        SSE_EVENTS.notificationsCleared,
-        onClearAllEvent as EventListener
-      );
-      eventSource.addEventListener(
-        SSE_EVENTS.unreadCount,
-        onUnreadCountEvent as EventListener
-      );
-    };
-
-    const scheduleReconnect = () => {
-      if (isDisposed || !isLeader || document.visibilityState === "hidden") return;
-
-      if (!hasActiveSession()) {
-        teardownForSignedOutSession();
-        return;
+      switch (name) {
+        case "notification":
+        case "notification_updated":
+          ingestNotificationPayload(body, "realtime");
+          applyUnreadCountPayload(body);
+          publishCrossTab("notification", body);
+          publishCrossTab("unread_count", body);
+          return;
+        case "unread_count":
+          applyUnreadCountPayload(body);
+          publishCrossTab("unread_count", body);
+          return;
+        case "notifications_read_all":
+          applyReadAllFromServer(body);
+          publishCrossTab("read_all", body);
+          publishSnapshot();
+          return;
+        case "notifications_cleared":
+          applyClearAllFromServer(body);
+          publishCrossTab("cleared", body);
+          publishSnapshot();
+          return;
+        case "notifications_deleted":
+          applyDeletedFromServer(body);
+          publishCrossTab("deleted", body);
+          publishSnapshot();
+          return;
+        case "session.changed":
+          handleSessionChanged();
+          publishCrossTab("session_changed");
+          return;
+        case "session.revoked":
+          // Logout clears the session in every tab; nothing to relay.
+          handleSessionRevoked();
+          return;
+        default:
+          return;
       }
-
-      const jitterMs = Math.floor(Math.random() * 1_000);
-      const waitMs =
-        Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** reconnectAttempts) +
-        jitterMs;
-      reconnectAttempts += 1;
-
-      clearReconnectTimer();
-      reconnectTimer = window.setTimeout(() => {
-        void connect();
-      }, waitMs);
     };
 
-    const connect = async () => {
+    const connect = () => {
       if (
         isDisposed ||
         !isLeader ||
@@ -613,69 +495,52 @@ export const NotificationRealtimeConnector = () => {
         return;
       }
 
-      if (!hasActiveSession()) {
+      const sessionToken = getToken();
+      if (!sessionToken) {
         teardownForSignedOutSession();
         return;
       }
 
+      const origin = resolveRealtimeOrigin();
+      if (!origin) {
+        startFallbackPoll();
+        return;
+      }
+
       disconnect();
-
-      try {
-        const tokenResponse = await api.fetch.fetchNotificationsStreamToken();
-        if (
-          isDisposed ||
-          !isLeader ||
-          (document.visibilityState as DocumentVisibilityState) === "hidden" ||
-          !navigator.onLine
-        ) {
-          return;
-        }
-
-        if (!hasActiveSession()) {
-          teardownForSignedOutSession();
-          return;
-        }
-
-        const streamToken = parseNotificationStreamToken(tokenResponse.data);
-
-        const url = resolveNotificationSseUrl(
-          streamToken || undefined,
-          lastEventId || undefined
-        );
-        eventSource = new EventSource(url);
-
-        eventSource.onopen = () => {
+      socketHandle = openNotificationSocket({
+        origin,
+        token: sessionToken,
+        onEvent: handleRealtimeEvent,
+        onStatus: (status, { recovered }) => {
           if (isDisposed || !isLeader) return;
 
-          reconnectAttempts = 0;
-          setConnected(true);
-          clearFallbackPoll();
-          publishCrossTab("connected");
-          void syncFromApi(false);
-        };
-
-        // Fallback for servers that send default unnamed events.
-        eventSource.onmessage = onNotificationEvent;
-
-        attachListeners();
-
-        eventSource.onerror = () => {
-          if (isDisposed) return;
+          if (status === "connected") {
+            setConnected(true);
+            clearFallbackPoll();
+            publishCrossTab("connected");
+            if (!recovered) {
+              // Events sent while we were away were not replayed: resync.
+              clearRecoverySyncTimer();
+              recoverySyncTimer = window.setTimeout(() => {
+                recoverySyncTimer = null;
+                void syncFromApi(true);
+              }, Math.floor(Math.random() * RECOVERY_SYNC_JITTER_MS));
+            }
+            return;
+          }
 
           setConnected(false);
           publishCrossTab("disconnected");
-          disconnect();
           startFallbackPoll();
-          scheduleReconnect();
-        };
-      } catch {
-        if (isDisposed) return;
-
-        setConnected(false);
-        publishCrossTab("disconnected");
-        startFallbackPoll();
-        scheduleReconnect();
-      }
+        },
+        onFatal: (code) => {
+          if (isDisposed) return;
+          window.dispatchEvent(
+            new CustomEvent("app:session-expired", { detail: { message: code } })
+          );
+        },
+      });
     };
 
     const becomeLeader = () => {
@@ -690,7 +555,7 @@ export const NotificationRealtimeConnector = () => {
         writeLeaderLease();
       }, LEADER_HEARTBEAT_MS);
 
-      clearReconnectTimer();
+      clearRecoverySyncTimer();
       clearFallbackPoll();
       void connect();
       void syncFromApi(true);
@@ -700,7 +565,7 @@ export const NotificationRealtimeConnector = () => {
       if (!isLeader) return;
 
       isLeader = false;
-      clearReconnectTimer();
+      clearRecoverySyncTimer();
       clearFallbackPoll();
       clearLeaderHeartbeat();
       disconnect();
@@ -801,6 +666,16 @@ export const NotificationRealtimeConnector = () => {
         return;
       }
 
+      if (message.type === "deleted") {
+        applyDeletedFromServer(message.payload);
+        return;
+      }
+
+      if (message.type === "session_changed") {
+        handleSessionChanged();
+        return;
+      }
+
       if (message.type === "snapshot") {
         applySnapshot(message.payload, true);
       }
@@ -857,7 +732,6 @@ export const NotificationRealtimeConnector = () => {
       }
 
       clearFallbackPoll();
-      reconnectAttempts = 0;
       void syncFromApi(true);
       void connect();
     };
@@ -865,7 +739,7 @@ export const NotificationRealtimeConnector = () => {
     const onOffline = () => {
       if (!isLeader) return;
 
-      clearReconnectTimer();
+      clearRecoverySyncTimer();
       clearFallbackPoll();
       disconnect();
       setConnected(false);
@@ -903,7 +777,7 @@ export const NotificationRealtimeConnector = () => {
       if (isLeader) {
         publishCrossTab("disconnected");
       }
-      clearReconnectTimer();
+      clearRecoverySyncTimer();
       clearFallbackPoll();
       clearFollowerCheck();
       clearLeaderHeartbeat();
@@ -924,6 +798,8 @@ export const NotificationRealtimeConnector = () => {
       }
     };
   }, [
+    applyClearAllFromServer,
+    applyDeletedFromServer,
     applyReadAllFromServer,
     applyUnreadCountPayload,
     fetchNotifications,

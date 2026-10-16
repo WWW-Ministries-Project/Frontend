@@ -9,7 +9,6 @@ import { relativePath } from "@/utils/const";
 type UnknownRecord = Record<string, unknown>;
 
 const HIGH_PRIORITY = new Set(["HIGH", "CRITICAL"]);
-const DEFAULT_SSE_PATH = "notifications/stream";
 
 const toRecord = (value: unknown): UnknownRecord | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -635,80 +634,6 @@ export const resolveNotificationNavigationTarget = (
     url: normalizeInternalPath(rawActionUrl),
     external: false,
   };
-};
-
-export const parseNotificationStreamToken = (payload: unknown): string | null => {
-  const direct = toNonEmptyString(payload);
-  if (direct) return direct;
-
-  const record = toRecord(payload);
-  if (!record) return null;
-
-  const token =
-    toNonEmptyString(record.streamToken) ??
-    toNonEmptyString(record.stream_token) ??
-    toNonEmptyString(record.token);
-
-  if (token) return token;
-
-  const nestedRecord = toRecord(record.data);
-  if (!nestedRecord) return null;
-
-  return (
-    toNonEmptyString(nestedRecord.streamToken) ??
-    toNonEmptyString(nestedRecord.stream_token) ??
-    toNonEmptyString(nestedRecord.token) ??
-    null
-  );
-};
-
-export const resolveNotificationSseUrl = (
-  streamToken?: string,
-  lastEventId?: string
-): string => {
-  const normalizedPath = DEFAULT_SSE_PATH.startsWith("/")
-    ? DEFAULT_SSE_PATH.slice(1)
-    : DEFAULT_SSE_PATH;
-
-  const origin =
-    toNonEmptyString(baseUrl) ||
-    toNonEmptyString(window.location.origin) ||
-    "";
-
-  try {
-    const url = new URL(normalizedPath, origin);
-    const normalizedToken = toNonEmptyString(streamToken);
-    const normalizedLastEventId = toNonEmptyString(lastEventId);
-
-    if (normalizedToken) {
-      url.searchParams.set("stream_token", normalizedToken);
-    }
-    if (normalizedLastEventId) {
-      url.searchParams.set("lastEventId", normalizedLastEventId);
-      url.searchParams.set("last_event_id", normalizedLastEventId);
-    }
-
-    return url.toString();
-  } catch {
-    const baseUrlValue = `${window.location.origin}/${normalizedPath}`;
-    const normalizedToken = toNonEmptyString(streamToken);
-    const normalizedLastEventId = toNonEmptyString(lastEventId);
-    const query = new URLSearchParams();
-
-    if (normalizedToken) {
-      query.set("stream_token", normalizedToken);
-    }
-
-    if (normalizedLastEventId) {
-      query.set("lastEventId", normalizedLastEventId);
-      query.set("last_event_id", normalizedLastEventId);
-    }
-
-    if ([...query.keys()].length === 0) return baseUrlValue;
-
-    const separator = baseUrlValue.includes("?") ? "&" : "?";
-    return `${baseUrlValue}${separator}${query.toString()}`;
-  }
 };
 
 /**
