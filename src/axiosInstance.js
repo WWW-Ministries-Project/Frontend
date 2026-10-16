@@ -8,6 +8,7 @@ const SESSION_EXPIRY_MARKERS = [
   "not authorized. token not found",
   "jwt expired",
   "token expired",
+  "account inactive",
 ];
 
 const PERMISSION_DENIAL_MARKERS = [
