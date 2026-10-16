@@ -11,7 +11,8 @@ export type RealtimeEvent = { name: string; body: Record<string, unknown> };
 
 type OpenNotificationSocketOptions = {
   origin: string;
-  token: string;
+  /** Read on every (re)connect so a token refreshed in another tab is used. */
+  getToken: () => string | null | undefined;
   onEvent: (event: RealtimeEvent) => void;
   onStatus: (status: RealtimeStatus, info: { recovered: boolean }) => void;
   onFatal: (code: string) => void;
@@ -40,7 +41,7 @@ const readErrorCode = (error: unknown): string => {
 
 export const openNotificationSocket = ({
   origin,
-  token,
+  getToken,
   onEvent,
   onStatus,
   onFatal,
@@ -52,7 +53,7 @@ export const openNotificationSocket = ({
   const socket: Socket = io(origin, {
     path: "/socket.io",
     transports: ["websocket"],
-    auth: { token },
+    auth: (cb) => cb({ token: getToken() ?? "" }),
   });
 
   const clearManualRetry = () => {

@@ -198,6 +198,7 @@ export const NotificationRealtimeConnector = () => {
     })();
 
     let socketHandle: { close: () => void } | null = null;
+    let lastRelayedStatus: "connected" | "disconnected" | null = null;
     let broadcastChannel: BroadcastChannel | null = null;
 
     let recoverySyncTimer: number | null = null;
@@ -417,6 +418,7 @@ export const NotificationRealtimeConnector = () => {
     };
 
     const disconnect = () => {
+      lastRelayedStatus = null;
       if (!socketHandle) return;
       socketHandle.close();
       socketHandle = null;
@@ -510,16 +512,18 @@ export const NotificationRealtimeConnector = () => {
       disconnect();
       socketHandle = openNotificationSocket({
         origin,
-        token: sessionToken,
+        getToken,
         onEvent: handleRealtimeEvent,
         onStatus: (status, { recovered }) => {
           if (isDisposed || !isLeader) return;
 
           if (status === "connected") {
+            lastRelayedStatus = "connected";
             setConnected(true);
             clearFallbackPoll();
             publishCrossTab("connected");
-            if (!recovered) {
+            // A forced sync started alongside connect() already covers the gap.
+            if (!recovered && Date.now() - lastResyncAt > RECOVERY_SYNC_JITTER_MS) {
               // Events sent while we were away were not replayed: resync.
               clearRecoverySyncTimer();
               recoverySyncTimer = window.setTimeout(() => {
@@ -530,6 +534,9 @@ export const NotificationRealtimeConnector = () => {
             return;
           }
 
+          // connect_error repeats on every retry; relay the drop only once.
+          if (lastRelayedStatus === "disconnected") return;
+          lastRelayedStatus = "disconnected";
           setConnected(false);
           publishCrossTab("disconnected");
           startFallbackPoll();
