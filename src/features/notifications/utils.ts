@@ -711,6 +711,23 @@ export const resolveNotificationSseUrl = (
   }
 };
 
+/**
+ * Origin of the API host. socket.io connects to `<origin>/socket.io`, so any
+ * path on REACT_APP_API_URL is dropped. Null when nothing usable is configured;
+ * the connector then stays on REST polling.
+ */
+export const resolveRealtimeOrigin = (): string | null => {
+  const candidate =
+    toNonEmptyString(baseUrl) || toNonEmptyString(window.location.origin);
+  if (!candidate) return null;
+
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return null;
+  }
+};
+
 export const isRecentNotification = (
   createdAt: string,
   thresholdMs = 300_000
