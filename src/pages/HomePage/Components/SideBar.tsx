@@ -1,111 +1,32 @@
-import { sideTabs } from "@/routes/appRoutes";
-import { filterRoutesByAccess } from "@/routes/routeAccess";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthWrapper";
-import { SidebarNavList } from "./SidebarNavList";
-
 import LogoutIcon from "@/assets/sidebar/Logout";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+
+import { useAuth } from "@/context/AuthWrapper";
+import { sidebarIcons } from "../utils";
+import { resolveHomePath } from "../utils/navPaths";
+import { useSideNavTabs } from "./useSideNavTabs";
 
 interface IProps {
   className?: string;
-  show?: boolean;
-  onClick?: () => void;
 }
 
-const hoverDelayMs = 300;
-const HOME_ROUTE_BASE = "/home";
-
-const normalizePath = (path: string) => {
-  const trimmed = path.replace(/\/+$/, "");
-  if (!trimmed) return "/";
-  return trimmed.replace(/\/{2,}/g, "/");
-};
-
-const resolveHomePath = (path: string) => {
-  if (!path) return HOME_ROUTE_BASE;
-  if (path.startsWith("/")) return normalizePath(path);
-  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
-};
-
-const isPathActive = (pathname: string, path: string) => {
-  const normalizedPathname = normalizePath(pathname);
-  const normalizedPath = normalizePath(path);
-  return (
-    normalizedPathname === normalizedPath ||
-    normalizedPathname.startsWith(`${normalizedPath}/`)
-  );
-};
-
+/**
+ * Icon-only rail of top level modules. Each entry links to its module index,
+ * which redirects to the first page the user can open. The pages inside a
+ * module are listed by `SubNav`, not here.
+ */
 export const SideBar = ({ className }: IProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { logout, user } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const { logout } = useAuth();
+  const { tabs, activeTabNames } = useSideNavTabs();
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
-  const hoverTimerRef = useRef<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-
-  const filteredTabs = useMemo(
-    () =>
-      filterRoutesByAccess(
-        sideTabs,
-        user.access_permissions,
-        user.permissions
-      ),
-    [user.access_permissions, user.permissions]
-  );
-
-  // Handle sidebar expand/collapse on hover
-  const handleMouseEnter = () => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    hoverTimerRef.current = window.setTimeout(
-      () => setIsExpanded(true),
-      hoverDelayMs
-    );
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setIsExpanded(false);
-    setOpenMenus({});
-  };
-
-  // Close all submenus when route changes
-  useEffect(() => {
-    setOpenMenus({});
-  }, [location.pathname]);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-    };
-  }, []);
 
   const handleLogOut = () => {
     logout();
     navigate("/login", { replace: true });
-  };
-
-  const handleParentMenuActivate = () => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setIsExpanded(true);
-  };
-
-  const toggleSubMenu = (menuName: string) => {
-    setOpenMenus((prev) => ({
-      ...prev,
-      [menuName]: !prev[menuName],
-    }));
   };
 
   const updateScrollFades = useCallback(() => {
@@ -126,29 +47,6 @@ export const SideBar = ({ className }: IProps) => {
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - threshold);
   }, []);
 
-  // Precompute active states for all tabs
-  const activeTabNames = useMemo(() => {
-    const names: Record<string, boolean> = {};
-    filteredTabs.forEach((item) => {
-      const resolvedPath = resolveHomePath(item.path);
-      const isActive = isPathActive(location.pathname, resolvedPath);
-      names[item.name] = isActive;
-    });
-    return names;
-  }, [filteredTabs, location.pathname]);
-
-  // Open submenu if active and has children
-  useEffect(() => {
-    filteredTabs.forEach((item) => {
-      if (activeTabNames[item.name] && item.children) {
-        setOpenMenus((prev) => ({
-          ...prev,
-          [item.name]: true,
-        }));
-      }
-    });
-  }, [activeTabNames, filteredTabs]);
-
   useEffect(() => {
     const rafId = window.requestAnimationFrame(updateScrollFades);
     const handleResize = () => updateScrollFades();
@@ -158,20 +56,15 @@ export const SideBar = ({ className }: IProps) => {
       window.cancelAnimationFrame(rafId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [filteredTabs, isExpanded, openMenus, location.pathname, updateScrollFades]);
+  }, [tabs, updateScrollFades]);
 
   return (
     <div
-      className={`flex flex-col transition-all duration-300 ${
-        isExpanded ? "w-64" : "w-16"
-      } ${className || ""}`}
+      className={`flex w-16 flex-col ${className || ""}`}
       style={{ height: "calc(100dvh - var(--app-header-height))" }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       aria-label="Main navigation sidebar"
       role="navigation"
     >
-      {/* Scrollable navigation area */}
       <div
         className={`sidebar-scroll-shell flex-1 ${
           showTopFade ? "sidebar-scroll-shell--top" : ""
@@ -182,15 +75,41 @@ export const SideBar = ({ className }: IProps) => {
           onScroll={updateScrollFades}
           className="sidebar-scroll h-full overflow-y-auto overflow-x-hidden"
         >
-          <div className="flex flex-col space-y-2 py-4">
-            <SidebarNavList
-              items={filteredTabs}
-              show={isExpanded}
-              openMenus={openMenus}
-              activeTabNames={activeTabNames}
-              onToggleSubMenu={toggleSubMenu}
-              onParentMenuActivate={handleParentMenuActivate}
-            />
+          <div className="flex flex-col gap-2 py-4">
+            {tabs.map((item) => {
+              const IconComponent = sidebarIcons[item.name];
+              if (!IconComponent) return null;
+
+              const isActive = activeTabNames[item.name] || false;
+
+              return (
+                <div key={`${item.name}-${item.path}`}>
+                  {isActive && (
+                    <div className="flex justify-end">
+                      <div className="scrollable-shape-top" />
+                    </div>
+                  )}
+                  <NavLink
+                    to={resolveHomePath(item.path)}
+                    title={item.name}
+                    aria-label={item.name}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`flex h-14 w-full items-center justify-center rounded-s-xl rounded-e-xl text-primary transition-[background-color,color] duration-200 lg:rounded-e-none ${
+                      isActive
+                        ? "sidebar-active-surface"
+                        : "hover:bg-lightGray/40"
+                    }`}
+                  >
+                    <IconComponent className="h-6 w-6 text-gray-600" />
+                  </NavLink>
+                  {isActive && (
+                    <div className="flex justify-end">
+                      <div className="scrollable-shape-bottom" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -200,15 +119,11 @@ export const SideBar = ({ className }: IProps) => {
         <button
           type="button"
           onClick={handleLogOut}
-          className="w-full flex items-center gap-2 p-4 hover:bg-gray-100 rounded-md transition-colors text-left"
+          title="Logout"
           aria-label="Logout"
+          className="flex h-14 w-full items-center justify-center rounded-s-xl transition-colors hover:bg-lightGray/40"
         >
-          <LogoutIcon className="w-6 h-6 text-gray-600 flex-shrink-0" />
-          {isExpanded && (
-            <span className="transition-opacity duration-200 whitespace-nowrap">
-              Logout
-            </span>
-          )}
+          <LogoutIcon className="h-6 w-6 flex-shrink-0 text-gray-600" />
         </button>
       </div>
     </div>
