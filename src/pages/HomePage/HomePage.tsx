@@ -14,6 +14,7 @@ import { Header } from "./Components/Header";
 import { AiChatbotWidget } from "./Components/AiChatbotWidget";
 import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
+import { SubNav } from "./Components/SubNav";
 import { LoaderComponent } from "./Components/reusable/LoaderComponent";
 import useSettingsStore from "./pages/Settings/utils/settingsStore";
 import type { UserType } from "./pages/Members/utils/membersInterfaces";
@@ -136,7 +137,7 @@ export function HomePage() {
         <div className="flex min-h-0 flex-1 gap-0
         ">
           <div className="hidden h-full flex-shrink-0 lg:block">
-            <SideBar className="" onClick={handleShowNav} show={show} />
+            <SideBar />
           </div>
 
           <div className="lg:hidden">
@@ -144,8 +145,9 @@ export function HomePage() {
           </div>
 
           <div className="app-surface app-shell-padding flex min-h-0 flex-1 overflow-hidden bg-lightGray">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-t-4 border-lightGray border-t-secondary bg-white">
-              <div className="app-page-content flex-1 min-h-0 overflow-y-auto">
+            <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-t-4 border-lightGray border-t-secondary bg-white">
+              <SubNav />
+              <div className="app-page-content min-h-0 min-w-0 flex-1 overflow-y-auto">
                 <Outlet
                   context={{
                     refetchMembersOptions,
