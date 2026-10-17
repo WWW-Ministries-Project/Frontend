@@ -8,6 +8,7 @@ const SESSION_EXPIRY_MARKERS = [
   "not authorized. token not found",
   "jwt expired",
   "token expired",
+  "account inactive",
 ];
 
 const PERMISSION_DENIAL_MARKERS = [
@@ -102,6 +103,17 @@ const isPublicAuthRequest = (requestUrl = "") => {
   return PUBLIC_AUTH_PATHS.some((path) => pathname.includes(path));
 };
 
+// Member Community endpoints answer 403 for business rules (guests, posts
+// the viewer can no longer see), not missing permissions, so they must not
+// bounce the member to the access-denied page. Moderation/admin endpoints
+// are real permission checks and keep the redirect.
+const isCommunityMemberRequest = (requestUrl = "") => {
+  const pathname = resolvePathName(requestUrl);
+  const match = pathname.match(/\/community\/([^/?]+)/);
+  if (!match) return false;
+  return match[1] !== "moderation" && match[1] !== "admin";
+};
+
 const parseRetryAfterSeconds = (retryAfterValue) => {
   if (retryAfterValue === undefined || retryAfterValue === null) return null;
 
@@ -163,6 +175,8 @@ const applyResponseInterceptor = (client) => {
         "";
       const requestUrl = error?.config?.url;
       const isPublicAuth = isPublicAuthRequest(requestUrl);
+      const skipAccessDenied =
+        isPublicAuth || isCommunityMemberRequest(requestUrl);
       const hasActiveSession = Boolean(getToken());
 
       if (statusCode === 401) {
@@ -173,7 +187,7 @@ const applyResponseInterceptor = (client) => {
           });
         } else if (
           isPermissionDeniedMessage(message) &&
-          !isPublicAuth &&
+          !skipAccessDenied &&
           hasActiveSession
         ) {
           dispatchAppEvent("app:access-denied", {
@@ -182,7 +196,7 @@ const applyResponseInterceptor = (client) => {
           });
         }
       } else if (statusCode === 403) {
-        if (!isPublicAuth && hasActiveSession) {
+        if (!skipAccessDenied && hasActiveSession) {
           dispatchAppEvent("app:access-denied", {
             statusCode,
             message,

@@ -17,6 +17,8 @@ export const relativePath = {
       details: "members/:id",
       info: "members/:id",
     },
+    // Ride to church admin (safety team / church office), a top-level tab.
+    rides: "ride-to-church",
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
@@ -30,11 +32,13 @@ export const relativePath = {
         memberConfirmation: "member-confirmation",
         visitorToMembership: "visitor-to-membership",
         soulwonToMembership: "soulwon-to-membership",
+        guestToMembership: "guest-to-membership",
         joinRequests: "join-requests",
       },
     },
     visitors: {
       main: "visitors",
+      guests: "guests",
       details: "visitors/visitor/:visitorId",
     },
     events: {
@@ -141,7 +145,16 @@ export const relativePath = {
       InstructorGradingPanel:":programId/cohort/:cohortId/grades/:topicId"
     },
     appointments: "/member/appointments",
-    announcements: "/member/announcements",
+    community: "/member/community",
+    // Relative to `community` (nested under CommunityLayout).
+    communityPost: "posts/:id",
+    // The backend's ride notifications link here (MEMBER_ACTION_URL in
+    // rideService), including `find?pickup_point_id=<id>`.
+    rides: "/member/rides",
+    // Relative to `rides` (nested under RidesLayout).
+    rideOffer: "offer",
+    rideFind: "find",
+    myRide: "mine",
   },
   registerMember: "/register-member",
   registerEvent: "/events/register-event",

@@ -121,7 +121,8 @@ const PRESETS: Array<{
   {
     key: "admin",
     title: "Platform Admin",
-    subtitle: "Complete system control across all modules",
+    subtitle:
+      "Complete system control across all modules (Community is granted separately)",
     factory: createAdminPreset,
   },
   {

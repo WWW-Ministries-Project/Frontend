@@ -5,6 +5,7 @@ const tabs = [
   { label: "Member Confirmation", path: "member-confirmation" },
   { label: "Visitor-to-Membership", path: "visitor-to-membership" },
   { label: "Soulwon-to-Membership", path: "soulwon-to-membership" },
+  { label: "Guest-to-Membership", path: "guest-to-membership" },
   { label: "Join Department Requests", path: "join-requests" },
 ] as const;
 
@@ -15,7 +16,7 @@ export const MembershipManagement = () => {
         <section className="space-y-2">
           <h1 className="text-2xl font-semibold text-primary">Membership Management</h1>
           <p className="text-sm text-gray-600">
-            Confirm members and convert visitors or life center soul-winning records into member records.
+            Confirm members, convert visitors or life center soul-winning records into member records, and decide membership requests from app guests.
           </p>
         </section>
 

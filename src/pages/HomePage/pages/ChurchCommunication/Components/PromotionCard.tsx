@@ -6,6 +6,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import type { Promotion } from "@/utils/api/promotions/interfaces";
+import { describePromotionLink } from "./promotionLinks";
 
 interface PromotionCardProps {
   item: Promotion;
@@ -90,7 +91,7 @@ const PromotionCard = ({
         </div>
         <p className="truncate text-sm text-gray-500">
           {formatWindow(item)}
-          {item.deep_link ? ` · ${item.deep_link}` : ""}
+          {` · ${describePromotionLink(item.deep_link)}`}
         </p>
       </div>
 

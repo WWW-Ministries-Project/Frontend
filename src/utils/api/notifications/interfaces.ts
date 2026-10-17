@@ -39,11 +39,6 @@ export interface NotificationClearAllPayload {
   totalCount?: number;
 }
 
-export interface NotificationStreamTokenPayload {
-  streamToken: string;
-  expiresAt?: string;
-}
-
 export interface NotificationPushPublicKeyPayload {
   publicKey?: string;
   public_key?: string;

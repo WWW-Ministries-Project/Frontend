@@ -14,6 +14,7 @@ import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess
 import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import VisitorAnalytics from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorAnalytics";
+import { Guests } from "@/pages/HomePage/pages/VisitorManagement/pages/Guests";
 import { VisitorManagement } from "@/pages/HomePage/pages/VisitorManagement/VisitorManagement";
 import LandingPage from "@/pages/LandingPage/LandingPage.jsx";
 import { Registration } from "@/pages/Registration/Registration";
@@ -48,6 +49,7 @@ import { MemberConfirmation } from "@/pages/HomePage/pages/MembershipManagement/
 import { SoulwonToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/SoulwonToMembership";
 import { VisitorToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/VisitorToMembership";
 import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagement/pages/JoinDepartmentRequests";
+import { GuestToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/GuestToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
@@ -90,13 +92,24 @@ import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
 import AttendanceAnalytics from "@/pages/HomePage/pages/Attendance/AttendanceAnalytics";
 import AnnualThemeManager from "@/pages/HomePage/pages/ChurchCommunication/AnnualThemeManager.js";
-import AnnouncementManager from "@/pages/HomePage/pages/ChurchCommunication/AnnouncementManager.js";
+import CommunityManager from "@/pages/HomePage/pages/ChurchCommunication/CommunityManager.js";
+import CommunicationIndexRedirect from "@/pages/HomePage/pages/ChurchCommunication/CommunicationIndexRedirect.js";
+import MessagingManager from "@/pages/HomePage/pages/ChurchCommunication/Messaging/MessagingManager.js";
 import PromotionManager from "@/pages/HomePage/pages/ChurchCommunication/PromotionManager.js";
 import SermonManager from "@/pages/HomePage/pages/ChurchCommunication/SermonManager.js";
-import MemberAnnouncementsPage from "@/pages/HomePage/pages/Announcements/MemberAnnouncementsPage.js";
+import CommunityLayout from "@/pages/HomePage/pages/Community/CommunityLayout.js";
+import MemberCommunityPage from "@/pages/HomePage/pages/Community/MemberCommunityPage.js";
+import CommunityPostPage from "@/pages/HomePage/pages/Community/CommunityPostPage.js";
+import RidesLayout from "@/pages/HomePage/pages/Rides/RidesLayout.js";
+import RidesHubPage from "@/pages/HomePage/pages/Rides/RidesHubPage.js";
+import RideOfferPage from "@/pages/HomePage/pages/Rides/RideOfferPage.js";
+import RideFindPage from "@/pages/HomePage/pages/Rides/RideFindPage.js";
+import MyRidePage from "@/pages/HomePage/pages/Rides/MyRidePage.js";
+import RidesManager from "@/pages/HomePage/pages/Rides/admin/RidesManager.js";
 import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/AppointmentManager.js";
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
+import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
 import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
 import MarketplaceAnalytics from "@/pages/HomePage/pages/MarketPlace/pages/MarketplaceAnalytics";
@@ -133,6 +146,9 @@ export interface AppRoute {
   isPrivate?: boolean;
   permissionNeeded?: PermissionRequirement;
   sideTab?: boolean;
+  /** A pure redirect: never a navigation entry, so it does not count when
+   *  deciding whether a parent has anything the user can open. */
+  redirectOnly?: boolean;
   children?: AppRoute[];
 }
 
@@ -292,6 +308,13 @@ export const routes: AppRoute[] = [
                 permissionNeeded: "manage_membership_management",
               },
               {
+                path: relativePath.home.membership.management.guestToMembership,
+                name: "Guest-to-Membership",
+                element: <GuestToMembership />,
+                isPrivate: true,
+                permissionNeeded: "manage_membership_management",
+              },
+              {
                 path: relativePath.home.membership.management.joinRequests,
                 name: "Join Department Requests",
                 element: <JoinDepartmentRequests />,
@@ -356,6 +379,18 @@ export const routes: AppRoute[] = [
         ],
       },
       {
+        // Top-level so the church office finds it; needs a `sidebarIcons`
+        // entry keyed by this name or the sidebar skips it. The backend checks
+        // Membership_Management "manage" — the same rule that picks who
+        // receives ride safety reports.
+        path: relativePath.home.rides,
+        name: "Ride to church",
+        element: <RidesManager />,
+        isPrivate: true,
+        permissionNeeded: "manage_membership_management",
+        sideTab: true,
+      },
+      {
         path: "visitors",
         name: "Visitors",
         isPrivate: true,
@@ -366,6 +401,14 @@ export const routes: AppRoute[] = [
             path: "",
             name: "Visitors",
             element: <VisitorManagement />,
+            isPrivate: true,
+            permissionNeeded: "view_visitors",
+            sideTab: true,
+          },
+          {
+            path: relativePath.home.visitors.guests,
+            name: "Guests",
+            element: <Guests />,
             isPrivate: true,
             permissionNeeded: "view_visitors",
             sideTab: true,
@@ -528,11 +571,13 @@ export const routes: AppRoute[] = [
         sideTab: true,
         children: [
           {
+            // No permissionNeeded: the redirect picks the first child the
+            // user can access (each child enforces its own permission).
             path: "",
             name: "Communication Default",
-            element: <Navigate to="theme-manager" replace />,
+            element: <CommunicationIndexRedirect />,
             isPrivate: true,
-            permissionNeeded: "view_theme",
+            redirectOnly: true,
           },
           {
             path: "theme-manager",
@@ -543,12 +588,20 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
           {
-            path: "announcements",
-            name: "Announcement",
-            element: <AnnouncementManager />,
+            path: "community",
+            name: "Community",
+            element: <CommunityManager />,
             isPrivate: true,
-            permissionNeeded: "view_announcements",
+            permissionNeeded: "view_community",
             sideTab: true,
+          },
+          {
+            // Community replaced Announcements; keep old bookmarks working.
+            path: "announcements",
+            name: "Announcements Redirect",
+            element: <Navigate to="/home/communication/community" replace />,
+            isPrivate: true,
+            permissionNeeded: "view_community",
           },
           {
             path: "promotions",
@@ -564,6 +617,14 @@ export const routes: AppRoute[] = [
             element: <SermonManager />,
             isPrivate: true,
             permissionNeeded: "view_sermons",
+            sideTab: true,
+          },
+          {
+            path: "messaging",
+            name: "Messaging",
+            element: <MessagingManager />,
+            isPrivate: true,
+            permissionNeeded: "view_messaging",
             sideTab: true,
           },
         ],
@@ -607,7 +668,14 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_appointments",
             sideTab: true,
           },
-          
+          {
+            path: "settings",
+            name: "Settings",
+            element: <AppointmentSettings />,
+            isPrivate: true,
+            permissionNeeded: "manage_appointments",
+            sideTab: true,
+          },
         ],
       },
    
@@ -1307,9 +1375,63 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: relativePath.member.announcements,
-        name: "member_announcements",
-        element: <MemberAnnouncementsPage />,
+        path: relativePath.member.community,
+        name: "member_community",
+        element: <CommunityLayout />,
+        isPrivate: false,
+        children: [
+          {
+            path: "",
+            name: "member_community",
+            element: <MemberCommunityPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.communityPost,
+            name: "member_community",
+            element: <CommunityPostPage />,
+            isPrivate: false,
+          },
+        ],
+      },
+      {
+        path: relativePath.member.rides,
+        name: "member_rides",
+        element: <RidesLayout />,
+        isPrivate: false,
+        children: [
+          {
+            path: "",
+            name: "member_rides",
+            element: <RidesHubPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.rideOffer,
+            name: "member_rides",
+            element: <RideOfferPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.rideFind,
+            name: "member_rides",
+            element: <RideFindPage />,
+            isPrivate: false,
+          },
+          {
+            path: relativePath.member.myRide,
+            name: "member_rides",
+            element: <MyRidePage />,
+            isPrivate: false,
+          },
+        ],
+      },
+      {
+        // Community replaced Announcements; old links and push actionUrls
+        // still land in the right place.
+        path: "/member/announcements/*",
+        name: "member_community",
+        element: <Navigate to={relativePath.member.community} replace />,
         isPrivate: false,
       }
       // {

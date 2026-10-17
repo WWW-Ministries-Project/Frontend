@@ -8,8 +8,18 @@ import type {
   BulkAssignAccessLevelPayload,
   BulkAssignAccessLevelResult,
 } from "./settings/accessLevelAssignmentInterfaces";
-import type { Announcement, UpdateAnnouncementDto } from "./announcements/interfaces";
+import type {
+  CommunityPost,
+  UpdateCommunityPostDto,
+} from "./community/interfaces";
+import type {
+  AdminRideArea,
+  AdminRidePickupPoint,
+  SaveRideAreaDto,
+  SaveRidePickupPointDto,
+} from "./rides/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
+import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
   Sermon,
   SermonSeries,
@@ -51,8 +61,11 @@ import type {
 } from "./marketPlace/interface";
 import type {
   Appointment,
+  AppointmentReason,
+  ReorderAppointmentReasonsPayload,
   StaffAvailability,
   UpdateAppointmentBookingPayload,
+  UpdateAppointmentReasonPayload,
   UpdateAppointmentStatusPayload,
   UpdateStaffAvailabilityPayload,
 } from "./appointment/interfaces";
@@ -71,6 +84,14 @@ import type {
   ApproveJoinRequestPayload,
   DeclineJoinRequestPayload,
 } from "./departmentJoinRequests/interfaces";
+
+import type {
+  MessageTemplate,
+  MessageTemplateKey,
+  MessagingSettings,
+  UpdateMessageTemplateDto,
+  UpdateMessagingSettingsDto,
+} from "./messaging/interfaces";
 
 export class ApiUpdateCalls {
   private apiExecution: ApiExecution;
@@ -506,6 +527,28 @@ export class ApiUpdateCalls {
     );
   };
 
+  updateAppointmentReason = (
+    payload: UpdateAppointmentReasonPayload,
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason>> => {
+    const reasonId = query?.id;
+
+    if (!reasonId) {
+      throw new Error("Reason id is required for update");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/reasons/${reasonId}`,
+      payload
+    );
+  };
+
+  reorderAppointmentReasons = (
+    payload: ReorderAppointmentReasonsPayload
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.apiExecution.updateData("appointment/reasons/reorder", payload);
+  };
+
   updateAppointmentStatus = (
     payload: UpdateAppointmentStatusPayload,
     query?: QueryType
@@ -558,13 +601,19 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
 
-  // update announcement
-  updateAnnouncement = (
+  // update community post (author or Community manager)
+  updateCommunityPost = (
     id: number,
-    payload: UpdateAnnouncementDto
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.apiExecution.updateData(`announcements/${id}`, payload);
-  }
+    payload: UpdateCommunityPostDto
+  ): Promise<ApiResponse<CommunityPost>> => {
+    return this.apiExecution.updateData(`community/posts/${id}`, payload);
+  };
+
+  markCommunityNotificationRead = (
+    id: number
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData(`community/notifications/${id}/read`, {});
+  };
 
   // update promotion
   updatePromotion = (
@@ -573,6 +622,20 @@ export class ApiUpdateCalls {
   ): Promise<ApiResponse<Promotion>> => {
     return this.apiExecution.updateData(`promotions/${id}`, payload);
   }
+
+  // Messaging
+  updateMessageTemplate = (
+    key: MessageTemplateKey,
+    payload: UpdateMessageTemplateDto
+  ): Promise<ApiResponse<MessageTemplate>> => {
+    return this.apiExecution.updateData(`messaging/templates/${key}`, payload);
+  };
+
+  updateMessagingSettings = (
+    payload: UpdateMessagingSettingsDto
+  ): Promise<ApiResponse<MessagingSettings>> => {
+    return this.apiExecution.updateData("messaging/settings", payload);
+  };
 
   // Sermons
   updateSermon = (
@@ -703,6 +766,18 @@ export class ApiUpdateCalls {
     );
   };
 
+  approveMembershipRequest = (
+    payload: DecideMembershipRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData("user/membership-requests/approve", payload);
+  };
+
+  declineMembershipRequest = (
+    payload: DecideMembershipRequestPayload
+  ): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.patchData("user/membership-requests/decline", payload);
+  };
+
   markNotificationRead = (
     notificationId: string,
     payload: Record<string, never> = {}
@@ -749,5 +824,33 @@ export class ApiUpdateCalls {
       `notifications/preferences/${encodeURIComponent(notificationType)}`,
       payload
     );
+  };
+
+  // Ride to church (safety team / church office)
+  resolveRideReport = (
+    id: number,
+    payload: { resolution_note?: string }
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.apiExecution.patchData(
+      `rides/admin/reports/${id}/resolve`,
+      payload
+    );
+  };
+
+  updateRidePickupPoint = (
+    id: number,
+    payload: SaveRidePickupPointDto
+  ): Promise<ApiResponse<AdminRidePickupPoint>> => {
+    return this.apiExecution.updateData(
+      `rides/admin/pickup-points/${id}`,
+      payload
+    );
+  };
+
+  updateRideArea = (
+    id: number,
+    payload: SaveRideAreaDto
+  ): Promise<ApiResponse<AdminRideArea>> => {
+    return this.apiExecution.updateData(`rides/admin/areas/${id}`, payload);
   };
 }

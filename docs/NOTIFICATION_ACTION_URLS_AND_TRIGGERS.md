@@ -2,7 +2,7 @@
 
 ## Scope
 - Delivery channel: in-app only.
-- Real-time strategy: SSE.
+- Real-time strategy: socket.io at `<API origin>/socket.io` (replaces the former SSE stream). The session JWT is sent in the handshake `auth.token` and re-read on every reconnect. Event contract: Backend `docs/REALTIME_EVENTS.md`.
 - Toast policy: only `HIGH` / `CRITICAL` notifications show toast popups.
 
 ## Related Backend Contract
@@ -15,10 +15,8 @@
 - `PATCH /notifications/:id/read`
 - `PATCH /notifications/:id/unread`
 - `PATCH /notifications/read-all`
-- `GET /notifications/stream-token` (short-lived token for native SSE)
-- `GET /notifications/stream` (SSE)
 
-All routes require bearer auth.
+All routes require bearer auth. The API answers `401 { "message": "Account inactive" }` for deactivated accounts; the dashboard treats it as a sign-out.
 
 ## Standard Notification Payload
 
@@ -43,19 +41,28 @@ Notes:
 - `actionUrl` can be internal (e.g. `/home/requests/abc`) or external (`https://...`).
 - Requisition detail URLs use a base64-encoded requisition id in path: `/home/requests/{encodedRequisitionId}`.
 
-## SSE Auth and Events
+## Socket.io Auth and Events
 
-Native `EventSource` cannot send custom auth headers. Frontend uses:
-1. `GET /notifications/stream-token` with bearer token.
-2. `GET /notifications/stream?stream_token=<token>` with native `EventSource`.
+Connection: socket.io at `<API origin>/socket.io`. The session JWT goes in the handshake `auth.token`, read on every reconnect attempt.
 
-Handled SSE event names:
-- `connected`
-- `heartbeat`
+Handled socket events:
 - `notification`
 - `notification_updated`
 - `notifications_read_all`
+- `notifications_cleared`
+- `notifications_deleted`
 - `unread_count`
+- `session.changed` (refetch `user/current-user`, which returns the login-token claims)
+- `session.revoked` (sign out)
+
+Handshake rejections:
+- `TOKEN_MISSING`, `TOKEN_INVALID`, `TOKEN_EXPIRED`, `ACCOUNT_INACTIVE`: sign out.
+- `SERVER_ERROR` and server-initiated disconnects: retried by the client with jittered backoff (2 s doubling to 60 s).
+
+Tab and fallback behavior:
+- One socket per browser: the leader tab, elected through a localStorage lease. Other tabs receive updates over BroadcastChannel/localStorage.
+- REST polling every 60 s while disconnected.
+- Forced REST resync after a reconnect that socket.io could not recover (0-3 s jitter).
 
 ## `actionUrl` Templates by Domain
 
@@ -119,5 +126,5 @@ If `actionUrl` is missing, frontend falls back by `entityType`/`type` to the nea
 - Notification center fetch patterns:
   - `Unread` tab: `GET /notifications?unreadOnly=true&page=1&limit=20`
   - `All` tab: `GET /notifications?page=1&limit=20`
-- SSE connection with reconnect backoff.
+- socket.io connection (leader tab only) with jittered reconnect backoff (2 s doubling to 60 s).
 - Deduping on merge by `id`, then `dedupeKey`, then composite fallback identity.

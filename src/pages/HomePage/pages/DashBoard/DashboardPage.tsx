@@ -1,20 +1,21 @@
 import { routes } from "@/routes/appRoutes";
 import { matchRoutes, useLocation } from "react-router-dom";
 
-import { ChurchAnnouncements } from "./Components/ChurchAnnouncements";
+import { CommunityPreview } from "./Components/CommunityPreview";
 import { MyAppointments } from "./Components/MyAppointments";
 import { ProfileSummary } from "./Components/ProfileSummary";
 import { QuickActions } from "./Components/QuickActions";
 import { RecentSermons } from "./Components/RecentSermons";
 import { UpcomingEvents } from "./Components/UpcomingEvents";
 import { WelcomeHeader } from "./Components/WelcomeHeader";
+import { RideHomeCard } from "@/pages/HomePage/pages/Rides/components/RideHomeCard";
 import { api } from "@/utils/api/apiCalls";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useEffect, useState } from "react";
 
 export const DashBoardPage = () => {
   const location = useLocation();
-  const [activeTheme, setActiveTheme] = useState<any>(null);
+  const [activeTheme, setActiveTheme] = useState<unknown>(null);
 
   const matches = matchRoutes(routes, location);
   const routeName = matches?.find((m) => m.route.name)?.route.name;
@@ -41,8 +42,11 @@ export const DashBoardPage = () => {
       >
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Member portal only: admins without a membership would get the
+              backend's members-only error on every dashboard visit. */}
+          {routeName === "member" ? <RideHomeCard /> : null}
           <UpcomingEvents />
-          <ChurchAnnouncements />
+          <CommunityPreview />
           <RecentSermons />
         </div>
 

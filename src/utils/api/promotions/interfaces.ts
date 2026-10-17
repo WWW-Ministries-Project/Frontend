@@ -1,9 +1,9 @@
 /** Home-screen promotional banners for the mobile app.
  *
- *  Deliberately unrelated to `Announcement`: publishing a promotion is silent
- *  (no member inbox row, no push notification), whereas publishing an
- *  announcement fans out to resolved recipients. A banner that should open an
- *  announcement sets `deep_link` to that announcement's route instead. */
+ *  Deliberately unrelated to Community posts: publishing a promotion is silent
+ *  (no member inbox row, no push notification), whereas an important church
+ *  message fans out to its audience. A banner that should open a post sets
+ *  `deep_link` to that post's route instead. */
 
 export type PromotionStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 

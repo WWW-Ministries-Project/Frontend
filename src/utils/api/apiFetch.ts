@@ -5,9 +5,31 @@ import type { ApiResponse, QueryType } from "../interfaces";
 import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
-import type { Announcement } from "./announcements/interfaces";
+import type {
+  CommunityAdminPost,
+  CommunityAuditLogEntry,
+  CommunityBlock,
+  CommunityDepartment,
+  CommunityMe,
+  CommunityModerationItem,
+  CommunityNotification,
+  CommunityPerson,
+  CommunityPost,
+  CommunityPostDetail,
+  CommunityReactor,
+} from "./community/interfaces";
+import type {
+  AdminRideCatalog,
+  AdminRideOverview,
+  MyRide,
+  RideBlock,
+  RideCatalog,
+  RideReport,
+  RideSearchResult,
+} from "./rides/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
+import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
 import type { Sermon, SermonSeries, SermonTag } from "./sermons/interfaces";
 import type {
   MyPledgeRow,
@@ -68,6 +90,7 @@ import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
   Appointment,
   AppointmentBookingsQuery,
+  AppointmentReason,
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
@@ -98,7 +121,6 @@ import type {
   NotificationListPayload,
   NotificationPreference,
   NotificationPushPublicKeyPayload,
-  NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
 import type {
@@ -106,6 +128,16 @@ import type {
   EventReportEligibleEvent,
   EventReportOverviewItem,
 } from "./eventReports/interfaces";
+
+import type {
+  MessageDispatch,
+  MessageRecipient,
+  MessageTemplate,
+  MessagingSettings,
+  PlaceholderInfo,
+  TemplateStats,
+  UpcomingBirthday,
+} from "./messaging/interfaces";
 
 export class ApiCalls {
   private apiExecution: ApiExecution;
@@ -156,6 +188,18 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<VisitorType[]>> => {
     return this.fetchFromApi("visitor/visitors", query);
+  };
+
+  // Guests who joined from the mobile app (Visitors > Guests).
+  fetchGuests = (query?: QueryType): Promise<ApiResponse<PagedItems<GuestType>>> => {
+    return this.fetchFromApi("user/guests", query);
+  };
+
+  // Guest-to-membership requests (Membership management).
+  fetchMembershipRequests = (
+    query?: QueryType
+  ): Promise<ApiResponse<PagedItems<MembershipRequestRow>>> => {
+    return this.fetchFromApi("user/membership-requests", query);
   };
 
   fetchVisitorById = (
@@ -363,12 +407,6 @@ export class ApiCalls {
     ApiResponse<number | NotificationUnreadCountPayload>
   > => {
     return this.fetchFromApi("notifications/unread-count");
-  };
-
-  fetchNotificationsStreamToken = (): Promise<
-    ApiResponse<string | NotificationStreamTokenPayload>
-  > => {
-    return this.fetchFromApi("notifications/stream-token");
   };
 
   fetchNotificationsPushPublicKey = (): Promise<
@@ -732,6 +770,20 @@ export class ApiCalls {
     return this.fetchFromApi("appointment/availability/booking-options", query);
   };
 
+  // Active booking reasons, ordered — any signed-in user (member booking form).
+  fetchAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons", query);
+  };
+
+  // Every booking reason incl. inactive — Appointments manage permission.
+  fetchManageAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons/manage", query);
+  };
+
   fetchAppointmentBookings = (
     query?: AppointmentBookingsQuery
   ): Promise<ApiResponse<Appointment[]>> => {
@@ -778,17 +830,79 @@ export class ApiCalls {
     return this.fetchFromApi("theme/get-active-theme", query);
   }
 
-  // Announcements
-  fetchAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements", query);
+  // Community (members' feed)
+  fetchCommunityMe = (): Promise<ApiResponse<CommunityMe>> => {
+    return this.fetchFromApi("community/me");
   };
 
-  fetchAnnouncement = (
+  /** Query: filter (all|prayer|testimony|discussion|department), departmentId, skip, take. */
+  fetchCommunityFeed = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityPost[]>> => {
+    return this.fetchFromApi("community/feed", query);
+  };
+
+  fetchCommunityDepartments = (): Promise<
+    ApiResponse<CommunityDepartment[]>
+  > => {
+    return this.fetchFromApi("community/departments");
+  };
+
+  fetchCommunityPost = (
     id: number
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.fetchFromApi(`announcements/${id}`);
+  ): Promise<ApiResponse<CommunityPostDetail>> => {
+    return this.fetchFromApi(`community/posts/${id}`);
+  };
+
+  fetchCommunityPostReactions = (
+    id: number
+  ): Promise<ApiResponse<CommunityReactor[]>> => {
+    return this.fetchFromApi(`community/posts/${id}/reactions`);
+  };
+
+  fetchCommunityCommentReactions = (
+    id: number
+  ): Promise<ApiResponse<CommunityReactor[]>> => {
+    return this.fetchFromApi(`community/comments/${id}/reactions`);
+  };
+
+  fetchCommunityBlocks = (): Promise<ApiResponse<CommunityBlock[]>> => {
+    return this.fetchFromApi("community/blocks");
+  };
+
+  /** Query: q (min 1 char), take (<= 20). */
+  searchCommunityMembers = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityPerson[]>> => {
+    return this.fetchFromApi("community/members", query);
+  };
+
+  /** Query: skip, take. Unread count comes from `fetchCommunityMe`. */
+  fetchCommunityNotifications = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityNotification[]>> => {
+    return this.fetchFromApi("community/notifications", query);
+  };
+
+  /** Query: status (PENDING|REMOVED|RESTORED|ALL, default PENDING). */
+  fetchCommunityModerationReports = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityModerationItem[]>> => {
+    return this.fetchFromApi("community/moderation/reports", query);
+  };
+
+  /** Query: type, status, q, skip, take. */
+  fetchCommunityAdminPosts = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityAdminPost[]>> => {
+    return this.fetchFromApi("community/admin/posts", query);
+  };
+
+  /** Query: skip, take. */
+  fetchCommunityAuditLog = (
+    query?: QueryType
+  ): Promise<ApiResponse<CommunityAuditLogEntry[]>> => {
+    return this.fetchFromApi("community/moderation/audit-log", query);
   };
 
   // Promotions (mobile Home banners)
@@ -796,6 +910,46 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<Promotion[]>> => {
     return this.fetchFromApi("promotions", query);
+  };
+
+  // Messaging
+  fetchMessageTemplates = (): Promise<ApiResponse<MessageTemplate[]>> => {
+    return this.fetchFromApi("messaging/templates");
+  };
+
+  fetchMessagingSettings = (): Promise<ApiResponse<MessagingSettings>> => {
+    return this.fetchFromApi("messaging/settings");
+  };
+
+  fetchMessagePlaceholders = (
+    query?: QueryType
+  ): Promise<ApiResponse<PlaceholderInfo[]>> => {
+    return this.fetchFromApi("messaging/placeholders", query);
+  };
+
+  fetchUpcomingBirthdays = (
+    query?: QueryType
+  ): Promise<ApiResponse<UpcomingBirthday[]>> => {
+    return this.fetchFromApi("messaging/birthdays/upcoming", query);
+  };
+
+  fetchMessagingStats = (
+    query?: QueryType
+  ): Promise<ApiResponse<TemplateStats>> => {
+    return this.fetchFromApi("messaging/stats", query);
+  };
+
+  fetchMessageDispatches = (
+    query?: QueryType
+  ): Promise<ApiResponse<MessageDispatch[]>> => {
+    return this.fetchFromApi("messaging/dispatches", query);
+  };
+
+  fetchMessageRecipients = (
+    id: number,
+    query?: QueryType
+  ): Promise<ApiResponse<MessageRecipient[]>> => {
+    return this.fetchFromApi(`messaging/dispatches/${id}/recipients`, query);
   };
 
   fetchPromotion = (
@@ -825,12 +979,6 @@ export class ApiCalls {
 
   fetchSermonTags = (query?: QueryType): Promise<ApiResponse<SermonTag[]>> => {
     return this.fetchFromApi("sermons/tags", query);
-  };
-
-  fetchMyAnnouncements = (
-    query?: QueryType
-  ): Promise<ApiResponse<Announcement[]>> => {
-    return this.fetchFromApi("announcements/mine", query);
   };
 
   // fetch receipt config
@@ -1018,5 +1166,41 @@ export class ApiCalls {
     return this.fetchFromApi("ai/usage-history", query);
   };
 
+  // Ride to church (members)
+  fetchRideCatalog = (): Promise<ApiResponse<RideCatalog>> => {
+    return this.fetchFromApi("rides/catalog");
+  };
 
+  fetchMyRide = (): Promise<ApiResponse<MyRide>> => {
+    return this.fetchFromApi("rides/mine");
+  };
+
+  searchRides = (
+    pickupPointId: number
+  ): Promise<ApiResponse<RideSearchResult>> => {
+    return this.fetchFromApi("rides/search", { pickup_point_id: pickupPointId });
+  };
+
+  // Ride to church (safety team / church office)
+  /** Query: service_date (YYYY-MM-DD, defaults to the Sunday being arranged). */
+  fetchRideAdminOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<AdminRideOverview>> => {
+    return this.fetchFromApi("rides/admin/overview", query);
+  };
+
+  /** Query: status (OPEN|RESOLVED|ALL, default OPEN). */
+  fetchRideReports = (
+    query?: QueryType
+  ): Promise<ApiResponse<RideReport[]>> => {
+    return this.fetchFromApi("rides/admin/reports", query);
+  };
+
+  fetchRideAdminCatalog = (): Promise<ApiResponse<AdminRideCatalog>> => {
+    return this.fetchFromApi("rides/admin/catalog");
+  };
+
+  fetchRideBlocks = (): Promise<ApiResponse<RideBlock[]>> => {
+    return this.fetchFromApi("rides/admin/blocks");
+  };
 }

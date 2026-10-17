@@ -59,6 +59,8 @@ export interface userType {
   department_positions?: Array<string | Record<string, unknown>>;
   life_center_leader?: boolean;
   instructor?: boolean;
+  /** Set on guest (non-member) accounts; members-only features hide for them. */
+  is_guest?: boolean | null;
 }
 export interface userTypeWithToken
   extends Omit<userType, "permissions" | "access_permissions"> {

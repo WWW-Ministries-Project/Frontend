@@ -4,7 +4,31 @@ import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/Soul
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
-import type { Announcement, CreateAnnouncementDto } from "./announcements/interfaces";
+import type {
+  CommunityComment,
+  CommunityCommentReactionType,
+  CommunityModerationKind,
+  CommunityPost,
+  CommunityReactionSummary,
+  CommunityReactionType,
+  CreateCommunityBlockDto,
+  CreateCommunityCommentDto,
+  CreateCommunityPostDto,
+  CreateCommunityReportDto,
+} from "./community/interfaces";
+import type {
+  AdminRideArea,
+  AdminRidePickupPoint,
+  DeclineRequestDto,
+  DriverRide,
+  MyRide,
+  PublishRideDto,
+  RequestSeatDto,
+  RideAlertDto,
+  RideReportDto,
+  SaveRideAreaDto,
+  SaveRidePickupPointDto,
+} from "./rides/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
 import type {
   Sermon,
@@ -83,7 +107,9 @@ import type {
 } from "./marketPlace/interface";
 import {
   Appointment,
+  AppointmentReason,
   CreateAppointmentBookingPayload,
+  CreateAppointmentReasonPayload,
   CreateStaffAvailabilityPayload,
   StaffAvailability,
 } from "./appointment/interfaces";
@@ -124,6 +150,14 @@ import type {
   EventReportGenerateResult,
   EventReportServiceSummaryFormat,
 } from "./eventReports/interfaces";
+import type {
+  AudienceCount,
+  CreateGeneralMessageDto,
+  MessageAudience,
+  MessageDispatch,
+  MessagePreview,
+  MessagePreviewRequest,
+} from "./messaging/interfaces";
 import { extractFileNameFromDisposition } from "../helperFunctions";
 
 interface PostRequestOptions {
@@ -563,6 +597,12 @@ export class ApiCreationCalls {
     return this.postToApi("appointment/book", payload);
   };
 
+  createAppointmentReason = (
+    payload: CreateAppointmentReasonPayload
+  ): Promise<ApiResponse<AppointmentReason>> => {
+    return this.postToApi("appointment/reasons", payload);
+  };
+
   // Record Attendance
   recordChurchAttendance = (
     payload: unknown
@@ -601,17 +641,101 @@ export class ApiCreationCalls {
     return this.postToApi("theme/create-theme", payload);
   }
 
-  // Announcements
-  createAnnouncement = (
-    payload: CreateAnnouncementDto
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.postToApi("announcements", payload);
+  // Community
+  createCommunityPost = (
+    payload: CreateCommunityPostDto
+  ): Promise<ApiResponse<CommunityPost>> => {
+    return this.postToApi("community/posts", payload);
   };
 
-  publishAnnouncement = (
+  // Messaging
+  previewMessage = (
+    payload: MessagePreviewRequest
+  ): Promise<ApiResponse<MessagePreview>> => {
+    return this.postToApi("messaging/preview", payload);
+  };
+
+  countMessageAudience = (payload: {
+    audience: MessageAudience;
+  }): Promise<ApiResponse<AudienceCount>> => {
+    return this.postToApi("messaging/audience/count", payload);
+  };
+
+  createGeneralMessage = (
+    payload: CreateGeneralMessageDto
+  ): Promise<ApiResponse<MessageDispatch>> => {
+    return this.postToApi("messaging/dispatches", payload);
+  };
+
+  cancelMessageDispatch = (id: number): Promise<ApiResponse<MessageDispatch>> => {
+    return this.postToApi(`messaging/dispatches/${id}/cancel`, {});
+  };
+
+  retryFailedMessages = (
     id: number
-  ): Promise<ApiResponse<Announcement>> => {
-    return this.postToApi(`announcements/${id}/publish`, {});
+  ): Promise<ApiResponse<{ retried: number }>> => {
+    return this.postToApi(`messaging/dispatches/${id}/retry-failed`, {});
+  };
+
+  /** Toggles the viewer's reaction of `type`. */
+  toggleCommunityPostReaction = (
+    id: number,
+    type: CommunityReactionType
+  ): Promise<ApiResponse<CommunityReactionSummary[]>> => {
+    return this.postToApi(`community/posts/${id}/reactions`, { type });
+  };
+
+  createCommunityComment = (
+    postId: number,
+    payload: CreateCommunityCommentDto
+  ): Promise<ApiResponse<CommunityComment>> => {
+    return this.postToApi(`community/posts/${postId}/comments`, payload);
+  };
+
+  toggleCommunityCommentReaction = (
+    id: number,
+    type: CommunityCommentReactionType
+  ): Promise<ApiResponse<CommunityReactionSummary[]>> => {
+    return this.postToApi(`community/comments/${id}/reactions`, { type });
+  };
+
+  hideCommunityPost = (id: number): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`community/posts/${id}/hide`, {});
+  };
+
+  hideCommunityComment = (
+    id: number
+  ): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`community/comments/${id}/hide`, {});
+  };
+
+  /** Also hides the target for the reporter. */
+  createCommunityReport = (
+    payload: CreateCommunityReportDto
+  ): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi("community/reports", payload);
+  };
+
+  /** The server resolves the real author, so anonymous authors can be
+   *  blocked without being revealed. */
+  createCommunityBlock = (
+    payload: CreateCommunityBlockDto
+  ): Promise<ApiResponse<{ ok: true }>> => {
+    return this.postToApi("community/blocks", payload);
+  };
+
+  markAllCommunityNotificationsRead = (): Promise<
+    ApiResponse<{ count: number }>
+  > => {
+    return this.postToApi("community/notifications/read-all", {});
+  };
+
+  moderateCommunityContent = (
+    kind: CommunityModerationKind,
+    id: number,
+    action: "remove" | "restore" | "warn"
+  ): Promise<ApiResponse<unknown>> => {
+    return this.postToApi(`community/moderation/${kind}/${id}/${action}`, {});
   };
 
   // Promotions
@@ -789,5 +913,76 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<AiInsightResponse>> => {
     const encodedModule = encodeURIComponent(module.trim());
     return this.postToApi(`ai/insights/${encodedModule}`, payload);
+  };
+
+  // Ride to church (members)
+  publishRide = (payload: PublishRideDto): Promise<ApiResponse<DriverRide>> => {
+    return this.postToApi("rides/offers", payload);
+  };
+
+  cancelRideOffer = (
+    id: number
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.postToApi(`rides/offers/${id}/cancel`, {});
+  };
+
+  requestRideSeat = (payload: RequestSeatDto): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi("rides/requests", payload);
+  };
+
+  acceptRideRequest = (id: number): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi(`rides/requests/${id}/accept`, {});
+  };
+
+  declineRideRequest = (
+    id: number,
+    payload: DeclineRequestDto
+  ): Promise<ApiResponse<MyRide>> => {
+    return this.postToApi(`rides/requests/${id}/decline`, payload);
+  };
+
+  cancelRideRequest = (
+    id: number
+  ): Promise<ApiResponse<{ id: number; status: string }>> => {
+    return this.postToApi(`rides/requests/${id}/cancel`, {});
+  };
+
+  /** Acknowledge a declined / driver-cancelled request ("Find another ride"). */
+  dismissRideRequest = (id: number): Promise<ApiResponse<{ id: number }>> => {
+    return this.postToApi(`rides/requests/${id}/dismiss`, {});
+  };
+
+  setRideAlert = (
+    payload: RideAlertDto
+  ): Promise<ApiResponse<{ pickup_point_id: number; alert_on: boolean }>> => {
+    return this.postToApi("rides/alerts", payload);
+  };
+
+  reportRide = (
+    payload: RideReportDto
+  ): Promise<ApiResponse<{ id: number; blocked: boolean }>> => {
+    return this.postToApi("rides/reports", payload);
+  };
+
+  // Ride to church (safety team / church office)
+  adminCancelRide = (
+    id: number,
+    payload: { reason?: string }
+  ): Promise<
+    ApiResponse<{ id: number; status: string; passengers_notified: number }>
+  > => {
+    return this.postToApi(`rides/admin/offers/${id}/cancel`, payload);
+  };
+
+  createRidePickupPoint = (
+    payload: SaveRidePickupPointDto
+  ): Promise<ApiResponse<AdminRidePickupPoint>> => {
+    return this.postToApi("rides/admin/pickup-points", payload);
+  };
+
+  createRideArea = (
+    payload: SaveRideAreaDto
+  ): Promise<ApiResponse<AdminRideArea>> => {
+    return this.postToApi("rides/admin/areas", payload);
   };
 }

@@ -3,6 +3,7 @@ import { ApiExecution } from "./apiConstructor";
 import { deleteData } from "./apiFunctions";
 import type { NotificationClearAllPayload } from "./notifications/interfaces";
 
+
 export class ApiDeletionCalls {
   private apiExecution: ApiExecution;
 
@@ -167,6 +168,16 @@ export class ApiDeletionCalls {
     return this.apiExecution.deleteData(`appointment/bookings/${bookingId}`);
   };
 
+  deleteAppointmentReason = (query: QueryType): Promise<ApiResponse<void>> => {
+    const reasonId = query?.id;
+
+    if (!reasonId) {
+      throw new Error("Reason id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(`appointment/reasons/${reasonId}`);
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType
@@ -181,12 +192,28 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>("theme/delete-theme", query);
   }
 
-  // Delete Announcement
-  deleteAnnouncement = (
-    id: number
-  ): Promise<ApiResponse<void>> => {
-    return this.deleteFromApi<void>(`announcements/${id}`, {});
-  }
+  // Community
+  deleteCommunityPost = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/posts/${id}`, {});
+  };
+
+  deleteCommunityComment = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/comments/${id}`, {});
+  };
+
+  /** Undo of `hideCommunityPost`. */
+  unhideCommunityPost = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/posts/${id}/hide`, {});
+  };
+
+  /** Undo of `hideCommunityComment`. */
+  unhideCommunityComment = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/comments/${id}/hide`, {});
+  };
+
+  deleteCommunityBlock = (blockId: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`community/blocks/${blockId}`, {});
+  };
 
   // Delete Promotion
   deletePromotion = (
@@ -295,5 +322,10 @@ export class ApiDeletionCalls {
       ...response,
       data: response.data?.data ?? { deleted: 0, skipped: [] },
     };
+  };
+
+  // Ride to church (safety team / church office)
+  removeRideBlock = (id: number): Promise<ApiResponse<unknown>> => {
+    return this.deleteFromApi(`rides/admin/blocks/${id}`, {});
   };
 }

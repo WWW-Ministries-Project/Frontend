@@ -1,9 +1,11 @@
 import EmptyState from "@/components/EmptyState";
 import {
   ACCESS_LEVEL_DOMAINS,
+  RETIRED_PERMISSION_DOMAINS,
   EXCLUSION_SUPPORTED_DOMAINS,
   ExclusionsMap,
   getDomainLabel,
+  isExplicitGrantDomain,
   normalizePermissionPayload,
   PermissionDomain,
   PermissionMap,
@@ -53,7 +55,11 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
     const scopes = (normalized.Scopes || {}) as ScopesMap;
 
     const knownModules = ACCESS_LEVEL_DOMAINS.map((domain) => {
-      const value = normalized[domain.key] as PermissionValue | undefined;
+      // A level saved without a key for an explicit-grant domain has no
+      // access to it; show that rather than leaving the module out.
+      const value =
+        (normalized[domain.key] as PermissionValue | undefined) ??
+        (isExplicitGrantDomain(domain.key) ? "No_Access" : undefined);
       return {
         key: domain.key,
         label: domain.label,
@@ -68,6 +74,7 @@ export const ActiveAccess = ({ name, permissions }: IProps) => {
 
     const knownKeys = new Set([
       ...ACCESS_LEVEL_DOMAINS.map((domain) => domain.key),
+      ...RETIRED_PERMISSION_DOMAINS,
       "Exclusions",
       "Scopes",
     ]);

@@ -10,6 +10,133 @@ export interface NotificationActionDefinition {
 }
 
 export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
+  // Community: the backend sends the exact actionUrl
+  // (/member/community/posts/<postId>[?comment=<commentId>]); these templates
+  // document it and back the fallback when it is missing.
+  {
+    type: "community.comment",
+    entityType: "COMMUNITY_POST",
+    description: "Someone commented on your community post.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.reply",
+    entityType: "COMMUNITY_POST",
+    description: "Someone replied to your community comment.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.praying",
+    entityType: "COMMUNITY_POST",
+    description: "People are praying for your prayer request.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.reaction",
+    entityType: "COMMUNITY_POST",
+    description: "Reactions on your community post.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.important",
+    entityType: "COMMUNITY_POST",
+    description: "Important message from church leadership.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.department_post",
+    entityType: "COMMUNITY_POST",
+    description: "New post in your department.",
+    actionUrlTemplate: "/member/community/posts/{entityId}",
+    defaultPriority: "LOW",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "community.warning",
+    entityType: "COMMUNITY_POST",
+    description: "A moderator warned you about community content.",
+    actionUrlTemplate: "/member/community",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  // Ride to church: member notifications carry an actionUrl under
+  // /member/rides (MEMBER_ACTION_URL in the backend's rideService).
+  {
+    type: "ride.request_received",
+    entityType: "ride",
+    description: "A member asked to join your ride.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.request_accepted",
+    entityType: "ride",
+    description: "Your driver accepted your seat request.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.request_declined",
+    entityType: "ride",
+    description: "Your driver declined your seat request.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.request_withdrawn",
+    entityType: "ride",
+    description: "A passenger withdrew or cancelled their seat.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.cancelled",
+    entityType: "ride",
+    description: "A ride you were on was cancelled.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.available",
+    entityType: "ride",
+    description: "A ride now passes a pickup point you asked about.",
+    actionUrlTemplate: "/member/rides/find?pickup_point_id={pickupPointId}",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
+  {
+    type: "ride.reminder",
+    entityType: "ride",
+    description: "Your ride to church is soon.",
+    actionUrlTemplate: "/member/rides",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: true,
+  },
+  // Sent to the safety team without an actionUrl; the fallback opens the
+  // admin Ride to church page on its reports tab.
+  {
+    type: "ride.safety_report",
+    entityType: "ride_report",
+    description: "A member reported a safety concern about a ride.",
+    actionUrlTemplate: "/home/ride-to-church?tab=reports",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
   {
     type: "assignment.submitted",
     entityType: "assignment_submission",

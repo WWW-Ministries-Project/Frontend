@@ -32,9 +32,14 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "School_of_ministry",
   "Settings",
   "AI",
+  "Community",
+  // Retired: Community replaced Announcements. Kept canonical (but out of the
+  // access-level editor) so levels saved before the migration still resolve
+  // through DOMAIN_FALLBACKS below.
   "Announcements",
   "Sermons",
   "Promotions",
+  "Messaging",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -97,9 +102,11 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   AI: ["AI", "Ai", "Artificial Intelligence"],
   Marketplace: ["Marketplace", "Market Place", "Market"],
   "Life Center": ["Life Center", "Life_Center", "Life center", "LifeCenter"],
+  Community: ["Community", "Communities"],
   Announcements: ["Announcements", "Announcement"],
   Sermons: ["Sermons", "Sermon"],
   Promotions: ["Promotions", "Promotion"],
+  Messaging: ["Messaging"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -110,11 +117,19 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // Giving shipped after access levels were saved, so anyone who already
   // administers Financials keeps working until Giving is set explicitly.
   Giving: ["Financials"],
-  // Promotions were split out of Announcements, so whoever already administers
-  // announcements keeps managing mobile banners until Promotions is set
-  // explicitly on the access level.
-  Promotions: ["Announcements"],
+  // Community replaced Announcements; the backend migration copies the old
+  // value across, and this covers any level saved before that ran.
+  Community: ["Announcements"],
+  // Promotions were split out of Announcements (now Community), so whoever
+  // administers Community keeps managing mobile banners until Promotions is
+  // set explicitly. Announcements stays as a secondary fallback.
+  Promotions: ["Community", "Announcements"],
 };
+
+/** Domains that are no longer offered in the access-level editor but may
+ *  still be present on stored levels. UIs listing "extra" configured domains
+ *  should skip these. */
+export const RETIRED_PERMISSION_DOMAINS: PermissionDomain[] = ["Announcements"];
 
 const REQUIRED_KEYS_ON_MUTATION = new Set<PermissionDomain>([
   "Members",
@@ -230,9 +245,10 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     required: false,
   },
   {
-    key: "Announcements",
-    label: "Announcements",
-    description: "Church announcements and news for members",
+    key: "Community",
+    label: "Community",
+    description:
+      "Members' feed, important church messages and moderation of reported content",
     group: "Engagement",
     required: false,
   },
@@ -247,6 +263,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Promotions",
     label: "Promotions",
     description: "Promotional banners on the mobile app home screen",
+    group: "Engagement",
+    required: false,
+  },
+  {
+    key: "Messaging",
+    label: "Messaging",
+    description: "Welcome, birthday and church-wide SMS, email and in-app messages",
     group: "Engagement",
     required: false,
   },
@@ -361,12 +384,14 @@ const LEGACY_PERMISSION_TO_REQUIREMENT: Record<string, PermissionRequirementObje
   manage_users: { domain: "Members", action: "manage" },
   view_ai: { domain: "AI", action: "view" },
   manage_ai: { domain: "AI", action: "manage" },
-  view_announcements: { domain: "Announcements", action: "view" },
-  manage_announcements: { domain: "Announcements", action: "manage" },
+  view_community: { domain: "Community", action: "view" },
+  manage_community: { domain: "Community", action: "manage" },
   view_sermons: { domain: "Sermons", action: "view" },
   manage_sermons: { domain: "Sermons", action: "manage" },
   view_promotions: { domain: "Promotions", action: "view" },
   manage_promotions: { domain: "Promotions", action: "manage" },
+  view_messaging: { domain: "Messaging", action: "view" },
+  manage_messaging: { domain: "Messaging", action: "manage" },
 };
 
 const VIEW_ACCESS = new Set<PermissionValue>([
@@ -741,11 +766,22 @@ export const toAdminRequirement = (
   return toActionRequirement(requirement, "admin");
 };
 
+/** Domains that are never granted by a blanket default or preset and must be
+ *  opted into explicitly. Community view reveals the real authors of
+ *  anonymous posts, so it starts at No_Access. Messaging sends bulk SMS,
+ *  which costs money, so it is never handed out by a preset either. */
+export const EXPLICIT_GRANT_DOMAINS: PermissionDomain[] = ["Community", "Messaging"];
+
+export const isExplicitGrantDomain = (domain: string): boolean =>
+  EXPLICIT_GRANT_DOMAINS.includes(domain as PermissionDomain);
+
 export const createDefaultPermissionMatrix = (
   defaultValue: PermissionValue = "Can_View"
 ): Record<PermissionDomain, PermissionValue> =>
   ACCESS_LEVEL_DOMAINS.reduce((acc, module) => {
-    acc[module.key] = defaultValue;
+    acc[module.key] = isExplicitGrantDomain(module.key)
+      ? "No_Access"
+      : defaultValue;
     return acc;
   }, {} as Record<PermissionDomain, PermissionValue>);
 

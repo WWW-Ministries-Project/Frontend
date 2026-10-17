@@ -56,12 +56,12 @@ const getOrderAmount = (order: IOrders) => {
 // `order.color` is a raw hex value. Backend's flattenOrders now joins
 // order_items.product_colour_id -> product_colour and attaches its name
 // directly as `colour_name` — prefer that. `product_colours` (the product's
-// full colour list) is kept as a fallback match for older records, then the
-// hex code itself when no name was ever set.
+// full colour list) is kept as a fallback match for older records. Blank
+// when no name was ever set — never falls back to the hex code itself.
 const getOrderColourName = (order: IOrders) => {
   if (order.colour_name?.trim()) return order.colour_name.trim();
   const match = order.product_colours?.find((c) => c.colour === order.color);
-  return match?.colour_name?.trim() || order.color || "";
+  return match?.colour_name?.trim() || "";
 };
 
 const getOrderDateValue = (order: IOrders) => {
@@ -428,18 +428,6 @@ function getPaymentStyle(status: string) {
   }
 }
 
-// Picks black or white text so the colour name stays legible against its
-// own swatch fill (dark swatches need white text, light ones need black).
-function getContrastFontColor(hex: string): string {
-  const clean = hex.replace("#", "");
-  if (clean.length !== 6) return "FF000000";
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.6 ? "FF000000" : "FFFFFFFF";
-}
-
 async function exportToExcel(orders: IOrders[]) {
   const workbook = new Workbook();
   const worksheet = workbook.addWorksheet("Orders");
@@ -453,6 +441,7 @@ async function exportToExcel(orders: IOrders[]) {
     { header: "Type", key: "product_type" },
     { header: "Category", key: "product_category" },
     { header: "Color", key: "color" },
+    { header: "Color Name", key: "color_name" },
     { header: "Size", key: "size" },
     { header: "Quantity", key: "quantity" },
     { header: "Price (GHC)", key: "price_amount" },
@@ -465,7 +454,8 @@ async function exportToExcel(orders: IOrders[]) {
       name: order.name,
       product_type: order.product_type,
       product_category: order.product_category,
-      color: getOrderColourName(order),
+      color: "",
+      color_name: getOrderColourName(order),
       size: order.size,
       quantity: order.quantity,
       price_amount: order.price_amount,
@@ -485,7 +475,6 @@ async function exportToExcel(orders: IOrders[]) {
         pattern: "solid",
         fgColor: { argb: `FF${hex.toUpperCase()}` },
       };
-      colorCell.font = { color: { argb: getContrastFontColor(hex) } };
     }
 
     const paymentCell = row.getCell("payment_status");
