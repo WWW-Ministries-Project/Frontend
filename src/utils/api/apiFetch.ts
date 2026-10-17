@@ -71,6 +71,7 @@ import {
   EnrollmentDataType,
   ProgramResponse,
   Programs,
+  SomProgramFull,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
 import type {
@@ -426,6 +427,13 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<ProgramResponse[]>> => {
     return this.fetchFromApi("program/programs", query);
+  };
+
+  /** Programs with cohorts, classes, instructors, enrollments and completion. Not branch-scoped server-side. */
+  fetchProgramsFullDetails = (
+    query?: QueryType
+  ): Promise<ApiResponse<SomProgramFull[]>> => {
+    return this.fetchFromApi("program/programs-full-details", query);
   };
 
   fetchAllApplicablePrograms = (

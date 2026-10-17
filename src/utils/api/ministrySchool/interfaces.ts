@@ -462,3 +462,128 @@ export interface CertificateData {
   verificationUrl: string;
   qrCodeDataUrl: string;
 }
+
+// ---------------------------------------------------------------------------
+// GET program/programs-full-details
+// ---------------------------------------------------------------------------
+
+export type SomCompletionStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+export type ClassFormat = "In_Person" | "Online" | "Hybrid";
+
+export type SomPerson = {
+  id: number;
+  name: string | null;
+  email?: string | null;
+  member_id?: string | null;
+  user_info?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    primary_number?: string | null;
+    photo?: string | null;
+  } | null;
+};
+
+export type SomEnrollment = {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  completed: boolean | null;
+  completedAt: string | null;
+  user: SomPerson | null;
+  progress: {
+    id: number;
+    topicId: number;
+    score: number | null;
+    status: string;
+    completed: boolean | null;
+    completedAt: string | null;
+  }[];
+  completion_status: SomCompletionStatus;
+  completion_percent: number;
+  completed_topics: number;
+  total_topics: number;
+};
+
+export type SomClass = {
+  id: number;
+  name: string;
+  capacity: number;
+  enrolled: number;
+  schedule: string;
+  classFormat: ClassFormat | null;
+  location?: string | null;
+  meetingLink?: string | null;
+  cohortId: number;
+  instructor: SomPerson | null;
+  enrollments: SomEnrollment[];
+};
+
+export type SomCohort = {
+  id: number;
+  name: string;
+  startDate: string;
+  status: string;
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
+  courses: SomClass[];
+};
+
+export type SomInstructor = SomPerson & {
+  courses: { id: number; name: string; cohort_id: number; cohort_name: string }[];
+};
+
+export type SomMemberEnrollment = {
+  enrollment_id: number;
+  course_id: number;
+  course_name: string;
+  cohort_id: number;
+  cohort_name: string;
+  instructor: { id: number; name: string | null; email: string | null } | null;
+  enrolled_at: string | null;
+  completed_at: string | null;
+  completion_status: SomCompletionStatus;
+  completion_percent: number;
+  completed_topics: number;
+  total_topics: number;
+};
+
+export type SomEnrolledMember = SomPerson & {
+  user_id: number | null;
+  full_name: string;
+  status: "completed" | "in_progress" | "not_started";
+  cohort: { id: number; name: string } | null;
+  class: { id: number; name: string } | null;
+  date_enrolled: string | null;
+  date_completed: string | null;
+  completion_percentage: number;
+  enrollments: SomMemberEnrollment[];
+};
+
+export type SomProgramFull = {
+  id: number;
+  title: string;
+  description: string;
+  member_required: boolean;
+  leader_required: boolean;
+  ministry_required: boolean;
+  branch_id?: number | null;
+  createdAt: string;
+  topics: { id: number; name: string; order_number: number | null; LearningUnit: { type: string } | null }[];
+  prerequisitePrograms: { prerequisiteId: number; prerequisite: { id: number; title: string } }[];
+  cohorts: SomCohort[];
+  instructors: SomInstructor[];
+  enrolled_members: SomEnrolledMember[];
+  enrollment_summary: {
+    total_topics: number;
+    total_cohorts: number;
+    total_courses: number;
+    total_enrollments: number;
+    total_enrolled_members: number;
+    completed_members: number;
+    in_progress_members: number;
+    not_started_members: number;
+  };
+};

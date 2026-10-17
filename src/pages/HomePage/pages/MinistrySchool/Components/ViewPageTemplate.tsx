@@ -1,143 +1,64 @@
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { relativePath } from "@/utils";
 import { Outlet, useLocation } from "react-router-dom";
 import { ViewPageProvider } from "../customHooks/ViewPageContext";
 import { useViewPage } from "../customHooks/useViewPage";
-import { Banner } from "../../Members/Components/Banner";
-import { useMemo } from "react";
-import { isLmsFeatureEnabled } from "../utils/lmsGuardrails";
+import { useSomData } from "../lms/somDataContext";
+import { somPaths } from "../lms/somUtils";
+import { WorkspaceHeader, type Crumb } from "../lms/ui";
 
-type ContextChip = {
-  label: string;
-  value: string;
+const segmentAfter = (segments: string[], key: string) => {
+  const i = segments.indexOf(key);
+  return i >= 0 ? segments[i + 1] : undefined;
 };
 
-const trimSegment = (pathSegment: string) => pathSegment.split("/:")[0];
-
-const getSegmentValue = (segments: string[], segment: string): string | undefined => {
-  const index = segments.indexOf(segment);
-  if (index < 0) return undefined;
-  return segments[index + 1];
-};
-
+/**
+ * Shell for the deep School of Ministry pages (class roster, learner progress,
+ * topic). Child pages publish their title and summary through `useViewPage`.
+ */
 const ViewPageTemplateInner = () => {
   const { loading, data, details } = useViewPage();
-  const location = useLocation();
-  const enhancedContextEnabled = isLmsFeatureEnabled("deep_navigation_context");
-  const pathSegments = location.pathname.split("/").filter(Boolean);
-  const classSegment = trimSegment(relativePath.home.ministrySchool.class);
-  const studentSegment = trimSegment(relativePath.home.ministrySchool.student);
-  const onDeepLearningPage =
-    pathSegments.includes(classSegment) || pathSegments.includes(studentSegment);
+  const { pathname } = useLocation();
+  const som = useSomData();
 
-  const {
-    chips,
-    chipsForDeepView,
-  }: {
-    chips: ContextChip[];
-    chipsForDeepView: ContextChip[];
-  } = useMemo(() => {
-    const segments = location.pathname.split("/").filter(Boolean);
-    const programSegment = relativePath.home.ministrySchool.program;
-    const cohortSegment = trimSegment(relativePath.home.ministrySchool.cohort);
-    const classSegment = trimSegment(relativePath.home.ministrySchool.class);
-    const studentSegment = trimSegment(relativePath.home.ministrySchool.student);
+  const segments = pathname.split("/").filter(Boolean);
+  const cohortId = Number(segmentAfter(segments, "cohorts"));
+  const classId = Number(segmentAfter(segments, "classes"));
+  const programId = Number(segmentAfter(segments, "programs"));
+  const onStudent = segments.includes("student");
 
-    const programId = getSegmentValue(segments, programSegment);
-    const cohortId = getSegmentValue(segments, cohortSegment);
-    const classId = getSegmentValue(segments, classSegment);
-    const studentId = getSegmentValue(segments, studentSegment);
+  const cohort = som.cohorts.find((c) => c.id === cohortId);
+  const cls = cohort?.courses.find((k) => k.id === classId);
+  const program = som.programs.find((p) => p.id === (cohort?.program.id ?? programId));
 
-    const computedChips: ContextChip[] = [
-      programId ? { label: "Program", value: `#${programId}` } : null,
-      cohortId ? { label: "Cohort", value: `#${cohortId}` } : null,
-      classId ? { label: "Class", value: `#${classId}` } : null,
-      studentId ? { label: "Student", value: `#${studentId}` } : null,
-      data?.topics?.length
-        ? { label: "Topics", value: `${data.topics.length}` }
-        : null,
-      data?.user?.email ? { label: "Email", value: data.user.email } : null,
-    ].filter((chip): chip is ContextChip => Boolean(chip));
+  const crumbs: Crumb[] = [];
+  if (cohortId) {
+    crumbs.push({ label: "Cohorts", to: somPaths.cohorts });
+    if (program) crumbs.push({ label: program.title, to: somPaths.program(program.id, "Cohorts") });
+    crumbs.push({ label: cohort?.name ?? `Cohort ${cohortId}`, to: somPaths.cohort(cohortId) });
+    if (classId) {
+      crumbs.push({
+        label: cls?.name ?? `Class ${classId}`,
+        to: onStudent ? somPaths.class(cohortId, classId) : undefined,
+      });
+    }
+  } else {
+    crumbs.push({ label: "Programs", to: somPaths.programs });
+    if (program) crumbs.push({ label: program.title, to: somPaths.program(program.id, "Curriculum") });
+  }
+  if (onStudent) crumbs.push({ label: "Learner" });
 
-    const compactChips = computedChips.slice(0, 4);
-
-    return { chips: computedChips, chipsForDeepView: compactChips };
-  }, [data?.topics, data?.user?.email, location.pathname]);
-  const visibleChips = onDeepLearningPage ? chipsForDeepView : chips;
+  const title = data?.title || data?.user?.name || (loading ? "Loading…" : "");
 
   return (
-    <div>
-      <section className="sticky top-0 z-20">
-        <Banner size={onDeepLearningPage ? "compact" : "default"}>
-          <div className={`w-full ${onDeepLearningPage ? "space-y-2" : "space-y-4"}`}>
-            <div>
-              <div className="flex items-center justify-between">
-                {loading ? (
-                  <div className="flex w-[40rem] animate-pulse justify-between">
-                    <div className="h-6 w-3/5 rounded bg-lightGray" />
-                    <div className="h-4 w-1/6 rounded bg-lightGray" />
-                  </div>
-                ) : (
-                  <h1
-                    className={`font-bold text-white ${
-                      onDeepLearningPage ? "text-xl md:text-2xl" : "text-2xl"
-                    }`}
-                  >
-                    {data?.title || data?.user?.name}
-                  </h1>
-                )}
-              </div>
-
-              {!loading && data?.description && (
-                <div className={`text-sm ${onDeepLearningPage ? "line-clamp-2" : ""}`}>
-                  <p>{data.description}</p>
-                </div>
-              )}
-            </div>
-
-            {loading && details ? (
-              <div className="space-y-2 animate-pulse">
-                <div className="flex gap-4">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="h-4 w-20 rounded bg-lightGray" />
-                      <div className="h-4 w-28 rounded bg-lightGray" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className={onDeepLearningPage ? "space-y-2" : "space-y-3"}>
-                {enhancedContextEnabled &&
-                  visibleChips.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {visibleChips.map((chip) => (
-                      <span
-                        key={`${chip.label}-${chip.value}`}
-                        className={`inline-flex items-center rounded-full border border-white/40 bg-white/10 font-medium text-white ${
-                          onDeepLearningPage ? "px-2.5 py-0.5 text-[11px]" : "px-3 py-1 text-xs"
-                        }`}
-                      >
-                        {chip.label}: {chip.value}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                <div>{details}</div>
-              </div>
-            )}
-          </div>
-        </Banner>
-      </section>
-      <PageOutline className="p-0">
-      
-
-      <section>
-        <div className="">
-          <Outlet />
-        </div>
-      </section>
-    </PageOutline>
+    <div className="flex min-h-full flex-col">
+      <WorkspaceHeader
+        crumbs={crumbs}
+        title={title}
+        meta={data?.description ? [String(data.description)] : undefined}
+        extra={details ? <div className="pb-4">{details}</div> : null}
+      />
+      <div className="app-page-padding">
+        <Outlet />
+      </div>
     </div>
   );
 };
