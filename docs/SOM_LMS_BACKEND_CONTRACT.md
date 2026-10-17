@@ -113,3 +113,85 @@ type CohortSchedule = {
 - `PUT /activate-cohort-assignment` with no `dueDate` keeps the cohort override if there is one. Otherwise it uses the rule date, or no due date if there is no rule. It used to throw.
 - When a learner submits (`/submit-mcq-assignment`, `/submit-essay-assignment`), their extension replaces the cohort due date.
 - `GET /program-completion-status` shows the learner's extension date in `activation.dueDate`.
+
+---
+
+## Phase 2 — question bank, rubrics, gradebook, certificates
+
+Backend PR: WWW-Ministries-Project/Backend#489 · migration `20261017120000_som_lms_assessment_tools`
+
+### Question bank
+
+| Method | Path | Guard | Request | `data` |
+|---|---|---|---|---|
+| GET | `/question-bank` | manage | `?search&type&tag` | `BankQuestion[]` (500 newest) |
+| POST | `/question-bank` | design | `BankQuestionPayload` | `BankQuestion` |
+| PUT | `/question-bank` | design | `?id` + partial payload | `BankQuestion` |
+| DELETE | `/question-bank` | design | `?id` | `{ id }` |
+| POST | `/question-bank/add-to-unit` | design | `{ topicId, questionIds[] }` | `{ added, skipped, total }` |
+
+```ts
+type BankQuestion = {
+  id: number; type: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY"; prompt: string;
+  options: { id: string; text: string }[] | null; correct_option_id: string | null;
+  tags: string[] | null; difficulty: "EASY" | "MEDIUM" | "HARD";
+};
+```
+
+`add-to-unit` only accepts quiz units (`assignment`) and only multiple-choice or true/false questions. Each question is
+**copied** into `LearningUnit.data.questions` with new option ids and a `bankQuestionId`, so later bank
+edits don't change quizzes. Questions already added (matched by `bankQuestionId`) are skipped.
+
+### Rubrics
+
+| Method | Path | Guard | Request |
+|---|---|---|---|
+| GET | `/rubrics` | manage | (each item has `usedBy`) |
+| POST / PUT / DELETE | `/rubric` | design | `{ title, criteria: [{ id?, label, weight }], levels?: [{ id?, label, factor }] }`. Criterion weights must total 100. Levels default to Excellent 1 · Good 0.8 · Fair 0.6 · Poor 0.3 |
+| PUT | `/unit-rubric` | design | `{ topicId, rubricId \| null }`. Essay units only |
+| GET | `/submission` | manage | `?id` → `GradingSubmission` (submission, learner, unit prompt and pass mark, rubric) |
+| PUT | `/grade-with-rubric` | manage | `{ submissionId, scores: { [criterionId]: levelId }, feedback? }` |
+
+Rubric percentage = `Σ(weight × level factor) / Σ weight × 100`, rounded. The result is saved through the existing
+`PUT /grade-assignment` path, which updates the submission and progress and notifies the learner. `rubric_scores` is stored on the submission.
+
+### Gradebook
+
+| Method | Path | Guard | Request | `data` |
+|---|---|---|---|---|
+| GET | `/gradebook` | manage | `?cohortId&courseId?` | `Gradebook` |
+| PUT | `/grade-overrides` | manage | `{ topicId, enrollmentIds[], score?, excused?, clear?, note? }` | `{ updated }` |
+
+Each cell's status is the first rule that applies:
+1. `excused`
+2. `overridden` (staff score)
+3. `needs_grading` (latest submission is `SUBMITTED` or `RESUBMITTED`)
+4. `graded` (completed progress)
+5. `missing` (past the due date, or the extension date, with nothing submitted; counts as 0)
+6. `open`
+
+Weighted programs average each category, then renormalise the weights over the categories that have data.
+Attendance is included once phase 3 provides it. `status` is `Completed`, `At risk` or `On track`, and `reasons[]` explains
+any risk: 2+ missing, below the pass mark (weighted), a failed unit (pass/fail), or attendance below the minimum (75% when unset).
+
+An override also writes `progress`: a score sets PASS or FAIL against the unit's pass mark, and an excusal counts as PASS. This keeps
+completion and certificate eligibility in step with the gradebook. The first override on a cell saves the learner's earlier
+progress row in `prev_progress`. `clear: true` restores that row exactly, or deletes the progress row if there wasn't one.
+Every `enrollmentIds` entry must belong to the unit's program (otherwise `400`).
+
+`grading.attendanceTracked` is `false` until session attendance is recorded (phase 3). While it is false, the attendance weight is left
+out and the other weights are scaled up to 100%.
+
+Essay submissions (`/submit-essay-assignment`) now reject a `fileUrl` that isn't `http(s)`.
+
+### Certificates
+
+| Method | Path | Guard | Request | `data` |
+|---|---|---|---|---|
+| GET | `/certificates` | manage | `?programId` | `{ issued: [{ id, certificateNumber, issuedAt, userId, name }], eligible: [{ userId, name, cohort, className }] }` |
+| POST | `/certificates/issue` | design | `{ programId, userIds[] }` | `{ issued, results[] }` |
+
+A learner is eligible when their first enrollment in the program (the one the issuing path checks) has passed every topic,
+and they have no certificate yet. Issuing goes through
+`EnrollmentService.getProgramCertificate`, the same path the learner uses, so numbering is unchanged. The PDF design
+is still the server-rendered one: `GET /certificate/pdf?certificateNumber=`.

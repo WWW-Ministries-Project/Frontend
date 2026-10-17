@@ -31,6 +31,7 @@ export const somPaths = {
   ) => `${SOM_BASE}/cohorts/${cohortId}/classes/${classId}/student/${enrollmentId}`,
   learners: `${SOM_BASE}/learners`,
   instructors: `${SOM_BASE}/instructors`,
+  library: `${SOM_BASE}/assessment-library`,
   analytics: `${SOM_BASE}/analytics`,
   grading: (programId: number | string, cohortId: number | string, topicId?: number | string) =>
     `${SOM_BASE}/${relativePath.home.ministrySchool.instructorPortal}/${programId}/cohort/${cohortId}${
@@ -204,3 +205,20 @@ export const describeRule = (rule: DueRule | null | undefined) => {
 /** Default grading category the backend uses when a unit has none set. */
 export const defaultCategory = (type?: string | null) =>
   type === "assignment" ? "quiz" : type === "assignment-essay" ? "essay" : null;
+
+/** Random id that also works on plain-http LAN dev hosts, where crypto.randomUUID is unavailable. */
+export const makeId = () =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+/** Returns the URL only when it is http(s); learner-supplied links must never run script. */
+export const safeHttpUrl = (value?: string | null) => {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+};

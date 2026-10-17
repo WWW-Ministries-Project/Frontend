@@ -75,6 +75,11 @@ import {
   CohortSchedule,
   ProgramGrading,
   ProgramModulesResponse,
+  BankQuestion,
+  Gradebook,
+  GradingSubmission,
+  ProgramCertificates,
+  Rubric,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
 import type {
@@ -449,6 +454,36 @@ export class ApiCalls {
 
   fetchCohortSchedule = (query?: QueryType): Promise<ApiResponse<CohortSchedule>> => {
     return this.fetchFromApi("program/cohort-schedule", query);
+  };
+
+  fetchQuestionBank = (query?: QueryType): Promise<ApiResponse<BankQuestion[]>> => {
+    return this.fetchFromApi("program/question-bank", query);
+  };
+
+  fetchRubrics = (query?: QueryType): Promise<ApiResponse<Rubric[]>> => {
+    return this.fetchFromApi("program/rubrics", query);
+  };
+
+  fetchGradebook = (query?: QueryType): Promise<ApiResponse<Gradebook>> => {
+    return this.fetchFromApi("program/gradebook", query);
+  };
+
+  fetchGradingSubmission = (query?: QueryType): Promise<ApiResponse<GradingSubmission>> => {
+    return this.fetchFromApi("program/submission", query);
+  };
+
+  fetchProgramCertificates = (query?: QueryType): Promise<ApiResponse<ProgramCertificates>> => {
+    return this.fetchFromApi("program/certificates", query);
+  };
+
+  /** Server-rendered certificate PDF (same design learners download). */
+  downloadCertificatePdf = (certificateNumber: string): Promise<DownloadedFile> => {
+    return downloadFile(
+      this.apiExecution.baseUrl,
+      "program/certificate/pdf",
+      { certificateNumber },
+      `${certificateNumber}.pdf`
+    );
   };
 
   fetchAllApplicablePrograms = (
