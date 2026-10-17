@@ -145,14 +145,14 @@ export const SomDashboard = () => {
                     <li key={c.id}>
                       <button
                         type="button"
-                        onClick={() => navigate(somPaths.cohort(c.id, "Assessments"))}
+                        onClick={() => navigate(somPaths.cohort(c.id, "Gradebook"))}
                         className="flex w-full items-center justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-left last:border-0 hover:bg-gray-50"
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-primary">{c.program.title}</p>
                           <p className="truncate text-xs text-mainGray">{c.name} · {c.timing.label}</p>
                         </div>
-                        <span className="text-xs font-medium text-primary">Assessments ›</span>
+                        <span className="text-xs font-medium text-primary">Gradebook ›</span>
                       </button>
                     </li>
                   ))}

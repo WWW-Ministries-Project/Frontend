@@ -49,8 +49,12 @@ import type {
 import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
+  BankQuestion,
+  BankQuestionPayload,
   ExtensionPayload,
   ModulePayload,
+  Rubric,
+  RubricPayload,
   ProgramModule,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
@@ -412,6 +416,28 @@ export class ApiCreationCalls {
 
   createProgramModule = (payload: ModulePayload): Promise<ApiResponse<ProgramModule>> => {
     return this.postToApi("program/module", payload);
+  };
+
+  createBankQuestion = (payload: BankQuestionPayload): Promise<ApiResponse<BankQuestion>> => {
+    return this.postToApi("program/question-bank", payload);
+  };
+
+  addBankQuestionsToUnit = (payload: {
+    topicId: number;
+    questionIds: number[];
+  }): Promise<ApiResponse<{ added: number; skipped: number; total: number }>> => {
+    return this.postToApi("program/question-bank/add-to-unit", payload);
+  };
+
+  createRubric = (payload: RubricPayload): Promise<ApiResponse<Rubric>> => {
+    return this.postToApi("program/rubric", payload);
+  };
+
+  issueCertificates = (payload: {
+    programId: number;
+    userIds: number[];
+  }): Promise<ApiResponse<{ issued: number; results: { userId: number; ok: boolean; error?: string }[] }>> => {
+    return this.postToApi("program/certificates/issue", payload);
   };
 
   grantAssignmentExtension = (payload: ExtensionPayload): Promise<ApiResponse<unknown>> => {

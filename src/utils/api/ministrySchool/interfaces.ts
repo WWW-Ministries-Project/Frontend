@@ -677,3 +677,134 @@ export type SomProgramFull = {
     not_started_members: number;
   };
 };
+
+// ---------------------------------------------------------------------------
+// LMS phase 2: question bank, rubrics, gradebook, certificates (Backend PR #489)
+// ---------------------------------------------------------------------------
+
+export type QuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY";
+export type Difficulty = "EASY" | "MEDIUM" | "HARD";
+export type QuestionOption = { id: string; text: string };
+
+export type BankQuestion = {
+  id: number;
+  type: QuestionType;
+  prompt: string;
+  options: QuestionOption[] | null;
+  correct_option_id: string | null;
+  tags: string[] | null;
+  difficulty: Difficulty;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BankQuestionPayload = {
+  type: QuestionType;
+  prompt: string;
+  options?: QuestionOption[];
+  correct_option_id?: string | null;
+  tags?: string[];
+  difficulty?: Difficulty;
+};
+
+export type RubricCriterion = { id: string; label: string; weight: number };
+export type RubricLevel = { id: string; label: string; factor: number };
+export type Rubric = {
+  id: number;
+  title: string;
+  criteria: RubricCriterion[];
+  levels: RubricLevel[];
+  usedBy?: number;
+  updatedAt: string;
+};
+export type RubricPayload = { title: string; criteria: RubricCriterion[]; levels?: RubricLevel[] };
+
+export type GradeCellStatus = "graded" | "needs_grading" | "missing" | "open" | "excused" | "overridden";
+
+export type GradebookCell = {
+  topicId: number;
+  status: GradeCellStatus;
+  score: number | null;
+  passed: boolean | null;
+  submissionId: number | null;
+  counted: number | null;
+  note: string | null;
+  extendedTo: string | null;
+};
+
+export type GradebookColumn = {
+  topicId: number;
+  learningUnitId: number;
+  name: string;
+  moduleId: number | null;
+  type: string;
+  category: GradingCategory | null;
+  passMark: number;
+  hasRubric: boolean;
+  isActive: boolean;
+  dueDate: string | null;
+};
+
+export type GradebookRow = {
+  enrollmentId: number;
+  userId: number | null;
+  name: string;
+  classId: number;
+  className: string;
+  classFormat: ClassFormat | null;
+  attendance: number | null;
+  cells: GradebookCell[];
+  finalGrade: number | null;
+  missing: number;
+  needsGrading: number;
+  failedUnits: number;
+  status: "Completed" | "At risk" | "On track";
+  reasons: string[];
+};
+
+export type Gradebook = {
+  cohort: { id: number; name: string; startDate: string };
+  program: { id: number; title: string };
+  grading: {
+    mode: GradingMode;
+    passMark: number;
+    weights: GradingWeights;
+    completion: CompletionRules;
+    /** False until session attendance is recorded; its weight is then left out. */
+    attendanceTracked: boolean;
+  };
+  columns: GradebookColumn[];
+  rows: GradebookRow[];
+  totals: { learners: number; atRisk: number; needsGrading: number; missing: number };
+};
+
+export type GradeOverridePayload = {
+  topicId: number;
+  enrollmentIds: number[];
+  score?: number | null;
+  excused?: boolean;
+  clear?: boolean;
+  note?: string;
+};
+
+export type GradingSubmission = {
+  id: number;
+  attempt: number;
+  status: string;
+  submittedAt: string;
+  fileUrl: string | null;
+  content: string | null;
+  score: number | null;
+  feedback: string | null;
+  rubricScores: Record<string, string> | null;
+  learnerName: string;
+  className: string;
+  enrollmentId: number;
+  unit: { id: number; type: string; topicId: number; name: string; prompt: string | null; passMark: number };
+  rubric: Rubric | null;
+};
+
+export type ProgramCertificates = {
+  issued: { id: number; certificateNumber: string; issuedAt: string; userId: number; name: string }[];
+  eligible: { userId: number; name: string; cohort: string; className: string }[];
+};

@@ -41,8 +41,11 @@ import type {
 } from "./settings/departmentInterfaces";
 import {
   CohortPayloadType,
+  BankQuestionPayload,
   CohortSchedule,
   DueRule,
+  GradeOverridePayload,
+  RubricPayload,
   GradingCategory,
   ModulePayload,
   ProgramGrading,
@@ -279,6 +282,30 @@ export class ApiUpdateCalls {
     grading_category?: GradingCategory | null;
   }): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("program/unit-settings", payload);
+  };
+
+  updateBankQuestion = (payload: Partial<BankQuestionPayload>, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/question-bank", payload, query);
+  };
+
+  updateRubric = (payload: Partial<RubricPayload>, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/rubric", payload, query);
+  };
+
+  setUnitRubric = (payload: { topicId: number; rubricId: number | null }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/unit-rubric", payload);
+  };
+
+  gradeWithRubric = (payload: {
+    submissionId: number;
+    scores: Record<string, string>;
+    feedback?: string;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/grade-with-rubric", payload);
+  };
+
+  setGradeOverrides = (payload: GradeOverridePayload): Promise<ApiResponse<{ updated: number }>> => {
+    return this.apiExecution.updateData("program/grade-overrides", payload);
   };
 
   setCohortDueDate = (payload: {

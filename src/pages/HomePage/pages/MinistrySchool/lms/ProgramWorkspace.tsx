@@ -2,22 +2,21 @@ import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
-import type { DueRule, LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
+import type { LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import CertificateLogos from "../Components/CertificateLogos";
+import { ProgramAssessments } from "./assessment/ProgramAssessments";
+import { ProgramCertificates } from "./assessment/ProgramCertificates";
 import { GradingModelPanel } from "./curriculum/GradingModelPanel";
 import { ModuleBoard } from "./curriculum/ModuleBoard";
 import { useSomData } from "./somDataContext";
 import {
   audienceLabel,
-  describeRule,
   fmtDate,
   formatLabel,
   isAssessmentUnit,
   personName,
   somPaths,
-  unitLabel,
 } from "./somUtils";
 import {
   Avatar,
@@ -186,66 +185,12 @@ export const ProgramWorkspace = () => {
         )}
 
         {tab === "Assessments" && (
-          <Panel
-            title="Assessments in this program"
-            action={<Btn size="sm" onClick={() => setTab("Curriculum")}>Edit in curriculum</Btn>}
-          >
-            <SimpleTable<Topic>
-              rows={assessments}
-              rowKey={(t) => t.id}
-              minWidth={620}
-              empty={
-                <EmptyBlock
-                  msg="No quizzes or essays yet. Add a Quiz or Essay unit in the curriculum."
-                  action={<Btn size="sm" onClick={() => setTab("Curriculum")}>Open curriculum</Btn>}
-                />
-              }
-              columns={[
-                { key: "name", header: "Assessment", render: (t) => <span className="font-medium">{t.name}</span> },
-                { key: "type", header: "Type", render: (t) => <StatusPill status={unitLabel(unitOf(t)?.type)} /> },
-                {
-                  key: "qs",
-                  header: "Questions",
-                  render: (t) => {
-                    const unit = unitOf(t);
-                    return unit?.type === "assignment" ? unit.data.questions?.length ?? 0 : 1;
-                  },
-                },
-                {
-                  key: "pass",
-                  header: "Pass mark",
-                  render: (t) => {
-                    const unit = unitOf(t);
-                    const pass = unit && "passMark" in (unit.data ?? {}) ? (unit.data as { passMark?: number }).passMark : undefined;
-                    return pass !== undefined ? `${pass}%` : "—";
-                  },
-                },
-                {
-                  key: "due",
-                  header: "Due rule",
-                  render: (t) => {
-                    const unit = unitOf(t) as (LearningUnit & { due_rule?: DueRule | null }) | undefined;
-                    return (
-                      <span className={unit?.due_rule ? "text-primaryGray" : "text-amber-700"}>
-                        {describeRule(unit?.due_rule)}
-                      </span>
-                    );
-                  },
-                },
-                {
-                  key: "attempts",
-                  header: "Attempts",
-                  render: (t) => {
-                    const d = (unitOf(t)?.data ?? {}) as { maxAttempts?: number; maxAttempt?: number };
-                    return d.maxAttempts ?? d.maxAttempt ?? "—";
-                  },
-                },
-              ]}
-            />
-            <p className="border-t border-gray-100 px-4 py-2.5 text-xs text-mainGray">
-              Set due rules and grading categories in the Curriculum tab. Each cohort gets dates from its start date (Cohort → Schedule).
-            </p>
-          </Panel>
+          <ProgramAssessments
+            topics={topics}
+            canManage={canManageCurrentRoute}
+            onChanged={refreshAll}
+            onOpenCurriculum={() => setTab("Curriculum")}
+          />
         )}
 
         {tab === "Cohorts" && (
@@ -302,27 +247,7 @@ export const ProgramWorkspace = () => {
         )}
 
         {tab === "Certificate" && (
-          <div className="grid gap-4 laptop:grid-cols-[minmax(0,1fr)_320px]">
-            <Panel title="Certificate template" bodyClassName="p-6">
-              <div className="mx-auto flex max-w-xl flex-col items-center gap-3 rounded-lg border-2 border-double border-secondary/60 px-6 py-10 text-center">
-                <CertificateLogos compact />
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">Certificate of completion</p>
-                <p className="font-great-vibes text-3xl text-primary">{"{Learner name}"}</p>
-                <p className="text-sm text-primaryGray">
-                  has completed <b className="text-primary">{title}</b>
-                </p>
-                <p className="text-xs text-mainGray">{"{Completion date} · {Certificate no.}"} · QR verification</p>
-              </div>
-            </Panel>
-            <Panel title="How certificates are issued" bodyClassName="flex flex-col gap-2 p-4 text-sm text-primaryGray">
-              <p>A certificate is generated when a learner passes every unit in the program.</p>
-              <p>Learners download it from <b>My learning</b>; anyone can verify it from the QR code.</p>
-              <p>
-                {summary?.completed_members ?? 0} learner{summary?.completed_members === 1 ? "" : "s"} have completed
-                this program.
-              </p>
-            </Panel>
-          </div>
+          <ProgramCertificates programId={programId} canIssue={canManageCurrentRoute} />
         )}
       </div>
 

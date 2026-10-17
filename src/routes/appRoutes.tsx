@@ -52,6 +52,7 @@ import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagem
 import { GuestToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/GuestToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
+import AssessmentLibraryPage from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentLibraryPage";
 import CohortsPage from "@/pages/HomePage/pages/MinistrySchool/lms/CohortsPage";
 import CohortWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/CohortWorkspace";
 import InstructorsPage from "@/pages/HomePage/pages/MinistrySchool/lms/InstructorsPage";
@@ -994,6 +995,14 @@ export const routes: AppRoute[] = [
             path: "instructors",
             name: "Instructors",
             element: <InstructorsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "assessment-library",
+            name: "Assessment library",
+            element: <AssessmentLibraryPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
