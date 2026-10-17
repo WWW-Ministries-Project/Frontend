@@ -1,484 +1,243 @@
 import { Button } from "@/components";
-import { Formik, Form, Field, getIn } from "formik";
+import { Formik, Form, FormikProps, getIn } from "formik";
 import * as Yup from "yup";
-import { useEffect, useMemo } from "react";
-import FormikSelectField from "@/components/FormikSelect";
-import { FormHeader } from "@/components/ui";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
 import {
-  AvailabilityStatus,
+  KeyboardEvent,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { FormHeader } from "@/components/ui";
+import {
   Appointment,
   BookedSession,
   BookingFormValues,
   CreateAppointmentBookingPayload,
-  DayOfWeek,
   Session,
-  StaffAvailability,
-  TimeSlot,
   UpdateAppointmentBookingPayload,
 } from "@/utils/api/appointment/interfaces";
+import {
+  BOOKING_WINDOW_DAYS,
+  BookableDay,
+  buildBookableDays,
+  normalizeAppointmentReasons,
+  normalizeBookingOptions,
+  parseInputDate,
+  toInputDate,
+  toIntegerId,
+  toStringValue,
+} from "@/utils/api/appointment/bookingUtils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
+import { cn } from "@/utils/cn";
 import { useStore } from "@/store/useStore";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { useAuth } from "@/context/AuthWrapper";
 
-const dayOptions: DayOfWeek[] = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
+/* -------------------------------------------------------------------------- */
+/*  Reasons                                                                   */
+/* -------------------------------------------------------------------------- */
+
+interface ReasonOption {
+  key: string;
+  label: string;
+  description?: string | null;
+}
+
+const OTHER_REASON_KEY = "other";
+const OTHER_REASON_LABEL = "Something else";
+
+const OTHER_REASON: ReasonOption = {
+  key: OTHER_REASON_KEY,
+  label: OTHER_REASON_LABEL,
+  description: "Tell us in your own words",
+};
+
+// Used when `appointment/reasons` fails or returns nothing, so booking never
+// dead-ends. Mirrors the mobile app's built-in reasons.
+const DEFAULT_REASONS: ReasonOption[] = [
+  { key: "default:marriage", label: "Marriage & family" },
+  { key: "default:spiritual", label: "Spiritual guidance" },
+  { key: "default:ministry", label: "Ministry & serving" },
 ];
 
+const matchReasonKey = (purpose: string, options: ReasonOption[]): string => {
+  const normalized = purpose.trim().toLowerCase();
+  if (!normalized) return "";
+
+  const match = options.find(
+    (option) => option.label.trim().toLowerCase() === normalized
+  );
+
+  return match ? match.key : OTHER_REASON_KEY;
+};
+
+/* -------------------------------------------------------------------------- */
+/*  Form                                                                      */
+/* -------------------------------------------------------------------------- */
+
+const NOTE_MIN = 10;
+const NOTE_MAX = 500;
+const EMPTY_BOOKED_SESSIONS: BookedSession[] = [];
+
+interface BookingFlowValues extends BookingFormValues {
+  reasonKey: string;
+}
+
 const validationSchema = Yup.object({
-  fullName: Yup.string()
+  reasonKey: Yup.string().required("Choose what you'd like to talk about"),
+  note: Yup.string()
     .trim()
-    .min(2, "Full name must be at least 2 characters")
-    .required("Full name is required"),
-  email: Yup.string()
-    .trim()
-    .email("Enter a valid email address")
-    .required("Email is required"),
-  phone: Yup.string()
-    .trim()
-    .min(7, "Phone number must be at least 7 characters")
-    .required("Phone number is required"),
-  purpose: Yup.string()
-    .trim()
-    .min(3, "Purpose must be at least 3 characters")
-    .max(200, "Purpose cannot exceed 200 characters")
-    .required("Purpose is required"),
-  note: Yup.string().trim().max(500, "Notes cannot exceed 500 characters"),
-  staffId: Yup.string().required("Please select a staff member"),
-  date: Yup.string().required("Please select an appointment date"),
+    .min(NOTE_MIN, `Please write at least ${NOTE_MIN} characters`)
+    .max(NOTE_MAX, `Please keep it under ${NOTE_MAX} characters`)
+    .required("Please tell us a little about it"),
+  staffId: Yup.string().required("Choose who you'd like to see"),
+  date: Yup.string().required("Pick a date"),
   session: Yup.object({
     start: Yup.string().required(),
     end: Yup.string().required(),
   })
     .nullable()
-    .required("Please select a time slot"),
+    .required("Pick a time"),
 });
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const toStringValue = (value: unknown, fallback = ""): string => {
-  if (typeof value === "string") return value;
-  if (typeof value === "number") return String(value);
-  return fallback;
+const isNoteValid = (note: string) => {
+  const length = note.trim().length;
+  return length >= NOTE_MIN && length <= NOTE_MAX;
 };
 
-const toNumberValue = (value: unknown, fallback = 0): number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
+const formatLongDate = (value: string): string => {
+  const date = parseInputDate(value);
+  if (!date) return value;
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 };
 
-const toIntegerId = (value: unknown): number | null => {
-  const raw = toStringValue(value).trim();
-  if (!raw) return null;
-
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed <= 0) return null;
-
-  return parsed;
+const formatMonth = (value: string): string => {
+  const date = parseInputDate(value);
+  if (!date) return value;
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 };
 
-const normalizeStatus = (value: unknown): AvailabilityStatus =>
-  toStringValue(value).toUpperCase();
+const pluralTimes = (count: number) =>
+  `${count} open time${count === 1 ? "" : "s"}`;
 
-const isAvailableStatus = (value: unknown): boolean => {
-  const status = normalizeStatus(value);
-  return !status || status === "AVAILABLE";
-};
+const firstOpenSession = (day?: BookableDay): Session | undefined =>
+  day?.sessions.find((entry) => !entry.booked)?.session;
 
-const normalizeClockTime = (value: unknown): string => {
-  const raw = toStringValue(value).trim();
-  if (!raw.includes(":")) return "";
+const groupDaysByMonth = (days: BookableDay[]) =>
+  days.reduce<Array<{ month: string; days: BookableDay[] }>>((groups, day) => {
+    const month = formatMonth(day.date);
+    const last = groups[groups.length - 1];
+    if (last && last.month === month) {
+      last.days.push(day);
+    } else {
+      groups.push({ month, days: [day] });
+    }
+    return groups;
+  }, []);
 
-  const [hourPart, minutePart] = raw.split(":");
-  const hour = Number(hourPart);
-  const minute = Number(minutePart);
+/* -------------------------------------------------------------------------- */
+/*  Radio-group helpers (cards, staff rows, date chips, time slots)           */
+/* -------------------------------------------------------------------------- */
 
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+// Arrow/Home/End move focus + selection between enabled radios in the
+// nearest radiogroup, matching native radio-button keyboard behaviour.
+const handleRadioKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+  const forward = ["ArrowDown", "ArrowRight"];
+  const backward = ["ArrowUp", "ArrowLeft"];
+  if (![...forward, ...backward, "Home", "End"].includes(event.key)) return;
 
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-};
+  const group = event.currentTarget.closest('[role="radiogroup"]');
+  if (!group) return;
 
-const timeToMinutes = (time: string): number => {
-  const normalized = normalizeClockTime(time);
-
-  if (!normalized) {
-    return 0;
-  }
-
-  const [hours, minutes] = normalized.split(":").map(Number);
-
-  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-    return 0;
-  }
-
-  return hours * 60 + minutes;
-};
-
-const minutesToTime = (minutes: number): string => {
-  const normalized = Math.max(0, minutes);
-  const h = Math.floor(normalized / 60)
-    .toString()
-    .padStart(2, "0");
-  const m = (normalized % 60).toString().padStart(2, "0");
-  return `${h}:${m}`;
-};
-
-const generateSessions = (
-  startTime: string,
-  endTime: string,
-  duration: number
-): Session[] => {
-  const start = timeToMinutes(startTime);
-  const end = timeToMinutes(endTime);
-  const sessions: Session[] = [];
-  let cursor = start;
-
-  while (cursor + duration <= end) {
-    sessions.push({
-      start: minutesToTime(cursor),
-      end: minutesToTime(cursor + duration),
-    });
-    cursor += duration;
-  }
-
-  return sessions;
-};
-
-const normalizeDay = (value: unknown): DayOfWeek => {
-  const parsed = toStringValue(value).toLowerCase().trim();
-
-  const dayMap: Record<string, DayOfWeek> = {
-    monday: "monday",
-    mon: "monday",
-    tuesday: "tuesday",
-    tue: "tuesday",
-    tues: "tuesday",
-    wednesday: "wednesday",
-    wed: "wednesday",
-    thursday: "thursday",
-    thu: "thursday",
-    thur: "thursday",
-    thurs: "thursday",
-    friday: "friday",
-    fri: "friday",
-    saturday: "saturday",
-    sat: "saturday",
-    sunday: "sunday",
-    sun: "sunday",
-  };
-
-  if (dayMap[parsed]) {
-    return dayMap[parsed];
-  }
-
-  if (dayOptions.includes(parsed as DayOfWeek)) {
-    return parsed as DayOfWeek;
-  }
-
-  return "monday";
-};
-
-const normalizeSession = (session: unknown): Session | null => {
-  if (!isRecord(session)) return null;
-
-  if (!isAvailableStatus(session.status)) return null;
-
-  const start = normalizeClockTime(
-    session.start ?? session.start_time ?? session.startTime ?? session.from
+  const radios = Array.from(
+    group.querySelectorAll<HTMLElement>('[role="radio"]:not([disabled])')
   );
-  const end = normalizeClockTime(
-    session.end ?? session.end_time ?? session.endTime ?? session.to
+  if (radios.length === 0) return;
+
+  const index = radios.indexOf(event.currentTarget);
+  let nextIndex = index;
+  if (forward.includes(event.key)) nextIndex = (index + 1) % radios.length;
+  if (backward.includes(event.key))
+    nextIndex = (index - 1 + radios.length) % radios.length;
+  if (event.key === "Home") nextIndex = 0;
+  if (event.key === "End") nextIndex = radios.length - 1;
+
+  event.preventDefault();
+  radios[nextIndex].focus();
+  radios[nextIndex].click();
+};
+
+// Roving tabindex: only the selected radio (or the first enabled one when
+// nothing is selected) is in the tab order.
+const radioTabIndex = (
+  isSelected: boolean,
+  isFirstEnabled: boolean,
+  hasSelection: boolean
+) => (isSelected || (!hasSelection && isFirstEnabled) ? 0 : -1);
+
+const focusRing =
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
+
+const FieldError = ({ id, children }: { id: string; children: ReactNode }) => (
+  <p id={id} role="alert" className="text-sm text-red-600 dark:text-red-400">
+    {children}
+  </p>
+);
+
+/** How often the open form re-reads availability, so a time someone else
+ *  books greys out here before this member clicks it. */
+const AVAILABILITY_POLL_MS = 30 * 1000;
+
+/** The backend's wording when another booking got the session first. */
+const isSlotTakenError = (error: Error | null) =>
+  Boolean(error) &&
+  /already booked|max number of booked sessions|status code 409/i.test(
+    error?.message ?? ""
   );
 
-  if (!start || !end) return null;
+const SLOT_TAKEN_MESSAGE =
+  "That time was just booked by someone else. Please pick another time.";
 
-  return {
-    id: toStringValue(session.id ?? session.sessionId ?? session.session_id) || undefined,
-    availabilityId:
-      toStringValue(
-        session.availabilityId ??
-          session.availability_id ??
-          session.slotId ??
-          session.slot_id
-      ) || undefined,
-    start,
-    end,
-    status: toStringValue(session.status) || undefined,
-  };
-};
-
-const inferDuration = (
-  slot: Record<string, unknown>,
-  sessions: Session[]
-): number => {
-  const fromPayload = toNumberValue(
-    slot.sessionDurationMinutes ??
-      slot.session_duration_minutes ??
-      slot.sessionDuration ??
-      slot.duration,
-    0
-  );
-
-  if (fromPayload > 0) return fromPayload;
-
-  if (sessions.length > 0) {
-    const inferred =
-      timeToMinutes(sessions[0].end) - timeToMinutes(sessions[0].start);
-    if (inferred > 0) return inferred;
-  }
-
-  return 30;
-};
-
-const normalizeTimeSlot = (slot: unknown): TimeSlot | null => {
-  if (!isRecord(slot)) return null;
-
-  if (!isAvailableStatus(slot.status)) return null;
-
-  const startTime = normalizeClockTime(
-    slot.startTime ?? slot.start_time ?? slot.start ?? slot.from
-  );
-  const endTime = normalizeClockTime(
-    slot.endTime ?? slot.end_time ?? slot.end ?? slot.to
-  );
-
-  if (!startTime || !endTime) return null;
-
-  const sessionsRaw =
-    slot.sessions ?? slot.session ?? slot.availableSessions ?? slot.available_sessions;
-  const hasSessionsPayload = Array.isArray(sessionsRaw);
-
-  const normalizedSessions = hasSessionsPayload
-    ? sessionsRaw
-        .map(normalizeSession)
-        .filter((session): session is Session => session !== null)
-    : [];
-
-  const sessionDurationMinutes = inferDuration(slot, normalizedSessions);
-
-  const finalSessions =
-    normalizedSessions.length > 0
-      ? normalizedSessions
-      : hasSessionsPayload
-      ? []
-      : generateSessions(startTime, endTime, sessionDurationMinutes);
-
-  if (finalSessions.length === 0) return null;
-
-  return {
-    day: normalizeDay(slot.day ?? slot.dayOfWeek ?? slot.day_of_week ?? slot.weekday),
-    startTime,
-    endTime,
-    sessionDurationMinutes,
-    sessions: finalSessions,
-  };
-};
-
-const normalizeBookedSession = (
-  bookedSession: unknown,
-  staffId: string
-): BookedSession | null => {
-  if (!isRecord(bookedSession)) return null;
-
-  const date = toInputDate(
-    toStringValue(
-      bookedSession.date ??
-        bookedSession.bookingDate ??
-        bookedSession.booking_date
-    )
-  );
-  const start = normalizeClockTime(
-    bookedSession.start ??
-      bookedSession.startTime ??
-      bookedSession.start_time ??
-      bookedSession.from
-  );
-  const end = normalizeClockTime(
-    bookedSession.end ??
-      bookedSession.endTime ??
-      bookedSession.end_time ??
-      bookedSession.to
-  );
-
-  if (!date || !start || !end) return null;
-
-  return {
-    bookingId:
-      toStringValue(
-        bookedSession.id ??
-          bookedSession.bookingId ??
-          bookedSession.booking_id
-      ) || undefined,
-    staffId,
-    date,
-    start,
-    end,
-  };
-};
-
-const normalizeAvailability = (
-  rawAvailability: unknown,
-  memberLookup: Record<string, string>
-): StaffAvailability | null => {
-  if (!isRecord(rawAvailability)) return null;
-
-  const staffRecord = isRecord(rawAvailability.staff)
-    ? rawAvailability.staff
-    : isRecord(rawAvailability.user)
-    ? rawAvailability.user
-    : null;
-
-  const staffId = toStringValue(
-    rawAvailability.staffId ??
-      rawAvailability.staff_id ??
-      rawAvailability.userId ??
-      rawAvailability.user_id ??
-      (staffRecord ? staffRecord.id : undefined)
-  );
-
-  if (!staffId) return null;
-
-  const timeSlotsRaw = rawAvailability.timeSlots ?? rawAvailability.time_slots;
-  const bookedSessionsRaw =
-    rawAvailability.bookedSessions ?? rawAvailability.booked_sessions;
-
-  const nestedTimeSlots = Array.isArray(timeSlotsRaw)
-    ? timeSlotsRaw
-        .map(normalizeTimeSlot)
-        .filter((slot): slot is TimeSlot => slot !== null)
-    : [];
-  const flatTimeSlot = normalizeTimeSlot(rawAvailability);
-  const timeSlots =
-    nestedTimeSlots.length > 0
-      ? nestedTimeSlots
-      : flatTimeSlot
-      ? [flatTimeSlot]
-      : [];
-
-  if (timeSlots.length === 0) return null;
-
-  const staffName =
-    toStringValue(
-      rawAvailability.staffName ??
-        rawAvailability.staff_name ??
-        rawAvailability.fullName ??
-        rawAvailability.full_name ??
-        (staffRecord
-          ? staffRecord.name ??
-            staffRecord.fullName ??
-            staffRecord.full_name
-          : undefined)
-    ) || memberLookup[staffId] || "Unknown Staff";
-
-  const position = toStringValue(
-    rawAvailability.position ??
-      (staffRecord ? staffRecord.position ?? staffRecord.title : undefined)
-  );
-
-  const role = toStringValue(
-    rawAvailability.role ??
-      rawAvailability.designation ??
-      (staffRecord ? staffRecord.role ?? staffRecord.designation : undefined)
-  );
-
-  const bookedSessions = Array.isArray(bookedSessionsRaw)
-    ? bookedSessionsRaw
-        .map((session) => normalizeBookedSession(session, staffId))
-        .filter((session): session is BookedSession => session !== null)
-    : [];
-
-  return {
-    id:
-      toStringValue(
-        rawAvailability.id ??
-          rawAvailability.availabilityId ??
-          rawAvailability.availability_id
-      ) || undefined,
-    staffId,
-    staffName,
-    position,
-    role,
-    maxBookingsPerSlot: Math.max(
-      1,
-      toNumberValue(
-        rawAvailability.maxBookingsPerSlot ??
-          rawAvailability.max_bookings_per_slot ??
-          rawAvailability.maxBookings ??
-          rawAvailability.max_bookings ??
-          (Array.isArray(timeSlotsRaw) &&
-          timeSlotsRaw.length > 0 &&
-          isRecord(timeSlotsRaw[0])
-            ? timeSlotsRaw[0].maxBookingsPerSlot ??
-              timeSlotsRaw[0].max_bookings_per_slot
-            : undefined),
-        1
-      )
-    ),
-    bookedSessions,
-    timeSlots,
-  };
-};
-
-const getDayFromDate = (date: string): DayOfWeek | null => {
-  const [year, month, day] = date.split("T")[0].split("-").map(Number);
-
-  if (!year || !month || !day) {
-    return null;
-  }
-
-  const localDate = new Date(year, month - 1, day);
-  const dayOfWeek = localDate
-    .toLocaleDateString("en-US", { weekday: "long" })
-    .toLowerCase();
-
-  if (dayOptions.includes(dayOfWeek as DayOfWeek)) {
-    return dayOfWeek as DayOfWeek;
-  }
-
+/**
+ * Clears the picked time when a refresh shows it was taken in the meantime,
+ * and says so. Lives as a component because Formik's values are only
+ * reachable inside its render prop.
+ */
+const SelectedSessionGuard = ({
+  taken,
+  onTaken,
+}: {
+  taken: boolean;
+  onTaken: () => void;
+}) => {
+  // Keyed to `taken` alone: onTaken is a fresh closure every render, and a
+  // render that lands before the cleared value would otherwise notify twice.
+  const onTakenRef = useRef(onTaken);
+  onTakenRef.current = onTaken;
+  useEffect(() => {
+    if (taken) onTakenRef.current();
+  }, [taken]);
   return null;
 };
 
-const formatDayLabel = (day: DayOfWeek): string =>
-  day.charAt(0).toUpperCase() + day.slice(1);
-
-const isDateAllowedForDays = (date: string, allowedDays: DayOfWeek[]): boolean => {
-  const dayFromDate = getDayFromDate(date);
-  if (!dayFromDate) return false;
-  return allowedDays.includes(dayFromDate);
-};
-
-const toInputDate = (value?: string): string => {
-  if (!value) return "";
-  return value.split("T")[0];
-};
-
-const getTodayInputDate = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
+/* -------------------------------------------------------------------------- */
+/*  Component                                                                 */
+/* -------------------------------------------------------------------------- */
 
 const AppointmentBookingForm = ({
   onClose,
-  bookedSessions = [],
+  bookedSessions = EMPTY_BOOKED_SESSIONS,
   appointment,
   onSuccess,
 }: {
@@ -489,6 +248,13 @@ const AppointmentBookingForm = ({
 }) => {
   const membersOptions = useStore((state) => state.membersOptions);
   const { user } = useAuth();
+  const isEditing = Boolean(appointment);
+
+  const [step, setStep] = useState<1 | 2>(isEditing ? 2 : 1);
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const hasMountedRef = useRef(false);
+  const formikRef = useRef<FormikProps<BookingFlowValues> | null>(null);
+  const reasonPrefilledRef = useRef(false);
 
   const membersLookup = useMemo(
     () =>
@@ -502,8 +268,43 @@ const AppointmentBookingForm = ({
   // Open (protect-only) endpoint — same one the mobile app uses — so members
   // without the global "view appointments" permission still get the full
   // staff list to book against, instead of an empty "own"-scoped result.
-  const { data: availabilityResponse, loading: availabilityLoading } = useFetch(
+  const { data: initialAvailability, loading: availabilityLoading } = useFetch(
     api.fetch.fetchAppointmentBookingOptions
+  );
+
+  // Background refreshes call the API directly: useFetch flashes the global
+  // loader on every fetch. Polls only while the form is open and the browser
+  // tab is visible, plus once on returning to the tab.
+  const [freshAvailability, setFreshAvailability] =
+    useState<typeof initialAvailability>(null);
+  const availabilityResponse = freshAvailability ?? initialAvailability;
+  const refreshing = useRef(false);
+  const refreshAvailability = useCallback(async () => {
+    if (refreshing.current) return;
+    refreshing.current = true;
+    try {
+      setFreshAvailability(await api.fetch.fetchAppointmentBookingOptions());
+    } catch {
+      // Keep showing the last list; the next tick or the save will catch up.
+    } finally {
+      refreshing.current = false;
+    }
+  }, []);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    }, AVAILABILITY_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshAvailability();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshAvailability]);
+  const { data: reasonsResponse, loading: reasonsLoading } = useFetch(
+    api.fetch.fetchAppointmentReasons
   );
 
   const {
@@ -519,102 +320,95 @@ const AppointmentBookingForm = ({
     updateData,
   } = usePut(api.put.updateAppointmentBooking);
 
-  const staffAvailability = useMemo(() => {
-    const responseData = availabilityResponse?.data;
-    const sourceAvailability = Array.isArray(responseData)
-      ? responseData
-      : isRecord(responseData)
-      ? Array.isArray(responseData.users)
-        ? responseData.users
-        : Array.isArray(responseData.data)
-        ? responseData.data
-        : []
-      : [];
+  const reasonOptions = useMemo<ReasonOption[]>(() => {
+    const fetched = normalizeAppointmentReasons(reasonsResponse?.data)
+      .filter((reason) => reason.is_active)
+      .map((reason) => ({
+        key: `reason:${reason.id}`,
+        label: reason.label,
+        description: reason.description,
+      }));
 
-    if (!Array.isArray(sourceAvailability)) {
-      return [];
-    }
+    return [...(fetched.length > 0 ? fetched : DEFAULT_REASONS), OTHER_REASON];
+  }, [reasonsResponse]);
 
-    const normalizedAvailability = sourceAvailability
-      .map((availability) => normalizeAvailability(availability, membersLookup))
-      .filter((availability): availability is StaffAvailability => availability !== null);
+  const staffAvailability = useMemo(
+    () => normalizeBookingOptions(availabilityResponse?.data, membersLookup),
+    [availabilityResponse, membersLookup]
+  );
 
-    const groupedByStaff = normalizedAvailability.reduce<Record<string, StaffAvailability>>(
-      (acc, availability) => {
-        const existing = acc[availability.staffId];
-
-        if (!existing) {
-          acc[availability.staffId] = {
-            ...availability,
-            bookedSessions: [...(availability.bookedSessions ?? [])],
-            timeSlots: [...availability.timeSlots],
-          };
-          return acc;
-        }
-
-        const mergedBookedSessions = [
-          ...(existing.bookedSessions ?? []),
-          ...(availability.bookedSessions ?? []),
-        ].reduce<BookedSession[]>((sessions, session) => {
-          const exists = sessions.some(
-            (existingSession) =>
-              toInputDate(existingSession.date) === toInputDate(session.date) &&
-              existingSession.start === session.start &&
-              existingSession.end === session.end &&
-              existingSession.staffId === session.staffId
-          );
-
-          if (!exists) {
-            sessions.push(session);
+  const currentAppointmentSlot = useMemo(
+    () =>
+      appointment?.id
+        ? {
+            staffId: toStringValue(appointment.staffId || appointment.attendeeId),
+            date: appointment.date,
+            start: appointment.session?.start,
+            end: appointment.session?.end,
           }
+        : undefined,
+    [appointment]
+  );
 
-          return sessions;
-        }, []);
-
-        const mergedSlots = [...existing.timeSlots];
-        availability.timeSlots.forEach((slot) => {
-          const exists = mergedSlots.some(
-            (existingSlot) =>
-              existingSlot.day === slot.day &&
-              existingSlot.startTime === slot.startTime &&
-              existingSlot.endTime === slot.endTime
-          );
-
-          if (!exists) {
-            mergedSlots.push(slot);
-          }
+  const bookableDaysByStaff = useMemo(() => {
+    const now = new Date();
+    return staffAvailability.reduce<Record<string, BookableDay[]>>(
+      (acc, staff) => {
+        acc[staff.staffId] = buildBookableDays(staff, {
+          extraBookedSessions: bookedSessions,
+          currentAppointment: currentAppointmentSlot,
+          now,
         });
-
-        acc[availability.staffId] = {
-          ...existing,
-          staffName: availability.staffName || existing.staffName,
-          position: availability.position || existing.position,
-          role: availability.role || existing.role,
-          maxBookingsPerSlot:
-            availability.maxBookingsPerSlot || existing.maxBookingsPerSlot,
-          bookedSessions: mergedBookedSessions,
-          timeSlots: mergedSlots,
-        };
         return acc;
       },
       {}
     );
+  }, [bookedSessions, currentAppointmentSlot, staffAvailability]);
 
-    return Object.values(groupedByStaff).filter(
-      (availability) => availability.timeSlots.length > 0
-    );
-  }, [availabilityResponse, membersLookup]);
-
-  const initialValues: BookingFormValues = {
+  const [initialValues] = useState<BookingFlowValues>(() => ({
     fullName: appointment?.fullName ?? user?.name ?? "",
     email: appointment?.email ?? user?.email ?? "",
     phone: appointment?.phone ?? user?.phone ?? "",
     purpose: appointment?.purpose ?? "",
     note: appointment?.note ?? "",
+    reasonKey: appointment
+      ? matchReasonKey(appointment.purpose ?? "", [
+          ...DEFAULT_REASONS,
+          OTHER_REASON,
+        ])
+      : "",
     staffId: (appointment?.staffId || appointment?.attendeeId) ?? "",
     date: toInputDate(appointment?.date),
     session: appointment?.session ?? undefined,
-  };
+  }));
+
+  // Edit mode: once the real reasons arrive, re-match the stored purpose
+  // against them (unless the member already picked a reason themselves).
+  useEffect(() => {
+    if (!appointment || reasonsLoading || reasonPrefilledRef.current) return;
+    if (!reasonsResponse) return;
+    const formik = formikRef.current;
+    if (!formik) return;
+
+    reasonPrefilledRef.current = true;
+    if (getIn(formik.touched, "reasonKey")) return;
+
+    formik.setFieldValue(
+      "reasonKey",
+      matchReasonKey(appointment.purpose ?? "", reasonOptions),
+      false
+    );
+  }, [appointment, reasonOptions, reasonsLoading, reasonsResponse]);
+
+  // Move focus to the new step's heading so keyboard / screen-reader users
+  // land at the top of the step they just opened.
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    stepHeadingRef.current?.focus();
+  }, [step]);
 
   useEffect(() => {
     if (!postResponse) return;
@@ -634,15 +428,33 @@ const AppointmentBookingForm = ({
 
   useEffect(() => {
     if (!postError) return;
-    showNotification(postError.message || "Unable to book appointment.", "error");
-  }, [postError]);
+    if (isSlotTakenError(postError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(postError.message || "Unable to book appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [postError, refreshAvailability]);
 
   useEffect(() => {
     if (!putError) return;
-    showNotification(putError.message || "Unable to update appointment.", "error");
-  }, [putError]);
+    if (isSlotTakenError(putError)) {
+      showNotification(SLOT_TAKEN_MESSAGE, "error", "Appointment");
+    } else {
+      showNotification(putError.message || "Unable to update appointment.", "error");
+    }
+    void refreshAvailability();
+  }, [putError, refreshAvailability]);
 
-  const handleSubmitForm = (values: BookingFormValues) => {
+  const purposeFor = (reasonKey: string): string => {
+    if (reasonKey === OTHER_REASON_KEY) return OTHER_REASON_LABEL;
+    return (
+      reasonOptions.find((option) => option.key === reasonKey)?.label ??
+      OTHER_REASON_LABEL
+    );
+  };
+
+  const handleSubmitForm = (values: BookingFlowValues) => {
     if (!values.session) {
       showNotification("Please select a time slot.", "error", "Appointment");
       return;
@@ -689,8 +501,8 @@ const AppointmentBookingForm = ({
       fullName: values.fullName.trim(),
       email: values.email.trim(),
       phone: values.phone.trim(),
-      purpose: values.purpose.trim(),
-      note: values.note?.trim() || "",
+      purpose: purposeFor(values.reasonKey),
+      note: values.note.trim(),
       availabilityId:
         toStringValue(values.session.availabilityId).trim() || undefined,
       sessionId: toStringValue(values.session.id).trim() || undefined,
@@ -714,8 +526,8 @@ const AppointmentBookingForm = ({
 
   return (
     <Formik
+      innerRef={formikRef}
       initialValues={initialValues}
-      enableReinitialize
       validationSchema={validationSchema}
       onSubmit={handleSubmitForm}
     >
@@ -724,298 +536,676 @@ const AppointmentBookingForm = ({
         errors,
         touched,
         setFieldValue,
-        setFieldError,
         setFieldTouched,
-        handleSubmit,
+        setTouched,
+        validateForm,
+        submitForm,
+        handleBlur,
+        handleChange,
       }) => {
+        const isOther = values.reasonKey === OTHER_REASON_KEY;
+        const noteLength = values.note.length;
+        const step1Valid = Boolean(values.reasonKey) && isNoteValid(values.note);
+
+        const noteError =
+          getIn(touched, "note") && typeof errors.note === "string"
+            ? errors.note
+            : "";
+        const reasonError =
+          getIn(touched, "reasonKey") && typeof errors.reasonKey === "string"
+            ? errors.reasonKey
+            : "";
+        const staffError =
+          getIn(touched, "staffId") && typeof errors.staffId === "string"
+            ? errors.staffId
+            : "";
+        const dateError =
+          getIn(touched, "date") && typeof errors.date === "string"
+            ? errors.date
+            : "";
+        const rawSessionError = getIn(errors, "session");
+        const sessionError =
+          getIn(touched, "session") && typeof rawSessionError === "string"
+            ? rawSessionError
+            : "";
+
         const selectedStaff = staffAvailability.find(
           (staff) => staff.staffId === values.staffId
         );
-        const availableDaysForStaff = selectedStaff
-          ? Array.from(new Set(selectedStaff.timeSlots.map((slot) => slot.day)))
-          : [];
+        const days = bookableDaysByStaff[values.staffId] ?? [];
+        const selectedDay = days.find((day) => day.date === values.date);
+        const monthGroups = groupDaysByMonth(days);
 
-        const selectedDay = values.date ? getDayFromDate(values.date) : null;
-        const isSelectedDateAllowed =
-          !values.date ||
-          availableDaysForStaff.length === 0 ||
-          (selectedDay !== null && availableDaysForStaff.includes(selectedDay));
+        const isOriginalSlot =
+          Boolean(currentAppointmentSlot) &&
+          currentAppointmentSlot?.staffId === values.staffId &&
+          toInputDate(currentAppointmentSlot?.date) ===
+            toInputDate(values.date) &&
+          currentAppointmentSlot?.start === values.session?.start;
+        const selectionOutsideWindow =
+          Boolean(values.date) && !selectedDay && isOriginalSlot;
 
-        const slotsForDay =
-          selectedStaff &&
-          selectedDay &&
-          availableDaysForStaff.includes(selectedDay)
-            ? selectedStaff.timeSlots.filter((slot) => slot.day === selectedDay)
-            : [];
+        const staffName =
+          selectedStaff?.staffName ||
+          appointment?.staffName ||
+          appointment?.attendeeName ||
+          "";
+        const summary =
+          values.date && values.session && staffName
+            ? `${formatLongDate(values.date)} · ${values.session.start} with ${staffName}`
+            : "";
 
-        const staffBookedSessions = [
-          ...(selectedStaff?.bookedSessions ?? []),
-          ...bookedSessions.filter(
-            (bookedSession) => bookedSession.staffId === values.staffId
-          ),
-        ].reduce<BookedSession[]>((sessions, bookedSession) => {
-          const exists = sessions.some(
-            (existingSession) =>
-              toInputDate(existingSession.date) ===
-                toInputDate(bookedSession.date) &&
-              existingSession.start === bookedSession.start &&
-              existingSession.end === bookedSession.end &&
-              existingSession.staffId === bookedSession.staffId
+        const handleReasonSelect = (key: string) => {
+          setFieldValue("reasonKey", key);
+          setFieldTouched("reasonKey", true, false);
+        };
+
+        const handleContinue = () => {
+          if (!step1Valid) {
+            setTouched({ ...touched, reasonKey: true, note: true });
+            return;
+          }
+          setStep(2);
+        };
+
+        const handleStaffSelect = (staffId: string) => {
+          if (staffId === values.staffId) return;
+
+          const staffDays = bookableDaysByStaff[staffId] ?? [];
+          const firstDay = staffDays[0];
+
+          setFieldValue("staffId", staffId);
+          setFieldValue("date", firstDay?.date ?? "");
+          setFieldValue("session", firstOpenSession(firstDay));
+          setFieldTouched("staffId", true, false);
+          setFieldTouched("date", false, false);
+          setFieldTouched("session", false, false);
+        };
+
+        const handleDateSelect = (day: BookableDay) => {
+          if (day.date === values.date) return;
+
+          // Keep the chosen time if it's also open on the new date.
+          const sameTime = day.sessions.find(
+            (entry) =>
+              !entry.booked &&
+              entry.session.start === values.session?.start &&
+              entry.session.end === values.session?.end
           );
 
-          if (!exists) {
-            sessions.push(bookedSession);
+          setFieldValue("date", day.date);
+          setFieldValue("session", sameTime?.session ?? firstOpenSession(day));
+          setFieldTouched("date", true, false);
+        };
+
+        const handleSessionSelect = (session: Session) => {
+          setFieldValue("session", session);
+          setFieldTouched("session", true, false);
+        };
+
+        const attemptSubmit = async () => {
+          const validation = await validateForm();
+          if (validation.reasonKey || validation.note) {
+            setTouched({ ...touched, reasonKey: true, note: true });
+            setStep(1);
+            return;
           }
+          submitForm();
+        };
 
-          return sessions;
-        }, []);
+        const firstEnabledStaffId = staffAvailability.find(
+          (staff) => (bookableDaysByStaff[staff.staffId] ?? []).length > 0
+        )?.staffId;
+        const firstEnabledSessionKey = selectedDay?.sessions.find(
+          (entry) => !entry.booked
+        );
 
-        const sessionError = getIn(errors, "session");
-        const sessionTouched = Boolean(getIn(touched, "session"));
+        // A refresh can mark the picked time booked, or drop its whole day
+        // once that day has no open time left.
+        const selectedEntry = selectedDay?.sessions.find(
+          (entry) =>
+            entry.session.start === values.session?.start &&
+            entry.session.end === values.session?.end
+        );
+        const selectedSessionTaken =
+          Boolean(values.session && values.date) &&
+          !isOriginalSlot &&
+          (selectedDay
+            ? Boolean(selectedEntry?.booked)
+            : Boolean(selectedStaff) && days.length > 0);
 
         return (
-          <Form className="flex h-[80vh] flex-col overflow-hidden">
+          <Form className="flex h-[80vh] flex-col overflow-hidden" noValidate>
+            <SelectedSessionGuard
+              taken={selectedSessionTaken}
+              onTaken={() => {
+                setFieldValue("session", undefined);
+                showNotification(
+                  `${values.session?.start ?? "That time"} was just booked by someone else. Please pick another time.`,
+                  "error",
+                  "Appointment"
+                );
+              }}
+            />
             <div className="sticky top-0 z-10">
               <FormHeader>
-                <p className="text-lg font-semibold">
-                  {appointment ? "Edit Appointment" : "Create Appointment"}
+                <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+                  Step {step} of 2
                 </p>
-                <p className="text-sm text-white">
-                  {appointment
-                    ? "Update appointment details and save your changes"
-                    : "Book a new appointment with an available staff member"}
+                <p className="text-lg font-semibold">
+                  {isEditing ? "Edit appointment" : "Book an appointment"}
                 </p>
               </FormHeader>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 px-6 py-4">
-              <Field
-                component={FormikInputDiv}
-                label="Full Name *"
-                name="fullName"
-                id="fullName"
-                className="w-full"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Field
-                  component={FormikInputDiv}
-                  label="Email Address *"
-                  name="email"
-                  id="email"
-                  className="w-full"
-                />
-
-                <Field
-                  component={FormikInputDiv}
-                  label="Phone Number *"
-                  name="phone"
-                  id="phone"
-                  className="w-full"
-                />
-              </div>
-
-              <Field
-                component={FormikInputDiv}
-                label="Appointment Purpose *"
-                name="purpose"
-                id="purpose"
-                className="w-full"
-              />
-
-              <Field
-                component={FormikInputDiv}
-                type="textarea"
-                label="Additional Notes"
-                name="note"
-                id="note"
-                className="w-full"
-              />
-
-              <Field
-                component={FormikSelectField}
-                label="Appointment With *"
-                name="staffId"
-                id="staffId"
-                className="w-full"
-                options={staffAvailability.map((staff) => ({
-                  label: staff.staffName,
-                  value: staff.staffId,
-                }))}
-                onChange={(name: string, value: string | number) => {
-                  setFieldValue(name, String(value));
-                  setFieldValue("date", "");
-                  setFieldValue("session", undefined);
-                  setFieldTouched("session", false, false);
-                }}
-              />
-
-              {availabilityLoading && (
-                <div className="text-sm text-primaryGray">
-                  Loading staff availability...
-                </div>
-              )}
-
-              {selectedStaff && (
-                <div className="text-sm bg-lightGray/40 p-3 rounded break-words">
-                  <strong>Availability</strong>
-                  {selectedStaff.timeSlots.length === 0 && (
-                    <p className="mt-1 text-primaryGray">
-                      No configured availability for this staff member.
-                    </p>
-                  )}
-                  {selectedStaff.timeSlots.map((slot, index) => (
-                    <div
-                      key={`${slot.day}-${slot.startTime}-${slot.endTime}-${index}`}
-                      className="capitalize"
+            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              {step === 1 ? (
+                <>
+                  <div className="space-y-1">
+                    <h2
+                      id="booking-step-1-title"
+                      ref={stepHeadingRef}
+                      tabIndex={-1}
+                      className="text-xl font-semibold text-primary focus:outline-none"
                     >
-                      {slot.day}: {slot.startTime} - {slot.endTime}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      What would you like to talk about?
+                    </h2>
+                    <p className="text-sm text-primaryGray">
+                      This helps us prepare. Everything you share stays
+                      confidential.
+                    </p>
+                  </div>
 
-              <Field
-                component={FormikInputDiv}
-                type="date"
-                label="Appointment Date *"
-                name="date"
-                id="date"
-                min={getTodayInputDate()}
-                disabled={!values.staffId}
-                className="w-full"
-                onChange={(name: string, value: string | number) => {
-                  const nextDateValue = String(value);
-
-                  if (
-                    selectedStaff &&
-                    availableDaysForStaff.length > 0 &&
-                    !isDateAllowedForDays(nextDateValue, availableDaysForStaff)
-                  ) {
-                    setFieldValue(name, "");
-                    setFieldError(
-                      "date",
-                      `Selected staff is only available on ${availableDaysForStaff
-                        .map(formatDayLabel)
-                        .join(", ")}.`
-                    );
-                    setFieldTouched("date", true, false);
-                    setFieldValue("session", undefined);
-                    setFieldTouched("session", false, false);
-                    return;
-                  }
-
-                  setFieldValue(name, nextDateValue);
-                  setFieldError("date", undefined);
-                  setFieldValue("session", undefined);
-                  setFieldTouched("session", false, false);
-                }}
-              />
-              {selectedStaff && availableDaysForStaff.length > 0 && (
-                <p className="text-xs text-gray-600 -mt-2">
-                  Available on: {availableDaysForStaff.map(formatDayLabel).join(", ")}
-                </p>
-              )}
-              {!isSelectedDateAllowed && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  Please choose one of the available days for this staff member.
-                </p>
-              )}
-
-              {values.staffId &&
-                values.date &&
-                isSelectedDateAllowed &&
-                slotsForDay.length > 0 && (
-                <div className="space-y-2">
-                  <label htmlFor="session-options" className="text-sm font-medium">
-                    Time Slot *
-                  </label>
-                  <div
-                    id="session-options"
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-                  >
-                    {slotsForDay.flatMap((slot, slotIndex) =>
-                      slot.sessions.map((session, sessionIndex) => {
-                        const isBookedBySession = staffBookedSessions.some(
-                          (booked) =>
-                            booked.staffId === values.staffId &&
-                            toInputDate(booked.date) === toInputDate(values.date) &&
-                            booked.start === session.start &&
-                            booked.end === session.end
-                        );
-
-                        const isCurrentAppointmentSession =
-                          Boolean(appointment?.id) &&
-                          toStringValue(
-                            appointment?.staffId ?? appointment?.attendeeId
-                          ) === values.staffId &&
-                          toInputDate(appointment?.date) ===
-                            toInputDate(values.date) &&
-                          appointment?.session?.start === session.start &&
-                          appointment?.session?.end === session.end;
-
-                        const isBooked =
-                          isBookedBySession && !isCurrentAppointmentSession;
-
-                        const isSelected =
-                          values.session?.start === session.start &&
-                          values.session?.end === session.end;
-
+                  <div className="space-y-2">
+                    <div
+                      role="radiogroup"
+                      aria-labelledby="booking-step-1-title"
+                      aria-required="true"
+                      aria-invalid={Boolean(reasonError)}
+                      aria-describedby={reasonError ? "reason-error" : undefined}
+                      aria-busy={reasonsLoading}
+                      className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                    >
+                      {reasonOptions.map((option, index) => {
+                        const isSelected = values.reasonKey === option.key;
                         return (
                           <button
-                            key={`${slot.day}-${slotIndex}-${session.start}-${session.end}-${sessionIndex}`}
+                            key={option.key}
                             type="button"
-                            disabled={isBooked}
-                            className={`border rounded px-3 py-2 text-sm ${
-                              isBooked
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                : isSelected
-                                ? "bg-primary text-white"
-                                : "hover:bg-gray-50"
-                            }`}
-                            onClick={() => {
-                              if (isBooked) return;
-                              setFieldValue("session", session);
-                              setFieldTouched("session", true, false);
-                            }}
+                            role="radio"
+                            aria-checked={isSelected}
+                            tabIndex={radioTabIndex(
+                              isSelected,
+                              index === 0,
+                              Boolean(values.reasonKey)
+                            )}
+                            onClick={() => handleReasonSelect(option.key)}
+                            onKeyDown={handleRadioKeyDown}
+                            className={cn(
+                              "flex items-start gap-3 rounded-xl border p-4 text-left transition-colors",
+                              focusRing,
+                              isSelected
+                                ? "border-primary bg-primary/5"
+                                : "border-lightGray bg-white hover:border-primary/40 hover:bg-lightGray/20"
+                            )}
                           >
-                            {session.start} - {session.end}
+                            <span className="min-w-0 flex-1">
+                              <span className="block font-medium text-primary">
+                                {option.label}
+                              </span>
+                              {option.description ? (
+                                <span className="mt-0.5 block text-sm text-primaryGray">
+                                  {option.description}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span
+                              aria-hidden="true"
+                              className={cn(
+                                "mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border",
+                                isSelected
+                                  ? "border-primary"
+                                  : "border-lightGray"
+                              )}
+                            >
+                              {isSelected && (
+                                <CheckCircleIcon className="h-5 w-5 text-primary" />
+                              )}
+                            </span>
                           </button>
                         );
-                      })
+                      })}
+                    </div>
+                    {reasonError && (
+                      <FieldError id="reason-error">{reasonError}</FieldError>
                     )}
                   </div>
 
-                  {sessionTouched && typeof sessionError === "string" && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{sessionError}</p>
-                  )}
-                </div>
-              )}
-
-              {values.staffId &&
-                values.date &&
-                !availabilityLoading &&
-                isSelectedDateAllowed &&
-                slotsForDay.length === 0 && (
-                  <div className="text-sm text-primaryGray">
-                    No available time slots for the selected date.
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="booking-note"
+                      className="block text-sm font-medium text-primary"
+                    >
+                      {isOther
+                        ? "Tell us in your own words"
+                        : "What would you like to discuss?"}{" "}
+                      <span aria-hidden="true">*</span>
+                    </label>
+                    <textarea
+                      id="booking-note"
+                      name="note"
+                      rows={4}
+                      maxLength={NOTE_MAX}
+                      required
+                      aria-required="true"
+                      aria-invalid={Boolean(noteError)}
+                      aria-describedby={cn(
+                        "booking-note-help booking-note-count",
+                        noteError && "booking-note-error"
+                      )}
+                      placeholder={
+                        isOther
+                          ? "What would you like to talk about?"
+                          : "A sentence or two helps your pastor prepare."
+                      }
+                      value={values.note}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={cn(
+                        "w-full rounded-lg border bg-white px-3 py-2 text-sm text-primary placeholder:text-primaryGray/70",
+                        focusRing,
+                        noteError ? "border-red-500" : "border-lightGray"
+                      )}
+                    />
+                    <div className="flex items-start justify-between gap-3">
+                      <p
+                        id="booking-note-help"
+                        className="text-xs text-primaryGray"
+                      >
+                        Only the person you meet will see this.
+                      </p>
+                      <p
+                        id="booking-note-count"
+                        aria-live="polite"
+                        className={cn(
+                          "flex-shrink-0 text-xs",
+                          noteLength >= NOTE_MAX
+                            ? "text-red-600"
+                            : "text-primaryGray"
+                        )}
+                      >
+                        {noteLength}/{NOTE_MAX}
+                      </p>
+                    </div>
+                    {noteError && (
+                      <FieldError id="booking-note-error">{noteError}</FieldError>
+                    )}
                   </div>
-                )}
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <h2
+                      ref={stepHeadingRef}
+                      tabIndex={-1}
+                      className="text-xl font-semibold text-primary focus:outline-none"
+                    >
+                      Choose a time
+                    </h2>
+                    {(values.fullName || values.email) && (
+                      <p className="text-sm text-primaryGray">
+                        Booking as{" "}
+                        <span className="font-medium text-primary">
+                          {values.fullName || "you"}
+                        </span>
+                        {values.email ? ` · ${values.email}` : ""}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Who you'll see */}
+                  <section className="space-y-2" aria-labelledby="booking-staff-title">
+                    <h3
+                      id="booking-staff-title"
+                      className="text-base font-semibold text-primary"
+                    >
+                      Who you'll see
+                    </h3>
+
+                    {availabilityLoading && staffAvailability.length === 0 ? (
+                      <div className="space-y-2" aria-busy="true">
+                        <span className="sr-only">Loading who's available…</span>
+                        {[0, 1, 2].map((key) => (
+                          <div
+                            key={key}
+                            className="h-16 animate-pulse rounded-xl bg-lightGray/40"
+                          />
+                        ))}
+                      </div>
+                    ) : staffAvailability.length === 0 ? (
+                      <p className="rounded-xl border border-dashed border-lightGray p-4 text-sm text-primaryGray">
+                        No one is taking appointments right now. Please check
+                        back later.
+                      </p>
+                    ) : (
+                      <div
+                        role="radiogroup"
+                        aria-labelledby="booking-staff-title"
+                        aria-required="true"
+                        aria-invalid={Boolean(staffError)}
+                        aria-describedby={staffError ? "staff-error" : undefined}
+                        className="space-y-2"
+                      >
+                        {staffAvailability.map((staff) => {
+                          const staffDays =
+                            bookableDaysByStaff[staff.staffId] ?? [];
+                          const openTimes = staffDays.reduce(
+                            (total, day) => total + day.openCount,
+                            0
+                          );
+                          const isDisabled = openTimes === 0;
+                          const isSelected = values.staffId === staff.staffId;
+
+                          return (
+                            <button
+                              key={staff.staffId}
+                              type="button"
+                              role="radio"
+                              aria-checked={isSelected}
+                              disabled={isDisabled}
+                              aria-disabled={isDisabled}
+                              tabIndex={
+                                isDisabled
+                                  ? -1
+                                  : radioTabIndex(
+                                      isSelected,
+                                      staff.staffId === firstEnabledStaffId,
+                                      Boolean(
+                                        values.staffId &&
+                                          (bookableDaysByStaff[values.staffId] ?? [])
+                                            .length > 0
+                                      )
+                                    )
+                              }
+                              onClick={() => handleStaffSelect(staff.staffId)}
+                              onKeyDown={handleRadioKeyDown}
+                              className={cn(
+                                "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors",
+                                focusRing,
+                                isDisabled
+                                  ? "cursor-not-allowed border-lightGray bg-lightGray/20 opacity-70"
+                                  : isSelected
+                                  ? "border-primary bg-primary/5"
+                                  : "border-lightGray bg-white hover:border-primary/40 hover:bg-lightGray/20"
+                              )}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+                              >
+                                {staff.staffName
+                                  .split(" ")
+                                  .filter(Boolean)
+                                  .slice(0, 2)
+                                  .map((part) => part[0]?.toUpperCase())
+                                  .join("")}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate font-medium text-primary">
+                                  {staff.staffName}
+                                </span>
+                                {staff.position ? (
+                                  <span className="block truncate text-sm text-primaryGray">
+                                    {staff.position}
+                                  </span>
+                                ) : null}
+                                <span
+                                  className={cn(
+                                    "block text-xs",
+                                    isDisabled
+                                      ? "text-primaryGray"
+                                      : "text-primary/80"
+                                  )}
+                                >
+                                  {isDisabled
+                                    ? "No open times"
+                                    : `${pluralTimes(openTimes)} in the next 4 weeks`}
+                                </span>
+                              </span>
+                              {isSelected && (
+                                <CheckCircleIcon
+                                  aria-hidden="true"
+                                  className="h-5 w-5 flex-shrink-0 text-primary"
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {staffError && (
+                      <FieldError id="staff-error">{staffError}</FieldError>
+                    )}
+                  </section>
+
+                  {/* Pick a time */}
+                  <section className="space-y-3" aria-labelledby="booking-time-title">
+                    <h3
+                      id="booking-time-title"
+                      className="text-base font-semibold text-primary"
+                    >
+                      Pick a time
+                    </h3>
+
+                    {!values.staffId ? (
+                      <p className="text-sm text-primaryGray">
+                        Choose who you'd like to see to view their open times.
+                      </p>
+                    ) : days.length === 0 ? (
+                      <p className="text-sm text-primaryGray">
+                        {selectedStaff?.staffName || "This person"} has no open
+                        times in the next {BOOKING_WINDOW_DAYS / 7} weeks.
+                      </p>
+                    ) : (
+                      <>
+                        <div className="space-y-1">
+                          <p
+                            id="booking-date-title"
+                            className="text-sm font-medium text-primary"
+                          >
+                            Date
+                          </p>
+                          <div
+                            role="radiogroup"
+                            aria-labelledby="booking-date-title"
+                            aria-required="true"
+                            aria-invalid={Boolean(dateError)}
+                            aria-describedby={dateError ? "date-error" : undefined}
+                            className="space-y-3"
+                          >
+                            {monthGroups.map((group) => (
+                              <div key={group.month} className="space-y-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-primaryGray">
+                                  {group.month}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {group.days.map((day) => {
+                                    const date = parseInputDate(day.date);
+                                    const isSelected = values.date === day.date;
+                                    return (
+                                      <button
+                                        key={day.date}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={isSelected}
+                                        aria-label={`${formatLongDate(day.date)}, ${pluralTimes(day.openCount)}`}
+                                        tabIndex={radioTabIndex(
+                                          isSelected,
+                                          day.date === days[0].date,
+                                          Boolean(selectedDay)
+                                        )}
+                                        onClick={() => handleDateSelect(day)}
+                                        onKeyDown={handleRadioKeyDown}
+                                        className={cn(
+                                          "flex w-16 flex-col items-center rounded-xl border px-2 py-2 transition-colors",
+                                          focusRing,
+                                          isSelected
+                                            ? "border-primary bg-primary text-white"
+                                            : "border-lightGray bg-white text-primary hover:border-primary/40"
+                                        )}
+                                      >
+                                        <span className="text-[11px] font-medium uppercase">
+                                          {date?.toLocaleDateString("en-US", {
+                                            weekday: "short",
+                                          })}
+                                        </span>
+                                        <span className="text-lg font-semibold leading-6">
+                                          {date?.getDate()}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {dateError && (
+                            <FieldError id="date-error">{dateError}</FieldError>
+                          )}
+                        </div>
+
+                        {selectionOutsideWindow && values.session && (
+                          <p className="rounded-lg bg-lightGray/30 p-3 text-sm text-primaryGray">
+                            Currently booked for{" "}
+                            <span className="font-medium text-primary">
+                              {formatLongDate(values.date)} · {values.session.start}
+                            </span>
+                            . Pick a date above to move it.
+                          </p>
+                        )}
+
+                        {selectedDay && (
+                          <div className="space-y-1">
+                            <p
+                              id="booking-session-title"
+                              className="text-sm font-medium text-primary"
+                            >
+                              Time on {formatLongDate(selectedDay.date)}
+                            </p>
+                            <div
+                              role="radiogroup"
+                              aria-labelledby="booking-session-title"
+                              aria-required="true"
+                              aria-invalid={Boolean(sessionError)}
+                              aria-describedby={
+                                sessionError ? "session-error" : undefined
+                              }
+                              className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+                            >
+                              {selectedDay.sessions.map(({ session, booked }) => {
+                                const isSelected =
+                                  values.session?.start === session.start &&
+                                  values.session?.end === session.end;
+                                const hasSelection = selectedDay.sessions.some(
+                                  (entry) =>
+                                    !entry.booked &&
+                                    entry.session.start === values.session?.start &&
+                                    entry.session.end === values.session?.end
+                                );
+
+                                return (
+                                  <button
+                                    key={`${session.start}-${session.end}`}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={isSelected && !booked}
+                                    disabled={booked}
+                                    aria-disabled={booked}
+                                    aria-label={`${session.start} to ${session.end}${booked ? ", booked" : ""}`}
+                                    tabIndex={
+                                      booked
+                                        ? -1
+                                        : radioTabIndex(
+                                            isSelected,
+                                            firstEnabledSessionKey?.session === session,
+                                            hasSelection
+                                          )
+                                    }
+                                    onClick={() => handleSessionSelect(session)}
+                                    onKeyDown={handleRadioKeyDown}
+                                    className={cn(
+                                      "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                                      focusRing,
+                                      booked
+                                        ? "cursor-not-allowed border-lightGray bg-lightGray/30 text-primaryGray line-through"
+                                        : isSelected
+                                        ? "border-primary bg-primary text-white"
+                                        : "border-lightGray bg-white text-primary hover:border-primary/40"
+                                    )}
+                                  >
+                                    {session.start}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {sessionError && (
+                              <FieldError id="session-error">
+                                {sessionError}
+                              </FieldError>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </section>
+                </>
+              )}
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
-              <Button
-                value="Cancel"
-                type="button"
-                variant="secondary"
-                onClick={onClose}
-              />
-              <Button
-                type="submit"
-                onClick={()=>handleSubmit}
-                loading={postLoading || putLoading}
-                value={appointment ? "Update Appointment" : "Book Appointment"}
-              />
+            <div className="sticky bottom-0 space-y-3 border-t bg-white px-6 py-4">
+              {step === 2 && summary && (
+                <p className="text-sm text-primary" aria-live="polite">
+                  <span className="font-medium">{summary}</span>
+                </p>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  {step === 2 && (
+                    <Button
+                      value="Back"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setStep(1)}
+                    />
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    value="Cancel"
+                    type="button"
+                    variant="secondary"
+                    onClick={onClose}
+                  />
+                  {step === 1 ? (
+                    <Button
+                      value="Continue"
+                      type="button"
+                      variant="primary"
+                      disabled={!step1Valid}
+                      onClick={handleContinue}
+                    />
+                  ) : (
+                    <Button
+                      value={isEditing ? "Update appointment" : "Book appointment"}
+                      type="button"
+                      variant="primary"
+                      onClick={attemptSubmit}
+                      loading={postLoading || putLoading}
+                      disabled={postLoading || putLoading}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           </Form>
         );

@@ -90,6 +90,7 @@ import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
 import {
   Appointment,
   AppointmentBookingsQuery,
+  AppointmentReason,
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
@@ -120,7 +121,6 @@ import type {
   NotificationListPayload,
   NotificationPreference,
   NotificationPushPublicKeyPayload,
-  NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
 import type {
@@ -407,12 +407,6 @@ export class ApiCalls {
     ApiResponse<number | NotificationUnreadCountPayload>
   > => {
     return this.fetchFromApi("notifications/unread-count");
-  };
-
-  fetchNotificationsStreamToken = (): Promise<
-    ApiResponse<string | NotificationStreamTokenPayload>
-  > => {
-    return this.fetchFromApi("notifications/stream-token");
   };
 
   fetchNotificationsPushPublicKey = (): Promise<
@@ -774,6 +768,20 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<StaffAvailabilityStatusResponse>> => {
     return this.fetchFromApi("appointment/availability/booking-options", query);
+  };
+
+  // Active booking reasons, ordered — any signed-in user (member booking form).
+  fetchAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons", query);
+  };
+
+  // Every booking reason incl. inactive — Appointments manage permission.
+  fetchManageAppointmentReasons = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentReason[]>> => {
+    return this.fetchFromApi("appointment/reasons/manage", query);
   };
 
   fetchAppointmentBookings = (

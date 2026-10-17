@@ -1,5 +1,8 @@
 import { relativePath } from "@/utils";
-import { userTypeWithToken } from "@/utils/interfaces";
+import {
+  collectCandidateRecords,
+  mergeUserPermissionSources,
+} from "@/utils/userPermissions";
 import {
   ChangeEvent,
   FocusEvent,
@@ -36,67 +39,16 @@ interface ApiResponse {
   data?: Record<string, unknown> | string;
 }
 
-type PermissionCandidate = Record<string, unknown> | string[] | null | undefined;
-
 const initialValues: LoginValues = {
   email: "",
   password: "",
 };
-
-const USER_PROFILE_FIELDS = [
-  "id",
-  "member_id",
-  "email",
-  "name",
-  "phone",
-  "user_category",
-  "profile_img",
-  "member_since",
-  "membership_type",
-  "ministry_worker",
-  "department",
-  "department_positions",
-  "life_center_leader",
-  "instructor",
-] as const;
 
 const getResponseMessage = (data: ApiResponse["data"]): string | undefined => {
   if (!data) return undefined;
   if (typeof data === "string") return data;
   const possibleMessage = data.message || data.error || data.detail;
   return typeof possibleMessage === "string" ? possibleMessage : undefined;
-};
-
-const asRecord = (value: unknown): Record<string, unknown> | undefined => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-  return value as Record<string, unknown>;
-};
-
-const collectCandidateRecords = (payload: unknown): Record<string, unknown>[] => {
-  const root = asRecord(payload);
-  if (!root) return [];
-
-  const levelOne = asRecord(root.data);
-  const levelTwo = levelOne ? asRecord(levelOne.data) : undefined;
-  const candidates = [
-    root,
-    levelOne,
-    levelTwo,
-    asRecord(root.user),
-    levelOne ? asRecord(levelOne.user) : undefined,
-    levelTwo ? asRecord(levelTwo.user) : undefined,
-  ];
-
-  const seen = new Set<Record<string, unknown>>();
-  const records: Record<string, unknown>[] = [];
-
-  candidates.forEach((candidate) => {
-    if (!candidate || seen.has(candidate)) return;
-    seen.add(candidate);
-    records.push(candidate);
-  });
-
-  return records;
 };
 
 const extractTokenFromPayload = (payload: unknown): string | undefined => {
@@ -106,124 +58,6 @@ const extractTokenFromPayload = (payload: unknown): string | undefined => {
     if (typeof token === "string" && token.trim()) return token;
   }
   return undefined;
-};
-
-const extractPermissionsFromRecord = (
-  record: Record<string, unknown>
-): PermissionCandidate => {
-  const direct = record.permissions;
-  if (Array.isArray(direct) || asRecord(direct)) {
-    return direct as PermissionCandidate;
-  }
-
-  const access = asRecord(record.access);
-  if (access) {
-    const accessPermissions = access.permissions;
-    if (Array.isArray(accessPermissions) || asRecord(accessPermissions)) {
-      return accessPermissions as PermissionCandidate;
-    }
-  }
-
-  const accessLevel = asRecord(record.access_level);
-  if (accessLevel) {
-    const levelPermissions = accessLevel.permissions;
-    if (Array.isArray(levelPermissions) || asRecord(levelPermissions)) {
-      return levelPermissions as PermissionCandidate;
-    }
-  }
-
-  return undefined;
-};
-
-const extractPermissionSources = (
-  payload: unknown
-): {
-  permissions: PermissionCandidate;
-  access_permissions: Record<string, unknown> | null | undefined;
-} => {
-  const records = collectCandidateRecords(payload);
-  let permissions: PermissionCandidate = undefined;
-  let accessPermissions: Record<string, unknown> | null | undefined = undefined;
-
-  for (const record of records) {
-    if (!accessPermissions) {
-      const directAccessPermissions = asRecord(record.access_permissions);
-      if (directAccessPermissions) {
-        accessPermissions = directAccessPermissions;
-      }
-    }
-
-    if (!permissions) {
-      const extractedPermissions = extractPermissionsFromRecord(record);
-      if (extractedPermissions) {
-        permissions = extractedPermissions;
-      }
-    }
-
-    if (permissions && accessPermissions) break;
-  }
-
-  return {
-    permissions,
-    access_permissions: accessPermissions,
-  };
-};
-
-const extractUserProfileFromSources = (
-  ...sources: unknown[]
-): Partial<userTypeWithToken> => {
-  const mergedProfile: Partial<userTypeWithToken> = {};
-
-  sources.forEach((source) => {
-    const records = collectCandidateRecords(source);
-
-    records.forEach((record) => {
-      USER_PROFILE_FIELDS.forEach((field) => {
-        if (mergedProfile[field] !== undefined) return;
-        const value = record[field];
-        if (value !== undefined) {
-          (mergedProfile as Record<string, unknown>)[field] = value;
-        }
-      });
-    });
-  });
-
-  if (mergedProfile.id !== undefined) {
-    mergedProfile.id = String(mergedProfile.id);
-  }
-  if (mergedProfile.member_id !== undefined && mergedProfile.member_id !== null) {
-    mergedProfile.member_id = String(mergedProfile.member_id);
-  }
-
-  return mergedProfile;
-};
-
-const mergeUserPermissionSources = (
-  decodedToken: userTypeWithToken,
-  ...sources: unknown[]
-): userTypeWithToken => {
-  const profile = extractUserProfileFromSources(...sources);
-  let permissions: PermissionCandidate = decodedToken.permissions;
-  let accessPermissions = decodedToken.access_permissions;
-
-  sources.forEach((source) => {
-    const extracted = extractPermissionSources(source);
-
-    if (extracted.permissions) {
-      permissions = extracted.permissions;
-    }
-
-    if (extracted.access_permissions) {
-      accessPermissions = extracted.access_permissions;
-    }
-  });
-
-  return {
-    ...decodedToken,
-    ...profile,
-    permissions: permissions as userTypeWithToken["permissions"],
-    access_permissions: accessPermissions,
-  };
 };
 
 function LoginPage() {

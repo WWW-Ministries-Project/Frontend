@@ -5,6 +5,8 @@ export const NOTIFICATION_EVENT_KEY =
 export const NOTIFICATION_CHANNEL_NAME = "churchproject.notifications.realtime";
 export const NOTIFICATION_SNAPSHOT_KEY =
   "churchproject.notifications.realtime.snapshot";
+// No longer written (socket.io recovery replaced SSE last-event-id); still
+// cleared on sign-out so browsers upgraded from the SSE build drop it.
 export const NOTIFICATION_LAST_EVENT_ID_KEY =
   "churchproject.notifications.realtime.last_event_id";
 

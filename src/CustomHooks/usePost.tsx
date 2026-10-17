@@ -25,8 +25,14 @@ export const usePost = <T, K>(postFunction: (payload: K) => Promise<T>) => {
           error !== null &&
           "response" in error
         ) {
-          const err = error as { response?: { data?: { message?: string } } };
-          const message = err.response?.data?.message || "Server error";
+          const err = error as {
+            response?: { data?: { message?: string; error?: string } };
+          };
+          // Many backend handlers send `{ error }` rather than `{ message }`.
+          const message =
+            err.response?.data?.message ||
+            err.response?.data?.error ||
+            "Server error";
           // showNotification(`Request failed: ${message}`, "error");
           setError(new Error(message));
         } else if (error instanceof Error) {
