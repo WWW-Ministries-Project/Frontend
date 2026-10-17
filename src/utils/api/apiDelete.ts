@@ -76,6 +76,14 @@ export class ApiDeletionCalls {
     return this.deleteFromApi<void>(`program/cohort`, query);
   };
 
+  deleteProgramModule = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/module", query);
+  };
+
+  removeAssignmentExtension = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/assignment-extension", query);
+  };
+
   deleteCourse = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`program/course`, query);
   };

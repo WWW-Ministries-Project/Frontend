@@ -1,5 +1,6 @@
 import {
   COHORT_STATUS,
+  type DueRule,
   normalizeCohortStatus,
   type ClassFormat,
   type CohortStatus,
@@ -192,3 +193,14 @@ export const fmtDate = (value?: string | null) => {
     ? "—"
     : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
+
+export const describeRule = (rule: DueRule | null | undefined) => {
+  if (!rule) return "No due rule";
+  return rule.mode === "after"
+    ? `${rule.days ?? 0} days after week ${rule.week} opens`
+    : `Week ${rule.week} · ${rule.day ?? "Sun"} 23:59`;
+};
+
+/** Default grading category the backend uses when a unit has none set. */
+export const defaultCategory = (type?: string | null) =>
+  type === "assignment" ? "quiz" : type === "assignment-essay" ? "essay" : null;
