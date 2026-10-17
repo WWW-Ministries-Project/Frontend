@@ -52,12 +52,18 @@ import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagem
 import { GuestToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/GuestToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
-import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import CohortsPage from "@/pages/HomePage/pages/MinistrySchool/lms/CohortsPage";
+import CohortWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/CohortWorkspace";
+import InstructorsPage from "@/pages/HomePage/pages/MinistrySchool/lms/InstructorsPage";
+import LearnersPage from "@/pages/HomePage/pages/MinistrySchool/lms/LearnersPage";
+import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/LegacyRedirect";
+import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
+import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
+import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
+import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
-import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
-import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
 import { ReactNode } from "react";
@@ -80,7 +86,6 @@ import MemberGivingComplete from "@/pages/MembersPage/Pages/MemberGivingComplete
 import MemberPledges from "@/pages/MembersPage/Pages/MemberPledges.js";
 import MemberPledgeComplete from "@/pages/MembersPage/Pages/MemberPledgeComplete.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
-import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
 import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
@@ -934,29 +939,68 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.ministrySchool.main,
         name: "School of Ministry",
+        element: <SomDataProvider />,
         isPrivate: true,
         permissionNeeded: "view_school_of_ministry",
         sideTab: true,
         children: [
           {
             path: "",
-            name: "School of Ministry",
-            element: <MinistrySchool />,
+            name: "Dashboard",
+            element: <SomDashboard />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
           },
           {
-            path: "analytics",
-            name: "Analytics",
-            element: <MinistrySchoolAnalytics />,
+            path: "programs",
+            name: "Programs",
+            element: <ProgramsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "programs/:id",
+            name: "Program",
+            element: <ProgramWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "cohorts",
+            name: "Cohorts",
+            element: <CohortsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "cohorts/:id",
+            name: "Cohort",
+            element: <CohortWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "learners",
+            name: "Learners",
+            element: <LearnersPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "instructors",
+            name: "Instructors",
+            element: <InstructorsPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
           },
           {
             path: relativePath.home.ministrySchool.instructorPortal,
-            name: "Instructor Portal",
+            name: "Grading",
             element: <Instructor isAdmin />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
@@ -993,48 +1037,56 @@ export const routes: AppRoute[] = [
             ],
           },
           {
-            path: `${relativePath.home.ministrySchool.program}/:id`,
+            path: "analytics",
+            name: "Analytics",
+            element: <MinistrySchoolAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "",
             name: "",
             element: <ViewPageTemplate />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             children: [
               {
-                path: "",
-                name: "View Program",
-                element: <ViewProgram />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: `${relativePath.home.ministrySchool.topic}`,
-                name: "View Topic",
-                element: <ViewTopic />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: relativePath.home.ministrySchool.cohort,
-                name: "View Cohort",
-                element: <ViewCohort />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: `${relativePath.home.ministrySchool.cohort}/${relativePath.home.ministrySchool.class}`,
+                path: "cohorts/:cohortId/classes/:id",
                 name: "View Class",
                 element: <ViewClass />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
               },
               {
-                path: `${relativePath.home.ministrySchool.cohort}/${relativePath.home.ministrySchool.class}/student/:id`,
+                path: "cohorts/:cohortId/classes/:classId/student/:id",
                 name: "View Student",
                 element: <ViewStudent />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
               },
             ],
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId/class/:classId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId/class/:classId/student/:studentId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
           },
         ],
       },
