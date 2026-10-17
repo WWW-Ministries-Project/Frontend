@@ -1,17 +1,17 @@
-# Device Notifications Backend Contract (Web Push + SSE)
+# Device Notifications Backend Contract (Web Push + socket.io)
 
 ## Scope
 - This contract defines what the backend must implement for cross-device notifications (mobile/laptop across OS) used by the frontend.
 - Date: March 4, 2026.
 - Frontend expects:
-  - In-app realtime notifications via SSE (already in use).
+  - In-app realtime notifications via socket.io (already in use; session JWT in the handshake `auth.token`, contract in Backend `docs/REALTIME_EVENTS.md`).
   - Device push notifications via Web Push.
   - Explicit user opt-in from Notification Center (`Enable device notifications` button).
 
 ## End-to-End Delivery Responsibilities
 When a business event creates a notification, backend must:
 1. Persist notification in DB.
-2. Deliver realtime SSE event to currently connected sessions.
+2. Deliver realtime socket.io event to currently connected sessions.
 3. Deliver Web Push to all active subscriptions for each recipient user.
 4. Maintain unread counters consistent with stored notification rows.
 
@@ -196,10 +196,10 @@ Indexes:
 - Never expose VAPID private key in logs or responses.
 - Sanitize log output: store endpoint hash or truncated value for diagnostics.
 
-## SSE + Push Consistency
+## Realtime + Push Consistency
 Backend must keep these synchronized:
 - Stored notification row.
-- SSE event payload (`notification`, `notification_updated`, `unread_count`).
+- Socket event payload (`notification`, `notification_updated`, `notifications_read_all`, `notifications_cleared`, `notifications_deleted`, `unread_count`).
 - Push payload content/title/body/actionUrl.
 
 Unread count source of truth:
@@ -214,11 +214,19 @@ Frontend currently does this:
   - `notificationclick` -> open/focus target URL
   - `pushsubscriptionchange` -> asks client to resubscribe
 
+## Realtime Connection Expectations
+Frontend currently does this:
+- One socket per browser (leader tab via localStorage lease); other tabs get updates over BroadcastChannel/localStorage.
+- Also consumes `session.changed` (refetch `user/current-user`) and `session.revoked` (sign out).
+- Handshake rejections `TOKEN_MISSING` / `TOKEN_INVALID` / `TOKEN_EXPIRED` / `ACCOUNT_INACTIVE` sign out; `SERVER_ERROR` and server disconnects are retried with jittered backoff (2 s doubling to 60 s).
+- REST polling every 60 s while disconnected; forced REST resync (0-3 s jitter) after a reconnect socket.io could not recover.
+- REST auth answering `401 { "message": "Account inactive" }` is treated as a sign-out.
+
 ## QA Checklist for Backend
 1. Subscribe endpoint stores device and returns success.
 2. Unsubscribe endpoint deactivates endpoint idempotently.
 3. New notification sends push to all active subscriptions for user.
 4. Invalid endpoints (`410/404`) are deactivated automatically.
 5. Transient failures are retried and eventually dead-lettered.
-6. SSE and push payloads contain matching title/body/actionUrl.
+6. Socket and push payloads contain matching title/body/actionUrl.
 7. Multiple devices for one user all receive notification.

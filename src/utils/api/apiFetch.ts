@@ -121,7 +121,6 @@ import type {
   NotificationListPayload,
   NotificationPreference,
   NotificationPushPublicKeyPayload,
-  NotificationStreamTokenPayload,
   NotificationUnreadCountPayload,
 } from "./notifications/interfaces";
 import type {
@@ -408,12 +407,6 @@ export class ApiCalls {
     ApiResponse<number | NotificationUnreadCountPayload>
   > => {
     return this.fetchFromApi("notifications/unread-count");
-  };
-
-  fetchNotificationsStreamToken = (): Promise<
-    ApiResponse<string | NotificationStreamTokenPayload>
-  > => {
-    return this.fetchFromApi("notifications/stream-token");
   };
 
   fetchNotificationsPushPublicKey = (): Promise<
