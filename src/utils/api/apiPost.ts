@@ -55,6 +55,15 @@ import {
   ModulePayload,
   Rubric,
   RubricPayload,
+  AnnouncementPayload,
+  ApplyResult,
+  InstructorAbilities,
+  LibraryItem,
+  LibraryItemPayload,
+  LmsAnnouncement,
+  LmsSession,
+  ProgramInstructor,
+  SessionPayload,
   ProgramModule,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
@@ -438,6 +447,37 @@ export class ApiCreationCalls {
     userIds: number[];
   }): Promise<ApiResponse<{ issued: number; results: { userId: number; ok: boolean; error?: string }[] }>> => {
     return this.postToApi("program/certificates/issue", payload);
+  };
+
+  createLmsSession = (payload: SessionPayload): Promise<ApiResponse<LmsSession>> => {
+    return this.postToApi("program/session", payload);
+  };
+
+  sendCohortAnnouncement = (payload: AnnouncementPayload): Promise<ApiResponse<LmsAnnouncement>> => {
+    return this.postToApi("program/announcement", payload);
+  };
+
+  applyToProgram = (payload: { courseId: number; note?: string }): Promise<ApiResponse<ApplyResult>> => {
+    return this.postToApi("program/apply", payload);
+  };
+
+  addProgramInstructors = (
+    payload: { programId: number; userIds: number[] } & Partial<InstructorAbilities>
+  ): Promise<ApiResponse<ProgramInstructor[]>> => {
+    return this.postToApi("program/program-instructors", payload);
+  };
+
+  createLibraryItem = (payload: LibraryItemPayload): Promise<ApiResponse<LibraryItem>> => {
+    return this.postToApi("program/library-item", payload);
+  };
+
+  useLibraryItem = (payload: {
+    itemId: number;
+    programId: number;
+    moduleId?: number | null;
+    title?: string;
+  }): Promise<ApiResponse<{ topicId: number; name: string }>> => {
+    return this.postToApi("program/library/use", payload);
   };
 
   grantAssignmentExtension = (payload: ExtensionPayload): Promise<ApiResponse<unknown>> => {

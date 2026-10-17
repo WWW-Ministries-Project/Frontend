@@ -11,6 +11,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createLmsActionTracker } from "../utils/lmsGuardrails";
 import { CohortGradebook } from "./assessment/CohortGradebook";
 import { CohortSchedule } from "./CohortSchedule";
+import { CohortAnnouncements } from "./teaching/CohortAnnouncements";
+import { CohortSessions } from "./teaching/CohortSessions";
 import { useSomData, type EnrollmentRow } from "./somDataContext";
 import {
   ATTENTION_RULE,
@@ -35,7 +37,15 @@ import {
 } from "./ui";
 import { useCohortEditors } from "./useCohortEditors";
 
-const TABS = ["Classes", "Gradebook", "Roster", "Assessments", "Schedule"] as const;
+const TABS = [
+  "Classes",
+  "Gradebook",
+  "Roster",
+  "Sessions & attendance",
+  "Assessments",
+  "Schedule",
+  "Announcements",
+] as const;
 type Tab = (typeof TABS)[number];
 const ROSTER_FILTERS = ["All learners", "Needs attention", "Completed"] as const;
 
@@ -198,6 +208,19 @@ export const CohortWorkspace = () => {
             classes={cohort.courses}
             canManage={canManageCurrentRoute}
           />
+        )}
+
+        {tab === "Sessions & attendance" && (
+          <CohortSessions
+            cohortId={cohort.id}
+            programId={cohort.program.id}
+            classes={cohort.courses}
+            canManage={canManageCurrentRoute}
+          />
+        )}
+
+        {tab === "Announcements" && (
+          <CohortAnnouncements cohortId={cohort.id} classes={cohort.courses} canManage={canManageCurrentRoute} />
         )}
 
         {tab === "Schedule" && (

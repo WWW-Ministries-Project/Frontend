@@ -1,4 +1,7 @@
+import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { api } from "@/utils";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { COHORT_STATUS } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo } from "react";
@@ -12,7 +15,7 @@ import {
   personName,
   somPaths,
 } from "./somUtils";
-import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, ProgressBar, StatusPill, LoadError } from "./ui";
+import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, StatusPill, LoadError } from "./ui";
 
 export const SomDashboard = () => {
   const navigate = useNavigate();
@@ -33,6 +36,18 @@ export const SomDashboard = () => {
       .flatMap((c) => c.courses.filter((cls) => !cls.instructor?.id).map((cls) => ({ cls, cohort: c })));
     return { live, upcoming, liveEnrollments, attention, completed, unassigned };
   }, [cohorts, enrollments]);
+
+  // Manage-only endpoints: view-only users never call them.
+  const { canManageCurrentRoute } = useRouteAccess();
+  const dayKey = new Date().toDateString(); // re-query when the day changes in a long-lived tab
+  const sessionQuery = useMemo(() => {
+    const from = new Date(dayKey);
+    return { from: from.toISOString(), to: new Date(from.getTime() + 14 * 86_400_000).toISOString() };
+  }, [dayKey]);
+  const { data: sessionData } = useFetch(api.fetch.fetchLmsSessions, sessionQuery, !canManageCurrentRoute);
+  const { data: pendingData } = useFetch(api.fetch.fetchLmsApplications, { status: "PENDING" }, !canManageCurrentRoute);
+  const nextSessions = (sessionData?.data ?? []).filter((x) => !x.cancelled).slice(0, 4);
+  const pendingCount = pendingData?.data?.length ?? 0;
 
   if (loading && !programs.length) {
     return (
@@ -58,7 +73,7 @@ export const SomDashboard = () => {
           title="Learning dashboard"
           actions={
             <>
-              <Btn to={somPaths.analytics}>View reports</Btn>
+              <Btn to={somPaths.reports}>View reports</Btn>
               <Btn variant="primary" to={`${somPaths.programs}?new=1`}>
                 + New program
               </Btn>
@@ -96,6 +111,15 @@ export const SomDashboard = () => {
             }
             to={somPaths.instructors}
           />
+          {canManageCurrentRoute && (
+            <Kpi
+              label="Awaiting review"
+              value={pendingCount}
+              sub="applications held back"
+              tone={pendingCount ? "warn" : "default"}
+              to={somPaths.learners}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-4">
@@ -159,6 +183,42 @@ export const SomDashboard = () => {
                 </ul>
               )}
             </Panel>
+
+            {canManageCurrentRoute && (
+              <Panel title="Next sessions" action={<Btn variant="ghost" to={somPaths.cohorts}>All cohorts</Btn>}>
+                {nextSessions.length === 0 ? (
+                  <p className="px-4 py-5 text-sm text-primaryGray">No sessions in the next two weeks.</p>
+                ) : (
+                  <ul>
+                    {nextSessions.map((x) => (
+                      <li key={x.id}>
+                        <button
+                          type="button"
+                          onClick={() => navigate(somPaths.cohort(x.cohortId, "Sessions & attendance"))}
+                          className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-2.5 text-left last:border-0 hover:bg-gray-50"
+                        >
+                          <DateTile value={x.starts_at} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-primary">
+                              {x.cohort.program.title} · {x.title}
+                            </p>
+                            <p className="truncate text-xs text-mainGray">
+                              {new Date(x.starts_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} ·{" "}
+                              {x.course?.name ?? "Whole cohort"}
+                              {x.location ? ` · ${x.location}` : ""}
+                              {x.course?.instructor ? ` · ${x.course.instructor}` : ""}
+                            </p>
+                          </div>
+                          <Pill tone={x.mode === "ONLINE" ? "cyan" : x.mode === "HYBRID" ? "fuchsia" : "indigo"}>
+                            {x.mode === "ONLINE" ? "Live online" : x.mode === "HYBRID" ? "Hybrid" : "In person"}
+                          </Pill>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Panel>
+            )}
 
             <Panel title="Coming up">
               {stats.upcoming.length === 0 && stats.unassigned.length === 0 ? (

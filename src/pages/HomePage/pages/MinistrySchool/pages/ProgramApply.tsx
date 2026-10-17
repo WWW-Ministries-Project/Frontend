@@ -7,7 +7,6 @@ import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
 import { api, ClassOption, Programs, relativePath } from "@/utils";
-import { ApiCreationCalls } from "@/utils/api/apiPost";
 import { Badge } from "@/components/Badge";
 import {
   Squares2X2Icon,
@@ -27,7 +26,6 @@ const ProgramApply = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const apiPost = useMemo(() => new ApiCreationCalls(), []);
   const user = useUserStore();
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms);
   const programs = useMemo<Programs[]>(() => data?.data ?? [], [data?.data]);
@@ -78,24 +76,16 @@ const ProgramApply = () => {
       return;
     }
 
-    if (selectedClass.enrolled >= selectedClass.capacity) {
-      showNotification("This class is full. Please choose another class.", "error");
-      return;
-    }
-
     setSubmitting(true);
     try {
       const enrolledProgramId = activeProgram.id;
-      const response = await apiPost.enrollUser({
-        user_id: user.id,
-        course_id: Number(selectedClassId),
-      });
+      // Eligible members are enrolled straight away; anyone the rules hold back
+      // (eligibility, prerequisites or a full class) goes to the review queue.
+      const response = await api.post.applyToProgram({ courseId: Number(selectedClassId) });
+      const result = response.data;
 
-      if ((response as { success?: boolean; message?: string })?.success) {
-        showNotification(
-          (response as { message?: string }).message || "Enrollment successful.",
-          "success"
-        );
+      if (result?.status === "ENROLLED") {
+        showNotification("You're enrolled.", "success");
         setOpen(false);
         refetch();
         navigate(
@@ -103,14 +93,23 @@ const ProgramApply = () => {
             String(enrolledProgramId)
           )}`
         );
-      } else {
+      } else if (result?.status === "PENDING") {
         showNotification(
-          (response as { message?: string }).message || "Enrollment failed. Please try again.",
-          "error"
+          `Application received. The School of Ministry team will review it${
+            result.reasons.length ? ` (${result.reasons.join("; ")})` : ""
+          }.`,
+          "success"
         );
+        setOpen(false);
+        refetch();
+      } else {
+        showNotification(response.message || "We could not submit your application. Please try again.", "error");
       }
-    } catch {
-      showNotification("An unexpected error occurred while enrolling.", "error");
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (error as { message?: string })?.message;
+      showNotification(message || "An unexpected error occurred while applying.", "error");
     } finally {
       setSubmitting(false);
     }

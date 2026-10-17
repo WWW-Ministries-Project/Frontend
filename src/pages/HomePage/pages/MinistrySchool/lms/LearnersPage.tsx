@@ -3,6 +3,8 @@ import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader"
 import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useRouteAccess } from "@/context/RouteAccessContext";
+import { ReviewQueue } from "./people/ReviewQueue";
 import { useSomData, type EnrollmentRow } from "./somDataContext";
 import { ATTENTION_RULE, fmtDate, needsAttention, somPaths } from "./somUtils";
 import { Avatar, EmptyBlock, PageHeader, Panel, ProgressBar, SimpleTable, StatusPill, LoadError } from "./ui";
@@ -26,6 +28,7 @@ export const LearnersPage = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { loading, programs, enrollments, error, refetch } = useSomData();
+  const { canManageCurrentRoute } = useRouteAccess();
   const [search, setSearch] = useState("");
 
   const filterParam = params.get("filter") as FilterKey | null;
@@ -63,8 +66,10 @@ export const LearnersPage = () => {
         {error && <LoadError msg={error} onRetry={refetch} />}
         <PageHeader
           title="Learners"
-          subtitle="Everyone enrolled in a class, with their progress through the program."
+          subtitle="Eligible applicants are enrolled automatically. Review the ones the rules held back."
         />
+
+        <ReviewQueue canManage={canManageCurrentRoute} programFilter={programFilter || undefined} onDecided={refetch} />
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap gap-1.5">

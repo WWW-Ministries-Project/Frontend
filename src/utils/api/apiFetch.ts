@@ -80,6 +80,14 @@ import {
   GradingSubmission,
   ProgramCertificates,
   Rubric,
+  InstructorOverview,
+  LibraryItem,
+  LmsAnnouncement,
+  LmsApplication,
+  LmsReports,
+  LmsSession,
+  ProgramInstructor,
+  SessionAttendance,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
 import type {
@@ -484,6 +492,44 @@ export class ApiCalls {
       { certificateNumber },
       `${certificateNumber}.pdf`
     );
+  };
+
+  fetchLmsSessions = (query?: QueryType): Promise<ApiResponse<LmsSession[]>> => {
+    return this.fetchFromApi("program/sessions", query);
+  };
+
+  fetchSessionAttendance = (query?: QueryType): Promise<ApiResponse<SessionAttendance>> => {
+    return this.fetchFromApi("program/session-attendance", query);
+  };
+
+  fetchCohortAnnouncements = (query?: QueryType): Promise<ApiResponse<LmsAnnouncement[]>> => {
+    return this.fetchFromApi("program/announcements", query);
+  };
+
+  fetchLmsApplications = (query?: QueryType): Promise<ApiResponse<LmsApplication[]>> => {
+    return this.fetchFromApi("program/applications", query);
+  };
+
+  fetchApplyEligibility = (
+    query?: QueryType
+  ): Promise<ApiResponse<{ eligible: boolean; alreadyEnrolled: boolean; reasons: string[] }>> => {
+    return this.fetchFromApi("program/apply/eligibility", query);
+  };
+
+  fetchProgramInstructors = (query?: QueryType): Promise<ApiResponse<ProgramInstructor[]>> => {
+    return this.fetchFromApi("program/program-instructors", query);
+  };
+
+  fetchInstructorsOverview = (query?: QueryType): Promise<ApiResponse<InstructorOverview[]>> => {
+    return this.fetchFromApi("program/instructors-overview", query);
+  };
+
+  fetchContentLibrary = (query?: QueryType): Promise<ApiResponse<LibraryItem[]>> => {
+    return this.fetchFromApi("program/library", query);
+  };
+
+  fetchLmsReports = (query?: QueryType): Promise<ApiResponse<LmsReports>> => {
+    return this.fetchFromApi("program/lms-reports", query);
   };
 
   fetchAllApplicablePrograms = (

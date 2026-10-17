@@ -54,6 +54,8 @@ import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pag
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
 import AssessmentLibraryPage from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentLibraryPage";
 import CohortsPage from "@/pages/HomePage/pages/MinistrySchool/lms/CohortsPage";
+import ContentLibraryPage from "@/pages/HomePage/pages/MinistrySchool/lms/library/ContentLibraryPage";
+import ReportsPage from "@/pages/HomePage/pages/MinistrySchool/lms/reports/ReportsPage";
 import CohortWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/CohortWorkspace";
 import InstructorsPage from "@/pages/HomePage/pages/MinistrySchool/lms/InstructorsPage";
 import LearnersPage from "@/pages/HomePage/pages/MinistrySchool/lms/LearnersPage";
@@ -1003,6 +1005,22 @@ export const routes: AppRoute[] = [
             path: "assessment-library",
             name: "Assessment library",
             element: <AssessmentLibraryPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "content-library",
+            name: "Content library",
+            element: <ContentLibraryPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "reports",
+            name: "Reports",
+            element: <ReportsPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,

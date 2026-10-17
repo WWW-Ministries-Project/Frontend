@@ -16,6 +16,7 @@ import TopicBasicInfoForm from "../../Components/TopicBasicInfoForm";
 import { runAction } from "../runAction";
 import { defaultCategory, describeRule, isAssessmentUnit, unitLabel } from "../somUtils";
 import { Btn, EmptyBlock, StatusPill } from "../ui";
+import { LibraryPickerModal } from "../library/LibraryPickerModal";
 import { DueRuleModal } from "./DueRuleModal";
 
 type Group = { key: string; module: ProgramModule | null; topics: ModuleTopic[] };
@@ -48,6 +49,7 @@ export const ModuleBoard = ({
   const [moduleForm, setModuleForm] = useState<{ id?: number; title: string; weeks: string; description: string } | null>(null);
   const [unitEditor, setUnitEditor] = useState<{ topic: Topic | null } | null>(null);
   const [ruleFor, setRuleFor] = useState<ModuleTopic | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const groups: Group[] = useMemo(() => {
     const modules = [...(data?.data?.modules ?? [])].sort((a, b) => a.order_number - b.order_number || a.id - b.id);
@@ -185,6 +187,9 @@ export const ModuleBoard = ({
         </div>
         {canManage && (
           <div className="flex gap-2">
+            <Btn size="sm" onClick={() => setLibraryOpen(true)}>
+              Add from library
+            </Btn>
             <Btn size="sm" onClick={() => setUnitEditor({ topic: null })}>
               + Unit
             </Btn>
@@ -410,6 +415,14 @@ export const ModuleBoard = ({
           />
         )}
       </Modal>
+
+      <LibraryPickerModal
+        programId={programId}
+        modules={modules.map((m) => ({ id: m.id, title: m.title }))}
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onAdded={refresh}
+      />
 
       <DueRuleModal
         open={Boolean(ruleFor)}
