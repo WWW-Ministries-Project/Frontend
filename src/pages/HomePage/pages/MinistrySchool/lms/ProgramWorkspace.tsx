@@ -2,14 +2,16 @@ import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
-import type { LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
+import type { DueRule, LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import AllTopics from "../Components/AllTopics";
 import CertificateLogos from "../Components/CertificateLogos";
+import { GradingModelPanel } from "./curriculum/GradingModelPanel";
+import { ModuleBoard } from "./curriculum/ModuleBoard";
 import { useSomData } from "./somDataContext";
 import {
   audienceLabel,
+  describeRule,
   fmtDate,
   formatLabel,
   isAssessmentUnit,
@@ -31,7 +33,15 @@ import {
 import { useCohortEditors } from "./useCohortEditors";
 import { useProgramEditor } from "./useProgramEditor";
 
-const TABS = ["Overview", "Curriculum", "Assessments", "Cohorts", "Instructors", "Certificate"] as const;
+const TABS = [
+  "Overview",
+  "Curriculum",
+  "Assessments",
+  "Grading & completion",
+  "Cohorts",
+  "Instructors",
+  "Certificate",
+] as const;
 type Tab = (typeof TABS)[number];
 
 const unitOf = (topic: Topic): LearningUnit | undefined => topic.LearningUnit ?? topic.learningUnit;
@@ -163,31 +173,16 @@ export const ProgramWorkspace = () => {
         )}
 
         {tab === "Curriculum" && (
-          <div className="grid gap-4 laptop:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="min-w-0">
-              <AllTopics topics={topics} programId={programId} refetchProgram={refreshAll} />
-            </div>
-            <aside className="flex h-fit flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm">
-              <h3 className="font-semibold text-primary">At a glance</h3>
-              <ul className="flex flex-col gap-1.5 text-primaryGray">
-                {Object.entries(
-                  topics.reduce<Record<string, number>>((acc, t) => {
-                    const label = unitLabel(unitOf(t)?.type);
-                    acc[label] = (acc[label] ?? 0) + 1;
-                    return acc;
-                  }, {})
-                ).map(([label, n]) => (
-                  <li key={label} className="flex items-center justify-between">
-                    <StatusPill status={label} />
-                    <span className="tabular-nums">{n}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-xs text-mainGray">
-                Learners complete the program when every unit is passed. Changes apply to all live and future cohorts.
-              </p>
-            </aside>
-          </div>
+          <ModuleBoard
+            programId={programId}
+            detailTopics={topics}
+            canManage={canManageCurrentRoute}
+            onChanged={refreshAll}
+          />
+        )}
+
+        {tab === "Grading & completion" && (
+          <GradingModelPanel programId={programId} canManage={canManageCurrentRoute} />
         )}
 
         {tab === "Assessments" && (
@@ -226,6 +221,18 @@ export const ProgramWorkspace = () => {
                   },
                 },
                 {
+                  key: "due",
+                  header: "Due rule",
+                  render: (t) => {
+                    const unit = unitOf(t) as (LearningUnit & { due_rule?: DueRule | null }) | undefined;
+                    return (
+                      <span className={unit?.due_rule ? "text-primaryGray" : "text-amber-700"}>
+                        {describeRule(unit?.due_rule)}
+                      </span>
+                    );
+                  },
+                },
+                {
                   key: "attempts",
                   header: "Attempts",
                   render: (t) => {
@@ -236,7 +243,7 @@ export const ProgramWorkspace = () => {
               ]}
             />
             <p className="border-t border-gray-100 px-4 py-2.5 text-xs text-mainGray">
-              Each cohort opens assessments and sets its own due dates under Cohorts → Assessments.
+              Set due rules and grading categories in the Curriculum tab. Each cohort gets dates from its start date (Cohort → Schedule).
             </p>
           </Panel>
         )}

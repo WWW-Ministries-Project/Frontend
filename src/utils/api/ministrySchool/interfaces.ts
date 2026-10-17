@@ -1,5 +1,95 @@
 // import { LearningUnitType } from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 
+// ---------------------------------------------------------------------------
+// LMS phase 1: modules, grading model, due-date rules (Backend PR #488)
+// ---------------------------------------------------------------------------
+
+export type GradingMode = "PASS_FAIL" | "WEIGHTED";
+export type GradingCategory = "quiz" | "essay" | "exam";
+export type GradingWeights = { quiz: number; essay: number; exam: number; attendance: number };
+export type CompletionRules = {
+  requireGrade: boolean;
+  requireAllUnits: boolean;
+  /** Minimum attendance %, or null when not required. */
+  minAttendance: number | null;
+};
+export type ProgramGrading = {
+  programId: number;
+  grading_mode: GradingMode;
+  pass_mark: number;
+  grading_weights: GradingWeights;
+  completion_rules: CompletionRules;
+  auto_certificate: boolean;
+};
+
+export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+export type DueRule = { week: number; mode: "day" | "after"; day?: Weekday; days?: number };
+
+export type ModuleTopic = {
+  id: number;
+  name: string;
+  order_number: number | null;
+  moduleId: number | null;
+  LearningUnit: {
+    id: number;
+    type: string;
+    due_rule: DueRule | null;
+    grading_category: GradingCategory | null;
+  } | null;
+};
+
+export type ProgramModule = {
+  id: number;
+  programId: number;
+  title: string;
+  description: string | null;
+  order_number: number;
+  weeks: number | null;
+  topics: ModuleTopic[];
+};
+
+export type ProgramModulesResponse = { modules: ProgramModule[]; unassigned: ModuleTopic[] };
+
+export type ModulePayload = { programId?: number; title?: string; description?: string | null; weeks?: number | null };
+
+export type CohortScheduleRow = {
+  topicId: number;
+  learningUnitId: number;
+  name: string;
+  moduleId: number | null;
+  type: string;
+  category: GradingCategory | null;
+  rule: DueRule | null;
+  ruleLabel: string;
+  ruleDueDate: string | null;
+  overrideDueDate: string | null;
+  effectiveDueDate: string | null;
+  isActive: boolean;
+  closedAt: string | null;
+  extensions: {
+    id: number;
+    enrollmentId: number;
+    learnerName: string;
+    dueDate: string;
+    reason: string | null;
+  }[];
+};
+
+export type CohortSchedule = {
+  cohortId: number;
+  cohortName: string;
+  startDate: string;
+  rows: CohortScheduleRow[];
+};
+
+export type ExtensionPayload = {
+  cohortId: number;
+  topicId: number;
+  enrollmentId: number;
+  dueDate: string;
+  reason?: string;
+};
+
 export type ProgramsPayloadType = {
   title: string;
   description: string;

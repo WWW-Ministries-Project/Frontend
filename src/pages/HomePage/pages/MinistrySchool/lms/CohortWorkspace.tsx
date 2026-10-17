@@ -9,6 +9,7 @@ import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createLmsActionTracker } from "../utils/lmsGuardrails";
+import { CohortSchedule } from "./CohortSchedule";
 import { useSomData, type EnrollmentRow } from "./somDataContext";
 import {
   ATTENTION_RULE,
@@ -33,7 +34,7 @@ import {
 } from "./ui";
 import { useCohortEditors } from "./useCohortEditors";
 
-const TABS = ["Classes", "Roster", "Assessments"] as const;
+const TABS = ["Classes", "Roster", "Assessments", "Schedule"] as const;
 type Tab = (typeof TABS)[number];
 const ROSTER_FILTERS = ["All learners", "Needs attention", "Completed"] as const;
 
@@ -188,6 +189,15 @@ export const CohortWorkspace = () => {
         )}
 
         {tab === "Roster" && <CohortRoster roster={roster} />}
+
+        {tab === "Schedule" && (
+          <CohortSchedule
+            cohortId={cohort.id}
+            programId={cohort.program.id}
+            roster={roster}
+            canManage={canManageCurrentRoute}
+          />
+        )}
 
         {tab === "Assessments" && (
           <CohortAssessments

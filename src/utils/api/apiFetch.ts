@@ -72,6 +72,9 @@ import {
   ProgramResponse,
   Programs,
   SomProgramFull,
+  CohortSchedule,
+  ProgramGrading,
+  ProgramModulesResponse,
 } from "./ministrySchool/interfaces";
 import { DepartmentDetailsType, DepartmentType } from "./settings/departmentInterfaces";
 import type {
@@ -434,6 +437,18 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<SomProgramFull[]>> => {
     return this.fetchFromApi("program/programs-full-details", query);
+  };
+
+  fetchProgramModules = (query?: QueryType): Promise<ApiResponse<ProgramModulesResponse>> => {
+    return this.fetchFromApi("program/modules", query);
+  };
+
+  fetchProgramGrading = (query?: QueryType): Promise<ApiResponse<ProgramGrading>> => {
+    return this.fetchFromApi("program/grading", query);
+  };
+
+  fetchCohortSchedule = (query?: QueryType): Promise<ApiResponse<CohortSchedule>> => {
+    return this.fetchFromApi("program/cohort-schedule", query);
   };
 
   fetchAllApplicablePrograms = (

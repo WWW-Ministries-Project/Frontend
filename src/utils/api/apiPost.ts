@@ -49,6 +49,9 @@ import type {
 import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
+  ExtensionPayload,
+  ModulePayload,
+  ProgramModule,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
 import type {
@@ -405,6 +408,14 @@ export class ApiCreationCalls {
   // Create Program
   createProgram = (payload: ProgramsPayloadType): Promise<unknown> => {
     return this.postToApi("program/program", payload);
+  };
+
+  createProgramModule = (payload: ModulePayload): Promise<ApiResponse<ProgramModule>> => {
+    return this.postToApi("program/module", payload);
+  };
+
+  grantAssignmentExtension = (payload: ExtensionPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/assignment-extension", payload);
   };
 
   // Create Cohort

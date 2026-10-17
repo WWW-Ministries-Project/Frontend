@@ -41,6 +41,12 @@ import type {
 } from "./settings/departmentInterfaces";
 import {
   CohortPayloadType,
+  CohortSchedule,
+  DueRule,
+  GradingCategory,
+  ModulePayload,
+  ProgramGrading,
+  ProgramModulesResponse,
   ReorderProgramTopicsPayload,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
@@ -239,6 +245,48 @@ export class ApiUpdateCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(`program/program`, payload, query);
+  };
+
+  updateProgramModule = (payload: ModulePayload, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/module", payload, query);
+  };
+
+  reorderProgramModules = (payload: {
+    programId: number;
+    modules: { id: number; order_number: number }[];
+  }): Promise<ApiResponse<ProgramModulesResponse>> => {
+    return this.apiExecution.updateData("program/reorder-modules", payload);
+  };
+
+  setTopicModule = (payload: {
+    topicId: number;
+    moduleId: number | null;
+    order_number?: number;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/topic-module", payload);
+  };
+
+  updateProgramGrading = (
+    payload: Partial<Omit<ProgramGrading, "programId">>,
+    query: QueryType
+  ): Promise<ApiResponse<ProgramGrading>> => {
+    return this.apiExecution.updateData("program/grading", payload, query);
+  };
+
+  updateUnitSettings = (payload: {
+    topicId: number;
+    due_rule?: DueRule | null;
+    grading_category?: GradingCategory | null;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/unit-settings", payload);
+  };
+
+  setCohortDueDate = (payload: {
+    cohortId: number;
+    topicId: number;
+    dueDate: string | null;
+  }): Promise<ApiResponse<CohortSchedule>> => {
+    return this.apiExecution.updateData("program/cohort-due-date", payload);
   };
 
   // Update Cohort
