@@ -6,6 +6,7 @@ import type { LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProgramAssessments } from "./assessment/ProgramAssessments";
+import { ProgramInstructorsPanel } from "./people/ProgramInstructorsPanel";
 import { ProgramCertificates } from "./assessment/ProgramCertificates";
 import { GradingModelPanel } from "./curriculum/GradingModelPanel";
 import { ModuleBoard } from "./curriculum/ModuleBoard";
@@ -19,7 +20,6 @@ import {
   somPaths,
 } from "./somUtils";
 import {
-  Avatar,
   Btn,
   EmptyBlock,
   LoadError,
@@ -224,26 +224,7 @@ export const ProgramWorkspace = () => {
         )}
 
         {tab === "Instructors" && (
-          <Panel title="Instructors teaching this program">
-            {(full?.instructors ?? []).length === 0 ? (
-              <EmptyBlock msg="No instructors yet. Assign one when you create or edit a class." />
-            ) : (
-              <ul>
-                {full!.instructors.map((i) => (
-                  <li key={i.id} className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-4 py-3 last:border-0">
-                    <Avatar name={personName(i)} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-primary">{personName(i)}</p>
-                      <p className="text-xs text-mainGray">
-                        {i.courses.map((c) => `${c.cohort_name} · ${c.name}`).join("  ·  ")}
-                      </p>
-                    </div>
-                    {i.email && <span className="text-xs text-mainGray">{i.email}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+          <ProgramInstructorsPanel programId={programId} canManage={canManageCurrentRoute} />
         )}
 
         {tab === "Certificate" && (

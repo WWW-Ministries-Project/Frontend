@@ -46,6 +46,12 @@ import {
   DueRule,
   GradeOverridePayload,
   RubricPayload,
+  AttendanceStatus,
+  InstructorAbilities,
+  LibraryItemPayload,
+  ProgramInstructor,
+  SessionAttendance,
+  SessionPayload,
   GradingCategory,
   ModulePayload,
   ProgramGrading,
@@ -306,6 +312,40 @@ export class ApiUpdateCalls {
 
   setGradeOverrides = (payload: GradeOverridePayload): Promise<ApiResponse<{ updated: number }>> => {
     return this.apiExecution.updateData("program/grade-overrides", payload);
+  };
+
+  updateLmsSession = (payload: SessionPayload, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/session", payload, query);
+  };
+
+  saveSessionAttendance = (payload: {
+    sessionId: number;
+    records: { enrollmentId: number; status: AttendanceStatus; note?: string | null }[];
+  }): Promise<ApiResponse<SessionAttendance>> => {
+    return this.apiExecution.updateData("program/session-attendance", payload);
+  };
+
+  decideLmsApplication = (payload: {
+    id: number;
+    decision: "APPROVE" | "DECLINE";
+    courseId?: number | null;
+    note?: string;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/application/decide", payload);
+  };
+
+  updateProgramInstructor = (
+    payload: Partial<InstructorAbilities>,
+    query: QueryType
+  ): Promise<ApiResponse<ProgramInstructor[]>> => {
+    return this.apiExecution.updateData("program/program-instructor", payload, query);
+  };
+
+  updateLibraryItem = (
+    payload: LibraryItemPayload,
+    query: QueryType
+  ): Promise<ApiResponse<{ unitsUpdated: number }>> => {
+    return this.apiExecution.updateData("program/library-item", payload, query);
   };
 
   setCohortDueDate = (payload: {

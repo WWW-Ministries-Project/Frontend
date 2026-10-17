@@ -808,3 +808,177 @@ export type ProgramCertificates = {
   issued: { id: number; certificateNumber: string; issuedAt: string; userId: number; name: string }[];
   eligible: { userId: number; name: string; cohort: string; className: string }[];
 };
+
+// ---------------------------------------------------------------------------
+// LMS phases 3+4: sessions, attendance, announcements, applications,
+// instructors, content library, reports (Backend PR #490)
+// ---------------------------------------------------------------------------
+
+export type SessionMode = "IN_PERSON" | "ONLINE" | "HYBRID";
+export type AttendanceStatus = "PRESENT" | "LATE" | "ABSENT" | "EXCUSED";
+
+export type LmsSession = {
+  id: number;
+  cohortId: number;
+  courseId: number | null;
+  title: string;
+  starts_at: string;
+  ends_at: string | null;
+  mode: SessionMode;
+  location: string | null;
+  meeting_link: string | null;
+  week: number | null;
+  cancelled: boolean;
+  notes: string | null;
+  cohort: { id: number; name: string; program: { id: number; title: string } };
+  course: { id: number; name: string; instructor: string | null } | null;
+  expected: number;
+  recorded: number;
+  tally: Record<AttendanceStatus, number>;
+};
+
+export type SessionPayload = {
+  cohortId?: number;
+  courseId?: number | null;
+  title?: string;
+  starts_at?: string;
+  ends_at?: string | null;
+  mode?: SessionMode;
+  location?: string | null;
+  meeting_link?: string | null;
+  week?: number | null;
+  cancelled?: boolean;
+  notes?: string | null;
+};
+
+export type SessionAttendance = {
+  session: Omit<LmsSession, "cohort" | "course" | "expected" | "recorded" | "tally">;
+  learners: {
+    enrollmentId: number;
+    name: string;
+    classId: number;
+    className: string;
+    status: AttendanceStatus | null;
+    note: string | null;
+  }[];
+};
+
+export type AnnouncementAudience = "COHORT" | "CLASS" | "AT_RISK";
+export type LmsAnnouncement = {
+  id: number;
+  cohortId: number;
+  courseId: number | null;
+  course: { id: number; name: string } | null;
+  audience: AnnouncementAudience;
+  title: string;
+  body: string;
+  channels: { inApp: boolean; email: boolean; sms: boolean };
+  recipient_count: number;
+  dispatch_id: number | null;
+  scheduled_for: string | null;
+  sent_by: number | null;
+  sentByName: string | null;
+  createdAt: string;
+  delivery: { id: number; status: "SCHEDULED" | "QUEUED" | "SENT" | "CANCELLED" | "FAILED"; counts: unknown } | null;
+};
+
+export type AnnouncementPayload = {
+  cohortId: number;
+  courseId?: number | null;
+  audience: AnnouncementAudience;
+  title: string;
+  body: string;
+  channels: { inApp: boolean; email: boolean; sms: boolean };
+  scheduledFor?: string | null;
+};
+
+export type ApplicationStatus = "PENDING" | "APPROVED" | "DECLINED";
+export type LmsApplication = {
+  id: number;
+  status: ApplicationStatus;
+  reasons: string[];
+  note: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+  enrollmentId: number | null;
+  user: { id: number; name: string; email: string | null };
+  program: { id: number; title: string };
+  cohort: { id: number; name: string } | null;
+  course: { id: number; name: string; enrolled: number; capacity: number } | null;
+};
+
+export type ApplyResult =
+  | { status: "ENROLLED"; enrollmentId: number | null; reasons: string[] }
+  | { status: "PENDING"; applicationId: number; reasons: string[] };
+
+export type InstructorAbilities = {
+  can_grade: boolean;
+  can_attendance: boolean;
+  can_message: boolean;
+  can_edit_curriculum: boolean;
+};
+
+export type ProgramInstructor = InstructorAbilities & {
+  /** null when the person teaches a class but is not on the roster (default abilities). */
+  id: number | null;
+  userId: number;
+  name: string;
+  email: string | null;
+  onRoster: boolean;
+  classes: { id: number; name: string; cohortId: number; cohortName: string }[];
+};
+
+export type InstructorOverview = {
+  userId: number;
+  name: string;
+  email: string | null;
+  programs: { id: number; title: string }[];
+  classes: {
+    id: number;
+    name: string;
+    format: ClassFormat | null;
+    cohortId: number;
+    cohortName: string;
+    programTitle: string;
+    live: boolean;
+  }[];
+  liveClasses: number;
+  learners: number;
+  toGrade: number;
+  avgGradingHours: number | null;
+  gradedCount: number;
+  formats: ClassFormat[];
+};
+
+export type LibraryType = "VIDEO" | "PDF" | "SLIDES" | "DOCUMENT" | "LINK" | "IMAGE";
+export type LibraryItem = {
+  id: number;
+  title: string;
+  type: LibraryType;
+  url: string;
+  size_bytes: number | null;
+  duration_minutes: number | null;
+  pages: number | null;
+  tags: string[] | null;
+  usedBy: number;
+  createdAt: string;
+  updatedAt: string;
+};
+export type LibraryItemPayload = {
+  title?: string;
+  type?: LibraryType;
+  url?: string;
+  size_bytes?: number | null;
+  duration_minutes?: number | null;
+  pages?: number | null;
+  tags?: string[];
+};
+
+export type LmsReports = {
+  totals: { programs: number; enrollments: number; completed: number };
+  completionByProgram: { programId: number; title: string; enrolled: number; completed: number; rate: number | null }[];
+  attendanceByMode: { mode: SessionMode; records: number; rate: number | null }[];
+  passRateByType: { category: GradingCategory; graded: number; rate: number | null }[];
+  gradingTurnaround: { graded: number; avgHours: number | null; medianHours: number | null; within4Days: number | null };
+  enrollmentsByMonth: { month: string; count: number }[];
+};

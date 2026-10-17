@@ -32,6 +32,8 @@ export const somPaths = {
   learners: `${SOM_BASE}/learners`,
   instructors: `${SOM_BASE}/instructors`,
   library: `${SOM_BASE}/assessment-library`,
+  contentLibrary: `${SOM_BASE}/content-library`,
+  reports: `${SOM_BASE}/reports`,
   analytics: `${SOM_BASE}/analytics`,
   grading: (programId: number | string, cohortId: number | string, topicId?: number | string) =>
     `${SOM_BASE}/${relativePath.home.ministrySchool.instructorPortal}/${programId}/cohort/${cohortId}${
