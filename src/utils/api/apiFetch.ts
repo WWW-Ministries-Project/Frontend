@@ -57,6 +57,8 @@ import {
 import type {
   IMarket,
   IOrderDetail,
+  IDeliveryConfig,
+  IMarketplaceOverview,
   IOrders,
   IProductType,
   IProductTypeResponse,
@@ -867,6 +869,18 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<IOrderDetail>> => {
     return this.fetchFromApi(`orders/get-order-by-id`, query);
+  };
+
+  fetchDeliveryConfig = (
+    query?: QueryType
+  ): Promise<ApiResponse<IDeliveryConfig>> => {
+    return this.fetchFromApi(`orders/delivery-config`, query);
+  };
+
+  fetchMarketplaceOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<IMarketplaceOverview>> => {
+    return this.fetchFromApi(`orders/marketplace-overview`, query);
   };
 
   // Fetch staff appointment availability

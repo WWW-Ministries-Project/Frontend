@@ -1,24 +1,17 @@
-import { ReactNode } from "react";
-import BannerWrapper from "./BannerWrapper";
+import type { ReactNode } from "react";
 
 interface IProps {
-  title?: string;
   children: ReactNode;
 }
-export function MarketLayout(props: IProps) {
-  return (
-    <div>
-      <BannerWrapper>
-          <div className="space-y-4 w-full">
-            {
-              <div className="font-bold text-2xl">
-                {props.title || "Marketplace"}
-              </div>
-            }
-          </div>
-        </BannerWrapper>
 
-      <section>{props.children}</section>
-    </div>
+/**
+ * Page frame for the member marketplace. Sub-sections (Shop, My orders) live
+ * in the header's "Marketplace" dropdown, so there is no banner or tab bar
+ * here — just the design's max width and vertical rhythm. Inline padding
+ * comes from the member shell's app-layout-container.
+ */
+export function MarketLayout({ children }: IProps) {
+  return (
+    <section className="mx-auto w-full max-w-[1280px] pb-16 pt-6 text-primary">{children}</section>
   );
 }

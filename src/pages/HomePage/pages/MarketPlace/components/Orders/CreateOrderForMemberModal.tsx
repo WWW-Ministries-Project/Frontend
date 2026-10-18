@@ -1,49 +1,52 @@
-import { Field, Form, Formik } from "formik";
 import { useMemo, useState } from "react";
-import { object, string } from "yup";
 
-import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import FormikSelect from "@/components/FormikSelect";
-import { Actions } from "@/components/ui/form/Actions";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { ColorSelectField } from "@/pages/HomePage/Components/reusable/ColorSelectField";
+import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
+import { showNotification } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api, relativePath } from "@/utils";
 import type {
+  FulfilmentMethod,
   ICreateOrderForMemberPayload,
   IProductTypeResponse,
 } from "@/utils/api/marketPlace/interface";
+import { cn } from "@/utils/cn";
+
+import {
+  colourLabel,
+  formatMoney,
+  getMarketState,
+  isPublished,
+  isStockManaged,
+  sortSizes,
+} from "../../utils/marketplaceModel";
+import { btnPrimary, btnSecondary, errorMessage, inputCls, labelCls } from "./orderUi";
 
 interface IProps {
-  marketId: string | number;
-  loading: boolean;
-  checkoutUrl?: string | null;
-  onSubmit: (payload: ICreateOrderForMemberPayload) => void;
+  /** Limit products to one market; otherwise every live product is offered. */
+  marketId?: string | number;
   onClose: () => void;
+  /** Called after the order is created (to refresh the list). */
+  onCreated?: () => void;
 }
 
 interface ILine {
   product: IProductTypeResponse;
-  color: string;
+  colour: string;
   size: string;
   quantity: number;
 }
 
-interface IFormValues {
-  user_id: string;
+interface IBilling {
   first_name: string;
   last_name: string;
   email: string;
   phone_number: string;
   country: string;
   country_code: string;
-  payment_mode: "manual" | "gateway";
-  manual_status: "success" | "pending";
-  payment_type: "paystack" | "hubtel";
 }
 
-const emptyMemberValues = {
+const EMPTY_BILLING: IBilling = {
   first_name: "",
   last_name: "",
   email: "",
@@ -52,407 +55,539 @@ const emptyMemberValues = {
   country_code: "",
 };
 
-const initialValues: IFormValues = {
-  user_id: "",
-  ...emptyMemberValues,
-  payment_mode: "manual",
-  manual_status: "success",
-  payment_type: "paystack",
-};
+const BILLING_FIELDS: { key: keyof IBilling; label: string; type?: string }[] = [
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
+  { key: "email", label: "Email", type: "email" },
+  { key: "phone_number", label: "Phone" },
+];
 
-const validationSchema = object().shape({
-  user_id: string().required("Required"),
-  first_name: string().trim().required("Required"),
-  last_name: string().trim().required("Required"),
-  email: string().trim().email("Invalid email").required("Required"),
-  phone_number: string().trim().required("Required"),
-  country: string().trim().required("Required"),
-});
+const selectCls = cn(inputCls, "h-[42px] border-lightGray px-2.5");
 
-export function CreateOrderForMemberModal({
-  marketId,
-  loading,
-  checkoutUrl,
-  onSubmit,
-  onClose,
-}: IProps) {
+/** Radio card used for the payment choice (design: Already paid / Send payment link). */
+const RadioCard = ({
+  on,
+  title,
+  sub,
+  onPick,
+  disabled,
+}: {
+  on: boolean;
+  title: string;
+  sub: string;
+  onPick: () => void;
+  disabled?: boolean;
+}) => (
+  <button
+    type="button"
+    role="radio"
+    aria-checked={on}
+    onClick={onPick}
+    disabled={disabled}
+    className={cn(
+      "flex gap-2.5 rounded-lg border p-3 text-left text-primary disabled:cursor-not-allowed",
+      on ? "border-primary bg-primary/[0.04]" : "border-lightGray bg-white"
+    )}
+  >
+    <span
+      className={cn(
+        "mt-0.5 h-4 w-4 shrink-0 rounded-full",
+        on ? "border-[5px] border-primary" : "border border-gray-400"
+      )}
+    />
+    <span>
+      <span className="block text-sm font-semibold">{title}</span>
+      <span className="text-xs text-gray-600">{sub}</span>
+    </span>
+  </button>
+);
+
+/**
+ * "Place order for member" — for purchases made at the church office or by
+ * phone. Records a paid order, or creates one and returns a Hubtel payment
+ * link for the member.
+ */
+export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IProps) {
   const membersOptions = useStore((state) => state.membersOptions);
-  const { data: productsResponse } = useFetch(api.fetch.fetchProductsByMarket, {
-    market_id: marketId,
-  });
-  const products = useMemo(() => productsResponse?.data || [], [productsResponse]);
 
-  // Selecting a member only fetches their profile — it does NOT set
-  // user_id/billing on the field itself (see the Field's onChange below).
-  // Those come back through `memberDetails` and flow into `initial`,
-  // which Formik's enableReinitialize then applies to the whole form —
-  // same pattern as StudentForm.tsx's member picker.
-  const { data: memberDetailsResponse, refetch: fetchMemberDetails } = useFetch(
-    api.fetch.fetchAMember,
-    {},
-    true
+  const productsQuery = useMemo(
+    () => (marketId ? { market_id: marketId } : undefined),
+    [marketId]
   );
-  const memberDetails = memberDetailsResponse?.data || null;
+  const { data: productsRes } = useFetch(
+    marketId ? api.fetch.fetchProductsByMarket : api.fetch.fetchAllProducts,
+    productsQuery,
+    false,
+    { silent: true }
+  );
+  const { data: deliveryRes } = useFetch(api.fetch.fetchDeliveryConfig, undefined, false, {
+    silent: true,
+  });
+  const deliveryEnabled = Boolean(deliveryRes?.data?.delivery_enabled);
+  const deliveryFee = Number(deliveryRes?.data?.delivery_fee) || 0;
 
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  // Only published products in markets that are open for orders.
+  const products = useMemo(
+    () =>
+      (productsRes?.data || []).filter(
+        (p) => isPublished(p) && (!p.market || getMarketState(p.market) !== "Ended")
+      ),
+    [productsRes]
+  );
+
+  const [memberId, setMemberId] = useState("");
+  const [billing, setBilling] = useState<IBilling>(EMPTY_BILLING);
+  const [loadingMember, setLoadingMember] = useState(false);
+
+  const [productId, setProductId] = useState("");
+  const [colour, setColour] = useState("");
+  const [size, setSize] = useState("");
+  const [qty, setQty] = useState(1);
   const [lines, setLines] = useState<ILine[]>([]);
 
-  const formLocked = Boolean(checkoutUrl);
+  const [method, setMethod] = useState<FulfilmentMethod>("pickup");
+  const [address, setAddress] = useState("");
+  const [paid, setPaid] = useState(true);
 
-  const selectedProduct = useMemo(
-    () => products.find((product) => String(product.id) === selectedProductId),
-    [products, selectedProductId]
-  );
-  // Stock (and therefore size) only exists for stock-managed products —
-  // AddProduct always sends an empty stock array per colour when
-  // stock_managed is "no", matching how resolveItemStock/ProductDetails
-  // treat unmanaged products: no size required, no stock cap.
-  const isStockManaged = selectedProduct?.stock_managed === "yes";
-  const colorOptions = useMemo(
-    () =>
-      (selectedProduct?.product_colours || []).map((c) => ({
-        // Colour is stored as a raw hex value — show the admin-given name
-        // when one exists (see ProductGallery's "Colour name" field);
-        // otherwise the hex code is all we have.
-        label: c.colour_name?.trim() || c.colour,
-        value: c.colour,
-      })),
-    [selectedProduct]
-  );
-  const colorLabels = useMemo(
-    () => Object.fromEntries(colorOptions.map((option) => [option.value, option.label])),
-    [colorOptions]
-  );
-  const selectedColourRow = useMemo(
-    () => selectedProduct?.product_colours.find((c) => c.colour === selectedColor),
-    [selectedProduct, selectedColor]
-  );
-  const sizeOptions = useMemo(
-    () =>
-      (selectedColourRow?.stock || []).map((s) => ({
-        label: `${s.size} (${s.stock} in stock)`,
-        value: s.size,
-      })),
-    [selectedColourRow]
-  );
-  const selectedSizeStock = selectedColourRow?.stock?.find((s) => s.size === selectedSize)?.stock;
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const locked = Boolean(checkoutUrl);
 
-  const canAddLine =
-    Boolean(selectedProduct) &&
-    Boolean(selectedColor) &&
-    (isStockManaged ? Boolean(selectedSize) : true) &&
-    quantity > 0 &&
-    (isStockManaged ? quantity <= Number(selectedSizeStock ?? 0) : true);
+  const product = products.find((p) => String(p.id) === productId);
+  const managed = product ? isStockManaged(product) : false;
+  const colourRow = product?.product_colours.find((c) => c.colour === colour);
+  const sizeRows = useMemo(() => {
+    const stock = colourRow?.stock || [];
+    const order = sortSizes(stock.map((s) => s.size));
+    return order.map((z) => stock.find((s) => s.size === z)!);
+  }, [colourRow]);
+  const sizeStock = Number(sizeRows.find((s) => s.size === size)?.stock ?? 0);
+  const inLines = lines
+    .filter((l) => l.product.id === product?.id && l.colour === colour && l.size === size)
+    .reduce((a, l) => a + l.quantity, 0);
 
-  const handleAddLine = () => {
-    if (!canAddLine || !selectedProduct) return;
+  const currentValid =
+    Boolean(product) &&
+    Boolean(colour) &&
+    (!managed || Boolean(size)) &&
+    qty > 0 &&
+    (!managed || qty + inLines <= sizeStock);
 
+  const pickProduct = (id: string) => {
+    const p = products.find((x) => String(x.id) === id);
+    setProductId(id);
+    const c = p?.product_colours[0];
+    setColour(c?.colour || "");
+    const first = c?.stock?.length ? sortSizes(c.stock.map((s) => s.size))[0] : "";
+    setSize(first || "");
+    setQty(1);
+  };
+
+  const pickColour = (hex: string) => {
+    setColour(hex);
+    const c = product?.product_colours.find((x) => x.colour === hex);
+    setSize(c?.stock?.length ? sortSizes(c.stock.map((s) => s.size))[0] : "");
+    setQty(1);
+  };
+
+  const pickMember = async (id: string) => {
+    setMemberId(id);
+    setBilling(EMPTY_BILLING);
+    if (!id) return;
+    setLoadingMember(true);
+    try {
+      const res = await api.fetch.fetchAMember({ user_id: id });
+      const m = res?.data as
+        | (typeof res.data & { country?: string })
+        | undefined;
+      if (m)
+        setBilling({
+          first_name: m.first_name || "",
+          last_name: m.last_name || "",
+          email: m.email || "",
+          phone_number: m.primary_number || "",
+          country: m.country || "",
+          country_code: m.country_code || "",
+        });
+    } catch (err) {
+      showNotification(errorMessage(err, "Unable to load member details"), "error");
+    } finally {
+      setLoadingMember(false);
+    }
+  };
+
+  const commitLine = () => {
+    if (!currentValid || !product) return;
     setLines((prev) => {
-      // Merge into an existing line for the same product+variant instead of
-      // appending a duplicate — two separate lines for the same variant
-      // pass the Backend's per-line shortage pre-check independently
-      // against the same stock snapshot, then the second one's actual
-      // reservation fails inside the transaction, rolling back the whole
-      // order with a confusing error.
-      const existingIndex = prev.findIndex(
-        (line) =>
-          line.product.id === selectedProduct.id &&
-          line.color === selectedColor &&
-          line.size === selectedSize
+      // Merge the same variant into one line — two lines for one variant
+      // would each pass the backend's stock pre-check independently.
+      const i = prev.findIndex(
+        (l) => l.product.id === product.id && l.colour === colour && l.size === size
       );
-      if (existingIndex >= 0) {
-        const merged = [...prev];
-        merged[existingIndex] = {
-          ...merged[existingIndex],
-          quantity: merged[existingIndex].quantity + quantity,
-        };
-        return merged;
+      if (i >= 0) {
+        const next = [...prev];
+        next[i] = { ...next[i], quantity: next[i].quantity + qty };
+        return next;
       }
-      return [
-        ...prev,
-        { product: selectedProduct, color: selectedColor, size: selectedSize, quantity },
-      ];
+      return [...prev, { product, colour, size, quantity: qty }];
     });
-    setSelectedProductId("");
-    setSelectedColor("");
-    setSelectedSize("");
-    setQuantity(1);
+    setProductId("");
+    setColour("");
+    setSize("");
+    setQty(1);
   };
 
-  const handleRemoveLine = (index: number) => {
-    setLines((prev) => prev.filter((_, lineIndex) => lineIndex !== index));
-  };
+  const allLines = useMemo(() => {
+    if (!currentValid || !product) return lines;
+    const i = lines.findIndex(
+      (l) => l.product.id === product.id && l.colour === colour && l.size === size
+    );
+    if (i >= 0) {
+      const next = [...lines];
+      next[i] = { ...next[i], quantity: next[i].quantity + qty };
+      return next;
+    }
+    return [...lines, { product, colour, size, quantity: qty }];
+  }, [lines, currentValid, product, colour, size, qty]);
 
-  const initial: IFormValues = useMemo(
-    () =>
-      memberDetails
-        ? {
-            user_id: String(memberDetails.id ?? ""),
-            first_name: memberDetails.first_name || "",
-            last_name: memberDetails.last_name || "",
-            email: memberDetails.email || "",
-            phone_number: memberDetails.primary_number || "",
-            country: memberDetails.country || "",
-            country_code: memberDetails.country_code || "",
-            payment_mode: "manual",
-            manual_status: "success",
-            payment_type: "paystack",
-          }
-        : initialValues,
-    [memberDetails]
+  const isDelivery = method === "delivery" && deliveryEnabled;
+  const subtotal = allLines.reduce(
+    (a, l) => a + Number(l.product.price_amount || 0) * l.quantity,
+    0
   );
+  const total = subtotal + (isDelivery ? deliveryFee : 0);
 
-  const handleFormSubmit = (values: IFormValues) => {
-    if (lines.length === 0 || formLocked) return;
+  const missingBilling = BILLING_FIELDS.filter((f) => memberId && !billing[f.key]);
 
-    onSubmit({
-      user_id: Number(values.user_id),
-      billing: {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        phone_number: values.phone_number,
-        country: values.country,
-        country_code: values.country_code,
-      },
-      items: lines.map((line) => ({
-        market_id: marketId,
-        id: line.product.id as number | string,
-        name: line.product.name,
-        price_amount: Number(line.product.price_amount),
-        price_currency: line.product.price_currency,
-        quantity: line.quantity,
-        product_type: line.product.product_type?.name || "",
-        product_category: line.product.product_category?.name || "",
+  const handleSubmit = async () => {
+    setError("");
+    if (!memberId) return setError("Select a member.");
+    if (!allLines.length) return setError("Choose a product to add to the order.");
+    if (missingBilling.length)
+      return setError(`Add the member's ${missingBilling.map((f) => f.label.toLowerCase()).join(", ")}.`);
+    if (isDelivery && !address.trim()) return setError("Enter a delivery address.");
+
+    const payload: ICreateOrderForMemberPayload = {
+      user_id: Number(memberId),
+      billing: { ...billing },
+      items: allLines.map((l) => ({
+        market_id: l.product.market_id || l.product.market?.id || marketId || "",
+        id: l.product.id as number | string,
+        name: l.product.name,
+        price_amount: Number(l.product.price_amount),
+        price_currency: l.product.price_currency,
+        quantity: l.quantity,
+        product_type: l.product.product_type?.name || "",
+        product_category: l.product.product_category?.name || "",
         image_url:
-          (line.product.product_colours.find((c) => c.colour === line.color)
-            ?.image_url as string) || "",
-        color: line.color,
-        size: line.size,
+          (l.product.product_colours.find((c) => c.colour === l.colour)?.image_url as string) ||
+          "",
+        color: l.colour,
+        size: l.size,
       })),
-      payment_mode: values.payment_mode,
-      ...(values.payment_mode === "manual"
-        ? { manual_status: values.manual_status }
+      fulfilment_method: isDelivery ? "delivery" : "pickup",
+      ...(isDelivery ? { delivery_address: address.trim() } : {}),
+      ...(paid
+        ? { payment_mode: "manual" as const, manual_status: "success" as const }
         : {
-            payment_type: values.payment_type,
+            payment_mode: "gateway" as const,
+            // Hubtel is the only enabled marketplace gateway.
+            payment_type: "hubtel" as const,
             return_url: `${window.location.origin}${relativePath.member.verify_payment}`,
             cancellation_url: `${window.location.origin}${relativePath.member.orders}`,
           }),
-    });
+    };
+
+    setSubmitting(true);
+    try {
+      const res = await api.post.createOrderForMember(payload);
+      onCreated?.();
+      const data = res?.data as { checkoutUrl?: string; order_number?: string } | undefined;
+      if (data && "checkoutUrl" in data && data.checkoutUrl) {
+        setCheckoutUrl(data.checkoutUrl);
+        showNotification("Order created — share the payment link with the member", "success");
+      } else {
+        showNotification(
+          `Order ${data?.order_number ? `${data.order_number} ` : ""}recorded`,
+          "success"
+        );
+        onClose();
+      }
+    } catch (err) {
+      setError(errorMessage(err, "Unable to place order"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const copyLink = async () => {
+    if (!checkoutUrl) return;
+    try {
+      await navigator.clipboard.writeText(checkoutUrl);
+      showNotification("Payment link copied", "success");
+    } catch {
+      showNotification("Copy the link from the field above", "error");
+    }
   };
 
   return (
-    <div className="bg-white rounded-lg md:w-[42rem] text-primary overflow-auto">
-      <Formik
-        initialValues={initial}
-        validationSchema={validationSchema}
-        onSubmit={handleFormSubmit}
-        enableReinitialize
-      >
-        {({ values, handleSubmit: submitForm }) => (
-          <Form>
-            <div className="bg-primary w-full p-6 text-white">
-              <p className="text-2xl font-bold">Place order for member</p>
-            </div>
+    <div className="flex flex-col gap-3.5 p-6 text-primary">
+      <div>
+        <h2 className="text-xl font-semibold">Place order for member</h2>
+        <p className="text-sm text-gray-600">
+          For purchases made at the church office or by phone.
+        </p>
+      </div>
 
-            <div className="space-y-4 px-6 py-4">
-              <Field
-                component={FormikSelect}
-                id="user_id"
-                name="user_id"
-                value={values.user_id}
-                onChange={(_name: string, selectedOption: string | number | null) => {
-                  if (selectedOption) fetchMemberDetails({ user_id: selectedOption });
-                }}
-                options={membersOptions}
-                label="Select a member *"
-                placeholder="Select a member"
-                searchable
-                searchPlaceholder="Search members..."
-                disabled={formLocked}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field component={FormikInputDiv} id="first_name" name="first_name" label="First name *" disabled={formLocked} />
-                <Field component={FormikInputDiv} id="last_name" name="last_name" label="Last name *" disabled={formLocked} />
-                <Field component={FormikInputDiv} id="email" name="email" type="email" label="Email *" disabled={formLocked} />
-                <Field component={FormikInputDiv} id="phone_number" name="phone_number" label="Phone *" disabled={formLocked} />
-                <Field component={FormikInputDiv} id="country" name="country" label="Country *" disabled={formLocked} />
-                <Field component={FormikInputDiv} id="country_code" name="country_code" label="Country code" disabled={formLocked} />
-              </div>
-
-              <div className="rounded border p-3">
-                <p className="mb-2 font-semibold">Add product</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <select
-                    className="border rounded px-2 py-1 text-sm"
-                    value={selectedProductId}
-                    disabled={formLocked}
-                    onChange={(e) => {
-                      setSelectedProductId(e.target.value);
-                      setSelectedColor("");
-                      setSelectedSize("");
-                    }}
-                  >
-                    <option value="">Product</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={String(product.id)}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ColorSelectField
-                    id="create_order_color"
-                    name="color"
-                    colors={colorOptions.map((option) => option.value)}
-                    labels={colorLabels}
-                    value={selectedColor}
-                    showAll={false}
-                    disabled={formLocked || !selectedProduct}
-                    onChange={(_name, color) => {
-                      setSelectedColor(color);
-                      setSelectedSize("");
-                    }}
-                  />
-                  <select
-                    className="border rounded px-2 py-1 text-sm"
-                    value={selectedSize}
-                    onChange={(e) => setSelectedSize(e.target.value)}
-                    disabled={formLocked || !selectedColor || !isStockManaged}
-                  >
-                    <option value="">{isStockManaged ? "Size" : "No size"}</option>
-                    {sizeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+      <SelectField
+        id="create_order_member"
+        label="Member"
+        placeholder="Select a member"
+        value={memberId}
+        options={membersOptions}
+        onChange={(_n, v) => pickMember(v ? String(v) : "")}
+        searchable
+        searchPlaceholder="Search members..."
+        disabled={locked}
+      />
+      {memberId && !loadingMember && (
+        <>
+          {billing.email || billing.phone_number ? (
+            <p className="-mt-2 text-xs text-gray-600">
+              {[billing.email, billing.phone_number].filter(Boolean).join(" · ")}
+            </p>
+          ) : null}
+          {missingBilling.length > 0 && !locked && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {missingBilling.map((f) => (
+                <label key={f.key} className={labelCls}>
+                  {f.label}
                   <input
-                    type="number"
-                    min={1}
-                    max={isStockManaged ? Number(selectedSizeStock ?? undefined) : undefined}
-                    className="border rounded px-2 py-1 text-sm"
-                    value={quantity}
-                    disabled={formLocked}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    type={f.type || "text"}
+                    className={cn(inputCls, "font-normal")}
+                    value={billing[f.key]}
+                    onChange={(e) => setBilling((b) => ({ ...b, [f.key]: e.target.value }))}
                   />
-                </div>
-                <Button
-                  type="button"
-                  value="Add line"
-                  variant="secondary"
-                  className="mt-2"
-                  onClick={handleAddLine}
-                  disabled={formLocked || !canAddLine}
-                />
-
-                {lines.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {lines.map((line, index) => {
-                      const lineColourName =
-                        line.product.product_colours.find((c) => c.colour === line.color)
-                          ?.colour_name?.trim() || line.color;
-                      return (
-                      <div
-                        key={`${line.product.id}-${line.color}-${line.size}-${index}`}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          <span
-                            className="h-4 w-4 shrink-0 rounded border border-gray-300"
-                            style={{ backgroundColor: line.color }}
-                          />
-                          {line.product.name} — {lineColourName}
-                          {line.size ? `/${line.size}` : ""} × {line.quantity}
-                        </span>
-                        {!formLocked && (
-                          <button
-                            type="button"
-                            className="text-red-600"
-                            onClick={() => handleRemoveLine(index)}
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded border p-3">
-                <p className="mb-2 font-semibold">Payment</p>
-                <div className="flex gap-6">
-                  <label className="flex items-center gap-2 text-sm">
-                    <Field type="radio" id="payment_mode_manual" name="payment_mode" value="manual" disabled={formLocked} />
-                    Mark as paid / COD
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Field type="radio" id="payment_mode_gateway" name="payment_mode" value="gateway" disabled={formLocked} />
-                    Send payment link
-                  </label>
-                </div>
-
-                {values.payment_mode === "manual" ? (
-                  <Field
-                    component={FormikSelect}
-                    id="manual_status"
-                    name="manual_status"
-                    label="Status"
-                    clearable={false}
-                    disabled={formLocked}
-                    options={[
-                      { label: "Paid now", value: "success" },
-                      { label: "Pending (cash on delivery)", value: "pending" },
-                    ]}
-                  />
-                ) : (
-                  <Field
-                    component={FormikSelect}
-                    id="payment_type"
-                    name="payment_type"
-                    label="Gateway"
-                    clearable={false}
-                    disabled={formLocked}
-                    options={[
-                      { label: "Paystack", value: "paystack" },
-                      { label: "Hubtel", value: "hubtel" },
-                    ]}
-                  />
-                )}
-              </div>
-
-              {checkoutUrl && (
-                <div className="rounded border border-green-300 bg-green-50 p-3 text-sm">
-                  <p className="mb-1 font-semibold">Checkout link ready — share it with the member:</p>
-                  <input
-                    readOnly
-                    className="w-full border rounded px-2 py-1"
-                    value={checkoutUrl}
-                    onFocus={(e) => e.currentTarget.select()}
-                  />
-                </div>
-              )}
-
-              {lines.length === 0 && !formLocked && (
-                <p className="text-sm text-gray-500">Add at least one product before saving.</p>
-              )}
-
-              {formLocked ? (
-                <div className="flex justify-end pt-2">
-                  <Button type="button" value="Close" variant="secondary" onClick={onClose} />
-                </div>
-              ) : (
-                <Actions onCancel={onClose} loading={loading} onSubmit={submitForm} />
-              )}
+                </label>
+              ))}
             </div>
-          </Form>
-        )}
-      </Formik>
+          )}
+        </>
+      )}
+
+      {lines.length > 0 && (
+        <ul className="flex flex-col gap-1.5 rounded-lg border border-lightGray p-3 text-sm">
+          {lines.map((l, i) => {
+            const c = l.product.product_colours.find((x) => x.colour === l.colour);
+            return (
+              <li
+                key={`${l.product.id}-${l.colour}-${l.size}`}
+                className="flex items-center justify-between gap-2"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="h-3.5 w-3.5 shrink-0 rounded border border-gray-300"
+                    style={{ backgroundColor: l.colour }}
+                  />
+                  {l.product.name} — {colourLabel(c) || l.colour}
+                  {l.size ? ` · ${l.size}` : ""} × {l.quantity}
+                </span>
+                {!locked && (
+                  <button
+                    type="button"
+                    className="text-sm text-red-700"
+                    onClick={() => setLines((p) => p.filter((_, j) => j !== i))}
+                  >
+                    Remove
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <label className={labelCls}>
+        Product
+        <select
+          className={cn(selectCls, "font-normal")}
+          value={productId}
+          disabled={locked}
+          onChange={(e) => pickProduct(e.target.value)}
+        >
+          <option value="">{lines.length ? "Add another product" : "Select a product"}</option>
+          {products.map((p) => (
+            <option key={p.id} value={String(p.id)}>
+              {p.name} — {formatMoney(p.price_amount)}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="grid grid-cols-[1fr_1fr_90px] gap-3">
+        <label className={labelCls}>
+          Colour
+          <select
+            className={cn(selectCls, "font-normal")}
+            value={colour}
+            disabled={locked || !product}
+            onChange={(e) => pickColour(e.target.value)}
+          >
+            {!product && <option value="">—</option>}
+            {(product?.product_colours || []).map((c) => {
+              const units = (c.stock || []).reduce((a, s) => a + (Number(s.stock) || 0), 0);
+              return (
+                <option key={c.colour} value={c.colour}>
+                  {colourLabel(c)}
+                  {managed && !units ? " (out of stock)" : ""}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+        <label className={labelCls}>
+          Size
+          <select
+            className={cn(selectCls, "font-normal")}
+            value={size}
+            disabled={locked || !product || !managed}
+            onChange={(e) => {
+              setSize(e.target.value);
+              setQty(1);
+            }}
+          >
+            {!managed && <option value="">{product ? "One size" : "—"}</option>}
+            {managed &&
+              sizeRows.map((s) => (
+                <option key={s.size} value={s.size}>
+                  {s.size} · {Number(s.stock) || 0} left
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className={labelCls}>
+          Qty
+          <input
+            type="number"
+            min={1}
+            max={managed ? Math.max(1, sizeStock - inLines) : undefined}
+            className={cn(selectCls, "font-normal")}
+            value={qty}
+            disabled={locked || !product}
+            onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+          />
+        </label>
+      </div>
+      {product && managed && size && qty + inLines > sizeStock && (
+        <p className="-mt-2 text-xs text-red-700">
+          Only {Math.max(0, sizeStock - inLines)} left in this size.
+        </p>
+      )}
+      {product && !locked && (
+        <button
+          type="button"
+          onClick={commitLine}
+          disabled={!currentValid}
+          className="self-start text-sm font-medium text-blue-700 disabled:opacity-50"
+        >
+          + Add another product
+        </button>
+      )}
+
+      <label className={labelCls}>
+        Fulfilment
+        <select
+          className={cn(selectCls, "font-normal")}
+          value={isDelivery ? "delivery" : "pickup"}
+          disabled={locked}
+          onChange={(e) => setMethod(e.target.value as FulfilmentMethod)}
+        >
+          <option value="pickup">Pickup at church</option>
+          {deliveryEnabled && (
+            <option value="delivery">
+              Delivery{deliveryFee ? ` (+${formatMoney(deliveryFee)})` : ""}
+            </option>
+          )}
+        </select>
+      </label>
+      {isDelivery && (
+        <label className={labelCls}>
+          Delivery address
+          <textarea
+            rows={2}
+            className="rounded-lg border border-lightGray px-3 py-2.5 text-sm font-normal"
+            value={address}
+            disabled={locked}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </label>
+      )}
+
+      <div role="radiogroup" aria-label="Payment" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <RadioCard
+          on={paid}
+          title="Already paid"
+          sub="Paid in person · cash or transfer"
+          onPick={() => setPaid(true)}
+          disabled={locked}
+        />
+        <RadioCard
+          on={!paid}
+          title="Send payment link"
+          sub="Member pays online via Hubtel"
+          onPick={() => setPaid(false)}
+          disabled={locked}
+        />
+      </div>
+
+      {checkoutUrl && (
+        <div className="flex flex-col gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm">
+          <p className="font-semibold text-green-700">Payment link ready — share it with the member</p>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              className={cn(inputCls, "font-normal")}
+              value={checkoutUrl}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <button type="button" className={btnSecondary} onClick={copyLink}>
+              Copy
+            </button>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <p role="alert" className="text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3">
+        <p className="font-semibold">Total {formatMoney(total)}</p>
+        <div className="flex gap-2">
+          {locked ? (
+            <button type="button" className={btnPrimary} onClick={onClose}>
+              Done
+            </button>
+          ) : (
+            <>
+              <button type="button" className={btnSecondary} onClick={onClose}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={btnPrimary}
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? "Saving…" : paid ? "Record order" : "Create & send link"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

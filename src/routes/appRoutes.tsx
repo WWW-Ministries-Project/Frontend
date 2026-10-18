@@ -39,9 +39,6 @@ import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
 import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
 import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
 import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
-import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
-import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
-import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
 import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
 import { DepartmentDetails } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentDetails";
 import { DepartmentsAndMinistries } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentsAndMinistries";
@@ -69,19 +66,12 @@ import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
 import type { PermissionRequirement } from "@/utils/accessControl";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
-import Market from "@/pages/MembersPage/Pages/Market.js";
 import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
-import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage";
-import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
-import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
-import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
-import { OrderDetailsPage } from "@/pages/MembersPage/Pages/OrderDetailsPage";
-import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import GivingComplete from "@/pages/MembersPage/Pages/GivingComplete.js";
 import PledgeComplete from "@/pages/MembersPage/Pages/PledgeComplete.js";
 import MemberGiving from "@/pages/MembersPage/Pages/MemberGiving.js";
@@ -126,7 +116,6 @@ import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pa
 import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
 import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
-import MarketplaceAnalytics from "@/pages/HomePage/pages/MarketPlace/pages/MarketplaceAnalytics";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
 import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
 import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
@@ -148,6 +137,24 @@ import CertificateVerificationPage from "@/pages/CertificateVerification/Certifi
 import { Navigate } from "react-router-dom";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
+
+import {
+  MarketPlace,
+  AddProduct,
+  MarketDetails,
+  Market,
+  ProductDetailsPage,
+  CheckOutPage,
+  ProductsPage,
+  MyOrders,
+  OrderDetailsPage,
+  VerifyPayment,
+  MarketplaceAnalytics,
+  MarketplaceOverview,
+  AllProducts,
+  AllOrders,
+  AdminOrderDetail,
+} from "./lazyMarketplaceRoutes";
 // import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
@@ -293,7 +300,9 @@ export const routes: AppRoute[] = [
                 name: "Membership Management Default",
                 element: (
                   <Navigate
-                    to={relativePath.home.membership.management.memberConfirmation}
+                    to={
+                      relativePath.home.membership.management.memberConfirmation
+                    }
                     replace
                   />
                 ),
@@ -301,21 +310,24 @@ export const routes: AppRoute[] = [
                 permissionNeeded: "manage_membership_management",
               },
               {
-                path: relativePath.home.membership.management.memberConfirmation,
+                path: relativePath.home.membership.management
+                  .memberConfirmation,
                 name: "Member Confirmation",
                 element: <MemberConfirmation />,
                 isPrivate: true,
                 permissionNeeded: "manage_membership_management",
               },
               {
-                path: relativePath.home.membership.management.visitorToMembership,
+                path: relativePath.home.membership.management
+                  .visitorToMembership,
                 name: "Visitor-to-Membership",
                 element: <VisitorToMembership />,
                 isPrivate: true,
                 permissionNeeded: "manage_membership_management",
               },
               {
-                path: relativePath.home.membership.management.soulwonToMembership,
+                path: relativePath.home.membership.management
+                  .soulwonToMembership,
                 name: "Soulwon-to-Membership",
                 element: <SoulwonToMembership />,
                 isPrivate: true,
@@ -692,7 +704,7 @@ export const routes: AppRoute[] = [
           },
         ],
       },
-   
+
       {
         path: "requests",
         name: "Requisition",
@@ -779,7 +791,7 @@ export const routes: AppRoute[] = [
             element: <FinanceManager />,
             isPrivate: true,
             permissionNeeded: "view_financials",
-            sideTab: true,   
+            sideTab: true,
           },
           {
             path: ":id",
@@ -907,8 +919,48 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Market Place",
-            element: <MarketPlace />,
+            name: "Overview",
+            element: (
+              <Suspense fallback={null}>
+                <MarketplaceOverview />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "markets",
+            name: "Markets",
+            element: (
+              <Suspense fallback={null}>
+                <MarketPlace />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "products",
+            name: "Products",
+            element: (
+              <Suspense fallback={null}>
+                <AllProducts />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "orders",
+            name: "Orders",
+            element: (
+              <Suspense fallback={null}>
+                <AllOrders />
+              </Suspense>
+            ),
             isPrivate: true,
             permissionNeeded: "view_marketplace",
             sideTab: true,
@@ -916,7 +968,11 @@ export const routes: AppRoute[] = [
           {
             path: "analytics",
             name: "Analytics",
-            element: <MarketplaceAnalytics />,
+            element: (
+              <Suspense fallback={null}>
+                <MarketplaceAnalytics />
+              </Suspense>
+            ),
             isPrivate: true,
             permissionNeeded: "view_marketplace",
             sideTab: true,
@@ -924,23 +980,46 @@ export const routes: AppRoute[] = [
         ],
       },
       {
+        path: relativePath.home.marketPlace.orderDetails,
+        name: "Order Details",
+        element: (
+          <Suspense fallback={null}>
+            <AdminOrderDetail />
+          </Suspense>
+        ),
+        isPrivate: true,
+        permissionNeeded: "view_marketplace",
+      },
+      {
         path: relativePath.home.marketPlace.details,
         name: "Market Details",
-        element: <MarketDetails />,
+        element: (
+          <Suspense fallback={null}>
+            <MarketDetails />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "view_marketplace",
       },
       {
         path: relativePath.home.marketPlace.addProduct,
         name: "Add Product",
-        element: <AddProduct />,
+        element: (
+          <Suspense fallback={null}>
+            <AddProduct />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "manage_marketplace",
       },
       {
         path: relativePath.home.marketPlace.editProduct,
         name: "Edit Product",
-        element: <AddProduct />,
+        element: (
+          <Suspense fallback={null}>
+            <AddProduct />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "manage_marketplace",
       },
@@ -1227,25 +1306,41 @@ export const routes: AppRoute[] = [
       {
         path: "products",
         name: "products",
-        element: <ProductsPage />,
+        element: (
+          <Suspense fallback={null}>
+            <ProductsPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "products/:id",
         name: "ProductDetailsPage",
-        element: <ProductDetailsPage />,
+        element: (
+          <Suspense fallback={null}>
+            <ProductDetailsPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "products/check-out",
         name: "Check Out",
-        element: <CheckOutPage />,
+        element: (
+          <Suspense fallback={null}>
+            <CheckOutPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "verify-payment/:type",
         name: "Verify payment",
-        element: <VerifyPayment />,
+        element: (
+          <Suspense fallback={null}>
+            <VerifyPayment />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
@@ -1319,45 +1414,73 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.market,
         name: "Member Market",
-        element: <Market />,
+        element: (
+          <Suspense fallback={null}>
+            <Market />
+          </Suspense>
+        ),
         isPrivate: false,
 
         children: [
           {
             path: relativePath.member.market,
             name: "Products",
-            element: <ProductsPage />,
+            element: (
+              <Suspense fallback={null}>
+                <ProductsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.productDetails,
             name: "Product Details",
-            element: <ProductDetailsPage />,
+            element: (
+              <Suspense fallback={null}>
+                <ProductDetailsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
 
           {
             path: relativePath.member.checkOut,
             name: "Check Out",
-            element: <CheckOutPage />,
+            element: (
+              <Suspense fallback={null}>
+                <CheckOutPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.orders,
             name: "Orders",
-            element: <MyOrders />,
+            element: (
+              <Suspense fallback={null}>
+                <MyOrders />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.orderDetails,
             name: "Order Details",
-            element: <OrderDetailsPage />,
+            element: (
+              <Suspense fallback={null}>
+                <OrderDetailsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.verify_payment,
             name: "Verify Payment",
-            element: <VerifyPayment />,
+            element: (
+              <Suspense fallback={null}>
+                <VerifyPayment />
+              </Suspense>
+            ),
             isPrivate: false,
           },
         ],
@@ -1458,7 +1581,7 @@ export const routes: AppRoute[] = [
         isPrivate: false,
         children: [
           {
-            path: '',
+            path: "",
             name: "instructor_assessment_management",
             element: <InstructorProg />,
             isPrivate: false,
@@ -1554,7 +1677,7 @@ export const routes: AppRoute[] = [
         name: "member_community",
         element: <Navigate to={relativePath.member.community} replace />,
         isPrivate: false,
-      }
+      },
       // {
       //       path: relativePath.member.schoolOfMinistries.instructorAssMan,
       //       name: "instructor_assessment_management",
@@ -1573,10 +1696,10 @@ export const routes: AppRoute[] = [
 
 // Now, extract sideTabs
 const homePageRoute = routes.find(
-  (route) => route.path === relativePath.home.main
+  (route) => route.path === relativePath.home.main,
 );
 const homePageChildren = homePageRoute?.children || [];
 
 export const sideTabs = homePageChildren.filter(
-  (childRoute) => childRoute.sideTab
+  (childRoute) => childRoute.sideTab,
 );

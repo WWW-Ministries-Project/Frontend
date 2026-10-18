@@ -1,198 +1,251 @@
-import { Field, FieldArray, useFormikContext } from "formik";
-import { useEffect, useState } from "react";
-import { array, mixed, number, object, string } from "yup";
+import { FieldArray, useFormikContext } from "formik";
+import { useEffect, useMemo, useState } from "react";
 
-import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import ImageUpload from "@/components/ImageUpload";
-import type { IProduct } from "@/utils/api/marketPlace/interface";
+import type { IProduct, ProductColour } from "@/utils/api/marketPlace/interface";
+import { cn } from "@/utils/cn";
+import { sortSizes } from "../../utils/marketplaceModel";
+import { inputCls, tint } from "../markets/styles";
+import {
+  ONE_SIZE,
+  SIZE_CHOICES,
+  colourUnits,
+  useImagePreview,
+  usedSizes,
+} from "./productFormUtils";
 import { IStocksSubForm, StocksSubForm } from "./StocksSubForm";
 
-const ProductGallery = () => {
-  const { values, errors, touched, setFieldValue } =
-    useFormikContext<IProduct>();
-
-  // React keys these rows by array index below, but FieldArray's
-  // push/remove splice that same array — after a remove, every row after
-  // the removed one keeps its DOM node (same index-derived key) while its
-  // props silently shift to a DIFFERENT colour's data, including a native
-  // <input type="color"> whose displayed swatch can lag/flash to the
-  // browser's invalid-value fallback (black) for a render. Track a stable
-  // id per row, independent of position, so removing one row never touches
-  // any other row's identity.
-  const [rowKeys, setRowKeys] = useState<string[]>(() =>
-    values.product_colours.map(() => crypto.randomUUID())
-  );
-  useEffect(() => {
-    setRowKeys((prev) => {
-      if (prev.length === values.product_colours.length) return prev;
-      return values.product_colours.map((_, i) => prev[i] ?? crypto.randomUUID());
-    });
-    // Only the length matters here — reacting to the array reference would
-    // re-run (harmlessly, but pointlessly) on every keystroke in any colour
-    // field, since Formik replaces the array on each field-level update.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.product_colours.length]);
-
+const ColourImage = ({
+  index,
+  colour,
+}: {
+  index: number;
+  colour: ProductColour;
+}) => {
+  const { setFieldValue } = useFormikContext<IProduct>();
+  const preview = useImagePreview(colour.image_url);
+  const id = `product-colour-image-${index}`;
   return (
-    <FieldArray name="product_colours">
-      {({ push, remove }) => (
-        <div className="col-span-2">
-          <p className="text-primary font-semibold py-1">Stock management</p>
-          <div className="mt-1 mb-3 flex gap-4 text-900">
-            {["yes", "no"].map((option) => (
-              <label
-                key={option}
-                className="flex items-center gap-x-2 capitalize"
-              >
-                <Field type="radio" name="stock_managed" value={option} />
-                {option}
-              </label>
-            ))}
-          </div>
-
-          <p className="text-primary font-semibold py-2">Product Gallery</p>
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {values.product_colours.map((product_colours, index) => (
-              <div key={rowKeys[index] ?? index} className="space-y-3 relative border border-gray-200 rounded-lg p-3">
-                {values.product_colours.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      remove(index);
-                      setRowKeys((prev) => prev.filter((_, i) => i !== index));
-                    }}
-                    className="absolute top-2 right-2 text-sm text-red-600 hover:text-red-800"
-                  >
-                    Remove
-                  </button>
-                )}
-                <div className="flex items-center gap-2">
-                  <Field
-                    name={`product_colours[${index}].colour`}
-                    type="color"
-                    className="h-10 w-14 shrink-0 rounded-lg p-0.5"
-                    title="Select product color"
-                  />
-                  <Field
-                    component={FormikInputDiv}
-                    id={`product_colours[${index}].colour_name`}
-                    name={`product_colours[${index}].colour_name`}
-                    placeholder="Colour name (e.g. Forest Green)"
-                    className="flex-1"
-                  />
-                </div>
-
-                <ImageUpload
-                  id={`fileUpload-${index}`}
-                  src={
-                    typeof product_colours.image_url === "string"
-                      ? product_colours.image_url
-                      : ""
-                  }
-                  onFileChange={(file: File) => {
-                    setFieldValue(`product_colours[${index}].image_url`, file);
-                  }}
-                  label="Click to upload or drag and drop"
-                />
-
-                {touched.product_colours?.[index]?.image_url &&
-                  typeof errors.product_colours?.[index] === "object" &&
-                  "image_url" in errors.product_colours[index] &&
-                  typeof errors.product_colours[index]?.image_url ===
-                    "string" && (
-                    <p className="text-sm text-red-500">
-                      {errors.product_colours[index]?.image_url}
-                    </p>
-                  )}
-
-                {values.stock_managed === "yes" && (
-                  <StocksSubForm index={index} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              value="+ Add another one"
-              onClick={() => {
-                push({
-                  colour: "#000000",
-                  colour_name: "",
-                  image_url: "",
-                  stock: [{ size: "S", stock: 0 }],
-                });
-                setRowKeys((prev) => [...prev, crypto.randomUUID()]);
-              }}
-              className="hover:no-underline"
-            />
-          </div>
-        </div>
+    <label
+      htmlFor={id}
+      title={preview ? "Change photo" : "Upload a photo"}
+      className="relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-lightGray hover:border-primary/50"
+      style={preview ? undefined : { background: tint(colour.colour) }}
+    >
+      {preview ? (
+        <img src={preview} alt="" className="size-full object-cover" />
+      ) : (
+        <span
+          className="aspect-square w-[44%] rounded-[22%]"
+          style={{ background: colour.colour }}
+        />
       )}
-    </FieldArray>
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) setFieldValue(`product_colours[${index}].image_url`, file);
+          e.target.value = "";
+        }}
+      />
+    </label>
   );
 };
 
-interface IProductGalleryForm {
-  stock_managed: "yes" | "no";
-  product_colours: {
-    colour: string;
-    colour_name?: string;
-    image_url: File | string;
-    stock: IStocksSubForm[];
-  }[];
-}
+/** "Variants & stock": size chips, stock tracking toggle and colour rows. */
+const ProductGallery = () => {
+  const { values, setFieldValue } = useFormikContext<IProduct>();
+  const colours = values.product_colours;
+  const managed = values.stock_managed === "yes";
+  const used = useMemo(() => usedSizes(colours), [colours]);
+  const chips = useMemo(
+    () => [...SIZE_CHOICES, ...used.filter((s) => !SIZE_CHOICES.includes(s))],
+    [used]
+  );
 
-const initialValues: IProductGalleryForm = {
+  // Stable React keys per colour row, independent of position, so removing a
+  // row never hands its DOM (e.g. a native colour input) to another colour.
+  const [rowKeys, setRowKeys] = useState<string[]>(() =>
+    colours.map(() => crypto.randomUUID())
+  );
+  useEffect(() => {
+    setRowKeys((prev) =>
+      prev.length === colours.length
+        ? prev
+        : colours.map((_, i) => prev[i] ?? crypto.randomUUID())
+    );
+    // Only the length matters; the array is replaced on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colours.length]);
+
+  const toggleSize = (size: string) => {
+    const on = used.includes(size);
+    const next = colours.map((c) => {
+      let stock: IStocksSubForm[] = [...(c.stock || [])];
+      if (on) {
+        stock = stock.filter((s) => s.size !== size);
+      } else {
+        if (size === ONE_SIZE) stock = [];
+        else stock = stock.filter((s) => s.size !== ONE_SIZE);
+        if (!stock.some((s) => s.size === size)) stock.push({ size, stock: 0 });
+      }
+      const order = sortSizes(stock.map((s) => s.size));
+      stock.sort((a, b) => order.indexOf(a.size) - order.indexOf(b.size));
+      return { ...c, stock };
+    });
+    setFieldValue("product_colours", next);
+  };
+
+  return (
+    <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold">Variants & stock</h2>
+          <p className="text-sm text-gray-500">
+            Pick the sizes you sell, then set stock per colour.
+          </p>
+        </div>
+        <div
+          role="radiogroup"
+          aria-label="Track stock"
+          className="flex items-center gap-1 rounded-lg border border-lightGray bg-lightGray/30 p-1"
+        >
+          {(["yes", "no"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={values.stock_managed === v}
+              onClick={() => setFieldValue("stock_managed", v)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm",
+                values.stock_managed === v
+                  ? "bg-white font-semibold shadow-sm"
+                  : "text-primaryGray"
+              )}
+            >
+              {v === "yes" ? "Track stock" : "Don't track"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {chips.map((size) => {
+          const on = used.includes(size);
+          return (
+            <button
+              key={size}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggleSize(size)}
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                on
+                  ? "border-primary bg-primary text-white"
+                  : "border-lightGray bg-white text-primary hover:bg-gray-50"
+              )}
+            >
+              {size}
+            </button>
+          );
+        })}
+      </div>
+
+      <FieldArray name="product_colours">
+        {({ push, remove }) => (
+          <>
+            {colours.map((colour, index) => (
+              <div
+                key={rowKeys[index] ?? index}
+                className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4"
+              >
+                <div className="flex flex-wrap items-center gap-3">
+                  <ColourImage index={index} colour={colour} />
+                  <input
+                    type="color"
+                    aria-label="Colour"
+                    value={colour.colour || "#000000"}
+                    onChange={(e) =>
+                      setFieldValue(`product_colours[${index}].colour`, e.target.value)
+                    }
+                    className="h-10 w-10 shrink-0 cursor-pointer rounded-lg border border-lightGray bg-white p-0.5"
+                  />
+                  <input
+                    aria-label="Colour name"
+                    placeholder="Colour name"
+                    value={colour.colour_name || ""}
+                    onChange={(e) =>
+                      setFieldValue(
+                        `product_colours[${index}].colour_name`,
+                        e.target.value
+                      )
+                    }
+                    className={cn(inputCls, "min-w-[140px] flex-1")}
+                  />
+                  {managed && (
+                    <span className="text-sm text-gray-500">
+                      {colourUnits(colour)} units
+                    </span>
+                  )}
+                  {colours.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        remove(index);
+                        setRowKeys((prev) => prev.filter((_, i) => i !== index));
+                      }}
+                      className="text-sm text-red-700 underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {managed && <StocksSubForm index={index} />}
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => {
+                push({
+                  colour: "#9CA3AF",
+                  colour_name: "",
+                  image_url: "",
+                  stock: used.map((size) => ({ size, stock: 0 })),
+                });
+                setRowKeys((prev) => [...prev, crypto.randomUUID()]);
+              }}
+              className="min-h-[38px] self-start rounded-lg border border-dashed border-gray-400 bg-white px-3.5 py-1.5 text-sm font-medium text-primary hover:bg-gray-50"
+            >
+              + Add colour
+            </button>
+          </>
+        )}
+      </FieldArray>
+    </section>
+  );
+};
+
+const initialValues: Pick<IProduct, "stock_managed" | "product_colours"> = {
   stock_managed: "yes",
   product_colours: [
     {
-      colour: "#000000",
+      colour: "#1F2A44",
       colour_name: "",
       image_url: "",
-      stock: StocksSubForm.initialValues,
+      stock: [
+        { size: "S", stock: 0 },
+        { size: "M", stock: 0 },
+        { size: "L", stock: 0 },
+        { size: "XL", stock: 0 },
+      ],
     },
   ],
 };
 
-const validationSchema = object().shape({
-  stock_managed: string().oneOf(["yes", "no"]).required(),
-  product_colours: array()
-    .min(1, "At least one product color is required")
-    .of(
-      object().shape({
-        colour: string().required("Required"),
-        colour_name: string().optional(),
-        image_url: mixed().required("Required"),
-        stock: array().of(
-          object().shape({
-            size: string().required("Required"),
-            stock: number()
-              .typeError("Stock must be a number")
-              .min(0, "Stock can't be negative"),
-          })
-        ),
-      })
-    )
-    .test(
-      "stock-required-when-managed",
-      "Each selected size must have stock greater than 0 when stock management is enabled.",
-      function (productColours) {
-        if (this.parent?.stock_managed !== "yes") return true;
-
-        const colours = productColours || [];
-        return colours.every((colourItem) => {
-          const stockList = colourItem?.stock || [];
-          if (stockList.length === 0) return false;
-          return stockList.every((stockItem) => Number(stockItem?.stock) > 0);
-        });
-      }
-    ),
-});
-
 export const ProductGalleryWithForm = Object.assign(ProductGallery, {
   initialValues,
-  validationSchema,
 });

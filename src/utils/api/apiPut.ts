@@ -72,6 +72,8 @@ import type {
   IProduct,
   IOrders,
   IOrderDetail,
+  IBulkOrderStatusPayload,
+  IBulkOrderStatusResult,
   IUpdateOrderPayload,
 } from "./marketPlace/interface";
 import type {
@@ -697,6 +699,12 @@ export class ApiUpdateCalls {
     payload: IUpdateOrderPayload
   ): Promise<ApiResponse<IOrderDetail>> => {
     return this.apiExecution.updateData("orders/update-order", payload);
+  };
+
+  bulkUpdateOrderStatus = (
+    payload: IBulkOrderStatusPayload
+  ): Promise<ApiResponse<IBulkOrderStatusResult>> => {
+    return this.apiExecution.updateData("orders/bulk-update-status", payload);
   };
 
   // uodate church attendance
