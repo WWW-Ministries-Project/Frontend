@@ -85,6 +85,10 @@ import {
   LmsAnnouncement,
   LmsApplication,
   LmsReports,
+  LearnerAnnouncement,
+  LearnerEnrollment,
+  LearnerSession,
+  LearnerSubmission,
   LmsSession,
   ProgramInstructor,
   SessionAttendance,
@@ -530,6 +534,23 @@ export class ApiCalls {
 
   fetchLmsReports = (query?: QueryType): Promise<ApiResponse<LmsReports>> => {
     return this.fetchFromApi("program/lms-reports", query);
+  };
+
+  // Learner portal: the signed-in member's own enrollments only.
+  fetchLearnerOverview = (query?: QueryType): Promise<ApiResponse<LearnerEnrollment[]>> => {
+    return this.fetchFromApi("program/learner/overview", query);
+  };
+
+  fetchLearnerSessions = (query?: QueryType): Promise<ApiResponse<LearnerSession[]>> => {
+    return this.fetchFromApi("program/learner/sessions", query);
+  };
+
+  fetchLearnerAnnouncements = (query?: QueryType): Promise<ApiResponse<LearnerAnnouncement[]>> => {
+    return this.fetchFromApi("program/learner/announcements", query);
+  };
+
+  fetchLearnerSubmission = (query?: QueryType): Promise<ApiResponse<LearnerSubmission>> => {
+    return this.fetchFromApi("program/learner/submission", query);
   };
 
   fetchAllApplicablePrograms = (

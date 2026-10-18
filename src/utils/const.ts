@@ -135,6 +135,11 @@ export const relativePath = {
     pledgesComplete: "/member/pledges/complete",
     schoolOfMinistries: {
       main: "school-of-ministries",
+      assignments: "school-of-ministries/assignments",
+      assignmentDetails: "school-of-ministries/assignments/:topicId",
+      grades: "school-of-ministries/grades",
+      schedule: "school-of-ministries/schedule",
+      announcements: "school-of-ministries/announcements",
       allPrograms: "school-of-ministries/programs",
       myClass: "school-of-ministries/my-class",
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",

@@ -455,6 +455,7 @@ export type Topic = {
   type?: LearningUnitType;
   url?: string;
   programId?: number;
+  moduleId?: number | null;
   learningUnit?: LearningUnit;
   LearningUnit?: LearningUnit;
   completed?: boolean;
@@ -981,4 +982,109 @@ export type LmsReports = {
   passRateByType: { category: GradingCategory; graded: number; rate: number | null }[];
   gradingTurnaround: { graded: number; avgHours: number | null; medianHours: number | null; within4Days: number | null };
   enrollmentsByMonth: { month: string; count: number }[];
+};
+
+// ---------------------------------------------------------------------------
+// Learner portal (member-facing). Shapes mirror Backend
+// src/modules/programs/lms/learnerService.ts — every endpoint reads only the
+// signed-in member's own enrollments.
+// ---------------------------------------------------------------------------
+
+export type LearnerAssessment = {
+  topicId: number;
+  name: string;
+  type: string;
+  category: GradingCategory | null;
+  moduleTitle: string | null;
+  passMark: number;
+  isActive: boolean;
+  dueDate: string | null;
+  status: GradeCellStatus;
+  score: number | null;
+  passed: boolean | null;
+  submissionId: number | null;
+  feedback: string | null;
+  gradedAt: string | null;
+};
+
+export type LearnerEnrollment = {
+  enrollmentId: number;
+  enrolledAt: string;
+  completed: boolean;
+  completedAt: string | null;
+  program: { id: number; title: string; description: string };
+  cohort: { id: number; name: string; startDate: string; duration: string; status: string };
+  class: {
+    id: number;
+    name: string;
+    format: string | null;
+    schedule: string;
+    location: string | null;
+    meetingLink: string | null;
+    instructor: { id: number; name: string | null } | null;
+  };
+  progress: { completed: number; total: number; percent: number };
+  nextTopic: { id: number; name: string; type: string | null; moduleTitle: string | null } | null;
+  grading: { mode: GradingMode; passMark: number; weights: GradingWeights };
+  finalGrade: number | null;
+  standing: "Completed" | "At risk" | "On track" | null;
+  attendance: number | null;
+  assessments: LearnerAssessment[];
+};
+
+export type LearnerSession = {
+  id: number;
+  title: string;
+  startsAt: string;
+  endsAt: string | null;
+  mode: SessionMode;
+  location: string | null;
+  meetingLink: string | null;
+  week: number | null;
+  cancelled: boolean;
+  notes: string | null;
+  programTitle: string;
+  cohortName: string;
+  className: string | null;
+  instructorName: string | null;
+  attendance: AttendanceStatus | null;
+};
+
+export type LearnerAnnouncement = {
+  id: number;
+  title: string;
+  body: string;
+  audience: AnnouncementAudience;
+  sentAt: string;
+  sentByName: string | null;
+  programTitle: string;
+  cohortName: string;
+  className: string | null;
+};
+
+export type LearnerSubmission = {
+  topicId: number;
+  programId: number;
+  name: string;
+  moduleTitle: string | null;
+  type: string;
+  prompt: string | null;
+  maxAttempts: number | null;
+  attemptsUsed: number;
+  progress: { score: number; status: "PASS" | "FAIL" | "PENDING" } | null;
+  submission: {
+    id: number;
+    attempt: number;
+    status: "SUBMITTED" | "RESUBMITTED" | "GRADED" | "RETURNED";
+    submittedAt: string;
+    fileUrl: string | null;
+    score: number | null;
+    feedback: string | null;
+    gradedAt: string | null;
+    gradedByName: string | null;
+  } | null;
+  /** Quiz answers; `correct` is null until the learner passed or used every attempt. */
+  quiz: { prompt: string; yours: string | null; correct: string | null; isCorrect: boolean }[] | null;
+  rubric: { label: string; level: string | null; factor: number | null; weight: number }[] | null;
+  rubricScore: number | null;
 };

@@ -1,28 +1,14 @@
 import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply";
-import BannerWrapper from "../layouts/BannerWrapper";
-import exploreprogram from "@/assets/banner/exploreprog.svg";
+import { PageHeader } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
 
-const AllPrograms = () => {
+const AllPrograms = () => (
+  <div className="flex flex-col gap-5">
+    <PageHeader
+      title="Browse programs"
+      subtitle="Programs open for enrolment. Eligible applicants are enrolled automatically; others go to the School of Ministry office for review."
+    />
+    <ProgramApply />
+  </div>
+);
 
-    return ( 
-        <div>
-            < BannerWrapper imgSrc={exploreprogram} >
-                <div className="space-y-4 w-full">
-                    <div className="font-bold text-2xl">
-                    School of Ministry
-                </div>
-                <div>
-                    Equipping believers with biblical knowledge and practical skills for effective ministry
-                </div>
-                
-                </div>
-            </BannerWrapper>
-        <ProgramApply />
-        
-                
-
-        </div>
-     );
-}
- 
 export default AllPrograms;
