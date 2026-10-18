@@ -1,96 +1,34 @@
-import { relativePath } from "@/utils";
-import { useState } from "react";
+import { relativePath } from "@/utils/const";
 import { useNavigate } from "react-router-dom";
-import { JoinDepartmentModal } from "./JoinDepartmentModal";
 
-type QuickAction = {
-  key: string;
-  label: string;
-  description: string;
-  icon: string;
-  onClick?: () => void;
-  disabled?: boolean;
-};
+type QuickAction = { label: string; desc?: string; to?: string };
+
+const ACTIONS: QuickAction[] = [
+  { label: "Book an appointment", to: relativePath.member.appointments },
+  { label: "Join a Life Center", to: relativePath.member.lifeCenter },
+  { label: "Browse Market Place", to: relativePath.member.market },
+  { label: "Give", desc: "Coming soon" },
+  { label: "Redeem pledge", desc: "Coming soon" },
+];
 
 export const QuickActions = () => {
   const navigate = useNavigate();
-  const [isJoinOpen, setIsJoinOpen] = useState(false);
-
-  const actions: QuickAction[] = [
-    {
-      key: "give",
-      label: "Give",
-      description: "Coming soon",
-      icon: "💝",
-      disabled: true,
-    },
-    {
-      key: "redeem-pledge",
-      label: "Redeem Pledge",
-      description: "Coming soon",
-      icon: "🤝",
-      disabled: true,
-    },
-    {
-      key: "join-department",
-      label: "Join a Department",
-      description: "Request to serve",
-      icon: "👥",
-      onClick: () => setIsJoinOpen(true),
-    },
-    {
-      key: "view-learning",
-      label: "View My Learning",
-      description: "Enrolled programs",
-      icon: "🎓",
-      onClick: () =>
-        navigate(
-          `/member/${relativePath.member.schoolOfMinistries.myEnrolledPrograms}`
-        ),
-    },
-    {
-      key: "book-appointment",
-      label: "Book an Appointment",
-      description: "Schedule a session",
-      icon: "📅",
-      onClick: () => navigate(relativePath.member.appointments),
-    },
-  ];
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-blue-900 to-purple-900 p-6 text-white">
-      <h3 className="mb-4 text-xl font-semibold">Quick Actions</h3>
-
-      <div className="grid grid-cols-2 gap-3">
-        {actions.map((action) => (
-          <button
-            key={action.key}
-            type="button"
-            onClick={action.onClick}
-            disabled={action.disabled}
-            className={`flex flex-col items-start gap-1 rounded-xl border border-white/15 bg-white/10 p-4 text-left transition ${
-              action.disabled
-                ? "cursor-not-allowed opacity-50"
-                : "hover:border-white/40 hover:bg-white/20"
-            }`}
-          >
-            <span className="text-2xl" aria-hidden>
-              {action.icon}
-            </span>
-            <span className="text-sm font-semibold leading-tight">
-              {action.label}
-            </span>
-            <span className="text-xs text-blue-100/80">
-              {action.description}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <JoinDepartmentModal
-        open={isJoinOpen}
-        onClose={() => setIsJoinOpen(false)}
-      />
-    </div>
+    <section className="flex flex-col gap-1 rounded-2xl border border-[#E5E7EB] bg-white p-6">
+      <h3 className="mb-2 text-lg font-semibold leading-7 text-[#080D2D]">Quick actions</h3>
+      {ACTIONS.map((action) => (
+        <button
+          key={action.label}
+          type="button"
+          disabled={!action.to}
+          onClick={() => action.to && navigate(action.to)}
+          className="-mx-3 flex min-h-[44px] items-center justify-between gap-3 rounded-lg px-3 text-left hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span className="text-sm font-semibold text-[#080D2D]">{action.label}</span>
+          {action.desc && <span className="text-xs text-[#6B7280]">{action.desc}</span>}
+        </button>
+      ))}
+    </section>
   );
 };
