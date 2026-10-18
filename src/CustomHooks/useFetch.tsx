@@ -43,6 +43,7 @@
 
 /*
  **overrideParams: Record<string, string | number> enables us to override the params especially when refetching
+ **options.silent: skip the page loader overlay — for background/shell data the current page is not waiting on
  */
 
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
@@ -52,7 +53,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 export const useFetch = <T,>(
   fetchFunction: (query?: QueryType) => Promise<T>,
   query?: QueryType,
-  lazy?: boolean
+  lazy?: boolean,
+  options?: { silent?: boolean }
 ) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,6 +64,7 @@ export const useFetch = <T,>(
   const branchSignature = String(activeBranchId);
   const queryRef = useRef<QueryType | undefined>(query);
   const hasFetchedRef = useRef(false);
+  const silent = options?.silent ?? false;
 
   useEffect(() => {
     queryRef.current = query;
@@ -71,7 +74,7 @@ export const useFetch = <T,>(
     async (overrideQuery?: QueryType) => {
       setError(null);
       setLoading(true);
-      showLoader(true);
+      if (!silent) showLoader(true);
 
       try {
         const response = await fetchFunction(overrideQuery || queryRef.current);
@@ -88,10 +91,10 @@ export const useFetch = <T,>(
         setError(err instanceof Error ? err : new Error("Unknown error"));
       } finally {
         setLoading(false);
-        showLoader(false);
+        if (!silent) showLoader(false);
       }
     },
-    [fetchFunction]
+    [fetchFunction, silent]
   );
 
   useEffect(() => {

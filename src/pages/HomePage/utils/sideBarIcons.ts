@@ -9,6 +9,7 @@ import LifeCenterIcon from "@/assets/sidebar/LifeCenterIcon";
 import ManagementIcon from "@/assets/sidebar/ManagementIcon";
 import { MarketIcon } from "@/assets/sidebar/MarketIcon";
 import MinistrySchoolIcon from "@/assets/sidebar/MinistrySchoolIcon";
+import ReportIcon from "@/assets/sidebar/ReportIcon";
 import RequestIcon from "@/assets/sidebar/RequestIcon";
 import RideIcon from "@/assets/sidebar/RideIcon";
 import SettingsIcon from "@/assets/sidebar/SettingIcon";
@@ -37,6 +38,6 @@ export const sidebarIcons: Record<
   Requests: RequestIcon,
   "Life Centers": LifeCenterIcon,
   "Market Place": MarketIcon,
-  Reports: RequestIcon,
+  Reports: ReportIcon,
   "Ride to church": RideIcon,
 };
