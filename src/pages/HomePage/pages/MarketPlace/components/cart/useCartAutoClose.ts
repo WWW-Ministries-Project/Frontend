@@ -17,9 +17,9 @@ interface UseCartAutoCloseResult {
 
 /**
  * Owns the 5s auto-close countdown for CartDrawer. Pauses while the pointer,
- * a touch, or focus is inside the drawer; resumes a fresh countdown when it
- * leaves. Only ever runs while `cartAutoCloseArmed` is true (i.e. the drawer
- * was opened by addToCart, not by a manual cart-icon click).
+ * a touch, or focus is inside the drawer panel; resumes a fresh countdown
+ * when it leaves. Only ever runs while `cartAutoCloseArmed` is true (i.e.
+ * the drawer was opened by addToCart, not by a manual cart-icon click).
  */
 export function useCartAutoClose(
   containerRef: RefObject<HTMLDivElement>
@@ -31,6 +31,15 @@ export function useCartAutoClose(
   const [pointerOrTouchActive, setPointerOrTouchActive] = useState(false);
   const [focusActive, setFocusActive] = useState(false);
   const interacting = pointerOrTouchActive || focusActive;
+
+  // The drawer panel unmounts when closed, so pointerleave/blur never fire
+  // for an interaction that was in progress. Reset on close so the next
+  // add-to-cart open starts with a clean countdown.
+  useEffect(() => {
+    if (cartOpen) return;
+    setPointerOrTouchActive(false);
+    setFocusActive(false);
+  }, [cartOpen]);
 
   useEffect(() => {
     if (!cartOpen || !cartAutoCloseArmed || interacting) return;
@@ -46,12 +55,9 @@ export function useCartAutoClose(
   }, [cartOpen, cartAutoCloseArmed, interacting, cartAddPulse, toggleCart]);
 
   const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
-    // Known limitation: Safari doesn't always populate relatedTarget on
-    // blur when focus moves via a mousedown on a non-focusable element; in
-    // that rare case this may resume the countdown slightly early rather
-    // than staying paused. Fails toward closing a bit sooner, not toward
-    // getting stuck open — accepted tradeoff, not worth extra complexity
-    // (extra timers, MutationObservers, etc.) to fully close.
+    // Safari doesn't always populate relatedTarget on blur when focus moves
+    // via a mousedown on a non-focusable element; in that case this resumes
+    // the countdown slightly early rather than getting stuck open.
     const nextFocusTarget = event.relatedTarget;
     if (
       containerRef.current &&

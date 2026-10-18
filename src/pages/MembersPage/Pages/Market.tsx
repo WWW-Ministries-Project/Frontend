@@ -1,58 +1,36 @@
-import { matchRoutes, Outlet, useLocation, useNavigate } from "react-router-dom";
-
-import { useFetch } from "@/CustomHooks/useFetch";
-import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
-import { routes } from "@/routes/appRoutes";
-import { api } from "@/utils";
-import { MarketLayout } from "../layouts/MarketLayout";
-import { useStore } from "@/store/useStore";
 import { useEffect } from "react";
+import { Outlet } from "react-router-dom";
 
+import { useStore } from "@/store/useStore";
+import {
+  StorefrontContext,
+  useStorefrontFetch,
+} from "@/pages/HomePage/pages/MarketPlace/components/storefront/storefrontData";
+import { MarketLayout } from "../layouts/MarketLayout";
+
+/**
+ * Member marketplace shell. Loads the storefront data once (products,
+ * markets, delivery config) and shares it with the Shop / Product pages.
+ */
 const Market = () => {
-  const {
-    data: products,
-    loading,
-  } = useFetch(api.fetch.fetchAllProducts);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { setProducts, setLoading } = useStore();
-
-  const handleSelectedTab = (tab: string) => {
-    if (tab === "Products") {
-      navigate("/member/market");
-    } else {
-      navigate(`${tab.toLowerCase()}`);
-    }
-  };
+  const storefront = useStorefrontFetch();
+  const setProducts = useStore((s) => s.setProducts);
+  const setLoading = useStore((s) => s.setLoading);
 
   useEffect(() => {
-    if (loading) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-    if (products) {
-      setProducts(products.data);
-    }
+    setLoading(storefront.loading);
+  }, [storefront.loading, setLoading]);
 
-    
-  }, [loading, products, setLoading, setProducts]);
-
-  const matches = matchRoutes(routes, location);
-  const routeName = matches?.[matches.length - 1]?.route.name;
+  useEffect(() => {
+    setProducts(storefront.products);
+  }, [storefront.products, setProducts]);
 
   return (
-    <MarketLayout title={routeName}>
-      <div className="bg-white p-4 sm:p-6 space-y-4 sm:space-y-5 container mx-auto">
-        <SlantTabs
-          tabs={["Products", "Orders"]}
-          onTabSelect={handleSelectedTab}
-          selectedTab={routeName || "Products"}
-        />
-
+    <StorefrontContext.Provider value={storefront}>
+      <MarketLayout>
         <Outlet />
-      </div>
-    </MarketLayout>
+      </MarketLayout>
+    </StorefrontContext.Provider>
   );
 };
 

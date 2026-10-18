@@ -1,4 +1,11 @@
-import type { IOrders, IOrderDetail } from "@/utils";
+import type { FulfilmentMethod, IOrderDetail, IOrders } from "@/utils";
+import {
+  formatDate,
+  formatTime,
+  isManualOrder,
+  type MarketOrder,
+  type StatusInfo,
+} from "@/pages/HomePage/pages/MarketPlace/utils/marketplaceModel";
 
 export type OrderLifecycleStage =
   | "waiting_payment"
@@ -9,53 +16,119 @@ export type OrderLifecycleStage =
 
 export interface OrderLifecycle {
   stage: OrderLifecycleStage;
-  label: string;
   canPay: boolean;
   canCancel: boolean;
 }
 
-type LifecycleInput = Pick<
-  IOrders | IOrderDetail,
-  "payment_status" | "delivery_status"
->;
-
-const STAGE_LABELS: Record<OrderLifecycleStage, string> = {
-  waiting_payment: "Waiting for Payment",
-  payment_failed: "Payment Failed",
-  waiting_delivery: "Waiting for Delivery",
-  complete: "Transaction Complete",
-  cancelled: "Order Cancelled",
-};
+type LifecycleInput = Pick<MarketOrder, "payment" | "delivery">;
 
 /**
- * Single source of truth for order status wording, used by both the
- * member order list (badges) and the order detail page (progress bar).
- * There is no separate "Been Shipped" stage — delivery_status === "shipped"
- * folds into "waiting_delivery" since there is no real shipment-tracking
- * data model to justify a distinct stage.
+ * Which member actions are available for an order. Members can only pay for
+ * or cancel an order while it is still awaiting payment — once paid, changes
+ * go through the church office.
  */
 export function getOrderLifecycle(order: LifecycleInput): OrderLifecycle {
-  const paymentStatus = String(order.payment_status || "").toLowerCase();
-  const deliveryStatus = String(order.delivery_status || "").toLowerCase();
-
   let stage: OrderLifecycleStage;
-  if (deliveryStatus === "cancelled") {
-    stage = "cancelled";
-  } else if (paymentStatus === "failed") {
-    stage = "payment_failed";
-  } else if (paymentStatus === "pending") {
-    stage = "waiting_payment";
-  } else if (deliveryStatus === "delivered") {
-    stage = "complete";
-  } else {
-    // paid (success), delivery pending or shipped
-    stage = "waiting_delivery";
-  }
+  if (order.delivery === "cancelled") stage = "cancelled";
+  else if (order.payment === "failed") stage = "payment_failed";
+  else if (order.payment === "pending") stage = "waiting_payment";
+  else if (order.delivery === "delivered") stage = "complete";
+  else stage = "waiting_delivery";
 
   return {
     stage,
-    label: STAGE_LABELS[stage],
     canPay: stage === "waiting_payment",
     canCancel: stage === "waiting_payment",
   };
 }
+
+// ---------------------------------------------------------------------------
+// Delivery-aware wording (the shared model assumes pickup).
+// ---------------------------------------------------------------------------
+
+/** Old orders have no fulfilment_method — treat them as pickup. */
+export const resolveFulfilment = (
+  source:
+    | Pick<IOrderDetail, "fulfilment_method">
+    | (IOrders & { fulfilment_method?: FulfilmentMethod | null })
+    | null
+    | undefined
+): FulfilmentMethod =>
+  source?.fulfilment_method === "delivery" ? "delivery" : "pickup";
+
+export const memberStatusPill = (
+  o: LifecycleInput,
+  method: FulfilmentMethod
+): StatusInfo => {
+  const pickup = method === "pickup";
+  if (o.delivery === "cancelled") return { label: "Cancelled", tone: "red" };
+  if (o.payment === "failed") return { label: "Payment failed", tone: "red" };
+  if (o.payment === "pending") return { label: "Awaiting payment", tone: "yellow" };
+  if (o.delivery === "delivered")
+    return { label: pickup ? "Collected" : "Delivered", tone: "green" };
+  if (o.delivery === "shipped")
+    return { label: pickup ? "Ready for pickup" : "On the way", tone: "blue" };
+  return { label: "Processing", tone: "gray" };
+};
+
+export interface MemberOrderStep {
+  label: string;
+  sub: string;
+  done: boolean;
+}
+
+export const stepsFor = (
+  o: MarketOrder,
+  method: FulfilmentMethod
+): MemberOrderStep[] => {
+  const pickup = method === "pickup";
+  const idx =
+    o.delivery === "delivered"
+      ? 3
+      : o.delivery === "shipped"
+        ? 2
+        : o.payment === "success"
+          ? 1
+          : 0;
+  const placed = [formatDate(o.createdAt), formatTime(o.createdAt)]
+    .filter(Boolean)
+    .join(" · ");
+  const labels = [
+    "Order placed",
+    "Payment confirmed",
+    pickup ? "Ready for pickup" : "Out for delivery",
+    pickup ? "Collected" : "Delivered",
+  ];
+  const subs = [
+    placed,
+    isManualOrder(o) ? "Recorded by the church office" : "Via Hubtel",
+    pickup ? "We'll notify you when it's ready" : "On its way to your address",
+    pickup
+      ? "Show your order number at the church office"
+      : "Delivered to your address",
+  ];
+  return labels.map((label, i) => ({
+    label,
+    sub: i <= idx ? subs[i] : i === idx + 1 ? "Up next" : "",
+    done: i <= idx,
+  }));
+};
+
+export const fulfilmentShortLabel = (method: FulfilmentMethod) =>
+  method === "delivery" ? "Delivery" : "Pickup";
+
+export const fulfilmentTitle = (method: FulfilmentMethod) =>
+  method === "delivery" ? "Home delivery" : "Pickup at church";
+
+export const paymentGateway = (o: Pick<MarketOrder, "reference">) =>
+  isManualOrder(o)
+    ? { name: "Manual", channel: "Cash / bank transfer", hasLogo: false }
+    : { name: "Hubtel", channel: "Mobile money", hasLogo: true };
+
+/** Pulls a readable message out of an axios-style error. */
+export const apiErrorMessage = (error: unknown, fallback: string) => {
+  const body = (error as { response?: { data?: { message?: unknown; error?: unknown } } })
+    ?.response?.data;
+  const message = body?.message ?? body?.error;
+  return typeof message === "string" && message.trim() ? message : fallback;
+};

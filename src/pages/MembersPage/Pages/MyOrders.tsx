@@ -1,16 +1,29 @@
 import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
-import { PaginationComponent } from "@/pages/HomePage/Components/reusable/PaginationComponent";
-import { showNotification } from "@/pages/HomePage/utils";
-import { MemberOrderGroup } from "@/pages/MembersPage/components/MemberOrderGroup";
-import { api, decodeToken, IOrders, relativePath } from "@/utils";
-import EmptyState from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
+import { PaginationComponent } from "@/pages/HomePage/Components/reusable/PaginationComponent";
+import { encodeQuery } from "@/pages/HomePage/utils";
+import {
+  groupOrderRows,
+  type MarketOrder,
+} from "@/pages/HomePage/pages/MarketPlace/utils/marketplaceModel";
+import { MemberOrderGroup } from "@/pages/MembersPage/components/MemberOrderGroup";
+import {
+  cancelOrderRequest,
+  confirmCancelOrder,
+  startOrderPayment,
+} from "@/pages/MembersPage/components/orders/orderActions";
+import { resolveFulfilment } from "@/pages/MembersPage/utils/orderLifecycle";
+import { api, decodeToken, relativePath, type IOrders } from "@/utils";
 
 const PAGE_SIZE = 10;
 
+type OrderRow = IOrders & { delivery_fee?: number | string | null };
+
 export const MyOrders = () => {
+  const navigate = useNavigate();
   const user = decodeToken();
   const userId = user?.id ? String(user.id) : "";
   const { data, loading, error, refetch } = useFetch(
@@ -18,219 +31,166 @@ export const MyOrders = () => {
     userId ? { user_id: userId } : undefined,
     !userId
   );
-  const [processingKeys, setProcessingKeys] = useState<Set<string>>(
-    new Set()
-  );
+  const [processing, setProcessing] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
 
-  const markProcessing = useCallback((key: string) => {
-    setProcessingKeys((prev) => {
+  const setBusy = useCallback((key: string, busy: boolean) => {
+    setProcessing((prev) => {
       const next = new Set(prev);
-      next.add(key);
+      if (busy) next.add(key);
+      else next.delete(key);
       return next;
     });
   }, []);
 
-  const unmarkProcessing = useCallback((key: string) => {
-    setProcessingKeys((prev) => {
-      const next = new Set(prev);
-      next.delete(key);
-      return next;
-    });
-  }, []);
-
-  const memberOrders = useMemo<IOrders[]>(() => {
-    if (!data) return [];
-
-    if (Array.isArray(data)) {
-      return [...data].sort((a, b) => Number(b.id) - Number(a.id));
-    }
-
-    const apiData = (data as { data?: IOrders[] }).data;
-    if (Array.isArray(apiData)) {
-      return [...apiData].sort((a, b) => Number(b.id) - Number(a.id));
-    }
-
-    return [];
+  const rows = useMemo<OrderRow[]>(() => {
+    const list = Array.isArray(data)
+      ? (data as OrderRow[])
+      : (data as { data?: OrderRow[] } | null)?.data;
+    return Array.isArray(list) ? list : [];
   }, [data]);
 
-  const getOrderKey = useCallback((order: IOrders) => {
-    return String(
-      order.order_number || order.reference || order.order_id || order.id
+  // Newest first; groupOrderRows keeps the order it receives.
+  const orders = useMemo(() => {
+    const sorted = [...rows].sort(
+      (a, b) => Number(b.order_id ?? b.id) - Number(a.order_id ?? a.id)
     );
-  }, []);
+    const firstRow = new Map<string, OrderRow>();
+    sorted.forEach((row) => {
+      const key = String(row.order_id ?? row.order_number ?? row.id);
+      if (!firstRow.has(key)) firstRow.set(key, row);
+    });
+    return groupOrderRows(sorted).map((order) => {
+      const row =
+        firstRow.get(String(order.id)) ?? firstRow.get(order.orderNumber);
+      const method = resolveFulfilment(row);
+      // order.total already folds in order_total / delivery_fee; a row's
+      // total_amount is the per-item line total, not the order total.
+      return { order, method, total: order.total };
+    });
+  }, [rows]);
 
-  // Group the flattened one-row-per-line-item rows by order_number, in
-  // descending order (newest order first, preserving memberOrders' sort).
-  const groupedOrders = useMemo(() => {
-    const groups = new Map<string, IOrders[]>();
-    for (const order of memberOrders) {
-      const key = getOrderKey(order);
-      const existing = groups.get(key);
-      if (existing) existing.push(order);
-      else groups.set(key, [order]);
-    }
-    return Array.from(groups.entries()).map(([orderNumber, rows]) => ({
-      orderNumber,
-      rows,
-    }));
-  }, [memberOrders, getOrderKey]);
-
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(groupedOrders.length / PAGE_SIZE)),
-    [groupedOrders.length]
-  );
-  // groupedOrders can shrink out from under `page` (e.g. cancelling the only
-  // order on the last page) without `page` itself being re-clamped, so slice
-  // using an effective page that's always within range.
+  const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
   const effectivePage = Math.min(page, totalPages);
-
-  const pagedGroups = useMemo(() => {
-    const start = (effectivePage - 1) * PAGE_SIZE;
-    return groupedOrders.slice(start, start + PAGE_SIZE);
-  }, [groupedOrders, effectivePage]);
-
-  const handleRetryPayment = useCallback(
-    async (selectedOrder: IOrders) => {
-      if ((selectedOrder.payment_status || "").toLowerCase() !== "pending") {
-        showNotification("This order is already paid.", "error");
-        return;
-      }
-
-      const orderKey = getOrderKey(selectedOrder);
-      markProcessing(orderKey);
-
-      const retryOrderId = String(selectedOrder.order_id || selectedOrder.id || "").trim();
-      if (!retryOrderId) {
-        showNotification("Unable to process payment for this order.", "error");
-        unmarkProcessing(orderKey);
-        return;
-      }
-
-      const payload = {
-        id: retryOrderId,
-        cancellation_url: `${window.location.origin}${relativePath.member.orders}`,
-        return_url: `${window.location.origin}${relativePath.member.verify_payment}`,
-      };
-
-      try {
-        const response = await api.post.retryOrderPayment(payload);
-        const checkoutUrl = response?.data?.checkoutUrl;
-
-        if (!checkoutUrl) {
-          showNotification("Unable to start payment checkout.", "error");
-          return;
-        }
-
-        window.location.href = checkoutUrl;
-      } catch (error: unknown) {
-        const message =
-          typeof error === "object" &&
-          error !== null &&
-          "response" in error &&
-          typeof (error as { response?: { data?: { message?: string } } })
-            .response?.data?.message === "string"
-            ? (error as { response?: { data?: { message?: string } } }).response
-                ?.data?.message
-            : "Failed to initiate payment.";
-
-        showNotification(message || "Failed to initiate payment.", "error");
-      } finally {
-        unmarkProcessing(orderKey);
-      }
-    },
-    [getOrderKey, markProcessing, unmarkProcessing]
+  const paged = orders.slice(
+    (effectivePage - 1) * PAGE_SIZE,
+    effectivePage * PAGE_SIZE
   );
 
-  const handleCancelOrder = useCallback(
-    async (selectedOrder: IOrders) => {
-      const orderKey = getOrderKey(selectedOrder);
-      markProcessing(orderKey);
-
-      const orderId = String(selectedOrder.order_id || selectedOrder.id || "").trim();
-      if (!orderId) {
-        showNotification("Unable to cancel this order.", "error");
-        unmarkProcessing(orderKey);
-        return;
-      }
-
-      try {
-        await api.put.cancelOrder({ id: orderId });
-        showNotification("Order cancelled.", "success");
-        await refetch();
-      } catch (error: unknown) {
-        const message =
-          typeof error === "object" &&
-          error !== null &&
-          "response" in error &&
-          typeof (error as { response?: { data?: { message?: string } } })
-            .response?.data?.message === "string"
-            ? (error as { response?: { data?: { message?: string } } }).response
-                ?.data?.message
-            : "Failed to cancel order.";
-
-        showNotification(message || "Failed to cancel order.", "error");
-      } finally {
-        unmarkProcessing(orderKey);
-      }
+  const handlePay = useCallback(
+    async (order: MarketOrder) => {
+      const key = order.orderNumber;
+      setBusy(key, true);
+      const redirecting = await startOrderPayment(order.id);
+      if (!redirecting) setBusy(key, false);
     },
-    [getOrderKey, markProcessing, unmarkProcessing, refetch]
+    [setBusy]
   );
 
-  if (loading) {
-    return <OrdersSkeleton />;
-  }
+  const handleCancel = useCallback(
+    (order: MarketOrder) => {
+      confirmCancelOrder(order.orderNumber, async () => {
+        const key = order.orderNumber;
+        setBusy(key, true);
+        const ok = await cancelOrderRequest(order.id);
+        setBusy(key, false);
+        if (ok) await refetch();
+      });
+    },
+    [refetch, setBusy]
+  );
 
-  if (error) {
-    return <EmptyState scope="page" msg="Failed to load your orders" />;
-  }
+  const detailHref = (order: MarketOrder) =>
+    `${relativePath.member.market}orders/${encodeQuery(String(order.id))}`;
 
-  if (groupedOrders.length === 0) {
-    return <EmptyState scope="page" msg="You have not placed any orders yet" />;
-  }
+  const count = orders.length;
 
   return (
-    <div className="rounded-xl bg-white">
-      {pagedGroups.map(({ orderNumber, rows }) => (
-        <MemberOrderGroup
-          key={orderNumber}
-          orderNumber={orderNumber}
-          rows={rows}
-          onPay={handleRetryPayment}
-          onCancel={handleCancelOrder}
-          isProcessing={processingKeys.has(orderNumber)}
-        />
-      ))}
+    <div className="flex w-full flex-col gap-5 text-primary">
+      <div>
+        <h1 className="text-2xl font-semibold leading-8">
+          My orders
+          {count > 0 && (
+            <span className="ml-2 text-base font-normal text-primaryGray">
+              ({count})
+            </span>
+          )}
+        </h1>
+        <p className="text-primaryGray">Track purchases from church markets.</p>
+      </div>
 
-      <PaginationComponent
-        total={groupedOrders.length}
-        take={PAGE_SIZE}
-        onPageChange={(newPage) => setPage(newPage)}
-      />
+      {loading ? (
+        <OrdersSkeleton />
+      ) : error ? (
+        <div
+          role="alert"
+          className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-lightGray bg-white px-6 py-12 text-center"
+        >
+          <h2 className="text-lg font-semibold">We couldn’t load your orders</h2>
+          <p className="text-primaryGray">Check your connection and try again.</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 min-h-10 rounded-lg bg-primary px-5 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            Try again
+          </button>
+        </div>
+      ) : count === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-lightGray bg-white px-6 py-12 text-center">
+          <h2 className="text-lg font-semibold">No orders yet</h2>
+          <p className="text-primaryGray">
+            When you buy from a church market it will show up here.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate(relativePath.member.market)}
+            className="mt-2 min-h-10 rounded-lg bg-primary px-5 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            Start shopping
+          </button>
+        </div>
+      ) : (
+        <>
+          {paged.map(({ order, method, total }) => (
+            <MemberOrderGroup
+              key={order.orderNumber}
+              order={order}
+              method={method}
+              total={total}
+              detailHref={detailHref(order)}
+              onPay={handlePay}
+              onCancel={handleCancel}
+              isProcessing={processing.has(order.orderNumber)}
+            />
+          ))}
+          {count > PAGE_SIZE && (
+            <PaginationComponent
+              total={count}
+              take={PAGE_SIZE}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
 
 function OrdersSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div
-      className="rounded-xl bg-white"
-      aria-busy="true"
-      aria-live="polite"
-      aria-label="Loading your orders"
-    >
+    <div className="flex flex-col gap-5" aria-busy="true" aria-live="polite">
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index} className="border-b border-lightGray py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-lightGray/20 px-4 py-3">
-            <div className="space-y-2">
-              <Skeleton className="h-3 w-32" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-            <Skeleton className="h-9 w-24 rounded-lg" />
+        <div
+          key={index}
+          className="overflow-hidden rounded-xl border border-lightGray bg-white"
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-5 py-3.5">
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-5 w-24 rounded-full" />
           </div>
-
-          <div className="flex gap-4 px-4 py-4">
-            <Skeleton className="h-16 w-16 flex-shrink-0 rounded-lg" />
+          <div className="flex items-center gap-4 px-5 py-4">
+            <Skeleton className="size-14 rounded-lg" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-1/2" />
               <Skeleton className="h-3 w-1/3" />

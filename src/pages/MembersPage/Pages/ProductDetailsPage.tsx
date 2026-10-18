@@ -1,104 +1,100 @@
 import { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useFetch } from "@/CustomHooks/useFetch";
-import { ProductDetails } from "@/pages/HomePage/pages/MarketPlace/components/ProductDetails";
-import { api, ICartItem, IProductTypeResponse } from "@/utils";
-import { decodeQuery } from "@/pages/HomePage/utils";
-import { useCart } from "@/pages/HomePage/pages/MarketPlace/utils/cartSlice";
-import EmptyState from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
+import { ProductDetails } from "@/pages/HomePage/pages/MarketPlace/components/ProductDetails";
+import { StorefrontPage } from "@/pages/HomePage/pages/MarketPlace/components/storefront/StorefrontPage";
+import { useStorefrontData } from "@/pages/HomePage/pages/MarketPlace/components/storefront/storefrontData";
+import {
+  isGuestPath,
+  isLiveProduct,
+  shopPath,
+} from "@/pages/HomePage/pages/MarketPlace/components/storefront/storefrontModel";
+import { decodeQuery } from "@/pages/HomePage/utils";
+import { api, type IProductTypeResponse } from "@/utils";
 
 export function ProductDetailsPage() {
   const { id } = useParams();
   const productId = decodeQuery(id || "");
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const guest = isGuestPath(pathname);
 
-  const {
-    data: product,
-    loading,
-    error,
-  } = useFetch(api.fetch.fetchProductById, { id: productId });
+  const query = useMemo(() => ({ id: productId }), [productId]);
+  const { data: product, loading, error } = useFetch(api.fetch.fetchProductById, query);
+  const { products, deliveryConfig } = useStorefrontData();
 
-  const { data: allProducts } = useFetch(api.fetch.fetchAllProducts);
-
-  const { addToCart } = useCart();
-
-  const handleAddToCart = (item: ICartItem) => {
-    addToCart(item);
-  };
+  const current = product?.data;
 
   const relatedProducts = useMemo<IProductTypeResponse[]>(() => {
-    if (!product?.data) return [];
-    const current = product.data;
-    return (allProducts?.data || [])
-      .filter((candidate) => String(candidate.id) !== String(current.id))
+    if (!current?.market_id) return [];
+    return products
+      .filter(isLiveProduct)
       .filter(
-        (candidate) =>
-          String(candidate.market_id) === String(current.market_id) ||
-          String(candidate.product_type_id) === String(current.product_type_id)
+        (p) =>
+          String(p.id) !== String(current.id) &&
+          String(p.market_id) === String(current.market_id)
       )
       .slice(0, 4);
-  }, [allProducts?.data, product?.data]);
+  }, [products, current]);
+
+  const isLoading = loading || (!product && !error);
 
   return (
-    <div className="mx-auto bg-white rounded-xl">
-      {loading && <ProductDetailsSkeleton />}
+    <StorefrontPage>
+      {isLoading && <ProductDetailsSkeleton />}
 
-      {!loading && (!product || !product?.data) && (
-        <EmptyState
-          scope="page"
-          msg={error ? "Failed to load product details" : "Product not found"}
-        />
+      {!isLoading && !current && (
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-lightGray bg-white px-6 py-12 text-center text-primary">
+          <h2 className="text-lg font-semibold">
+            {error ? "We couldn't load this product" : "Product not found"}
+          </h2>
+          <p className="text-primaryGray">
+            {error
+              ? "Check your connection and try again."
+              : "It may have been removed or the market has closed."}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate(shopPath(guest))}
+            className="mt-2 min-h-10 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            Back to shop
+          </button>
+        </div>
       )}
 
-      {!loading && product?.data && (
+      {!isLoading && current && (
         <ProductDetails
-          product={product.data}
-          addToCart={handleAddToCart}
+          key={String(current.id)}
+          product={current}
           relatedProducts={relatedProducts}
+          deliveryConfig={deliveryConfig}
         />
       )}
-    </div>
+    </StorefrontPage>
   );
 }
 
 function ProductDetailsSkeleton() {
   return (
-    <div
-      className="w-full max-w-6xl mx-auto p-6 md:p-8"
-      aria-busy="true"
-      aria-live="polite"
-      aria-label="Loading product details"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="flex flex-col gap-6" aria-busy="true" aria-label="Loading product details">
+      <Skeleton className="h-4 w-64" />
+      <div className="grid grid-cols-1 gap-10 min-[900px]:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <Skeleton className="aspect-square w-full rounded-2xl" />
-
         <div className="space-y-4">
+          <Skeleton className="h-6 w-32 rounded-full" />
           <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-6 w-40" />
-
-          <div className="flex gap-3">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-8 w-40" />
+          <div className="flex gap-3 pt-2">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
           </div>
-
-          <div className="space-y-2 pt-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-4 w-4/6" />
-          </div>
-
-          <div className="flex items-center gap-4 pt-4">
-            <Skeleton className="h-10 w-28 rounded-xl" />
-            <Skeleton className="h-11 w-40 rounded-xl" />
-          </div>
-
-          <div className="space-y-2 pt-6">
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-11/12" />
-            <Skeleton className="h-4 w-10/12" />
-          </div>
+          <Skeleton className="h-11 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
         </div>
       </div>
       <span className="sr-only">Loading product details…</span>
