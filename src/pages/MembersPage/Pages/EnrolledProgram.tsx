@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components";
 import CourseSidebar from "../Component/CourseSidebar";
-import { useParams } from "react-router-dom";
-import BannerWrapper from "../layouts/BannerWrapper";
+import { Link, useParams } from "react-router-dom";
+import DOMPurify from "dompurify";
+import { learnerPaths } from "./school/learnerPaths";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 import { api, CertificateData, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -19,13 +20,36 @@ type NavItem = {
   active: boolean; 
   completed?: boolean;
   type?: string;
+  group?: string;
 };
+
+type ProgramModuleSummary = { id: number; title: string; order_number: number };
 
 type ProgramCompletionStatus = {
   title?: string;
   description?: string;
   completed?: boolean;
+  cohortName?: string;
+  className?: string;
+  modules?: ProgramModuleSummary[];
   topics?: Topic[];
+};
+
+/**
+ * Orders topics module by module (unassigned topics last) so the sidebar can
+ * group them under module headings and prev/next follows the same order.
+ */
+const orderByModule = (topics: Topic[], modules: ProgramModuleSummary[]) => {
+  if (!modules.length) return topics;
+  const rank = new Map(modules.map((m, i) => [m.id, i]));
+  return topics
+    .map((topic, index) => ({ topic, index }))
+    .sort((a, b) => {
+      const ra = a.topic.moduleId != null ? (rank.get(a.topic.moduleId) ?? modules.length) : modules.length;
+      const rb = b.topic.moduleId != null ? (rank.get(b.topic.moduleId) ?? modules.length) : modules.length;
+      return ra - rb || a.index - b.index;
+    })
+    .map((x) => x.topic);
 };
 
 type CompletionPrompt = {
@@ -80,7 +104,9 @@ const EnrolledProgram: React.FC = () => {
   useEffect(() => {
     if (!data?.data) return;
 
-    const backendTopics = data.data.topics ?? [];
+    const modules = data.data.modules ?? [];
+    const backendTopics = orderByModule(data.data.topics ?? [], modules);
+    const moduleLabel = new Map(modules.map((m, i) => [m.id, `Module ${i + 1} · ${m.title}`]));
     setTopics(backendTopics);
 
     if (backendTopics.length === 0) {
@@ -104,6 +130,9 @@ const EnrolledProgram: React.FC = () => {
       active: String(topic.id) === String(activeTopic.id),
       completed: topic.completed || false,
       type: topic.learningUnit?.type ?? undefined,
+      group: modules.length
+        ? (topic.moduleId != null && moduleLabel.get(topic.moduleId)) || "Other units"
+        : undefined,
     }));
 
     setNavItems(items);
@@ -228,38 +257,33 @@ const EnrolledProgram: React.FC = () => {
 
   return (
     <div className="w-full">
-      {/* Banner Section */}
-      <BannerWrapper>
-        <div className="space-y-4 w-full">
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-3 flex-1">
-              <h1 className="font-bold text-2xl md:text-3xl lg:text-4xl ">
-                {data?.data?.title}
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                {data?.data?.description}
-              </p>
-            </div>
-            {data?.data?.completed && supportsCertificateModal && (
-              <div>
-                <Button
-                  value="View Certificate"
-                  variant="primary"
-                  className="bg-white text-primary"
-                  onClick={openCertificateModal}
-                />
-              </div>
-            )}
-          </div>
+      {/* Header Section */}
+      <div className="flex flex-col gap-1">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap gap-1 text-[13px] text-primaryGray">
+          <Link to={learnerPaths.myPrograms} className="hover:text-primary hover:underline">
+            My programs
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-primary">{data?.data?.title}</span>
+        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold text-primary md:text-[28px]">
+            {[data?.data?.title, data?.data?.cohortName, data?.data?.className]
+              .filter(Boolean)
+              .join(" · ")}
+          </h1>
+          {data?.data?.completed && supportsCertificateModal && (
+            <Button value="View Certificate" variant="primary" onClick={openCertificateModal} />
+          )}
         </div>
-      </BannerWrapper>
+      </div>
 
       {/* Main Content Area */}
-      <main className="mx-auto py-8">
+      <main className="mx-auto py-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* Topics Sidebar - Left */}
           <aside
-            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-[13rem]"
+            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-28"
             aria-label="Course topics navigation"
           >
             <div className="">
@@ -267,7 +291,8 @@ const EnrolledProgram: React.FC = () => {
               <CourseSidebar
                 navItems={navItems}
                 onSelect={handleTopicSelect}
-                heading="Topics"
+                heading="Course content"
+                progress={progressPercentage}
               />
             </div>
           </aside>
@@ -334,7 +359,7 @@ const EnrolledProgram: React.FC = () => {
                       <div
                         className="prose max-w-none text-primaryGray"
                         dangerouslySetInnerHTML={{
-                          __html: String(selectedTopic.description ?? ""),
+                          __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
                         }}
                       />
                     </div>

@@ -12,6 +12,7 @@ import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
+import { activeMenuPath, learnerMenu } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
 interface AccessibleMenuProps {
@@ -148,13 +149,11 @@ export const Header = ({ handleShowNav }: IProps) => {
       { label: "Appointments", path: relativePath.member.appointments }
   ];
 
-  const schoolItems = [
-    { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
-    { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms },
-    ...(isInstructor
-      ? [{ label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal }]
-      : []),
-  ];
+  const schoolItems = learnerMenu(Boolean(isInstructor));
+  const activeSchoolPath = activeMenuPath(
+    location.pathname,
+    schoolItems.map((item) => item.path)
+  );
 
   // Everything a member can reach that is not one of the top-level tabs. Kept
   // as a list so the desktop dropdown and the mobile accordion cannot drift.
@@ -363,8 +362,9 @@ export const Header = ({ handleShowNav }: IProps) => {
                     tabIndex={0}
                     key={item.label}
                     onClick={() => handleNavigate(item.path)}
+                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
                     className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                      isActive(item.path) ? "text-primary font-semibold" : ""
+                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
                     }`}
                   >
                     {item.label}
@@ -583,7 +583,10 @@ export const Header = ({ handleShowNav }: IProps) => {
                   <button
                     key={item.label}
                     onClick={() => handleNavigate(item.path)}
-                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
+                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
+                    className={`block w-full text-left px-6 py-2 text-sm hover:bg-gray-100 ${
+                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
+                    }`}
                   >
                     {item.label}
                   </button>

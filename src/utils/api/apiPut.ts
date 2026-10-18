@@ -414,8 +414,7 @@ export class ApiUpdateCalls {
     payload: unknown,
     // query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/complete-topic
-`, payload);
+    return this.apiExecution.updateData("program/complete-topic", payload);
   }
 
   // activate assignment

@@ -90,7 +90,13 @@ import MemberPledges from "@/pages/MembersPage/Pages/MemberPledges.js";
 import MemberPledgeComplete from "@/pages/MembersPage/Pages/MemberPledgeComplete.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
-import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
+import LearnerDashboard from "@/pages/MembersPage/Pages/school/LearnerDashboard";
+import MyPrograms from "@/pages/MembersPage/Pages/school/MyPrograms";
+import LearnerAssignments from "@/pages/MembersPage/Pages/school/LearnerAssignments";
+import LearnerSubmission from "@/pages/MembersPage/Pages/school/LearnerSubmission";
+import LearnerGrades from "@/pages/MembersPage/Pages/school/LearnerGrades";
+import LearnerSchedule from "@/pages/MembersPage/Pages/school/LearnerSchedule";
+import LearnerAnnouncements from "@/pages/MembersPage/Pages/school/LearnerAnnouncements";
 import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
@@ -1392,6 +1398,12 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        path: relativePath.member.schoolOfMinistries.main,
+        name: "member_school_of_ministries",
+        element: <LearnerDashboard />,
+        isPrivate: false,
+      },
+      {
         path: relativePath.member.schoolOfMinistries.allPrograms,
         name: "member_school_of_ministries",
         element: <AllPrograms />,
@@ -1400,7 +1412,37 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
-        element: <MyLearning />,
+        element: <MyPrograms />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.assignments,
+        name: "member_school_of_ministries",
+        element: <LearnerAssignments />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.assignmentDetails,
+        name: "member_school_of_ministries",
+        element: <LearnerSubmission />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.grades,
+        name: "member_school_of_ministries",
+        element: <LearnerGrades />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.schedule,
+        name: "member_school_of_ministries",
+        element: <LearnerSchedule />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.announcements,
+        name: "member_school_of_ministries",
+        element: <LearnerAnnouncements />,
         isPrivate: false,
       },
       {
