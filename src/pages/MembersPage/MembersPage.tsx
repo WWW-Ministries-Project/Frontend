@@ -14,7 +14,12 @@ import CartDrawer from "../HomePage/pages/MarketPlace/components/cart/CartDrawer
  */
 const MembersPage = () => {
     const setEvents = useStore((state) => state.setEvents);
-    const { data: eventsData } = useFetch(api.fetch.fetchUpcomingEvents);
+    const { data: eventsData } = useFetch(
+        api.fetch.fetchUpcomingEvents,
+        undefined,
+        false,
+        { silent: true }
+    );
 
     useEffect(() => {
         if (eventsData?.data) {
@@ -46,13 +51,14 @@ const MembersPage = () => {
             {/* Main Content Area */}
             <main 
                 id="main-content"
-                className="flex-1 w-full"
+                className="relative flex-1 w-full"
                 role="main"
                 aria-label="Main content"
             >
                 <div className="app-layout-container app-page-content">
                     <Outlet />
                 </div>
+                <LoaderComponent />
             </main>
 
             {/* Global UI Components. Dialog is mounted here, not only in the
@@ -61,7 +67,6 @@ const MembersPage = () => {
                 confirmation never renders, so the action silently does nothing. */}
             <CartDrawer />
             <Dialog />
-            <LoaderComponent />
         </div>
     );
 };
