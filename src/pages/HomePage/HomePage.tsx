@@ -30,24 +30,46 @@ export function HomePage() {
     () => buildBranchQuery(activeBranchId),
     [activeBranchId]
   );
+  // Org-wide data that hydrates the stores. Pages show their own loader for
+  // the requests they make, so these must not cover the page.
+  const shellFetch = { silent: true };
 
   const { data: branchesData, refetch: refetchBranches } = useFetch(
-    api.fetch.fetchBranches
+    api.fetch.fetchBranches,
+    undefined,
+    false,
+    shellFetch
   );
 
   const { data: membersData, refetch: refetchMembersOptions } = useFetch(
     api.fetch.fetchMembersForOptions,
-    branchQuery
+    branchQuery,
+    false,
+    shellFetch
   );
-  const { data: userStatsData } = useFetch(api.fetch.fetchUserStats, branchQuery);
-  const { data: eventsData } = useFetch(api.fetch.fetchEvents, branchQuery);
+  const { data: userStatsData } = useFetch(
+    api.fetch.fetchUserStats,
+    branchQuery,
+    false,
+    shellFetch
+  );
+  const { data: eventsData } = useFetch(
+    api.fetch.fetchEvents,
+    branchQuery,
+    false,
+    shellFetch
+  );
   const { data: positionsData, refetch: refetchPositions } = useFetch(
     api.fetch.fetchPositions,
-    branchQuery
+    branchQuery,
+    false,
+    shellFetch
   );
   const { data: departmentsData, refetch: refetchDepartments } = useFetch(
     api.fetch.fetchDepartments,
-    branchQuery
+    branchQuery,
+    false,
+    shellFetch
   );
   const settingsStore = useSettingsStore();
   const store = useStore();
@@ -147,25 +169,27 @@ export function HomePage() {
           <div className="app-surface app-shell-padding flex min-h-0 flex-1 overflow-hidden bg-lightGray">
             <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-t-4 border-lightGray border-t-secondary bg-white">
               <SubNav />
-              <div className="app-page-content min-h-0 min-w-0 flex-1 overflow-y-auto">
-                <Outlet
-                  context={{
-                    refetchMembersOptions,
-                    filter,
-                    setFilter,
-                    handleSearchChange,
-                    userStats,
-                    refetchPositions,
-                    refetchDepartments,
-                    refetchBranches,
-                  }}
-                />
+              <div className="relative flex min-h-0 min-w-0 flex-1">
+                <div className="app-page-content min-h-0 min-w-0 flex-1 overflow-y-auto">
+                  <Outlet
+                    context={{
+                      refetchMembersOptions,
+                      filter,
+                      setFilter,
+                      handleSearchChange,
+                      userStats,
+                      refetchPositions,
+                      refetchDepartments,
+                      refetchBranches,
+                    }}
+                  />
+                </div>
+                <LoaderComponent />
               </div>
             </div>
           </div>
         </div>
         <Dialog />
-        <LoaderComponent />
         <AiChatbotWidget />
       </div>
     </main>

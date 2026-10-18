@@ -1,5 +1,14 @@
 import LogoutIcon from "@/assets/sidebar/Logout";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type FocusEvent,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthWrapper";
@@ -7,9 +16,36 @@ import { sidebarIcons } from "../utils";
 import { resolveHomePath } from "../utils/navPaths";
 import { useSideNavTabs } from "./useSideNavTabs";
 
+// Keep in sync with the list's `pt-8`, `h-14` items and `gap-2`.
+const NAV_PADDING_TOP = 32;
+const NAV_ITEM_STRIDE = 56 + 8;
+
 interface IProps {
   className?: string;
 }
+
+interface TooltipState {
+  label: string;
+  top: number;
+  left: number;
+}
+
+/**
+ * Name label shown beside a rail icon. Portalled to <body> with fixed
+ * positioning because the rail's scroll container clips horizontal overflow.
+ */
+const RailTooltip = ({ label, top, left }: TooltipState) =>
+  createPortal(
+    <div
+      aria-hidden="true"
+      className="sidebar-tooltip pointer-events-none fixed z-[300] whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-[#fff] shadow-lg"
+      style={{ top, left }}
+    >
+      <span className="absolute -left-1 top-1/2 h-2 w-2 -translate-y-1/2 rotate-45 bg-primary" />
+      {label}
+    </div>,
+    document.body
+  );
 
 /**
  * Icon-only rail of top level modules. Each entry links to its module index,
@@ -20,9 +56,36 @@ export const SideBar = ({ className }: IProps) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { tabs, activeTabNames } = useSideNavTabs();
-  const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  const hideTooltip = useCallback(() => setTooltip(null), []);
+
+  const tooltipHandlers = (label: string) => {
+    const show = (event: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>) => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setTooltip({ label, top: rect.top + rect.height / 2, left: rect.right + 8 });
+    };
+    return {
+      onMouseEnter: show,
+      onFocus: show,
+      onMouseLeave: hideTooltip,
+      onBlur: hideTooltip,
+    };
+  };
+
+  const navTabs = useMemo(
+    () =>
+      tabs.flatMap((item) => {
+        const IconComponent = sidebarIcons[item.name];
+        return IconComponent ? [{ item, IconComponent }] : [];
+      }),
+    [tabs]
+  );
+  const activeIndex = navTabs.findIndex(
+    ({ item }) => activeTabNames[item.name]
+  );
 
   const handleLogOut = () => {
     logout();
@@ -37,26 +100,27 @@ export const SideBar = ({ className }: IProps) => {
     const canScroll = scrollHeight - clientHeight > 1;
 
     if (!canScroll) {
-      setShowTopFade(false);
       setShowBottomFade(false);
       return;
     }
 
     const threshold = 4;
-    setShowTopFade(scrollTop > threshold);
     setShowBottomFade(scrollTop + clientHeight < scrollHeight - threshold);
   }, []);
 
   useEffect(() => {
     const rafId = window.requestAnimationFrame(updateScrollFades);
-    const handleResize = () => updateScrollFades();
+    const handleResize = () => {
+      updateScrollFades();
+      hideTooltip();
+    };
     window.addEventListener("resize", handleResize);
 
     return () => {
       window.cancelAnimationFrame(rafId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [tabs, updateScrollFades]);
+  }, [tabs, updateScrollFades, hideTooltip]);
 
   return (
     <div
@@ -65,49 +129,62 @@ export const SideBar = ({ className }: IProps) => {
       aria-label="Main navigation sidebar"
       role="navigation"
     >
+      {/* Fixed, invisible top edge: icons scroll under it rather than fading
+          out. Offset by the content panel's corner radius so the clip starts
+          below its rounded corner. */}
       <div
-        className={`sidebar-scroll-shell flex-1 ${
-          showTopFade ? "sidebar-scroll-shell--top" : ""
-        } ${showBottomFade ? "sidebar-scroll-shell--bottom" : ""}`}
+        className={`sidebar-scroll-shell mt-[var(--radius-lg)] flex-1 border-t border-transparent ${
+          showBottomFade ? "sidebar-scroll-shell--bottom" : ""
+        }`}
       >
         <div
           ref={scrollContainerRef}
-          onScroll={updateScrollFades}
-          className="sidebar-scroll h-full overflow-y-auto overflow-x-hidden"
+          onScroll={() => {
+            updateScrollFades();
+            hideTooltip();
+          }}
+          className="sidebar-scroll no-scrollbar h-full overflow-y-auto overflow-x-hidden"
         >
-          <div className="flex flex-col gap-2 py-4">
-            {tabs.map((item) => {
-              const IconComponent = sidebarIcons[item.name];
-              if (!IconComponent) return null;
-
-              const isActive = activeTabNames[item.name] || false;
+          <div className="relative flex flex-col gap-2 pb-4 pt-8">
+            <div
+              aria-hidden="true"
+              className="sidebar-tab-indicator"
+              style={{
+                top: NAV_PADDING_TOP + Math.max(activeIndex, 0) * NAV_ITEM_STRIDE,
+                opacity: activeIndex < 0 ? 0 : 1,
+              }}
+            />
+            {navTabs.map(({ item, IconComponent }, index) => {
+              const isActive = index === activeIndex;
 
               return (
-                <div key={`${item.name}-${item.path}`}>
-                  {isActive && (
-                    <div className="flex justify-end">
-                      <div className="scrollable-shape-top" />
-                    </div>
-                  )}
-                  <NavLink
-                    to={resolveHomePath(item.path)}
-                    title={item.name}
-                    aria-label={item.name}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`flex h-14 w-full items-center justify-center rounded-s-xl rounded-e-xl text-primary transition-[background-color,color] duration-200 lg:rounded-e-none ${
+                <NavLink
+                  key={`${item.name}-${item.path}`}
+                  to={resolveHomePath(item.path)}
+                  aria-label={item.name}
+                  {...tooltipHandlers(item.name)}
+                  aria-current={isActive ? "page" : undefined}
+                  className="group relative z-[3] flex h-14 w-full items-center justify-center text-primary"
+                >
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl transition-[background-color,transform] motion-reduce:transition-none ${
                       isActive
-                        ? "sidebar-active-surface"
-                        : "hover:bg-lightGray/40"
+                        ? "scale-[1.06]"
+                        : "scale-100 group-hover:bg-lightGray/40"
                     }`}
+                    style={{
+                      transitionDuration: "200ms, 300ms",
+                      transitionTimingFunction:
+                        "ease, cubic-bezier(0.34, 1.4, 0.64, 1)",
+                    }}
                   >
-                    <IconComponent className="h-6 w-6 text-gray-600" />
-                  </NavLink>
-                  {isActive && (
-                    <div className="flex justify-end">
-                      <div className="scrollable-shape-bottom" />
-                    </div>
-                  )}
-                </div>
+                    <IconComponent
+                      className={`h-6 w-6 text-gray-600 transition-opacity duration-200 ${
+                        isActive ? "opacity-100" : "opacity-[0.72]"
+                      }`}
+                    />
+                  </span>
+                </NavLink>
               );
             })}
           </div>
@@ -119,13 +196,15 @@ export const SideBar = ({ className }: IProps) => {
         <button
           type="button"
           onClick={handleLogOut}
-          title="Logout"
           aria-label="Logout"
+          {...tooltipHandlers("Logout")}
           className="flex h-14 w-full items-center justify-center rounded-s-xl transition-colors hover:bg-lightGray/40"
         >
           <LogoutIcon className="h-6 w-6 flex-shrink-0 text-gray-600" />
         </button>
       </div>
+
+      {tooltip && <RailTooltip {...tooltip} />}
     </div>
   );
 };
