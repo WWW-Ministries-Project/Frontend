@@ -10,6 +10,7 @@ import {
   MemberStage,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { notify } from "@/components/feedback";
 import { showNotification } from "@/pages/HomePage/utils";
 import {
   assignMembersToDepartment,
@@ -45,7 +46,8 @@ const useRunner = (onClose: () => void, onDone: () => void) => {
   const [busy, setBusy] = useState(false);
   const run = async (
     task: () => Promise<BulkOutcome>,
-    successText: (count: number) => string
+    successText: (count: number) => string,
+    failureTitle: string
   ) => {
     setBusy(true);
     try {
@@ -55,9 +57,8 @@ const useRunner = (onClose: () => void, onDone: () => void) => {
       if (outcome.succeeded > 0) onDone();
       onClose();
     } catch (error) {
-      const message =
-        (error as { message?: string })?.message || "Something went wrong";
-      showNotification(message, "error");
+      // The dialog stays open so the choice is kept for another try.
+      notify.fromError(error, { title: failureTitle });
     } finally {
       setBusy(false);
     }
@@ -90,7 +91,8 @@ const StatusDialog = ({
       onConfirm={() =>
         run(
           () => setMembersStage(members.map((member) => member.id), stage),
-          (count) => `Status updated for ${countText(count)}`
+          (count) => `Status updated for ${countText(count)}`,
+          `Couldn't change the status for ${subjectOf(members)}`
         )
       }
     >
@@ -178,7 +180,8 @@ const AssignDialog = ({
               Number(departmentId),
               positionId ? Number(positionId) : null
             ),
-          (count) => `${countText(count)} assigned`
+          (count) => `${countText(count)} assigned`,
+          `Couldn't assign ${subjectOf(members)} to the department`
         );
       }}
     >
@@ -232,7 +235,8 @@ const DeleteDialog = ({
       onConfirm={() =>
         run(
           () => deleteMembers(members.map((member) => member.id)),
-          (count) => `${countText(count)} deleted`
+          (count) => `${countText(count)} deleted`,
+          `Couldn't delete ${subjectOf(members)}`
         )
       }
     />

@@ -4,6 +4,7 @@ import { Button } from "@/components";
 import { Badge } from "@/components/Badge";
 import { api, LearningUnit, LearningUnitType, TopicSubmission } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
+import { InlineAlert } from "@/components/feedback";
 import { usePut } from "@/CustomHooks/usePut";
 import {
   ASSIGNMENT_DOCUMENT_ACCEPT,
@@ -64,6 +65,13 @@ const typeBadgeMap: Record<
 };
 
 let youtubeApiLoadPromise: Promise<void> | null = null;
+
+const formatFileSize = (bytes: number) => {
+  if (!Number.isFinite(bytes) || bytes < 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 const ensureAbsoluteUrl = (value: string) => {
   const trimmed = value.trim();
@@ -199,12 +207,17 @@ export const LearningUnits: React.FC<Props> = ({
   const isMcqAssignment = unit?.type === "assignment";
   const isEssayAssignment = unit?.type === "assignment-essay";
   const isAssignment = isMcqAssignment || isEssayAssignment;
-  const assignmentUnitData = isAssignment
-    ? ((unit?.data ?? {}) as {
-        maxAttempt?: number;
-        maxAttempts?: number;
-      })
-    : undefined;
+  const unitData = unit?.data;
+  const assignmentUnitData = useMemo(
+    () =>
+      isAssignment
+        ? ((unitData ?? {}) as {
+            maxAttempt?: number;
+            maxAttempts?: number;
+          })
+        : undefined,
+    [isAssignment, unitData]
+  );
   const essayUnitData = isEssayAssignment
     ? ((unit?.data ?? {}) as {
         question?: string;
@@ -471,13 +484,50 @@ export const LearningUnits: React.FC<Props> = ({
 
   const assignmentLockMessage = isLockedByDueDate
     ? "This assignment is locked because the due date has passed. Submissions are no longer accepted."
-    : isInactive
-      ? "Assignment is not activated by facilitator."
-      : isClosedByFacilitator
-        ? "This assignment has been locked by the facilitator."
-        : isRetryLimitReached
-          ? "Retry limit reached. You cannot submit this assignment again."
-          : null;
+    : isClosedByFacilitator && !isInactive
+      ? "This assignment has been locked by the facilitator."
+      : null;
+
+  const hasRecordedScore =
+    typeof topicScore === "number" && Number.isFinite(topicScore);
+
+  const renderAssignmentLockNotice = () => {
+    if (assignmentLockMessage) {
+      return (
+        <div
+          className={`rounded-md border px-4 py-3 text-sm ${
+            isLockedByDueDate
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-amber-200 bg-amber-50 text-amber-700"
+          }`}
+        >
+          {assignmentLockMessage}
+        </div>
+      );
+    }
+
+    if (isInactive) {
+      return (
+        <InlineAlert tone="info" title="Opens when your facilitator starts it">
+          You&apos;ll get a notification when submissions open.
+        </InlineAlert>
+      );
+    }
+
+    if (isRetryLimitReached) {
+      return (
+        <InlineAlert
+          tone="warning"
+          title={`You've used all ${maxAttempt} attempts`}
+        >
+          Ask your facilitator if you need another try.
+          {hasRecordedScore ? ` Your latest score is ${topicScore}%.` : ""}
+        </InlineAlert>
+      );
+    }
+
+    return null;
+  };
 
   const statusBadgeClassName = isInactive
     ? "bg-amber-100 text-amber-700"
@@ -516,27 +566,20 @@ export const LearningUnits: React.FC<Props> = ({
       }
 
       setEssayFile(file);
-      showNotification(`Selected file: ${file.name}`, "success");
     },
     [clearEssayFileSelection],
   );
 
   const handleEssayAssignmentSubmit = useCallback(async () => {
-    if (isInactive) {
-      showNotification("Assignment is not activated by facilitator.", "error");
-      return;
-    }
+    // The submit button is disabled in these states and an inline alert
+    // explains why, so there's nothing to report here.
+    if (isInactive || !hasRetriesLeft) return;
 
     if (isLockedByDueDate) {
       showNotification(
         "This assignment is locked because the due date has passed.",
         "error",
       );
-      return;
-    }
-
-    if (!hasRetriesLeft) {
-      showNotification("Retry limit reached. You cannot submit again.", "error");
       return;
     }
 
@@ -822,17 +865,7 @@ export const LearningUnits: React.FC<Props> = ({
             </div>
           </div>
 
-          {assignmentLockMessage && (
-            <div
-              className={`rounded-md border px-4 py-3 text-sm ${
-                isLockedByDueDate || isRetryLimitReached
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-amber-200 bg-amber-50 text-amber-700"
-              }`}
-            >
-              {assignmentLockMessage}
-            </div>
-          )}
+          {renderAssignmentLockNotice()}
 
           {!hasSubmittedAtLeastOnce || isRetrying ? (
             <div className={`space-y-4 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
@@ -870,21 +903,14 @@ export const LearningUnits: React.FC<Props> = ({
                 }
                 className="mt-2 px-4 py-2 text-sm rounded-md bg-primary text-white disabled:opacity-50"
                 onClick={async () => {
-                  if (isInactive) {
-                    showNotification("Assignment is not activated by facilitator.", "error");
-                    return;
-                  }
+                  // Disabled in these states; the inline alert above explains why.
+                  if (isInactive || !hasRetriesLeft) return;
 
                   if (isLockedByDueDate) {
                     showNotification(
                       "This assignment is locked because the due date has passed.",
                       "error"
                     );
-                    return;
-                  }
-
-                  if (!hasRetriesLeft) {
-                    showNotification("Retry limit reached. You cannot submit again.", "error");
                     return;
                   }
 
@@ -996,17 +1022,7 @@ export const LearningUnits: React.FC<Props> = ({
             dangerouslySetInnerHTML={{ __html: String(essayUnitData?.question ?? "") }}
           />
 
-          {assignmentLockMessage && (
-            <div
-              className={`rounded-md border px-4 py-3 text-sm ${
-                isLockedByDueDate || isRetryLimitReached
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-amber-200 bg-amber-50 text-amber-700"
-              }`}
-            >
-              {assignmentLockMessage}
-            </div>
-          )}
+          {renderAssignmentLockNotice()}
 
           {submission?.fileUrl && (
             <div className="rounded-xl border border-lightGray bg-lightGray/10 p-4 text-sm text-primaryGray">
@@ -1040,8 +1056,10 @@ export const LearningUnits: React.FC<Props> = ({
             />
 
             {essayFile && (
-              <p className="text-sm text-primaryGray">
-                Ready to upload: <span className="font-medium">{essayFile.name}</span>
+              <p className="text-xs text-primaryGray">
+                <span className="font-medium text-foreground">{essayFile.name}</span>
+                {" · "}
+                {formatFileSize(essayFile.size)}
               </p>
             )}
 

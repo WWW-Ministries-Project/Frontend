@@ -18,15 +18,16 @@ import {
 import {
   decodeQuery,
   encodeQuery,
-  showConfirmDialog,
   showLoader,
   showNotification,
 } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
 import {
   BulkOutcome,
   advanceMembers,
+  assignMembersToDepartment,
   describeOutcome,
   removeMemberFromDepartment,
   setMembersActive,
@@ -143,10 +144,7 @@ export const AdminMemberProfile = () => {
       showNotification(message, type);
       if (outcome.succeeded > 0) await refetch();
     } catch (reason) {
-      showNotification(
-        (reason as { message?: string })?.message || "Something went wrong",
-        "error"
-      );
+      notify.fromError(reason, { title: `Couldn't update ${name}` });
     } finally {
       setBusy(false);
       showLoader(false);
@@ -169,31 +167,48 @@ export const AdminMemberProfile = () => {
       { state: { mode: "edit" } }
     );
 
-  const removeDepartment = (department: ProfileDepartment) => {
+  const removeDepartment = async (department: ProfileDepartment) => {
     if (department.departmentId === null) return;
     const departmentId = department.departmentId;
-    showConfirmDialog(
-      `Remove from ${department.department}?`,
-      async () => {
-        showLoader(true);
-        try {
-          await removeMemberFromDepartment(memberId, departmentId);
-          showNotification(`Removed from ${department.department}`);
-          await refetch();
-        } catch (reason) {
-          showNotification(
-            (reason as { message?: string })?.message || "Something went wrong",
-            "error"
-          );
-        } finally {
-          showLoader(false);
-        }
-      },
-      {
-        message: `${name} will no longer serve in this department.`,
-        confirmLabel: "Remove",
-      }
+    const departmentName = department.department;
+    // Keep the position so Undo puts the member back exactly where they were.
+    const previousRow = (Array.isArray(member.department_positions)
+      ? member.department_positions
+      : []
+    ).find(
+      (row) =>
+        row && typeof row === "object" && Number(row.department_id) === departmentId
     );
+    const previousPositionId =
+      previousRow && typeof previousRow === "object" && Number(previousRow.position_id) > 0
+        ? Number(previousRow.position_id)
+        : null;
+
+    showLoader(true);
+    try {
+      await removeMemberFromDepartment(memberId, departmentId);
+      await refetch();
+      notify.success({
+        title: `Removed from ${departmentName}`,
+        message: `${name} no longer appears on the roster.`,
+        undo: async () => {
+          const outcome = await assignMembersToDepartment(
+            [memberId],
+            departmentId,
+            previousPositionId
+          );
+          if (outcome.failed > 0) throw new Error(outcome.errors[0]);
+          await refetch();
+        },
+        undoneTitle: `${name} is back in ${departmentName}`,
+      });
+    } catch (reason) {
+      notify.fromError(reason, {
+        title: `Couldn't remove ${name} from ${departmentName}`,
+      });
+    } finally {
+      showLoader(false);
+    }
   };
 
   const directoryMember = toDirectoryMember(member);

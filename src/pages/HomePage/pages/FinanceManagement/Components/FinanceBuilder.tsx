@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- normalizes untyped finance API payloads */
 import React from "react";
 import { buildFinanceSummary } from "../utils/helperFunctions";
 import { useAuth } from "@/context/AuthWrapper";
@@ -84,7 +85,7 @@ const getMondaySundayWeeksInMonth = (
   const diffToMonday = day === 0 ? -6 : 1 - day;
   start.setDate(start.getDate() + diffToMonday);
 
-  let currentStart = new Date(start);
+  const currentStart = new Date(start);
   let weekIndex = 1;
 
   while (currentStart <= lastOfMonth) {
@@ -359,7 +360,11 @@ const MetadataFields = ({ mode }: { mode: "create" | "edit" | "view" }) => {
         value={values.branch_id ?? ""}
         onChange={(v) => setFieldValue("branch_id", v)}
         required
-        error={submitCount > 0 ? errors.branch_id as string | undefined : undefined}
+        error={
+          submitCount > 0 && !values.branch_id
+            ? "Choose the branch this finance record belongs to."
+            : (errors.branch_id as string | undefined)
+        }
       />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -523,10 +528,8 @@ const FinanceBuilder = ({
       initialValues={initialValues}
       enableReinitialize
       onSubmit={async (values) => {
-        if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
-          showNotification("Please select a branch before saving.", "error");
-          return;
-        }
+        // The branch picker shows a field message for this after submit.
+        if (activeBranchId === ALL_BRANCHES && !values.branch_id) return;
         const action = submitActionRef.current;
         const now = new Date().toISOString();
         const payload: FinanceData = {

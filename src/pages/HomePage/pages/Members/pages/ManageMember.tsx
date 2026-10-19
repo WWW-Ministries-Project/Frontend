@@ -86,8 +86,15 @@ export function ManageMember() {
         }
       }
 
+      // user/register answers { data: { parent: { id, name, … }, family } }.
+      const created = (
+        data as { data?: { parent?: { id?: number; name?: string } } } | null
+      )?.data?.parent;
       navigate(afterSubmitPath ?? "/home/members", {
-        state: { task: data ? "add" : "update" },
+        state: {
+          task: data ? "add" : "update",
+          member: created ? { id: created.id, name: created.name } : undefined,
+        },
       });
     }
   }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);

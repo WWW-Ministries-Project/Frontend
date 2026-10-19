@@ -9,7 +9,8 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { AllEventCard } from "../Components/AllEventCard";
 import { TAB_TO_EVENT_TYPE } from "../utils/eventInterfaces";
 import { useNavigate } from "react-router-dom";
@@ -111,7 +112,7 @@ const AllEvent = () => {
       showDeleteDialog({ id, name }, async () => {
         await executeDelete({ id: id });
         handleDelete(id);
-        showNotification("Event deleted successfully", "success");
+        notify.success({ title: "Event deleted", message: `${name} was removed.` });
       });
     };
   
@@ -135,8 +136,11 @@ const AllEvent = () => {
       } else {
         await postData(data);
       }
-    } catch {
-      showNotification("Something went wrong", "error");
+    } catch (error) {
+      notify.fromError(error, {
+        title: "Couldn't save the event",
+        retry: () => void handleMutate(data),
+      });
     }
   };
 
@@ -155,7 +159,7 @@ const AllEvent = () => {
       typeof event.event_description === "string"
     ) {
       addToList(event);
-      showNotification("Events created successfully", "success");
+      notify.success({ title: "Event created", message: `${event.event_name} was added.` });
       setCurrentData(null);
     }
   }, [data?.data]);
@@ -167,7 +171,12 @@ const AllEvent = () => {
         ...updatedData,
         id: currentData?.id,
       });
-      showNotification("Event updated successfully", "success");
+      notify.success({
+        title: "Event updated",
+        message: updatedData.event_name
+          ? `Changes to ${updatedData.event_name} were saved.`
+          : undefined,
+      });
       setCurrentData(null);
     }
   }, [update_value?.data, editItem]);

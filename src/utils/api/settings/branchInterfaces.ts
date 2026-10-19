@@ -21,3 +21,18 @@ export interface BranchPayload {
   location?: string | null;
   pastor_in_charge_id?: number | null;
 }
+
+export interface BranchDeleteBlocker {
+  key: string;
+  /** Ready to show, e.g. "412 members". */
+  label: string;
+  count: number;
+}
+
+export interface BranchDeleteImpact {
+  branch_id: number;
+  name: string;
+  is_default: boolean;
+  deletable: boolean;
+  blockers: BranchDeleteBlocker[];
+}

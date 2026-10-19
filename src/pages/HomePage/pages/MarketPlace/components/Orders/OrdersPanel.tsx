@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { notify } from "@/components/feedback";
 import { Modal } from "@/components/Modal";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -204,8 +205,19 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
 
   const handleExport = () => {
     const prefix = marketName ? `${marketName.replace(/\W+/g, "-")}-` : "";
-    downloadCsv(ordersToCsv(visible), `${prefix}Orders.csv`);
-    showNotification(`Exported ${plural(visible.length, "order")}`, "success");
+    const filename = `${prefix}Orders.csv`;
+    const count = plural(visible.length, "order");
+    const toast = notify.loading({ title: `Exporting ${count}…` });
+    try {
+      downloadCsv(ordersToCsv(visible), filename);
+      toast.success({ title: "Export ready", message: `${filename} · ${count}` });
+    } catch {
+      toast.error({
+        title: "Export didn't finish",
+        message: "Nothing was downloaded. Try again.",
+        retry: handleExport,
+      });
+    }
   };
 
   const handleReconcile = async () => {
@@ -277,24 +289,38 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
   };
 
   const handleBulkDelete = () => {
-    if (!selected.length) return;
+    const n = selected.length;
+    if (!n) return;
+    const noun = plural(n, "order");
     showDeleteDialog(
-      { id: selected.join(","), name: plural(selected.length, "order") },
+      { id: selected.join(","), name: noun },
+      // Let failures reject: the dialog keeps itself open and shows the error.
       async (ids) => {
-        try {
-          const res = await api.delete.bulkDeleteOrders({ ids: String(ids) });
-          const skipped = res?.data?.skipped?.length || 0;
-          showNotification(
-            skipped
-              ? `${res?.data?.deleted ?? 0} order(s) deleted, ${skipped} could not be deleted`
-              : "Selected orders deleted",
-            skipped ? "error" : "success"
-          );
-          clearSelection();
-          await refetch();
-        } catch (err) {
-          showNotification(errorMessage(err, "Unable to delete selected orders"), "error");
+        const res = await api.delete.bulkDeleteOrders({ ids: String(ids) });
+        const skippedIds = (res?.data?.skipped || []) as (number | string)[];
+        const deleted = res?.data?.deleted ?? n - skippedIds.length;
+        if (skippedIds.length) {
+          notify.partial({
+            title: `${plural(deleted, "order")} deleted, ${skippedIds.length} not`,
+            message: "The orders below are still in the list. Try deleting them again.",
+            failed: skippedIds.map((id) => ({ label: orderNumberOf(id) })),
+          });
+        } else {
+          notify.success({ title: `${noun} deleted` });
         }
+        clearSelection();
+        await refetch();
+      },
+      {
+        title: `Delete ${noun}?`,
+        points: [
+          "Unpaid orders are cancelled and their items go back into stock.",
+          "Paid orders are removed from the list. Payments aren't refunded.",
+          "This can't be undone.",
+        ],
+        confirmLabel: `Delete ${noun}`,
+        cancelLabel: "Keep orders",
+        ...(n > 10 ? { typeToConfirm: String(n) } : {}),
       }
     );
   };

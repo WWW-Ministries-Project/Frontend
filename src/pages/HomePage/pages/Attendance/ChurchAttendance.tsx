@@ -17,7 +17,7 @@ import {
   SelectInput,
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { api } from "@/utils";
 
 import { CountTabs, GroupSection, StatGrid, StatTile } from "./Components/attendanceUi";
@@ -330,14 +330,21 @@ export default function ChurchAttendance() {
   /* -------------------------------- actions -------------------------------- */
 
   const exportCsv = () => {
-    downloadCsv("church-attendance.csv", [
-      ["Service", "Date", "Time", "Adult male", "Adult female", "Youth male", "Youth female", "Children male", "Children female", "Visitors", "Visiting clergy", "Total", "Recorded by", "Recorded on"],
-      ...recList.map(({ record: r, name, time }) => {
-        const t = totalsOf(r);
-        return [name, r.date, time, r.adultMale, r.adultFemale, r.youthMale, r.youthFemale, r.childrenMale, r.childrenFemale, t.vis, t.cl, t.total, r.recordedByName, r.enteredOn];
-      }),
-    ]);
-    showNotification(`Exported ${plural(recList.length, "record")}.`, "success", "Attendance");
+    const filename = "church-attendance.csv";
+    const count = plural(recList.length, "record");
+    const toast = notify.loading({ title: `Exporting ${count}…` });
+    try {
+      downloadCsv(filename, [
+        ["Service", "Date", "Time", "Adult male", "Adult female", "Youth male", "Youth female", "Children male", "Children female", "Visitors", "Visiting clergy", "Total", "Recorded by", "Recorded on"],
+        ...recList.map(({ record: r, name, time }) => {
+          const t = totalsOf(r);
+          return [name, r.date, time, r.adultMale, r.adultFemale, r.youthMale, r.youthFemale, r.childrenMale, r.childrenFemale, t.vis, t.cl, t.total, r.recordedByName, r.enteredOn];
+        }),
+      ]);
+      toast.success({ title: "Export ready", message: `${filename} · ${count}` });
+    } catch {
+      toast.error({ title: "Export didn't finish", message: "Nothing was downloaded. Try again.", retry: exportCsv });
+    }
   };
 
   const confirmDelete = async () => {
@@ -345,11 +352,11 @@ export default function ChurchAttendance() {
     setDeleteBusy(true);
     try {
       await api.delete.deleteChurchAttendance({ id: deleting.record.id });
-      showNotification("Record deleted.", "success", "Attendance");
+      notify.success({ title: "Record deleted", message: `${deleting.name} on ${deleting.record.date} was removed.` });
       setDeleting(null);
       refetch();
     } catch (error) {
-      showNotification(error instanceof Error ? error.message : "Unable to delete the record.", "error", "Attendance");
+      notify.fromError(error, { title: "Couldn't delete the record", retry: () => void confirmDelete() });
     } finally {
       setDeleteBusy(false);
     }

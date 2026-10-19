@@ -1,4 +1,4 @@
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback/notify";
 import { AxiosError } from "axios";
 
 class ApiError extends Error {
@@ -22,24 +22,6 @@ class ApiError extends Error {
 }
 
 class ApiErrorHandler {
-  private static readonly SESSION_EXPIRY_MARKERS = [
-    "session expired",
-    "token not found",
-    "not authorized. token not found",
-    "jwt expired",
-    "token expired",
-  ];
-  private static readonly PERMISSION_DENIAL_MARKERS = [
-    "access denied",
-    "permission denied",
-    "insufficient permission",
-    "insufficient permissions",
-    "forbidden",
-    "not allowed",
-    "unauthorized to access",
-    "you do not have permission",
-  ];
-
   private static readonly PUSH_PUBLIC_KEY_PATH = "/notifications/push/public-key";
 
   private static asNonEmptyString(value: unknown): string | null {
@@ -96,24 +78,6 @@ class ApiErrorHandler {
     return null;
   }
 
-  private static isSessionExpiredMessage(message: string): boolean {
-    const normalizedMessage = message.trim().toLowerCase();
-    if (!normalizedMessage) return false;
-
-    return this.SESSION_EXPIRY_MARKERS.some((marker) =>
-      normalizedMessage.includes(marker)
-    );
-  }
-
-  private static isPermissionDeniedMessage(message: string): boolean {
-    const normalizedMessage = message.trim().toLowerCase();
-    if (!normalizedMessage) return false;
-
-    return this.PERMISSION_DENIAL_MARKERS.some((marker) =>
-      normalizedMessage.includes(marker)
-    );
-  }
-
   private static resolveRequestPath(error: AxiosError): string {
     const requestUrl = error.config?.url;
     if (!requestUrl) return "";
@@ -129,34 +93,6 @@ class ApiErrorHandler {
   private static isPushPublicKeyRequest(path: string): boolean {
     if (!path) return false;
     return path.includes(this.PUSH_PUBLIC_KEY_PATH);
-  }
-
-  private static parseRetryAfterSeconds(value: unknown): number | null {
-    const normalizedValue = this.asNonEmptyString(value);
-    if (!normalizedValue) return null;
-
-    const numericSeconds = Number(normalizedValue);
-    if (Number.isFinite(numericSeconds) && numericSeconds >= 0) {
-      return Math.ceil(numericSeconds);
-    }
-
-    const retryAt = Date.parse(normalizedValue);
-    if (Number.isNaN(retryAt)) return null;
-
-    const diffSeconds = Math.ceil((retryAt - Date.now()) / 1000);
-    return diffSeconds > 0 ? diffSeconds : null;
-  }
-
-  private static resolveRetryAfterSeconds(headers: unknown): number | null {
-    if (!headers || typeof headers !== "object") return null;
-
-    const headerRecord = headers as Record<string, unknown>;
-    const retryAfterRaw =
-      headerRecord["retry-after"] ??
-      headerRecord["Retry-After"] ??
-      headerRecord.retryAfter;
-
-    return this.parseRetryAfterSeconds(retryAfterRaw);
   }
 
   static handleResponse(response: Response): Promise<unknown> {
@@ -176,7 +112,7 @@ class ApiErrorHandler {
 
   static handleError(error: unknown): Error {
     if (error instanceof ApiError) {
-      showNotification(error.message, "error", "Error");
+      notify.fromError(error, { preferServerMessage: true, source: "api" });
       throw error;
     }
 
@@ -201,53 +137,9 @@ class ApiErrorHandler {
         throw normalizedError;
       }
 
-      if (statusCode === 401) {
-        if (this.isSessionExpiredMessage(normalizedError.message)) {
-          showNotification(
-            "Your session has expired. Please login again.",
-            "error",
-            "Authentication"
-          );
-        } else if (this.isPermissionDeniedMessage(normalizedError.message)) {
-          showNotification(
-            normalizedError.message ||
-              "You do not have permission to perform this action.",
-            "error",
-            "Access denied"
-          );
-        } else {
-          showNotification(
-            normalizedError.message ||
-              "Authentication failed. Please confirm your access and try again.",
-            "error",
-            "Unauthorized"
-          );
-        }
-      } else if (statusCode === 403) {
-        showNotification(
-          "You do not have permission to perform this action.",
-          "error",
-          "Access denied"
-        );
-      } else if (statusCode === 429) {
-        const retryAfterSeconds = this.resolveRetryAfterSeconds(
-          error.response?.headers
-        );
-        const cooldownMessage = retryAfterSeconds
-          ? `Too many requests. Please try again in ${retryAfterSeconds} seconds.`
-          : "Too many requests. Please try again later.";
-
-        showNotification(cooldownMessage, "error", "Rate limited");
-      } else if (statusCode >= 500) {
-        showNotification(
-          "Something went wrong on the server. Please try again.",
-          "error",
-          "Server error"
-        );
-      } else {
-        showNotification(normalizedError.message, "error", "Error");
-      }
-
+      // Pass the raw axios error so offline/timeout codes and Retry-After
+      // headers reach the copy mapping.
+      notify.fromError(error, { preferServerMessage: true, source: "api" });
       throw normalizedError;
     }
 
@@ -256,7 +148,7 @@ class ApiErrorHandler {
       "An unexpected error occurred";
     const normalizedError = new ApiError(genericMessage, 500, error);
 
-    showNotification(normalizedError.message, "error", "Error");
+    notify.fromError(error, { source: "api" });
     throw normalizedError;
   }
 }

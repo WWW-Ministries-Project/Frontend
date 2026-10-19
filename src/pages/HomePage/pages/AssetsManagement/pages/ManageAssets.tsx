@@ -4,6 +4,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import { baseUrl } from "@/pages/Authentication/utils/helpers";
+import { notify } from "@/components/feedback";
 import { showNotification } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import { validateUploadFile } from "@/utils/uploadValidation";
@@ -63,10 +64,9 @@ export const ManageAsset = () => {
       });
     }
     if (error || updateError) {
-      showNotification(
-        error?.message || updateError?.message || "Something went wrong",
-        "error"
-      );
+      notify.fromError(error || updateError, {
+        title: updateError ? "Couldn't save the asset changes" : "Couldn't add the asset",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error, updatedData, updateError]);
@@ -103,12 +103,8 @@ export const ManageAsset = () => {
         updateData(dataToSend);
       } else postData(dataToSend);
     } catch (submitError) {
-      showNotification(
-        submitError instanceof Error
-          ? submitError.message
-          : "Something went wrong",
-        "error"
-      );
+      // Covers the photo check and upload; the form keeps what was entered.
+      notify.fromError(submitError, { title: "Couldn't upload the asset photo" });
     }
   };
 

@@ -12,7 +12,8 @@ import { useUserStore } from "@/store/userStore";
 import { MembersType, relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { QueryType } from "@/utils/interfaces";
-import { showConfirmDialog, showLoader, showNotification } from "@/pages/HomePage/utils";
+import { showConfirmDialog, showLoader } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
 import { Modal } from "@/components/Modal";
@@ -109,45 +110,95 @@ export const UserManagement = () => {
     }
 
     if (targets.length === 0) {
-      showNotification(
-        "You can't deactivate only your own account.",
-        "error"
-      );
+      notify.info({
+        title: "Nothing to deactivate",
+        message: "You can't deactivate your own account. Select other users.",
+      });
       return;
     }
 
     const verb = isActivating ? "Activate" : "Deactivate";
+    const pastVerb = isActivating ? "activated" : "deactivated";
+    const stateWord = isActivating ? "active" : "inactive";
     const consequence = isActivating
       ? "They will regain login access."
       : "They will lose login access until reactivated.";
     const selfNote = selfExcluded
       ? " Your own account was excluded from this action."
       : "";
+    const plural = (count: number) => (count === 1 ? "user" : "users");
+
+    const runUpdate = (batch: User[]) => {
+      showLoader(true);
+      api.post
+        .bulkUpdateUserStatus({
+          user_ids: batch.map((u) => u.id),
+          is_active: isActivating,
+        })
+        .then((response) => {
+          const summary = response?.data?.summary;
+          const results = response?.data?.results ?? [];
+          if (summary) {
+            const { total, succeeded, skipped, failed } = summary;
+            if (failed > 0) {
+              const failedIds = new Set(
+                results.filter((r) => !r.success).map((r) => String(r.user_id))
+              );
+              const failedUsers = batch.filter((u) =>
+                failedIds.has(String(u.id))
+              );
+              const done = succeeded + skipped;
+              notify.partial({
+                title: `${done} of ${total} ${plural(total)} updated`,
+                message: `${failed} couldn't change.`,
+                failed: results
+                  .filter((r) => !r.success)
+                  .map((r) => ({
+                    label:
+                      batch.find((u) => String(u.id) === String(r.user_id))
+                        ?.name ?? `User ${r.user_id}`,
+                    reason: r.message,
+                  })),
+                retry: failedUsers.length
+                  ? () => runUpdate(failedUsers)
+                  : undefined,
+              });
+            } else if (succeeded === 0 && skipped > 0) {
+              notify.info({
+                title: `Already ${stateWord}`,
+                message:
+                  skipped === 1
+                    ? `That user was already ${stateWord}.`
+                    : `All ${skipped} users were already ${stateWord}.`,
+              });
+            } else {
+              notify.success({
+                title: `${succeeded} ${plural(succeeded)} ${pastVerb}`,
+                message:
+                  skipped > 0
+                    ? `${skipped} ${skipped === 1 ? "was" : "were"} already ${stateWord}.`
+                    : undefined,
+              });
+            }
+          } else {
+            notify.success({
+              title: `${batch.length} ${plural(batch.length)} ${pastVerb}`,
+            });
+          }
+          refetch();
+        })
+        .catch((err) => {
+          notify.fromError(err, {
+            title: "Couldn't update users",
+            retry: () => runUpdate(batch),
+          });
+        })
+        .finally(() => showLoader(false));
+    };
 
     showConfirmDialog(
-      `${verb} ${targets.length} user${targets.length !== 1 ? "s" : ""}?`,
-      () => {
-        showLoader(true);
-        api.post
-          .bulkUpdateUserStatus({
-            user_ids: targets.map((u) => u.id),
-            is_active: isActivating,
-          })
-          .then((response) => {
-            const summary = response?.data?.summary;
-            if (summary) {
-              showNotification(
-                `${summary.succeeded} updated, ${summary.skipped} already ${isActivating ? "active" : "inactive"}, ${summary.failed} failed`,
-                summary.failed > 0 ? "error" : "success"
-              );
-            }
-            refetch();
-          })
-          .catch(() => {
-            showNotification("Bulk update failed. Try again.", "error");
-          })
-          .finally(() => showLoader(false));
-      },
+      `${verb} ${targets.length} ${plural(targets.length)}?`,
+      () => runUpdate(targets),
       { message: `${consequence}${selfNote}`, confirmLabel: verb }
     );
   };

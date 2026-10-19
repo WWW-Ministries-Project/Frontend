@@ -1,5 +1,4 @@
 import React from 'react';
-import { showNotification } from "@/pages/HomePage/utils";
 
 interface AccessRight {
   id: number;
@@ -24,14 +23,10 @@ const AccessRightsList: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">All access right</h2>
         <button
-          className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
-          onClick={() =>
-            showNotification(
-              "Create Access Right action is not wired yet.",
-              "error",
-              "Coming soon"
-            )
-          }
+          type="button"
+          className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition disabled:cursor-not-allowed disabled:opacity-60"
+          disabled
+          title="Creating access rights isn't available yet."
         >
           Create access right
         </button>
@@ -81,24 +76,6 @@ export const AccessLevelManagement: React.FC = () => {
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Super admin</h2>
-        <div className="space-x-2">
-          <button
-            className="text-gray-600 bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition"
-            onClick={() =>
-              showNotification("Close action clicked.", "success", "Action")
-            }
-          >
-            Close
-          </button>
-          <button
-            className="text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700 transition"
-            onClick={() =>
-              showNotification("Edit action clicked.", "success", "Action")
-            }
-          >
-            Edit
-          </button>
-        </div>
       </div>
 
       {/* Table Section */}

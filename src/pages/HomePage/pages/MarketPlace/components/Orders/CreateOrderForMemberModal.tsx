@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { useFetch } from "@/CustomHooks/useFetch";
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { useStore } from "@/store/useStore";
 import { api, relativePath } from "@/utils";
 import type {
@@ -211,7 +211,10 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
           country_code: m.country_code || "",
         });
     } catch (err) {
-      showNotification(errorMessage(err, "Unable to load member details"), "error");
+      notify.fromError(err, {
+        title: "Couldn't load member details",
+        retry: () => void pickMember(id),
+      });
     } finally {
       setLoadingMember(false);
     }
@@ -304,14 +307,24 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
       const res = await api.post.createOrderForMember(payload);
       onCreated?.();
       const data = res?.data as { checkoutUrl?: string; order_number?: string } | undefined;
+      const memberName =
+        [billing.first_name, billing.last_name].filter(Boolean).join(" ") || "the member";
       if (data && "checkoutUrl" in data && data.checkoutUrl) {
-        setCheckoutUrl(data.checkoutUrl);
-        showNotification("Order created — share the payment link with the member", "success");
+        const link = data.checkoutUrl;
+        setCheckoutUrl(link);
+        notify.success({
+          title: `Order created for ${memberName}`,
+          message: `${formatMoney(total)} · waiting for payment.`,
+          action: {
+            label: "Copy payment link",
+            onClick: () => void navigator.clipboard?.writeText(link),
+          },
+        });
       } else {
-        showNotification(
-          `Order ${data?.order_number ? `${data.order_number} ` : ""}recorded`,
-          "success"
-        );
+        notify.success({
+          title: `Order created for ${memberName}`,
+          message: `${data?.order_number ? `${data.order_number} · ` : ""}${formatMoney(total)} · marked as paid.`,
+        });
         onClose();
       }
     } catch (err) {
@@ -325,9 +338,12 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
     if (!checkoutUrl) return;
     try {
       await navigator.clipboard.writeText(checkoutUrl);
-      showNotification("Payment link copied", "success");
+      notify.success({ title: "Link copied", duration: 3000 });
     } catch {
-      showNotification("Copy the link from the field above", "error");
+      notify.error({
+        title: "Couldn't copy the link",
+        message: "Your browser blocked the clipboard. Copy it from the field above.",
+      });
     }
   };
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import {
   Field,
   FilterPanel,
@@ -139,6 +139,9 @@ export function VisitorManagement() {
   };
 
   const exportList = async () => {
+    const filename = "Visitors.xlsx";
+    const count = `${list.length} ${list.length === 1 ? "visitor" : "visitors"}`;
+    const toast = notify.loading({ title: `Exporting ${count}…` });
     try {
       await exportVisitorsToExcel(
         list.map((record) => ({
@@ -156,14 +159,16 @@ export function VisitorManagement() {
           referral: heardLabel(record.howHeard),
           followUps: record.followUps.length,
           status: STAGE_PILL[record.stage].label,
-        }))
+        })),
+        filename
       );
-      showNotification(
-        `Exported ${list.length} ${list.length === 1 ? "visitor" : "visitors"}`,
-        "success"
-      );
+      toast.success({ title: "Export ready", message: `${filename} · ${count}` });
     } catch {
-      showNotification("Could not export visitors.", "error");
+      toast.error({
+        title: "Export didn't finish",
+        message: "Nothing was downloaded. Try again.",
+        retry: () => void exportList(),
+      });
     }
   };
 

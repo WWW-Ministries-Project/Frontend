@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import type { IProductTypeResponse } from "@/utils";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 
 import { useCart } from "../../utils/cartSlice";
 import { buildCartItem, cartQuantityFor, colourSizes, variantStock } from "./storefrontModel";
@@ -22,7 +22,14 @@ export function useStorefrontAddToCart() {
       const inCart = cartQuantityFor(cartItems, `${product.id}`, colour.colour, size);
       const room = avail - inCart;
       if (room <= 0) {
-        showNotification("You already have all available stock in your cart", "error");
+        notify.info(
+          avail <= 0
+            ? { title: "Out of stock", message: "Check back after restock." }
+            : {
+                title: `All ${avail} in stock are in your cart`,
+                message: "Reduce another item or check back after restock.",
+              }
+        );
         return false;
       }
       addToCart(buildCartItem(product, colourIndex, size, Math.max(1, Math.min(quantity, room))));

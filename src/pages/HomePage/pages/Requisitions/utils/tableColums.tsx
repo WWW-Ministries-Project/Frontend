@@ -2,7 +2,8 @@ import Elipsis from "@/assets/ellipse.svg";
 import Action from "@/components/Action";
 import StatusPill from "@/components/StatusPill";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
+import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 import { ColumnDef } from "@tanstack/react-table";
@@ -227,15 +228,19 @@ export const tableColumns: ColumnDef<Requisition>[] = [
           };
         }, []);
 
+        const requisitionLabel = row.original.generated_id || requisitionId;
+
         useEffect(() => {
           if (success) {
-            showNotification("Requisition deleted successfully");
+            notify.success({ title: `Requisition ${requisitionLabel} deleted` });
             removeRequest(requisitionId);
           }
           if (error) {
-            showNotification("Something went wrong");
+            notify.fromError(error, {
+              title: `Couldn't delete requisition ${requisitionLabel}`,
+            });
           }
-        }, [success, error, removeRequest, requisitionId]);
+        }, [success, error, removeRequest, requisitionId, requisitionLabel]);
 
         const handleDelete = async () => {
           setShowActions(false);

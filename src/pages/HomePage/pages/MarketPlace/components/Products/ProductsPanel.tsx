@@ -4,7 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { encodeQuery, showNotification } from "@/pages/HomePage/utils";
+import { InlineAlert } from "@/components/feedback";
+import { encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import type {
   IMarket,
@@ -23,6 +24,7 @@ import {
   variantCount,
 } from "../../utils/marketplaceModel";
 import { ConfigurationsDrawer } from "../ConfigurationsDrawer";
+import { MarketFormModal, type MarketModalMode } from "../markets/MarketFormModal";
 import { StatusPill } from "../StatusPill";
 import { unitsSoldByProduct } from "../markets/marketStats";
 import { PageHeader, PillTabs } from "../markets/ui";
@@ -86,12 +88,15 @@ export function ProductsPanel({
     marketId ? { market_id: marketId } : undefined,
     productsInjected || !marketId
   );
-  const { data: marketsRes } = useFetch(
+  const { data: marketsRes, refetch: refetchMarkets } = useFetch(
     api.fetch.fetchMarkets,
     undefined,
     Boolean(marketId)
   );
   const markets: IMarket[] | undefined = marketId ? undefined : marketsRes?.data;
+  // Products belong to a market: with none, adding a product can't start.
+  const noMarkets = !marketId && Array.isArray(markets) && markets.length === 0;
+  const [marketModal, setMarketModal] = useState<MarketModalMode | null>(null);
   const { byMarket, loaded: allLoaded } = useProductsByMarkets(markets);
 
   const ordersInjected = injectedOrders !== undefined;
@@ -209,10 +214,7 @@ export function ProductsPanel({
           markets?.[0]?.id ??
           ""
       );
-    if (!target) {
-      showNotification("Create a market before adding products", "error");
-      return;
-    }
+    if (!target) return;
     navigate(`/home/market-place/${encodeQuery(target)}/create-product`, {
       state: { from, fromLabel: header ? "products" : undefined },
     });
@@ -231,8 +233,24 @@ export function ProductsPanel({
         : "grid-cols-[2.4fr_1fr_1.4fr_0.9fr_56px]"
   );
 
+  const noMarketsTip = noMarkets ? "Create a market first" : undefined;
+
   const panel = (
     <>
+    {noMarkets && (
+      <InlineAlert
+        tone="info"
+        title="Create a market first"
+        className="mb-4"
+        action={
+          canManageCurrentRoute
+            ? { label: "Create market", onClick: () => setMarketModal({ kind: "create" }) }
+            : undefined
+        }
+      >
+        Products belong to a market. Set one up, then add products to it.
+      </InlineAlert>
+    )}
     <section className={cn(card, "overflow-hidden text-primary")}>
       <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4">
         <div className="flex flex-1 flex-wrap gap-1.5">
@@ -401,7 +419,7 @@ export function ProductsPanel({
               ? "No products yet."
               : "No products match these filters."}
           </p>
-          {rows.length === 0 && canManageCurrentRoute && (
+          {rows.length === 0 && canManageCurrentRoute && !noMarkets && (
             <button type="button" className={btnPrimary} onClick={addProduct}>
               Add product
             </button>
@@ -416,6 +434,16 @@ export function ProductsPanel({
       types={typesRes?.data || []}
       refetch={refetchConfig}
     />
+    {!marketId && (
+      <MarketFormModal
+        mode={marketModal}
+        onClose={() => setMarketModal(null)}
+        onSaved={() => {
+          setMarketModal(null);
+          refetchMarkets();
+        }}
+      />
+    )}
     </>
   );
 
@@ -428,7 +456,13 @@ export function ProductsPanel({
         subtitle={header.subtitle}
         actions={
           canManageCurrentRoute && (
-            <button type="button" className={btnPrimary} onClick={addProduct}>
+            <button
+              type="button"
+              className={cn(btnPrimary, noMarkets && "cursor-not-allowed opacity-50")}
+              onClick={addProduct}
+              disabled={noMarkets}
+              title={noMarketsTip}
+            >
               Add product
             </button>
           )
